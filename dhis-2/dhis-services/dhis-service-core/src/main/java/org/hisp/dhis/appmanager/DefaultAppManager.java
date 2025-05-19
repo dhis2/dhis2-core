@@ -184,12 +184,12 @@ public class DefaultAppManager implements AppManager {
           installedApps.computeIfAbsent(
               key, x -> installBundledAppResource(resource, fileName, appInfo));
 
-          // Always true, might want to add additional checks, like ignore overwrites during
+          // TODO: Always true, might want to add additional checks, like ignore overwrites during
           // production?
           if (installedApps.containsKey(key)) {
             AppInfo installedAppInfo = installedApps.get(key).getBundledAppInfo();
             // If we already have bundled app installed automatically (since we have the bundled app
-            // info set), and if the etag is different from the one we have now, overwrite.
+            // info set), and if the Etag is different from the one we have now, overwrite.
             if (installedAppInfo != null
                 && installedAppInfo.getEtag() != null
                 && !installedAppInfo.getEtag().equals(appInfo.getEtag())) {

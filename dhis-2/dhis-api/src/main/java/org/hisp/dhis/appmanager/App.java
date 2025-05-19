@@ -37,6 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.*;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -530,7 +531,7 @@ public class App implements Serializable {
   }
 
   @JsonIgnore
-  @Nonnull
+  @CheckForNull
   public AppInfo getBundledAppInfo() {
     return bundledAppInfo;
   }

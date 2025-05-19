@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -57,6 +57,10 @@ public class BundledAppManager {
 
   public void installBundledApps(TriConsumer<String, AppInfo, Resource> consumer) {
     AppBundleInfo appBundleInfo = getAppBundleInfo();
+    if (appBundleInfo == null) {
+      return;
+    }
+
     Map<String, AppInfo> bundledAppsInfo =
         appBundleInfo.getApps().stream()
             .collect(Collectors.toMap(AppInfo::getName, Function.identity()));
@@ -86,6 +90,12 @@ public class BundledAppManager {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
+
+      if (resources.length == 0 || resources[0] == null || !resources[0].exists()) {
+        log.warn(String.format("Bundled apps info file not found at: '%s'", APPS_BUNDLE_INFO_PATH));
+        return null;
+      }
+
       return objectMapper.readValue(resources[0].getInputStream(), AppBundleInfo.class);
     } catch (IOException e) {
       throw new RuntimeException(e);

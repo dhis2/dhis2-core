@@ -104,7 +104,7 @@ public class SpringIntegrationTestExtension
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {
-    writeBundledAppFile();
+    //    writeBundledAppFile();
 
     if (isTestLifecyclePerMethod(context)) {
       return;
