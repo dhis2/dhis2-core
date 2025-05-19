@@ -177,22 +177,24 @@ public class DefaultAppManager implements AppManager {
               installedApps.put(key, app);
             });
 
-    // Install bundled app if not already installed manually or automatic
     bundledAppManager.installBundledApps(
         (key, appInfo, resource) -> {
           String fileName = key + ".zip";
+          // Install bundled apps if not already installed manually or automatic
           installedApps.computeIfAbsent(
               key, x -> installBundledAppResource(resource, fileName, appInfo));
 
-          // TODO: Always true, might want to add additional checks, like ignore overwrites during
-          // production?
+          // TODO: Always true, might want to add additional checks, like ignore overwrites
+          // during production?
           if (installedApps.containsKey(key)) {
             AppInfo installedAppInfo = installedApps.get(key).getBundledAppInfo();
-            // If we already have bundled app installed automatically (since we have the bundled app
-            // info set), and if the Etag is different from the one we have now, overwrite.
+            // If we already have a bundled app installed automatically (since we have the AppInfo),
+            // and the Etag is different from the "new", overwrite the existing.
             if (installedAppInfo != null
                 && installedAppInfo.getEtag() != null
                 && !installedAppInfo.getEtag().equals(appInfo.getEtag())) {
+              log.info(
+                  "A bundled app with a different Etag was available and replaced the installed app");
               installedApps.put(key, installBundledAppResource(resource, fileName, appInfo));
             }
           }

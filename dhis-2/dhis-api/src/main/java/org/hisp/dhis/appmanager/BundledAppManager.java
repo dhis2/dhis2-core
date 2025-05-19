@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -91,6 +91,7 @@ public class BundledAppManager {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
 
+      // Ignore if not exists, this is the case when running tests
       if (resources.length == 0 || resources[0] == null || !resources[0].exists()) {
         log.warn(String.format("Bundled apps info file not found at: '%s'", APPS_BUNDLE_INFO_PATH));
         return null;

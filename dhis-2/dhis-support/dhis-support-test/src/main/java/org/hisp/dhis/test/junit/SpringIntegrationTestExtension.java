@@ -34,14 +34,8 @@ import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.FlushMode;
@@ -104,39 +98,12 @@ public class SpringIntegrationTestExtension
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {
-    //    writeBundledAppFile();
-
     if (isTestLifecyclePerMethod(context)) {
       return;
     }
 
     setUp(context);
     log(context, "beforeAll", "ran setUp");
-  }
-
-  private static void writeBundledAppFile() {
-    try {
-      URL resource = SpringIntegrationTestExtension.class.getClassLoader().getResource("");
-      if (resource == null) {
-        throw new RuntimeException("Cannot find classpath root");
-      }
-      Path classpathRoot = Paths.get(resource.toURI());
-      Path appsBundleDir = classpathRoot.resolve("static/dhis-web-apps");
-      Path appsBundleFile = appsBundleDir.resolve("apps-bundle.json");
-
-      Files.createDirectories(appsBundleDir);
-      String jsonContent =
-          """
-      {
-        "buildDate" : "Mon May 19 02:53:54 PST 2025",
-        "apps" : []
-      }
-      """;
-      Files.write(appsBundleFile, jsonContent.getBytes());
-    } catch (IOException | URISyntaxException e) {
-      log.error("Failed to create temporary apps-bundle.json", e);
-      throw new RuntimeException("Failed to create temporary apps-bundle.json", e);
-    }
   }
 
   @Override
