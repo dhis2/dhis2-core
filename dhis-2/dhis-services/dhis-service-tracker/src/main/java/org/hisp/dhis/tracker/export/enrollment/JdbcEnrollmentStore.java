@@ -268,7 +268,7 @@ public class JdbcEnrollmentStore {
 
     if (params.hasEnrollmentStatus()) {
       sql.append(hlp.whereAnd()).append("e.status = :enrollmentStatus");
-      sqlParams.addValue("enrollmentStatus", params.getEnrollmentStatus());
+      sqlParams.addValue("enrollmentStatus", params.getEnrollmentStatus().name());
     }
 
     if (params.hasFollowUp()) {
@@ -313,7 +313,8 @@ public class JdbcEnrollmentStore {
   private long countEnrollments(EnrollmentQueryParams params) {
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
     String sql = getCountQuery(params, sqlParams);
-    return jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
+    Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
+    return count != null ? count : 0L;
   }
 
   private String getCountQuery(
