@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.programevent;
 
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -58,7 +58,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -100,11 +99,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @Slf4j
-@Repository("org.hisp.dhis.tracker.export.event.EventStore")
+@Repository("org.hisp.dhis.tracker.export.programevent.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore {
   private static final String EVENT_NOTE_QUERY =
@@ -183,21 +179,15 @@ class JdbcEventStore {
       " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   /**
-   * Events can be ordered by given fields which correspond to fields on {@link
-   * org.hisp.dhis.program.Event}. Maps fields to DB columns.
+   * Events can be ordered by given fields which correspond to fields on {@link Event}. Maps fields
+   * to DB columns.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("uid", COLUMN_EVENT_UID),
           entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
-          entry("programStage.uid", COLUMN_PROGRAM_STAGE_UID),
-          entry("enrollment.uid", COLUMN_ENROLLMENT_UID),
-          entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
-          entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
-          entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
           entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
-          entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
           entry("scheduledDate", COLUMN_EVENT_SCHEDULED_DATE),
           entry("storedBy", COLUMN_EVENT_STORED_BY),
@@ -587,63 +577,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return sqlBuilder.toString();
   }
 
-  /**
-   * Generates the WHERE-clause related to the user provided attribute filters. It will find the
-   * tracked entity attributes that match the given user filter criteria. This condition only
-   * applies when an attribute filter is specified.
-   */
-  private String getWhereClauseFromAttributeFilterConditions(
-      EventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
-    if (params.getAttributes().isEmpty()) {
-      return "";
-    }
-
-    StringBuilder sql = new StringBuilder();
-    sql.append(hlp.whereAnd())
-        .append(
-            " TE.trackedentityid is not null "); // filtering by attribute means we need to look for
-    // a TE in a tracker program, so we can filter out
-    // event programs
-
-    if (!params.getAttributes().isEmpty()) {
-      sql.append(AND);
-      addPredicates(sql, sqlParameters, params.getAttributes());
-      sql.append(SPACE);
-    }
-    return sql.toString();
-  }
-
-  /**
-   * Generates the LEFT JOIN based on the attributes we are ordering and filtering by, if any. We
-   * use LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
-   * result of this LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and
-   * main query.
-   *
-   * <p>Attribute filtering is handled in {@link
-   * #getWhereClauseFromAttributeFilterConditions(EventQueryParams, MapSqlParameterSource,
-   * SqlHelper)}.
-   *
-   * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
-   */
-  private String getLeftJoinFromAttributes(EventQueryParams params) {
-    StringBuilder attributes = new StringBuilder();
-
-    for (TrackedEntityAttribute attribute : params.leftJoinAttributes()) {
-      attributes
-          .append(" left join trackedentityattributevalue as ")
-          .append(quote(attribute.getUid()))
-          .append(" on ")
-          .append(quote(attribute.getUid()))
-          .append(".trackedentityid = TE.trackedentityid and ")
-          .append(quote(attribute.getUid()))
-          .append(".trackedentityattributeid = ")
-          .append(attribute.getId())
-          .append(SPACE);
-    }
-
-    return attributes.toString();
-  }
-
   private String getEventSelectQuery(
       EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     SqlHelper hlp = new SqlHelper();
@@ -790,9 +723,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    // LEFT JOIN attributes we need to sort on and/or filter by.
-    fromBuilder.append(getLeftJoinFromAttributes(params));
-
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
     if (!params.getDataElements().isEmpty()) {
@@ -801,68 +731,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
     fromBuilder.append(SPACE);
 
-    fromBuilder.append(getWhereClauseFromAttributeFilterConditions(params, sqlParameters, hlp));
-
-    if (params.getTrackedEntity() != null) {
-      sqlParameters.addValue("trackedentityid", params.getTrackedEntity().getId());
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" te.trackedentityid= ")
-          .append(":trackedentityid")
-          .append(" ");
-    }
-
     if (params.getProgram() != null) {
       sqlParameters.addValue("programid", params.getProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
-    }
-
-    if (params.getProgramStage() != null) {
-      sqlParameters.addValue("programstageid", params.getProgramStage().getId());
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" ps.programstageid = ")
-          .append(":programstageid")
-          .append(" ");
-    }
-
-    if (params.getEnrollmentStatus() != null) {
-      sqlParameters.addValue("program_status", params.getEnrollmentStatus().name());
-
-      fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
-    }
-
-    if (params.getEnrollmentEnrolledBefore() != null) {
-      sqlParameters.addValue(
-          "enrollmentEnrolledBefore", params.getEnrollmentEnrolledBefore(), Types.TIMESTAMP);
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (en.enrollmentdate <= :enrollmentEnrolledBefore ) ");
-    }
-
-    if (params.getEnrollmentEnrolledAfter() != null) {
-      sqlParameters.addValue(
-          "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(), Types.TIMESTAMP);
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (en.enrollmentdate >= :enrollmentEnrolledAfter ) ");
-    }
-
-    if (params.getEnrollmentOccurredBefore() != null) {
-      sqlParameters.addValue(
-          "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (en.occurreddate <= :enrollmentOccurredBefore ) ");
-    }
-
-    if (params.getEnrollmentOccurredAfter() != null) {
-      sqlParameters.addValue(
-          "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
-      fromBuilder.append(hlp.whereAnd()).append(" (en.occurreddate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getScheduleAtStartDate() != null) {
@@ -880,14 +752,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder
           .append(hlp.whereAnd())
           .append(" (ev.scheduleddate is not null and ev.scheduleddate <= :endScheduledDate ) ");
-    }
-
-    if (params.getFollowUp() != null) {
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" en.followup is ")
-          .append(Boolean.TRUE.equals(params.getFollowUp()) ? "true" : "false")
-          .append(" ");
     }
 
     fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));
@@ -920,19 +784,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
-    if (params.getProgramType() != null) {
-      sqlParameters.addValue("programType", params.getProgramType().name());
-
-      fromBuilder.append(hlp.whereAnd()).append(" p.type = ").append(":programType").append(" ");
-    }
-
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
     if (params.getEvents() != null
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
       sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" ev.uid in (").append(":ev_uid").append(") ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
@@ -966,24 +824,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" (p.uid in (")
           .append(":program_uid")
           .append(")) ");
-
-      sqlParameters.addValue(
-          "programstage_uid",
-          params.getAccessibleProgramStages().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessibleProgramStages()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ps.uid in (")
-          .append(":programstage_uid")
-          .append(")) ");
-    }
-
-    if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      sqlParameters.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
-
-      fromBuilder.append(hlp.whereAnd()).append(" (en.uid in (:enrollment_uid)) ");
     }
 
     return fromBuilder;
@@ -1313,11 +1153,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
-
-      params.setAccessibleProgramStages(
-          manager.getDataReadAll(ProgramStage.class).stream()
-              .map(UID::of)
-              .collect(Collectors.toSet()));
     }
   }
 }
