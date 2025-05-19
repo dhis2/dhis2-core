@@ -337,10 +337,9 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
                 stmt.setInt(p + 4, value.min);
                 stmt.setInt(p + 5, value.max);
                 stmt.setObject(p + 6, value.generated);
-                stmt.addBatch();
                 p += 6;
               }
-              imported.addAndGet(IntStream.of(stmt.executeBatch()).sum());
+              imported.addAndGet(stmt.executeUpdate());
             }
             from += n;
           }
