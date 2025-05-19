@@ -138,10 +138,6 @@ public class JdbcEnrollmentStore {
     }
   }
 
-  private void addCountSelect(StringBuilder sql) {
-    sql.append(" select count(distinct e.uid) ");
-  }
-
   private void addEnrollmentFromItem(StringBuilder sql, EnrollmentQueryParams params) {
     sql.append(" from enrollment e ");
     addInnerJoins(sql);
@@ -320,9 +316,11 @@ public class JdbcEnrollmentStore {
     addCountSelect(sql);
     addEnrollmentFromItem(sql, params);
 
-    return sql.toString()
-        .replaceFirst(
-            "(?s)^.*?from enrollment e", "select count(distinct e.uid) from enrollment e");
+    return sql.toString();
+  }
+
+  private void addCountSelect(StringBuilder sql) {
+    sql.append(" select count(distinct e.uid) ");
   }
 
   private String getDescendantsQuery(Set<OrganisationUnit> organisationUnits) {
