@@ -44,11 +44,12 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -63,7 +64,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 public class MeDto {
   public MeDto(
       User user,
-      UserSettings settings,
+      JsonMap<JsonMixed> settings,
       List<String> programs,
       List<String> dataSets,
       List<ApiToken> patTokens) {
@@ -199,7 +200,7 @@ public class MeDto {
   @JsonProperty
   private Set<UserRole> userRoles;
 
-  @JsonProperty private UserSettings settings;
+  @JsonProperty private JsonMap<JsonMixed> settings;
 
   @JsonProperty private List<String> programs;
 
