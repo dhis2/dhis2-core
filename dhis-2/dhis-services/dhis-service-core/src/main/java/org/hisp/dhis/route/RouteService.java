@@ -388,14 +388,16 @@ public class RouteService {
 
   protected ResponseBodyEmitter emitResponseBody(
       ResponseEntity<Flux<DataBuffer>> responseEntityFlux) {
-    ResponseBodyEmitter responseBodyEmitter = new ResponseBodyEmitter(Duration.ofMinutes(5).toMillis());
+    ResponseBodyEmitter responseBodyEmitter =
+        new ResponseBodyEmitter(Duration.ofMinutes(5).toMillis());
 
     if (responseEntityFlux.hasBody()) {
       responseEntityFlux
           .getBody()
           .subscribe(
               dataBuffer -> {
-                try (DataBuffer.ByteBufferIterator byteBufferIterator = dataBuffer.readableByteBuffers()) {
+                try (DataBuffer.ByteBufferIterator byteBufferIterator =
+                    dataBuffer.readableByteBuffers()) {
                   byte[] bytes;
                   ByteBuffer byteBuffer;
                   while (byteBufferIterator.hasNext()) {
@@ -407,7 +409,7 @@ public class RouteService {
                 } catch (IOException e) {
                   log.error(e.getMessage(), e);
                   throw new RuntimeException(e);
-                } finally{
+                } finally {
                   DataBufferUtils.release(dataBuffer);
                 }
               },
