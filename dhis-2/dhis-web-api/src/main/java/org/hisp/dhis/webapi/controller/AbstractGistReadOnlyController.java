@@ -230,6 +230,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         .elementType(elementType)
         .autoType(params.getAuto(autoDefault))
         .contextRoot(ContextUtils.getRootPath(ContextUtils.getRequest()))
+        .requestURL(ContextUtils.getRequestURL())
         .translationLocale(translationLocale)
         .typedAttributeValues(true)
         .build()
