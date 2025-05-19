@@ -123,7 +123,8 @@ public class DefaultCompleteDataSetRegistrationService
             registration.getPeriod(),
             registration.getSource(),
             registration.getAttributeOptionCombo());
-    if (!missingDataElementOperands.isEmpty()) {
+    if (!missingDataElementOperands.isEmpty()
+        && registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
       String deos =
           missingDataElementOperands.stream()
               .map(DataElementOperand::getDisplayName)
