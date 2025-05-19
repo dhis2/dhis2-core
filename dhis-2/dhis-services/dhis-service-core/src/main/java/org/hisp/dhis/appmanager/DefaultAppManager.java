@@ -439,6 +439,7 @@ public class DefaultAppManager implements AppManager {
     }
   }
 
+  @Override
   @Nonnull
   public App installAppByHubId(UUID appHubId) {
     App installedApp = new App();
