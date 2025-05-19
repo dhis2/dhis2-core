@@ -30,10 +30,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
-import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
-import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -82,8 +79,9 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -101,18 +99,20 @@ public class JdbcEnrollmentStore {
           "lastUpdated",
           "lastUpdatedAtClient");
 
-  private final JdbcTemplate jdbcTemplate;
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
+  public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
+    MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    String sql = getQuery(enrollmentParams, sqlParams);
     return jdbcTemplate.query(
-        getQuery(params), new EnrollmentRowMapper(params.isIncludeAttributes()));
+        sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
   }
 
-  private String getQuery(EnrollmentQueryParams params) {
+  private String getQuery(EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
     StringBuilder sql = new StringBuilder();
-    addSelect(sql, params);
-    addEnrollmentFromItem(sql, params);
-    addOrderBy(sql, params);
+    addSelect(sql, enrollmentParams);
+    addEnrollmentFromItem(sql, enrollmentParams, sqlParams);
+    addOrderBy(sql, enrollmentParams);
 
     return sql.toString();
   }
@@ -138,18 +138,19 @@ public class JdbcEnrollmentStore {
     }
   }
 
-  private void addEnrollmentFromItem(StringBuilder sql, EnrollmentQueryParams params) {
+  private void addEnrollmentFromItem(
+      StringBuilder sql, EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
     sql.append(" from enrollment e ");
     addInnerJoins(sql);
     addLeftLateralNoteJoin(sql);
-    addLeftLateralAttributeJoin(sql, params);
+    addLeftLateralAttributeJoin(sql, enrollmentParams);
 
     SqlHelper hlp = new SqlHelper(true);
-    addLastUpdatedConditions(sql, params, hlp);
-    addOrgUnitConditions(sql, params, hlp);
-    addProgramConditions(sql, params, hlp);
-    addEnrollmentConditions(sql, params, hlp);
-    addTrackedEntityConditions(sql, params, hlp);
+    addLastUpdatedConditions(sql, enrollmentParams, sqlParams, hlp);
+    addOrgUnitConditions(sql, enrollmentParams, sqlParams, hlp);
+    addProgramConditions(sql, enrollmentParams, sqlParams, hlp);
+    addEnrollmentConditions(sql, enrollmentParams, sqlParams, hlp);
+    addTrackedEntityConditions(sql, enrollmentParams, sqlParams, hlp);
   }
 
   private void addInnerJoins(StringBuilder sql) {
@@ -197,83 +198,82 @@ public class JdbcEnrollmentStore {
   }
 
   private void addLastUpdatedConditions(
-      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
-    if (params.hasLastUpdatedDuration()) {
-      sql.append(hlp.whereAnd())
-          .append("e.lastupdated >= '")
-          .append(toLongGmtDate(nowMinusDuration(params.getLastUpdatedDuration())))
-          .append("'");
-    } else if (params.hasLastUpdated()) {
-      sql.append(hlp.whereAnd())
-          .append("e.lastupdated >= '")
-          .append(toLongDateWithMillis(params.getLastUpdated()))
-          .append("'");
+      StringBuilder sql,
+      EnrollmentQueryParams enrollmentParams,
+      MapSqlParameterSource sqlParams,
+      SqlHelper hlp) {
+    if (enrollmentParams.hasLastUpdatedDuration()) {
+      sql.append(hlp.whereAnd()).append("e.lastupdated >= :lastupdated");
+      sqlParams.addValue(
+          "lastupdated",
+          new Timestamp(nowMinusDuration(enrollmentParams.getLastUpdatedDuration()).getTime()));
+    } else if (enrollmentParams.hasLastUpdated()) {
+      sql.append(hlp.whereAnd()).append("e.lastupdated >= :lastupdated");
+      sqlParams.addValue("lastupdated", new Timestamp(enrollmentParams.getLastUpdated().getTime()));
     }
   }
 
   private void addOrgUnitConditions(
-      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
+      StringBuilder sql,
+      EnrollmentQueryParams params,
+      MapSqlParameterSource sqlParams,
+      SqlHelper hlp) {
     if (params.hasOrganisationUnits()) {
       if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-        sql.append(hlp.whereAnd()).append(getDescendantsQuery(params.getOrganisationUnits()));
-      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-        sql.append(hlp.whereAnd()).append(getChildrenQuery(params.getOrganisationUnits()));
-      } else {
         sql.append(hlp.whereAnd())
-            .append("en_ou.uid IN (")
-            .append(getQuotedCommaDelimitedString(getUids(params.getOrganisationUnits())))
-            .append(")");
+            .append(getDescendantsQuery(params.getOrganisationUnits(), sqlParams));
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+        sql.append(hlp.whereAnd())
+            .append(getChildrenQuery(params.getOrganisationUnits(), sqlParams));
+      } else {
+        sql.append(hlp.whereAnd()).append("en_ou.uid IN (:orgUnitUids)");
+        sqlParams.addValue("orgUnitUids", getUids(params.getOrganisationUnits()));
       }
     }
   }
 
   private void addProgramConditions(
-      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
-    sql.append(hlp.whereAnd())
-        .append("p.type = '")
-        .append(ProgramType.WITH_REGISTRATION)
-        .append("'");
+      StringBuilder sql,
+      EnrollmentQueryParams params,
+      MapSqlParameterSource sqlParams,
+      SqlHelper hlp) {
+    sql.append(hlp.whereAnd()).append("p.type = :programType");
+    sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
 
     if (params.hasProgram()) {
-      sql.append(hlp.whereAnd())
-          .append("p.uid = '")
-          .append(params.getProgram().getUid())
-          .append("'");
+      sql.append(hlp.whereAnd()).append("p.uid = :programUid");
+      sqlParams.addValue("programUid", params.getProgram().getUid());
     }
 
     if (params.hasProgramStartDate()) {
-      sql.append(hlp.whereAnd())
-          .append("e.enrollmentdate >= '")
-          .append(toLongDateWithMillis(params.getProgramStartDate()))
-          .append("'");
+      sql.append(hlp.whereAnd()).append("e.enrollmentdate >= :programStartDate");
+      sqlParams.addValue("programStartDate", new Timestamp(params.getProgramStartDate().getTime()));
     }
 
     if (params.hasProgramEndDate()) {
-      sql.append(hlp.whereAnd())
-          .append("e.enrollmentdate <= '")
-          .append(toLongDateWithMillis(params.getProgramEndDate()))
-          .append("'");
+      sql.append(hlp.whereAnd()).append("e.enrollmentdate <= :programEndDate");
+      sqlParams.addValue("programEndDate", new Timestamp(params.getProgramEndDate().getTime()));
     }
   }
 
   private void addEnrollmentConditions(
-      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
+      StringBuilder sql,
+      EnrollmentQueryParams params,
+      MapSqlParameterSource sqlParams,
+      SqlHelper hlp) {
     if (params.hasEnrollmentUids()) {
-      sql.append(hlp.whereAnd())
-          .append("e.uid in (")
-          .append(getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollments())))
-          .append(")");
+      sql.append(hlp.whereAnd()).append("e.uid in (:enrollmentUids)");
+      sqlParams.addValue("enrollmentUids", UID.toValueList(params.getEnrollments()));
     }
 
     if (params.hasEnrollmentStatus()) {
-      sql.append(hlp.whereAnd())
-          .append("e.status = '")
-          .append(params.getEnrollmentStatus())
-          .append("'");
+      sql.append(hlp.whereAnd()).append("e.status = :enrollmentStatus");
+      sqlParams.addValue("enrollmentStatus", params.getEnrollmentStatus());
     }
 
     if (params.hasFollowUp()) {
-      sql.append(hlp.whereAnd()).append("e.followup = ").append(params.getFollowUp());
+      sql.append(hlp.whereAnd()).append("e.followup = :followUp");
+      sqlParams.addValue("followUp", params.getFollowUp());
     }
 
     if (!params.isIncludeDeleted()) {
@@ -282,12 +282,13 @@ public class JdbcEnrollmentStore {
   }
 
   private void addTrackedEntityConditions(
-      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
+      StringBuilder sql,
+      EnrollmentQueryParams params,
+      MapSqlParameterSource sqlParams,
+      SqlHelper hlp) {
     if (params.hasTrackedEntity()) {
-      sql.append(hlp.whereAnd())
-          .append(" te.uid = '")
-          .append(params.getTrackedEntity().getUid())
-          .append("' ");
+      sql.append(hlp.whereAnd()).append("te.uid = :trackedEntityUid");
+      sqlParams.addValue("trackedEntityUid", params.getTrackedEntity().getUid());
     }
   }
 
@@ -296,25 +297,30 @@ public class JdbcEnrollmentStore {
     sql.append(orderBy(params.getOrder()));
   }
 
-  public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
-    String sql = getQuery(params);
+  public Page<Enrollment> getEnrollments(
+      EnrollmentQueryParams enrollmentParams, PageParams pageParams) {
+    MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    String sql = getQuery(enrollmentParams, sqlParams);
     sql +=
         String.format(" LIMIT %d OFFSET %d", pageParams.getPageSize() + 1, pageParams.getOffset());
 
     List<Enrollment> enrollments =
-        jdbcTemplate.query(sql, new EnrollmentRowMapper(params.isIncludeAttributes()));
-    return new Page<>(enrollments, pageParams, () -> countEnrollments(params));
+        jdbcTemplate.query(
+            sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
+    return new Page<>(enrollments, pageParams, () -> countEnrollments(enrollmentParams));
   }
 
   private long countEnrollments(EnrollmentQueryParams params) {
-    String sql = getCountQuery(params);
-    return jdbcTemplate.queryForObject(sql, Long.class);
+    MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    String sql = getCountQuery(params, sqlParams);
+    return jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
   }
 
-  private String getCountQuery(EnrollmentQueryParams params) {
+  private String getCountQuery(
+      EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
     StringBuilder sql = new StringBuilder();
     addCountSelect(sql);
-    addEnrollmentFromItem(sql, params);
+    addEnrollmentFromItem(sql, enrollmentParams, sqlParams);
 
     return sql.toString();
   }
@@ -323,38 +329,52 @@ public class JdbcEnrollmentStore {
     sql.append(" select count(distinct e.uid) ");
   }
 
-  private String getDescendantsQuery(Set<OrganisationUnit> organisationUnits) {
+  private String getDescendantsQuery(
+      Set<OrganisationUnit> organisationUnits, MapSqlParameterSource sqlParams) {
     StringBuilder ouClause = new StringBuilder();
     ouClause.append("(");
 
     SqlHelper orHlp = new SqlHelper(true);
 
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      ouClause
-          .append(orHlp.or())
-          .append("en_ou.path LIKE '")
-          .append(organisationUnit.getStoredPath())
-          .append("%'");
+    int index = 0;
+    for (OrganisationUnit orgUnit : organisationUnits) {
+      String paramName = "path" + index++;
+      ouClause.append(orHlp.or()).append("en_ou.path LIKE :").append(paramName);
+      sqlParams.addValue(paramName, orgUnit.getStoredPath() + "%");
     }
 
     ouClause.append(")");
     return ouClause.toString();
   }
 
-  private String getChildrenQuery(Set<OrganisationUnit> organisationUnits) {
+  private String getChildrenQuery(
+      Set<OrganisationUnit> organisationUnits, MapSqlParameterSource sqlParams) {
     SqlHelper hlp = new SqlHelper(true);
     StringBuilder orgUnits = new StringBuilder();
+    int index = 0;
+
     for (OrganisationUnit organisationUnit : organisationUnits) {
+      String pathParam = "path" + index;
+      String level1Param = "level1_" + index;
+      String level2Param = "level2_" + index;
+
       orgUnits
           .append(hlp.or())
-          .append("(en_ou.path LIKE '")
-          .append(organisationUnit.getStoredPath())
-          .append("%' AND (en_ou.hierarchylevel = ")
-          .append(organisationUnit.getHierarchyLevel())
-          .append(" OR en_ou.hierarchylevel = ")
-          .append(organisationUnit.getHierarchyLevel() + 1)
+          .append("(en_ou.path LIKE :")
+          .append(pathParam)
+          .append(" AND (en_ou.hierarchylevel = :")
+          .append(level1Param)
+          .append(" OR en_ou.hierarchylevel = :")
+          .append(level2Param)
           .append("))");
+
+      sqlParams.addValue(pathParam, organisationUnit.getStoredPath() + "%");
+      sqlParams.addValue(level1Param, organisationUnit.getHierarchyLevel());
+      sqlParams.addValue(level2Param, organisationUnit.getHierarchyLevel() + 1);
+
+      index++;
     }
+
     return orgUnits.toString();
   }
 
@@ -582,8 +602,11 @@ public class JdbcEnrollmentStore {
   }
 
   public void delete(@Nonnull Enrollment enrollment) {
-    String sql = "UPDATE enrollment SET deleted = true WHERE enrollmentid = ?";
-    jdbcTemplate.update(sql, enrollment.getId());
+    String sql = "UPDATE enrollment SET deleted = true WHERE enrollmentid = :id";
+
+    MapSqlParameterSource params = new MapSqlParameterSource().addValue("id", enrollment.getId());
+
+    jdbcTemplate.update(sql, params);
   }
 
   @Getter
