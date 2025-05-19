@@ -138,6 +138,10 @@ public class JdbcEnrollmentStore {
     }
   }
 
+  private void addCountSelect(StringBuilder sql) {
+    sql.append(" select count(distinct e.uid) ");
+  }
+
   private void addEnrollmentFromItem(StringBuilder sql, EnrollmentQueryParams params) {
     sql.append(" from enrollment e ");
     addInnerJoins(sql);
@@ -313,7 +317,7 @@ public class JdbcEnrollmentStore {
 
   private String getCountQuery(EnrollmentQueryParams params) {
     StringBuilder sql = new StringBuilder();
-    addSelect(sql, params);
+    addCountSelect(sql);
     addEnrollmentFromItem(sql, params);
 
     return sql.toString()
