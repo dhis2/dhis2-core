@@ -1,0 +1,14 @@
+{
+  "type": "program_indicator",
+  "code": "ENROLLMENT_COUNT_IF_VALUE",
+  "aggregationType":"COUNT",
+  "expression":"d2:countIfValue( #{EPEcjy3FWmI.fCXKBdc27Bt}, 1)",
+  "name":"ENROLLMENT_COUNT_IF_VALUE",
+  "analyticsType":"ENROLLMENT",
+  "shortName":"ENROLLMENT_COUNT_IF_VALUE",
+  "program":{
+    "id":"ur1Edk5Oe2n"
+  },
+  "analyticsPeriodBoundaries": [],
+  "legendSets": []
+}
