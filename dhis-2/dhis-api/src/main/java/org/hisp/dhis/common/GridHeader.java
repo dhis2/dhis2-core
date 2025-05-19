@@ -259,6 +259,14 @@ public class GridHeader implements Serializable {
     return optionSet != null;
   }
 
+  public boolean hasValueType(ValueType valueType) {
+    return getValueType() == valueType;
+  }
+
+  public boolean isDoubleWithoutLegendSet() {
+    return Double.class.getName().equals(getType()) && !hasLegendSet();
+  }
+
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------

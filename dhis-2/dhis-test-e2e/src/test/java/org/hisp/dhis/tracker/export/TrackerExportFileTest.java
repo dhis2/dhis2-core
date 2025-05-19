@@ -303,7 +303,10 @@ public class TrackerExportFileTest extends TrackerApiTest {
         gZipToStringContent(
             trackerImportExportActions
                 .getEventsJsonGZip(
-                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
+                    new QueryParamsBuilder()
+                        .add("events", event)
+                        .add("fields", "*,relationships")
+                        .add("program", "f1AyMswryyQ"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+gzip;charset=utf-8")
@@ -324,7 +327,10 @@ public class TrackerExportFileTest extends TrackerApiTest {
         mapZipEntryToStringContent(
             trackerImportExportActions
                 .getEventsJsonZip(
-                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
+                    new QueryParamsBuilder()
+                        .add("events", event)
+                        .add("fields", "*,relationships")
+                        .add("program", "f1AyMswryyQ"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+zip;charset=utf-8")
@@ -461,7 +467,8 @@ public class TrackerExportFileTest extends TrackerApiTest {
     String s =
         gZipToStringContent(
             trackerImportExportActions
-                .getEventsCsvGZip(new QueryParamsBuilder().add("events", event))
+                .getEventsCsvGZip(
+                    new QueryParamsBuilder().add("events", event).add("program", "f1AyMswryyQ"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+gzip;charset=utf-8")
@@ -483,7 +490,8 @@ public class TrackerExportFileTest extends TrackerApiTest {
     Map<String, String> s =
         mapZipEntryToStringContent(
             trackerImportExportActions
-                .getEventsCsvZip(new QueryParamsBuilder().add("events", event))
+                .getEventsCsvZip(
+                    new QueryParamsBuilder().add("events", event).add("program", "f1AyMswryyQ"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+zip;charset=utf-8")
