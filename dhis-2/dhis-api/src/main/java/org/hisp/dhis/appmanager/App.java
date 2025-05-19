@@ -109,7 +109,7 @@ public class App implements Serializable {
 
   private List<AppShortcut> shortcuts = new ArrayList<>();
 
-  private AppInfo bundledAppInfo;
+  private transient AppInfo bundledAppInfo;
 
   // -------------------------------------------------------------------------
   // Logic

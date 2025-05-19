@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
  * the previous process that used Git to clone the apps.
  */
 public class AppBundler {
-  private static Logger log = LoggerFactory.getLogger(AppBundler.class);
+  private static final Logger log = LoggerFactory.getLogger(AppBundler.class);
 
   // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
   private static final Pattern GITHUB_URL_PATTERN =
@@ -225,7 +225,7 @@ public class AppBundler {
     // Get the ETag from the response header
     String etag = connection.getHeaderField("ETag");
     if (etag != null) {
-      etag = etag.replaceAll("\"", ""); // Remove quotes from ETag
+      etag = etag.replace("\"", ""); // Remove quotes from ETag
     }
 
     // Download the file
@@ -382,7 +382,7 @@ public class AppBundler {
    *     "https://codeload.github.com/d2-ci/datastore-app/zip/patch/2.42.0"), or null if the input
    *     URL format is invalid.
    */
-  private static String convertToCodeloadUrl(String githubUrl) {
+  private String convertToCodeloadUrl(String githubUrl) {
     if (githubUrl == null) {
       return null;
     }
@@ -392,12 +392,12 @@ public class AppBundler {
       String repo = matcher.group(2);
       String ref = matcher.group(3);
       if (ref == null) {
-        ref = "refs/heads/master";
+        ref = "refs/heads/" + defaultBranch;
       }
 
       return String.format("https://codeload.github.com/%s/%s/zip/%s", owner, repo, ref);
     } else {
-      log.error("Invalid GitHub URL format for conversion: " + githubUrl);
+      log.error("Invalid GitHub URL format for conversion: {}", githubUrl);
       return null;
     }
   }
