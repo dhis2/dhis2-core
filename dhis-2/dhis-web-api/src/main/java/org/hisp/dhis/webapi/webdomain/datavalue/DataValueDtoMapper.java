@@ -33,10 +33,11 @@ import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxValueDto;
+import org.hisp.dhis.minmax.MinMaxValue;
 
 /**
  * Class which provides methods for mapping between domain objcets and DTOs.
@@ -99,17 +100,18 @@ public class DataValueDtoMapper {
   }
 
   /**
-   * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValueDto}.
+   * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValue}.
    *
    * @param value the {@link MinMaxDataElement}.
-   * @return a {@link MinMaxValueDto}.
+   * @return a {@link MinMaxValue}.
    */
-  public static MinMaxValueDto toDto(MinMaxDataElement value) {
-    return new MinMaxValueDto()
-        .setDataElement(value.getDataElement().getUid())
-        .setOrgUnit(value.getSource().getUid())
-        .setCategoryOptionCombo(value.getOptionCombo().getUid())
-        .setMinValue(value.getMin())
-        .setMaxValue(value.getMax());
+  public static MinMaxValue toDto(MinMaxDataElement value) {
+    return new MinMaxValue(
+        UID.of(value.getDataElement().getUid()),
+        UID.of(value.getSource().getUid()),
+        UID.of(value.getOptionCombo().getUid()),
+        value.getMin(),
+        value.getMax(),
+        null);
   }
 }

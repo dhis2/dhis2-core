@@ -34,20 +34,22 @@ import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.minmax.MinMaxValueDto;
+import org.hisp.dhis.minmax.MinMaxValue;
+import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
-import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -56,68 +58,31 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Document(
     entity = DataValue.class,
-    classifiers = {"team:platform", "purpose:metadata"})
+    classifiers = {"team:platform", "purpose:data"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
 public class MinMaxValueController {
-  private final MinMaxDataElementService minMaxValueService;
 
-  private final DataValidator dataValidator;
+  private final MinMaxDataElementService minMaxValueService;
 
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.OK)
-  public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValueDto valueDto) {
-    saveOrUpdateMinMaxDataElement(valueDto);
+  public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValue value) throws BadRequestException {
+    minMaxValueService.importValue(value);
   }
 
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @DeleteMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void removeMinMaxValue(MinMaxValueQueryParams params) {
-    removeMinMaxDataElement(params);
-  }
-
-  /**
-   * Saves or updates a {@link MinMaxDataElement}.
-   *
-   * @param dto the {@link MinMaxValueDto}.
-   */
-  private void saveOrUpdateMinMaxDataElement(MinMaxValueDto dto) {
-    DataElement de = dataValidator.getAndValidateDataElement(dto.getDataElement());
-    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit());
-    CategoryOptionCombo coc =
-        dataValidator.getAndValidateCategoryOptionCombo(dto.getCategoryOptionCombo());
-    dataValidator.validateMinMaxValues(dto.getMinValue(), dto.getMaxValue());
-    MinMaxDataElement value = minMaxValueService.getMinMaxDataElement(ou, de, coc);
-
-    if (value != null) {
-      value.setMin(dto.getMinValue());
-      value.setMax(dto.getMaxValue());
-      value.setGenerated(false);
-
-      minMaxValueService.updateMinMaxDataElement(value);
-    } else {
-      value = new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-
-      minMaxValueService.addMinMaxDataElement(value);
-    }
-  }
-
-  /**
-   * Removes a {@link MinMaxDataElement}.
-   *
-   * @param params the {@link MinMaxValueQueryParams}.
-   */
-  private void removeMinMaxDataElement(MinMaxValueQueryParams params) {
-    DataElement de = dataValidator.getAndValidateDataElement(params.getDe());
-    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
-    CategoryOptionCombo coc = dataValidator.getAndValidateCategoryOptionCombo(params.getCo());
-    MinMaxDataElement value = minMaxValueService.getMinMaxDataElement(ou, de, coc);
-
-    if (value != null) {
-      minMaxValueService.deleteMinMaxDataElement(value);
-    }
+  public void removeMinMaxValue(
+      @RequestBody(required = false) MinMaxValueKey key,
+      @RequestParam(required = false) @OpenApi.Param({UID.class, DataElement.class}) UID de,
+      @RequestParam(required = false) @OpenApi.Param({UID.class, OrganisationUnit.class}) UID ou,
+      @RequestParam(required = false) @OpenApi.Param({UID.class, CategoryOptionCombo.class}) UID co)
+      throws BadRequestException, NotFoundException {
+    if (key == null) key = new MinMaxValueKey(de, ou, co);
+    minMaxValueService.deleteValue(key);
   }
 }

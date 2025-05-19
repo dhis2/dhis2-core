@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,15 @@
  */
 package org.hisp.dhis.minmax;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ErrorCode;
+import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Jason P. Pickering
+ * @author Jan Bernitt
+ * @param dataSet all deleted values must belong to this dataset
+ * @param values please note that the name has to be identical to {@link
+ *     MinMaxValueUpsertRequest#values()} so that the same JSON can be used to run delete or upsert.
  */
-@Slf4j
-public class MinMaxDataElementUtils {
-
-  private MinMaxDataElementUtils() {}
-
-  public static void validateRequiredFields(MinMaxValueDto dto) throws BadRequestException {
-
-    if (dto.getDataElement() == null
-        || dto.getOrgUnit() == null
-        || dto.getCategoryOptionCombo() == null) {
-      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
-    }
-  }
-
-  public static void validateMinMaxValues(MinMaxValueDto dto) throws BadRequestException {
-    if (dto.getMinValue() == null || dto.getMaxValue() == null) {
-      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
-    }
-
-    if (dto.getMinValue() >= dto.getMaxValue()) {
-      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
-    }
-  }
-
-  public static String formatDtoInfo(MinMaxValueDto dto) {
-    return String.format(
-        "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
-        dto.getDataElement(),
-        dto.getOrgUnit(),
-        dto.getCategoryOptionCombo(),
-        dto.getMinValue(),
-        dto.getMaxValue());
-  }
-}
+public record MinMaxValueDeleteRequest(
+    @Nonnull UID dataSet, @Nonnull List<MinMaxValueKey> values) {}
