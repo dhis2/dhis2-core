@@ -202,12 +202,10 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    void testRunRouteAsyncRequestTimeoutIsNotDefault()
-            throws JsonProcessingException {
+    void testRunRouteAsyncRequestTimeoutIsNotDefault() throws JsonProcessingException {
       upstreamMockServerClient
-              .when(request().withPath("/"))
-              .respond(
-                      org.mockserver.model.HttpResponse.response("{}"));
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
@@ -215,14 +213,23 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-      long asyncRequestTimeout = webRequestWithMvcResult(buildMockRequest(
-              HttpMethod.GET,
-              "/routes/"
-                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
-                      + "/run",
-              new ArrayList<>(),
-              "application/json",
-              null)).getRequest().getAsyncContext().getTimeout();
+      long asyncRequestTimeout =
+          webRequestWithMvcResult(
+                  buildMockRequest(
+                      HttpMethod.GET,
+                      "/routes/"
+                          + postHttpResponse
+                              .content()
+                              .get("response.uid")
+                              .as(JsonString.class)
+                              .string()
+                          + "/run",
+                      new ArrayList<>(),
+                      "application/json",
+                      null))
+              .getRequest()
+              .getAsyncContext()
+              .getTimeout();
 
       assertEquals(Duration.ofMinutes(5).toMillis(), asyncRequestTimeout);
     }
