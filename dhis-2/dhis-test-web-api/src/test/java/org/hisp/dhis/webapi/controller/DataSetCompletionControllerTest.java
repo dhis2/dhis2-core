@@ -1,3 +1,32 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,10 +55,13 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
-  @DisplayName("Complete data set not allowed when missing compulsory data element operands")
+  @DisplayName(
+      "Complete data set not allowed when missing compulsory elements and compulsory elements are required")
   void missingCompulsoryDataElementOperandsTest() {
     // given a data set with compulsory data element operands
-    POST("/metadata", metadata()).content(HttpStatus.OK);
+    boolean compulsoryElementsAreRequired = true;
+    POST("/metadata", metadata(compulsoryElementsAreRequired, withCompulsoryElements()))
+        .content(HttpStatus.OK);
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
 
     // when trying to complete the data set that has missing compulsory data
@@ -53,10 +85,39 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
+  @DisplayName(
+      "Complete data set allowed when missing compulsory elements and compulsory elements are not required")
+  void missingCompulsoryDataElementOperandsNotCompulsoryTest() {
+    // given a data set with compulsory data element operands
+    boolean compulsoryElementsAreNotRequired = false;
+    POST("/metadata", metadata(compulsoryElementsAreNotRequired, withCompulsoryElements()))
+        .content(HttpStatus.OK);
+    PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
+
+    // when trying to complete the data set that has missing compulsory data, it should succeed
+    assertEquals(
+        HttpStatus.OK, POST("/dataEntry/dataSetCompletion", completeDataSetReg()).status());
+
+    // and complete dataset reg should be present
+    JsonMixed cdsr =
+        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=202505&dataSet=%s"
+                .formatted(ou, ds))
+            .content(HttpStatus.OK);
+
+    assertEquals(
+        ds,
+        cdsr.getArray("completeDataSetRegistrations")
+            .get(0)
+            .asObject()
+            .getString("dataSet")
+            .string());
+  }
+
+  @Test
   @DisplayName("Complete data set is allowed when no compulsory data element operands")
   void noCompulsoryDataElementOperandsTest() {
     // given a data set with no compulsory data element operands
-    POST("/metadata", metadataWithoutCompulsory()).content(HttpStatus.OK);
+    POST("/metadata", metadata(true, "")).content(HttpStatus.OK);
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
 
     // when trying to complete the data set with no compulsory data, it should succeed
@@ -78,7 +139,7 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
             .string());
   }
 
-  private String metadata() {
+  private String metadata(boolean compulsory, String withCompulsory) {
     return """
         {
           "dataElements": [
@@ -108,7 +169,7 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
               "name": "test-ds-1",
               "shortName": "test-ds-1",
               "periodType": "Monthly",
-              "compulsoryFieldsCompleteOnly": false,
+              "compulsoryFieldsCompleteOnly": %4$b,
               "dataSetElements": [
                 {
                   "dataElement": {
@@ -120,72 +181,28 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
                 {
                   "id": "%2$s"
                 }
-              ],
-              "compulsoryDataElementOperands": [
-                {
-                  "dataElement": {
-                      "id": "%1$s"
-                  },
-                  "categoryOptionCombo": {
-                      "id": "HllvX50cXC0"
-                  }
-                }
-              ]
+              ]%5$s
             }
           ]
         }
         """
-        .formatted(de, ou, ds);
+        .formatted(de, ou, ds, compulsory, withCompulsory);
   }
 
-  private String metadataWithoutCompulsory() {
+  private String withCompulsoryElements() {
     return """
-        {
-          "dataElements": [
-            {
-              "id": "%1$s",
-              "aggregationType": "DEFAULT",
-              "domainType": "AGGREGATE",
-              "name": "test-de-1",
-              "shortName": "test-de-1",
-              "valueType": "TEXT",
-              "categoryCombo": {
-                "id": "bjDvmb4bfuf"
-              }
-            }
-          ],
-          "organisationUnits": [
-            {
-              "id": "%2$s",
-              "name": "test-org-1",
-              "shortName": "test-org-1",
-              "openingDate": "2023-06-15"
-            }
-          ],
-          "dataSets": [
-            {
-              "id": "%3$s",
-              "name": "test-ds-1",
-              "shortName": "test-ds-1",
-              "periodType": "Monthly",
-              "compulsoryFieldsCompleteOnly": true,
-              "dataSetElements": [
-                {
-                  "dataElement": {
+            ,
+            "compulsoryDataElementOperands": [
+              {
+                "dataElement": {
                     "id": "%1$s"
-                  }
+                },
+                "categoryOptionCombo": {
+                    "id": "HllvX50cXC0"
                 }
-              ],
-              "organisationUnits": [
-                {
-                    "id": "%2$s"
-                }
-              ]
-            }
-          ]
-        }
-        """
-        .formatted(de, ou, ds);
+              }
+            ]"""
+        .formatted(de);
   }
 
   private String addOrgUnit() {
