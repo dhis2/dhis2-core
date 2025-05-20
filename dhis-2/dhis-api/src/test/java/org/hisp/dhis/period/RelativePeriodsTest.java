@@ -815,14 +815,14 @@ class RelativePeriodsTest {
   @Test
   void assertPeriodEquals() {
     Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period aug2022_ = PeriodType.getPeriodFromIsoString("202208");
+    Period aug2022Same = PeriodType.getPeriodFromIsoString("202208");
 
     RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf("LAST_MONTH");
     Period relPeriod = new Period(relPeriodTypeEnum);
-    Period relPeriod_ = new Period(relPeriodTypeEnum);
+    Period relPeriodSame = new Period(relPeriodTypeEnum);
 
-    assertTrue(aug2022.equals(aug2022_));
-    assertTrue(relPeriod.equals(relPeriod_));
+    assertTrue(aug2022.equals(aug2022Same));
+    assertTrue(relPeriod.equals(relPeriodSame));
     assertFalse(aug2022.equals(relPeriod));
   }
 }
