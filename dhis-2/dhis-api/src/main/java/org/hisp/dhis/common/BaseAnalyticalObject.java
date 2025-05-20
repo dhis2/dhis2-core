@@ -726,7 +726,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
           if (RelativePeriodEnum.contains(period)) {
             RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
             Period relPeriod = new Period(relPeriodTypeEnum);
-            boolean isRelativePeriod = relPeriod != null;
+            boolean isRelativePeriod = relPeriodTypeEnum != null;
             boolean addPeriod = isRelativePeriod && !periodList.contains(relPeriod);
 
             if (addPeriod) {
