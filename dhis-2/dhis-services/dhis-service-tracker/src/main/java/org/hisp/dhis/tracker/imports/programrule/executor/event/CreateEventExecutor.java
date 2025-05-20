@@ -62,15 +62,6 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    ProgramStage stage = bundle.getPreheat().getProgramStage(programStage.getValue());
-    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
-
-    NotificationValidationResult result = validate(stage, enrollment);
-
-    if (!result.isValid()) {
-      return Optional.empty();
-    }
-
     TrackerEventScheduleParams params = new TrackerEventScheduleParams();
     params.setEnrollment(event.getEnrollment().getValue());
     params.setOrgUnit(event.getOrgUnit().getIdentifier());
@@ -91,47 +82,6 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
       throw new RuntimeException(e);
     }
 
-    if (result.needsToCreateLogEntry()) {
-      createLogEntry(stage, enrollment);
-    }
-
     return Optional.empty();
-  }
-
-  private NotificationValidationResult validate(ProgramStage programStage, Enrollment enrollment) {
-    if (programStage == null) {
-      return NotificationValidationResult.invalid();
-    }
-
-    if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
-      return NotificationValidationResult.validAndNoNeedForLogEntries();
-    }
-
-    ExternalNotificationLogEntry logEntry =
-        notificationLoggingService.getByKey(generateKey(programStage, enrollment));
-
-    if (logEntry != null && !logEntry.isAllowMultiple()) {
-      return NotificationValidationResult.invalid();
-    }
-
-    return logEntry == null
-        ? NotificationValidationResult.validAndNeedsLogEntries()
-        : NotificationValidationResult.validAndNoNeedForLogEntries();
-  }
-
-  private void createLogEntry(ProgramStage programStage, Enrollment enrollment) {
-    String key = generateKey(programStage, enrollment);
-    ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
-    entry.setLastSentAt(new Date());
-    entry.setKey(key);
-    entry.setNotificationTemplateUid(programStage.getUid());
-    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
-    entry.setAllowMultiple(programStage.getRepeatable());
-
-    notificationLoggingService.save(entry);
-  }
-
-  private String generateKey(ProgramStage programStage, Enrollment enrollment) {
-    return programStage.getUid() + enrollment.getUid();
   }
 }
