@@ -811,4 +811,18 @@ class RelativePeriodsTest {
     assertFalse(RelativePeriodEnum.contains("LAST_CHRISTMAS"));
     assertFalse(RelativePeriodEnum.contains("LAST_VACATION"));
   }
+
+  @Test
+  void assertPeriodEquals() {
+    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
+    Period aug2022_ = PeriodType.getPeriodFromIsoString("202208");
+
+    RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf("LAST_MONTH");
+    Period relPeriod = new Period(relPeriodTypeEnum);
+    Period relPeriod_ = new Period(relPeriodTypeEnum);
+
+    assertTrue(aug2022.equals(aug2022_));
+    assertTrue(relPeriod.equals(relPeriod_));
+    assertFalse(aug2022.equals(relPeriod));
+  }
 }
