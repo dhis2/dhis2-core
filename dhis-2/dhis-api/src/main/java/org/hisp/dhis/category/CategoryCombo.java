@@ -51,12 +51,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,6 +88,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.common.annotation.EnableTranslation;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -114,7 +112,9 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Table(name = "categorycombo")
 @Setter
 @JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryCombo extends BaseMetadataObject implements SystemDefaultMetadataObject, IdentifiableObject {
+@EnableTranslation
+public class CategoryCombo extends BaseMetadataObject
+    implements SystemDefaultMetadataObject, IdentifiableObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
   @Id
@@ -128,11 +128,11 @@ public class CategoryCombo extends BaseMetadataObject implements SystemDefaultMe
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  @Column
-  @Type(
-      type = "jblTranslations",
-      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
-  private Set<Translation> translations = new HashSet<>();
+//  @Column
+//  @Type(
+//      type = "jblTranslations",
+//      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
+//  private Set<Translation> translations = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
