@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
@@ -250,34 +249,55 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     Map<String, Long> cocs =
         getCategoryOptionComboMap(keys.stream().map(MinMaxValueKey::optionCombo));
 
+    record MinMaxValueKeyInternal(long de, long ou, long coc) {}
+    List<MinMaxValueKeyInternal> internalKeys = new ArrayList<>(keys.size());
+    for (MinMaxValueKey key : keys) {
+      Long de = des.get(key.dataElement().getValue());
+      Long ou = ous.get(key.orgUnit().getValue());
+      Long coc = cocs.get(key.optionCombo().getValue());
+      if (de != null && ou != null && coc != null)
+        internalKeys.add(new MinMaxValueKeyInternal(de, ou, coc));
+    }
+    if (internalKeys.isEmpty()) return 0;
+    int size = internalKeys.size();
+
     Session session = entityManager.unwrap(Session.class);
-    String sql =
+    @Language("sql")
+    String sql1 =
         """
       DELETE FROM minmaxdataelement
-      WHERE dataelementid = ? AND sourceid = ? AND categoryoptioncomboid = ?""";
+      WHERE (dataelementid, sourceid, categoryoptioncomboid) IN ((?, ?, ?))""";
 
     AtomicInteger deleted = new AtomicInteger();
     session.doWork(
         connection -> {
-          try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            for (MinMaxValueKey key : keys) {
-              Long de = des.get(key.dataElement().getValue());
-              Long ou = ous.get(key.orgUnit().getValue());
-              Long coc = cocs.get(key.optionCombo().getValue());
-              if (de != null && ou != null && coc != null) {
-                stmt.setLong(1, de);
-                stmt.setObject(2, ou);
-                stmt.setObject(3, coc);
-                stmt.addBatch();
+          int from = 0;
+          while (from < size) {
+            int n = min(MAX_ROWS_PER_INSERT, size - from);
+            int to = from + n;
+            int p = 0;
+            try (PreparedStatement stmt = connection.prepareStatement(deleteNValuesSql(sql1, n))) {
+              for (MinMaxValueKeyInternal key : internalKeys.subList(from, to)) {
+                stmt.setLong(p + 1, key.de);
+                stmt.setLong(p + 2, key.ou);
+                stmt.setLong(p + 3, key.coc);
+                p += 3;
               }
+              deleted.addAndGet(stmt.executeUpdate());
             }
-            deleted.set(IntStream.of(stmt.executeBatch()).sum());
+            from += n;
           }
         });
 
     session.clear();
 
     return deleted.get();
+  }
+
+  @Nonnull
+  private static String deleteNValuesSql(String sql1, int n) {
+    if (n == 1) return sql1;
+    return sql1.replace("(?, ?, ?)", "(?, ?, ?)" + ", (?, ?, ?)".repeat(n - 1));
   }
 
   @Override
@@ -327,8 +347,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           while (from < size) {
             int n = min(MAX_ROWS_PER_INSERT, size - from);
             int to = from + n;
-            String sql = upsertNValuesSql(sql1, n);
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (PreparedStatement stmt = connection.prepareStatement(upsertNValuesSql(sql1, n))) {
               int p = 0;
               for (MinMaxValueInternal value : internalValues.subList(from, to)) {
                 stmt.setLong(p + 1, value.de);
