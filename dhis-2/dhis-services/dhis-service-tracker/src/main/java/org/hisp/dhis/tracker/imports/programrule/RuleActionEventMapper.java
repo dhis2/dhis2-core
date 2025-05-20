@@ -103,11 +103,7 @@ class RuleActionEventMapper {
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
       case CREATE_EVENT ->
-          new CreateEventExecutor(
-              jobExecutionService,
-              validationEffect.rule(),
-              validationEffect.field(),
-              validationEffect.data());
+          new CreateEventExecutor(validationEffect.field(), validationEffect.data());
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };

@@ -29,58 +29,40 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
-import org.hisp.dhis.notification.logging.NotificationLoggingService;
-import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
-import org.hisp.dhis.notification.logging.NotificationValidationResult;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobExecutionService;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.tracker.imports.TrackerEventScheduleParams;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Zubair Asghar
  */
 @RequiredArgsConstructor
 public class CreateEventExecutor implements RuleActionExecutor<Event> {
-  private final JobExecutionService jobExecutionService;
-  private final NotificationLoggingService notificationLoggingService;
   private final UID programStage;
   private final String scheduledAt;
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    TrackerEventScheduleParams params = new TrackerEventScheduleParams();
-    params.setEnrollment(event.getEnrollment().getValue());
-    params.setOrgUnit(event.getOrgUnit().getIdentifier());
-    params.setAttributeOptionCombo(
-        bundle.getPreheat().getDefault(CategoryOptionCombo.class).getUid());
-    params.setProgramStage(programStage.getValue());
-    params.setScheduledAt(scheduledAt);
-    params.setUserName(bundle.getUser().getUsername());
-
-    JobConfiguration jobConfiguration =
-        new JobConfiguration(JobType.TRACKER_IMPORT_EVENT_SCHEDULE_JOB);
-    jobConfiguration.setExecutedBy(bundle.getUser().getUid());
-    jobConfiguration.setJobParameters(params);
-
-    try {
-      jobExecutionService.executeOnceNow(jobConfiguration);
-    } catch (ConflictException e) {
-      throw new RuntimeException(e);
+    if (!DateUtils.dateIsValid(scheduledAt)) {
+      return Optional.empty();
     }
+    Event scheduledEvent = new Event();
+    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
+    scheduledEvent.setProgram(event.getProgram());
+    scheduledEvent.setOccurredAt(null);
+    scheduledEvent.setScheduledAt(Instant.parse(scheduledAt));
+    scheduledEvent.setStatus(EventStatus.SCHEDULE);
+    scheduledEvent.setOrgUnit(event.getOrgUnit());
+
+    bundle.getEvents().add(event);
 
     return Optional.empty();
   }
