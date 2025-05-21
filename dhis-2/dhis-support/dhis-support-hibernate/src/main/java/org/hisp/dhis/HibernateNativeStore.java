@@ -30,6 +30,10 @@
 package org.hisp.dhis;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -37,6 +41,7 @@ import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -109,5 +114,45 @@ public abstract class HibernateNativeStore<T> {
    */
   protected NativeQuery<T> nativeSynchronizedTypedQuery(@Language("SQL") String sql) {
     return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(getClazz());
+  }
+
+  protected final Map<String, Long> getIdMap(String tableName, Stream<UID> ids) {
+    return getIdMap(tableName, tableName + "id", ids);
+  }
+
+  @SuppressWarnings("unchecked")
+  protected final Map<String, Long> getIdMap(
+      String tableName, String idColumnName, Stream<UID> ids) {
+    String[] uids = ids.map(UID::getValue).distinct().toArray(String[]::new);
+    if (uids.length == 1) {
+      @Language("sql")
+      String sql = "SELECT %s FROM %s WHERE uid = :id";
+      List<Object> res =
+          getSession()
+              .createNativeQuery(sql.formatted(idColumnName, tableName))
+              .setParameter("id", uids[0])
+              .list();
+      return res == null || res.isEmpty()
+          ? Map.of()
+          : Map.of(uids[0], ((Number) res.get(0)).longValue());
+    }
+    @Language("sql")
+    String sql =
+        """
+        SELECT t.uid, t.%s
+        FROM %s t
+        JOIN unnest(:ids) AS u(uid) ON t.uid = u.uid""";
+    return mapIdToLong(
+        getSession()
+            .createNativeQuery(sql.formatted(idColumnName, tableName))
+            .setParameter("ids", uids)
+            .list());
+  }
+
+  private static Map<String, Long> mapIdToLong(List<Object[]> results) {
+    return Map.copyOf(
+        results.stream()
+            .collect(
+                Collectors.toMap(row -> (String) row[0], row -> ((Number) row[1]).longValue())));
   }
 }
