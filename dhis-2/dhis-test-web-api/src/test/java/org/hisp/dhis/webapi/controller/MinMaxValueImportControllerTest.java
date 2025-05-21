@@ -259,4 +259,22 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
   }
+
+  @Test
+  void testBulkDeleteCsv_NoMinValueColumn() {
+    @Language("csv")
+    String csv =
+        """
+      dataElement,orgUnit,optionCombo,maxValue
+      %1$s,%3$s,%2$s,10
+      """;
+    MockMultipartFile file = new MockMultipartFile("file", csv.formatted(de, coc, ou1).getBytes());
+    JsonWebMessage response =
+        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+            .content(BAD_REQUEST)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E2046, response.getErrorCode());
+    assertEquals(
+        "Error parsing CSV file: Required columns missing: [minValue]", response.getMessage());
+  }
 }

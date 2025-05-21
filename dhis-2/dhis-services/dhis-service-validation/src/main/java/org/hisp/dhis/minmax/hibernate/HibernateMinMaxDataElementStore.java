@@ -43,7 +43,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
@@ -209,35 +208,15 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   }
 
   private Map<String, Long> getDataElementMap(Stream<UID> ids) {
-    String sql = "SELECT uid, dataelementid FROM dataelement WHERE uid IN :ids";
-    return selectIdMapping(sql, "ids", ids);
+    return getIdMap("dataelement", ids);
   }
 
   private Map<String, Long> getOrgUnitMap(Stream<UID> ids) {
-    String sql = "SELECT uid, organisationunitid FROM organisationunit WHERE uid IN :ids";
-    return selectIdMapping(sql, "ids", ids);
+    return getIdMap("organisationunit", ids);
   }
 
   private Map<String, Long> getCategoryOptionComboMap(Stream<UID> ids) {
-    String sql = "SELECT uid, categoryoptioncomboid FROM categoryoptioncombo WHERE uid IN :ids";
-    return selectIdMapping(sql, "ids", ids);
-  }
-
-  @SuppressWarnings("unchecked")
-  private Map<String, Long> selectIdMapping(
-      @Language("sql") String sql, String name, Stream<UID> values) {
-    return mapIdToLong(
-        getSession()
-            .createNativeQuery(sql)
-            .setParameter(name, values.map(UID::getValue).toList())
-            .list());
-  }
-
-  private static Map<String, Long> mapIdToLong(List<Object[]> results) {
-    return Map.copyOf(
-        results.stream()
-            .collect(
-                Collectors.toMap(row -> (String) row[0], row -> ((Number) row[1]).longValue())));
+    return getIdMap("categoryoptioncombo", ids);
   }
 
   @Override
