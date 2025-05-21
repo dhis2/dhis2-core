@@ -314,6 +314,17 @@ public class LoginTest extends BaseE2ETest {
     }
   }
 
+  @Test
+  void testLoginFallback() {
+    HttpHeaders headers = jsonHeaders();
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+    ResponseEntity<String> response =
+        getRestTemplateNoRedirects()
+            .exchange(serverHostUrl + "login.html", HttpMethod.GET, entity, String.class);
+    HttpStatusCode statusCode = response.getStatusCode();
+    assertEquals(HttpStatus.OK, statusCode);
+  }
+
   // --------------------------------------------------------------------------------------------
   // Helper classes and records
   // --------------------------------------------------------------------------------------------
