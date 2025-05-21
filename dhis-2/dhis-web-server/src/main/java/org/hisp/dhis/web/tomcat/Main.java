@@ -64,6 +64,7 @@ import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -78,10 +79,21 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class Main {
 
-  private static final int DEFAULT_HTTP_PORT = 8080;
+  private static final Integer DEFAULT_HTTP_PORT = 8080;
 
   private static int getPort() {
-    return Integer.parseInt(System.getProperty("server.port", Integer.toString(DEFAULT_HTTP_PORT)));
+    return Integer.parseInt(
+        ObjectUtils.firstNonNull(
+            System.getProperty("server.port"),
+            System.getenv("SERVER_PORT"),
+            Integer.toString(DEFAULT_HTTP_PORT)));
+  }
+
+  private static String getContextPath() {
+    return ObjectUtils.firstNonNull(
+        System.getProperty("server.servlet.context.path"),
+        System.getenv("SERVER_SERVLET_CONTEXT_PATH"),
+        "");
   }
 
   public static void main(String[] args) throws Exception {
@@ -107,7 +119,7 @@ public class Main {
     context.addServletContainerInitializer(starter, Collections.emptySet());
     context.setName("/");
     context.setDisplayName("/");
-    context.setPath("");
+    context.setPath(getContextPath());
     context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
 
     context.setResources(new LoaderHidingResourceRoot(context));
