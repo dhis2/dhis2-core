@@ -49,6 +49,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +77,8 @@ public class DefaultCompleteDataSetRegistrationService
 
   private final MessageService messageService;
 
+  private final PeriodStore periodStore;
+
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService
   // -------------------------------------------------------------------------
@@ -83,6 +86,7 @@ public class DefaultCompleteDataSetRegistrationService
   @Override
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     checkCompulsoryDeOperands(registration);
 
     Date date = new Date();

@@ -46,6 +46,7 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
   private String de;
   private String ou;
   private String ds;
+  private final String p = "202504";
 
   @BeforeEach
   void beforeEach() {
@@ -77,11 +78,42 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
 
     // and complete dataset reg should be empty
     JsonMixed cdsr =
-        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=202505&dataSet=%s"
-                .formatted(ou, ds))
+        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=%s&dataSet=%s"
+                .formatted(ou, p, ds))
             .content(HttpStatus.OK);
 
     assertTrue(cdsr.isEmpty());
+  }
+
+  @Test
+  @DisplayName("Complete data set allowed when compulsory elements are required and filled")
+  void compulsoryDataElementOperandsFilledTest() {
+    // given a data set with compulsory data element operands
+    boolean compulsoryElementsAreRequired = true;
+    POST("/metadata", metadata(compulsoryElementsAreRequired, withCompulsoryElements()))
+        .content(HttpStatus.OK);
+    PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
+
+    // and data exists for the compulsory data element
+    POST("dataValueSets", dataValue()).content(HttpStatus.OK);
+
+    // when trying to complete the data set that has missing compulsory data, it should succeed
+    assertEquals(
+        HttpStatus.OK, POST("/dataEntry/dataSetCompletion", completeDataSetReg()).status());
+
+    // and complete dataset reg should be present
+    JsonMixed cdsr =
+        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=%s&dataSet=%s"
+                .formatted(ou, p, ds))
+            .content(HttpStatus.OK);
+
+    assertEquals(
+        ds,
+        cdsr.getArray("completeDataSetRegistrations")
+            .get(0)
+            .asObject()
+            .getString("dataSet")
+            .string());
   }
 
   @Test
@@ -100,8 +132,8 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
-        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=202505&dataSet=%s"
-                .formatted(ou, ds))
+        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=%s&dataSet=%s"
+                .formatted(ou, p, ds))
             .content(HttpStatus.OK);
 
     assertEquals(
@@ -126,8 +158,8 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
 
     // and complete dataset reg should have 1 entry
     JsonMixed cdsr =
-        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=202505&dataSet=%s"
-                .formatted(ou, ds))
+        GET("/api/completeDataSetRegistrations?orgUnit=%s&period=%s&dataSet=%s"
+                .formatted(ou, p, ds))
             .content(HttpStatus.OK);
 
     assertEquals(
@@ -226,12 +258,32 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     return """
         {
             "dataSet": "%s",
-            "period": "202505",
+            "period": "%s",
             "orgUnit": "%s",
             "attribute": {},
             "completed": true
         }
         """
-        .formatted(ds, ou);
+        .formatted(ds, p, ou);
+  }
+
+  private String dataValue() {
+    return """
+          {
+            "dataSet": "%1$s",
+            "period": "%4$s",
+            "orgUnit": "%2$s",
+            "completedDate": "2025-05-25",
+            "dataValues": [
+              {
+                "dataElement": "%3$s",
+                "period": "%4$s",
+                "orgUnit": "%2$s",
+                "value": "2000",
+                "followup": false
+              }
+            ]
+          }"""
+        .formatted(ds, ou, de, p);
   }
 }
