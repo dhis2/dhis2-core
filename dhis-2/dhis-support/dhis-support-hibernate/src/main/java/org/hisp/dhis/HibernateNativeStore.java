@@ -120,23 +120,32 @@ public abstract class HibernateNativeStore<T> {
     return getIdMap(tableName, tableName + "id", ids);
   }
 
+  @SuppressWarnings("unchecked")
   protected final Map<String, Long> getIdMap(
       String tableName, String idColumnName, Stream<UID> ids) {
+    String[] uids = ids.map(UID::getValue).distinct().toArray(String[]::new);
+    if (uids.length == 1) {
+      @Language("sql")
+      String sql = "SELECT %s FROM %s WHERE uid = :id";
+      List<Object> res =
+          getSession()
+              .createNativeQuery(sql.formatted(idColumnName, tableName))
+              .setParameter("id", uids[0])
+              .list();
+      return res == null || res.isEmpty()
+          ? Map.of()
+          : Map.of(uids[0], ((Number) res.get(0)).longValue());
+    }
     @Language("sql")
     String sql =
         """
         SELECT t.uid, t.%s
         FROM %s t
         JOIN unnest(:ids) AS u(uid) ON t.uid = u.uid""";
-    return selectIdMapping(sql.formatted(idColumnName, tableName), ids);
-  }
-
-  @SuppressWarnings("unchecked")
-  private Map<String, Long> selectIdMapping(String sql, Stream<UID> values) {
     return mapIdToLong(
         getSession()
-            .createNativeQuery(sql)
-            .setParameter("ids", values.map(UID::getValue).distinct().toArray(String[]::new))
+            .createNativeQuery(sql.formatted(idColumnName, tableName))
+            .setParameter("ids", uids)
             .list());
   }
 
