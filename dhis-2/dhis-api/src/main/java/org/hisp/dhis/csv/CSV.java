@@ -144,7 +144,7 @@ public final class CSV {
               if (column.required && value == null)
                 throw new IllegalArgumentException(
                     "Column %s is required and cannot be empty".formatted(column.name));
-              args[compIdx] = column.deserializer.apply(value);
+              args[compIdx] = value == null ? null : column.deserializer.apply(value);
             }
           }
           try {
