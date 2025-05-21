@@ -30,6 +30,7 @@
 package org.hisp.dhis.csv;
 
 import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.function.Predicate.not;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -143,7 +144,7 @@ public final class CSV {
               if (column.required && value == null)
                 throw new IllegalArgumentException(
                     "Column %s is required and cannot be empty".formatted(column.name));
-              args[compIdx] = column.deserializer.apply(value);
+              args[compIdx] = value == null ? null : column.deserializer.apply(value);
             }
           }
           try {
@@ -169,7 +170,9 @@ public final class CSV {
               .map(Column::name)
               .toList();
       if (!present.containsAll(required))
-        throw new IllegalArgumentException("Required columns are: " + required);
+        throw new IllegalArgumentException(
+            "Required columns missing: "
+                + required.stream().filter(not(present::contains)).toList());
     }
 
     private int[] compIdxByColIdx(List<String> columns) {
@@ -249,7 +252,7 @@ public final class CSV {
       Function<List<String>, T> creator = as.from(columns);
       LineBuffer buf = LineBuffer.of(columns);
       return new Iterator<>() {
-        boolean next = false;
+        Boolean next;
 
         @Override
         public boolean hasNext() {
@@ -263,9 +266,8 @@ public final class CSV {
 
         @Override
         public T next() {
-          if (!next)
-            throw new NoSuchElementException(
-                "hasNext() wasn't called or returned false before call to next()");
+          if (next == null) next = hasNext();
+          if (!next) throw new NoSuchElementException("No more rows in the CSV.");
           return creator.apply(buf.split());
         }
       };

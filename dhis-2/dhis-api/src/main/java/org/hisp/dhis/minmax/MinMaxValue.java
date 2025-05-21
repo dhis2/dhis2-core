@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.minmax;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
@@ -44,9 +45,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public record MinMaxValue(
     @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
     @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
-    @Nonnull @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID optionCombo,
-    Integer minValue,
-    Integer maxValue,
+    @JsonAlias("categoryOptionCombo")
+        @Nonnull
+        @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+        UID optionCombo,
+    @Nonnull Integer minValue,
+    @Nonnull Integer maxValue,
     Boolean generated)
     implements MinMaxValueId {
 
