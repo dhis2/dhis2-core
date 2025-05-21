@@ -40,9 +40,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -76,6 +73,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -87,7 +85,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
 @RequiredArgsConstructor
-public class JdbcEnrollmentStore {
+class JdbcEnrollmentStore {
 
   private static final String DEFAULT_ORDER = "e.enrollmentid desc";
   private static final Set<String> ORDERABLE_FIELDS =
@@ -414,8 +412,8 @@ public class JdbcEnrollmentStore {
       enrollment.setLastUpdatedByUserInfo(mapUserInfo(rs.getString("lastupdatedbyuserinfo")));
       enrollment.setLastUpdatedAtClient(formatDate(rs.getTimestamp("lastupdatedatclient")));
       enrollment.setOccurredDate(formatDate(rs.getTimestamp("occurreddate")));
-      enrollment.setEnrollmentDate(formatDate(rs.getTimestamp(("enrollmentdate"))));
-      enrollment.setCompletedDate(formatDate(rs.getTimestamp(("completeddate"))));
+      enrollment.setEnrollmentDate(formatDate(rs.getTimestamp("enrollmentdate")));
+      enrollment.setCompletedDate(formatDate(rs.getTimestamp("completeddate")));
       enrollment.setFollowup(rs.getBoolean("followup"));
       enrollment.setCompletedBy(rs.getString("completedby"));
       enrollment.setStoredBy(rs.getString("storedby"));
@@ -535,7 +533,7 @@ public class JdbcEnrollmentStore {
         note.setUid(jdbcNote.getUid());
         note.setNoteText(jdbcNote.getText());
         note.setCreator(jdbcNote.getCreator());
-        note.setCreated(formatDate(jdbcNote.getCreated()));
+        note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
         User user = new User();
         user.setUid(jdbcNote.getUpdatedByUid());
         user.setUsername(jdbcNote.getUpdatedByUsername());
@@ -571,8 +569,8 @@ public class JdbcEnrollmentStore {
         tea.setConfidential(attribute.isConfidential());
         teav.setAttribute(tea);
         teav.setStoredBy(attribute.getStoredBy());
-        teav.setCreated(formatDate(attribute.getCreated()));
-        teav.setLastUpdated(formatDate(attribute.getLastUpdated()));
+        teav.setCreated(DateUtils.safeParseDate(attribute.getCreated()));
+        teav.setLastUpdated(DateUtils.safeParseDate(attribute.getLastUpdated()));
         teav.setEncryptedValue(attribute.getEncryptedValue());
         teav.setPlainValue(attribute.getValue());
         teav.setTrackedEntity(trackedEntity);
@@ -583,18 +581,8 @@ public class JdbcEnrollmentStore {
       return trackedEntityAttributeValues;
     }
 
-    private static final ZoneId ZONE_ID = ZoneId.systemDefault();
-
-    private Date formatDate(String date) {
-      return date == null ? null : toDate(LocalDateTime.parse(date).atZone(ZONE_ID));
-    }
-
     private Date formatDate(Timestamp timestamp) {
-      return timestamp == null ? null : toDate(timestamp.toInstant().atZone(ZONE_ID));
-    }
-
-    private Date toDate(ZonedDateTime zonedDateTime) {
-      return Date.from(zonedDateTime.toInstant());
+      return timestamp == null ? null : new Date(timestamp.getTime());
     }
   }
 
