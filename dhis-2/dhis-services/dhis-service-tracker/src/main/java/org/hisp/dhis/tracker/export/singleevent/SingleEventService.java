@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +48,7 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ProgramEventService {
+public interface SingleEventService {
   /**
    * Get a file for an events' data element under the privileges of the currently authenticated
    * user.

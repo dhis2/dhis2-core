@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import static java.util.Map.entry;
 
@@ -53,7 +53,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.programevent.HibernateEventChangeLogStore")
+@Repository("org.hisp.dhis.tracker.export.singleevent.HibernateEventChangeLogStore")
 public class HibernateEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";

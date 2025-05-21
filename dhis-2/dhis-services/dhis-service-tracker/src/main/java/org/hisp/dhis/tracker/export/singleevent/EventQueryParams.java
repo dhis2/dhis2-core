@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,10 +78,6 @@ class EventQueryParams {
 
   /** The last updated duration filter. */
   @Getter private String updatedAtDuration;
-
-  @Getter private Date scheduleAtStartDate;
-
-  @Getter private Date scheduleAtEndDate;
 
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
@@ -194,16 +190,6 @@ class EventQueryParams {
 
   public EventQueryParams setUpdatedAtDuration(String updatedAtDuration) {
     this.updatedAtDuration = updatedAtDuration;
-    return this;
-  }
-
-  public EventQueryParams setScheduledStartDate(Date scheduleAtStartDate) {
-    this.scheduleAtStartDate = scheduleAtStartDate;
-    return this;
-  }
-
-  public EventQueryParams setScheduledEndDate(Date scheduleAtEndDate) {
-    this.scheduleAtEndDate = scheduleAtEndDate;
     return this;
   }
 

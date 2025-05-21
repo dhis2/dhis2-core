@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -100,7 +100,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
-@Repository("org.hisp.dhis.tracker.export.programevent.EventStore")
+@Repository("org.hisp.dhis.tracker.export.singleevent.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore {
   private static final String EVENT_NOTE_QUERY =
@@ -189,7 +189,6 @@ class JdbcEventStore {
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
           entry("status", COLUMN_EVENT_STATUS),
-          entry("scheduledDate", COLUMN_EVENT_SCHEDULED_DATE),
           entry("storedBy", COLUMN_EVENT_STORED_BY),
           entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
           entry("createdBy", COLUMN_EVENT_CREATED_BY),
@@ -735,23 +734,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       sqlParameters.addValue("programid", params.getProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
-    }
-
-    if (params.getScheduleAtStartDate() != null) {
-      sqlParameters.addValue(
-          "startScheduledDate", params.getScheduleAtStartDate(), Types.TIMESTAMP);
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.scheduleddate is not null and ev.scheduleddate >= :startScheduledDate ) ");
-    }
-
-    if (params.getScheduleAtEndDate() != null) {
-      sqlParameters.addValue("endScheduledDate", params.getScheduleAtEndDate(), Types.TIMESTAMP);
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.scheduleddate is not null and ev.scheduleddate <= :endScheduledDate ) ");
     }
 
     fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));

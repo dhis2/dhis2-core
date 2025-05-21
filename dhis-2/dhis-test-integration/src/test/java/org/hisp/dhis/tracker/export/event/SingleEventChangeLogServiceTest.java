@@ -69,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
+class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -90,7 +90,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   private TrackerObjects trackerObjects;
   @Autowired private TestSetup testSetup;
 
-  EventChangeLogServiceTest() throws BadRequestException {
+  SingleEventChangeLogServiceTest() throws BadRequestException {
     defaultPageParams = PageParams.of(1, 10, false);
   }
 

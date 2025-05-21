@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -69,10 +69,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Service("org.hisp.dhis.tracker.export.programevent.EventService")
+@Service("org.hisp.dhis.tracker.export.singleevent.EventService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-class DefaultEventService implements ProgramEventService {
+class DefaultEventService implements SingleEventService {
 
   private final JdbcEventStore eventStore;
 
@@ -84,7 +84,7 @@ class DefaultEventService implements ProgramEventService {
 
   private final FileResourceService fileResourceService;
 
-  private final ProgramEventOperationParamsMapper paramsMapper;
+  private final SingleEventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
 

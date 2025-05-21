@@ -50,9 +50,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.programevent.EventFields;
-import org.hisp.dhis.tracker.export.programevent.EventOperationParams;
-import org.hisp.dhis.tracker.export.programevent.EventOperationParams.EventOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.singleevent.EventFields;
+import org.hisp.dhis.tracker.export.singleevent.EventOperationParams;
+import org.hisp.dhis.tracker.export.singleevent.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
@@ -65,7 +65,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-class ProgramEventRequestParamsMapper {
+class SingleEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
   private final FieldFilterService fieldFilterService;
@@ -99,10 +99,6 @@ class ProgramEventRequestParamsMapper {
                 applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
             .occurredBefore(
                 applyIfNotNull(eventRequestParams.getOccurredBefore(), EndDateTime::toDate))
-            .scheduledAfter(
-                applyIfNotNull(eventRequestParams.getScheduledAfter(), StartDateTime::toDate))
-            .scheduledBefore(
-                applyIfNotNull(eventRequestParams.getScheduledBefore(), EndDateTime::toDate))
             .updatedAfter(
                 applyIfNotNull(eventRequestParams.getUpdatedAfter(), StartDateTime::toDate))
             .updatedBefore(

@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,10 +82,6 @@ public class EventOperationParams {
 
   /** The last updated duration filter. */
   private String updatedWithin;
-
-  private Date scheduledAfter;
-
-  private Date scheduledBefore;
 
   private UID attributeCategoryCombo;
 

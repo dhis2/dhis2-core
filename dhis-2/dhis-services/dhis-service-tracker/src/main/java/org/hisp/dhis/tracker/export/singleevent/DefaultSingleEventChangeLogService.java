@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.programevent;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
@@ -56,11 +56,11 @@ import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.programevent.EventChangeLogService")
+@Service("org.hisp.dhis.tracker.export.singleevent.EventChangeLogService")
 @RequiredArgsConstructor
-public class DefaultEventChangeLogService implements EventChangeLogService {
+public class DefaultSingleEventChangeLogService implements SingleEventChangeLogService {
 
-  private final ProgramEventService eventService;
+  private final SingleEventService eventService;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
