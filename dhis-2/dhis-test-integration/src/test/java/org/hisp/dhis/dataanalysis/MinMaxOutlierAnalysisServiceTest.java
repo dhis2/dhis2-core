@@ -42,6 +42,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -141,7 +142,7 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAnalyse() {
+  void testAnalyse() throws Exception {
     dataValueService.addDataValue(
         createDataValue(dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo));
     dataValueService.addDataValue(
@@ -172,12 +173,15 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
     dataValueService.addDataValue(
         createDataValue(dataElementC, periodJ, organisationUnitA, "23", categoryOptionCombo));
 
-    minMaxDataElementService.addMinMaxDataElement(
-        new MinMaxDataElement(
-            dataElementA, organisationUnitA, categoryOptionCombo, -40, 40, false));
+    minMaxDataElementService.importValue(
+        MinMaxValue.of(
+            new MinMaxDataElement(
+                dataElementA, organisationUnitA, categoryOptionCombo, -40, 40, false)));
 
-    minMaxDataElementService.addMinMaxDataElement(
-        new MinMaxDataElement(dataElementC, organisationUnitA, categoryOptionCombo, 10, 20, false));
+    minMaxDataElementService.importValue(
+        MinMaxValue.of(
+            new MinMaxDataElement(
+                dataElementC, organisationUnitA, categoryOptionCombo, 10, 20, false)));
 
     List<DeflatedDataValue> resultA =
         minMaxOutlierAnalysisService.analyse(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.minmax.MinMaxValue;
-import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * DTO which represents data values and min-max values for a data entry form.
+ * DTO which represents a {@link MinMaxDataElement} in the API.
  *
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-public class DataValuesDto {
-  @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
+public record MinMaxValue(
+    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @JsonAlias("categoryOptionCombo")
+        @Nonnull
+        @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+        UID optionCombo,
+    @Nonnull Integer minValue,
+    @Nonnull Integer maxValue,
+    Boolean generated)
+    implements MinMaxValueId {
 
-  @JsonProperty private List<MinMaxValue> minMaxValues = new ArrayList<>();
+  @Nonnull
+  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValue(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()),
+        obj.getMin(),
+        obj.getMax(),
+        obj.isGenerated());
+  }
 
-  @JsonProperty private LockStatus lockStatus;
+  public MinMaxValue generated(boolean generated) {
+    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
+  }
 
-  @JsonProperty private CompleteStatusDto completeStatus;
+  public MinMaxValueKey key() {
+    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
+  }
 }
