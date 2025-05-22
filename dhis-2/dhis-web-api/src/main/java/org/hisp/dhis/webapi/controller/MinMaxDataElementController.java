@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -191,20 +193,22 @@ public class MinMaxDataElementController {
   private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
     try (InputStream in = file.getInputStream()) {
       List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
-      if (entries.isEmpty()) throw new BadRequestException("No data found in the CSV file.");
+      if (entries.isEmpty())
+        throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");
       return entries;
     } catch (Exception ex) {
-      throw new BadRequestException("Invalid CSV file. Please check the format and try again.");
+      throw new BadRequestException(ErrorCode.E2046, ex.getMessage());
     }
   }
 
   private static List<MinMaxValueKey> csvToKeys(MultipartFile file) throws BadRequestException {
     try (InputStream in = file.getInputStream()) {
       List<MinMaxValueKey> keys = CSV.of(in).as(MinMaxValueKey.class).list();
-      if (keys.isEmpty()) throw new BadRequestException("No data found in the CSV file.");
+      if (keys.isEmpty())
+        throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");
       return keys;
-    } catch (Exception ex) {
-      throw new BadRequestException("Invalid CSV file. Please check the format and try again.");
+    } catch (IOException ex) {
+      throw new BadRequestException(ErrorCode.E2046, ex.getMessage());
     }
   }
 }
