@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,21 +29,21 @@ package org.hisp.dhis.minmax.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.min;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdMap;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
@@ -62,10 +60,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -84,8 +82,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
   private final QueryParser queryParser;
 
-  private final QueryPlanner queryPlanner;
-
   private final SchemaService schemaService;
 
   public HibernateMinMaxDataElementStore(
@@ -93,16 +89,13 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       QueryParser queryParser,
-      QueryPlanner queryPlanner,
       SchemaService schemaService) {
     super(entityManager, jdbcTemplate, publisher, MinMaxDataElement.class, false);
 
     checkNotNull(queryParser);
-    checkNotNull(queryPlanner);
     checkNotNull(schemaService);
 
     this.queryParser = queryParser;
-    this.queryPlanner = queryPlanner;
     this.schemaService = schemaService;
   }
 
@@ -247,7 +240,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     int size = internalKeys.size();
 
     Session session = entityManager.unwrap(Session.class);
-
+    @Language("sql")
     String sql1 =
         """
       DELETE FROM minmaxdataelement
@@ -313,7 +306,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     Session session = entityManager.unwrap(Session.class);
 
-
     String sql1 =
         """
       INSERT INTO minmaxdataelement
@@ -365,9 +357,9 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   public List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-            from  MinMaxDataElement mmde
-            where mmde.dataElement in :dataElements
-            """,
+        from  MinMaxDataElement mmde
+        where mmde.dataElement in :dataElements
+        """,
             MinMaxDataElement.class)
         .setParameter("dataElements", dataElements)
         .list();
@@ -378,10 +370,10 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     if (uids.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct mmde from  MinMaxDataElement mmde
-            join mmde.optionCombo coc
-            where coc.uid in :uids
-            """)
+        select distinct mmde from  MinMaxDataElement mmde
+        join mmde.optionCombo coc
+        where coc.uid in :uids
+        """)
         .setParameter("uids", UID.toValueList(uids))
         .list();
   }
@@ -450,5 +442,44 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     }
 
     return currentPath;
+  }
+
+  protected final Map<String, Long> getIdMap(String tableName, Stream<UID> ids) {
+    return getIdMap(tableName, tableName + "id", ids);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Long> getIdMap(String tableName, String idColumnName, Stream<UID> ids) {
+    String[] uids = ids.map(UID::getValue).distinct().toArray(String[]::new);
+    if (uids.length == 1) {
+
+      String sql = "SELECT %s FROM %s WHERE uid = :id";
+      List<Object> res =
+          getSession()
+              .createNativeQuery(sql.formatted(idColumnName, tableName))
+              .setParameter("id", uids[0])
+              .list();
+      return res == null || res.isEmpty()
+          ? Map.of()
+          : Map.of(uids[0], ((Number) res.get(0)).longValue());
+    }
+
+    String sql =
+        """
+        SELECT t.uid, t.%s
+        FROM %s t
+        JOIN unnest(:ids) AS u(uid) ON t.uid = u.uid""";
+    return mapIdToLong(
+        getSession()
+            .createNativeQuery(sql.formatted(idColumnName, tableName))
+            .setParameter("ids", uids)
+            .list());
+  }
+
+  private static Map<String, Long> mapIdToLong(List<Object[]> results) {
+    return Map.copyOf(
+        results.stream()
+            .collect(
+                Collectors.toMap(row -> (String) row[0], row -> ((Number) row[1]).longValue())));
   }
 }

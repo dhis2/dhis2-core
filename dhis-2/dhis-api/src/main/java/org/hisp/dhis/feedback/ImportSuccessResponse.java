@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.minmax.MinMaxValue;
-import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
+import lombok.Builder;
 
 /**
- * DTO which represents data values and min-max values for a data entry form.
+ * A simple response used for bulk imports in case of success.
  *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
+ * @param message a custom message to detail the outcome
+ * @param successful number of rows or objects that were successfully processed
+ * @param ignored number of rows or objects that were ignored due to wrong data or missing
+ *     permission
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-public class DataValuesDto {
-  @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
-
-  @JsonProperty private List<MinMaxValue> minMaxValues = new ArrayList<>();
-
-  @JsonProperty private LockStatus lockStatus;
-
-  @JsonProperty private CompleteStatusDto completeStatus;
-}
+@Builder(builderMethodName = "ok")
+public record ImportSuccessResponse(
+    @JsonProperty String message, @JsonProperty int successful, @JsonProperty int ignored) {}

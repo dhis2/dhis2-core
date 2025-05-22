@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,12 +27,12 @@
  */
 package org.hisp.dhis;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -42,7 +40,6 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.UID;
-import org.intellij.lang.annotations.Language;
 
 /**
  * Base class for stores that use hibernate mapping but all access is done via native SQL.
@@ -125,6 +122,7 @@ public abstract class HibernateNativeStore<T> {
       String tableName, String idColumnName, Stream<UID> ids) {
     String[] uids = ids.map(UID::getValue).distinct().toArray(String[]::new);
     if (uids.length == 1) {
+
       String sql = "SELECT %s FROM %s WHERE uid = :id";
       List<Object> res =
           getSession()
@@ -135,6 +133,7 @@ public abstract class HibernateNativeStore<T> {
           ? Map.of()
           : Map.of(uids[0], ((Number) res.get(0)).longValue());
     }
+
     String sql =
         """
         SELECT t.uid, t.%s

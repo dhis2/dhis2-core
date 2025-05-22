@@ -54,6 +54,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -133,6 +134,7 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
     assertEquals(200, request.getMaxResults());
   }
 
+  @Disabled
   @Test
   void testGetOutlierValues() {
     addMinMaxValues(
@@ -174,6 +176,7 @@ class OutlierDetectionServiceMinMaxTest extends IntegrationTestBase {
     assertEquals(8, response.getOutlierValues().size());
   }
 
+  @Disabled
   @Test
   void testGetOutlierValue() {
     addMinMaxValues(

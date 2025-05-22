@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import javax.annotation.Nonnull;
@@ -33,6 +33,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxValueId;
+import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
