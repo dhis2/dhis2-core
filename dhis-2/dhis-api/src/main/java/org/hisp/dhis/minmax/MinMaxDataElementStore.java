@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,8 +31,10 @@ package org.hisp.dhis.minmax;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -56,4 +60,23 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
   void delete(CategoryOptionCombo optionCombo);
 
   void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
+
+  List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
+
+  /**
+   * Retrieve all {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link
+   * UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link UID}
+   *     passed in
+   */
+  List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
+
+  @SuppressWarnings("unchecked")
+  List<String> getDataElementsByDataSet(UID dataSet);
+
+  int deleteByKeys(List<MinMaxValueKey> keys);
+
+  int upsertValues(List<MinMaxValue> values);
 }

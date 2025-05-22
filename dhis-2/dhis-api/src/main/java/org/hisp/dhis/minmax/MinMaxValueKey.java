@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,30 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * DTO which represents a {@link MinMaxDataElement} in the API.
+ * A unique key combination for a {@link MinMaxDataElement} row.
  *
- * @author Lars Helge Overland
+ * @param dataElement data element ID
+ * @param orgUnit organisation unit ID
+ * @param optionCombo category option combo ID
  */
-public record MinMaxValue(
-    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
-    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
-    @JsonAlias("categoryOptionCombo")
-        @Nonnull
-        @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-        UID optionCombo,
-    @Nonnull Integer minValue,
-    @Nonnull Integer maxValue,
-    Boolean generated)
+public record MinMaxValueKey(
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID optionCombo)
     implements MinMaxValueId {
 
   @Nonnull
-  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
-    return new MinMaxValue(
+  public static MinMaxValueKey of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValueKey(
         UID.of(obj.getDataElement().getUid()),
         UID.of(obj.getSource().getUid()),
-        UID.of(obj.getOptionCombo().getUid()),
-        obj.getMin(),
-        obj.getMax(),
-        obj.isGenerated());
-  }
-
-  public MinMaxValue generated(boolean generated) {
-    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
-  }
-
-  public MinMaxValueKey key() {
-    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
+        UID.of(obj.getOptionCombo().getUid()));
   }
 }
