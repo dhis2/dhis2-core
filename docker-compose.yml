@@ -19,8 +19,7 @@ x-web-base: &web-base
 x-db-base: &db-base
   image: ghcr.io/baosystems/postgis:12-3.3
   volumes:
-    - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
-    - db-dump:/opt/dump:ro
+    - db-dump:/docker-entrypoint-initdb.d/
   environment:
     POSTGRES_USER: dhis
     POSTGRES_DB: dhis
@@ -84,7 +83,14 @@ services:
 
   db-dump:
     image: busybox
-    command: sh -c '[ -f dump.sql.gz ] && echo "dump.sql.gz exists" || wget --output-document dump.sql.gz $$DHIS2_DB_DUMP_URL' # only download file if it does not exist
+    command: >
+      sh -c '
+        if [ ! -f dump.sql.gz ]; then
+          wget --output-document dump.sql.gz $$DHIS2_DB_DUMP_URL
+        fi
+        gunzip -c dump.sql.gz > dump.sql
+        sed -i "s/ALTER TABLE ONLY public.potentialduplicate DROP CONSTRAINT potentialduplicate_lastupdatedby_user;/DO \$\$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '\''potentialduplicate_lastupdatedby_user'\'') THEN ALTER TABLE ONLY public.potentialduplicate DROP CONSTRAINT potentialduplicate_lastupdatedby_user; END IF; END \$\$;/" dump.sql
+      '
     environment:
       DHIS2_DB_DUMP_URL: "${DHIS2_DB_DUMP_URL:-https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz}"
     working_dir: /opt/dump
