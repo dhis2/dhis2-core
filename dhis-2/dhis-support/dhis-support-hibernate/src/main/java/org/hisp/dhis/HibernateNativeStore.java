@@ -42,7 +42,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.UID;
-
+import org.intellij.lang.annotations.Language;
 
 /**
  * Base class for stores that use hibernate mapping but all access is done via native SQL.
@@ -135,7 +135,6 @@ public abstract class HibernateNativeStore<T> {
           ? Map.of()
           : Map.of(uids[0], ((Number) res.get(0)).longValue());
     }
-
     String sql =
         """
         SELECT t.uid, t.%s

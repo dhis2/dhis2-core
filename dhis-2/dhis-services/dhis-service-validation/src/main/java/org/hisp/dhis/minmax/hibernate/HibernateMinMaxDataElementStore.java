@@ -31,6 +31,7 @@ package org.hisp.dhis.minmax.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.min;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
