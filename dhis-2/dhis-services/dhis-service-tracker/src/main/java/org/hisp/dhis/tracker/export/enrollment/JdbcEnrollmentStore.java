@@ -555,7 +555,10 @@ class JdbcEnrollmentStore {
         attributes = mapper.readValue(jsonAttributes, new TypeReference<>() {});
       } catch (JsonProcessingException e) {
         log.error("Error mapping enrollment attributes: {}", jsonAttributes);
-        return Set.of();
+        throw new IllegalArgumentException(
+            String.format(
+                "Enrollment attributes cannot be mapped: %s. Request enrollments without attributes to receive a valid response.",
+                jsonAttributes));
       }
 
       Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
