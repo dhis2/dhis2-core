@@ -89,7 +89,7 @@ services:
           wget --output-document dump.sql.gz $$DHIS2_DB_DUMP_URL
         fi
         gunzip -c dump.sql.gz > dump.sql
-        sed -i "s/ALTER TABLE ONLY public.potentialduplicate DROP CONSTRAINT potentialduplicate_lastupdatedby_user;/DO \$\$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '\''potentialduplicate_lastupdatedby_user'\'') THEN ALTER TABLE ONLY public.potentialduplicate DROP CONSTRAINT potentialduplicate_lastupdatedby_user; END IF; END \$\$;/" dump.sql
+        sed -i "s/ALTER TABLE ONLY \([^ ]*\) DROP CONSTRAINT \([^ ]*\);/DO \$\$ BEGIN IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '\''\2'\'') THEN ALTER TABLE ONLY \1 DROP CONSTRAINT \2; END IF; END \$\$;/" dump.sql
       '
     environment:
       DHIS2_DB_DUMP_URL: "${DHIS2_DB_DUMP_URL:-https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz}"
