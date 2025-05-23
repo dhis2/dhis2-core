@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -39,6 +40,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -46,23 +48,29 @@ import org.hisp.dhis.util.DateUtils;
  */
 @RequiredArgsConstructor
 public class CreateEventExecutor implements RuleActionExecutor<Event> {
+  private final UID programRule;
   private final UID programStage;
   private final String scheduledAt;
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
     if (!DateUtils.dateIsValid(scheduledAt)) {
-      return Optional.empty();
+      return Optional.of(ProgramRuleIssue.error(programRule, ValidationCode.E1318, scheduledAt));
     }
-    Event scheduledEvent = new Event();
-    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
-    scheduledEvent.setProgram(event.getProgram());
-    scheduledEvent.setOccurredAt(null);
-    scheduledEvent.setScheduledAt(Instant.parse(scheduledAt));
-    scheduledEvent.setStatus(EventStatus.SCHEDULE);
-    scheduledEvent.setOrgUnit(event.getOrgUnit());
 
-    bundle.getEvents().add(event);
+    LocalDate localDate = LocalDate.parse(scheduledAt);
+    Event scheduledEvent = new Event();
+    scheduledEvent.setEvent(UID.generate());
+    scheduledEvent.setEnrollment(event.getEnrollment());
+    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
+    scheduledEvent.setAttributeOptionCombo(event.getAttributeOptionCombo());
+    scheduledEvent.setProgram(event.getProgram());
+    scheduledEvent.setOrgUnit(event.getOrgUnit());
+    scheduledEvent.setOccurredAt(null);
+    scheduledEvent.setScheduledAt(localDate.atStartOfDay(ZoneId.of("UTC")).toInstant());
+    scheduledEvent.setStatus(EventStatus.SCHEDULE);
+
+    bundle.getEvents().add(scheduledEvent);
 
     return Optional.empty();
   }
