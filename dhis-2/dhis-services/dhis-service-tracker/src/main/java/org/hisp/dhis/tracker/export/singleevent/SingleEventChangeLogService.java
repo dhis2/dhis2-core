@@ -49,7 +49,7 @@ public interface SingleEventChangeLogService {
    */
   @Nonnull
   Page<SingleEventChangeLog> getEventChangeLog(
-      UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
+      UID event, SingleEventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException;
 
   void addEventChangeLog(
@@ -68,18 +68,18 @@ public interface SingleEventChangeLogService {
   void deleteEventChangeLog(DataElement dataElement);
 
   /**
-   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
-   * event change logs by. Ordering by fields other than these, is considered a programmer error.
-   * Validation of user provided field names should occur before calling {@link
-   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
+   * Fields the {@link #getEventChangeLog(UID, SingleEventChangeLogOperationParams, PageParams)} can
+   * order event change logs by. Ordering by fields other than these, is considered a programmer
+   * error. Validation of user provided field names should occur before calling {@link
+   * #getEventChangeLog(UID, SingleEventChangeLogOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
 
   /**
-   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can
+   * Fields the {@link #getEventChangeLog(UID, SingleEventChangeLogOperationParams, PageParams)} can
    * filter event change logs by. Filtering by fields other than these, is considered a programmer
    * error. Validation of user provided field names should occur before calling {@link
-   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
+   * #getEventChangeLog(UID, SingleEventChangeLogOperationParams, PageParams)}.
    */
   Set<Pair<String, Class<?>>> getFilterableFields();
 }

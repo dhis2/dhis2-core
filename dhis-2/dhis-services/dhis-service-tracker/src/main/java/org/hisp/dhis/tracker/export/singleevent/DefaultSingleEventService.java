@@ -171,7 +171,7 @@ class DefaultSingleEventService implements SingleEventService {
   @Nonnull
   @Override
   public Event getEvent(@Nonnull UID event) throws NotFoundException {
-    return getEvent(event, TrackerIdSchemeParams.builder().build(), EventFields.none());
+    return getEvent(event, TrackerIdSchemeParams.builder().build(), SingleEventFields.none());
   }
 
   @Nonnull
@@ -179,7 +179,7 @@ class DefaultSingleEventService implements SingleEventService {
   public Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull EventFields fields)
+      @Nonnull SingleEventFields fields)
       throws NotFoundException {
     Page<Event> events;
     try {
@@ -235,7 +235,7 @@ class DefaultSingleEventService implements SingleEventService {
   @Override
   public List<Event> findEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
     if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events) {
@@ -255,7 +255,7 @@ class DefaultSingleEventService implements SingleEventService {
   public Page<Event> findEvents(
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<Event> events = eventStore.getEvents(queryParams, pageParams);
     if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events.getItems()) {

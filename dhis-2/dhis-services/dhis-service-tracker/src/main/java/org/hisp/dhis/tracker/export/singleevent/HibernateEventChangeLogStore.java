@@ -95,7 +95,7 @@ public class HibernateEventChangeLogStore {
 
   public Page<SingleEventChangeLog> getEventChangeLogs(
       @Nonnull UID event,
-      @Nonnull EventChangeLogOperationParams operationParams,
+      @Nonnull SingleEventChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
     if (pageParams.isPageTotal()) {
       throw new UnsupportedOperationException("pageTotal is not supported");

@@ -110,7 +110,7 @@ public class EventOperationParams {
 
   private boolean includeDeleted;
 
-  @Builder.Default private EventFields fields = EventFields.none();
+  @Builder.Default private SingleEventFields fields = SingleEventFields.none();
 
   @Builder.Default
   private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();

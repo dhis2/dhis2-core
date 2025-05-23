@@ -41,31 +41,32 @@ import org.hisp.dhis.tracker.export.Order;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EventChangeLogOperationParams {
+public class SingleEventChangeLogOperationParams {
 
   private Order order;
   private Pair<String, QueryFilter> filter;
 
-  public static class EventChangeLogOperationParamsBuilder {
+  public static class SingleEventChangeLogOperationParamsBuilder {
 
     // Do not remove these unused methods. They hide the order and filter fields from the builder
     // which Lombok
     // does not support.
     // They should be added via their respective orderBy and filterBy builder methods.
-    private EventChangeLogOperationParamsBuilder order(Order order) {
+    private SingleEventChangeLogOperationParamsBuilder order(Order order) {
       return this;
     }
 
-    private EventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
+    private SingleEventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
       return this;
     }
 
-    public EventChangeLogOperationParamsBuilder orderBy(String field, SortDirection direction) {
+    public SingleEventChangeLogOperationParamsBuilder orderBy(
+        String field, SortDirection direction) {
       this.order = new Order(field, direction);
       return this;
     }
 
-    public EventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
+    public SingleEventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
       this.filter = Pair.of(field, filter);
       return this;
     }

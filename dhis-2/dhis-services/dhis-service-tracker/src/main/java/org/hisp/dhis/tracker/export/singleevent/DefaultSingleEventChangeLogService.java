@@ -68,7 +68,7 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
   @Override
   @Transactional(readOnly = true)
   public Page<SingleEventChangeLog> getEventChangeLog(
-      UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
+      UID event, SingleEventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     // check existence and access
     eventService.getEvent(event);

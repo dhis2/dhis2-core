@@ -57,8 +57,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EventOperationParams} to {@link EventQueryParams} which is used to fetch events from
- * the DB.
+ * Maps {@link EventOperationParams} to {@link SingleEventQueryParams} which is used to fetch events
+ * from the DB.
  */
 @Component
 @RequiredArgsConstructor
@@ -74,7 +74,7 @@ class SingleEventOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public EventQueryParams map(
+  public SingleEventQueryParams map(
       @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
@@ -93,7 +93,7 @@ class SingleEventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    EventQueryParams queryParams = new EventQueryParams();
+    SingleEventQueryParams queryParams = new SingleEventQueryParams();
 
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
@@ -150,7 +150,7 @@ class SingleEventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      EventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
+      SingleEventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
     for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
       DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
@@ -171,7 +171,7 @@ class SingleEventOperationParamsMapper {
     }
   }
 
-  private void mapOrderParam(EventQueryParams params, List<Order> orders)
+  private void mapOrderParam(SingleEventQueryParams params, List<Order> orders)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;

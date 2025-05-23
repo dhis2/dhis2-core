@@ -43,17 +43,17 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 @Getter
 @ToString
 @EqualsAndHashCode
-public class EventFields {
+public class SingleEventFields {
   private final boolean includesRelationships;
   private final RelationshipFields relationshipFields;
 
-  private EventFields(Builder builder) {
+  private SingleEventFields(Builder builder) {
     this.includesRelationships = builder.includesRelationships;
     this.relationshipFields =
         builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
   }
 
-  private EventFields(Predicate<String> includesFields, String pathSeparator) {
+  private SingleEventFields(Predicate<String> includesFields, String pathSeparator) {
     if (includesFields.test("relationships")) {
       this.includesRelationships = true;
       this.relationshipFields =
@@ -65,21 +65,21 @@ public class EventFields {
     }
   }
 
-  public static EventFields of(
+  public static SingleEventFields of(
       @Nonnull Predicate<String> includesFields, @Nonnull String pathSeparator) {
-    return new EventFields(includesFields, pathSeparator);
+    return new SingleEventFields(includesFields, pathSeparator);
   }
 
   /** Use this if you do not want fields to be exported. */
-  public static EventFields none() {
+  public static SingleEventFields none() {
     // the path separator does not matter as the predicate returns false regardless of the path
-    return new EventFields(f -> false, "x");
+    return new SingleEventFields(f -> false, "x");
   }
 
   /** Use this if you do want all fields to be exported. This is potentially expensive! */
-  public static EventFields all() {
+  public static SingleEventFields all() {
     // the path separator does not matter as the predicate returns true regardless of the path
-    return new EventFields(f -> true, "x");
+    return new SingleEventFields(f -> true, "x");
   }
 
   public static Builder builder() {
@@ -99,8 +99,8 @@ public class EventFields {
       return this;
     }
 
-    public EventFields build() {
-      return new EventFields(this);
+    public SingleEventFields build() {
+      return new SingleEventFields(this);
     }
   }
 }

@@ -59,7 +59,7 @@ import org.hisp.dhis.tracker.export.Order;
 /**
  * @author Lars Helge Overland
  */
-class EventQueryParams {
+class SingleEventQueryParams {
   @Getter private Program program;
 
   @Getter private OrganisationUnit orgUnit;
@@ -112,7 +112,7 @@ class EventQueryParams {
 
   @Getter private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
-  public EventQueryParams() {}
+  public SingleEventQueryParams() {}
 
   /** Indicates whether this parameters specifies a last updated start date. */
   public boolean hasUpdatedAtStartDate() {
@@ -137,17 +137,17 @@ class EventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  public EventQueryParams setProgram(Program program) {
+  public SingleEventQueryParams setProgram(Program program) {
     this.program = program;
     return this;
   }
 
-  public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
+  public SingleEventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
     this.orgUnit = orgUnit;
     return this;
   }
 
-  public EventQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
+  public SingleEventQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
     this.orgUnitMode = orgUnitMode;
     return this;
   }
@@ -158,37 +158,38 @@ class EventQueryParams {
    * @param assignedUserQueryParam assigned user query params
    * @return this
    */
-  public EventQueryParams setAssignedUserQueryParam(AssignedUserQueryParam assignedUserQueryParam) {
+  public SingleEventQueryParams setAssignedUserQueryParam(
+      AssignedUserQueryParam assignedUserQueryParam) {
     this.assignedUserQueryParam = assignedUserQueryParam;
     return this;
   }
 
-  public EventQueryParams setOccurredStartDate(Date occurredStartDate) {
+  public SingleEventQueryParams setOccurredStartDate(Date occurredStartDate) {
     this.occurredStartDate = occurredStartDate;
     return this;
   }
 
-  public EventQueryParams setOccurredEndDate(Date occurredEndDate) {
+  public SingleEventQueryParams setOccurredEndDate(Date occurredEndDate) {
     this.occurredEndDate = occurredEndDate;
     return this;
   }
 
-  public EventQueryParams setEventStatus(EventStatus eventStatus) {
+  public SingleEventQueryParams setEventStatus(EventStatus eventStatus) {
     this.eventStatus = eventStatus;
     return this;
   }
 
-  public EventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
+  public SingleEventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
     this.updatedAtStartDate = updatedAtStartDate;
     return this;
   }
 
-  public EventQueryParams setUpdatedAtEndDate(Date updatedAtEndDate) {
+  public SingleEventQueryParams setUpdatedAtEndDate(Date updatedAtEndDate) {
     this.updatedAtEndDate = updatedAtEndDate;
     return this;
   }
 
-  public EventQueryParams setUpdatedAtDuration(String updatedAtDuration) {
+  public SingleEventQueryParams setUpdatedAtDuration(String updatedAtDuration) {
     this.updatedAtDuration = updatedAtDuration;
     return this;
   }
@@ -205,52 +206,52 @@ class EventQueryParams {
   }
 
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
-  public EventQueryParams orderBy(String field, SortDirection direction) {
+  public SingleEventQueryParams orderBy(String field, SortDirection direction) {
     this.order.add(new Order(field, direction));
     return this;
   }
 
   /** Order by the given data element {@code de} in given sort {@code direction}. */
-  public EventQueryParams orderBy(DataElement de, SortDirection direction) {
+  public SingleEventQueryParams orderBy(DataElement de, SortDirection direction) {
     this.order.add(new Order(de, direction));
     return this;
   }
 
   /** Order by the given tracked entity attribute {@code tea} in given sort {@code direction}. */
-  public EventQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
+  public SingleEventQueryParams orderBy(TrackedEntityAttribute tea, SortDirection direction) {
     this.order.add(new Order(tea, direction));
     return this;
   }
 
-  public EventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
+  public SingleEventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
     this.categoryOptionCombo = categoryOptionCombo;
     return this;
   }
 
-  public EventQueryParams setEvents(Set<UID> events) {
+  public SingleEventQueryParams setEvents(Set<UID> events) {
     this.events = events;
     return this;
   }
 
-  public EventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
+  public SingleEventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
     this.dataElements.putIfAbsent(de, new ArrayList<>());
     this.dataElements.get(de).add(JdbcPredicate.of(de, filter, "ev"));
     this.hasDataElementFilter = true;
     return this;
   }
 
-  public EventQueryParams filterBy(DataElement de) {
+  public SingleEventQueryParams filterBy(DataElement de) {
     this.dataElements.putIfAbsent(
         de, List.of(JdbcPredicate.of(de, new QueryFilter(QueryOperator.NNULL), "ev")));
     return this;
   }
 
-  public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
+  public SingleEventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
   }
 
-  public EventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
+  public SingleEventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
     this.accessiblePrograms = accessiblePrograms;
     return this;
   }
@@ -259,7 +260,7 @@ class EventQueryParams {
     return accessiblePrograms != null;
   }
 
-  public EventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
+  public SingleEventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
     this.idSchemeParams = idSchemeParams;
     return this;
   }

@@ -217,16 +217,16 @@ class JdbcSingleEventStore {
 
   private final IdentifiableObjectManager manager;
 
-  public List<Event> getEvents(EventQueryParams queryParams) {
+  public List<Event> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
 
-  public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
+  public Page<Event> getEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
-  private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
+  private List<Event> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, queryParams);
 
@@ -492,7 +492,7 @@ class JdbcSingleEventStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private long getEventCount(EventQueryParams params) {
+  private long getEventCount(SingleEventQueryParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, params);
 
@@ -531,7 +531,7 @@ class JdbcSingleEventStore {
    * id. The purpose of the separate queries is to be able to page properly on events.
    */
   private String buildSql(
-      EventQueryParams queryParams,
+      SingleEventQueryParams queryParams,
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       User user) {
@@ -577,7 +577,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getEventSelectQuery(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -703,7 +703,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private StringBuilder getFromWhereClause(
-      EventQueryParams params, MapSqlParameterSource sqlParameters, User user, SqlHelper hlp) {
+      SingleEventQueryParams params,
+      MapSqlParameterSource sqlParameters,
+      User user,
+      SqlHelper hlp) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
@@ -812,7 +815,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getOrgUnitSql(
-      EventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+      SingleEventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
       case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
       case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
@@ -828,7 +831,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createAccessibleSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
     if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
@@ -839,7 +842,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createDescendantsSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
@@ -852,7 +855,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createChildrenSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
@@ -875,7 +878,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createSelectedSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
@@ -952,7 +955,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String eventStatusSql(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder stringBuilder = new StringBuilder();
 
     if (params.getEventStatus() != null) {
@@ -987,7 +990,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String addLastUpdatedFilters(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder sqlBuilder = new StringBuilder();
 
     if (params.hasUpdatedAtDuration()) {
@@ -1082,7 +1085,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return " limit " + (pageParams.getPageSize() + 1) + " offset " + pageParams.getOffset() + " ";
   }
 
-  private String getOrderQuery(EventQueryParams params) {
+  private String getOrderQuery(SingleEventQueryParams params) {
     ArrayList<String> orderFields = new ArrayList<>();
 
     for (Order order : params.getOrder()) {
@@ -1131,7 +1134,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private void setAccessiblePrograms(User user, EventQueryParams params) {
+  private void setAccessiblePrograms(User user, SingleEventQueryParams params) {
     if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));

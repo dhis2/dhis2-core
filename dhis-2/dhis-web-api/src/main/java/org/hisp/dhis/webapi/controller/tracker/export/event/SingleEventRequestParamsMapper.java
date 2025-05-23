@@ -50,9 +50,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.singleevent.EventFields;
 import org.hisp.dhis.tracker.export.singleevent.EventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.EventOperationParams.EventOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventFields;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
@@ -110,7 +110,7 @@ class SingleEventRequestParamsMapper {
             .events(eventRequestParams.getEvents())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .fields(
-                EventFields.of(
+                SingleEventFields.of(
                     f ->
                         fieldFilterService.filterIncludes(
                             Event.class, eventRequestParams.getFields(), f),
