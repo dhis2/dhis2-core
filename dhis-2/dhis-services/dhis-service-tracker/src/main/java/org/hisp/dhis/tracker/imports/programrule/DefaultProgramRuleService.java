@@ -94,7 +94,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             RuleEngineEffects.merge(
                 calculateEnrollmentRuleEffects(bundle, preheat),
                 calculateTrackerEventRuleEffects(bundle, preheat)),
-            calculateProgramEventRuleEffects(bundle, preheat));
+            calculateSingleEventRuleEffects(bundle, preheat));
 
     bundle.setEnrollmentNotifications(ruleEffects.getEnrollmentNotifications());
     bundle.setEventNotifications(ruleEffects.getEventNotifications());
@@ -150,7 +150,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .orElse(RuleEngineEffects.empty());
   }
 
-  private RuleEngineEffects calculateProgramEventRuleEffects(
+  private RuleEngineEffects calculateSingleEventRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
     Map<Program, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents =
         bundle.getEvents().stream()
@@ -162,7 +162,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             entry -> {
               List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
 
-              return programRuleEngine.evaluateProgramEvents(
+              return programRuleEngine.evaluateSingleEvents(
                   events, entry.getKey(), bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)

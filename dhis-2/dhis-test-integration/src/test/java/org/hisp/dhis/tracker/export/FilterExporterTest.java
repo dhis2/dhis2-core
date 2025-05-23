@@ -53,7 +53,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -843,7 +842,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
-            .programType(ProgramType.WITH_REGISTRATION)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EW, "001")))
             .build();

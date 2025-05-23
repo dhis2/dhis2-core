@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.minmax;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -42,23 +38,38 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * Object which encapsulates parameters for a min-max value query.
+ * DTO which represents a {@link MinMaxDataElement} in the API.
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Shared
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MinMaxValueQueryParams {
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String de;
+public record MinMaxValue(
+    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @JsonAlias("categoryOptionCombo")
+        @Nonnull
+        @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+        UID optionCombo,
+    @Nonnull Integer minValue,
+    @Nonnull Integer maxValue,
+    Boolean generated)
+    implements MinMaxValueId {
 
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String ou;
+  @Nonnull
+  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValue(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()),
+        obj.getMin(),
+        obj.getMax(),
+        obj.isGenerated());
+  }
 
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String co;
+  public MinMaxValue generated(boolean generated) {
+    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
+  }
+
+  public MinMaxValueKey key() {
+    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.aggregate;
+package org.hisp.dhis.tracker.export.singleevent;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.tracker.export.Order;
 
-/**
- * @author Jason P. Pickering <jason@dhis2.org>
- */
-public class MinMaxValuesActions extends RestApiActions {
-  public MinMaxValuesActions() {
-    super("/minMaxDataElements/values");
+@Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class SingleEventChangeLogOperationParams {
+
+  private Order order;
+  private Pair<String, QueryFilter> filter;
+
+  public static class SingleEventChangeLogOperationParamsBuilder {
+
+    // Do not remove these unused methods. They hide the order and filter fields from the builder
+    // which Lombok
+    // does not support.
+    // They should be added via their respective orderBy and filterBy builder methods.
+    private SingleEventChangeLogOperationParamsBuilder order(Order order) {
+      return this;
+    }
+
+    private SingleEventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
+      return this;
+    }
+
+    public SingleEventChangeLogOperationParamsBuilder orderBy(
+        String field, SortDirection direction) {
+      this.order = new Order(field, direction);
+      return this;
+    }
+
+    public SingleEventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
+      this.filter = Pair.of(field, filter);
+      return this;
+    }
   }
 }

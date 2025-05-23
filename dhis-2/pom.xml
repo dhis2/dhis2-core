@@ -109,7 +109,7 @@
 
     <!-- Spring -->
     <spring.version>6.2.3</spring.version>
-    <spring-session-core.version>3.4.3</spring-session-core.version>
+    <spring-session-core.version>3.5.0</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -132,7 +132,7 @@
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
     <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.8.5</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.8.6</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -189,7 +189,7 @@
     <guava.version>33.4.8-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.7.2</google-api-client.version>
+    <google-api-client.version>2.8.0</google-api-client.version>
     <lombok.version>1.18.38</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.14.0</joda-time.version>
@@ -206,7 +206,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.4.4</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.5</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
 
     <!-- Monitoring -->
@@ -253,7 +253,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.13.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.15.0</opentelemetry.version>
+    <opentelemetry.version>2.16.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>

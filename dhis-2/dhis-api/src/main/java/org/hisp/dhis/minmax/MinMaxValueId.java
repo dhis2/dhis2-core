@@ -29,44 +29,14 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-/**
- * DTO which represents a min-max value.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-@EqualsAndHashCode
-public class MinMaxValueDto {
-  @JsonProperty
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String dataElement;
+/** A key combination that points to a single row of a {@link MinMaxDataElement}. */
+public interface MinMaxValueId {
 
-  @JsonProperty
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String orgUnit;
+  UID dataElement();
 
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String categoryOptionCombo;
+  UID orgUnit();
 
-  @JsonProperty private Integer minValue;
-
-  @JsonProperty private Integer maxValue;
-
-  @JsonProperty private Boolean generated;
+  UID optionCombo();
 }
