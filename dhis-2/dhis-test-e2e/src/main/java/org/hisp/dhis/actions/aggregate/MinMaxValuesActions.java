@@ -34,6 +34,10 @@ import org.hisp.dhis.actions.RestApiActions;
  */
 public class MinMaxValuesActions extends RestApiActions {
   public MinMaxValuesActions() {
-    super("/minMaxDataElements/values");
+    super("/minMaxDataElements ");
+  }
+
+  public MinMaxValuesActions(String endpoint) {
+    super("/minMaxDataElements/" + endpoint);
   }
 }

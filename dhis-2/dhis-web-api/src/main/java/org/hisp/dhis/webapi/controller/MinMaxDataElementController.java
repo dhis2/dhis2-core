@@ -181,7 +181,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/delete", consumes = "multipart/form-data")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public ImportSuccessResponse bulkDeleteCsv(
+  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
       @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
       throws BadRequestException {
 
