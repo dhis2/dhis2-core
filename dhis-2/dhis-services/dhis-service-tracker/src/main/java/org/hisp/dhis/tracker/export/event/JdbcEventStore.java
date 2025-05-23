@@ -919,12 +919,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
-    if (params.getProgramType() != null) {
-      sqlParameters.addValue("programType", params.getProgramType().name());
-
-      fromBuilder.append(hlp.whereAnd()).append(" p.type = ").append(":programType").append(" ");
-    }
-
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
     if (params.getEvents() != null

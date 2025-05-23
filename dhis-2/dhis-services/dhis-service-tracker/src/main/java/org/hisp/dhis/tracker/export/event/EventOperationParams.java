@@ -54,7 +54,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
@@ -68,8 +67,6 @@ public class EventOperationParams {
   private UID programStage;
 
   private EnrollmentStatus enrollmentStatus;
-
-  private ProgramType programType;
 
   private Boolean followUp;
 
