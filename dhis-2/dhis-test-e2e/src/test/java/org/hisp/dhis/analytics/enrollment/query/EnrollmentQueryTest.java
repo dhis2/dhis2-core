@@ -224,7 +224,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "pi", "KxXkjF6buFN");
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.UXz7xuGCEhU", "2313.0");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.UXz7xuGCEhU", "2313");
     validateRowValueByName(response, actualHeaders, 0, "tei", "uhubxsfLanV");
     validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-04-02 02:00:00.0");
     validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2022-04-02 02:00:00.0");
@@ -234,7 +234,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
 
     // Validate selected values for row index 99
     validateRowValueByName(response, actualHeaders, 99, "pi", "Ff9wbfm05au");
-    validateRowValueByName(response, actualHeaders, 99, "A03MvHHogjR.UXz7xuGCEhU", "2521.0");
+    validateRowValueByName(response, actualHeaders, 99, "A03MvHHogjR.UXz7xuGCEhU", "2521");
     validateRowValueByName(response, actualHeaders, 99, "tei", "HJJMsNWg0SN");
     validateRowValueByName(response, actualHeaders, 99, "enrollmentdate", "2022-02-03 12:05:00.0");
     validateRowValueByName(response, actualHeaders, 99, "incidentdate", "2022-02-03 12:05:00.0");
@@ -311,14 +311,14 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
     validateRow(
         response,
         0,
-        List.of("fmkqsEx6MRo", "Sierra Leone / Port Loko / Koya / Mabora MCHP", "25.0", ""));
+        List.of("fmkqsEx6MRo", "Sierra Leone / Port Loko / Koya / Mabora MCHP", "25", ""));
     validateRow(
         response,
         1,
         List.of(
             "GCbYmPqcOOP",
             "Sierra Leone / Port Loko / Bureh Kasseh Maconteh / Romeni MCHP",
-            "25.0",
+            "25",
             ""));
   }
 

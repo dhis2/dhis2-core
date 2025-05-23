@@ -243,7 +243,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "27.04164413196322336398053001622499",
+            "27.04",
             "AD5jueZTZSK",
             "",
             "BHlWGFLIU20"));
@@ -273,7 +273,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "78",
-            "34.96357960457856399583766909469303",
+            "34.96",
             "lnccUWrmqL0",
             "",
             "GWuQsWJDGvN"));
@@ -303,9 +303,9 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "85.0340136054421768707482993197278911564626",
+            "85.03",
             "NxQrJ3icPkE",
-            "85.0340136054421768707482993197278911564626",
+            "85.03",
             "sxFVvKLpE0y"));
     validateRow(
         response,
@@ -333,7 +333,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "103.7037037037037037037037037037037037037037",
+            "103.7",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -363,7 +363,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "41.65469692617064062051134731399023",
+            "41.65",
             "Sjp6IB3gthI",
             "",
             "CivTksSoCt0"));
@@ -393,7 +393,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "84",
-            "217.2928927116342236306020823902218198279765",
+            "217.29",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -423,7 +423,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "42.2512755102040816326530612244898",
+            "42.25",
             "Sjp6IB3gthI",
             "",
             "CivTksSoCt0"));
@@ -453,7 +453,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "248.9814395654142145767315527387958352195564",
+            "248.98",
             "Sjp6IB3gthI",
             "",
             "sxFVvKLpE0y"));
@@ -483,7 +483,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "57",
-            "74.4459833795013850415512465373961218836565",
+            "74.45",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -513,7 +513,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "34.68312238187469032926444754740777",
+            "34.68",
             "xVezsaEXU3k",
             "",
             "GWuQsWJDGvN"));
@@ -543,7 +543,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "168.0319260659525309808863684099978996009242",
+            "168.03",
             "lnccUWrmqL0",
             "",
             "sxFVvKLpE0y"));
@@ -573,7 +573,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "55.90007860948554458904707834745393",
+            "55.9",
             "GDFw7T4aFGz",
             "",
             "CivTksSoCt0"));
@@ -603,7 +603,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "14.41753171856978085351787773933103",
+            "14.42",
             "NxQrJ3icPkE",
             "",
             "CivTksSoCt0"));
@@ -633,7 +633,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "19.40935829675415808175818925617367",
+            "19.41",
             "GDFw7T4aFGz",
             "",
             "B1X4JyH4Mdw"));
@@ -663,7 +663,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "52.5951557093425605536332179930795847750865",
+            "52.6",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -693,7 +693,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "6.57865883075303714749353098548309",
+            "6.58",
             "NxQrJ3icPkE",
             "",
             "GWuQsWJDGvN"));
@@ -723,7 +723,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "42.96384427258906735408817502809174",
+            "42.96",
             "GDFw7T4aFGz",
             "",
             "BHlWGFLIU20"));
@@ -753,7 +753,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "41",
-            "126.8742791234140715109573241061130334486736",
+            "126.87",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -783,7 +783,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "64.0917524034407151290268173385056501939619",
+            "64.09",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -813,7 +813,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "24.60973370064279155188246097337006",
+            "24.61",
             "GDFw7T4aFGz",
             "",
             "wgbW2ZQnlIc"));
@@ -843,7 +843,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "16.6597251145356101624323198667222",
+            "16.66",
             "b9UzeWaSs2u",
             "",
             "GWuQsWJDGvN"));
@@ -873,7 +873,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "20.79672989350640037290688084908028",
+            "20.8",
             "Sjp6IB3gthI",
             "",
             "wgbW2ZQnlIc"));
@@ -903,7 +903,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "108.3396321491559586797682035777273872511968",
+            "108.34",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -933,7 +933,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "69",
-            "50.3615702479338842975206611570247933884298",
+            "50.36",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -963,7 +963,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "13.69260110518851777593036334295076",
+            "13.69",
             "b9UzeWaSs2u",
             "",
             "GWuQsWJDGvN"));
@@ -993,7 +993,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "31.5616715061229642721878550688044438833481",
+            "31.56",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -1023,7 +1023,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "16.8662506324843987181649519311857",
+            "16.87",
             "AD5jueZTZSK",
             "",
             "GWuQsWJDGvN"));
@@ -1053,7 +1053,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "56.8181818181818181818181818181818181818182",
+            "56.82",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -1083,7 +1083,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "74.8697916666666666666666666666666666666667",
+            "74.87",
             "GDFw7T4aFGz",
             "",
             "sxFVvKLpE0y"));
@@ -1113,7 +1113,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "6.5746219592373438527284681130835",
+            "6.57",
             "NxQrJ3icPkE",
             "",
             "GWuQsWJDGvN"));
@@ -1143,7 +1143,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "21.87242281903259349564344365161892",
+            "21.87",
             "GDFw7T4aFGz",
             "",
             "wgbW2ZQnlIc"));
@@ -1173,7 +1173,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "57.71006463527239150507848568790397",
+            "57.71",
             "xVezsaEXU3k",
             "",
             "CivTksSoCt0"));
@@ -1203,7 +1203,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "109.1640333237575409365124964090778511921862",
+            "109.16",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -1233,7 +1233,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "18.59103674696412325461809263874056",
+            "18.59",
             "AD5jueZTZSK",
             "",
             "GWuQsWJDGvN"));
@@ -1263,7 +1263,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "77",
-            "22.11584222166232748243330253912264",
+            "22.12",
             "xVezsaEXU3k",
             "",
             "B1X4JyH4Mdw"));
@@ -1293,7 +1293,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "15.96748439541297721004499927420525",
+            "15.97",
             "AD5jueZTZSK",
             "",
             "wgbW2ZQnlIc"));
@@ -1323,7 +1323,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "21.70138888888888888888888888888889",
+            "21.7",
             "AD5jueZTZSK",
             "",
             "GWuQsWJDGvN"));
@@ -1353,7 +1353,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "39",
-            "19.55555555555555555555555555555556",
+            "19.56",
             "AD5jueZTZSK",
             "",
             "GWuQsWJDGvN"));
@@ -1383,7 +1383,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "20",
-            "34.72222222222222222222222222222222",
+            "34.72",
             "xVezsaEXU3k",
             "",
             "GWuQsWJDGvN"));
@@ -1413,7 +1413,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "11.69525506794386277567386945867677",
+            "11.7",
             "b9UzeWaSs2u",
             "",
             "BHlWGFLIU20"));
@@ -1443,7 +1443,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "81",
-            "254.1914548404542996214169821525148729042726",
+            "254.19",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -1473,7 +1473,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "60.3274920999712726228095374892272335535766",
+            "60.33",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -1503,7 +1503,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "6",
-            "102.146814404432132963988919667590027700831",
+            "102.15",
             "Sjp6IB3gthI",
             "",
             "sxFVvKLpE0y"));
@@ -1533,7 +1533,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "306.1224489795918367346938775510204081632653",
+            "306.12",
             "Sjp6IB3gthI",
             "",
             "sxFVvKLpE0y"));
@@ -1563,7 +1563,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "64",
-            "25.33308313004316006755488834678176",
+            "25.33",
             "Sjp6IB3gthI",
             "",
             "GWuQsWJDGvN"));
@@ -1623,7 +1623,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "12.55866217198757353427192808513451",
+            "12.56",
             "NxQrJ3icPkE",
             "",
             "BHlWGFLIU20"));
@@ -1653,7 +1653,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "47",
-            "47.6660092044707429322813938198553583168968",
+            "47.67",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -1683,7 +1683,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "58.0635796196835534910727246334736536507476",
+            "58.06",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -1713,7 +1713,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "41",
-            "21.51385851052386245473125605077271",
+            "21.51",
             "GDFw7T4aFGz",
             "",
             "wgbW2ZQnlIc"));
@@ -1743,7 +1743,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "73",
-            "77.7777777777777777777777777777777777777778",
+            "77.78",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -1773,7 +1773,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "281.2330989724175229853975121687398593834505",
+            "281.23",
             "Sjp6IB3gthI",
             "",
             "sxFVvKLpE0y"));
@@ -1803,7 +1803,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "47",
-            "28.4090909090909090909090909090909090909091",
+            "28.41",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -1833,7 +1833,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "52.02140309155766944114149821640904",
+            "52.02",
             "xVezsaEXU3k",
             "",
             "CivTksSoCt0"));
@@ -1863,7 +1863,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "21.7000434000868001736003472006944",
+            "21.7",
             "b9UzeWaSs2u",
             "",
             "BHlWGFLIU20"));
@@ -1893,7 +1893,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "147.9181884587289992695398100803506208911614",
+            "147.92",
             "lnccUWrmqL0",
             "",
             "sxFVvKLpE0y"));
@@ -1923,7 +1923,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "48.62882653061224489795918367346939",
+            "48.63",
             "GDFw7T4aFGz",
             "",
             "CivTksSoCt0"));
@@ -1953,7 +1953,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "24",
-            "211.5702479338842975206611570247933884297521",
+            "211.57",
             "GDFw7T4aFGz",
             "",
             "sxFVvKLpE0y"));
@@ -1980,10 +1980,10 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "BnVjTzwis3o",
             "",
             "Male",
-            "17.83590963139120095124851367419738",
+            "17.84",
             "14",
             "4",
-            "17.83590963139120095124851367419738",
+            "17.84",
             "Sjp6IB3gthI",
             "",
             "wgbW2ZQnlIc"));
@@ -2013,7 +2013,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "89.6351470773892185330135083954046206287085",
+            "89.64",
             "xVezsaEXU3k",
             "",
             "sxFVvKLpE0y"));
@@ -2043,7 +2043,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "52.93598666797372806587589452014508",
+            "52.94",
             "Sjp6IB3gthI",
             "",
             "CivTksSoCt0"));
@@ -2073,7 +2073,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "35.50295857988165680473372781065089",
+            "35.5",
             "GDFw7T4aFGz",
             "",
             "BHlWGFLIU20"));
@@ -2103,7 +2103,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "22.4600343506407715682388690712115206764434",
+            "22.46",
             "NxQrJ3icPkE",
             "",
             "sxFVvKLpE0y"));
@@ -2133,7 +2133,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "34.0866052266128014139628834743087993940159",
+            "34.09",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -2163,7 +2163,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "11.81014395607903220658176130741486",
+            "11.81",
             "b9UzeWaSs2u",
             "",
             "wgbW2ZQnlIc"));
@@ -2193,7 +2193,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "49.5933346558222574885935330291608807776235",
+            "49.59",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -2223,7 +2223,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "41.32653061224489795918367346938776",
+            "41.33",
             "lnccUWrmqL0",
             "",
             "GWuQsWJDGvN"));
@@ -2253,7 +2253,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "12.79610499048094628756905215193034",
+            "12.8",
             "AD5jueZTZSK",
             "",
             "wgbW2ZQnlIc"));
@@ -2283,7 +2283,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "50.8729332870852121632558677303734535784484",
+            "50.87",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -2313,7 +2313,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "31.96760615909211998508178379242368",
+            "31.97",
             "GDFw7T4aFGz",
             "",
             "BHlWGFLIU20"));
@@ -2343,7 +2343,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "20.30517483352742691630087491415092",
+            "20.31",
             "GDFw7T4aFGz",
             "",
             "B1X4JyH4Mdw"));
@@ -2373,7 +2373,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "57",
-            "374.1496598639455782312925170068027210884354",
+            "374.15",
             "GDFw7T4aFGz",
             "",
             "sxFVvKLpE0y"));
@@ -2403,7 +2403,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "72.2222222222222222222222222222222222222222",
+            "72.22",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -2433,7 +2433,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "25.35925612848689771766694843617921",
+            "25.36",
             "lnccUWrmqL0",
             "",
             "B1X4JyH4Mdw"));
@@ -2463,7 +2463,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "96.9756738987508218277449046679815910585141",
+            "96.98",
             "Sjp6IB3gthI",
             "",
             "sxFVvKLpE0y"));
@@ -2493,7 +2493,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "28.0664238698252530990009689598717",
+            "28.07",
             "lnccUWrmqL0",
             "",
             "wgbW2ZQnlIc"));
@@ -2523,7 +2523,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "44.4444444444444444444444444444444444444444",
+            "44.44",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -2553,7 +2553,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "19.87910260051117692401314454947462",
+            "19.88",
             "AD5jueZTZSK",
             "",
             "GWuQsWJDGvN"));
@@ -2583,7 +2583,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "82.4652777777777777777777777777777777777778",
+            "82.47",
             "xVezsaEXU3k",
             "",
             "sxFVvKLpE0y"));
@@ -2613,7 +2613,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "32.0290858725761772853185595567867",
+            "32.03",
             "xVezsaEXU3k",
             "",
             "GWuQsWJDGvN"));
@@ -2643,7 +2643,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "13.55229591836734693877551020408163",
+            "13.55",
             "NxQrJ3icPkE",
             "",
             "CivTksSoCt0"));
@@ -2673,7 +2673,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "80",
-            "9.31628797681279436882148957093318",
+            "9.32",
             "NxQrJ3icPkE",
             "",
             "BHlWGFLIU20"));
@@ -2703,7 +2703,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "152.2550991094513070956621660442401608733123",
+            "152.26",
             "Sjp6IB3gthI",
             "",
             "sxFVvKLpE0y"));
@@ -2733,7 +2733,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "17.84651992861392028554431885782272",
+            "17.85",
             "b9UzeWaSs2u",
             "",
             "BHlWGFLIU20"));
@@ -2763,7 +2763,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "8.67836846672825508804344783180762",
+            "8.68",
             "b9UzeWaSs2u",
             "",
             "B1X4JyH4Mdw"));
@@ -2793,7 +2793,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "7",
-            "25.21625331162820390053943630502091",
+            "25.22",
             "xVezsaEXU3k",
             "",
             "wgbW2ZQnlIc"));
@@ -2823,7 +2823,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "48",
-            "55.55555555555555555555555555555556",
+            "55.56",
             "lnccUWrmqL0",
             "",
             "BHlWGFLIU20"));
@@ -2853,7 +2853,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "8.02469135802469135802469135802469",
+            "8.02",
             "b9UzeWaSs2u",
             "",
             "B1X4JyH4Mdw"));
@@ -2883,7 +2883,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "25.26753864447086801426872770511296",
+            "25.27",
             "b9UzeWaSs2u",
             "",
             "CivTksSoCt0"));
@@ -2913,7 +2913,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "17.11575138148564721991295417868844",
+            "17.12",
             "b9UzeWaSs2u",
             "",
             "GWuQsWJDGvN"));
@@ -2943,9 +2943,9 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "86.5332612222823147647376960519199567333694",
+            "86.53",
             "NxQrJ3icPkE",
-            "86.5332612222823147647376960519199567333694",
+            "86.53",
             "sxFVvKLpE0y"));
     validateRow(
         response,
@@ -2970,10 +2970,10 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "v2vi8UaIYlo",
             "",
             "Male",
-            "23.30866499621234193811549443505623",
+            "23.31",
             "14",
             "",
-            "23.30866499621234193811549443505623",
+            "23.31",
             "AD5jueZTZSK",
             "",
             "BHlWGFLIU20"));
@@ -3003,7 +3003,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "26.22268470343392299687825182101977",
+            "26.22",
             "GDFw7T4aFGz",
             "",
             "GWuQsWJDGvN"));
@@ -3033,7 +3033,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "56.94059710680209295167743921206525",
+            "56.94",
             "xVezsaEXU3k",
             "",
             "CivTksSoCt0"));
@@ -3063,7 +3063,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "6.94360584470474580364690254800145",
+            "6.94",
             "b9UzeWaSs2u",
             "",
             "B1X4JyH4Mdw"));
@@ -3093,7 +3093,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "82",
-            "50.3615702479338842975206611570247933884298",
+            "50.36",
             "b9UzeWaSs2u",
             "",
             "sxFVvKLpE0y"));
@@ -3123,7 +3123,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "166.5224913494809688581314878892733564013841",
+            "166.52",
             "xVezsaEXU3k",
             "",
             "sxFVvKLpE0y"));
@@ -3153,7 +3153,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "14",
             "",
-            "51.6528925619834710743801652892561983471074",
+            "51.65",
             "AD5jueZTZSK",
             "",
             "sxFVvKLpE0y"));
@@ -3180,10 +3180,10 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
             "CKJ9YS2AbWy",
             "",
             "Male",
-            "13.88062661114416022209002577830656",
+            "13.88",
             "14",
             "",
-            "13.88062661114416022209002577830656",
+            "13.88",
             "b9UzeWaSs2u",
             "",
             "BHlWGFLIU20"));
