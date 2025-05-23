@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
@@ -53,6 +54,8 @@ import org.hisp.dhis.minmax.MinMaxValueUpsertRequest;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,15 +68,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Tags("data")
-@RestController
-@RequestMapping("/api/minMaxDataElements")
+@OpenApi.Tags("analytics")
+@Controller
+@RequestMapping(value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MinMaxDataElementController {
 
@@ -86,7 +89,7 @@ public class MinMaxDataElementController {
   private static final List<String> ALL_FIELDS = List.of("*");
 
   @GetMapping
-  public RootNode getObjectList(MinMaxDataElementQueryParams query)
+  public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
       throws QueryParserException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
@@ -141,7 +144,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/upsert", consumes = "application/json")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public ImportSuccessResponse bulkPostJson(
+  public @ResponseBody ImportSuccessResponse bulkPostJson(
       @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
 
     int imported = minMaxService.importAll(request);
@@ -155,7 +158,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/delete", consumes = "application/json")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public ImportSuccessResponse bulkDeleteJson(
+  public @ResponseBody ImportSuccessResponse bulkDeleteJson(
       @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
 
     int deleted = minMaxService.deleteAll(request);
@@ -169,7 +172,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/upsert", consumes = "multipart/form-data")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public ImportSuccessResponse bulkPostCsv(
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
       @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
       throws BadRequestException {
 
