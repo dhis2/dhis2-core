@@ -20,7 +20,7 @@
     <jib.from.image>gcr.io/distroless/java21-debian12</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65532(nobody) gid=65532(nogroup) present in the distroless image -->
-    <jib.container.user>65532</jib.container.user>
+    <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/app</jib.container.appRoot>
     <spring-boot-maven-plugin.version>3.5.0</spring-boot-maven-plugin.version>
   </properties>
