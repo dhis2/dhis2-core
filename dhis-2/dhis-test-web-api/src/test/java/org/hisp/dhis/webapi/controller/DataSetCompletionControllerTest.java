@@ -230,24 +230,4 @@ class DataSetCompletionControllerTest extends DhisControllerIntegrationTest {
         """
         .formatted(ds, p, ou);
   }
-
-  private String dataValue() {
-    return """
-          {
-            "dataSet": "%1$s",
-            "period": "%4$s",
-            "orgUnit": "%2$s",
-            "completedDate": "2025-05-25",
-            "dataValues": [
-              {
-                "dataElement": "%3$s",
-                "period": "%4$s",
-                "orgUnit": "%2$s",
-                "value": "2000",
-                "followup": false
-              }
-            ]
-          }"""
-        .formatted(ds, ou, de, p);
-  }
 }
