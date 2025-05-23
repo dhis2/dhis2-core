@@ -54,7 +54,7 @@ public interface ProgramRuleEngine {
    * Evaluate program rules as the given {@link UserDetails} for {@link Program} for program events.
    * Rules are evaluated under the authorization of given {@link UserDetails}.
    */
-  RuleEngineEffects evaluateProgramEvents(
+  RuleEngineEffects evaluateSingleEvents(
       @Nonnull List<RuleEvent> events, @Nonnull Program program, UserDetails user);
 
   /**

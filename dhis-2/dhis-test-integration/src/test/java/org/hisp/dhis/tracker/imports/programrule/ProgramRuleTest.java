@@ -161,8 +161,8 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldImportProgramEventWithWarningsWhenAWarningIsTriggered() throws IOException {
-    alwaysTrueWarningProgramEventProgramRule();
+  void shouldImportSingleEventWithWarningsWhenAWarningIsTriggered() throws IOException {
+    alwaysTrueWarningSingleEventProgramRule();
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
@@ -172,7 +172,7 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotImportProgramEventWhenAnErrorIsTriggeredBasedOnConditionEvaluatingAConstant()
+  void shouldNotImportSingleEventWhenAnErrorIsTriggeredBasedOnConditionEvaluatingAConstant()
       throws IOException {
     conditionWithConstantEvaluatesToTrue();
     ImportReport report =
@@ -184,8 +184,8 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotImportProgramEventWhenAnErrorIsTriggered() throws IOException {
-    alwaysTrueErrorProgramEventProgramRule();
+  void shouldNotImportSingleEventWhenAnErrorIsTriggered() throws IOException {
+    alwaysTrueErrorSingleEventProgramRule();
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
@@ -280,7 +280,7 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotImportWhenErrorIsTriggeredOnAllEntities() throws IOException {
     alwaysTrueErrorProgramRule();
-    alwaysTrueErrorProgramEventProgramRule();
+    alwaysTrueErrorSingleEventProgramRule();
     ImportReport report =
         trackerImportService.importTracker(
             new TrackerImportParams(),
@@ -432,11 +432,11 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     storeProgramRule('C', program, SHOWWARNING);
   }
 
-  private void alwaysTrueWarningProgramEventProgramRule() {
+  private void alwaysTrueWarningSingleEventProgramRule() {
     storeProgramRule('D', programWithoutRegistration, SHOWWARNING);
   }
 
-  private void alwaysTrueErrorProgramEventProgramRule() {
+  private void alwaysTrueErrorSingleEventProgramRule() {
     storeProgramRule('E', programWithoutRegistration, ProgramRuleActionType.SHOWERROR);
   }
 
