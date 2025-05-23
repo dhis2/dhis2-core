@@ -72,7 +72,10 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -112,9 +115,13 @@ class EventsExportController {
 
   private final EventRequestParamsMapper eventParamsMapper;
 
+  private final TrackerEventService trackerEventService;
+
+  private final TrackerEventRequestParamsMapper trackerEventParamsMapper;
+
   private final SingleEventService singleEventService;
 
-  private final SingleEventRequestParamsMapper programEventParamsMapper;
+  private final SingleEventRequestParamsMapper singleEventParamsMapper;
 
   private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
@@ -131,8 +138,10 @@ class EventsExportController {
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
+      TrackerEventService trackerEventService,
+      TrackerEventRequestParamsMapper trackerEventParamsMapper,
       SingleEventService singleEventService,
-      SingleEventRequestParamsMapper programEventParamsMapper,
+      SingleEventRequestParamsMapper singleEventParamsMapper,
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
       RequestHandler requestHandler,
       FieldFilterService fieldFilterService,
@@ -141,8 +150,10 @@ class EventsExportController {
       ProgramService programService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
+    this.trackerEventService = trackerEventService;
+    this.trackerEventParamsMapper = trackerEventParamsMapper;
     this.singleEventService = singleEventService;
-    this.programEventParamsMapper = programEventParamsMapper;
+    this.singleEventParamsMapper = singleEventParamsMapper;
     this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
     this.fieldFilterService = fieldFilterService;
@@ -175,10 +186,10 @@ class EventsExportController {
         PageParams pageParams =
             PageParams.of(
                 requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
-        EventOperationParams eventOperationParams =
-            eventParamsMapper.map(requestParams, idSchemeParams);
+        TrackerEventOperationParams trackerEventOperationParams =
+            trackerEventParamsMapper.map(requestParams, idSchemeParams);
         org.hisp.dhis.tracker.Page<Event> eventsPage =
-            eventService.findEvents(eventOperationParams, pageParams);
+            trackerEventService.findEvents(trackerEventOperationParams, pageParams);
 
         MappingErrors errors = new MappingErrors(idSchemeParams);
         org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.Event> page =
@@ -189,7 +200,7 @@ class EventsExportController {
       }
 
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-          getEventsList(requestParams, idSchemeParams);
+          getTrackerEventsList(requestParams, idSchemeParams);
 
       return requestHandler.serve(EVENTS, events, requestParams);
     }
@@ -198,10 +209,10 @@ class EventsExportController {
       PageParams pageParams =
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
-      org.hisp.dhis.tracker.export.singleevent.EventOperationParams eventOperationParams =
-          programEventParamsMapper.map(requestParams, idSchemeParams);
+      SingleEventOperationParams singleEventOperationParams =
+          singleEventParamsMapper.map(requestParams, idSchemeParams);
       org.hisp.dhis.tracker.Page<Event> eventsPage =
-          singleEventService.findEvents(eventOperationParams, pageParams);
+          singleEventService.findEvents(singleEventOperationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
       org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.Event> page =
@@ -347,12 +358,27 @@ class EventsExportController {
   private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getSingleEventsList(
       EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException, ForbiddenException, WebMessageException {
-    org.hisp.dhis.tracker.export.singleevent.EventOperationParams eventOperationParams =
-        programEventParamsMapper.map(requestParams, idSchemeParams);
+    SingleEventOperationParams singleEventOperationParams =
+        singleEventParamsMapper.map(requestParams, idSchemeParams);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        singleEventService.findEvents(eventOperationParams).stream()
+        singleEventService.findEvents(singleEventOperationParams).stream()
+            .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
+            .toList();
+    ensureNoMappingErrors(errors);
+    return events;
+  }
+
+  private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getTrackerEventsList(
+      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
+      throws BadRequestException, ForbiddenException, WebMessageException {
+    TrackerEventOperationParams trackerEventOperationParams =
+        trackerEventParamsMapper.map(requestParams, idSchemeParams);
+
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
+        trackerEventService.findEvents(trackerEventOperationParams).stream()
             .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
             .toList();
     ensureNoMappingErrors(errors);
