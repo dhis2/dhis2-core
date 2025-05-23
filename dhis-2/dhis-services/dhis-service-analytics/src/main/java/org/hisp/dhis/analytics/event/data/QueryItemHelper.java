@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -283,19 +284,57 @@ public class QueryItemHelper {
    * @return a list of matching options.
    */
   private static List<Option> getItemOptionsThatMatchesRows(Grid grid, int columnIndex) {
-    GridHeader gridHeader = grid.getHeaders().get(columnIndex);
+    if (grid == null || grid.getHeaders() == null || columnIndex < 0) {
+      return Collections.emptyList();
+    }
+    if (columnIndex >= grid.getHeaders().size()) {
+      return Collections.emptyList();
+    }
 
-    return gridHeader.getOptionSetObject().getOptions().stream()
+    GridHeader gridHeader = grid.getHeaders().get(columnIndex);
+    if (gridHeader == null
+        || gridHeader.getOptionSetObject() == null
+        || gridHeader.getOptionSetObject().getOptions() == null) {
+      return Collections.emptyList();
+    }
+
+    List<Option> allOptions = gridHeader.getOptionSetObject().getOptions();
+    // Check if there are no options to filter or no rows to check against
+    if (allOptions.isEmpty() || grid.getRows() == null || grid.getRows().isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // Optimize by pre-collecting unique cell values from the target column
+    // This avoids iterating all rows for every single option.
+    // We iterate through rows once to get all distinct, non-null values in the specified column.
+    Set<Object> distinctRowCellValues =
+        grid.getRows().stream()
+            .filter(Objects::nonNull) // Filter out any null Row objects
+            .map(row -> row.get(columnIndex))
+            .filter(Objects::nonNull) // We only care about non-null cell values for matching
+            .collect(Collectors.toSet());
+
+    // If there are no distinct, non-null values in the rows for this column, no option can possibly
+    // match.
+    if (distinctRowCellValues.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // Filter the options
+    // For each option, check if its code matches any of the pre-collected distinct row cell values.
+    return allOptions.stream()
         .filter(
             opt ->
                 opt != null
-                    && grid.getRows().stream()
-                        .anyMatch(
-                            r -> {
-                              Object o = r.get(columnIndex);
-
-                              return isItemOptionEqualToRowContent(opt.getCode(), o);
-                            }))
+                    && !StringUtils.isBlank(opt.getCode())) // Ensure option and its code are valid
+        .filter(
+            opt ->
+                distinctRowCellValues.stream()
+                    .anyMatch(
+                        rowCellValue ->
+                            isItemOptionEqualToRowContent(
+                                opt.getCode(), rowCellValue) // Use the original helper
+                        ))
         .collect(Collectors.toList());
   }
 
