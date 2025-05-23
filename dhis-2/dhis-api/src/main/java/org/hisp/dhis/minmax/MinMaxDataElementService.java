@@ -53,6 +53,12 @@ public interface MinMaxDataElementService {
 
   int countMinMaxDataElements(MinMaxDataElementQueryParams query);
 
+  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+
+  void addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+
+  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+
   void removeMinMaxDataElements(OrganisationUnit organisationUnit);
 
   void removeMinMaxDataElements(DataElement dataElement);

@@ -65,13 +65,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @OpenApi.Tags("data")
-@Controller
+@RestController
 @RequestMapping("/api/minMaxDataElements")
 @AllArgsConstructor
 public class MinMaxDataElementController {
@@ -85,7 +86,7 @@ public class MinMaxDataElementController {
   private static final List<String> ALL_FIELDS = List.of("*");
 
   @GetMapping
-  public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
+  public RootNode getObjectList(MinMaxDataElementQueryParams query)
       throws QueryParserException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
@@ -140,7 +141,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/upsert", consumes = "application/json")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public @ResponseBody ImportSuccessResponse bulkPostJson(
+  public ImportSuccessResponse bulkPostJson(
       @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
 
     int imported = minMaxService.importAll(request);
@@ -154,7 +155,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/delete", consumes = "application/json")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public @ResponseBody ImportSuccessResponse bulkDeleteJson(
+  public ImportSuccessResponse bulkDeleteJson(
       @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
 
     int deleted = minMaxService.deleteAll(request);
@@ -168,7 +169,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/upsert", consumes = "multipart/form-data")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public @ResponseBody ImportSuccessResponse bulkPostCsv(
+  public ImportSuccessResponse bulkPostCsv(
       @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
       throws BadRequestException {
 
@@ -177,7 +178,7 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/delete", consumes = "multipart/form-data")
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
+  public ImportSuccessResponse bulkDeleteCsv(
       @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
       throws BadRequestException {
 

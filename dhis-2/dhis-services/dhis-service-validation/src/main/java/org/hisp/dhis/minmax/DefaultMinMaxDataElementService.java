@@ -75,6 +75,24 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
+  public void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
+    minMaxDataElementStore.delete(minMaxDataElement);
+  }
+
+  @Transactional
+  @Override
+  public void addMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
+    minMaxDataElementStore.save(minMaxDataElement);
+  }
+
+  @Transactional
+  @Override
+  public void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
+    minMaxDataElementStore.update(minMaxDataElement);
+  }
+
+  @Transactional
+  @Override
   public void removeMinMaxDataElements(OrganisationUnit organisationUnit) {
     minMaxDataElementStore.delete(organisationUnit);
   }
