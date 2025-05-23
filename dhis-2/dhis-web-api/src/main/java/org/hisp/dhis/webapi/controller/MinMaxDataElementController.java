@@ -27,45 +27,48 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.csv.CSV;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ImportSuccessResponse;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.Preset;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxValue;
+import org.hisp.dhis.minmax.MinMaxValueDeleteRequest;
+import org.hisp.dhis.minmax.MinMaxValueKey;
+import org.hisp.dhis.minmax.MinMaxValueUpsertRequest;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
-import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -76,19 +79,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MinMaxDataElementController {
+
   private final ContextService contextService;
-
   private final MinMaxDataElementService minMaxService;
-
   private final FieldFilterService fieldFilterService;
 
-  private final RenderService renderService;
-
-  private final IdentifiableObjectManager manager;
-
-  // --------------------------------------------------------------------------
-  // GET
-  // --------------------------------------------------------------------------
+  // OBS: This is a workaround for the change in the implementation of the
+  // FieldPreset interface in current versions.
+  private static final List<String> ALL_FIELDS = List.of("*");
 
   @GetMapping
   public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
@@ -98,7 +96,7 @@ public class MinMaxDataElementController {
     query.setFilters(filters);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(ALL_FIELDS);
     }
 
     List<MinMaxDataElement> minMaxDataElements = minMaxService.getMinMaxDataElements(query);
@@ -123,27 +121,9 @@ public class MinMaxDataElementController {
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  @ResponseBody
-  public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
-    MinMaxDataElement minMax =
-        renderService.fromJson(request.getInputStream(), MinMaxDataElement.class);
-
-    validate(minMax);
-
-    minMax = getReferences(minMax);
-
-    MinMaxDataElement persisted =
-        minMaxService.getMinMaxDataElement(
-            minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo());
-
-    if (Objects.isNull(persisted)) {
-      minMaxService.addMinMaxDataElement(minMax);
-    } else {
-      persisted.mergeWith(minMax);
-      minMaxService.updateMinMaxDataElement(persisted);
-    }
-
-    return created();
+  @ResponseStatus(HttpStatus.CREATED)
+  public void postJsonObject(@RequestBody MinMaxDataElement body) throws BadRequestException {
+    minMaxService.importValue(MinMaxValue.of(body));
   }
 
   // --------------------------------------------------------------------------
@@ -152,49 +132,81 @@ public class MinMaxDataElementController {
 
   @DeleteMapping(consumes = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  @ResponseBody
-  public WebMessage deleteObject(HttpServletRequest request) throws Exception {
-    MinMaxDataElement minMax =
-        renderService.fromJson(request.getInputStream(), MinMaxDataElement.class);
-
-    validate(minMax);
-
-    minMax = getReferences(minMax);
-
-    MinMaxDataElement persisted =
-        minMaxService.getMinMaxDataElement(
-            minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo());
-
-    if (Objects.isNull(persisted)) {
-      return notFound("Can not find MinMaxDataElement.");
-    }
-
-    minMaxService.deleteMinMaxDataElement(persisted);
-
-    return ok("MinMaxDataElement deleted.");
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteObject(@RequestBody MinMaxDataElement body)
+      throws BadRequestException, NotFoundException {
+    minMaxService.deleteValue(MinMaxValueKey.of(body));
   }
 
-  private void validate(MinMaxDataElement minMax) throws WebMessageException {
-    if (!ObjectUtils.allNonNull(
-        minMax.getDataElement(), minMax.getSource(), minMax.getOptionCombo())) {
-      throw new WebMessageException(
-          notFound("Missing required parameters : Source, DataElement, OptionCombo."));
+  /*
+  Bulk import
+  */
+
+  @PostMapping(value = "/upsert", consumes = "application/json")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkPostJson(
+      @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
+
+    int imported = minMaxService.importAll(request);
+
+    return ImportSuccessResponse.ok()
+        .message("Successfully imported %d min-max values".formatted(imported))
+        .successful(imported)
+        .ignored(request.values().size() - imported)
+        .build();
+  }
+
+  @PostMapping(value = "/delete", consumes = "application/json")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkDeleteJson(
+      @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
+
+    int deleted = minMaxService.deleteAll(request);
+
+    return ImportSuccessResponse.ok()
+        .message("Successfully deleted %d min-max values".formatted(deleted))
+        .successful(deleted)
+        .ignored(request.values().size() - deleted)
+        .build();
+  }
+
+  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
+      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
+      throws BadRequestException {
+
+    return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, csvToEntries(file)));
+  }
+
+  @PostMapping(value = "/delete", consumes = "multipart/form-data")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
+      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
+      throws BadRequestException {
+
+    return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, csvToKeys(file)));
+  }
+
+  private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
+    try (InputStream in = file.getInputStream()) {
+      List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
+      if (entries.isEmpty())
+        throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");
+      return entries;
+    } catch (Exception ex) {
+      throw new BadRequestException(ErrorCode.E2046, ex.getMessage());
     }
   }
 
-  private MinMaxDataElement getReferences(MinMaxDataElement m) throws WebMessageException {
-    try {
-      m.setDataElement(
-          Objects.requireNonNull(manager.get(DataElement.class, m.getDataElement().getUid())));
-      m.setSource(
-          Objects.requireNonNull(manager.get(OrganisationUnit.class, m.getSource().getUid())));
-      m.setOptionCombo(
-          Objects.requireNonNull(
-              manager.get(CategoryOptionCombo.class, m.getOptionCombo().getUid())));
-      return m;
-    } catch (NullPointerException e) {
-      throw new WebMessageException(
-          notFound("Invalid required parameters: source, dataElement, optionCombo"));
+  private static List<MinMaxValueKey> csvToKeys(MultipartFile file) throws BadRequestException {
+    try (InputStream in = file.getInputStream()) {
+      List<MinMaxValueKey> keys = CSV.of(in).as(MinMaxValueKey.class).list();
+      if (keys.isEmpty())
+        throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");
+      return keys;
+    } catch (IOException ex) {
+      throw new BadRequestException(ErrorCode.E2046, ex.getMessage());
     }
   }
 }

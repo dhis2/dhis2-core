@@ -333,6 +333,18 @@ public class RestApiActions {
     return response;
   }
 
+  public ApiResponse postMultiPartFile(
+      File file, String fileContentType, QueryParamsBuilder queryParamsBuilder) {
+    String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    return new ApiResponse(
+        given()
+            .multiPart("file", file, fileContentType)
+            .contentType("multipart/form-data")
+            .when()
+            .post(url));
+  }
+
   private void saveCreatedObjects(ApiResponse response) {
     if (!response.getContentType().contains("json")) {
       return;

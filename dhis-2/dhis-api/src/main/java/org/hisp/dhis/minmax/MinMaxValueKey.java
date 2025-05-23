@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,30 @@
  */
 package org.hisp.dhis.minmax;
 
-import java.util.Collection;
-import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Kristian Nordal
+ * A unique key combination for a {@link MinMaxDataElement} row.
+ *
+ * @param dataElement data element ID
+ * @param orgUnit organisation unit ID
+ * @param optionCombo category option combo ID
  */
-public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> {
-  String ID = MinMaxDataElementStore.class.getName();
+public record MinMaxValueKey(
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID optionCombo)
+    implements MinMaxValueId {
 
-  MinMaxDataElement get(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
-
-  List<MinMaxDataElement> get(OrganisationUnit source, Collection<DataElement> dataElements);
-
-  List<MinMaxDataElement> query(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void delete(OrganisationUnit organisationUnit);
-
-  void delete(DataElement dataElement);
-
-  void delete(CategoryOptionCombo optionCombo);
-
-  void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
-
-  /**
-   * Retrieve all {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link
-   * UID}s
-   *
-   * @param uids {@link CategoryOptionCombo} {@link UID}s
-   * @return {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link UID}
-   *     passed in
-   */
-  List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
-
-  @SuppressWarnings("unchecked")
-  List<String> getDataElementsByDataSet(UID dataSet);
-
-  int deleteByKeys(List<MinMaxValueKey> keys);
-
-  int upsertValues(List<MinMaxValue> values);
+  @Nonnull
+  public static MinMaxValueKey of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValueKey(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()));
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.minmax.MinMaxValue;
-import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * DTO which represents data values and min-max values for a data entry form.
+ * A bulk request to insert or update {@link MinMaxDataElement}s.
  *
- * @author Lars Helge Overland
+ * @param dataSet all values must belong to this dataset
+ * @param values the individual values to insert or update, all of which must belong to a DE
+ *     connected to the {@link #dataSet()}
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-public class DataValuesDto {
-  @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
-
-  @JsonProperty private List<MinMaxValue> minMaxValues = new ArrayList<>();
-
-  @JsonProperty private LockStatus lockStatus;
-
-  @JsonProperty private CompleteStatusDto completeStatus;
-}
+public record MinMaxValueUpsertRequest(@Nonnull UID dataSet, @Nonnull List<MinMaxValue> values) {}
