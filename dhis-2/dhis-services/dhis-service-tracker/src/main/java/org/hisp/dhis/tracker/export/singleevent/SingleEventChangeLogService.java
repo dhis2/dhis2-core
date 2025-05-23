@@ -48,7 +48,7 @@ public interface SingleEventChangeLogService {
    * @return event change logs page
    */
   @Nonnull
-  Page<EventChangeLog> getEventChangeLog(
+  Page<SingleEventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException;
 

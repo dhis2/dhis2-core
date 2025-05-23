@@ -102,7 +102,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository("org.hisp.dhis.tracker.export.singleevent.EventStore")
 @RequiredArgsConstructor
-class JdbcEventStore {
+class JdbcSingleEventStore {
   private static final String EVENT_NOTE_QUERY =
       """
       select evn.eventid as evn_id,\

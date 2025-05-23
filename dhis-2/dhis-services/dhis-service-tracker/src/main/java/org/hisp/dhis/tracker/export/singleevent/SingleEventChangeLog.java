@@ -41,7 +41,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 @NoArgsConstructor
 @Getter
 @Setter
-public class EventChangeLog {
+public class SingleEventChangeLog {
   private long id;
 
   private Event event;
@@ -62,7 +62,7 @@ public class EventChangeLog {
 
   private UserInfoSnapshot createdBy;
 
-  public EventChangeLog(
+  public SingleEventChangeLog(
       Event event,
       DataElement dataElement,
       String eventField,
@@ -75,7 +75,7 @@ public class EventChangeLog {
     this.createdByUsername = createdByUsername;
   }
 
-  public EventChangeLog(
+  public SingleEventChangeLog(
       Event event,
       DataElement dataElement,
       String eventField,
@@ -88,7 +88,7 @@ public class EventChangeLog {
     this.createdBy = createdBy;
   }
 
-  private EventChangeLog(
+  private SingleEventChangeLog(
       Event event,
       DataElement dataElement,
       String eventField,

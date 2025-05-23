@@ -65,16 +65,13 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @Slf4j
-@Service("org.hisp.dhis.tracker.export.singleevent.EventService")
+@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-class DefaultEventService implements SingleEventService {
+class DefaultSingleEventService implements SingleEventService {
 
-  private final JdbcEventStore eventStore;
+  private final JdbcSingleEventStore eventStore;
 
   private final IdentifiableObjectManager manager;
 

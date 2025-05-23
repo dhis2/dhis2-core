@@ -68,8 +68,8 @@ public class HibernateEventChangeLogStore {
 
   /**
    * Event change logs can be ordered by given fields which correspond to fields on {@link
-   * EventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case we
-   * need to sort by concatenation, to treat the dataElement and eventField as a single entity.
+   * SingleEventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case
+   * we need to sort by concatenation, to treat the dataElement and eventField as a single entity.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
@@ -89,11 +89,11 @@ public class HibernateEventChangeLogStore {
     this.entityManager = entityManager;
   }
 
-  public void addEventChangeLog(EventChangeLog eventChangeLog) {
-    entityManager.unwrap(Session.class).save(eventChangeLog);
+  public void addEventChangeLog(SingleEventChangeLog singleEventChangeLog) {
+    entityManager.unwrap(Session.class).save(singleEventChangeLog);
   }
 
-  public Page<EventChangeLog> getEventChangeLogs(
+  public Page<SingleEventChangeLog> getEventChangeLogs(
       @Nonnull UID event,
       @Nonnull EventChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
@@ -148,7 +148,7 @@ public class HibernateEventChangeLogStore {
     }
 
     List<Object[]> results = query.getResultList();
-    List<EventChangeLog> eventChangeLogs =
+    List<SingleEventChangeLog> singleEventChangeLogs =
         results.stream()
             .map(
                 row -> {
@@ -164,7 +164,7 @@ public class HibernateEventChangeLogStore {
                       new UserInfoSnapshot((String) row[7], (String) row[8], (String) row[9]);
                   createdBy.setUid((String) row[10]);
 
-                  return new EventChangeLog(
+                  return new SingleEventChangeLog(
                       e,
                       dataElement,
                       eventField,
@@ -176,7 +176,7 @@ public class HibernateEventChangeLogStore {
                 })
             .toList();
 
-    return new Page<>(eventChangeLogs, pageParams);
+    return new Page<>(singleEventChangeLogs, pageParams);
   }
 
   public void deleteEventChangeLog(DataElement dataElement) {

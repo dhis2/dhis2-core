@@ -56,7 +56,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.EventChangeLogService")
+@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
 @RequiredArgsConstructor
 public class DefaultSingleEventChangeLogService implements SingleEventChangeLogService {
 
@@ -67,7 +67,7 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
   @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public Page<EventChangeLog> getEventChangeLog(
+  public Page<SingleEventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     // check existence and access
@@ -101,11 +101,11 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
       return;
     }
 
-    EventChangeLog eventChangeLog =
-        new EventChangeLog(
+    SingleEventChangeLog singleEventChangeLog =
+        new SingleEventChangeLog(
             event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
 
-    hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+    hibernateEventChangeLogStore.addEventChangeLog(singleEventChangeLog);
   }
 
   @Override
@@ -149,11 +149,11 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
     if (!Objects.equals(currentValue, newValue)) {
       ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
 
-      EventChangeLog eventChangeLog =
-          new EventChangeLog(
+      SingleEventChangeLog singleEventChangeLog =
+          new SingleEventChangeLog(
               event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
 
-      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+      hibernateEventChangeLogStore.addEventChangeLog(singleEventChangeLog);
     }
   }
 
