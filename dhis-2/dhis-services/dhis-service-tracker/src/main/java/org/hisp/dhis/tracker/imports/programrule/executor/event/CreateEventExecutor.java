@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.engine;
+package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import java.util.Arrays;
+import java.time.Instant;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
+import org.hisp.dhis.util.DateUtils;
 
-public enum ValidationAction {
-  ASSIGN("ASSIGN"),
-  SET_MANDATORY_FIELD("SETMANDATORYFIELD"),
-  SHOW_ERROR("SHOWERROR"),
-  SHOW_WARNING("SHOWWARNING"),
-  SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
-  SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
-  RAISE_ERROR("ERROR"),
-  CREATE_EVENT("CREATEEVENT");
+/**
+ * @author Zubair Asghar
+ */
+@RequiredArgsConstructor
+public class CreateEventExecutor implements RuleActionExecutor<Event> {
+  private final UID programStage;
+  private final String scheduledAt;
 
-  public static boolean contains(String ruleEngineName) {
-    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
-  }
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    if (!DateUtils.dateIsValid(scheduledAt)) {
+      return Optional.empty();
+    }
+    Event scheduledEvent = new Event();
+    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
+    scheduledEvent.setProgram(event.getProgram());
+    scheduledEvent.setOccurredAt(null);
+    scheduledEvent.setScheduledAt(Instant.parse(scheduledAt));
+    scheduledEvent.setStatus(EventStatus.SCHEDULE);
+    scheduledEvent.setOrgUnit(event.getOrgUnit());
 
-  public static ValidationAction fromName(String ruleEngineName) {
-    return Arrays.stream(values())
-        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
-        .findAny()
-        .orElseThrow();
-  }
+    bundle.getEvents().add(event);
 
-  private final String ruleEngineName;
-
-  ValidationAction(String ruleEngineName) {
-    this.ruleEngineName = ruleEngineName;
+    return Optional.empty();
   }
 }
