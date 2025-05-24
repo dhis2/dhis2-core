@@ -45,6 +45,7 @@ import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.external.location.LocationManager;
@@ -157,7 +158,7 @@ public class LocalAppStorageService implements AppStorageService {
   }
 
   @Override
-  public App installApp(File file, String fileName, Cache<App> appCache) {
+  public App installApp(File file, String fileName, Cache<App> appCache, AppInfo bundledAppInfo) {
     throw new UnsupportedOperationException(
         "LocalAppStorageService.installApp is deprecated and should no longer be used.");
   }
