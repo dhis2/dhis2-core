@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
@@ -49,10 +50,11 @@ import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventFields;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams.SingleEventOperationParamsBuilder;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
@@ -61,16 +63,16 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link EventsExportController} stored in {@link EventRequestParams} to
- * {@link SingleEventOperationParams} which is used to fetch events from the DB.
+ * {@link TrackerEventOperationParams} which is used to fetch events from the DB.
  */
 @Component
 @RequiredArgsConstructor
-class SingleEventRequestParamsMapper {
+class TrackerEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
   private final FieldFilterService fieldFilterService;
 
-  public SingleEventOperationParams map(
+  public TrackerEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     validateProgram(eventRequestParams);
@@ -81,17 +83,31 @@ class SingleEventRequestParamsMapper {
                 : emptySet(),
             eventRequestParams.getOrgUnitMode());
 
+    EnrollmentStatus enrollmentStatus =
+        validateDeprecatedParameter(
+            "programStatus",
+            eventRequestParams.getProgramStatus(),
+            "enrollmentStatus",
+            eventRequestParams.getEnrollmentStatus());
+
     validateFilter(eventRequestParams.getFilter(), eventRequestParams.getEvents());
     Map<UID, List<QueryFilter>> dataElementFilters =
         parseFilters("filter", eventRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> attributeFilters =
+        parseFilters("filterAttributes", eventRequestParams.getFilterAttributes());
 
     validateUpdateDurationParams(eventRequestParams);
-    validateOrderParams(eventRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element");
+    validateOrderParams(
+        eventRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element and attribute");
 
-    SingleEventOperationParamsBuilder builder =
-        SingleEventOperationParams.builder()
+    TrackerEventOperationParamsBuilder builder =
+        TrackerEventOperationParams.builder()
             .program(eventRequestParams.getProgram())
+            .programStage(eventRequestParams.getProgramStage())
             .orgUnit(eventRequestParams.getOrgUnit())
+            .trackedEntity(eventRequestParams.getTrackedEntity())
+            .enrollmentStatus(enrollmentStatus)
+            .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())
             .assignedUsers(eventRequestParams.getAssignedUsers())
@@ -99,18 +115,35 @@ class SingleEventRequestParamsMapper {
                 applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
             .occurredBefore(
                 applyIfNotNull(eventRequestParams.getOccurredBefore(), EndDateTime::toDate))
+            .scheduledAfter(
+                applyIfNotNull(eventRequestParams.getScheduledAfter(), StartDateTime::toDate))
+            .scheduledBefore(
+                applyIfNotNull(eventRequestParams.getScheduledBefore(), EndDateTime::toDate))
             .updatedAfter(
                 applyIfNotNull(eventRequestParams.getUpdatedAfter(), StartDateTime::toDate))
             .updatedBefore(
                 applyIfNotNull(eventRequestParams.getUpdatedBefore(), EndDateTime::toDate))
             .updatedWithin(eventRequestParams.getUpdatedWithin())
+            .enrollmentEnrolledBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+            .enrollmentEnrolledAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+            .enrollmentOccurredBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
+            .enrollmentOccurredAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(eventRequestParams.getAttributeCategoryCombo())
             .attributeCategoryOptions(eventRequestParams.getAttributeCategoryOptions())
             .events(eventRequestParams.getEvents())
+            .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .fields(
-                SingleEventFields.of(
+                TrackerEventFields.of(
                     f ->
                         fieldFilterService.filterIncludes(
                             Event.class, eventRequestParams.getFields(), f),
@@ -119,6 +152,8 @@ class SingleEventRequestParamsMapper {
 
     mapOrderParam(builder, eventRequestParams.getOrder());
     mapDataElementFilterParam(builder, dataElementFilters);
+    mapAttributeFilterParam(builder, attributeFilters);
+
     return builder.build();
   }
 
@@ -129,7 +164,7 @@ class SingleEventRequestParamsMapper {
   }
 
   private void mapOrderParam(
-      SingleEventOperationParamsBuilder builder, List<OrderCriteria> orders) {
+      TrackerEventOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
     }
@@ -144,7 +179,7 @@ class SingleEventRequestParamsMapper {
   }
 
   private void mapDataElementFilterParam(
-      SingleEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
+      TrackerEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
     if (dataElementFilters == null || dataElementFilters.isEmpty()) {
       return;
     }
@@ -154,6 +189,21 @@ class SingleEventRequestParamsMapper {
         builder.filterByDataElement(entry.getKey());
       } else {
         builder.filterByDataElement(entry.getKey(), entry.getValue());
+      }
+    }
+  }
+
+  private void mapAttributeFilterParam(
+      TrackerEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> attributeFilters) {
+    if (attributeFilters == null || attributeFilters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : attributeFilters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterByAttribute(entry.getKey());
+      } else {
+        builder.filterByAttribute(entry.getKey(), entry.getValue());
       }
     }
   }

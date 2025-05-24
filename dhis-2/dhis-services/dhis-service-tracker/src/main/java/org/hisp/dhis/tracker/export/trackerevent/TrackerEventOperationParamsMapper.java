@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
@@ -48,7 +48,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
@@ -57,28 +62,38 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link SingleEventOperationParams} to {@link SingleEventQueryParams} which is used to fetch
- * events from the DB.
+ * Maps {@link TrackerEventOperationParams} to {@link TrackerEventQueryParams} which is used to
+ * fetch events from the DB.
  */
 @Component
 @RequiredArgsConstructor
-class SingleEventOperationParamsMapper {
+class TrackerEventOperationParamsMapper {
+
+  private final ProgramStageService programStageService;
+
   private final OrganisationUnitService organisationUnitService;
 
   private final AclService aclService;
 
   private final CategoryOptionComboService categoryOptionComboService;
 
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
+
   private final DataElementService dataElementService;
 
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public SingleEventQueryParams map(
-      @Nonnull SingleEventOperationParams operationParams, @Nonnull UserDetails user)
+  public TrackerEventQueryParams map(
+      @Nonnull TrackerEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
-
+    ProgramStage programStage =
+        validateProgramStage(
+            applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
+    TrackedEntity trackedEntity =
+        paramsValidator.validateTrackedEntity(
+            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
@@ -93,14 +108,19 @@ class SingleEventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    SingleEventQueryParams queryParams = new SingleEventQueryParams();
+    TrackerEventQueryParams queryParams = new TrackerEventQueryParams();
 
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
+    mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
     return queryParams
         .setProgram(program)
+        .setProgramStage(programStage)
         .setOrgUnit(orgUnit)
+        .setTrackedEntity(trackedEntity)
+        .setEnrollmentStatus(operationParams.getEnrollmentStatus())
+        .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
@@ -109,14 +129,40 @@ class SingleEventOperationParamsMapper {
                 UID.of(user)))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
+        .setScheduledStartDate(operationParams.getScheduledAfter())
+        .setScheduledEndDate(operationParams.getScheduledBefore())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
         .setUpdatedAtEndDate(operationParams.getUpdatedBefore())
         .setUpdatedAtDuration(operationParams.getUpdatedWithin())
+        .setEnrollmentEnrolledBefore(operationParams.getEnrollmentEnrolledBefore())
+        .setEnrollmentEnrolledAfter(operationParams.getEnrollmentEnrolledAfter())
+        .setEnrollmentOccurredBefore(operationParams.getEnrollmentOccurredBefore())
+        .setEnrollmentOccurredAfter(operationParams.getEnrollmentOccurredAfter())
         .setEventStatus(operationParams.getEventStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
         .setEvents(operationParams.getEvents())
+        .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams());
+  }
+
+  private ProgramStage validateProgramStage(String programStageUid, UserDetails user)
+      throws BadRequestException, ForbiddenException {
+    if (programStageUid == null) {
+      return null;
+    }
+
+    ProgramStage programStage = programStageService.getProgramStage(programStageUid);
+    if (programStage == null) {
+      throw new BadRequestException(
+          "Program stage is specified but does not exist: " + programStageUid);
+    }
+
+    if (!aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
+    }
+
+    return programStage;
   }
 
   private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)
@@ -150,7 +196,7 @@ class SingleEventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      SingleEventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
+      TrackerEventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
     for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
       DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
@@ -171,7 +217,31 @@ class SingleEventOperationParamsMapper {
     }
   }
 
-  private void mapOrderParam(SingleEventQueryParams params, List<Order> orders)
+  private void mapAttributeFilters(
+      TrackerEventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+      throws BadRequestException {
+    for (Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+      TrackedEntityAttribute tea =
+          trackedEntityAttributeService.getTrackedEntityAttribute(
+              attributeFilter.getKey().getValue());
+      if (tea == null) {
+        throw new BadRequestException(
+            String.format(
+                "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
+                attributeFilter.getKey()));
+      }
+
+      if (attributeFilter.getValue().isEmpty()) {
+        params.filterBy(tea);
+      }
+
+      for (QueryFilter filter : attributeFilter.getValue()) {
+        params.filterBy(tea, filter);
+      }
+    }
+  }
+
+  private void mapOrderParam(TrackerEventQueryParams params, List<Order> orders)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -184,18 +254,26 @@ class SingleEventOperationParamsMapper {
         DataElement de = dataElementService.getDataElement(uid.getValue());
         if (de != null) {
           params.orderBy(de, order.getDirection());
-        } else {
+          continue;
+        }
+
+        TrackedEntityAttribute tea =
+            trackedEntityAttributeService.getTrackedEntityAttribute(uid.getValue());
+        if (tea == null) {
           throw new BadRequestException(
               "Cannot order by '"
                   + uid.getValue()
-                  + "' as it's not a data element. Program events can be"
-                  + " ordered by event fields and data elements.");
+                  + "' as its neither a data element nor a tracked entity attribute. Events can be"
+                  + " ordered by event fields, data elements and tracked entity attributes.");
         }
+
+        params.orderBy(tea, order.getDirection());
       } else {
         throw new IllegalArgumentException(
             "Cannot order by '"
                 + order.getField()
-                + "'. Program events can be ordered by event fields and data elements.");
+                + "'. Events can be ordered by event fields, data elements and tracked entity"
+                + " attributes.");
       }
     }
   }

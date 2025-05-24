@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
 
@@ -53,8 +53,8 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.singleevent.HibernateEventChangeLogStore")
-public class HibernateEventChangeLogStore {
+@Repository("org.hisp.dhis.tracker.export.trackerevent.HibernateTrackerEventChangeLogStore")
+public class HibernateTrackerEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
@@ -68,8 +68,9 @@ public class HibernateEventChangeLogStore {
 
   /**
    * Event change logs can be ordered by given fields which correspond to fields on {@link
-   * SingleEventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case
-   * we need to sort by concatenation, to treat the dataElement and eventField as a single entity.
+   * TrackerEventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that
+   * case we need to sort by concatenation, to treat the dataElement and eventField as a single
+   * entity.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
@@ -85,17 +86,17 @@ public class HibernateEventChangeLogStore {
 
   private final EntityManager entityManager;
 
-  public HibernateEventChangeLogStore(EntityManager entityManager) {
+  public HibernateTrackerEventChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
 
-  public void addEventChangeLog(SingleEventChangeLog singleEventChangeLog) {
-    entityManager.unwrap(Session.class).save(singleEventChangeLog);
+  public void addEventChangeLog(TrackerEventChangeLog trackerEventChangeLog) {
+    entityManager.unwrap(Session.class).save(trackerEventChangeLog);
   }
 
-  public Page<SingleEventChangeLog> getEventChangeLogs(
+  public Page<TrackerEventChangeLog> getEventChangeLogs(
       @Nonnull UID event,
-      @Nonnull SingleEventChangeLogOperationParams operationParams,
+      @Nonnull TrackerEventChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
     if (pageParams.isPageTotal()) {
       throw new UnsupportedOperationException("pageTotal is not supported");
@@ -148,7 +149,7 @@ public class HibernateEventChangeLogStore {
     }
 
     List<Object[]> results = query.getResultList();
-    List<SingleEventChangeLog> singleEventChangeLogs =
+    List<TrackerEventChangeLog> trackerEventChangeLogs =
         results.stream()
             .map(
                 row -> {
@@ -164,7 +165,7 @@ public class HibernateEventChangeLogStore {
                       new UserInfoSnapshot((String) row[7], (String) row[8], (String) row[9]);
                   createdBy.setUid((String) row[10]);
 
-                  return new SingleEventChangeLog(
+                  return new TrackerEventChangeLog(
                       e,
                       dataElement,
                       eventField,
@@ -176,7 +177,7 @@ public class HibernateEventChangeLogStore {
                 })
             .toList();
 
-    return new Page<>(singleEventChangeLogs, pageParams);
+    return new Page<>(trackerEventChangeLogs, pageParams);
   }
 
   public void deleteEventChangeLog(DataElement dataElement) {
