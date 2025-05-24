@@ -127,8 +127,7 @@ public class CurrentUserUtil {
     return authentication != null
         && authentication.isAuthenticated()
         && authentication.getPrincipal() != null
-        && authentication.getPrincipal()
-            instanceof org.springframework.security.core.userdetails.UserDetails;
+        && !authentication.getPrincipal().equals("anonymousUser");
   }
 
   public static void injectUserInSecurityContext(UserDetails actingUser) {
