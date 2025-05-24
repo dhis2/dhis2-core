@@ -49,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -105,7 +104,6 @@ import org.springframework.stereotype.Repository;
  */
 @Slf4j
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
-@RequiredArgsConstructor
 class JdbcEventStore {
   private static final String EVENT_NOTE_QUERY =
       """
@@ -221,12 +219,24 @@ class JdbcEventStore {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
   private final UserService userService;
 
   private final IdentifiableObjectManager manager;
+
+  public JdbcEventStore(
+      @Qualifier("readOnlyNamedParameterJdbcTemplate")
+          NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate,
+      @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
+      UserService userService,
+      IdentifiableObjectManager manager) {
+
+    this.jdbcTemplate = readOnlyNamedParameterJdbcTemplate;
+    this.jsonMapper = jsonMapper;
+    this.userService = userService;
+    this.manager = manager;
+  }
 
   public List<Event> getEvents(EventQueryParams queryParams) {
     return fetchEvents(queryParams, null);

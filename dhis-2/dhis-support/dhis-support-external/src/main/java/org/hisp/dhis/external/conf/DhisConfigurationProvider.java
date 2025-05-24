@@ -159,6 +159,8 @@ public interface DhisConfigurationProvider {
    */
   boolean isReadOnlyMode();
 
+  boolean isTrackerReadReplicaEnabled();
+
   /**
    * Indicates whether clustering is enabled.
    *
