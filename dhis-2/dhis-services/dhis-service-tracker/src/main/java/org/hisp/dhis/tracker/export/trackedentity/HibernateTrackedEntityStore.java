@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
@@ -40,7 +39,6 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-import jakarta.persistence.EntityManager;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,34 +49,31 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
-class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity> {
+class HibernateTrackedEntityStore {
 
   private static final String MAIN_QUERY_ALIAS = "te";
 
@@ -109,24 +104,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private final SystemSettingsProvider settingsProvider;
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-  public HibernateTrackedEntityStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService,
-      OrganisationUnitStore organisationUnitStore,
-      SystemSettingsProvider settingsProvider) {
-    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
-
-    checkNotNull(organisationUnitStore);
-    checkNotNull(settingsProvider);
-
-    this.organisationUnitStore = organisationUnitStore;
-    this.settingsProvider = settingsProvider;
-    this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
-  }
 
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
