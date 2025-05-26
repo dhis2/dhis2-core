@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
@@ -56,37 +56,37 @@ import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
+@Service("org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService")
 @RequiredArgsConstructor
-public class DefaultSingleEventChangeLogService implements SingleEventChangeLogService {
+public class DefaultTrackerEventChangeLogService implements TrackerEventChangeLogService {
 
-  private final SingleEventService eventService;
-  private final HibernateSingleEventChangeLogStore hibernateSingleEventChangeLogStore;
+  private final TrackerEventService trackerEventService;
+  private final HibernateTrackerEventChangeLogStore hibernateTrackerEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public Page<SingleEventChangeLog> getEventChangeLog(
-      UID event, SingleEventChangeLogOperationParams operationParams, PageParams pageParams)
+  public Page<TrackerEventChangeLog> getEventChangeLog(
+      UID event, TrackerEventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     // check existence and access
-    eventService.getEvent(event);
+    trackerEventService.getEvent(event);
 
-    return hibernateSingleEventChangeLogStore.getEventChangeLogs(
+    return hibernateTrackerEventChangeLogStore.getEventChangeLogs(
         event, operationParams, pageParams);
   }
 
   @Transactional
   @Override
   public void deleteEventChangeLog(Event event) {
-    hibernateSingleEventChangeLogStore.deleteEventChangeLog(event);
+    hibernateTrackerEventChangeLogStore.deleteEventChangeLog(event);
   }
 
   @Transactional
   @Override
   public void deleteEventChangeLog(DataElement dataElement) {
-    hibernateSingleEventChangeLogStore.deleteEventChangeLog(dataElement);
+    hibernateTrackerEventChangeLogStore.deleteEventChangeLog(dataElement);
   }
 
   @Override
@@ -102,11 +102,11 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
       return;
     }
 
-    SingleEventChangeLog singleEventChangeLog =
-        new SingleEventChangeLog(
+    TrackerEventChangeLog trackerEventChangeLog =
+        new TrackerEventChangeLog(
             event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
 
-    hibernateSingleEventChangeLogStore.addEventChangeLog(singleEventChangeLog);
+    hibernateTrackerEventChangeLogStore.addEventChangeLog(trackerEventChangeLog);
   }
 
   @Override
@@ -128,12 +128,12 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
   @Override
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
-    return hibernateSingleEventChangeLogStore.getOrderableFields();
+    return hibernateTrackerEventChangeLogStore.getOrderableFields();
   }
 
   @Override
   public Set<Pair<String, Class<?>>> getFilterableFields() {
-    return hibernateSingleEventChangeLogStore.getFilterableFields();
+    return hibernateTrackerEventChangeLogStore.getFilterableFields();
   }
 
   private <T> void logIfChanged(
@@ -150,11 +150,11 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
     if (!Objects.equals(currentValue, newValue)) {
       ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
 
-      SingleEventChangeLog singleEventChangeLog =
-          new SingleEventChangeLog(
+      TrackerEventChangeLog trackerEventChangeLog =
+          new TrackerEventChangeLog(
               event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
 
-      hibernateSingleEventChangeLogStore.addEventChangeLog(singleEventChangeLog);
+      hibernateTrackerEventChangeLogStore.addEventChangeLog(trackerEventChangeLog);
     }
   }
 
