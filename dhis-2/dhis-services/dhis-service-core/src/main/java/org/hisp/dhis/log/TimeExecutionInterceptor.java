@@ -76,10 +76,19 @@ public class TimeExecutionInterceptor implements MethodInterceptor {
     TimeExecution timeExecution =
         INFO_CACHE.computeIfAbsent(method, m -> getAnnotation(m, targetClass));
     if (timeExecution == null) return invocation.proceed();
-
     Class<?> loggerClass =
         timeExecution.logger() == Class.class ? targetClass : timeExecution.logger();
     Logger logger = LoggerFactory.getLogger(loggerClass);
+    System.Logger.Level level = timeExecution.level();
+    // fast-forward if log level is disabled
+    if (!switch (level) {
+      case TRACE -> logger.isTraceEnabled();
+      case DEBUG -> logger.isDebugEnabled();
+      case INFO -> logger.isInfoEnabled();
+      case WARNING -> logger.isWarnEnabled();
+      case ERROR -> logger.isErrorEnabled();
+      default -> false;
+    }) return invocation.proceed();
 
     String name = timeExecution.name();
     if (name.isEmpty()) name = method.getName();
@@ -94,7 +103,7 @@ public class TimeExecutionInterceptor implements MethodInterceptor {
     long startTime = System.nanoTime();
     if (maxTime <= 0) {
       String template = "Starting {}{}";
-      switch (timeExecution.level()) {
+      switch (level) {
         case TRACE -> logger.trace(template, name, withArgs);
         case DEBUG -> logger.debug(template, name, withArgs);
         case INFO -> logger.info(template, name, withArgs);
@@ -110,7 +119,7 @@ public class TimeExecutionInterceptor implements MethodInterceptor {
     long duration = Duration.ofNanos(System.nanoTime() - startTime).toMillis();
     if (maxTime <= 0 || duration > maxTime) {
       String template = "Completed {} in {} ms{}";
-      switch (timeExecution.level()) {
+      switch (level) {
         case TRACE -> logger.trace(template, name, duration, withArgs);
         case DEBUG -> logger.debug(template, name, duration, withArgs);
         case INFO -> logger.info(template, name, duration, withArgs);

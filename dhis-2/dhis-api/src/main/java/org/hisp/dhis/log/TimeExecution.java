@@ -35,6 +35,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Logs the execution time of the annotated method.
+ *
+ * <p>Only methods in {@link org.springframework.stereotype.Service} beans (which use interfaces)
+ * are supported.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TimeExecution {
