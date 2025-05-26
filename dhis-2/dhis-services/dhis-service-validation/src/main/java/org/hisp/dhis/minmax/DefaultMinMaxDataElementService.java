@@ -124,7 +124,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    */
   @Override
   @Transactional
-  @TimeExecution(level = INFO)
+  @TimeExecution(level = INFO, name = "min-max import")
   public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
     if (request.values().isEmpty()) return 0;
 
@@ -149,7 +149,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    */
   @Override
   @Transactional
-  @TimeExecution(level = INFO)
+  @TimeExecution(level = INFO, name = "min-max delete")
   public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
     if (request.values().isEmpty()) return 0;
 
