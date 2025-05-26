@@ -27,19 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.log;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.log.TimeExecution;
+import java.lang.System.Logger;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * A bulk request to insert or update {@link MinMaxDataElement}s.
- *
- * @param dataSet all values must belong to this dataset
- * @param values the individual values to insert or update, all of which must belong to a DE
- *     connected to the {@link #dataSet()}
- */
-public record MinMaxValueUpsertRequest(
-    @Nonnull UID dataSet, @Nonnull @TimeExecution.Include List<MinMaxValue> values) {}
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TimeExecution {
+
+  /**
+   * @return the log level to use
+   */
+  Logger.Level level() default Logger.Level.DEBUG;
+
+  /**
+   * @return when not empty this name is used instead of the method name
+   */
+  String name() default "";
+
+  Class<?> logger() default Class.class;
+
+  /**
+   * @return when positive only invocations that take longer than the given time (ms) will be logged
+   */
+  long threshold() default 0;
+
+  /**
+   * A marker annotation to add to record components whose value should be included in the log
+   * message.
+   */
+  @Target(ElementType.RECORD_COMPONENT)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Include {}
+}
