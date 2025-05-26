@@ -447,15 +447,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       columns.add(columnAndAlias.asSql());
 
       // asked for row context if allowed and needed based on column and its alias
-      if (rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias)) {
-        String columnForExists = " exists (" + columnAndAlias.column + ")";
-        String aliasForExists = columnAndAlias.alias + ".exists";
-        columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
-        String columnForStatus =
-            replaceStringBetween(columnAndAlias.column, "select", "from", " eventstatus ");
-        String aliasForStatus = columnAndAlias.alias + ".status";
-        columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
-      }
+      handleRowContext(columns, params, queryItem, columnAndAlias);
+    }
+  }
+
+  protected void handleRowContext(
+      List<String> columns,
+      EventQueryParams params,
+      QueryItem queryItem,
+      ColumnAndAlias columnAndAlias) {
+    if (rowContextAllowedAndNeeded(params, queryItem)
+        && columnAndAlias != null
+        && !isEmpty(columnAndAlias.alias)) {
+      String columnForExists = " exists (" + columnAndAlias.column + ")";
+      String aliasForExists = columnAndAlias.alias + ".exists";
+      columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
+      String columnForStatus =
+          replaceStringBetween(columnAndAlias.column, "select", "from", " eventstatus ");
+      String aliasForStatus = columnAndAlias.alias + ".status";
+      columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
     }
   }
 
@@ -1817,7 +1827,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .forEach(
             (identifier, items) -> {
               String cteSql = buildFilterCteSql(items, params);
-              // TODO is this correct? items.get(0)
               if (isAggregateQuery) {
                 cteContext.addCteFilter("latest_events", items.get(0), cteSql);
               } else {
@@ -1928,47 +1937,45 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     for (String itemUid : cteContext.getCteKeys()) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
 
-      // Handle Program Stage CTE (potentially with multiple offsets)
       if (cteDef.isProgramStage()) {
-        for (Integer offset : cteDef.getOffsets()) {
-          String alias = cteDef.getAlias(offset);
-          builder.leftJoin(
-              itemUid,
-              alias,
-              tableAlias ->
-                  tableAlias
-                      + ".enrollment = ax.enrollment AND "
-                      + tableAlias
-                      + ".rn = "
-                      + (offset + 1));
-        }
-      }
-
-      // Handle 'Exists' type CTE
-      if (cteDef.isExists()) {
-        builder.leftJoin(
-            cteDef.getAlias(), "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
-      }
-
-      // Handle Program Indicator CTE
-      if (cteDef.isProgramIndicator()) {
-
-        if (cteContext.isEventsAnalytics() && cteDef.getCteType() == PROGRAM_INDICATOR_ENROLLMENT) {
-
-          builder.crossJoin(itemUid, cteDef.getAlias());
-        } else {
-          String alias = cteDef.getAlias();
-          builder.leftJoin(
-              itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
-        }
-      }
-
-      // Handle Filter CTE
-      if (cteDef.isFilter()) {
-        String alias = cteDef.getAlias();
-        builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
+        addProgramStageJoins(builder, itemUid, cteDef);
+      } else if (cteDef.isExists()) {
+        addExistsJoin(builder, cteDef);
+      } else if (cteDef.isProgramIndicator()) {
+        addProgramIndicatorJoin(builder, itemUid, cteDef, cteContext);
+      } else if (cteDef.isFilter()) {
+        addFilterJoin(builder, itemUid, cteDef);
       }
     }
+  }
+
+  private void addProgramStageJoins(SelectBuilder builder, String itemUid, CteDefinition cteDef) {
+    for (Integer offset : cteDef.getOffsets()) {
+      String alias = cteDef.getAlias(offset);
+      String joinCondition =
+          alias + ".enrollment = ax.enrollment AND " + alias + ".rn = " + (offset + 1);
+      builder.leftJoin(itemUid, alias, tableAlias -> joinCondition);
+    }
+  }
+
+  private void addExistsJoin(SelectBuilder builder, CteDefinition cteDef) {
+    builder.leftJoin(
+        cteDef.getAlias(), "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
+  }
+
+  private void addProgramIndicatorJoin(
+      SelectBuilder builder, String itemUid, CteDefinition cteDef, CteContext cteContext) {
+    if (cteContext.isEventsAnalytics() && cteDef.getCteType() == PROGRAM_INDICATOR_ENROLLMENT) {
+      builder.crossJoin(itemUid, cteDef.getAlias());
+    } else {
+      String alias = cteDef.getAlias();
+      builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
+    }
+  }
+
+  private void addFilterJoin(SelectBuilder builder, String itemUid, CteDefinition cteDef) {
+    String alias = cteDef.getAlias();
+    builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
   }
 
   /**

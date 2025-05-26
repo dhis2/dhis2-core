@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -44,7 +43,6 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -400,7 +398,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
 
-    // FIXME: luciano - use same logic from `getFromClause` method?
+    // FIXME: use same logic from `getFromClause` method
     sb.from(params.getTableName(), "ax");
   }
 
@@ -992,15 +990,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       }
 
       // asked for row context if allowed and needed based on column and its alias
-      if (rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias)) {
-        String columnForExists = " exists (" + columnAndAlias.column + ")";
-        String aliasForExists = columnAndAlias.alias + ".exists";
-        columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
-        String columnForStatus =
-            replaceStringBetween(columnAndAlias.column, "select", "from", " eventstatus ");
-        String aliasForStatus = columnAndAlias.alias + ".status";
-        columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
-      }
+      handleRowContext(columns, params, queryItem, columnAndAlias);
     }
   }
 
