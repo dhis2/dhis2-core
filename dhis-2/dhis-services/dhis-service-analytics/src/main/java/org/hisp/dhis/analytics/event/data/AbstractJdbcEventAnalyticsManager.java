@@ -1749,11 +1749,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return Stream.of(types).anyMatch(type -> type == header.getValueType());
   }
 
-  // ---------------------------------------------------------------------
-  // CTE REFACTOR
-  // ---------------------------------------------------------------------
-
-  String buildEnrollmentQueryWithCte(EventQueryParams params, AnalyticsQueryType analyticsType) {
+  String buildEnrollmentQueryWithCte(EventQueryParams params) {
 
     // 1. Create the CTE context (collect all CTE definitions for program indicators, program
     // stages, etc.)
