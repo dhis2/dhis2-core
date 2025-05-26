@@ -58,7 +58,9 @@ public @interface TimeExecution {
 
   /**
    * A marker annotation to add to record components whose value should be included in the log
-   * message.
+   * message. The record needs to be the 1st parameter to the annotated method. Non-record classes
+   * are not supported. This is simply to keep it fast and simple as the reflection to read the
+   * values needs to run for each execution.
    */
   @Target(ElementType.RECORD_COMPONENT)
   @Retention(RetentionPolicy.RUNTIME)

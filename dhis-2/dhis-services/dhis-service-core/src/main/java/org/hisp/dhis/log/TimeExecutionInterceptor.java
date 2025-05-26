@@ -100,6 +100,7 @@ public class TimeExecutionInterceptor implements MethodInterceptor {
         case INFO -> logger.info(template, name, withArgs);
         case WARNING -> logger.warn(template, name, withArgs);
         case ERROR -> logger.error(template, name, withArgs);
+        default -> {} // nothing for ALL or OFF
       }
       withArgs = "";
     }
@@ -115,6 +116,7 @@ public class TimeExecutionInterceptor implements MethodInterceptor {
         case INFO -> logger.info(template, name, duration, withArgs);
         case WARNING -> logger.warn(template, name, duration, withArgs);
         case ERROR -> logger.error(template, name, duration, withArgs);
+        default -> {} // nothing for ALL or OFF
       }
     }
     return result;
