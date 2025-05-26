@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
@@ -55,6 +56,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -75,6 +77,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 @Slf4j
 @Configuration
+@Conditional(AuthorizationServerEnabledCondition.class)
 public class AuthorizationServerConfig {
 
   @Autowired private DhisConfigurationProvider config;
