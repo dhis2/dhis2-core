@@ -217,6 +217,8 @@ public class AuthorizationServerConfig {
 
   @Bean
   public AuthorizationServerSettings authorizationServerSettings() {
-    return AuthorizationServerSettings.builder().build();
+    return AuthorizationServerSettings.builder()
+        .issuer(config.getProperty(ConfigurationKey.SERVER_BASE_URL))
+        .build();
   }
 }
