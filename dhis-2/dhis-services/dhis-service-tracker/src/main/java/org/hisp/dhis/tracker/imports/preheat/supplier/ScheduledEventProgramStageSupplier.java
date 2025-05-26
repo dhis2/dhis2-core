@@ -31,11 +31,16 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageMapper;
@@ -51,22 +56,48 @@ public class ScheduledEventProgramStageSupplier extends AbstractPreheatSupplier 
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<ProgramStage> programStages = getProgramStages(getProgramStageIds(preheat));
-    programStages.stream()
+    List<String> programStageUids = getProgramStageIds(preheat);
+    if (programStageUids.isEmpty()) {
+      return;
+    }
+
+    getProgramStages(programStageUids).stream()
         .map(ProgramStageMapper.INSTANCE::map)
         .filter(Objects::nonNull)
         .forEach(preheat::put);
   }
 
-  private List<ProgramStage> getProgramStages(List<String> psIds) {
+  private List<ProgramStage> getProgramStages(List<String> programStageUids) {
     TypedQuery<ProgramStage> query =
         entityManager.createQuery(
-            "select ps from ProgramStage ps where ps.uid in (:psIds)", ProgramStage.class);
-    query.setParameter("psIds", psIds);
+            "select ps from ProgramStage ps where ps.uid in :uids", ProgramStage.class);
+    query.setParameter("uids", programStageUids);
     return query.getResultList();
   }
 
   private List<String> getProgramStageIds(TrackerPreheat preheat) {
-    return null;
+    List<Program> programs = preheat.getAll(Program.class);
+    if (programs.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    Set<String> programUids = programs.stream().map(Program::getUid).collect(Collectors.toSet());
+
+    String jpql =
+        """
+            select ps.uid
+            from ProgramRuleAction pra
+            join pra.programRule pr
+            join pr.program p
+            join pra.programStage ps
+            where pra.programRuleActionType = :actionType
+            and p.uid in :programUids
+        """;
+
+    TypedQuery<String> query = entityManager.createQuery(jpql, String.class);
+    query.setParameter("programUids", programUids);
+    query.setParameter("actionType", ProgramRuleActionType.CREATEEVENT);
+
+    return query.getResultList();
   }
 }
