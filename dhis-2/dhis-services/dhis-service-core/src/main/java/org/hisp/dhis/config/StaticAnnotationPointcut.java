@@ -50,7 +50,7 @@ import org.springframework.aop.Pointcut;
  * @author Jan Bernitt
  */
 @RequiredArgsConstructor
-public class StaticAnnotationPointcut implements Pointcut {
+public class StaticAnnotationPointcut implements Pointcut, ClassFilter, MethodMatcher {
 
   private final Class<? extends Annotation> classLevel;
   private final Class<? extends Annotation> methodLevel;
@@ -58,38 +58,40 @@ public class StaticAnnotationPointcut implements Pointcut {
   @Nonnull
   @Override
   public ClassFilter getClassFilter() {
-    return cls -> {
-      if (!cls.isAnnotationPresent(classLevel)) return false;
-      return Stream.of(cls.getDeclaredMethods()).anyMatch(m -> m.isAnnotationPresent(methodLevel));
-    };
+    return this;
   }
 
   @Nonnull
   @Override
   public MethodMatcher getMethodMatcher() {
-    return new MethodMatcher() {
-      @Override
-      public boolean matches(Method method, @Nonnull Class<?> targetClass) {
-        if (method.getDeclaringClass() == targetClass)
-          return method.isAnnotationPresent(methodLevel);
-        try {
-          method = targetClass.getMethod(method.getName(), method.getParameterTypes());
-          return method.isAnnotationPresent(methodLevel);
-        } catch (NoSuchMethodException e) {
-          return false;
-        }
-      }
+    return this;
+  }
 
-      @Override
-      public boolean isRuntime() {
-        return false;
-      }
+  @Override
+  public boolean matches(Class<?> cls) {
+    if (!cls.isAnnotationPresent(classLevel)) return false;
+    return Stream.of(cls.getDeclaredMethods()).anyMatch(m -> m.isAnnotationPresent(methodLevel));
+  }
 
-      @Override
-      public boolean matches(
-          @Nonnull Method method, @Nonnull Class<?> targetClass, @Nonnull Object... args) {
-        return matches(method, targetClass);
-      }
-    };
+  @Override
+  public boolean matches(Method method, @Nonnull Class<?> targetClass) {
+    if (method.getDeclaringClass() == targetClass) return method.isAnnotationPresent(methodLevel);
+    try {
+      method = targetClass.getMethod(method.getName(), method.getParameterTypes());
+      return method.isAnnotationPresent(methodLevel);
+    } catch (NoSuchMethodException e) {
+      return false;
+    }
+  }
+
+  @Override
+  public boolean isRuntime() {
+    return false;
+  }
+
+  @Override
+  public boolean matches(
+      @Nonnull Method method, @Nonnull Class<?> targetClass, @Nonnull Object... args) {
+    return matches(method, targetClass);
   }
 }
