@@ -58,7 +58,9 @@ public class OrgUnitJdbcPredicate {
         sql.append(tableAlias).append(".organisationunitid in (:orgUnits) ");
         sqlParameters.addValue("orgUnits", getIdentifiers(orgUnits));
       }
-      case ALL, CAPTURE, ACCESSIBLE -> {}
+      case ALL, CAPTURE, ACCESSIBLE -> {
+        // these modes don't accept org units, so skip predicate
+      }
     }
   }
 
