@@ -77,7 +77,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
             "dxf2/metadata/organisationUnits.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(6, metadata.getOrganisationUnits().size()));
-    assertEquals(6, report.getAccumulatedStats().created());
+    assertEquals(6, report.getStats().created());
   }
 
   @Test
@@ -156,7 +156,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
             null,
             params -> params.setImportStrategy(ImportStrategy.UPDATE));
     assertEquals(Status.OK, importReport.getStatus());
-    assertEquals(1, importReport.getAccumulatedStats().updated());
+    assertEquals(1, importReport.getStats().updated());
   }
 
   private ImportReport runImport(
