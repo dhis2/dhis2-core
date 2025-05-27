@@ -86,8 +86,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return concat(toList(columns));
+  public String safeConcat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
   }
 
   @Override

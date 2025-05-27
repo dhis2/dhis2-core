@@ -266,12 +266,12 @@ public interface SqlBuilder {
   String regexpMatch(String value, String pattern);
 
   /**
-   * Concatenates multiple columns or expressions.
+   * Concatenates multiple columns or expressions safely (null values are treated as empty strings).
    *
    * @param columns the column names or expressions to concatenate.
    * @return the SQL function for concatenation.
    */
-  String concat(String... columns);
+  String safeConcat(String... columns);
 
   /**
    * Concatenates list of columns or expressions.
