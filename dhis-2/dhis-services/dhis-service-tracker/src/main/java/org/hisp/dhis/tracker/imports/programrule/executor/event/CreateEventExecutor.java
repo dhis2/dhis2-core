@@ -35,6 +35,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -71,6 +72,7 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
     scheduledEvent.setStatus(EventStatus.SCHEDULE);
 
     bundle.getEvents().add(scheduledEvent);
+    bundle.setStrategy(scheduledEvent, TrackerImportStrategy.CREATE);
 
     return Optional.empty();
   }
