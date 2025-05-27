@@ -179,9 +179,9 @@ class EventsExportController {
       @RequestParam UID program)
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
-    Program programForEvent = getProgram(program);
+    Program eventProgram = getProgram(program);
 
-    if (programForEvent.isRegistration()) {
+    if (eventProgram.isRegistration()) {
       if (requestParams.isPaging()) {
         PageParams pageParams =
             PageParams.of(
@@ -232,12 +232,18 @@ class EventsExportController {
   void getEventsAsJsonGzip(
       EventRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
-      HttpServletResponse response)
+      HttpServletResponse response,
+      @RequestParam UID program)
       throws BadRequestException, IOException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
+    Program eventProgram = getProgram(program);
 
-    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        getEventsList(requestParams, idSchemeParams);
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events;
+    if (eventProgram.isRegistration()) {
+      events = getTrackerEventsList(requestParams, idSchemeParams);
+    } else {
+      events = getSingleEventsList(requestParams, idSchemeParams);
+    }
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -254,12 +260,18 @@ class EventsExportController {
   void getEventsAsJsonZip(
       EventRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
-      HttpServletResponse response)
+      HttpServletResponse response,
+      @RequestParam UID program)
       throws BadRequestException, ForbiddenException, IOException, WebMessageException {
     validatePaginationParameters(requestParams);
+    Program eventProgram = getProgram(program);
 
-    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        getEventsList(requestParams, idSchemeParams);
+    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events;
+    if (eventProgram.isRegistration()) {
+      events = getTrackerEventsList(requestParams, idSchemeParams);
+    } else {
+      events = getSingleEventsList(requestParams, idSchemeParams);
+    }
 
     ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
