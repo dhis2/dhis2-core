@@ -54,14 +54,14 @@ public class CteContext {
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
   /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
-  @Getter private final AnalyticsQueryType analyticsQueryType;
+  @Getter private final EndpointItem endpointItem;
 
   public CteDefinition getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
   }
 
-  public CteContext(AnalyticsQueryType analyticsQueryType) {
-    this.analyticsQueryType = analyticsQueryType;
+  public CteContext(EndpointItem endpointItem) {
+    this.endpointItem = endpointItem;
   }
 
   /**
@@ -343,7 +343,7 @@ public class CteContext {
    * @return true if the query type is EVENT, false otherwise.
    */
   public boolean isEventsAnalytics() {
-    return analyticsQueryType == AnalyticsQueryType.EVENT;
+    return endpointItem == EndpointItem.EVENT;
   }
 
   public boolean containsCte(String cteName) {

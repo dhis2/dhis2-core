@@ -29,7 +29,11 @@
  */
 package org.hisp.dhis.analytics.common;
 
-public enum AnalyticsQueryType {
+/**
+ * Enum representing the different endpoint items for analytics queries. Used to distinguish between
+ * enrollment and event queries.
+ */
+public enum EndpointItem {
   ENROLLMENT,
   EVENT
 }

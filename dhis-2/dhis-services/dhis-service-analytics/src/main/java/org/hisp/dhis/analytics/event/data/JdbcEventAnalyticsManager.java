@@ -68,9 +68,9 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -1006,7 +1006,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
     if (cteContext == null) {
-      cteContext = new CteContext(AnalyticsQueryType.EVENT);
+      cteContext = new CteContext(EndpointItem.EVENT);
     }
 
     for (QueryItem item : params.getItems()) {

@@ -112,10 +112,10 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.CteUtils;
+import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.InQueryCteFilter;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -1864,7 +1864,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
     if (cteContext == null) {
-      cteContext = new CteContext(AnalyticsQueryType.ENROLLMENT);
+      cteContext = new CteContext(EndpointItem.ENROLLMENT);
     }
 
     for (QueryItem item : params.getItems()) {
@@ -1949,7 +1949,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     for (Integer offset : cteDef.getOffsets()) {
       String alias = cteDef.getAlias(offset);
       String joinCondition =
-          alias + ".enrollment = ax.enrollment AND " + alias + ".rn = " + (offset + 1);
+          alias + ".enrollment = ax.enrollment and " + alias + ".rn = " + (offset + 1);
       builder.leftJoin(itemUid, alias, tableAlias -> joinCondition);
     }
   }

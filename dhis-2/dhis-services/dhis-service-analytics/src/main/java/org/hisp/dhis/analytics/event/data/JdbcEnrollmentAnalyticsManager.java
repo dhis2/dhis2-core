@@ -63,9 +63,9 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -915,7 +915,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private String buildAggregatedEnrollmentQueryWithCte(
       List<GridHeader> headers, EventQueryParams params) {
 
-    CteContext cteContext = new CteContext(AnalyticsQueryType.ENROLLMENT);
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
 
     // 1. Generate CTE definitions for filters
     generateFilterCTEs(params, cteContext, true);
