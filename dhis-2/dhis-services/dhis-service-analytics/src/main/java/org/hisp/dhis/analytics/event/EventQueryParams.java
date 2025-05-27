@@ -393,7 +393,7 @@ public class EventQueryParams extends DataQueryParams {
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
-        .addIgnoreNull("programStage", programStage, () -> programStage.getUid() )
+        .addIgnoreNull("programStage", programStage, () -> programStage.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
         .addIgnoreNull("page", page)
         .addIgnoreNull("pageSize", pageSize)
