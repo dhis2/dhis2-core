@@ -53,6 +53,8 @@ import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -152,6 +154,11 @@ public class MetadataSyncJob implements Job {
 
     List<MetadataVersion> versions =
         metadataSyncPreProcessor.handleMetadataVersions(context, progress);
+
+    // Clear the security context is clean (no user authenticated) before the metadata sync.
+    // For more info, see: https://dhis2.atlassian.net/browse/DHIS2-19658
+    SecurityContext secContext = SecurityContextHolder.createEmptyContext();
+    SecurityContextHolder.setContext(secContext);
 
     handleMetadataSync(context, versions, progress);
 
