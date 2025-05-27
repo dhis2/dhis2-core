@@ -35,6 +35,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 public class AppManifestTranslation {
+  private static final String REGEX = "[_=]";
   private String locale;
 
   @Setter private HashMap<String, String> translations;
@@ -47,7 +48,7 @@ public class AppManifestTranslation {
 
   public void setLocale(String locale) {
     this.locale = locale;
-    String[] split = locale.split("[_=]");
+    String[] split = locale.split(REGEX);
 
     if (split.length == 3) {
       this.scriptCode = split[2];
