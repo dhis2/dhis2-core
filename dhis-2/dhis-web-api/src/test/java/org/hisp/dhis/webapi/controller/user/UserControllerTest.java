@@ -183,7 +183,7 @@ class UserControllerTest {
   }
 
   private boolean isInStatusUpdatedOK(ImportReport report) {
-    return report.getStatus() == Status.OK && report.getAccumulatedStats().updated() == 1;
+    return report.getStatus() == Status.OK && report.getStats().updated() == 1;
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {

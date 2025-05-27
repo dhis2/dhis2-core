@@ -137,7 +137,7 @@ public class ImportReport implements ErrorReportContainer {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Stats getAccumulatedStats() {
+  public Stats getStats() {
     return Stats.getAccumulatedStatsFromTypeReports(typeReportMap.values());
   }
 
@@ -190,7 +190,7 @@ public class ImportReport implements ErrorReportContainer {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("stats", getAccumulatedStats())
+        .add("stats", getStats())
         .add("typeReports", getTypeReports())
         .toString();
   }
