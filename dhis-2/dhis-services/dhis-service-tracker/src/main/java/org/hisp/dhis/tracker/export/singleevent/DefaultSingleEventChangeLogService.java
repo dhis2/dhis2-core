@@ -60,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultSingleEventChangeLogService implements SingleEventChangeLogService {
 
-  private final SingleEventService eventService;
+  private final SingleEventService singleEventService;
   private final HibernateSingleEventChangeLogStore hibernateSingleEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
@@ -71,7 +71,7 @@ public class DefaultSingleEventChangeLogService implements SingleEventChangeLogS
       UID event, SingleEventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     // check existence and access
-    eventService.getEvent(event);
+    singleEventService.getEvent(event);
 
     return hibernateSingleEventChangeLogStore.getEventChangeLogs(
         event, operationParams, pageParams);

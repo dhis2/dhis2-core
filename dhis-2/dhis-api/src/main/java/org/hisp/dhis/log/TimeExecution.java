@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.util;
+package org.hisp.dhis.log;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import java.lang.System.Logger;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class DisplayNameUtils {
+/**
+ * Logs the execution time of the annotated method.
+ *
+ * <p>Only methods in {@link org.springframework.stereotype.Service} beans (which use interfaces)
+ * are supported.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TimeExecution {
+
   /**
-   * Creates a display name from a user info JSON object.
-   *
-   * @param originColumn the original column from where the JSON values are extracted from
-   * @param tablePrefix the prefix of the tracker table
-   * @param columnAlias the alias of this column in the analytics database
-   * @return the trimmed display name
+   * @return the log level to use
    */
-  public static String getDisplayName(
-      String originColumn, String tablePrefix, String columnAlias, SqlBuilder sqlBuilder) {
-    String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
-    String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
-    String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
-    String expression = sqlBuilder.safeConcat(surname, "', '", firstName, "' ('", username, "')'");
+  Logger.Level level() default Logger.Level.DEBUG;
 
-    return String.format("%s as %s", expression, columnAlias);
-  }
+  /**
+   * @return when not empty this name is used instead of the method name
+   */
+  String name() default "";
 
-  private static String extractJsonValue(
-      SqlBuilder sqlBuilder, String tablePrefix, String originColumn, String path) {
-    String json = tablePrefix + "." + originColumn;
-    String jsonExtracted = sqlBuilder.jsonExtract(json, path);
-    return sqlBuilder.trim(jsonExtracted);
-  }
+  Class<?> logger() default Class.class;
+
+  /**
+   * @return when positive only invocations that take longer than the given time (ms) will be logged
+   */
+  long threshold() default 0;
+
+  /**
+   * A marker annotation to add to record components whose value should be included in the log
+   * message. The record needs to be the 1st parameter to the annotated method. Non-record classes
+   * are not supported. This is simply to keep it fast and simple as the reflection to read the
+   * values needs to run for each execution.
+   */
+  @Target(ElementType.RECORD_COMPONENT)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Include {}
 }

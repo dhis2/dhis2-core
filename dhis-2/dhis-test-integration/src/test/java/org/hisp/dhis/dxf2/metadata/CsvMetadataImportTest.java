@@ -87,7 +87,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnits.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(6, metadata.getOrganisationUnits().size()));
-    assertEquals(6, importReport.getAccumulatedStats().created());
+    assertEquals(6, importReport.getStats().created());
     assertEquals(6, organisationUnitService.getAllOrganisationUnits().size());
   }
 
@@ -98,7 +98,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnits.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(6, metadata.getOrganisationUnits().size()));
-    assertEquals(6, importReport.getAccumulatedStats().created());
+    assertEquals(6, importReport.getStats().created());
     assertEquals(6, organisationUnitService.getAllOrganisationUnits().size());
   }
 
@@ -109,7 +109,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/dataElements.csv",
             CsvImportClass.DATA_ELEMENT,
             metadata -> assertEquals(2, metadata.getDataElements().size()));
-    assertEquals(2, importReport.getAccumulatedStats().created());
+    assertEquals(2, importReport.getStats().created());
     assertEquals(2, dataElementService.getAllDataElements().size());
   }
 
@@ -126,7 +126,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
               assertEquals(3, metadata.getOptionSets().get(2).getOptions().size());
               assertEquals(3, metadata.getOptionSets().get(3).getOptions().size());
             });
-    assertEquals(16, importReport.getAccumulatedStats().created());
+    assertEquals(16, importReport.getStats().created());
     List<OptionSet> optionSets = new ArrayList<>(optionService.getAllOptionSets());
     assertEquals(4, optionSets.size());
     assertEquals(3, optionSets.get(0).getOptions().size());
@@ -139,10 +139,10 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
   void testOptionSetReplace() throws IOException {
     // Import 1 OptionSet with 3 Options
     ImportReport importReport = runImport("metadata/optionSet_add.csv", CsvImportClass.OPTION_SET);
-    assertEquals(4, importReport.getAccumulatedStats().created());
+    assertEquals(4, importReport.getStats().created());
     // Send payload with 2 new Options
     importReport = runImport("metadata/optionSet_update.csv", CsvImportClass.OPTION_SET);
-    assertEquals(2, importReport.getAccumulatedStats().created());
+    assertEquals(2, importReport.getStats().created());
     OptionSet optionSet = optionService.getOptionSetByCode("COLOR");
     // 3 old Options are replaced by 2 new added Options
     assertEquals(2, optionSet.getOptions().size());
@@ -151,7 +151,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
   @Test
   void testImportOptionGroupSet() throws IOException {
     ImportReport importReport = runImport("metadata/option_set.csv", CsvImportClass.OPTION_SET);
-    assertEquals(5, importReport.getAccumulatedStats().created());
+    assertEquals(5, importReport.getStats().created());
     OptionSet optionSetA = manager.get(OptionSet.class, "xmRubJIhmaK");
     assertNotNull(optionSetA);
     assertEquals(2, optionSetA.getOptions().size());
@@ -159,7 +159,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
     assertNotNull(optionSetB);
     assertEquals(1, optionSetB.getOptions().size());
     importReport = runImport("metadata/option_groups.csv", CsvImportClass.OPTION_GROUP);
-    assertEquals(2, importReport.getAccumulatedStats().created());
+    assertEquals(2, importReport.getStats().created());
     OptionGroup optionGroupA = manager.get(OptionGroup.class, "UeHtizvXbx6");
     assertNotNull(optionGroupA);
     assertEquals(2, optionGroupA.getMembers().size());
@@ -167,7 +167,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
     assertNotNull(optionGroupB);
     assertEquals(1, optionGroupB.getMembers().size());
     importReport = runImport("metadata/option_group_set.csv", CsvImportClass.OPTION_GROUP_SET);
-    assertEquals(2, importReport.getAccumulatedStats().created());
+    assertEquals(2, importReport.getStats().created());
     OptionGroupSet optionGroupSetA = manager.get(OptionGroupSet.class, "FB9i0Jl2R80");
     assertNotNull(optionGroupSetA);
     OptionGroupSet optionGroupSetB = manager.get(OptionGroupSet.class, "K30djctzUtN");
@@ -175,7 +175,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
     importReport =
         runImport(
             "metadata/option_group_set_members.csv", CsvImportClass.OPTION_GROUP_SET_MEMBERSHIP);
-    assertEquals(2, importReport.getAccumulatedStats().updated());
+    assertEquals(2, importReport.getStats().updated());
     OptionGroupSet ogsA = optionService.getOptionGroupSet("FB9i0Jl2R80");
     OptionGroupSet ogsB = optionService.getOptionGroupSet("K30djctzUtN");
     assertEquals(1, ogsA.getMembers().size());
@@ -190,7 +190,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnitMembers.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(4, metadata.getOrganisationUnits().size()));
-    assertEquals(4, importReport.getAccumulatedStats().created());
+    assertEquals(4, importReport.getStats().created());
     assertEquals(4, organisationUnitService.getAllOrganisationUnits().size());
 
     importReport =
@@ -198,14 +198,14 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnitGroup.csv",
             CsvImportClass.ORGANISATION_UNIT_GROUP,
             metadata -> assertEquals(2, metadata.getOrganisationUnitGroups().size()));
-    assertEquals(2, importReport.getAccumulatedStats().created());
+    assertEquals(2, importReport.getStats().created());
 
     importReport =
         runImport(
             "metadata/organisationUnitGroup_members.csv",
             CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP,
             metadata -> assertEquals(2, metadata.getOrganisationUnitGroups().size()));
-    assertEquals(2, importReport.getAccumulatedStats().updated());
+    assertEquals(2, importReport.getStats().updated());
     OrganisationUnitGroup orgUnitA = manager.get(OrganisationUnitGroup.class, "a1234567890");
     assertEquals(2, orgUnitA.getMembers().size());
     OrganisationUnitGroup orgUnitB = manager.get(OrganisationUnitGroup.class, "b1234567890");

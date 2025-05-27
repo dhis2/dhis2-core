@@ -178,7 +178,8 @@ class ClickHouseSqlBuilderTest {
 
   @Test
   void testConcat() {
-    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+    assertEquals(
+        "concat(de.uid, pe.iso, ou.uid)", sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
   }
 
   @Test
