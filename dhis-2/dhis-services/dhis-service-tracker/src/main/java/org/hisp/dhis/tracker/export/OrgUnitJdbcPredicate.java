@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
@@ -82,10 +83,14 @@ public class OrgUnitJdbcPredicate {
         .append("((")
         .append(programTableAlias)
         .append(".accesslevel in ('OPEN', 'AUDITED') and ")
-        .append(orgUnitTableAlias)
-        .append(".path like any (:effectiveSearchScopePaths))");
-    sqlParameters.addValue(
-        "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
+        .append(orgUnitTableAlias);
+    if (orgUnitMode == CAPTURE) {
+      sql.append(".path like any (:captureScopePaths))");
+    } else {
+      sql.append(".path like any (:effectiveSearchScopePaths))");
+      sqlParameters.addValue(
+          "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
+    }
 
     sql.append(sqlHelper.andOr())
         .append("(")
