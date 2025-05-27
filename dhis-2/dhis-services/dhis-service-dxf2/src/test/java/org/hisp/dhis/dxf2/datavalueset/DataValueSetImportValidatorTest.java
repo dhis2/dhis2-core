@@ -77,6 +77,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,6 +102,9 @@ class DataValueSetImportValidatorTest {
 
   private final CategoryCombo defaultCombo = new CategoryCombo();
 
+  private final SystemSettingManager systemSettingManager =
+      mock(SystemSettingManager.class);
+
   @BeforeEach
   void setUp() {
     aclService = mock(AclService.class);
@@ -111,7 +115,7 @@ class DataValueSetImportValidatorTest {
     i18n = mock(I18n.class);
     validator =
         new DataValueSetImportValidator(
-            aclService, lockExceptionStore, approvalService, dataValueService);
+            aclService, lockExceptionStore, approvalService, dataValueService, systemSettingManager);
     validator.init();
     setupUserCanWriteCategoryOptions(true);
     when(i18n.getString(anyString()))

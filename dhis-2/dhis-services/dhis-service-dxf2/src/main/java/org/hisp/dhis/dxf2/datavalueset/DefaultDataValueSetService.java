@@ -1071,7 +1071,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
     boolean skipAudit = (options.isSkipAudit() && hasSkipAuditAuth) || !auditEnabled;
 
     SystemSettingManager settings = systemSettingManager;
-
+    boolean skipLockExceptionCheck = settings.getBoolSetting(SettingKey.DATA_IMPORT_SKIP_LOCK_EXCEPTION_CHECK);
     IdScheme dataElementIdScheme =
         createIdScheme(
             data.getDataElementIdSchemeProperty(), options, IdSchemes::getDataElementIdScheme);
@@ -1088,7 +1088,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .importOptions(options)
         .summary(new ImportSummary().setImportOptions(options))
         .isIso8601(calendarService.getSystemCalendar().isIso8601())
-        .skipLockExceptionCheck(!lockExceptionStore.anyExists())
+        .skipLockExceptionCheck(skipLockExceptionCheck)
         .i18n(i18nManager.getI18n())
         .currentUser(currentUser)
         .currentOrgUnits(currentUserService.getCurrentUserOrganisationUnits())

@@ -57,6 +57,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -76,6 +78,8 @@ public class DataValueSetImportValidator {
   private final DataApprovalService approvalService;
 
   private final DataValueService dataValueService;
+
+  private final SystemSettingManager settingManager;
 
   /** Validation on the {@link DataSet} level */
   interface DataSetValidation {
@@ -107,46 +111,57 @@ public class DataValueSetImportValidator {
 
   @PostConstruct
   public void init() {
-    // OBS! Order is important as validation occurs in order of registration
+    registerValidationSettings();
+  }
 
+  public void registerValidationSettings() {
     // DataSet Validations
-    register(DataValueSetImportValidator::validateDataSetExists);
-    register(this::validateDataSetIsAccessibleByUser);
-    register(DataValueSetImportValidator::validateDataSetOrgUnitExists);
-    register(DataValueSetImportValidator::validateDataSetAttrOptionComboExists);
+    dataSetValidations.clear();
+    dataValueValidations.clear();
+
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_DATASET_EXISTS, DataValueSetImportValidator::validateDataSetExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_DATASET_ACCESSIBLE, this::validateDataSetIsAccessibleByUser);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_DATASET_ORGUNIT_EXISTS, DataValueSetImportValidator::validateDataSetOrgUnitExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_ATTR_OPT_COMBO, DataValueSetImportValidator::validateDataSetAttrOptionComboExists);
 
     // DataValue Validations
-    register(DataValueSetImportValidator::validateDataValueDataElementExists);
-    register(DataValueSetImportValidator::validateDataValuePeriodExists);
-    register(DataValueSetImportValidator::validateDataValueOrgUnitExists);
-    register(DataValueSetImportValidator::validateDataValueCategoryOptionComboExists);
-    register(this::validateDataValueCategoryOptionComboAccess);
-    register(DataValueSetImportValidator::validateDataValueAttrOptionComboExists);
-    register(this::validateDataValueAttrOptionComboAccess);
-    register(this::validateDataValueOrgUnitInUserHierarchy);
-    register(DataValueSetImportValidator::validateDataValueIsDefined);
-    register(DataValueSetImportValidator::validateDataValueIsValid);
-    register(DataValueSetImportValidator::validateDataValueCommentIsValid);
-    register(DataValueSetImportValidator::validateDataValueOptionsExist);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_DATA_ELEMENT, DataValueSetImportValidator::validateDataValueDataElementExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_PERIOD, DataValueSetImportValidator::validateDataValuePeriodExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_ORGUNITS_EXIST, DataValueSetImportValidator::validateDataValueOrgUnitExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_CATOPTIONCOMBO_EXISTS, DataValueSetImportValidator::validateDataValueCategoryOptionComboExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_ATTR_OPT_COMBO_EXISTS, DataValueSetImportValidator::validateDataValueAttrOptionComboExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_ATTR_OPTION_COMBO_ACCESS, this::validateDataValueAttrOptionComboAccess);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_ORGUNIT_IN_USER_HIERARCHY, this::validateDataValueOrgUnitInUserHierarchy);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_VALUE_DEFINED, DataValueSetImportValidator::validateDataValueIsDefined);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_VALUE_VALID, DataValueSetImportValidator::validateDataValueIsValid);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_VALUE_COMMENT_VALID, DataValueSetImportValidator::validateDataValueCommentIsValid);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_VALUE_OPTIONS_EXIST, DataValueSetImportValidator::validateDataValueOptionsExist);
 
     // DataValue Constraints
-    register(DataValueSetImportValidator::checkDataValueCategoryOptionCombo);
-    register(DataValueSetImportValidator::checkDataValueAttrOptionCombo);
-    register(DataValueSetImportValidator::checkDataValuePeriodType);
-    register(DataValueSetImportValidator::checkDataValueStrictDataElement);
-    register(DataValueSetImportValidator::checkDataValueStrictCategoryOptionCombos);
-    register(DataValueSetImportValidator::checkDataValueStrictAttrOptionCombos);
-    register(DataValueSetImportValidator::checkDataValueStrictOrgUnits);
-    register(DataValueSetImportValidator::checkDataValueStoredByIsValid);
-    register(DataValueSetImportValidator::checkDataValuePeriodWithinAttrOptionComboRange);
-    register(this::checkDataValueOrgUnitValidForAttrOptionCombo);
-    register(this::checkDataValueDataSetIsNotLocked);
-    register(DataValueSetImportValidator::checkDataValueNotAfterLatestOpenFuturePeriod);
-    register(this::checkDataValueNotAlreadyApproved);
-    register(DataValueSetImportValidator::checkDataValuePeriodIsOpenNow);
-    register(DataValueSetImportValidator::checkDataValueConformsToOpenPeriodsOfAssociatedDataSets);
-    register(this::checkDataValueFileResourceExists);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_STRICT_DATA_ELEMENT, DataValueSetImportValidator::checkDataValueStrictDataElement);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_STRICT_CAT_OPT_COMBO, DataValueSetImportValidator::checkDataValueStrictCategoryOptionCombos);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_STRICT_ATTR_OPT_COMBO, DataValueSetImportValidator::checkDataValueStrictAttrOptionCombos);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_STRICT_ORG_UNITS, DataValueSetImportValidator::checkDataValueStrictOrgUnits);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_APPROVAL, this::checkDataValueNotAlreadyApproved);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_DATASET_LOCKED, this::checkDataValueDataSetIsNotLocked);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_PERIOD_NOT_FUTURE, DataValueSetImportValidator::checkDataValueNotAfterLatestOpenFuturePeriod);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_PERIOD_TYPE, DataValueSetImportValidator::checkDataValuePeriodType);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_CONFORMS_OPEN_PERIODS, DataValueSetImportValidator::checkDataValueConformsToOpenPeriodsOfAssociatedDataSets);
+    registerIfEnabled(SettingKey.DATA_IMPORT_VALIDATE_FILE_RESOURCE_EXISTS, this::checkDataValueFileResourceExists);
   }
+
+  private void registerIfEnabled(SettingKey key, DataSetValidation validator) {
+    if (settingManager.getBoolSetting(key)) {
+      register(validator);
+    }
+  }
+
+  private void registerIfEnabled(SettingKey key, DataValueValidation validator) {
+    if (settingManager.getBoolSetting(key)) {
+      register(validator);
+    }
+  }
+
 
   /*
    * DataSet validation

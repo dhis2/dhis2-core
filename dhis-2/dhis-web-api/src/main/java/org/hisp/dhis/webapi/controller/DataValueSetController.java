@@ -69,11 +69,13 @@ import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetImportValidator;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
@@ -107,6 +109,8 @@ public class DataValueSetController {
   private final AsyncTaskExecutor taskExecutor;
 
   private final SessionFactory sessionFactory;
+
+  private final DataValueSetImportValidator dataValueSetImportValidator;
 
   // -------------------------------------------------------------------------
   // Get
@@ -310,6 +314,16 @@ public class DataValueSetController {
     summary.setImportOptions(importOptions);
 
     return importSummary(summary).withPlainResponseBefore(V38);
+  }
+
+  @PreAuthorize("hasRole('ALL')")
+  @PostMapping("/refreshValidationConfig")
+  @ResponseBody
+  public WebMessage refreshValidationConfig() {
+    dataValueSetImportValidator.registerValidationSettings();
+    return new WebMessage()
+        .setMessage("Data value set validation configuration has been refreshed.")
+        .withPlainResponseBefore(V38);
   }
 
   // -------------------------------------------------------------------------
