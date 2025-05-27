@@ -237,40 +237,38 @@ public class AuthenticationController {
   private String getRedirectUrl(
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
-    String redirectUrl =
-        request.getContextPath()
-            + "/api/apps/"
-            + settingsProvider.getCurrentSettings().getStartModule();
-    if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
-    }
+    String redirectUrl = request.getContextPath() + "/";
 
     // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/api/apps/user-profile/#/profile";
+        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
       }
     }
 
-    // Check for saved request, i.e. the user has tried to access a page directly before logging in.
-    SavedRequest savedRequest = requestCache.getRequest(request, null);
-    if (savedRequest != null) {
-      DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-      // Check saved request to avoid redirecting to non-html pages, e.g. images.
-      // If the saved request is not filtered, the user will be redirected to the saved request,
-      // otherwise the default redirect URL is used.
-      if (!filterSavedRequest(defaultSavedRequest)) {
-        if (defaultSavedRequest.getQueryString() != null) {
-          redirectUrl =
-              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
-        } else {
-          redirectUrl = defaultSavedRequest.getRequestURI();
+    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+      // Check for saved request, i.e. the user has tried to access a page directly before logging
+      // in.
+      SavedRequest savedRequest = requestCache.getRequest(request, null);
+      if (savedRequest != null) {
+        DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
+        // Check saved request to avoid redirecting to non-html pages, e.g. images.
+        // If the saved request is not filtered, the user will be redirected to the saved request,
+        // otherwise the default redirect URL is used.
+        if (!filterSavedRequest(defaultSavedRequest)) {
+          if (defaultSavedRequest.getQueryString() != null) {
+            redirectUrl =
+                defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+          } else {
+            redirectUrl = defaultSavedRequest.getRequestURI();
+          }
         }
+        this.requestCache.removeRequest(request, response);
       }
-      this.requestCache.removeRequest(request, response);
     }
+
     return redirectUrl;
   }
 

@@ -30,9 +30,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
+import static org.hisp.dhis.http.HttpStatus.NO_CONTENT;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,89 +47,65 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
 
   @Test
   void testPostJsonObject() {
-    assertWebMessage(
-        "Created",
-        201,
-        "OK",
-        null,
-        POST(
-                "/minMaxDataElements/",
-                "{"
-                    + "'source':{'id':'"
-                    + orgUnitId
-                    + "'},"
-                    + "'dataElement':{'id':'"
-                    + dataElementId
-                    + "'},"
-                    + "'optionCombo':{'id':'"
-                    + categoryOptionComboId
-                    + "'},"
-                    + "'min':1,"
-                    + "'max':42"
-                    + "}")
-            .content(HttpStatus.CREATED));
+    String ou = orgUnitId;
+    String de = dataElementId;
+    String coc = categoryOptionComboId;
+    @Language("json")
+    String json =
+        """
+        {
+        "source":{"id":"%s"},
+        "dataElement":{"id":"%s"},
+        "optionCombo":{"id":"%s"},
+        "min":1,
+        "max":42
+        }
+        """;
+    assertStatus(CREATED, POST("/minMaxDataElements/", json.formatted(ou, de, coc)));
   }
 
   @Test
   void testDeleteObject() {
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/minMaxDataElements/",
-            "{"
-                + "'source':{'id':'"
-                + orgUnitId
-                + "'},"
-                + "'dataElement':{'id':'"
-                + dataElementId
-                + "'},"
-                + "'optionCombo':{'id':'"
-                + categoryOptionComboId
-                + "'},"
-                + "'min':1,"
-                + "'max':42"
-                + "}"));
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "MinMaxDataElement deleted.",
-        DELETE(
-                "/minMaxDataElements/",
-                "{"
-                    + "'source':{'id':'"
-                    + orgUnitId
-                    + "'},"
-                    + "'dataElement':{'id':'"
-                    + dataElementId
-                    + "'},"
-                    + "'optionCombo':{'id':'"
-                    + categoryOptionComboId
-                    + "'}"
-                    + "}")
-            .content(HttpStatus.OK));
+    String ou = orgUnitId;
+    String de = dataElementId;
+    String coc = categoryOptionComboId;
+    @Language("json")
+    String value =
+        """
+        {
+            "source":{"id":"%s"},
+            "dataElement":{"id":"%s"},
+            "optionCombo":{"id":"%s"},
+            "min":1,
+            "max":42
+        }""";
+    assertStatus(HttpStatus.CREATED, POST("/minMaxDataElements/", value.formatted(ou, de, coc)));
+
+    @Language("json")
+    String key =
+        """
+        {
+            "source":{"id":"%s"},
+            "dataElement":{"id":"%s"},
+            "optionCombo":{"id":"%s"}
+        }""";
+    assertStatus(NO_CONTENT, DELETE("/minMaxDataElements/", key.formatted(ou, de, coc)));
   }
 
   @Test
   void testDeleteObject_NoSuchObject() {
-    assertWebMessage(
-        "Not Found",
-        404,
-        "ERROR",
-        "Can not find MinMaxDataElement.",
+    @Language("json")
+    String json =
+        """
+        {
+            "source":{"id":"%s"},
+            "dataElement":{"id":"%s"},
+            "optionCombo":{"id":"%s"}
+        }""";
+    assertStatus(
+        NOT_FOUND,
         DELETE(
-                "/minMaxDataElements/",
-                "{"
-                    + "'source':{'id':'"
-                    + orgUnitId
-                    + "'},"
-                    + "'dataElement':{'id':'"
-                    + dataElementId
-                    + "'},"
-                    + "'optionCombo':{'id':'"
-                    + categoryOptionComboId
-                    + "'}"
-                    + "}")
-            .content(HttpStatus.NOT_FOUND));
+            "/minMaxDataElements/",
+            json.formatted(orgUnitId, dataElementId, categoryOptionComboId)));
   }
 }

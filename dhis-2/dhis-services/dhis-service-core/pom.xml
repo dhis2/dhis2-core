@@ -82,6 +82,10 @@
       <artifactId>commons-email</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
     </dependency>
@@ -105,12 +109,12 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.7.5</version>
+      <version>3.7.6</version>
     </dependency>
     <dependency>
       <groupId>io.projectreactor.netty</groupId>
       <artifactId>reactor-netty-http</artifactId>
-      <version>1.2.5</version>
+      <version>1.2.6</version>
     </dependency>
     <dependency>
       <groupId>org.reactivestreams</groupId>
@@ -120,7 +124,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler</artifactId>
-      <version>4.2.0.Final</version>
+      <version>4.2.1.Final</version>
     </dependency>
     <dependency>
       <groupId>com.nimbusds</groupId>
@@ -221,6 +225,10 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
     </dependency>
 
     <!-- Apache JClouds -->
