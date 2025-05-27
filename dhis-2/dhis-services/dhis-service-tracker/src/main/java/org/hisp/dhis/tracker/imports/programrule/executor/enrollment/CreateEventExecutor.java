@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.executor.event;
+package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isDateValid;
 
@@ -38,6 +38,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -48,24 +49,23 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  * @author Zubair Asghar
  */
 @RequiredArgsConstructor
-public class CreateEventExecutor implements RuleActionExecutor<Event> {
+public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
   private final UID programRule;
   private final UID programStage;
   private final String scheduledAt;
 
   @Override
-  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
     if (isDateValid(scheduledAt)) {
       return Optional.of(ProgramRuleIssue.error(programRule, ValidationCode.E1318, scheduledAt));
     }
 
     Event scheduledEvent = new Event();
     scheduledEvent.setEvent(UID.generate());
-    scheduledEvent.setEnrollment(event.getEnrollment());
+    scheduledEvent.setEnrollment(enrollment.getEnrollment());
     scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
-    scheduledEvent.setAttributeOptionCombo(event.getAttributeOptionCombo());
-    scheduledEvent.setProgram(event.getProgram());
-    scheduledEvent.setOrgUnit(event.getOrgUnit());
+    scheduledEvent.setProgram(enrollment.getProgram());
+    scheduledEvent.setOrgUnit(enrollment.getOrgUnit());
     scheduledEvent.setOccurredAt(null);
     scheduledEvent.setScheduledAt(Instant.parse(scheduledAt));
     scheduledEvent.setStatus(EventStatus.SCHEDULE);

@@ -90,7 +90,7 @@ public class ScheduledEventProgramStageSupplier extends AbstractPreheatSupplier 
             join pra.programStage ps
             join pra.programRule pr
             join pr.program p
-            where pra.programRuleActionType = :actionType
+            where pra.programRuleActionType = :actionType and pra.programStage is not null
             and p.uid in :programUids
         """;
 

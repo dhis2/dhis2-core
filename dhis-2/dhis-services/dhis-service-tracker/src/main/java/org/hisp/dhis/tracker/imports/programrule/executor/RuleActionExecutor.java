@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttri
 import org.hisp.dhis.tracker.imports.programrule.executor.event.AssignDataValueExecutor;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.report.Warning;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * A {@link RuleActionExecutor} execute a rule action for an event or an enrollment. The execution
@@ -74,6 +75,19 @@ public interface RuleActionExecutor<T> {
           && MathUtils.isEqual(Double.parseDouble(value1), Double.parseDouble(value2));
     }
     return false;
+  }
+
+  /**
+   * Validates whether the given date string is in a valid and acceptable format.
+   *
+   * <p>This method delegates to {@link DateUtils#dateIsValid(String)} to perform the actual
+   * validation logic.
+   *
+   * @param scheduledAt the date string to validate
+   * @return {@code true} if the date string is valid; {@code false} otherwise
+   */
+  static boolean isDateValid(String scheduledAt) {
+    return DateUtils.dateIsValid(scheduledAt);
   }
 
   /**

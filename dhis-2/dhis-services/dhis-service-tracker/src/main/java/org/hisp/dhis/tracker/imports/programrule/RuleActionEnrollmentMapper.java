@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
+import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.CreateEventExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.SetMandatoryFieldExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowErrorExecutor;
@@ -101,7 +102,9 @@ class RuleActionEnrollmentMapper {
       case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
-      case CREATE_EVENT -> null;
+      case CREATE_EVENT ->
+          new CreateEventExecutor(
+              validationEffect.rule(), validationEffect.field(), validationEffect.data());
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };
