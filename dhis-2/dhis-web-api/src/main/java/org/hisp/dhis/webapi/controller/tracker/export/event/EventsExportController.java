@@ -112,8 +112,6 @@ class EventsExportController {
 
   private final EventService eventService;
 
-  private final EventRequestParamsMapper eventParamsMapper;
-
   private final TrackerEventService trackerEventService;
 
   private final TrackerEventRequestParamsMapper trackerEventParamsMapper;
@@ -136,7 +134,6 @@ class EventsExportController {
 
   public EventsExportController(
       EventService eventService,
-      EventRequestParamsMapper eventParamsMapper,
       TrackerEventService trackerEventService,
       TrackerEventRequestParamsMapper trackerEventParamsMapper,
       SingleEventService singleEventService,
@@ -148,7 +145,6 @@ class EventsExportController {
       EventChangeLogService eventChangeLogService,
       ProgramService programService) {
     this.eventService = eventService;
-    this.eventParamsMapper = eventParamsMapper;
     this.trackerEventService = trackerEventService;
     this.trackerEventParamsMapper = trackerEventParamsMapper;
     this.singleEventService = singleEventService;

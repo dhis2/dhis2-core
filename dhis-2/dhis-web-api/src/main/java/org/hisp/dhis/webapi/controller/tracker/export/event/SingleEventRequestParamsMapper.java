@@ -65,7 +65,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-class SingleEventRequestParamsMapper {
+public class SingleEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
   private final FieldFilterService fieldFilterService;
