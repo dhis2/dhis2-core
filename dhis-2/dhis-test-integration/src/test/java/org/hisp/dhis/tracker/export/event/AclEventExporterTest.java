@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.List;
@@ -376,6 +377,11 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
                 "Expected to find capture org unit uoNW0E3xXUy, but found "
                     + e.getOrganisationUnit().getUid()
                     + " instead"));
+  }
+
+  @Test
+  void shouldReturnEventsWhenProgramOpenAndOrgUnitModeCapture() {
+    fail();
   }
 
   @Test
