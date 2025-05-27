@@ -27,12 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,6 +58,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -99,10 +100,13 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
 @Slf4j
-@Repository("org.hisp.dhis.tracker.export.singleevent.EventStore")
+@Repository("org.hisp.dhis.tracker.export.trackerevent.EventStore")
 @RequiredArgsConstructor
-class JdbcSingleEventStore {
+class JdbcTrackerEventStore {
   private static final String EVENT_NOTE_QUERY =
       """
       select evn.eventid as evn_id,\
@@ -186,9 +190,16 @@ class JdbcSingleEventStore {
       Map.ofEntries(
           entry("uid", COLUMN_EVENT_UID),
           entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
+          entry("programStage.uid", COLUMN_PROGRAM_STAGE_UID),
+          entry("enrollment.uid", COLUMN_ENROLLMENT_UID),
+          entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
+          entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
+          entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
           entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
+          entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
+          entry("scheduledDate", COLUMN_EVENT_SCHEDULED_DATE),
           entry("storedBy", COLUMN_EVENT_STORED_BY),
           entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
           entry("createdBy", COLUMN_EVENT_CREATED_BY),
@@ -217,16 +228,16 @@ class JdbcSingleEventStore {
 
   private final IdentifiableObjectManager manager;
 
-  public List<Event> getEvents(SingleEventQueryParams queryParams) {
+  public List<Event> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
 
-  public Page<Event> getEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
+  public Page<Event> getEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
-  private List<Event> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
+  private List<Event> fetchEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, queryParams);
 
@@ -492,7 +503,7 @@ class JdbcSingleEventStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private long getEventCount(SingleEventQueryParams params) {
+  private long getEventCount(TrackerEventQueryParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, params);
 
@@ -531,7 +542,7 @@ class JdbcSingleEventStore {
    * id. The purpose of the separate queries is to be able to page properly on events.
    */
   private String buildSql(
-      SingleEventQueryParams queryParams,
+      TrackerEventQueryParams queryParams,
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       User user) {
@@ -576,8 +587,65 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return sqlBuilder.toString();
   }
 
+  /**
+   * Generates the WHERE-clause related to the user provided attribute filters. It will find the
+   * tracked entity attributes that match the given user filter criteria. This condition only
+   * applies when an attribute filter is specified.
+   */
+  private String getWhereClauseFromAttributeFilterConditions(
+      TrackerEventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
+    if (params.getAttributes().isEmpty()) {
+      return "";
+    }
+
+    StringBuilder sql = new StringBuilder();
+    sql.append(hlp.whereAnd())
+        .append(
+            " TE.trackedentityid is not null "); // filtering by attribute means we need to look for
+    // a TE in a tracker program, so we can filter out
+    // event programs
+
+    if (!params.getAttributes().isEmpty()) {
+      sql.append(AND);
+      addPredicates(sql, sqlParameters, params.getAttributes());
+      sql.append(SPACE);
+    }
+    return sql.toString();
+  }
+
+  /**
+   * Generates the LEFT JOIN based on the attributes we are ordering and filtering by, if any. We
+   * use LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
+   * result of this LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and
+   * main query.
+   *
+   * <p>Attribute filtering is handled in {@link
+   * #getWhereClauseFromAttributeFilterConditions(TrackerEventQueryParams, MapSqlParameterSource,
+   * SqlHelper)}.
+   *
+   * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
+   */
+  private String getLeftJoinFromAttributes(TrackerEventQueryParams params) {
+    StringBuilder attributes = new StringBuilder();
+
+    for (TrackedEntityAttribute attribute : params.leftJoinAttributes()) {
+      attributes
+          .append(" left join trackedentityattributevalue as ")
+          .append(quote(attribute.getUid()))
+          .append(" on ")
+          .append(quote(attribute.getUid()))
+          .append(".trackedentityid = TE.trackedentityid and ")
+          .append(quote(attribute.getUid()))
+          .append(".trackedentityattributeid = ")
+          .append(attribute.getId())
+          .append(SPACE);
+    }
+
+    return attributes.toString();
+  }
+
   private String getEventSelectQuery(
-      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -703,7 +771,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private StringBuilder getFromWhereClause(
-      SingleEventQueryParams params,
+      TrackerEventQueryParams params,
       MapSqlParameterSource sqlParameters,
       User user,
       SqlHelper hlp) {
@@ -725,6 +793,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
+    // LEFT JOIN attributes we need to sort on and/or filter by.
+    fromBuilder.append(getLeftJoinFromAttributes(params));
+
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
     if (!params.getDataElements().isEmpty()) {
@@ -733,10 +804,93 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
     fromBuilder.append(SPACE);
 
+    fromBuilder.append(getWhereClauseFromAttributeFilterConditions(params, sqlParameters, hlp));
+
+    if (params.getTrackedEntity() != null) {
+      sqlParameters.addValue("trackedentityid", params.getTrackedEntity().getId());
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" te.trackedentityid= ")
+          .append(":trackedentityid")
+          .append(" ");
+    }
+
     if (params.getProgram() != null) {
       sqlParameters.addValue("programid", params.getProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+    }
+
+    if (params.getProgramStage() != null) {
+      sqlParameters.addValue("programstageid", params.getProgramStage().getId());
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programstageid = ")
+          .append(":programstageid")
+          .append(" ");
+    }
+
+    if (params.getEnrollmentStatus() != null) {
+      sqlParameters.addValue("program_status", params.getEnrollmentStatus().name());
+
+      fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
+    }
+
+    if (params.getEnrollmentEnrolledBefore() != null) {
+      sqlParameters.addValue(
+          "enrollmentEnrolledBefore", params.getEnrollmentEnrolledBefore(), Types.TIMESTAMP);
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" (en.enrollmentdate <= :enrollmentEnrolledBefore ) ");
+    }
+
+    if (params.getEnrollmentEnrolledAfter() != null) {
+      sqlParameters.addValue(
+          "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(), Types.TIMESTAMP);
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" (en.enrollmentdate >= :enrollmentEnrolledAfter ) ");
+    }
+
+    if (params.getEnrollmentOccurredBefore() != null) {
+      sqlParameters.addValue(
+          "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" (en.occurreddate <= :enrollmentOccurredBefore ) ");
+    }
+
+    if (params.getEnrollmentOccurredAfter() != null) {
+      sqlParameters.addValue(
+          "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
+      fromBuilder.append(hlp.whereAnd()).append(" (en.occurreddate >= :enrollmentOccurredAfter ) ");
+    }
+
+    if (params.getScheduleAtStartDate() != null) {
+      sqlParameters.addValue(
+          "startScheduledDate", params.getScheduleAtStartDate(), Types.TIMESTAMP);
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" (ev.scheduleddate is not null and ev.scheduleddate >= :startScheduledDate ) ");
+    }
+
+    if (params.getScheduleAtEndDate() != null) {
+      sqlParameters.addValue("endScheduledDate", params.getScheduleAtEndDate(), Types.TIMESTAMP);
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" (ev.scheduleddate is not null and ev.scheduleddate <= :endScheduledDate ) ");
+    }
+
+    if (params.getFollowUp() != null) {
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" en.followup is ")
+          .append(Boolean.TRUE.equals(params.getFollowUp()) ? "true" : "false")
+          .append(" ");
     }
 
     fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));
@@ -769,7 +923,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
-    fromBuilder.append(hlp.whereAnd()).append(" p.type = 'WITHOUT_REGISTRATION' ");
+    fromBuilder.append(hlp.whereAnd()).append(" p.type = 'WITH_REGISTRATION' ");
 
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
@@ -777,7 +931,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
       sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.uid in (").append(":ev_uid").append(") ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
@@ -811,13 +965,31 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" (p.uid in (")
           .append(":program_uid")
           .append(")) ");
+
+      sqlParameters.addValue(
+          "programstage_uid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : UID.toValueSet(params.getAccessibleProgramStages()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" (ps.uid in (")
+          .append(":programstage_uid")
+          .append(")) ");
+    }
+
+    if (!CollectionUtils.isEmpty(params.getEnrollments())) {
+      sqlParameters.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
+
+      fromBuilder.append(hlp.whereAnd()).append(" (en.uid in (:enrollment_uid)) ");
     }
 
     return fromBuilder;
   }
 
   private String getOrgUnitSql(
-      SingleEventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+      TrackerEventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
       case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
       case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
@@ -833,7 +1005,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createAccessibleSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
     if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
@@ -844,7 +1016,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createDescendantsSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
@@ -857,7 +1029,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createChildrenSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
@@ -880,7 +1052,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createSelectedSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
@@ -957,7 +1129,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String eventStatusSql(
-      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder stringBuilder = new StringBuilder();
 
     if (params.getEventStatus() != null) {
@@ -992,7 +1164,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String addLastUpdatedFilters(
-      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder sqlBuilder = new StringBuilder();
 
     if (params.hasUpdatedAtDuration()) {
@@ -1087,7 +1259,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return " limit " + (pageParams.getPageSize() + 1) + " offset " + pageParams.getOffset() + " ";
   }
 
-  private String getOrderQuery(SingleEventQueryParams params) {
+  private String getOrderQuery(TrackerEventQueryParams params) {
     ArrayList<String> orderFields = new ArrayList<>();
 
     for (Order order : params.getOrder()) {
@@ -1136,10 +1308,15 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private void setAccessiblePrograms(User user, SingleEventQueryParams params) {
+  private void setAccessiblePrograms(User user, TrackerEventQueryParams params) {
     if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
+
+      params.setAccessibleProgramStages(
+          manager.getDataReadAll(ProgramStage.class).stream()
+              .map(UID::of)
+              .collect(Collectors.toSet()));
     }
   }
 }

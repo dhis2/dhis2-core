@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +48,7 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface SingleEventService {
+public interface TrackerEventService {
   /**
    * Get a file for an events' data element under the privileges of the currently authenticated
    * user.
@@ -75,7 +75,7 @@ public interface SingleEventService {
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
    * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
-   * #getEvent(UID, TrackerIdSchemeParams, SingleEventFields)} instead to also get the events
+   * #getEvent(UID, TrackerIdSchemeParams, TrackerEventFields)} instead to also get the events
    * relationships and specify different {@code idSchemes}.
    */
   @Nonnull
@@ -87,14 +87,14 @@ public interface SingleEventService {
    * TrackerIdSchemeParams}.
    */
   @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, SingleEventFields fields)
+  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, TrackerEventFields fields)
       throws NotFoundException;
 
   /**
    * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> findEvents(@Nonnull SingleEventOperationParams params)
+  List<Event> findEvents(@Nonnull TrackerEventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -102,15 +102,16 @@ public interface SingleEventService {
    * user.
    */
   @Nonnull
-  Page<Event> findEvents(@Nonnull SingleEventOperationParams params, @Nonnull PageParams pageParams)
+  Page<Event> findEvents(
+      @Nonnull TrackerEventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**
-   * Fields the {@link #findEvents(SingleEventOperationParams)} and {@link
-   * #findEvents(SingleEventOperationParams, PageParams)} can order events by. Ordering by fields
+   * Fields the {@link #findEvents(TrackerEventOperationParams)} and {@link
+   * #findEvents(TrackerEventOperationParams, PageParams)} can order events by. Ordering by fields
    * other than these is considered a programmer error. Validation of user provided field names
-   * should occur before calling {@link #findEvents(SingleEventOperationParams)} or {@link
-   * #findEvents(SingleEventOperationParams, PageParams)}.
+   * should occur before calling {@link #findEvents(TrackerEventOperationParams)} or {@link
+   * #findEvents(TrackerEventOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
 }
