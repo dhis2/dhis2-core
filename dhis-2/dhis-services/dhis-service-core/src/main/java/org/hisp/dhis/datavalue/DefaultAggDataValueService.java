@@ -29,8 +29,12 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.lang.System.Logger.Level.INFO;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.log.TimeExecution;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +46,10 @@ public class DefaultAggDataValueService implements AggDataValueService {
 
   @Override
   @Transactional
-  public void importValue(AggDataValue value) {}
+  public void importValue(AggDataValue value) {
+    // TODO single validation
+    store.upsertValues(List.of(value));
+  }
 
   @Override
   @Transactional
@@ -50,14 +57,16 @@ public class DefaultAggDataValueService implements AggDataValueService {
 
   @Override
   @Transactional
+  @TimeExecution(level = INFO, name = "data value import")
   public AggDataValueUpsertSummary importAll(AggDataValueUpsertRequest request)
       throws BadRequestException {
-
+    // TODO bulk validation
     return store.upsertValues(request.values());
   }
 
   @Override
   @Transactional
+  @TimeExecution(level = INFO, name = "data value deletion")
   public int deleteAll(AggDataValueDeleteRequest request) throws BadRequestException {
     return 0;
   }
