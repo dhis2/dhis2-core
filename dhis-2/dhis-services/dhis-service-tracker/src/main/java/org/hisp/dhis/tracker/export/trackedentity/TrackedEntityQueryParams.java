@@ -58,14 +58,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 
 @ToString
 public class TrackedEntityQueryParams {
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
-  @Getter private final Map<TrackedEntityAttribute, List<JdbcPredicate>> filters = new HashMap<>();
+  @Getter
+  private final Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -408,7 +409,7 @@ public class TrackedEntityQueryParams {
    */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filter) {
     this.filters.putIfAbsent(tea, new ArrayList<>());
-    this.filters.get(tea).addAll(filter.stream().map(f -> JdbcPredicate.of(tea, f)).toList());
+    this.filters.get(tea).addAll(filter.stream().map(f -> FilterJdbcPredicate.of(tea, f)).toList());
     return this;
   }
 

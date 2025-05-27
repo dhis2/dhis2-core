@@ -76,8 +76,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
-import org.hisp.dhis.tracker.export.JdbcPredicate;
-import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -289,18 +289,18 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getFilters();
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = params.getFilters();
     assertNotNull(attributes);
     assertEquals(2, attributes.size());
 
     assertContainsOnly(List.of(tea1, tea2), attributes.keySet());
 
-    List<JdbcPredicate> tea1Filters = attributes.get(tea1);
+    List<FilterJdbcPredicate> tea1Filters = attributes.get(tea1);
     assertEquals(1, tea1Filters.size());
     assertQueryFilterValue(
         tea1Filters.get(0), "=", new SqlParameterValue(Types.INTEGER, List.of(2)));
 
-    List<JdbcPredicate> tea2Filters = attributes.get(tea2);
+    List<FilterJdbcPredicate> tea2Filters = attributes.get(tea2);
     assertEquals(1, tea2Filters.size());
     assertQueryFilterValue(
         tea2Filters.get(0), "like", new SqlParameterValue(Types.VARCHAR, List.of("%foo%")));
@@ -324,7 +324,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getFilters();
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = params.getFilters();
     assertNotNull(attributes);
     assertEquals(1, attributes.size());
 
@@ -332,7 +332,7 @@ class TrackedEntityOperationParamsMapperTest {
         List.of(TEA_1_UID.getValue()),
         attributes.keySet().stream().map(UidObject::getUid).toList());
 
-    List<JdbcPredicate> tea1Filters = attributes.get(tea1);
+    List<FilterJdbcPredicate> tea1Filters = attributes.get(tea1);
     assertEquals(2, tea1Filters.size());
     assertQueryFilterValue(
         tea1Filters.get(0), ">", new SqlParameterValue(Types.INTEGER, List.of(10)));
@@ -537,7 +537,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   private static void assertQueryFilterValue(
-      JdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
+      FilterJdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
     assertContains(sqlOperator, actual.getSql());
 
     if (value != null) {

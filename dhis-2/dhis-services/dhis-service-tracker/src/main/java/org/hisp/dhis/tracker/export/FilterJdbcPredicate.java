@@ -55,12 +55,12 @@ import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * JdbcPredicate turns a {@link QueryFilter} on a data element or tracked entity attribute into a
- * SQL predicate with an optional JDBC parameter (right-hand side operand of the SQL operator). The
- * {@link #getSql()} can be inserted into a SQL statement where clause. User input in the {@link
- * QueryFilter#getFilter()} is transformed into the {@link #getParameter()}. Non-unary operators
- * will have a parameter which must be added to the JDBC template parameter source like {@link
- * MapSqlParameterSource}!
+ * FilterJdbcPredicate turns a {@link QueryFilter} on a data element or tracked entity attribute
+ * into a SQL predicate with an optional JDBC parameter (right-hand side operand of the SQL
+ * operator). The {@link #getSql()} can be inserted into a SQL statement where clause. User input in
+ * the {@link QueryFilter#getFilter()} is transformed into the {@link #getParameter()}. Non-unary
+ * operators will have a parameter which must be added to the JDBC template parameter source like
+ * {@link MapSqlParameterSource}!
  *
  * <p>These are some of the transformations we need to do on user input
  *
@@ -82,12 +82,12 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  * pass it to an <a
  * href="https://docs.spring.io/spring-framework/reference/data-access/jdbc/parameter-handling.html#jdbc-in-clause">in</a>
  * operator allowing multiple values or an operator only expecting one like {@code eq}.
- * JdbcPredicate ensures we never pass a collection with multiple elements to such operators as this
- * leads to a {@code BadSqlGrammarException}.
+ * FilterJdbcPredicate ensures we never pass a collection with multiple elements to such operators
+ * as this leads to a {@code BadSqlGrammarException}.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Value
-public class JdbcPredicate {
+public class FilterJdbcPredicate {
   String sql;
   Optional<Parameter> parameter;
 
@@ -97,17 +97,18 @@ public class JdbcPredicate {
    * The SQL generated for tracked entity attributes expects a table alias of the tracked entity
    * attribute {@code UID} to access the attribute value using {@code 'uid'.value}.
    */
-  public static JdbcPredicate of(@Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
+  public static FilterJdbcPredicate of(
+      @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
     Parameter parameter = parseFilterValue(tea, filter);
     String sql = generateSql(tea, filter, parameter);
-    return new JdbcPredicate(sql, Optional.ofNullable(parameter));
+    return new FilterJdbcPredicate(sql, Optional.ofNullable(parameter));
   }
 
-  public static JdbcPredicate of(
+  public static FilterJdbcPredicate of(
       @Nonnull DataElement de, @Nonnull QueryFilter filter, @Nonnull String tableName) {
     Parameter parameter = parseFilterValue(de, filter);
     String sql = generateSql(de, filter, parameter, tableName);
-    return new JdbcPredicate(sql, Optional.ofNullable(parameter));
+    return new FilterJdbcPredicate(sql, Optional.ofNullable(parameter));
   }
 
   @SuppressWarnings("unchecked")
@@ -249,10 +250,10 @@ public class JdbcPredicate {
   public static <T extends ValueTypedDimensionalItemObject> void addPredicates(
       @Nonnull StringBuilder sql,
       @Nonnull MapSqlParameterSource sqlParameters,
-      @Nonnull Map<T, List<JdbcPredicate>> predicates) {
+      @Nonnull Map<T, List<FilterJdbcPredicate>> predicates) {
     boolean first = true;
-    for (List<JdbcPredicate> values : predicates.values()) {
-      for (JdbcPredicate predicate : values) {
+    for (List<FilterJdbcPredicate> values : predicates.values()) {
+      for (FilterJdbcPredicate predicate : values) {
         if (first) {
           first = false;
         } else {
