@@ -279,8 +279,7 @@ public class DefaultAppManager implements AppManager {
             .map(
                 app -> {
                   Locale userLocale = localeManager.getCurrentLocale();
-                  App localisedApp = app.localise(userLocale);
-                  return localisedApp;
+                  return app.localise(userLocale);
                 })
             .map(WebModule::getModule)
             .map(
