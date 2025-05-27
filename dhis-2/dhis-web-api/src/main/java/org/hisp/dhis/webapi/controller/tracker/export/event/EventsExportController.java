@@ -179,9 +179,9 @@ class EventsExportController {
       @RequestParam UID program)
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
-    Program programForEvent = getProgram(program);
+    Program eventProgram = getProgram(program);
 
-    if (programForEvent.isRegistration()) {
+    if (eventProgram.isRegistration()) {
       if (requestParams.isPaging()) {
         PageParams pageParams =
             PageParams.of(
@@ -236,10 +236,10 @@ class EventsExportController {
       @RequestParam UID program)
       throws BadRequestException, IOException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
-    Program programForEvent = getProgram(program);
+    Program eventProgram = getProgram(program);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events;
-    if (programForEvent.isRegistration()) {
+    if (eventProgram.isRegistration()) {
       events = getTrackerEventsList(requestParams, idSchemeParams);
     } else {
       events = getSingleEventsList(requestParams, idSchemeParams);
@@ -264,10 +264,10 @@ class EventsExportController {
       @RequestParam UID program)
       throws BadRequestException, ForbiddenException, IOException, WebMessageException {
     validatePaginationParameters(requestParams);
-    Program programForEvent = getProgram(program);
+    Program eventProgram = getProgram(program);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events;
-    if (programForEvent.isRegistration()) {
+    if (eventProgram.isRegistration()) {
       events = getTrackerEventsList(requestParams, idSchemeParams);
     } else {
       events = getSingleEventsList(requestParams, idSchemeParams);
