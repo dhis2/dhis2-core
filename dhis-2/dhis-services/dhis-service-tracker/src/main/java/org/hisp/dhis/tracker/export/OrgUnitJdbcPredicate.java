@@ -31,36 +31,34 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrgUnitJdbcPredicate {
 
   public static void buildOrgUnitModeClause(
       StringBuilder sql,
-      TrackedEntityQueryParams params,
+      Set<OrganisationUnit> orgUnits,
+      OrganisationUnitSelectionMode orgUnitMode,
       MapSqlParameterSource sqlParameters,
       String tableAlias) {
 
-    if (params.hasOrganisationUnits()) {
-      sql.append("and ");
-      if (params.isOrganisationUnitMode(DESCENDANTS)) {
-        addOrgUnitDescendantsCondition(sql, params, sqlParameters, tableAlias);
-      } else if (params.isOrganisationUnitMode(CHILDREN)) {
-        addOrgUnitsChildrenCondition(sql, params, sqlParameters, tableAlias);
-      } else {
-        sql.append(tableAlias);
-        sql.append(".organisationunitid in (:orgUnits)");
-        sqlParameters.addValue("orgUnits", getIdentifiers(params.getOrgUnits()));
+    switch (orgUnitMode) {
+      case DESCENDANTS -> addOrgUnitDescendantsCondition(sql, orgUnits, sqlParameters, tableAlias);
+      case CHILDREN -> addOrgUnitsChildrenCondition(sql, orgUnits, sqlParameters, tableAlias);
+      default -> {
+        sql.append(tableAlias).append(".organisationunitid in (:orgUnits) ");
+        sqlParameters.addValue("orgUnits", getIdentifiers(orgUnits));
       }
-      sql.append(" ");
     }
   }
 
@@ -78,34 +76,34 @@ public class OrgUnitJdbcPredicate {
 
     SqlHelper sqlHelper = new SqlHelper(true);
 
-    sql.append(sqlHelper.andOr());
-    sql.append("((");
-    sql.append(programTableAlias);
-    sql.append(".accesslevel in ('OPEN', 'AUDITED') and (");
-    sql.append(orgUnitTableAlias);
-    sql.append(".path like any (:effectiveSearchScopePaths))) ");
+    sql.append(sqlHelper.andOr())
+        .append("((")
+        .append(programTableAlias)
+        .append(".accesslevel in ('OPEN', 'AUDITED') and ")
+        .append(orgUnitTableAlias)
+        .append(".path like any (:effectiveSearchScopePaths))");
     sqlParameters.addValue(
         "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
 
-    sql.append(sqlHelper.andOr());
-    sql.append("(");
-    sql.append(programTableAlias);
-    sql.append(".accesslevel in ('PROTECTED', 'CLOSED') and (");
-    sql.append(orgUnitTableAlias);
-    sql.append(".path like any (:captureScopePaths))))");
+    sql.append(sqlHelper.andOr())
+        .append("(")
+        .append(programTableAlias)
+        .append(".accesslevel in ('PROTECTED', 'CLOSED') and ")
+        .append(orgUnitTableAlias)
+        .append(".path like any (:captureScopePaths)))");
     sqlParameters.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
   }
 
   private static void addOrgUnitDescendantsCondition(
       StringBuilder sql,
-      TrackedEntityQueryParams params,
+      Set<OrganisationUnit> orgUnits,
       MapSqlParameterSource sqlParameters,
       String tableAlias) {
     SqlHelper orHlp = new SqlHelper(true);
 
     sql.append("(");
     int index = 0;
-    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+    for (OrganisationUnit organisationUnit : orgUnits) {
       String paramName = "orgUnitPath" + index;
       String paramValue = organisationUnit.getStoredPath() + "%";
 
@@ -119,19 +117,20 @@ public class OrgUnitJdbcPredicate {
 
   private static void addOrgUnitsChildrenCondition(
       StringBuilder sql,
-      TrackedEntityQueryParams params,
+      Set<OrganisationUnit> orgUnits,
       MapSqlParameterSource sqlParameters,
       String tableAlias) {
     SqlHelper orHlp = new SqlHelper(true);
 
     sql.append("(");
     int index = 0;
-    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
+    for (OrganisationUnit organisationUnit : orgUnits) {
       String pathParamName = "orgUnitPath" + index;
-      String pathParamValue = organisationUnit.getStoredPath() + "%";
       String parentHierarchyParamName = "parentHierarchyLevel" + index;
-      int parentHierarchyParamValue = organisationUnit.getHierarchyLevel();
       String childHierarchyParamName = "childHierarchyLevel" + index;
+
+      String pathParamValue = organisationUnit.getStoredPath() + "%";
+      int parentHierarchyParamValue = organisationUnit.getHierarchyLevel();
 
       sql.append(orHlp.or())
           .append(" ")

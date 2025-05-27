@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOrgUnitModeClause;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,7 +52,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -217,16 +216,9 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       SqlHelper hlp) {
     if (params.hasOrganisationUnits()) {
-      if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-        sql.append(hlp.whereAnd())
-            .append(getDescendantsQuery(params.getOrganisationUnits(), sqlParams));
-      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-        sql.append(hlp.whereAnd())
-            .append(getChildrenQuery(params.getOrganisationUnits(), sqlParams));
-      } else {
-        sql.append(hlp.whereAnd()).append("en_ou.uid IN (:orgUnitUids)");
-        sqlParams.addValue("orgUnitUids", getUids(params.getOrganisationUnits()));
-      }
+      sql.append(hlp.whereAnd());
+      buildOrgUnitModeClause(
+          sql, params.getOrganisationUnits(), params.getOrganisationUnitMode(), sqlParams, "en_ou");
     }
   }
 

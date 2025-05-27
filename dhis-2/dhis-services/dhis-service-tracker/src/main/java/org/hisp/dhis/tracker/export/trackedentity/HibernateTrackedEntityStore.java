@@ -348,7 +348,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     sql.append(" ");
     addJoinOnProgramOwner(sql, sqlParameters, params);
     sql.append(" ");
-    addJoinOnOrgUnit(sql, sqlParameters, params, sqlHelper);
+    addJoinOnOrgUnit(sql, sqlParameters, params);
     sql.append(" ");
     addJoinOnEnrollment(sql, sqlParameters, params);
     sql.append(" ");
@@ -474,10 +474,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * unit is {@code ACCESSIBLE} or {@code CAPTURE}.
    */
   private void addJoinOnOrgUnit(
-      StringBuilder sql,
-      MapSqlParameterSource sqlParameters,
-      TrackedEntityQueryParams params,
-      SqlHelper sqlHelper) {
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     UserDetails userDetails = getCurrentUserDetails();
     Set<OrganisationUnit> effectiveSearchOrgUnits =
         getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
@@ -496,7 +493,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       sql.append("coalesce(po.organisationunitid, te.organisationunitid) ");
     }
 
-    buildOrgUnitModeClause(sql, params, sqlParameters, orgUnitTableAlias);
+    if (params.hasOrganisationUnits()) {
+      sql.append("and ");
+      buildOrgUnitModeClause(
+          sql, params.getOrgUnits(), params.getOrgUnitMode(), sqlParameters, orgUnitTableAlias);
+    }
+
     buildOwnershipClause(
         sql,
         params,
@@ -509,10 +511,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
     return new HashSet<>(organisationUnitStore.getByUid(uids));
-  }
-
-  private String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
-    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
   }
 
   /**
