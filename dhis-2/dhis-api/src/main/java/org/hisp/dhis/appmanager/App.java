@@ -60,6 +60,8 @@ public class App implements Serializable {
 
   private String name;
 
+  private String displayName;
+
   private AppType appType = AppType.APP;
 
   private String basePath;
@@ -224,6 +226,19 @@ public class App implements Serializable {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayName() {
+    if (displayName == null || displayName.isEmpty()) {
+      return name;
+    }
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   @JsonProperty
@@ -550,50 +565,67 @@ public class App implements Serializable {
     App localisedApp = SerializationUtils.clone(this);
     if (!manifestTranslations.isEmpty()) {
       for (AppShortcut shortcut : localisedApp.shortcuts) {
-        shortcut.setDisplayName(getTranslations(userLocale, shortcut.getName()));
+        shortcut.setDisplayName(
+            getTranslations(userLocale, "SHORTCUT_" + shortcut.getName(), shortcut.getName()));
+      }
+
+      String localisedAppTitle = getTranslations(userLocale, "APP_TITLE", null);
+      String localisedAppDescription = getTranslations(userLocale, "APP_DESCRIPTION", null);
+
+      if (localisedAppTitle != null) {
+        localisedApp.setName(localisedAppTitle);
+      }
+
+      if (localisedAppDescription != null) {
+        localisedApp.setDescription(localisedAppDescription);
       }
     }
     return localisedApp;
   }
 
-  private String getTranslations(Locale locale, String shortcutName) {
+  private String getTranslations(Locale locale, String shortcutName, String defaultValue) {
+
     if (this.manifestTranslations == null) {
-      return shortcutName;
+      return ObjectUtils.firstNonNull(defaultValue, shortcutName);
     }
 
     String language = locale.getLanguage();
     String country = locale.getCountry();
     String script = locale.getScript();
 
-    Optional<AppManifestTranslation> matchingLocale =
-        manifestTranslations.stream()
-            .filter(
-                tf ->
-                    language.equals(tf.getLanguageCode())
-                        && country.equals(tf.getCountryCode())
-                        && (script.isEmpty() || script.equals(tf.getScriptCode())))
-            .findFirst();
-
-    Optional<AppManifestTranslation> matchingLanguage =
-        manifestTranslations.stream()
-            .filter(tf -> language.equals(tf.getLanguageCode()))
-            .findFirst();
+    Optional<AppManifestTranslation> matchingLocale = getMatchingLocale(language, country, script);
+    Optional<AppManifestTranslation> matchingLanguage = getMatchingLanguage(language);
 
     if (matchingLocale.isEmpty() && matchingLanguage.isEmpty()) {
-      return shortcutName;
+      return defaultValue;
     }
-
-    String key = "SHORTCUT_" + shortcutName;
 
     String result = null;
     if (matchingLocale.isPresent()) {
-      result = matchingLocale.get().getTranslations().get(key);
+      result = matchingLocale.get().getTranslations().get(shortcutName);
     }
 
     if (result == null && matchingLanguage.isPresent()) {
-      result = matchingLanguage.get().getTranslations().get(key);
+      result = matchingLanguage.get().getTranslations().get(shortcutName);
     }
 
-    return ObjectUtils.firstNonNull(result, shortcutName);
+    return ObjectUtils.firstNonNull(result, defaultValue);
+  }
+
+  private @Nonnull Optional<AppManifestTranslation> getMatchingLanguage(String language) {
+    return manifestTranslations.stream()
+        .filter(tf -> language.equals(tf.getLanguageCode()))
+        .findFirst();
+  }
+
+  private @Nonnull Optional<AppManifestTranslation> getMatchingLocale(
+      String language, String country, String script) {
+    return manifestTranslations.stream()
+        .filter(
+            translation ->
+                language.equals(translation.getLanguageCode())
+                    && country.equals(translation.getCountryCode())
+                    && (script.isEmpty() || script.equals(translation.getScriptCode())))
+        .findFirst();
   }
 }
