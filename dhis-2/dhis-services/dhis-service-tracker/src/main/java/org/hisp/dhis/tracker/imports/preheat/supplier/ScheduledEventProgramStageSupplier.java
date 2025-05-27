@@ -85,11 +85,11 @@ public class ScheduledEventProgramStageSupplier extends AbstractPreheatSupplier 
 
     String jpql =
         """
-            select ps.uid
+            select distinct ps.uid
             from ProgramRuleAction pra
+            join pra.programStage ps
             join pra.programRule pr
             join pr.program p
-            join pra.programStage ps
             where pra.programRuleActionType = :actionType
             and p.uid in :programUids
         """;
