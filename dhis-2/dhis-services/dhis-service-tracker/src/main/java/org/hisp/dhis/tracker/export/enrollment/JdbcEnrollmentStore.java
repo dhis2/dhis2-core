@@ -320,55 +320,6 @@ class JdbcEnrollmentStore {
     sql.append(" select count(distinct e.uid) ");
   }
 
-  private String getDescendantsQuery(
-      Set<OrganisationUnit> organisationUnits, MapSqlParameterSource sqlParams) {
-    StringBuilder ouClause = new StringBuilder();
-    ouClause.append("(");
-
-    SqlHelper orHlp = new SqlHelper(true);
-
-    int index = 0;
-    for (OrganisationUnit orgUnit : organisationUnits) {
-      String paramName = "path" + index++;
-      ouClause.append(orHlp.or()).append("en_ou.path LIKE :").append(paramName);
-      sqlParams.addValue(paramName, orgUnit.getStoredPath() + "%");
-    }
-
-    ouClause.append(")");
-    return ouClause.toString();
-  }
-
-  private String getChildrenQuery(
-      Set<OrganisationUnit> organisationUnits, MapSqlParameterSource sqlParams) {
-    SqlHelper hlp = new SqlHelper(true);
-    StringBuilder orgUnits = new StringBuilder();
-    int index = 0;
-
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      String pathParam = "path" + index;
-      String level1Param = "level1_" + index;
-      String level2Param = "level2_" + index;
-
-      orgUnits
-          .append(hlp.or())
-          .append("(en_ou.path LIKE :")
-          .append(pathParam)
-          .append(" AND (en_ou.hierarchylevel = :")
-          .append(level1Param)
-          .append(" OR en_ou.hierarchylevel = :")
-          .append(level2Param)
-          .append("))");
-
-      sqlParams.addValue(pathParam, organisationUnit.getStoredPath() + "%");
-      sqlParams.addValue(level1Param, organisationUnit.getHierarchyLevel());
-      sqlParams.addValue(level2Param, organisationUnit.getHierarchyLevel() + 1);
-
-      index++;
-    }
-
-    return orgUnits.toString();
-  }
-
   private static String orderBy(List<Order> orders) {
     if (orders == null || orders.isEmpty()) {
       return DEFAULT_ORDER;

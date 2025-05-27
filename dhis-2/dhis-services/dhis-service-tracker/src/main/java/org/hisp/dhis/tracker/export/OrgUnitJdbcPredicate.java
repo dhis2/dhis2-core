@@ -39,7 +39,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -55,7 +54,7 @@ public class OrgUnitJdbcPredicate {
     switch (orgUnitMode) {
       case DESCENDANTS -> addOrgUnitDescendantsCondition(sql, orgUnits, sqlParameters, tableAlias);
       case CHILDREN -> addOrgUnitsChildrenCondition(sql, orgUnits, sqlParameters, tableAlias);
-      default -> {
+      case SELECTED -> {
         sql.append(tableAlias).append(".organisationunitid in (:orgUnits) ");
         sqlParameters.addValue("orgUnits", getIdentifiers(orgUnits));
       }
@@ -64,13 +63,13 @@ public class OrgUnitJdbcPredicate {
 
   public static void buildOwnershipClause(
       StringBuilder sql,
-      TrackedEntityQueryParams params,
+      OrganisationUnitSelectionMode orgUnitMode,
       MapSqlParameterSource sqlParameters,
       Set<OrganisationUnit> effectiveSearchOrgUnits,
       Set<OrganisationUnit> captureScopeOrgUnits,
       String programTableAlias,
       String orgUnitTableAlias) {
-    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
+    if (orgUnitMode == ALL || getCurrentUserDetails().isSuper()) {
       return;
     }
 

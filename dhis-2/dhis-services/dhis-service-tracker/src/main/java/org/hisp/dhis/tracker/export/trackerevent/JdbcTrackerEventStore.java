@@ -33,6 +33,9 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOwnershipClause;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +72,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
@@ -174,13 +178,7 @@ class JdbcTrackerEventStore {
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
-  private static final String COLUMN_USER_UID = "u_uid";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
-  private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
-  private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
-      " ou.path like CONCAT(orgunit.path, '%') ";
-  private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
-      " ou.path like CONCAT(:" + COLUMN_ORG_UNIT_PATH + ", '%' ) ";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link Event}. Maps fields
@@ -227,6 +225,8 @@ class JdbcTrackerEventStore {
   private final UserService userService;
 
   private final IdentifiableObjectManager manager;
+
+  private final OrganisationUnitStore organisationUnitStore;
 
   public List<Event> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -905,11 +905,34 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    String orgUnitSql = getOrgUnitSql(params, user, sqlParameters);
+    UserDetails userDetails = getCurrentUserDetails();
+    Set<OrganisationUnit> effectiveSearchOrgUnits =
+        getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
+    Set<OrganisationUnit> captureScopeOrgUnits =
+        getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
 
-    if (!Strings.isNullOrEmpty(orgUnitSql)) {
-      fromBuilder.append(hlp.whereAnd()).append(orgUnitSql);
+    StringBuilder orgUnitBuilder = new StringBuilder();
+    if (params.getOrgUnit() != null) {
+      buildOrgUnitModeClause(
+          orgUnitBuilder,
+          Set.of(params.getOrgUnit()),
+          params.getOrgUnitMode(),
+          sqlParameters,
+          "ou");
     }
+
+    if (!Strings.isNullOrEmpty(orgUnitBuilder.toString())) {
+      fromBuilder.append(hlp.whereAnd()).append(orgUnitBuilder);
+    }
+
+    buildOwnershipClause(
+        fromBuilder,
+        params.getOrgUnitMode(),
+        sqlParameters,
+        effectiveSearchOrgUnits,
+        captureScopeOrgUnits,
+        "p",
+        "ou");
 
     if (params.getOccurredStartDate() != null) {
       sqlParameters.addValue("startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
@@ -986,146 +1009,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     return fromBuilder;
-  }
-
-  private String getOrgUnitSql(
-      TrackerEventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
-    return switch (params.getOrgUnitMode()) {
-      case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
-      case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
-      case DESCENDANTS -> createDescendantsSql(user, params, mapSqlParameterSource);
-      case CHILDREN -> createChildrenSql(user, params, mapSqlParameterSource);
-      case SELECTED -> createSelectedSql(user, params, mapSqlParameterSource);
-      case ALL -> null;
-    };
-  }
-
-  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
-    return createCaptureScopeQuery(user, mapSqlParameterSource, "");
-  }
-
-  private String createAccessibleSql(
-      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-
-    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
-      return createCaptureSql(user, mapSqlParameterSource);
-    }
-
-    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
-  }
-
-  private String createDescendantsSql(
-      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
-
-    if (isProgramRestricted(params.getProgram())) {
-      return createCaptureScopeQuery(
-          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
-    }
-
-    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
-  }
-
-  private String createChildrenSql(
-      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
-
-    String customChildrenQuery =
-        " and (ou.hierarchylevel = "
-            + params.getOrgUnit().getHierarchyLevel()
-            + " OR ou.hierarchylevel = "
-            + (params.getOrgUnit().getHierarchyLevel() + 1)
-            + " ) ";
-
-    if (isProgramRestricted(params.getProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
-    }
-
-    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
-  }
-
-  private String createSelectedSql(
-      User user, TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
-
-    String orgUnitPathEqualsMatchQuery =
-        " ou.path = :"
-            + COLUMN_ORG_UNIT_PATH
-            + " "
-            + AND
-            + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
-
-    if (isProgramRestricted(params.getProgram())) {
-      String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
-      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
-    }
-
-    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
-  }
-
-  /**
-   * Generates a getSql to match the org unit event to the org unit(s) in the user's capture scope
-   *
-   * @param orgUnitMatcher specific condition to add depending on the ou mode
-   * @return a getSql clause to add to the main query
-   */
-  private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
-    mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-
-    return " exists(select cs.organisationunitid "
-        + " from usermembership cs "
-        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
-        + " join userinfo u on u.userinfoid = cs.userinfoid "
-        + " where u.uid = :"
-        + COLUMN_USER_UID
-        + " and ou.path like concat(orgunit.path, '%') "
-        + orgUnitMatcher
-        + ") ";
-  }
-
-  /**
-   * Generates a getSql to match the org unit event to the org unit(s) in the user's search and
-   * capture scope
-   *
-   * @param orgUnitMatcher specific condition to add depending on the ou mode
-   * @return a getSql clause to add to the main query
-   */
-  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
-    return " (exists(select ss.organisationunitid "
-        + " from userteisearchorgunits ss "
-        + " join userinfo u on u.userinfoid = ss.userinfoid "
-        + " join organisationunit orgunit on orgunit.organisationunitid = ss.organisationunitid "
-        + " where u.uid = :"
-        + COLUMN_USER_UID
-        + AND
-        + orgUnitMatcher
-        + " and p.accesslevel in ('OPEN', 'AUDITED')) "
-        + " or exists(select cs.organisationunitid "
-        + " from usermembership cs "
-        + " join userinfo u on u.userinfoid = cs.userinfoid "
-        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
-        + " where u.uid = :"
-        + COLUMN_USER_UID
-        + AND
-        + orgUnitMatcher
-        + " )) ";
-  }
-
-  private boolean isProgramRestricted(Program program) {
-    return program != null && (program.isProtected() || program.isClosed());
-  }
-
-  private boolean isUserSearchScopeNotSet(User user) {
-    return user.getTeiSearchOrganisationUnits().isEmpty();
   }
 
   private String eventStatusSql(
@@ -1318,5 +1201,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
               .map(UID::of)
               .collect(Collectors.toSet()));
     }
+  }
+
+  private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
+    return new HashSet<>(organisationUnitStore.getByUid(uids));
   }
 }

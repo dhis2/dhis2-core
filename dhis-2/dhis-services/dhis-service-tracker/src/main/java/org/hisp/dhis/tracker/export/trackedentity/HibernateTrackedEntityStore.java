@@ -501,7 +501,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     buildOwnershipClause(
         sql,
-        params,
+        params.getOrgUnitMode(),
         sqlParameters,
         effectiveSearchOrgUnits,
         captureScopeOrgUnits,
