@@ -158,16 +158,16 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testConcat() {
+  void testSafeConcat() {
     assertEquals(
         "concat(trim(nullif('', de.uid)), trim(nullif('', pe.iso)), trim(nullif('', ou.uid)))",
-        sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+        sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
   }
 
   @Test
-  void testConcat_WithRawColumns() {
+  void testSafeConcat_WithRawColumns() {
     String result =
-        sqlBuilder.concat(
+        sqlBuilder.safeConcat(
             "json_unquote(json_extract(ev.createdbyuserinfo, '$.surname'))",
             "json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName'))");
     assertEquals(
@@ -177,9 +177,9 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testConcat_WithTrimmedColumns() {
+  void testSafeConcat_WithTrimmedColumns() {
     String result =
-        sqlBuilder.concat(
+        sqlBuilder.safeConcat(
             "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))",
             "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))");
     assertEquals(
@@ -189,9 +189,9 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testConcat_WithLiteralsAndRawColumns() {
+  void testSafeConcat_WithLiteralsAndRawColumns() {
     String result =
-        sqlBuilder.concat(
+        sqlBuilder.safeConcat(
             "json_unquote(json_extract(ev.createdbyuserinfo, '$.surname'))",
             "', '",
             "json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName'))",
@@ -206,15 +206,15 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testConcat_WithLiteralsOnly() {
-    String result = sqlBuilder.concat("', '", "' ('", "')'");
+  void testSafeConcat_WithLiteralsOnly() {
+    String result = sqlBuilder.safeConcat("', '", "' ('", "')'");
     assertEquals("concat(', ', ' (', ')')", result);
   }
 
   @Test
-  void testConcat_WithMixedInputs() {
+  void testSafeConcat_WithMixedInputs() {
     String result =
-        sqlBuilder.concat(
+        sqlBuilder.safeConcat(
             "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))",
             "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))",
             "', '",
@@ -227,17 +227,15 @@ class DorisSqlBuilderTest {
   }
 
   @Test
-  void testConcat_WithEdgeCaseEmptyInput() {
-    String result = sqlBuilder.concat();
+  void testSafeConcat_WithEdgeCaseEmptyInput() {
+    String result = sqlBuilder.safeConcat();
     assertEquals("concat()", result);
   }
 
   @Test
-  void testConcat_FromList() {
+  void testConcat() {
     String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
-    assertEquals(
-        "concat(trim(nullif('', column1)), trim(nullif('', column2)), trim(nullif('', column3)))",
-        result);
+    assertEquals("concat(column1, column2, column3)", result);
   }
 
   @Test

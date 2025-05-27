@@ -30,6 +30,7 @@
 package org.hisp.dhis.test.e2e.helpers;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
@@ -176,6 +177,21 @@ public class JsonObjectBuilder {
       }
     } else {
       addArray(property, objects);
+    }
+
+    return this;
+  }
+
+  /** Removes an object from an array if a given property of the object has a given value. */
+  public JsonObjectBuilder removeFromArray(String array, String property, JsonElement value) {
+    if (jsonObject.has(array)) {
+      JsonArray jsonArray = jsonObject.getAsJsonArray(array);
+      for (JsonElement element : jsonArray) {
+        JsonElement propertyValue = ((JsonObject) element).get(property);
+        if (value.getAsString().equals(propertyValue.getAsString())) {
+          jsonArray.remove(element);
+        }
+      }
     }
 
     return this;

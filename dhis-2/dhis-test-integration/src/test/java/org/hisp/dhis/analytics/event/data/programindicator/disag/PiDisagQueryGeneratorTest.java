@@ -78,10 +78,10 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
     Set<String> expectedColumns =
         Set.of(
-            "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"",
-            "concat(case when 'filterC' = '' then 'catOption0C' else '' end, case when 'filterD' = '' then 'catOption0D' else '' end) as \"CategoryId2\"",
-            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"",
-            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end) as \"CategoryId4\"");
+            "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"",
+            "(case when 'filterC' = '' then 'catOption0C' else '' end || case when 'filterD' = '' then 'catOption0D' else '' end) as \"CategoryId2\"",
+            "(case when 'filterE' = '' then 'catOption0E' else '' end || case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"",
+            "(case when 'filterG' = '' then 'catOption0G' else '' end || case when 'filterH' = '' then 'catOption0H' else '' end) as \"CategoryId4\"");
 
     // When
     List<String> columns = target.getCocSelectColumns(params);
@@ -99,9 +99,9 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
     Set<String> expectedColumns =
         Set.of(
-            "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"",
-            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"",
-            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end) as \"CategoryId4\"");
+            "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"",
+            "(case when 'filterE' = '' then 'catOption0E' else '' end || case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"",
+            "(case when 'filterG' = '' then 'catOption0G' else '' end || case when 'filterH' = '' then 'catOption0H' else '' end) as \"CategoryId4\"");
 
     // When
     List<String> columns = target.getCocSelectColumns(params);
@@ -135,10 +135,10 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
     Set<String> expectedColumns =
         Set.of(
-            "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)",
-            "concat(case when 'filterC' = '' then 'catOption0C' else '' end, case when 'filterD' = '' then 'catOption0D' else '' end)",
-            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)",
-            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end)");
+            "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end)",
+            "(case when 'filterC' = '' then 'catOption0C' else '' end || case when 'filterD' = '' then 'catOption0D' else '' end)",
+            "(case when 'filterE' = '' then 'catOption0E' else '' end || case when 'filterF' = '' then 'catOption0F' else '' end)",
+            "(case when 'filterG' = '' then 'catOption0G' else '' end || case when 'filterH' = '' then 'catOption0H' else '' end)");
 
     // When
     List<String> columns = target.getCocColumnsForGroupBy(params);
@@ -156,9 +156,9 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
     Set<String> expectedColumns =
         Set.of(
-            "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)",
-            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)",
-            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end)");
+            "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end)",
+            "(case when 'filterE' = '' then 'catOption0E' else '' end || case when 'filterF' = '' then 'catOption0F' else '' end)",
+            "(case when 'filterG' = '' then 'catOption0G' else '' end || case when 'filterH' = '' then 'catOption0H' else '' end)");
 
     // When
     List<String> columns = target.getCocColumnsForGroupBy(params);
@@ -191,7 +191,7 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
         infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
 
     String expectedColumn =
-        "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"";
+        "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"";
 
     // When
     String column = target.getColumnForSelectOrGroupBy(params, "CategoryId1", false);
@@ -208,7 +208,7 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
         infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
 
     String expectedColumn =
-        "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)";
+        "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end)";
 
     // When
     String column = target.getColumnForSelectOrGroupBy(params, "CategoryId1", true);
@@ -242,8 +242,8 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
     Set<String> expectedConditions =
         Set.of(
-            " length(concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)) = 11 ",
-            " length(concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)) = 11 ");
+            " length((case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end)) = 11 ",
+            " length((case when 'filterE' = '' then 'catOption0E' else '' end || case when 'filterF' = '' then 'catOption0F' else '' end)) = 11 ");
 
     // When
     List<String> conditions = target.getCocWhereConditions(params);
@@ -260,7 +260,7 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
         infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
 
     String expectedColumn =
-        "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)";
+        "(case when 'filterA' = '' then 'catOption0A' else '' end || case when 'filterB' = '' then 'catOption0B' else '' end)";
 
     // When
     String column = target.getColumnForWhereClause(params, "CategoryId1");
