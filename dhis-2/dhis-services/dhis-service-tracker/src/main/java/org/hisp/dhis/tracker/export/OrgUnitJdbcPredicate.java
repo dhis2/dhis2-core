@@ -58,6 +58,7 @@ public class OrgUnitJdbcPredicate {
         sql.append(tableAlias).append(".organisationunitid in (:orgUnits) ");
         sqlParameters.addValue("orgUnits", getIdentifiers(orgUnits));
       }
+      case ALL, CAPTURE, ACCESSIBLE -> {}
     }
   }
 
