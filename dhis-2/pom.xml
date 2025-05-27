@@ -532,6 +532,10 @@
             <artifactId>spring-aop</artifactId>
           </exclusion>
           <exclusion>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>org.springframework</groupId>
             <artifactId>spring-support</artifactId>
           </exclusion>
@@ -540,11 +544,6 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-web</artifactId>
-        <version>${spring-security.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-aspects</artifactId>
         <version>${spring-security.version}</version>
       </dependency>
       <dependency>
@@ -2107,6 +2106,7 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>aopalliance:aopalliance</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
@@ -2137,7 +2137,6 @@ jasperreports.version=${jasperreports.version}
               <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
               <!-- Removing makes the startup fail -->

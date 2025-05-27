@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -66,12 +66,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventService")
+@Service("org.hisp.dhis.tracker.export.trackerevent.TrackerEventService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-class DefaultSingleEventService implements SingleEventService {
+class DefaultTrackerEventService implements TrackerEventService {
 
-  private final JdbcSingleEventStore eventStore;
+  private final JdbcTrackerEventStore eventStore;
 
   private final IdentifiableObjectManager manager;
 
@@ -81,7 +81,7 @@ class DefaultSingleEventService implements SingleEventService {
 
   private final FileResourceService fileResourceService;
 
-  private final SingleEventOperationParamsMapper paramsMapper;
+  private final TrackerEventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
 
@@ -115,8 +115,8 @@ class DefaultSingleEventService implements SingleEventService {
 
     Page<Event> events;
     try {
-      SingleEventOperationParams operationParams =
-          SingleEventOperationParams.builder()
+      TrackerEventOperationParams operationParams =
+          TrackerEventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .filterByDataElement(dataElementUid)
@@ -171,7 +171,7 @@ class DefaultSingleEventService implements SingleEventService {
   @Nonnull
   @Override
   public Event getEvent(@Nonnull UID event) throws NotFoundException {
-    return getEvent(event, TrackerIdSchemeParams.builder().build(), SingleEventFields.none());
+    return getEvent(event, TrackerIdSchemeParams.builder().build(), TrackerEventFields.none());
   }
 
   @Nonnull
@@ -179,12 +179,12 @@ class DefaultSingleEventService implements SingleEventService {
   public Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull SingleEventFields fields)
+      @Nonnull TrackerEventFields fields)
       throws NotFoundException {
     Page<Event> events;
     try {
-      SingleEventOperationParams operationParams =
-          SingleEventOperationParams.builder()
+      TrackerEventOperationParams operationParams =
+          TrackerEventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .fields(fields)
@@ -233,9 +233,10 @@ class DefaultSingleEventService implements SingleEventService {
 
   @Nonnull
   @Override
-  public List<Event> findEvents(@Nonnull SingleEventOperationParams operationParams)
+  public List<Event> findEvents(@Nonnull TrackerEventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
-    SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    TrackerEventQueryParams queryParams =
+        paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
     if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events) {
@@ -253,9 +254,10 @@ class DefaultSingleEventService implements SingleEventService {
   @Nonnull
   @Override
   public Page<Event> findEvents(
-      @Nonnull SingleEventOperationParams operationParams, @Nonnull PageParams pageParams)
+      @Nonnull TrackerEventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
-    SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    TrackerEventQueryParams queryParams =
+        paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<Event> events = eventStore.getEvents(queryParams, pageParams);
     if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events.getItems()) {
