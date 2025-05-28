@@ -91,10 +91,12 @@ public class HibernateMessageConversationStore
     getSession().enableFilter("userMessageUser").setParameter("userid", user.getId());
 
     String hql =
-        "from MessageConversation mc "
-            + "inner join mc.userMessages as um "
-            + "left join mc.createdBy as ui "
-            + "left join mc.lastSender as ls ";
+        """
+        from MessageConversation mc \
+        inner join mc.userMessages as um \
+        left join mc.createdBy as ui \
+        left join mc.lastSender as ls \
+        """;
 
     if (status != null) {
       hql += "where status = :status ";

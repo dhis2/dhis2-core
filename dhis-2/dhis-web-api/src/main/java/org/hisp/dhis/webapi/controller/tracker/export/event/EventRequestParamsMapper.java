@@ -75,6 +75,7 @@ class EventRequestParamsMapper {
   public EventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
+    validateProgram(eventRequestParams);
     OrganisationUnitSelectionMode orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             eventRequestParams.getOrgUnit() != null
@@ -220,6 +221,12 @@ class EventRequestParamsMapper {
         && DateUtils.getDuration(eventRequestParams.getUpdatedWithin()) == null) {
       throw new BadRequestException(
           "Duration is not valid: " + eventRequestParams.getUpdatedWithin());
+    }
+  }
+
+  private void validateProgram(EventRequestParams eventRequestParams) throws BadRequestException {
+    if (eventRequestParams.getProgram() == null) {
+      throw new BadRequestException("Program is mandatory");
     }
   }
 }

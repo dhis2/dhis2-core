@@ -47,8 +47,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -86,6 +84,7 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.export.EventUtils;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -771,15 +770,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return selectBuilder.toString();
   }
 
-  private boolean checkForOwnership(EventQueryParams params) {
-    return Optional.ofNullable(params.getProgram())
-        .filter(
-            p ->
-                Objects.nonNull(p.getProgramType())
-                    && p.getProgramType() == ProgramType.WITH_REGISTRATION)
-        .isPresent();
-  }
-
   private StringBuilder getFromWhereClause(
       EventQueryParams params, MapSqlParameterSource sqlParameters, User user, SqlHelper hlp) {
     StringBuilder fromBuilder =
@@ -788,19 +778,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
-    if (checkForOwnership(params)) {
-      fromBuilder
-          .append(
-              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid) ")
-          .append(
-              "inner join organisationunit evou on (coalesce(po.organisationunitid,"
-                  + " ev.organisationunitid)=evou.organisationunitid) ")
-          .append(
-              "inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
-    } else {
-      fromBuilder.append(
-          "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
-    }
+    fromBuilder
+        .append(
+            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+        .append(
+            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
+                + " ev.organisationunitid)=evou.organisationunitid) ")
+        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
@@ -936,19 +920,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
-    if (params.getProgramType() != null) {
-      sqlParameters.addValue("programType", params.getProgramType().name());
-
-      fromBuilder.append(hlp.whereAnd()).append(" p.type = ").append(":programType").append(" ");
-    }
-
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
     if (params.getEvents() != null
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
       sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.uid in (").append(":ev_uid").append(") ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {

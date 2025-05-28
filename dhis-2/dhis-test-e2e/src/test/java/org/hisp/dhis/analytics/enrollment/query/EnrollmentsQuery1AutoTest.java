@@ -121,7 +121,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "B+",
             "Female",
             "1Z 691 559 12 4328 671 5",
-            "64.0",
+            "64",
             "2021-12-31 12:43:24.911",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -186,7 +186,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O+",
             "Female",
             "1Z 028 228 09 9075 349 3",
-            "88.0",
+            "88",
             "2021-12-31 12:37:56.563",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -316,7 +316,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O+",
             "Female",
             "1Z 97Y 499 60 1677 285 3",
-            "100.0",
+            "100",
             "2021-12-31 12:31:57.558",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -355,7 +355,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "A+",
             "Female",
             "1Z 787 0F2 41 7585 810 5",
-            "92.0",
+            "92",
             "2021-12-30 12:42:36.052",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -719,7 +719,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O+",
             "Female",
             "1Z 533 511 37 3145 056 3",
-            "87.0",
+            "87",
             "2021-12-29 12:32:16.352",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -875,7 +875,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O-",
             "Female",
             "1Z A50 986 15 8182 952 3",
-            "78.0",
+            "78",
             "2021-12-28 12:29:04.361",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -888,7 +888,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "A+",
             "Female",
             "1Z 32Y 339 45 7531 442 0",
-            "92.0",
+            "92",
             "2021-12-28 12:28:39.647",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -1135,7 +1135,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "B+",
             "Female",
             "1Z 514 683 85 2108 708 0",
-            "95.0",
+            "95",
             "2021-12-27 12:32:25.424",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -1148,7 +1148,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O+",
             "Female",
             "1Z A19 21A 45 3811 811 4",
-            "85.0",
+            "85",
             "2021-12-27 12:30:35.116",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -1343,7 +1343,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "B+",
             "Female",
             "1Z 885 F36 71 8653 773 4",
-            "91.0",
+            "91",
             "2021-12-26 12:31:28.067",
             "J40PpdN4Wkk",
             "oRVt7g429ZO"));
@@ -1559,7 +1559,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "A+",
             "Female",
             "1Z V93 757 18 8966 694 0",
-            "69.0",
+            "69",
             "",
             "2017-03-28 12:27:50.415"));
     validateRow(
@@ -1715,7 +1715,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O-",
             "Female",
             "1Z 025 V35 17 0946 674 7",
-            "49.0",
+            "49",
             "oRVt7g429ZO",
             "2017-03-28 12:27:51.731"));
     validateRow(
@@ -2015,7 +2015,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "O+",
             "Female",
             "1Z 382 57V 36 6449 525 2",
-            "70.0",
+            "70",
             "oRVt7g429ZO",
             "2017-03-28 12:27:56.652"));
     validateRow(
@@ -2135,7 +2135,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "A+",
             "Female",
             "1Z 89F 937 95 6735 286 9",
-            "81.0",
+            "81",
             "oRVt7g429ZO",
             "2017-03-28 12:27:57.378"));
     validateRow(
@@ -2639,7 +2639,7 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
             "A+",
             "Female",
             "1Z 994 439 51 8108 057 9",
-            "58.0",
+            "58",
             "oRVt7g429ZO",
             "2017-03-28 12:28:04.344"));
     validateRow(

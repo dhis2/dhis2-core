@@ -794,11 +794,11 @@ public class EventQueryTest extends AnalyticsApiTest {
         List.of(
             "zQpYVEyAM2t",
             "Sierra Leone / Western Area / Rural Western Area / Hastings Health Centre",
-            "10.0"));
+            "10"));
     validateRow(
         response,
         1,
-        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17.0"));
+        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17"));
   }
 
   @Test

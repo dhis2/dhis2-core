@@ -62,8 +62,8 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
     if (category == null) return 0;
     String sql =
         """
-      select count(*) from categories_categoryoptions co
-        left join category c on c.categoryid = co.categoryid
+        select count(*) from categories_categoryoptions co \
+        left join category c on c.categoryid = co.categoryid \
         where c.uid = :id""";
     Object count =
         nativeSynchronizedQuery(sql).setParameter("id", category.getValue()).getSingleResult();

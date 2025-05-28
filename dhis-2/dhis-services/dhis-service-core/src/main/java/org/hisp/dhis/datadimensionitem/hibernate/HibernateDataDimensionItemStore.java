@@ -58,9 +58,8 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
   public List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators) {
     String sql =
         """
-      select * from datadimensionitem d
-      where d.indicatorid in :indicators
-    """;
+        select * from datadimensionitem d \
+        where d.indicatorid in :indicators""";
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 
@@ -81,10 +80,9 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
 
     String sql =
         """
-        update datadimensionitem
-        set dataelementoperand_categoryoptioncomboid = %s
-        where dataelementoperand_categoryoptioncomboid in (%s)
-        """
+        update datadimensionitem \
+        set dataelementoperand_categoryoptioncomboid = %s \
+        where dataelementoperand_categoryoptioncomboid in (%s)"""
             .formatted(
                 newCocId, cocIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
     return jdbcTemplate.update(sql);

@@ -54,7 +54,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -70,8 +69,6 @@ class EventQueryParams {
   @Getter private ProgramStage programStage;
 
   @Getter private EnrollmentStatus enrollmentStatus;
-
-  @Getter private ProgramType programType;
 
   @Getter private Boolean followUp;
 
@@ -192,11 +189,6 @@ class EventQueryParams {
 
   public EventQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
     this.enrollmentStatus = enrollmentStatus;
-    return this;
-  }
-
-  public EventQueryParams setProgramType(ProgramType programType) {
-    this.programType = programType;
     return this;
   }
 

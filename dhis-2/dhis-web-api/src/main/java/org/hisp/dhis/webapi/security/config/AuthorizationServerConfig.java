@@ -55,6 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -75,6 +76,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 @Slf4j
 @Configuration
+@Conditional(AuthorizationServerEnabledCondition.class)
 public class AuthorizationServerConfig {
 
   @Autowired private DhisConfigurationProvider config;
@@ -217,6 +219,8 @@ public class AuthorizationServerConfig {
 
   @Bean
   public AuthorizationServerSettings authorizationServerSettings() {
-    return AuthorizationServerSettings.builder().build();
+    return AuthorizationServerSettings.builder()
+        .issuer(config.getProperty(ConfigurationKey.SERVER_BASE_URL))
+        .build();
   }
 }

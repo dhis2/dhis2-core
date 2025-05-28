@@ -300,7 +300,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoProgramEvents()
+  void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoSingleEvents()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     EventOperationParams params =

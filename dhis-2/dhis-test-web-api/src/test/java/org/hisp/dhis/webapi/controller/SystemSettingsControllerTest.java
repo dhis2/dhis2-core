@@ -38,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SystemSettings;
@@ -85,7 +87,7 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSetSystemSettingV29() {
+  void testSetSystemSetting() {
     assertWebMessage(
         "OK",
         200,
@@ -97,7 +99,7 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSetSystemSettingV29_Empty() {
+  void testSetSystemSetting_Empty() {
     assertWebMessage(
         "OK",
         200,
@@ -136,6 +138,18 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
             key ->
                 assertFalse(
                     setting.get(key).exists(), key + " is confidential and should not be exposed"));
+  }
+
+  @Test
+  void testGetSystemSettingsJson_ByKey() {
+    JsonObject settings = GET("/systemSettings?key=keyEmailUsername").content(HttpStatus.OK);
+    assertEquals(1, settings.size());
+    assertEquals(List.of("keyEmailUsername"), settings.names());
+
+    settings =
+        GET("/systemSettings?key=keyEmailUsername&key=keyEmailSender").content(HttpStatus.OK);
+    assertEquals(2, settings.size());
+    assertEquals(Set.of("keyEmailUsername", "keyEmailSender"), Set.copyOf(settings.names()));
   }
 
   @Test

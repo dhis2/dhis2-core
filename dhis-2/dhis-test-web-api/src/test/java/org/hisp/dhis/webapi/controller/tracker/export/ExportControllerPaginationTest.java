@@ -255,7 +255,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @Test
   void shouldGetEmptyEventsPage() {
     JsonPage page =
-        GET("/tracker/events?events={uid}", UID.generate())
+        GET("/tracker/events?events={uid}&program={programUid}", UID.generate(), "BFcipDERJnf")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -270,7 +270,11 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @Test
   void shouldGetPaginatedEventsWithDefaults() {
     JsonPage page =
-        GET("/tracker/events?events={uid},{uid}", event1.getUid(), event2.getUid())
+        GET(
+                "/tracker/events?program={programUid}&events={uid},{uid}",
+                "BFcipDERJnf",
+                event1.getUid(),
+                event2.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -288,9 +292,10 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   void shouldGetPaginatedEventsFirstPage() {
     JsonPage page =
         GET(
-                "/tracker/events?events={uid},{uid}&page=1&pageSize=1&totalPages=true",
+                "/tracker/events?events={uid},{uid}&program={programUid}&page=1&pageSize=1&totalPages=true",
                 event1.getUid(),
-                event2.getUid())
+                event2.getUid(),
+                "BFcipDERJnf")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 

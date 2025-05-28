@@ -99,8 +99,10 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -138,6 +140,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ExecutionPlanStore executionPlanStore;
 
   @Mock private OrganisationUnitService organisationUnitService;
+  @Mock private DataElementService dataElementService;
 
   @Mock private SystemSettingsService systemSettingsService;
 
@@ -147,7 +150,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+      new DefaultProgramIndicatorSubqueryBuilder(
+          programIndicatorService,
+          systemSettingsService,
+          new PostgreSqlBuilder(),
+          dataElementService);
 
   @Spy private AnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
@@ -802,7 +809,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void testAddGridValueForDoubleObject() throws SQLException {
-    Double doubleObject = 35.5d;
+    Double doubleNumber = 35.5d;
+    String doubleValue = "35.5";
     int index = 1;
 
     RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
@@ -811,7 +819,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     metaData.setColumnName(2, "col-2");
 
     ResultSet resultSet = mock(ResultSet.class);
-    when(resultSet.getObject(index)).thenReturn(doubleObject);
+    when(resultSet.getObject(index)).thenReturn(doubleNumber);
     when(resultSet.getMetaData()).thenReturn(metaData);
 
     EventQueryParams queryParams = new EventQueryParams.Builder().withSkipRounding(false).build();
@@ -825,7 +833,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
 
-    assertTrue(grid.getColumn(0).contains(doubleObject), "Should contain value " + doubleObject);
+    assertTrue(grid.getColumn(0).contains(doubleValue), "Should contain value " + doubleValue);
   }
 
   @Test
@@ -858,7 +866,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     // Then
     String expected =
         bigDecimalObject.setScale(2, RoundingMode.CEILING).stripTrailingZeros().toPlainString();
-    assertEquals(grid.getColumn(0).get(0), expected, "Should contain value " + expected);
+    assertEquals(expected, grid.getColumn(0).get(0), "Should contain value " + expected);
   }
 
   @Test
