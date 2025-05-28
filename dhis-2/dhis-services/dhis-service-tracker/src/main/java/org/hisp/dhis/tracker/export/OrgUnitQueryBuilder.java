@@ -42,14 +42,31 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
+/**
+ * Utility class for constructing SQL query clauses related to organisation units.
+ *
+ * <p>This class centralizes the logic for generating SQL conditions and parameter mappings that
+ * filter query results based on organisation unit selections and access controls.
+ *
+ * <p>Additionally, this class provides methods to build ownership related query clauses that
+ * enforce access control constraints based on the organisation unit hierarchy and program access
+ * levels. These clauses ensure that only data accessible to the current user and within the defined
+ * organisational scope is included in query results.
+ *
+ * <p>The class is designed to be used in constructing dynamic SQL queries where organisation unit
+ * filtering and ownership constraints are required. It manages the injection of SQL fragments and
+ * named parameters consistently to facilitate secure and maintainable query building.
+ *
+ * <p>This class is non-instantiable and exposes all functionality through static methods.
+ */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrgUnitJdbcPredicate {
+public class OrgUnitQueryBuilder {
 
   public static void buildOrgUnitModeClause(
       StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
       Set<OrganisationUnit> orgUnits,
       OrganisationUnitSelectionMode orgUnitMode,
-      MapSqlParameterSource sqlParameters,
       String tableAlias) {
 
     switch (orgUnitMode) {
@@ -67,8 +84,8 @@ public class OrgUnitJdbcPredicate {
 
   public static void buildOwnershipClause(
       StringBuilder sql,
-      OrganisationUnitSelectionMode orgUnitMode,
       MapSqlParameterSource sqlParameters,
+      OrganisationUnitSelectionMode orgUnitMode,
       Set<OrganisationUnit> effectiveSearchOrgUnits,
       Set<OrganisationUnit> captureScopeOrgUnits,
       String programTableAlias,
