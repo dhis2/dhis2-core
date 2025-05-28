@@ -72,7 +72,6 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
@@ -112,8 +111,6 @@ class EventsExportController {
 
   private static final String ZIP_EXT = ".zip";
 
-  private final EventService eventService;
-
   private final TrackerEventService trackerEventService;
 
   private final TrackerEventRequestParamsMapper trackerEventParamsMapper;
@@ -137,7 +134,6 @@ class EventsExportController {
   private final IdentifiableObjectManager manager;
 
   public EventsExportController(
-      EventService eventService,
       TrackerEventService trackerEventService,
       TrackerEventRequestParamsMapper trackerEventParamsMapper,
       SingleEventService singleEventService,
@@ -149,7 +145,6 @@ class EventsExportController {
       EventChangeLogService eventChangeLogService,
       ProgramService programService,
       IdentifiableObjectManager manager) {
-    this.eventService = eventService;
     this.trackerEventService = trackerEventService;
     this.trackerEventParamsMapper = trackerEventParamsMapper;
     this.singleEventService = singleEventService;
@@ -163,7 +158,7 @@ class EventsExportController {
     this.manager = manager;
 
     assertUserOrderableFieldsAreSupported(
-        "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
+        "event", EventMapper.ORDERABLE_FIELDS, trackerEventService.getOrderableFields());
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)

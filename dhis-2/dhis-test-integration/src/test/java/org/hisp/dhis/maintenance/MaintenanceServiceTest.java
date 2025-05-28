@@ -81,9 +81,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,7 +98,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService eventService;
 
   @Autowired private RelationshipService relationshipService;
 

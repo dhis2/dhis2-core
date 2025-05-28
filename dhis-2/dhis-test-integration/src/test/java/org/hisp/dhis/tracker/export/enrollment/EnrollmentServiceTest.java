@@ -77,8 +77,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -317,7 +317,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent() throws NotFoundException {
-    EnrollmentFields fields = EnrollmentFields.builder().includeEvents(EventFields.all()).build();
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeEvents(TrackerEventFields.all()).build();
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
@@ -333,7 +334,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programStageA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programStageA);
 
-    EnrollmentFields fields = EnrollmentFields.builder().includeEvents(EventFields.all()).build();
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeEvents(TrackerEventFields.all()).build();
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 

@@ -34,8 +34,8 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 
 /**
  * EnrollmentFields indicates which of the enrollment fields should be exported. This is used to
@@ -55,7 +55,7 @@ public class EnrollmentFields {
   private final RelationshipFields relationshipFields;
 
   private final boolean includesEvents;
-  private final EventFields eventFields;
+  private final TrackerEventFields eventFields;
 
   private EnrollmentFields(Builder builder) {
     this.includesAttributes = builder.includesAttributes;
@@ -65,7 +65,7 @@ public class EnrollmentFields {
         builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
 
     this.includesEvents = builder.includeEvents;
-    this.eventFields = builder.includeEvents ? builder.eventFields : EventFields.none();
+    this.eventFields = builder.includeEvents ? builder.eventFields : TrackerEventFields.none();
   }
 
   private EnrollmentFields(Predicate<String> includesFields, String pathSeparator) {
@@ -83,10 +83,11 @@ public class EnrollmentFields {
 
     if (includesFields.test("events")) {
       this.eventFields =
-          EventFields.of(f -> includesFields.test("events" + pathSeparator + f), pathSeparator);
+          TrackerEventFields.of(
+              f -> includesFields.test("events" + pathSeparator + f), pathSeparator);
       this.includesEvents = true;
     } else {
-      this.eventFields = EventFields.none();
+      this.eventFields = TrackerEventFields.none();
       this.includesEvents = false;
     }
   }
@@ -127,7 +128,7 @@ public class EnrollmentFields {
     private RelationshipFields relationshipFields;
 
     private boolean includeEvents;
-    private EventFields eventFields;
+    private TrackerEventFields eventFields;
 
     private Builder() {}
 
@@ -144,7 +145,7 @@ public class EnrollmentFields {
     }
 
     /** Indicates that events should be exported with the given {@code fields}. */
-    public Builder includeEvents(@Nonnull EventFields fields) {
+    public Builder includeEvents(@Nonnull TrackerEventFields fields) {
       this.includeEvents = true;
       this.eventFields = fields;
       return this;
