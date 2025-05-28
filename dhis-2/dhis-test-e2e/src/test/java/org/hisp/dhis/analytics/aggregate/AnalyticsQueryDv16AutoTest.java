@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
@@ -243,13 +243,53 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "Period ID", "202208");
-    validateRowValueByName(response, actualHeaders, 0, "anc 2nd visit", "20433");
+    // 7. Assert row values
+    validateRow(
+        response,
+        List.of("202208", "August 2022", "202208", "", "104.11", "96.68", "69.53", "20433"));
 
-    // Validate selected values for row index 11
-    validateRowValueByName(response, actualHeaders, 11, "Period ID", "202209");
-    validateRowValueByName(response, actualHeaders, 11, "anc 2nd visit", "20433");
+    validateRow(
+        response,
+        List.of("202207", "July 2022", "202207", "", "107.05", "100.34", "70.47", "21208"));
+
+    validateRow(
+        response,
+        List.of("202212", "December 2022", "202212", "", "75.58", "70.2", "50.13", "14837"));
+
+    validateRow(
+        response,
+        List.of("202203", "March 2022", "202203", "", "87.89", "87.14", "59.17", "18418"));
+
+    validateRow(
+        response,
+        List.of("202205", "May 2022", "202205", "", "139.39", "112.26", "74.28", "23726"));
+
+    validateRow(
+        response,
+        List.of("202210", "October 2022", "202210", "", "89.75", "88.93", "69.28", "18795"));
+
+    validateRow(
+        response,
+        List.of("202201", "January 2022", "202201", "", "94.72", "82.08", "56.13", "17347"));
+
+    validateRow(
+        response,
+        List.of("202204", "April 2022", "202204", "", "106.96", "95.7", "68.12", "19574"));
+
+    validateRow(
+        response,
+        List.of("202206", "June 2022", "202206", "", "116.42", "116.84", "76.63", "23898"));
+
+    validateRow(
+        response,
+        List.of("202211", "November 2022", "202211", "", "87.64", "78.78", "57.81", "16113"));
+
+    validateRow(
+        response,
+        List.of("202202", "February 2022", "202202", "", "98.8", "97.32", "63.72", "18578"));
+
+    validateRow(
+        response,
+        List.of("202209", "September 2022", "202209", "", "109.52", "99.9", "74.92", "20433"));
   }
 }
