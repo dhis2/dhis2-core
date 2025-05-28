@@ -58,7 +58,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUI
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_LEAK_THRESHOLD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
@@ -233,7 +233,7 @@ public final class DatabasePoolUtils {
     hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
     hc.setConnectionTestQuery(connectionTestQuery);
     final String leakThresholdStr =
-        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_LEAK_THRESHOLD));
+        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
 
     if (leakThresholdStr != null && !leakThresholdStr.isBlank()) {
       try {
