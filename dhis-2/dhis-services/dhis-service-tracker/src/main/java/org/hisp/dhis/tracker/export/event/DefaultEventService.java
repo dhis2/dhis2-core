@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.export.event;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -85,8 +84,7 @@ class DefaultEventService implements EventService {
   }
 
   @Nonnull
-  @Override
-  public Event getEvent(
+  private Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
       @Nonnull EventFields fields)
@@ -142,27 +140,7 @@ class DefaultEventService implements EventService {
   }
 
   @Nonnull
-  @Override
-  public List<Event> findEvents(@Nonnull EventOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-    List<Event> events = eventStore.getEvents(queryParams);
-    if (operationParams.getFields().isIncludesRelationships()) {
-      for (Event event : events) {
-        event.setRelationshipItems(
-            relationshipService.findRelationshipItems(
-                TrackerType.EVENT,
-                UID.of(event),
-                operationParams.getFields().getRelationshipFields(),
-                queryParams.isIncludeDeleted()));
-      }
-    }
-    return events;
-  }
-
-  @Nonnull
-  @Override
-  public Page<Event> findEvents(
+  private Page<Event> findEvents(
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
@@ -178,10 +156,5 @@ class DefaultEventService implements EventService {
       }
     }
     return events;
-  }
-
-  @Override
-  public Set<String> getOrderableFields() {
-    return eventStore.getOrderableFields();
   }
 }
