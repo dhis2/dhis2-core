@@ -58,7 +58,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUI
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
@@ -69,6 +68,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_QUERY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TIMEOUT;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
