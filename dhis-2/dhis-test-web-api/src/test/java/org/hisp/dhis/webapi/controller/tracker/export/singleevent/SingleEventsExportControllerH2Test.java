@@ -48,7 +48,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -68,15 +67,6 @@ class SingleEventsExportControllerH2Test extends H2ControllerIntegrationTestBase
 
   static class Config {
     @Bean
-    public EventService eventService() {
-      EventService eventService = mock(EventService.class);
-      // Orderable fields are checked within the controller constructor
-      when(eventService.getOrderableFields())
-          .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
-      return eventService;
-    }
-
-    @Bean
     public SingleEventService singleEventService() {
       SingleEventService singleEventService = mock(SingleEventService.class);
       // Orderable fields are checked within the controller constructor
@@ -92,8 +82,6 @@ class SingleEventsExportControllerH2Test extends H2ControllerIntegrationTestBase
   }
 
   @Autowired private SingleEventService singleEventService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private ProgramService programService;
 

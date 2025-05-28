@@ -68,15 +68,6 @@ class TrackerEventsExportControllerH2Test extends H2ControllerIntegrationTestBas
 
   static class Config {
     @Bean
-    public EventService eventService() {
-      EventService eventService = mock(EventService.class);
-      // Orderable fields are checked within the controller constructor
-      when(eventService.getOrderableFields())
-          .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
-      return eventService;
-    }
-
-    @Bean
     public TrackerEventService trackerEventService() {
       TrackerEventService trackerEventService = mock(TrackerEventService.class);
       // Orderable fields are checked within the controller constructor

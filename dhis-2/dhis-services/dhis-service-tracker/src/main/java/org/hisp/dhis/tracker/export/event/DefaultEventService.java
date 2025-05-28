@@ -85,8 +85,7 @@ class DefaultEventService implements EventService {
   }
 
   @Nonnull
-  @Override
-  public Event getEvent(
+  private Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
       @Nonnull EventFields fields)
@@ -161,8 +160,7 @@ class DefaultEventService implements EventService {
   }
 
   @Nonnull
-  @Override
-  public Page<Event> findEvents(
+  private Page<Event> findEvents(
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
@@ -178,10 +176,5 @@ class DefaultEventService implements EventService {
       }
     }
     return events;
-  }
-
-  @Override
-  public Set<String> getOrderableFields() {
-    return eventStore.getOrderableFields();
   }
 }

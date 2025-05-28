@@ -522,7 +522,7 @@
       ],
       "aggregationType": "AVERAGE",
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "O4VaNks6tta"
       },
       "code": "DE_240794",
       "created": "2015-03-31T10:27:46.069",
@@ -953,6 +953,26 @@
             "id": "NpsdDv6kKSO"
           },
           "sortOrder": 1
+        },
+        {
+          "id": "f4Fr954HH6n",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "GieVkTxp4HH"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "sharing": {},
+          "sortOrder": 1
         }
       ],
       "repeatable": true,
@@ -1119,6 +1139,46 @@
           "created": "2022-04-22T05:57:48.383",
           "dataElement": {
             "id": "GieVkTxp4HG"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "qLZC0lvvxQH"
+          },
+          "sharing": {},
+          "sortOrder": 2
+        },
+        {
+          "id": "hj8ZC0lvbc7",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "DATAEL00007"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "qLZC0lvvxQH"
+          },
+          "sharing": {},
+          "sortOrder": 3
+        },
+        {
+          "id": "e44Te4Rfer8",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "DATAEL00005"
           },
           "lastUpdated": "2022-04-22T05:57:59.783",
           "programStage": {
