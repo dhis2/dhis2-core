@@ -81,6 +81,7 @@ class EventsExportControllerUnitTest {
                     null,
                     null,
                     null,
+                    null,
                     null));
 
     assertAll(

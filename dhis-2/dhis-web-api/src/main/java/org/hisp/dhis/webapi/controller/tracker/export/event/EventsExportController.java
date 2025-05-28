@@ -50,6 +50,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
@@ -67,9 +69,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
@@ -135,6 +137,8 @@ class EventsExportController {
 
   private final ProgramService programService;
 
+  private final IdentifiableObjectManager manager;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
@@ -147,7 +151,8 @@ class EventsExportController {
       FieldFilterService fieldFilterService,
       ObjectMapper objectMapper,
       EventChangeLogService eventChangeLogService,
-      ProgramService programService) {
+      ProgramService programService,
+      IdentifiableObjectManager manager) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.trackerEventService = trackerEventService;
@@ -160,6 +165,7 @@ class EventsExportController {
     this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
     this.programService = programService;
+    this.manager = manager;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -345,26 +351,54 @@ class EventsExportController {
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
       throws NotFoundException, WebMessageException {
-    EventFields eventFields =
-        EventFields.of(
-            f ->
-                fieldFilterService.filterIncludes(
-                    org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
-            FieldPath.FIELD_PATH_SEPARATOR);
     MappingErrors errors = new MappingErrors(idSchemeParams);
-    org.hisp.dhis.webapi.controller.tracker.view.Event event =
-        EVENTS_MAPPER.map(
-            idSchemeParams, errors, eventService.getEvent(uid, idSchemeParams, eventFields));
+    Event event;
+    Program program = getProgramFromEvent(uid);
+    if (program.isRegistration()) {
+      org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields eventFields =
+          org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields.of(
+              f ->
+                  fieldFilterService.filterIncludes(
+                      org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
+              FieldPath.FIELD_PATH_SEPARATOR);
+      event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+    } else {
+      org.hisp.dhis.tracker.export.singleevent.SingleEventFields eventFields =
+          org.hisp.dhis.tracker.export.singleevent.SingleEventFields.of(
+              f ->
+                  fieldFilterService.filterIncludes(
+                      org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
+              FieldPath.FIELD_PATH_SEPARATOR);
+      event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+    }
+
+    org.hisp.dhis.webapi.controller.tracker.view.Event eventView =
+        EVENTS_MAPPER.map(idSchemeParams, errors, event);
     ensureNoMappingErrors(errors);
 
-    return requestHandler.serve(event, fields);
+    return requestHandler.serve(eventView, fields);
   }
 
-  private Program getProgram(UID program) throws BadRequestException {
-    if (program == null) {
+  @Nonnull
+  private Program getProgram(UID programUID) throws BadRequestException {
+    if (programUID == null) {
       throw new BadRequestException("Program is mandatory");
     }
-    return programService.getProgram(program.getValue());
+    Program program = programService.getProgram(programUID.getValue());
+    if (program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + programUID);
+    }
+    return program;
+  }
+
+  @Nonnull
+  private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
+    Event event = manager.get(Event.class, eventUID);
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUID);
+    }
+
+    return event.getProgramStage().getProgram();
   }
 
   private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getSingleEventsList(
@@ -424,7 +458,14 @@ class EventsExportController {
         "Request parameter 'dimension' is only supported for images by API"
             + " /tracker/event/dataValues/{dataElement}/image");
 
-    return requestHandler.serve(request, eventService.getFileResource(event, dataElement));
+    FileResourceStream fileResource;
+    Program program = getProgramFromEvent(event);
+    if (program.isRegistration()) {
+      fileResource = trackerEventService.getFileResource(event, dataElement);
+    } else {
+      fileResource = singleEventService.getFileResource(event, dataElement);
+    }
+    return requestHandler.serve(request, fileResource);
   }
 
   @GetMapping("/{event}/dataValues/{dataElement}/image")
@@ -434,8 +475,14 @@ class EventsExportController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
-    return requestHandler.serve(
-        request, eventService.getFileResourceImage(event, dataElement, dimension));
+    Program program = getProgramFromEvent(event);
+    FileResourceStream fileResourceImage;
+    if (program.isRegistration()) {
+      fileResourceImage = trackerEventService.getFileResourceImage(event, dataElement, dimension);
+    } else {
+      fileResourceImage = singleEventService.getFileResourceImage(event, dataElement, dimension);
+    }
+    return requestHandler.serve(request, fileResourceImage);
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
