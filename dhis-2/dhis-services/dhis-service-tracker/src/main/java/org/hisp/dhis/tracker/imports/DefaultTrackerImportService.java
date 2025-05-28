@@ -121,6 +121,12 @@ public class DefaultTrackerImportService implements TrackerImportService {
       trackerBundle.setEvents(result.getEvents());
       trackerBundle.setRelationships(result.getRelationships());
 
+      jobProgress.startingStage("Calculating Payload Size After Rule Engine");
+
+      bundleSize =
+          jobProgress.nonNullStagePostCondition(
+              jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
+
       validationReport = ValidationReport.merge(validationResult, result);
     }
 

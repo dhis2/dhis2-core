@@ -29,9 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
-import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isDateValid;
-
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -44,6 +43,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Zubair Asghar
@@ -56,18 +56,20 @@ public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    if (isDateValid(scheduledAt)) {
-      return Optional.of(ProgramRuleIssue.error(programRule, ValidationCode.E1318, scheduledAt));
+    if (!DateUtils.dateIsValid(scheduledAt)) {
+      return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1318, scheduledAt));
     }
 
+    LocalDate localDate = LocalDate.parse(scheduledAt);
     Event scheduledEvent = new Event();
     scheduledEvent.setEvent(UID.generate());
     scheduledEvent.setEnrollment(enrollment.getEnrollment());
     scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
+    scheduledEvent.setAttributeOptionCombo(MetadataIdentifier.EMPTY_UID);
     scheduledEvent.setProgram(enrollment.getProgram());
     scheduledEvent.setOrgUnit(enrollment.getOrgUnit());
     scheduledEvent.setOccurredAt(null);
-    scheduledEvent.setScheduledAt(Instant.parse(scheduledAt));
+    scheduledEvent.setScheduledAt(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     scheduledEvent.setStatus(EventStatus.SCHEDULE);
 
     bundle.getEvents().add(scheduledEvent);
