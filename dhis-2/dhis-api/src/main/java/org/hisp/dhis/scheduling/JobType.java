@@ -199,6 +199,14 @@ public enum JobType {
     return this == LEADER_ELECTION;
   }
 
+  /**
+   * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
+   *     creation unless it was set explicitly
+   */
+  public boolean isDefaultExecutedByCreator() {
+    return this == AGGREGATE_DATA_EXCHANGE;
+  }
+
   public boolean isUsingNotifications() {
     return this == RESOURCE_TABLE
         || this == SEND_SCHEDULED_MESSAGE

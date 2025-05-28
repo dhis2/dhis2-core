@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 import java.util.ArrayList;
@@ -47,6 +48,8 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +65,8 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
   private final SchedulingManager schedulingManager;
 
   private final JobService jobService;
+
+  private final CurrentUserService currentUserService;
 
   @Override
   public void validate(
@@ -89,8 +94,12 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
   }
 
   @Override
-  public void preCreate(JobConfiguration jobConfiguration, ObjectBundle bundle) {
-    setDefaultJobParameters(jobConfiguration);
+  public void preCreate(JobConfiguration config, ObjectBundle bundle) {
+    if (isEmpty(config.getUserUid()) && config.getJobType().isDefaultExecutedByCreator()) {
+      User currentUser = currentUserService.getCurrentUser();
+      config.setUserUid(currentUser == null ? null : currentUser.getUid());
+    }
+    setDefaultJobParameters(config);
   }
 
   @Override
