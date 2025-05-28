@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.UID;
 
-public record AggDataValueUpsertRequest(@CheckForNull UID dataSet, List<AggDataValue> values) {}
+public record AggDataValueUpsertRequest(
+    @CheckForNull UID dataSet, @JsonAlias("dataValues") List<AggDataValue> values) {}

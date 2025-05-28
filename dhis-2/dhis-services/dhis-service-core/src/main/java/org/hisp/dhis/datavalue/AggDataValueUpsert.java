@@ -29,17 +29,20 @@
  */
 package org.hisp.dhis.datavalue;
 
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
+import javax.annotation.CheckForNull;
 
-public interface AggDataValueService {
-
-  void importValue(AggDataValue value) throws ConflictException, BadRequestException;
-
-  void deleteValue(AggDataValueKey key);
-
-  AggDataValueUpsertSummary importAll(AggDataValueUpsertRequest request)
-      throws BadRequestException, ConflictException;
-
-  int deleteAll(AggDataValueDeleteRequest request) throws BadRequestException;
-}
+/**
+ * A data value tuple when doing an insert or update operation.
+ *
+ * @since 2.43
+ */
+public record AggDataValueUpsert(
+    long de,
+    long pe,
+    long ou,
+    long coc,
+    long aoc,
+    @CheckForNull String value,
+    @CheckForNull String comment,
+    @CheckForNull Boolean followup,
+    boolean deleted) {}

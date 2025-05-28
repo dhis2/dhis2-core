@@ -30,15 +30,14 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
- * @param imported number of rows affected by the import
- * @param noSuchDataElement key combinations that have a non-existing DE
- * @param noSuchOrgUnit key combinations that have a non-existing OU
- * @param noSuchOptionCombo keys combination that have a non-existing OU
+ * @param upserted number of rows that were attempted to upsert
+ * @param imported number of rows affected by the import (ideally same as upserted)
  */
 public record AggDataValueUpsertSummary(
-    int imported,
-    List<AggDataValueId> noSuchDataElement,
-    List<AggDataValueId> noSuchOrgUnit,
-    List<AggDataValueId> noSuchOptionCombo) {}
+    int upserted, int imported, List<AggDataValueUpsertError> errors) {
+
+  record AggDataValueUpsertError(int index, ErrorCode code, AggDataValue value) {}
+}

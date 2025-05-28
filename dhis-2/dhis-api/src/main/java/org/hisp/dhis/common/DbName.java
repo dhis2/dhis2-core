@@ -27,19 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
+/**
+ * A name of a DB table or column.
+ *
+ * <p>The main point is to be sure by design that these cannot be used for SQL injection because it
+ * is impossible to create an instance that isn't just letters.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
+public record DbName(String name) {
 
-public interface AggDataValueService {
+  public DbName {
+    if (!name.matches("[a-zA-Z_]{1,127}"))
+      throw new IllegalArgumentException(
+          "A table or column name must only contain letters and underscores");
+  }
 
-  void importValue(AggDataValue value) throws ConflictException, BadRequestException;
-
-  void deleteValue(AggDataValueKey key);
-
-  AggDataValueUpsertSummary importAll(AggDataValueUpsertRequest request)
-      throws BadRequestException, ConflictException;
-
-  int deleteAll(AggDataValueDeleteRequest request) throws BadRequestException;
+  public DbName plus(String suffix) {
+    return new DbName(name + suffix);
+  }
 }

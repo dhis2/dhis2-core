@@ -30,6 +30,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
@@ -39,16 +40,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
+import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.AggDataValue;
 import org.hisp.dhis.datavalue.AggDataValueKey;
 import org.hisp.dhis.datavalue.AggDataValueStore;
-import org.hisp.dhis.datavalue.AggDataValueUpsertSummary;
+import org.hisp.dhis.datavalue.AggDataValueUpsert;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
@@ -88,31 +92,101 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
+  public List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits) {
+    String sql =
+        """
+      WITH user_orgs AS (
+          SELECT ou_inner.path
+          FROM usermembership um
+          JOIN userinfo u ON um.userinfoid = u.userinfoid
+          JOIN organisationunit ou_inner ON um.organisationunitid = ou_inner.organisationunitid
+          WHERE u.uid = :user
+      )
+      SELECT ou.uid
+      FROM organisationunit ou
+      JOIN unnest(:ids) AS oux(uid) ON ou.uid = oux.uid
+      WHERE NOT EXISTS (
+          SELECT 1
+          FROM user_orgs
+          WHERE ou.path = user_orgs.path  -- Exact match
+             OR ou.path LIKE user_orgs.path || '/%'  -- Descendant match
+      )
+      """;
+    String[] ids = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("user", user.getValue())
+        .setParameter("ids", ids)
+        .list();
+  }
+
+  @Override
+  public Map<String, Set<String>> getDataSetsByDataElements(Stream<UID> dataElements) {
+    String sql =
+        """
+      SELECT de.uid, ARRAY_AGG(ds.uid)
+      FROM dataelement de
+      JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
+      JOIN dataset ds ON de_ds.datasetid = ds.datasetid
+      WHERE de.uid IN (:ids)
+      GROUP BY de.uid""";
+    return listAsUidMap(sql, dataElements);
+  }
+
+  @Override
+  public Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements) {
+    String sql =
+        """
+      SELECT de.uid, ARRAY_AGG(ov.code)
+      FROM dataelement de
+      JOIN optionvalue ov ON de.optionsetid = ov.optionsetid
+      WHERE de.uid IN (:ids)
+      GROUP BY de.uid""";
+    return listAsUidMap(sql, dataElements);
+  }
+
+  @Override
+  public Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements) {
+    String sql =
+        """
+      SELECT de.uid, ARRAY_AGG(ov.code)
+      FROM dataelement de
+      JOIN optionvalue ov ON de.commentoptionsetid = ov.optionsetid
+      WHERE de.uid IN (:ids)
+      GROUP BY de.uid""";
+    return listAsUidMap(sql, dataElements);
+  }
+
+  @Nonnull
+  private Map<String, Set<String>> listAsUidMap(
+      @Language("sql") String sql, Stream<UID> dataElements) {
+    String[] ids = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+    @SuppressWarnings("unchecked")
+    List<Object[]> results = getSession().createNativeQuery(sql).setParameter("ids", ids).list();
+    return results.stream()
+        .collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
+  }
+
+  @Override
+  public Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements) {
+    return getUidToAnyMap(
+        new DbName("dataelement"),
+        new DbName("valuetype"),
+        dataElements,
+        str -> ValueType.valueOf(str.toString()));
+  }
+
+  @Override
   public int deleteByKeys(List<AggDataValueKey> keys) {
     return 0;
   }
 
-  private record AggDataValueInternal(
-      long de,
-      long pe,
-      long ou,
-      long coc,
-      long aoc,
-      String value,
-      String comment,
-      Boolean followup,
-      boolean deleted) {}
-
   @Override
-  public AggDataValueUpsertSummary upsertValues(List<AggDataValue> values) {
-    if (values == null || values.isEmpty())
-      return new AggDataValueUpsertSummary(0, List.of(), List.of(), List.of());
+  public int upsertValues(List<AggDataValue> values) {
+    if (values == null || values.isEmpty()) return 0;
 
-    AggDataValueUpsertSummary res =
-        new AggDataValueUpsertSummary(
-            0, new ArrayList<>(0), new ArrayList<>(0), new ArrayList<>(0));
-    List<AggDataValueInternal> internalValues = upsertValuesResolveIds(values, res);
-    if (internalValues.isEmpty()) return res;
+    List<AggDataValueUpsert> internalValues = upsertValuesResolveIds(values);
+    if (internalValues.isEmpty()) return 0;
 
     int size = internalValues.size();
     Session session = entityManager.unwrap(Session.class);
@@ -147,16 +221,16 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
             int to = from + n;
             try (PreparedStatement stmt = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
               int p = 0;
-              for (AggDataValueInternal value : internalValues.subList(from, to)) {
-                stmt.setLong(p + 1, value.de);
-                stmt.setLong(p + 2, value.pe);
-                stmt.setLong(p + 3, value.ou);
-                stmt.setLong(p + 4, value.coc);
-                stmt.setLong(p + 5, value.aoc);
-                stmt.setString(p + 6, value.value);
-                stmt.setString(p + 7, value.comment);
-                stmt.setObject(p + 8, value.followup);
-                stmt.setBoolean(p + 9, value.deleted);
+              for (AggDataValueUpsert value : internalValues.subList(from, to)) {
+                stmt.setLong(p + 1, value.de());
+                stmt.setLong(p + 2, value.pe());
+                stmt.setLong(p + 3, value.ou());
+                stmt.setLong(p + 4, value.coc());
+                stmt.setLong(p + 5, value.aoc());
+                stmt.setString(p + 6, value.value());
+                stmt.setString(p + 7, value.comment());
+                stmt.setObject(p + 8, value.followup());
+                stmt.setBoolean(p + 9, value.deleted());
                 p += 9;
               }
               imported.addAndGet(stmt.executeUpdate());
@@ -167,20 +241,18 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
 
     session.clear();
 
-    return new AggDataValueUpsertSummary(
-        imported.get(), res.noSuchDataElement(), res.noSuchOrgUnit(), res.noSuchOptionCombo());
+    return imported.get();
   }
 
   @Nonnull
-  private List<AggDataValueInternal> upsertValuesResolveIds(
-      List<AggDataValue> values, AggDataValueUpsertSummary summary) {
+  private List<AggDataValueUpsert> upsertValuesResolveIds(List<AggDataValue> values) {
     Map<String, Long> des = getDataElementIdMap(values.stream().map(AggDataValue::dataElement));
     Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(AggDataValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
     Function<UID, Long> cocOf = uid -> cocs.get(uid == null ? "default" : uid.getValue());
 
-    List<AggDataValueInternal> internalValues = new ArrayList<>(values.size());
+    List<AggDataValueUpsert> internalValues = new ArrayList<>(values.size());
 
     for (AggDataValue value : values) {
       Long de = des.get(value.dataElement().getValue());
@@ -192,12 +264,8 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
         Boolean deleted = value.deleted();
         if (deleted == null) deleted = false;
         internalValues.add(
-            new AggDataValueInternal(
+            new AggDataValueUpsert(
                 de, pe, ou, coc, aoc, value.value(), value.comment(), value.followUp(), deleted));
-      } else {
-        if (de == null) summary.noSuchDataElement().add(value);
-        if (ou == null) summary.noSuchOrgUnit().add(value);
-        if (coc == null || aoc == null) summary.noSuchOptionCombo().add(value);
       }
     }
     return internalValues;

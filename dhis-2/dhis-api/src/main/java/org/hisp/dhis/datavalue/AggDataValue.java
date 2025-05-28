@@ -45,4 +45,18 @@ public record AggDataValue(
     String comment,
     Boolean followUp,
     Boolean deleted)
-    implements AggDataValueId {}
+    implements AggDataValueId {
+
+  public AggDataValue withValue(String value) {
+    return new AggDataValue(
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        attributeOptionCombo,
+        period,
+        value,
+        comment,
+        followUp,
+        deleted);
+  }
+}

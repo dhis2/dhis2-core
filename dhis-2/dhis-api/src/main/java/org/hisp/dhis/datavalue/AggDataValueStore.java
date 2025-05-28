@@ -30,10 +30,33 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 
 public interface AggDataValueStore {
 
   int deleteByKeys(List<AggDataValueKey> keys);
 
-  AggDataValueUpsertSummary upsertValues(List<AggDataValue> values);
+  int upsertValues(List<AggDataValue> values);
+
+  /*
+  Validation support
+   */
+
+  List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
+
+  /**
+   * @return All dataset UIDs for each of the DE UIDs. A DE that has no DS will not be contained in
+   *     the result map
+   */
+  Map<String, Set<String>> getDataSetsByDataElements(Stream<UID> dataElements);
+
+  Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements);
+
+  Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements);
+
+  Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements);
 }
