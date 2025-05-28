@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataexchange.aggregate;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -87,7 +88,11 @@ public class AggregateDataExchangeJob implements Job {
     notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
     ImportStatus status = allSummaries.getStatus();
     if (status == ImportStatus.ERROR) {
-      progress.failedProcess("Aggregate data exchange completed with errors");
+      String errors =
+          allSummaries.getImportSummaries().stream()
+              .map(ImportSummary::getDescription)
+              .collect(Collectors.joining(","));
+      progress.failedProcess("Aggregate data exchange completed with errors: {}", errors);
     } else {
       progress.completedProcess("Aggregate data exchange completed with status: {}", status);
     }
