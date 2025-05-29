@@ -69,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultProgramRuleService implements ProgramRuleService {
   private final ProgramRuleEngine programRuleEngine;
 
-  private final TrackerEventService eventService;
+  private final TrackerEventService trackerEventService;
 
   private final RuleActionEnrollmentMapper ruleActionEnrollmentMapper;
 
@@ -216,7 +216,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     Stream<Event> events;
     try {
       events =
-          eventService
+          trackerEventService
               .findEvents(
                   TrackerEventOperationParams.builder()
                       .fields(TrackerEventFields.all())

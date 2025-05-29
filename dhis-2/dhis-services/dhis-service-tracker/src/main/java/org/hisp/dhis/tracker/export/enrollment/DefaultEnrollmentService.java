@@ -71,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEnrollmentService implements EnrollmentService {
   private final JdbcEnrollmentStore enrollmentStore;
 
-  private final TrackerEventService eventService;
+  private final TrackerEventService trackerEventService;
 
   private final RelationshipService relationshipService;
 
@@ -174,7 +174,7 @@ class DefaultEnrollmentService implements EnrollmentService {
             .includeDeleted(includeDeleted)
             .build();
     try {
-      return Set.copyOf(eventService.findEvents(eventOperationParams));
+      return Set.copyOf(trackerEventService.findEvents(eventOperationParams));
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");

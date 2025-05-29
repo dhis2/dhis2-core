@@ -592,8 +592,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertTrue(trackerEventService.findEvent(UID.of(eventUid)).isPresent());
-    Event actual = trackerEventService.getEvent(UID.of(eventUid));
+    assertTrue(singleEventService.findEvent(UID.of(eventUid)).isPresent());
+    Event actual = singleEventService.getEvent(UID.of(eventUid));
     assertAll(
         "created event",
         () -> assertEquals(eventUid, actual.getUid()),
@@ -603,7 +603,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
         () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
-        () -> assertEquals(submission.getDueDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
         () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertNull(actual.getCompletedDate()),
