@@ -38,6 +38,7 @@ import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,8 +59,11 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
@@ -70,6 +74,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.User;
@@ -95,6 +100,8 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private ProgramStageService programStageService;
+
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
@@ -114,6 +121,8 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   private Program programA;
 
   private Program programB;
+
+  private Event event;
 
   private User userA;
   private User userB;
@@ -159,6 +168,12 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
     programService.addProgram(programA);
     programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     programService.updateProgram(programA);
+    ProgramStage programStage = createProgramStage('A', programA);
+    programStageService.saveProgramStage(programStage);
+    programStage.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    programStageService.updateProgramStage(programStage);
+    programA.setProgramStages(Set.of(programStage));
+    programService.updateProgram(programA);
     programB = createProgram('B');
     programB.setAccessLevel(AccessLevel.CLOSED);
     programB.setTrackedEntityType(trackedEntityType);
@@ -178,6 +193,11 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityA1Enrollment);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntityA1, programA, organisationUnitA);
+
+    event = createEvent(programStage, trackedEntityA1Enrollment, organisationUnitA);
+    manager.save(event);
+    trackedEntityA1Enrollment.setEvents(Set.of(event));
+    manager.update(trackedEntityA1Enrollment);
 
     fields = TrackedEntityFields.none();
 
@@ -274,7 +294,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess()
+  void shouldHaveAccessToTrackedEntityEnrollmentAndEventsWhenProgramProtectedAndHasTemporaryAccess()
       throws ForbiddenException, BadRequestException, NotFoundException {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
@@ -291,6 +311,18 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             trackedEntityA1.getUid(),
             trackedEntityA1.getOrganisationUnit(),
             programA));
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA1.getUid()),
+            UID.of(programA.getUid()),
+            TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build());
+    assertEquals(trackedEntity.getUid(), trackedEntityA1.getUid());
+    assertNotEmpty(trackedEntity.getEnrollments());
+    assertNotEmpty(trackedEntity.getEnrollments().iterator().next().getEvents());
+    assertEquals(
+        event.getUid(),
+        trackedEntity.getEnrollments().iterator().next().getEvents().iterator().next().getUid());
   }
 
   private static Stream<Arguments> providePrograms() {

@@ -76,6 +76,7 @@ class OrgUnitQueryBuilderTest {
   private OrganisationUnit orgUnitA;
   private OrganisationUnit orgUnitB;
   private MockedStatic<CurrentUserUtil> mockedStatic;
+  private UserDetails userDetails;
 
   @BeforeEach
   void setUp() {
@@ -85,7 +86,7 @@ class OrgUnitQueryBuilderTest {
     orgUnits.add(orgUnitB);
 
     User user = new User();
-    UserDetails userDetails = UserDetails.fromUser(user);
+    userDetails = UserDetails.fromUser(user);
 
     mockedStatic = mockStatic(CurrentUserUtil.class);
     mockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
@@ -167,7 +168,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOwnershipClause(sql, params, ALL, Set.of(), Set.of(), "p", "ou");
+    buildOwnershipClause(sql, params, ALL, Set.of(), Set.of(), "p", "ou", "t", userDetails);
 
     assertTrue(
         sql.toString().isEmpty(),
@@ -180,10 +181,11 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOwnershipClause(sql, params, CAPTURE, Set.of(orgUnitA), Set.of(orgUnitB), "p", "ou");
+    buildOwnershipClause(
+        sql, params, CAPTURE, Set.of(orgUnitA), Set.of(orgUnitB), "p", "ou", "t", userDetails);
 
     assertEquals(
-        " and ((p.accesslevel in ('OPEN', 'AUDITED') and ou.path like any (:captureScopePaths)) or (p.accesslevel in ('PROTECTED', 'CLOSED') and ou.path like any (:captureScopePaths)))",
+        " and ((p.accesslevel in ('OPEN', 'AUDITED') and ou.path like any (:captureScopePaths)) or (p.accesslevel in ('PROTECTED', 'CLOSED') and ou.path like any (:captureScopePaths)) or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))",
         sql.toString());
 
     expectedParams.put("captureScopePaths", orgUnitB.getPath() + "%");
@@ -205,10 +207,11 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOwnershipClause(sql, params, orgUnitMode, Set.of(orgUnitA), Set.of(orgUnitB), "p", "ou");
+    buildOwnershipClause(
+        sql, params, orgUnitMode, Set.of(orgUnitA), Set.of(orgUnitB), "p", "ou", "t", userDetails);
 
     assertEquals(
-        " and ((p.accesslevel in ('OPEN', 'AUDITED') and ou.path like any (:effectiveSearchScopePaths)) or (p.accesslevel in ('PROTECTED', 'CLOSED') and ou.path like any (:captureScopePaths)))",
+        " and ((p.accesslevel in ('OPEN', 'AUDITED') and ou.path like any (:effectiveSearchScopePaths)) or (p.accesslevel in ('PROTECTED', 'CLOSED') and ou.path like any (:captureScopePaths)) or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))",
         sql.toString());
 
     expectedParams.put("effectiveSearchScopePaths", orgUnitA.getPath() + "%");
