@@ -57,10 +57,10 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.export.event.EventFields;
-import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEnrollmentService implements EnrollmentService {
   private final JdbcEnrollmentStore enrollmentStore;
 
-  private final EventService eventService;
+  private final TrackerEventService trackerEventService;
 
   private final RelationshipService relationshipService;
 
@@ -165,15 +165,16 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
-  private Set<Event> getEvents(Enrollment enrollment, EventFields fields, boolean includeDeleted) {
-    EventOperationParams eventOperationParams =
-        EventOperationParams.builder()
+  private Set<Event> getEvents(
+      Enrollment enrollment, TrackerEventFields fields, boolean includeDeleted) {
+    TrackerEventOperationParams eventOperationParams =
+        TrackerEventOperationParams.builder()
             .enrollments(Set.of(UID.of(enrollment)))
             .fields(fields)
             .includeDeleted(includeDeleted)
             .build();
     try {
-      return Set.copyOf(eventService.findEvents(eventOperationParams));
+      return Set.copyOf(trackerEventService.findEvents(eventOperationParams));
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
