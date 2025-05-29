@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,7 +95,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
                 () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
     jobProgress.startingStage("Calculating Payload Size");
-    Map<TrackerType, Integer> bundleSize =
+    Map<TrackerType, Integer> originalBundleSize =
         jobProgress.nonNullStagePostCondition(
             jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
 
@@ -123,16 +124,19 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
       jobProgress.startingStage("Calculating Payload Size After Rule Engine");
 
-      bundleSize =
+      jobProgress.startingStage("Calculating Payload Size");
+      Map<TrackerType, Integer> updatedBundleSize =
           jobProgress.nonNullStagePostCondition(
               jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
+
+      originalBundleSize = consolidateBundleSize(originalBundleSize, updatedBundleSize);
 
       validationReport = ValidationReport.merge(validationResult, result);
     }
 
     if (exitOnError(validationReport, params)) {
       return ImportReport.withValidationErrors(
-          validationReport, bundleSize.values().stream().mapToInt(Integer::intValue).sum());
+          validationReport, originalBundleSize.values().stream().mapToInt(Integer::intValue).sum());
     }
 
     jobProgress.startingStage("Commit Transaction");
@@ -144,7 +148,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
     jobProgress.runStage(() -> trackerBundleService.postCommit(trackerBundle));
 
     return ImportReport.withImportCompleted(
-        Status.OK, persistenceReport, validationReport, bundleSize);
+        Status.OK, persistenceReport, validationReport, originalBundleSize);
   }
 
   protected ValidationResult validateBundle(TrackerBundle bundle) {
@@ -192,6 +196,21 @@ public class DefaultTrackerImportService implements TrackerImportService {
         .map(reportMap -> reportMap.get(trackerType))
         .map(TrackerTypeReport::getNotificationDataBundles)
         .orElse(Collections.emptyList());
+  }
+
+  private Map<TrackerType, Integer> consolidateBundleSize(
+      Map<TrackerType, Integer> originalBundleSize, Map<TrackerType, Integer> finalBundleSize) {
+    Map<TrackerType, Integer> consolidated = new EnumMap<>(TrackerType.class);
+    for (TrackerType type : TrackerType.values()) {
+      int size =
+          (type == TrackerType.EVENT)
+              ? finalBundleSize.getOrDefault(type, 0)
+              : originalBundleSize.getOrDefault(type, 0);
+
+      consolidated.put(type, size);
+    }
+
+    return Collections.unmodifiableMap(consolidated);
   }
 
   protected PersistenceReport deleteBundle(TrackerBundle trackerBundle)
