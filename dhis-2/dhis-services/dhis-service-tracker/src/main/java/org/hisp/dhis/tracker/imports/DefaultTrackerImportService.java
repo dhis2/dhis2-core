@@ -196,6 +196,12 @@ public class DefaultTrackerImportService implements TrackerImportService {
         .orElse(Collections.emptyList());
   }
 
+  /**
+   * Consolidates the original and final bundle sizes into a single map. For most {@link
+   * TrackerType}s, it retains the size from the original bundle. However, for {@code
+   * TrackerType.EVENT}, it uses the size from the final bundle since this type may be modified
+   * during rule engine validation phase.
+   */
   private Map<TrackerType, Integer> consolidateBundleSize(
       Map<TrackerType, Integer> originalBundleSize, Map<TrackerType, Integer> finalBundleSize) {
     Map<TrackerType, Integer> consolidated = new EnumMap<>(TrackerType.class);
