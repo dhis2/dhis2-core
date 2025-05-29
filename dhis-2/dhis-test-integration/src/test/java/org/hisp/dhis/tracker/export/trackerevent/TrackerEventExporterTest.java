@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -76,10 +76,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EventExporterTest extends PostgresIntegrationTestBase {
+class TrackerEventExporterTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -90,7 +90,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   private TrackedEntity trackedEntity;
   private User importUser;
 
-  private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
+  private TrackerEventOperationParams.TrackerEventOperationParamsBuilder operationParamsBuilder;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -117,32 +117,31 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    operationParamsBuilder = EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+    operationParamsBuilder =
+        TrackerEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
   }
 
   @Test
   void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .trackedEntity(trackedEntity)
-            .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .build();
+    TrackerEventOperationParams params =
+        operationParamsBuilder.assignedUsers(Set.of(UID.of("M5zQapPyTZI"))).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
+    assertNotNull(events.get(0).getAssignedUser());
     assertEquals("M5zQapPyTZI", events.get(0).getAssignedUser().getUid());
   }
 
   @Test
   void shouldReturnEventsWithRelationships() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .events(Set.of(UID.of("pTzf9KYMk72")))
-            .fields(EventFields.all())
+            .fields(TrackerEventFields.all())
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Relationship> relationships =
@@ -155,10 +154,10 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
     Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("pTzf9KYMk72"))).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     assertNotes(pTzf9KYMk72.getNotes(), events.get(0).getNotes());
@@ -166,7 +165,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportEvents() throws ForbiddenException, BadRequestException {
-    EventOperationParams params = operationParamsBuilder.programStage(programStage).build();
+    TrackerEventOperationParams params = operationParamsBuilder.programStage(programStage).build();
 
     List<String> events = getEvents(params);
 
@@ -175,7 +174,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportEventsWhenFilteringByEnrollment() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .trackedEntity(trackedEntity)
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
@@ -189,7 +188,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testExportEventsWithExecutionAndUpdateDates()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
@@ -205,7 +204,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportEventsWithLastUpdateDuration() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
@@ -220,7 +219,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsIfItOccurredBetweenPassedDateAndTime()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
@@ -236,7 +235,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredBeforePassed()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
@@ -251,7 +250,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsIfItOccurredAtTheSameDateAndTimeOfOccurredAfterPassed()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
@@ -266,7 +265,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testExportEventsWithLastUpdateDates() throws ForbiddenException, BadRequestException {
     Date date = new Date();
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
@@ -292,13 +291,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testExportEventsWithDatesIncludingTimeStamp()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .events(Set.of(UID.of("pTzf9KYMk72")))
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     Event event = events.get(0);
 
@@ -325,17 +324,17 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
-            .orgUnit(UID.of("DiszpKrYNg8"))
+            .orgUnit(UID.of("uoNW0E3xXUy"))
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo(UID.of("O4VaNks6tta"))
             .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
+    assertContainsOnly(List.of("jxgFyJEMUPf"), uids(events));
     List<Executable> executables =
         events.stream()
             .map(
@@ -360,13 +359,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentEnrolledBefore(parseDate("2021-02-27T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -376,13 +375,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentEnrolledBeforeEqualToFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentEnrolledBefore(parseDate("2021-02-28T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -392,13 +391,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentEnrolledBeforeSetToAfterFirstEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentEnrolledBefore(parseDate("2021-02-28T13:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -408,13 +407,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentEnrolledAfter(parseDate("2021-03-27T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -424,13 +423,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentEnrolledAfter(parseDate("2021-03-28T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -440,13 +439,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentEnrolledAfter(parseDate("2021-03-28T13:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -456,13 +455,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentOccurredBeforeSetToBeforeFirstOccurredAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentOccurredBefore(parseDate("2021-02-27T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -472,13 +471,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentOccurredBeforeEqualToFirstOccurredAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentOccurredBefore(parseDate("2021-02-28T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -488,13 +487,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentOccurredBefore(parseDate("2021-02-28T13:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -504,13 +503,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentOccurredAfterSetToBeforeLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentOccurredAfter(parseDate("2021-03-27T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -520,13 +519,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentOccurredAfterEqualToLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentOccurredAfter(parseDate("2021-03-28T12:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -536,13 +535,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollmentOccurredAfter(parseDate("2021-03-28T13:05:00.000"))
             .build();
 
     List<String> enrollments =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -552,7 +551,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.scheduledAfter(parseDate("2021-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
@@ -563,7 +562,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.scheduledAfter(parseDate("2018-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
@@ -574,7 +573,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.scheduledBefore(parseDate("2018-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
@@ -585,7 +584,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.scheduledBefore(parseDate("2021-02-28T13:05:00.000")).build();
 
     List<String> events = getEvents(params);
@@ -603,9 +602,9 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     return t;
   }
 
-  private List<String> getEvents(EventOperationParams params)
+  private List<String> getEvents(TrackerEventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.findEvents(params));
+    return uids(trackerEventService.findEvents(params));
   }
 
   private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
