@@ -43,25 +43,26 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * Utility class for constructing SQL query clauses related to organisation units.
+ * Utility class for constructing SQL query clauses related to org units.
  *
  * <p>This class centralizes the logic for generating SQL conditions and parameter mappings that
- * filter query results based on organisation unit selections and access controls.
+ * filter query results based on org unit mode and access controls.
  *
  * <p>Additionally, this class provides methods to build ownership related query clauses that
- * enforce access control constraints based on the organisation unit hierarchy and program access
- * levels. These clauses ensure that only data accessible to the current user and within the defined
- * organisational scope is included in query results.
+ * enforce access control constraints based on the org unit hierarchy and program access levels.
+ * These clauses ensure that only data accessible to the current user and within the defined org
+ * scope is included in query results.
  *
- * <p>The class is designed to be used in constructing dynamic SQL queries where organisation unit
- * filtering and ownership constraints are required. It manages the injection of SQL fragments and
- * named parameters consistently to facilitate secure and maintainable query building.
+ * <p>The class is designed to be used in constructing dynamic SQL queries where org unit filtering
+ * and ownership constraints are required. It manages the injection of SQL fragments and named
+ * parameters consistently to facilitate secure and maintainable query building.
  *
  * <p>This class is non-instantiable and exposes all functionality through static methods.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrgUnitQueryBuilder {
 
+  /** Appends an SQL clause to filter by org units based on the given org unit mode. */
   public static void buildOrgUnitModeClause(
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
@@ -82,6 +83,10 @@ public class OrgUnitQueryBuilder {
     }
   }
 
+  /**
+   * Appends an SQL clause to enforce program ownership and access level restrictions based on the
+   * user scopes and org unit mode.
+   */
   public static void buildOwnershipClause(
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
