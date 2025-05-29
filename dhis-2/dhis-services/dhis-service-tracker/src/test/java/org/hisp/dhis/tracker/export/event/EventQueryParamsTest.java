@@ -44,7 +44,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ class EventQueryParamsTest extends TestBase {
     params.filterBy(tea1, filter);
 
     assertEquals(Set.of(tea1), params.getAttributes().keySet());
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getAttributes();
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = params.getAttributes();
 
     params.orderBy(tea1, SortDirection.DESC);
 
@@ -98,7 +98,7 @@ class EventQueryParamsTest extends TestBase {
 
     assertTrue(params.hasDataElementFilter());
     assertEquals(Set.of(de1), params.getDataElements().keySet());
-    Map<DataElement, List<JdbcPredicate>> dataElements = params.getDataElements();
+    Map<DataElement, List<FilterJdbcPredicate>> dataElements = params.getDataElements();
 
     params.orderBy(de1, SortDirection.ASC);
 

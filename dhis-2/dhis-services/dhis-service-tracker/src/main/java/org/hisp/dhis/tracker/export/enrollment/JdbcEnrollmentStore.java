@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,7 +52,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -217,16 +216,9 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       SqlHelper hlp) {
     if (params.hasOrganisationUnits()) {
-      if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-        sql.append(hlp.whereAnd())
-            .append(getDescendantsQuery(params.getOrganisationUnits(), sqlParams));
-      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-        sql.append(hlp.whereAnd())
-            .append(getChildrenQuery(params.getOrganisationUnits(), sqlParams));
-      } else {
-        sql.append(hlp.whereAnd()).append("en_ou.uid IN (:orgUnitUids)");
-        sqlParams.addValue("orgUnitUids", getUids(params.getOrganisationUnits()));
-      }
+      sql.append(hlp.whereAnd());
+      buildOrgUnitModeClause(
+          sql, sqlParams, params.getOrganisationUnits(), params.getOrganisationUnitMode(), "en_ou");
     }
   }
 
@@ -326,55 +318,6 @@ class JdbcEnrollmentStore {
 
   private void addCountSelect(StringBuilder sql) {
     sql.append(" select count(distinct e.uid) ");
-  }
-
-  private String getDescendantsQuery(
-      Set<OrganisationUnit> organisationUnits, MapSqlParameterSource sqlParams) {
-    StringBuilder ouClause = new StringBuilder();
-    ouClause.append("(");
-
-    SqlHelper orHlp = new SqlHelper(true);
-
-    int index = 0;
-    for (OrganisationUnit orgUnit : organisationUnits) {
-      String paramName = "path" + index++;
-      ouClause.append(orHlp.or()).append("en_ou.path LIKE :").append(paramName);
-      sqlParams.addValue(paramName, orgUnit.getStoredPath() + "%");
-    }
-
-    ouClause.append(")");
-    return ouClause.toString();
-  }
-
-  private String getChildrenQuery(
-      Set<OrganisationUnit> organisationUnits, MapSqlParameterSource sqlParams) {
-    SqlHelper hlp = new SqlHelper(true);
-    StringBuilder orgUnits = new StringBuilder();
-    int index = 0;
-
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      String pathParam = "path" + index;
-      String level1Param = "level1_" + index;
-      String level2Param = "level2_" + index;
-
-      orgUnits
-          .append(hlp.or())
-          .append("(en_ou.path LIKE :")
-          .append(pathParam)
-          .append(" AND (en_ou.hierarchylevel = :")
-          .append(level1Param)
-          .append(" OR en_ou.hierarchylevel = :")
-          .append(level2Param)
-          .append("))");
-
-      sqlParams.addValue(pathParam, organisationUnit.getStoredPath() + "%");
-      sqlParams.addValue(level1Param, organisationUnit.getHierarchyLevel());
-      sqlParams.addValue(level2Param, organisationUnit.getHierarchyLevel() + 1);
-
-      index++;
-    }
-
-    return orgUnits.toString();
   }
 
   private static String orderBy(List<Order> orders) {
