@@ -123,8 +123,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
       trackerBundle.setRelationships(result.getRelationships());
 
       jobProgress.startingStage("Calculating Payload Size After Rule Engine");
-
-      jobProgress.startingStage("Calculating Payload Size");
       Map<TrackerType, Integer> updatedBundleSize =
           jobProgress.nonNullStagePostCondition(
               jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
