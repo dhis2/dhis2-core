@@ -168,6 +168,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     EventOperationParams eventOperationParams =
         EventOperationParams.builder()
             .enrollments(Set.of(UID.of(enrollment)))
+            .trackedEntity(enrollment.getTrackedEntity())
             .fields(fields)
             .includeDeleted(includeDeleted)
             .build();
