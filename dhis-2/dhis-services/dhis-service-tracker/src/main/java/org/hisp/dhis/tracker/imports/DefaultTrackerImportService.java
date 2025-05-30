@@ -95,7 +95,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
                 () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
     jobProgress.startingStage("Calculating Payload Size");
-    Map<TrackerType, Integer> originalBundleSize =
+    Map<TrackerType, Integer> bundleSize =
         jobProgress.nonNullStagePostCondition(
             jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
 
@@ -122,14 +122,14 @@ public class DefaultTrackerImportService implements TrackerImportService {
       trackerBundle.setEvents(result.getEvents());
       trackerBundle.setRelationships(result.getRelationships());
 
-      originalBundleSize = consolidateBundleSize(originalBundleSize, trackerBundle);
+      bundleSize = consolidateBundleSize(bundleSize, trackerBundle);
 
       validationReport = ValidationReport.merge(validationResult, result);
     }
 
     if (exitOnError(validationReport, params)) {
       return ImportReport.withValidationErrors(
-          validationReport, originalBundleSize.values().stream().mapToInt(Integer::intValue).sum());
+          validationReport, bundleSize.values().stream().mapToInt(Integer::intValue).sum());
     }
 
     jobProgress.startingStage("Commit Transaction");
@@ -141,7 +141,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
     jobProgress.runStage(() -> trackerBundleService.postCommit(trackerBundle));
 
     return ImportReport.withImportCompleted(
-        Status.OK, persistenceReport, validationReport, originalBundleSize);
+        Status.OK, persistenceReport, validationReport, bundleSize);
   }
 
   protected ValidationResult validateBundle(TrackerBundle bundle) {
