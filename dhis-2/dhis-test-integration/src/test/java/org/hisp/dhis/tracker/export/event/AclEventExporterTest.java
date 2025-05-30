@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.List;
@@ -60,6 +59,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -380,8 +380,13 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventsWhenProgramOpenAndOrgUnitModeCapture() {
-    fail();
+  void shouldNotReturnEventsWhenProgramOpenAndOrgUnitModeCaptureIfEventsOnSearchScopeOnly()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    EventOperationParams params =
+        operationParamsBuilder.program(UID.of("BFcipDERJnf")).orgUnitMode(CAPTURE).build();
+
+    Assertions.assertIsEmpty(eventService.findEvents(params));
   }
 
   @Test

@@ -338,8 +338,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       TrackedEntityQueryParams params,
       PageParams pageParams,
       boolean isCountQuery) {
-    SqlHelper sqlHelper = new SqlHelper(true);
-
     sql.append("(");
     addTrackedEntityFromItemSelect(sql, params);
     sql.append(" from trackedentity " + MAIN_QUERY_ALIAS + " ");

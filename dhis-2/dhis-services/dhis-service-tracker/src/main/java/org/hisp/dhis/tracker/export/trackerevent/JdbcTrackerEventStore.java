@@ -33,8 +33,8 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
-import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOrgUnitModeClause;
-import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -646,7 +646,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String getEventSelectQuery(
       TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
-    SqlHelper hlp = new SqlHelper();
+    SqlHelper hlp = new SqlHelper(true);
 
     StringBuilder selectBuilder =
         new StringBuilder()
@@ -997,7 +997,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     StringBuilder modeBuilder = new StringBuilder();
     if (params.getOrgUnit() != null) {
       buildOrgUnitModeClause(
-          modeBuilder, Set.of(params.getOrgUnit()), params.getOrgUnitMode(), sqlParameters, "ou");
+          modeBuilder, sqlParameters, Set.of(params.getOrgUnit()), params.getOrgUnitMode(), "ou");
     }
 
     if (!Strings.isNullOrEmpty(modeBuilder.toString())) {
@@ -1006,8 +1006,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     buildOwnershipClause(
         orgUnitBuilder,
-        params.getOrgUnitMode(),
         sqlParameters,
+        params.getOrgUnitMode(),
         effectiveSearchOrgUnits,
         captureScopeOrgUnits,
         "p",
