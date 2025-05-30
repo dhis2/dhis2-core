@@ -27,54 +27,7 @@
  */
 package org.hisp.dhis.datasource;
 
-<<<<<<< HEAD
 import com.google.common.base.MoreObjects;
-=======
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static java.lang.Integer.parseInt;
-import static java.lang.Long.parseLong;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_INITIAL_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MIN_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_NUM_THREADS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKIN;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TEST_QUERY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TIMEOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_USERNAME;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_DRIVER_CLASS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_NUM_THREADS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_QUERY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TIMEOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
-
-import com.google.common.collect.ImmutableMap;
->>>>>>> 1bf59cfa4c (feat: Enable HikariCP database pool leak detection (#20904))
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
