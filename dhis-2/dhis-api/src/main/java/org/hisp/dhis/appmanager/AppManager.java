@@ -177,7 +177,7 @@ public interface AppManager {
    * @param appHubId A unqiue ID for a specific app version
    * @return outcome of the installation
    */
-  App installApp(UUID appHubId);
+  App installAppByHubId(UUID appHubId);
 
   /**
    * Indicates whether the app with the given name exist.
