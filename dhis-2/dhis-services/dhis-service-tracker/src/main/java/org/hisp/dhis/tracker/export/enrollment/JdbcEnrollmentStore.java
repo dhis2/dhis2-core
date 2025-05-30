@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -218,7 +218,7 @@ class JdbcEnrollmentStore {
     if (params.hasOrganisationUnits()) {
       sql.append(hlp.whereAnd());
       buildOrgUnitModeClause(
-          sql, params.getOrganisationUnits(), params.getOrganisationUnitMode(), sqlParams, "en_ou");
+          sql, sqlParams, params.getOrganisationUnits(), params.getOrganisationUnitMode(), "en_ou");
     }
   }
 

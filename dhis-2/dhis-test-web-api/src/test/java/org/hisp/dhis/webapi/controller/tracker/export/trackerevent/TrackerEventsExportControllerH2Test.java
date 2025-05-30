@@ -27,12 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,9 +43,14 @@ import java.util.stream.Stream;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.webapi.controller.tracker.export.event.EventsExportControllerH2Test.Config;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.trackerevent.TrackerEventsExportControllerH2Test.Config;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = Config.class)
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
+class TrackerEventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
 
   static class Config {
     @Bean
@@ -69,12 +75,29 @@ class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
           .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
       return eventService;
     }
+
+    @Bean
+    public TrackerEventService trackerEventService() {
+      TrackerEventService trackerEventService = mock(TrackerEventService.class);
+      // Orderable fields are checked within the controller constructor
+      when(trackerEventService.getOrderableFields())
+          .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
+      return trackerEventService;
+    }
+
+    @Bean
+    public ProgramService programService() {
+      return mock(ProgramService.class);
+    }
   }
+
+  @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private EventService eventService;
 
-  static Stream<Arguments>
-      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked() {
+  @Autowired private ProgramService programService;
+
+  static Stream<Arguments> callEventsEndpoint() {
     return Stream.of(
         arguments(
             "/tracker/events.json.zip?program=bMcwwoVnbSR",
@@ -104,12 +127,16 @@ class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
   }
 
   @ParameterizedTest
-  @MethodSource
-  void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
-      String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException {
+  @MethodSource(value = "callEventsEndpoint")
+  void
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForTrackerEvent(
+          String url, String expectedContentType, String expectedAttachment, String encoding)
+          throws ForbiddenException, BadRequestException {
 
-    when(eventService.findEvents(any())).thenReturn(List.of());
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    when(trackerEventService.findEvents(any())).thenReturn(List.of());
+    when(programService.getProgram(anyString())).thenReturn(program);
 
     HttpResponse res = GET(url);
     assertEquals(HttpStatus.OK, res.status());

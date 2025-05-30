@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.minmax;
 
+import static java.lang.System.Logger.Level.INFO;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,27 +124,13 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    */
   @Override
   @Transactional
+  @TimeExecution(level = INFO, name = "min-max import")
   public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
     if (request.values().isEmpty()) return 0;
 
     validateRequest(request);
 
-    log.info(
-        "Starting min-max import: {} values for dataset={}",
-        request.values().size(),
-        request.dataSet());
-    long startTime = System.nanoTime();
-
-    int imported = minMaxDataElementStore.upsertValues(request.values());
-
-    long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
-
-    log.info(
-        "Min-max import completed: {} values processed in {} ms",
-        request.values().size(),
-        elapsedMillis);
-
-    return imported;
+    return minMaxDataElementStore.upsertValues(request.values());
   }
 
   @Override
@@ -160,20 +149,13 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    */
   @Override
   @Transactional
+  @TimeExecution(level = INFO, name = "min-max delete")
   public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
     if (request.values().isEmpty()) return 0;
 
     validateRequest(request);
 
-    log.info("Starting min-max delete: {} values", request.values().size());
-    long startTime = System.nanoTime();
-    int count = minMaxDataElementStore.deleteByKeys(request.values());
-    long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
-    log.info(
-        "Min-max delete completed: {} values processed in {} ms",
-        request.values().size(),
-        elapsedMillis);
-    return count;
+    return minMaxDataElementStore.deleteByKeys(request.values());
   }
 
   private static void validateValue(MinMaxValue value) throws BadRequestException {

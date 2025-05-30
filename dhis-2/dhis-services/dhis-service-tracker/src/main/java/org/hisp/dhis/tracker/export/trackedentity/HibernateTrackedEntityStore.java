@@ -34,8 +34,8 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
-import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOrgUnitModeClause;
-import static org.hisp.dhis.tracker.export.OrgUnitJdbcPredicate.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
@@ -355,6 +355,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     addJoinOnAttributes(sql, params);
     sql.append(" ");
 
+    SqlHelper sqlHelper = new SqlHelper(true);
     addAttributeFilterConditions(sql, sqlParameters, params, sqlHelper);
     addTrackedEntityConditions(sql, sqlParameters, params, sqlHelper);
     addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, sqlHelper);
@@ -496,13 +497,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasOrganisationUnits()) {
       sql.append("and ");
       buildOrgUnitModeClause(
-          sql, params.getOrgUnits(), params.getOrgUnitMode(), sqlParameters, orgUnitTableAlias);
+          sql, sqlParameters, params.getOrgUnits(), params.getOrgUnitMode(), orgUnitTableAlias);
     }
 
     buildOwnershipClause(
         sql,
-        params.getOrgUnitMode(),
         sqlParameters,
+        params.getOrgUnitMode(),
         effectiveSearchOrgUnits,
         captureScopeOrgUnits,
         programTableAlias,

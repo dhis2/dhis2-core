@@ -30,11 +30,14 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_EVENT;
 
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import org.apache.commons.text.RandomStringGenerator;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * This class represents a CTE (Common Table Expression) definition generated during the analytics
@@ -51,7 +54,10 @@ public class CteDefinition {
     /** CTE for the base aggregation query (e.g., enrollment_aggr_base). */
     BASE_AGGREGATION,
     /** CTE representing a full Program Indicator calculation. */
-    PROGRAM_INDICATOR,
+    PROGRAM_INDICATOR_EVENT,
+
+    PROGRAM_INDICATOR_ENROLLMENT,
+
     /** CTE representing a simple filter condition. */
     FILTER,
     /** CTE replacing a V{...} variable subquery. */
@@ -176,7 +182,10 @@ public class CteDefinition {
 
   /** Creates a CTE definition for program indicators. */
   public static CteDefinition forProgramIndicator(
-      String programIndicatorUid, String cteDefinition, boolean requiresCoalesce) {
+      String programIndicatorUid,
+      AnalyticsType programIndicatorType,
+      String cteDefinition,
+      boolean requiresCoalesce) {
     // Calls private constructor, passing CteType.PROGRAM_INDICATOR
     return new CteDefinition(
         programIndicatorUid, // itemId
@@ -190,7 +199,9 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        CteType.PROGRAM_INDICATOR); // Set type
+        programIndicatorType == AnalyticsType.EVENT
+            ? PROGRAM_INDICATOR_EVENT
+            : PROGRAM_INDICATOR_ENROLLMENT); // Set type
   }
 
   /** Creates a CTE definition for filter CTEs (replacing filter subqueries). */
@@ -318,7 +329,7 @@ public class CteDefinition {
   }
 
   public boolean isProgramIndicator() {
-    return this.cteType == CteType.PROGRAM_INDICATOR;
+    return this.cteType == PROGRAM_INDICATOR_EVENT || this.cteType == PROGRAM_INDICATOR_ENROLLMENT;
   }
 
   public boolean isVariable() {
