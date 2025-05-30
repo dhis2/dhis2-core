@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -58,8 +57,6 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
  */
 @UtilityClass
 public class ValidationHelper {
-
-  // --- Core Utility Methods ---
 
   /**
    * Finds a header map by its 'name' property within the extracted list of headers.
@@ -98,8 +95,6 @@ public class ValidationHelper {
             new AssertionError(
                 "Header with name '" + headerName + "' not found, cannot determine index."));
   }
-
-  // --- Response Structure Validation ---
 
   /**
    * Validates the overall structure (header count, width) based on whether PostGIS columns are
@@ -141,8 +136,6 @@ public class ValidationHelper {
         .body("width", equalTo(expectedSize))
         .body("headerWidth", equalTo(expectedSize));
   }
-
-  // --- Header Validation Methods ---
 
   /**
    * Asserts whether a header with the given name exists or does not exist in the response.
@@ -186,10 +179,8 @@ public class ValidationHelper {
 
     // Find the header first to ensure it exists before using index
     Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
-    int headerIndex =
-        getHeaderIndexByName(actualHeaders, headerName); // Get index for RestAssured path
+    int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
 
-    // Use RestAssured's validation for easy path access and standard error format
     response
         .validate()
         .body("headers[" + headerIndex + "].name", equalTo(headerName))
@@ -198,122 +189,7 @@ public class ValidationHelper {
         .body("headers[" + headerIndex + "].type", equalTo(expectedType))
         .body("headers[" + headerIndex + "].hidden", is(expectedHidden))
         .body("headers[" + headerIndex + "].meta", is(expectedMeta));
-
-    // Optional: Use Hamcrest for potentially better messages on individual property failures
-    // assertThat("Header '" + headerName + "' column mismatch", header.get("column"),
-    // equalTo(expectedColumn));
-    // assertThat("Header '" + headerName + "' valueType mismatch", header.get("valueType"),
-    // equalTo(expectedValueType));
-    // ... and so on
   }
-
-  /**
-   * Validates common properties plus the 'optionSet' property for a header identified by name.
-   *
-   * @param response The ApiResponse object.
-   * @param actualHeaders List of headers extracted from the response.
-   * @param headerName The exact 'name' of the header to validate.
-   * @param expectedColumn The expected 'column' property value.
-   * @param expectedValueType The expected 'valueType' property value.
-   * @param expectedType The expected 'type' property value.
-   * @param expectedHidden The expected 'hidden' property value.
-   * @param expectedMeta The expected 'meta' property value.
-   * @param expectedOptionSet The expected 'optionSet' UID.
-   */
-  public static void validateHeaderPropertiesByName_WithOptionSet(
-      ApiResponse response,
-      List<Map<String, Object>> actualHeaders,
-      String headerName,
-      String expectedColumn,
-      String expectedValueType,
-      String expectedType,
-      boolean expectedHidden,
-      boolean expectedMeta,
-      String expectedOptionSet) {
-
-    // Validate common properties first
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        headerName,
-        expectedColumn,
-        expectedValueType,
-        expectedType,
-        expectedHidden,
-        expectedMeta);
-
-    // Validate the specific additional property
-    int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
-    response.validate().body("headers[" + headerIndex + "].optionSet", is(expectedOptionSet));
-
-    // Optional Hamcrest check:
-    // Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
-    // assertThat("Header '" + headerName + "' must have an optionSet", header,
-    // hasKey("optionSet"));
-    // assertThat("Header '" + headerName + "' optionSet mismatch", header.get("optionSet"),
-    // is(expectedOptionSet));
-  }
-
-  /**
-   * Validates common properties plus program stage related properties for a header identified by
-   * name.
-   *
-   * @param response The ApiResponse object.
-   * @param actualHeaders List of headers extracted from the response.
-   * @param headerName The exact 'name' of the header to validate.
-   * @param expectedColumn The expected 'column' property value.
-   * @param expectedValueType The expected 'valueType' property value.
-   * @param expectedType The expected 'type' property value.
-   * @param expectedHidden The expected 'hidden' property value.
-   * @param expectedMeta The expected 'meta' property value.
-   * @param expectedProgramStage The expected 'programStage' UID.
-   * @param expectedRepeatableStageParams The expected 'repeatableStageParams' string.
-   * @param expectedStageOffset The expected 'stageOffset' value.
-   */
-  public static void validateHeaderPropertiesByName_WithProgramStage(
-      ApiResponse response,
-      List<Map<String, Object>> actualHeaders,
-      String headerName,
-      String expectedColumn,
-      String expectedValueType,
-      String expectedType,
-      boolean expectedHidden,
-      boolean expectedMeta,
-      String expectedProgramStage,
-      String expectedRepeatableStageParams,
-      int expectedStageOffset) {
-
-    // Validate common properties first
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        headerName,
-        expectedColumn,
-        expectedValueType,
-        expectedType,
-        expectedHidden,
-        expectedMeta);
-
-    // Validate the specific additional properties
-    int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
-    response
-        .validate()
-        .body("headers[" + headerIndex + "].programStage", equalTo(expectedProgramStage))
-        .body(
-            "headers[" + headerIndex + "].repeatableStageParams",
-            equalTo(expectedRepeatableStageParams))
-        .body("headers[" + headerIndex + "].stageOffset", equalTo(expectedStageOffset));
-
-    // Optional Hamcrest checks:
-    // Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
-    // assertThat("Header '" + headerName + "' must have programStage", header,
-    // hasKey("programStage"));
-    // assertThat("Header '" + headerName + "' programStage mismatch", header.get("programStage"),
-    // equalTo(expectedProgramStage));
-    // ... etc.
-  }
-
-  // --- Row and Row Context Validation ---
 
   /**
    * Validates a specific cell value in the response rows, identifying the column by header name.
@@ -342,60 +218,17 @@ public class ValidationHelper {
   }
 
   /**
-   * Validates the 'valueStatus' within the rowContext for a specific cell, identifying the column
-   * by header name.
-   *
-   * @param response The ApiResponse object.
-   * @param actualHeaders List of headers extracted from the response.
-   * @param rowIndex The 0-based index of the row context entry.
-   * @param headerName The name of the header defining the column context to validate.
-   * @param expectedValueStatus The expected 'valueStatus' string (e.g., "NS", "ND").
-   */
-  public static void validateRowContextByName(
-      ApiResponse response,
-      List<Map<String, Object>> actualHeaders,
-      int rowIndex,
-      String headerName,
-      String expectedValueStatus) {
-    int colIndex = getHeaderIndexByName(actualHeaders, headerName);
-
-    // Construct the base path to the column context object
-    String colContextPath = String.format("rowContext.%d.%d", rowIndex, colIndex);
-    // Construct the full path to the valueStatus
-    String valueStatusPath = colContextPath + ".valueStatus";
-
-    // --- Corrected Check ---
-    // 1. Check if the intermediate object for the column exists within the row context map.
-    //    This ensures rowContext.<rowIndex> has a key <colIndex>.
-    response.validate().body("rowContext." + rowIndex, hasKey(String.valueOf(colIndex)));
-
-    // 2. Check if the valueStatus key exists within that column context object.
-    //    This ensures rowContext.<rowIndex>.<colIndex> has a key 'valueStatus'.
-    response.validate().body(colContextPath, hasKey("valueStatus"));
-
-    // 3. Now, validate the actual valueStatus value.
-    response.validate().body(valueStatusPath, equalTo(expectedValueStatus));
-
-    // --- Previous problematic check (removed) ---
-    // JsonPath responseJsonPath = response.extract().jsonPath(); // No longer needed here
-    // assertThat(
-    //    "rowContext path '" + valueStatusPath + "' should exist",
-    //    responseJsonPath.get(colContextPath), // This check was slightly off anyway
-    //    is(not(nullValue())));
-  }
-
-  /**
    * Validate/assert all attributes of the given header (represented by the index), matching each
    * argument with its respective header attribute value.
    *
-   * @param response
-   * @param headerIndex of the header
-   * @param name
-   * @param column
-   * @param valueType
-   * @param type
-   * @param hidden
-   * @param meta
+   * @param response The ApiResponse object.
+   * @param headerIndex index of the header to validate.
+   * @param name the name of the header
+   * @param column the column of the header
+   * @param valueType the valueType of the header
+   * @param type the type of the header
+   * @param hidden whether the header is hidden
+   * @param meta whether the header is meta
    */
   public static void validateHeader(
       ApiResponse response,
@@ -420,15 +253,15 @@ public class ValidationHelper {
    * Validate/assert all attributes of the given header (represented by the index), matching each
    * argument with its respective header attribute value.
    *
-   * @param response
-   * @param headerIndex of the header
-   * @param name
-   * @param column
-   * @param valueType
-   * @param type
-   * @param hidden
-   * @param meta
-   * @param optionSet
+   * @param response The ApiResponse object.
+   * @param headerIndex index of the header to validate
+   * @param name the name of the header
+   * @param column the column of the header
+   * @param valueType the valueType of the header
+   * @param type the type of the header
+   * @param hidden whether the header is hidden
+   * @param meta whether the header is meta
+   * @param optionSet the optionSet UID of the header
    */
   public static void validateHeader(
       ApiResponse response,
@@ -455,17 +288,17 @@ public class ValidationHelper {
    * Validate/assert all attributes of the given header (represented by the index), matching each
    * argument with its respective header attribute value.
    *
-   * @param response
-   * @param headerIndex
-   * @param name
-   * @param column
-   * @param valueType
-   * @param type
-   * @param hidden
-   * @param meta
-   * @param programStage
-   * @param repeatableStageParams
-   * @param stageOffset
+   * @param response The ApiResponse object
+   * @param headerIndex index of the header to validate
+   * @param name the name of the header
+   * @param column the column of the header
+   * @param valueType the valueType of the header
+   * @param type the type of the header
+   * @param hidden whether the header is hidden
+   * @param meta whether the header is meta
+   * @param programStage the programStage UID of the header
+   * @param repeatableStageParams the repeatableStageParams string of the header
+   * @param stageOffset the stageOffset value of the header
    */
   public static void validateHeader(
       ApiResponse response,
@@ -495,10 +328,10 @@ public class ValidationHelper {
    * Validate/assert all attributes of the given rowContext (represented by the row and column
    * index), matching each argument with its respective repeatableStageValueStatus value.
    *
-   * @param response
-   * @param rowIndex
-   * @param colIndex
-   * @param valueStatus
+   * @param response The ApiResponse object
+   * @param rowIndex the index of the row to validate
+   * @param colIndex the index of the column to validate
+   * @param valueStatus the expected valueStatus of the repeatableStageValueStatus
    */
   public static void validateRowContext(
       ApiResponse response, int rowIndex, int colIndex, String valueStatus) {
@@ -561,8 +394,8 @@ public class ValidationHelper {
   /**
    * Validate/assert that all values of the given row are present in the given response.
    *
-   * @param response
-   * @param expectedValues
+   * @param response The ApiResponse object
+   * @param expectedValues List of expected values for the row.
    */
   public static void validateRow(ApiResponse response, List<String> expectedValues) {
     response.validate().body("rows", hasItems(expectedValues));
@@ -622,44 +455,4 @@ public class ValidationHelper {
         .map(obj -> (Map<String, Object>) obj)
         .collect(Collectors.toList());
   }
-
-  public static String handleDecimals(boolean isPostgres, String value) {
-    if (isPostgres) {
-      return value;
-    }
-    if (value == null || value.isEmpty()) {
-      return value;
-    }
-
-    int dotIndex = value.indexOf('.');
-    if (dotIndex == -1) {
-      // No decimal point in the string
-      return value;
-    }
-
-    // Get the part before the decimal point
-    String integerPart = value.substring(0, dotIndex);
-
-    // Get up to 10 digits after the decimal point
-    String decimalPart = value.substring(dotIndex + 1);
-    if (decimalPart.length() > 10) {
-      decimalPart = decimalPart.substring(0, 10);
-    }
-
-    // Remove trailing zeros
-    int lastNonZeroIndex = decimalPart.length() - 1;
-    while (lastNonZeroIndex >= 0 && decimalPart.charAt(lastNonZeroIndex) == '0') {
-      lastNonZeroIndex--;
-    }
-
-    // If all digits after decimal are zeros, return just the integer part
-    if (lastNonZeroIndex < 0) {
-      return integerPart;
-    }
-
-    // Otherwise, return the integer part plus the decimal part without trailing zeros
-    decimalPart = decimalPart.substring(0, lastNonZeroIndex + 1);
-    return integerPart + "." + decimalPart;
-  }
->>>>>>> ce852c43c62e (fix: Events analytics query now running in Doris)
 }
