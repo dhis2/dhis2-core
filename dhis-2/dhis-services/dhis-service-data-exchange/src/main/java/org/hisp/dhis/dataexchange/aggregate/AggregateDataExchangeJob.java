@@ -76,9 +76,9 @@ public class AggregateDataExchangeJob implements Job {
   public void execute(JobConfiguration config, JobProgress progress) {
     try {
       DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
-    notifier.clear(config);
-    AggregateDataExchangeJobParameters params =
-        (AggregateDataExchangeJobParameters) config.getJobParameters();
+      notifier.clear(config);
+      AggregateDataExchangeJobParameters params =
+          (AggregateDataExchangeJobParameters) config.getJobParameters();
 
       User currentUser = currentUserService.getCurrentUser();
 
