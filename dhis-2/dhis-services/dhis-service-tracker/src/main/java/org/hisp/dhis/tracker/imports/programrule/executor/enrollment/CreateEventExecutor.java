@@ -75,6 +75,8 @@ public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
     bundle.getEvents().add(scheduledEvent);
     bundle.setStrategy(scheduledEvent, TrackerImportStrategy.CREATE);
 
-    return Optional.empty();
+    return Optional.of(
+        ProgramRuleIssue.warning(
+            programRule, ValidationCode.E1319, scheduledEvent.getEvent().getValue(), scheduledAt));
   }
 }
