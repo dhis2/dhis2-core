@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 import java.util.ArrayList;
@@ -95,9 +94,9 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
 
   @Override
   public void preCreate(JobConfiguration config, ObjectBundle bundle) {
-    if (isEmpty(config.getUserUid()) && config.getJobType().isDefaultExecutedByCreator()) {
+    if (config.getJobType().isDefaultExecutedByCreator()) {
       User currentUser = currentUserService.getCurrentUser();
-      config.setUserUid(currentUser == null ? null : currentUser.getUid());
+      config.setLastUpdatedBy(currentUser);
     }
     setDefaultJobParameters(config);
   }
