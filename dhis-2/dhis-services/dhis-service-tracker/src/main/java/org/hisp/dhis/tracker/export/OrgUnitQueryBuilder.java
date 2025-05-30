@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
 import lombok.AccessLevel;
@@ -98,7 +97,7 @@ public class OrgUnitQueryBuilder {
       String orgUnitTableAlias,
       String trackedEntityTableAlias,
       UserDetails userDetails) {
-    if (orgUnitMode == ALL || getCurrentUserDetails().isSuper()) {
+    if (orgUnitMode == ALL || userDetails.isSuper()) {
       return;
     }
 
