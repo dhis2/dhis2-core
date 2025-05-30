@@ -505,7 +505,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         effectiveSearchOrgUnits,
         captureScopeOrgUnits,
         programTableAlias,
-        orgUnitTableAlias);
+        orgUnitTableAlias,
+        MAIN_QUERY_ALIAS,
+        userDetails);
   }
 
   private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {

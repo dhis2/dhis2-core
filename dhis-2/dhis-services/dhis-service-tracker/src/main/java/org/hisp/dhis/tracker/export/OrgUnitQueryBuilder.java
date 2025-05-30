@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
 import lombok.AccessLevel;
@@ -40,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -94,8 +94,10 @@ public class OrgUnitQueryBuilder {
       Set<OrganisationUnit> effectiveSearchOrgUnits,
       Set<OrganisationUnit> captureScopeOrgUnits,
       String programTableAlias,
-      String orgUnitTableAlias) {
-    if (orgUnitMode == ALL || getCurrentUserDetails().isSuper()) {
+      String orgUnitTableAlias,
+      String trackedEntityTableAlias,
+      UserDetails userDetails) {
+    if (orgUnitMode == ALL || userDetails.isSuper()) {
       return;
     }
 
@@ -119,8 +121,18 @@ public class OrgUnitQueryBuilder {
         .append(programTableAlias)
         .append(".accesslevel in ('PROTECTED', 'CLOSED') and ")
         .append(orgUnitTableAlias)
-        .append(".path like any (:captureScopePaths)))");
+        .append(".path like any (:captureScopePaths))");
     sqlParameters.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
+
+    sql.append(sqlHelper.andOr())
+        .append(
+            "(p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
+        .append(programTableAlias)
+        .append(".programid and trackedentityid = ")
+        .append(trackedEntityTableAlias)
+        .append(".trackedentityid and userid = ")
+        .append(userDetails.getId())
+        .append(" and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))");
   }
 
   private static void addOrgUnitDescendantsCondition(
