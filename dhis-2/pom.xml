@@ -126,7 +126,7 @@
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.11.0-pre2</c3p0.version>
+    <c3p0.version>0.11.1</c3p0.version>
     <HikariCP.version>6.3.0</HikariCP.version>
     <postgresql-driver.version>42.7.6</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
@@ -223,7 +223,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.21.0</testcontainers.version>
+    <testcontainers.version>1.21.1</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
     <swagger.version>2.1.27</swagger.version>
