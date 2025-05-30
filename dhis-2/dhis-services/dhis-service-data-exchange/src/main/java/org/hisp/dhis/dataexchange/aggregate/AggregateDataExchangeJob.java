@@ -82,16 +82,17 @@ public class AggregateDataExchangeJob implements Job {
 
       User currentUser = currentUserService.getCurrentUser();
 
-      if (currentUser == null && config.getLastUpdatedBy() != null) {
+      if (currentUser == null) {
+        String errorMessage = "A valid user is required to run the aggregate data exchange job.";
+        if (config.getLastUpdatedBy() == null) {
+          progress.failedProcess(errorMessage);
+          notifier.notify(config, NotificationLevel.ERROR, errorMessage, true);
+          return;
+        }
         User user = userService.getUser(config.getLastUpdatedBy().getUid());
         if (user == null) {
-          progress.failedProcess(
-              "A valid user is required to run the aggregate data exchange job. It can be set in the job configuration.");
-          notifier.notify(
-              config,
-              NotificationLevel.ERROR,
-              "A valid user is required to run the aggregate data exchange job. It can be set in the job configuration.",
-              true);
+          progress.failedProcess(errorMessage);
+          notifier.notify(config, NotificationLevel.ERROR, errorMessage, true);
           return;
         }
         CurrentUserDetails currentUserDetails = userService.createUserDetails(user);

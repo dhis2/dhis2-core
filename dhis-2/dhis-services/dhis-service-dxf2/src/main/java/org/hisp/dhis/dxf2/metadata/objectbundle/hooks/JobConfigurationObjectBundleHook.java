@@ -96,6 +96,8 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
   public void preCreate(JobConfiguration config, ObjectBundle bundle) {
     if (config.getJobType().isDefaultExecutedByCreator()) {
       User currentUser = currentUserService.getCurrentUser();
+      // lastUpdatedBy is used as it is the only way to store & retrieve user info without affecting
+      // clients of the Job API.
       config.setLastUpdatedBy(currentUser);
     }
     setDefaultJobParameters(config);

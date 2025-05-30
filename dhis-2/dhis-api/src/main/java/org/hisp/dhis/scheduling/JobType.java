@@ -200,8 +200,10 @@ public enum JobType {
   }
 
   /**
-   * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
-   *     creation unless it was set explicitly
+   * @return when true, the {@link JobConfiguration#lastUpdatedBy()} is set to the job creator on
+   *     creation unless it was set explicitly. This is purely a workaround for this version which
+   *     will be supported for 1 more year at the time of writing. Older job scheduling has always
+   *     had issues with users missing during job execution.
    */
   public boolean isDefaultExecutedByCreator() {
     return this == AGGREGATE_DATA_EXCHANGE;
