@@ -112,9 +112,9 @@
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.11.0-pre2</c3p0.version>
+    <c3p0.version>0.11.1</c3p0.version>
     <HikariCP.version>6.3.0</HikariCP.version>
-    <postgresql-driver.version>42.7.5</postgresql-driver.version>
+    <postgresql-driver.version>42.7.6</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
 
@@ -209,7 +209,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.21.0</testcontainers.version>
+    <testcontainers.version>1.21.1</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
     <swagger.version>2.1.27</swagger.version>
