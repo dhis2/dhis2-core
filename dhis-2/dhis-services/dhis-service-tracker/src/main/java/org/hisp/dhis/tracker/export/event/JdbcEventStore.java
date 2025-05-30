@@ -1156,7 +1156,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           ") or p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = te.trackedentityid and userid = "
               + user.getId()
               + " and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))";
-      ;
     } else {
       sql += " )) ";
     }
