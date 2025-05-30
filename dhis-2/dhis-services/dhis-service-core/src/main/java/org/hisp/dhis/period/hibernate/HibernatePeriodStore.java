@@ -35,6 +35,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.StatelessSession;
@@ -172,14 +173,17 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
       return period; // Already in session, no reload needed
     }
 
-    Long id =
-        periodIdCache.get(
-            period.getCacheKey(),
-            key -> getPeriodId(period.getStartDate(), period.getEndDate(), period.getPeriodType()));
+    Long id = periodIdCache.get(period.getCacheKey(), key -> getPeriodId(period));
 
     Period storedPeriod = id != null ? getSession().get(Period.class, id) : null;
 
     return storedPeriod != null ? storedPeriod.copyTransientProperties(period) : null;
+  }
+
+  @CheckForNull
+  @Override
+  public Long getPeriodId(Period period) {
+    return getPeriodId(period.getStartDate(), period.getEndDate(), period.getPeriodType());
   }
 
   private Long getPeriodId(Date startDate, Date endDate, PeriodType periodType) {
