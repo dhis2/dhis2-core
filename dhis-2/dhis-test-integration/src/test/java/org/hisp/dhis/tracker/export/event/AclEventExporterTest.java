@@ -59,6 +59,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -376,6 +377,16 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
                 "Expected to find capture org unit uoNW0E3xXUy, but found "
                     + e.getOrganisationUnit().getUid()
                     + " instead"));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenProgramOpenAndOrgUnitModeCaptureIfEventsOnSearchScopeOnly()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    EventOperationParams params =
+        operationParamsBuilder.program(UID.of("BFcipDERJnf")).orgUnitMode(CAPTURE).build();
+
+    Assertions.assertIsEmpty(eventService.findEvents(params));
   }
 
   @Test
