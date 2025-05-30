@@ -80,6 +80,7 @@ import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -113,7 +114,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Table(name = "categorycombo")
 @Setter
 @JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableObject {
+public class CategoryCombo extends BaseMetadataObject implements SystemDefaultMetadataObject, IdentifiableObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
   @Id
@@ -121,23 +122,8 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @Column(name = "categorycomboid")
   private long id;
 
-  @Column(name = "uid", unique = true, nullable = false, length = 11)
-  private String uid;
-
   @Column(name = "code", unique = true, nullable = true, length = 50)
   private String code;
-
-  @Column(name = "created", nullable = false, updatable = false)
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date created;
-
-  @Column(name = "lastUpdated", nullable = false)
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date lastUpdated;
-
-  @ManyToOne
-  @JoinColumn(name = "lastupdatedby", foreignKey = @ForeignKey(name = "fk_lastupdateby_userid"))
-  private User lastUpdatedBy;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
@@ -174,10 +160,6 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
 
   @Column(name = "skiptotal", nullable = false)
   private boolean skipTotal;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "userid", foreignKey = @ForeignKey(name = "fk_categorycombo_userid"))
-  private User createdBy;
 
   @Column(name = "sharing")
   @Type(type = "jsbObjectSharing")
