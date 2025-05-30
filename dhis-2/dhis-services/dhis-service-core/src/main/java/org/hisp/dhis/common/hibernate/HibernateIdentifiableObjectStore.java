@@ -178,7 +178,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       object.setAutoFields();
 
       object.setAutoFields();
-      object.setLastUpdatedBy(user);
+
+      if (user != null) {
+        object.setLastUpdatedBy(user);
+      }
 
       if (object.getSharing().getOwner() == null) {
         object.getSharing().setOwner(user);

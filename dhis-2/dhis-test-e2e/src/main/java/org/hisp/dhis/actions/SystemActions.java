@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.actions;
 
-import static org.awaitility.Awaitility.await;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.with;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.dto.ApiResponse;
@@ -63,7 +62,7 @@ public class SystemActions extends RestApiActions {
     Callable<Boolean> taskIsCompleted =
         () -> getTask(taskType, taskId).validateStatus(200).extractList("completed").contains(true);
 
-    with().atMost(20, TimeUnit.SECONDS).await().until(() -> taskIsCompleted.call());
+    with().atMost(20, SECONDS).await().until(() -> taskIsCompleted.call());
 
     return getTask(taskType, taskId);
   }
@@ -82,7 +81,11 @@ public class SystemActions extends RestApiActions {
   public ApiResponse waitForTaskSummaries(String taskType, String taskId) {
     String url = String.format("/taskSummaries/%s/%s", taskType, taskId);
 
-    await().ignoreExceptions().until(() -> !get(url).validateStatus(200).getBody().equals(null));
+    with()
+        .atMost(25, SECONDS)
+        .await()
+        .ignoreExceptions()
+        .until(() -> !get(url).validateStatus(200).getBody().equals(null));
 
     return get(url);
   }

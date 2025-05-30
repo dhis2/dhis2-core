@@ -197,6 +197,16 @@ public enum JobType {
     return this == LEADER_ELECTION;
   }
 
+  /**
+   * @return when true, the {@link JobConfiguration#lastUpdatedBy()} is set to the job creator on
+   *     creation unless it was set explicitly. This is purely a workaround for this version which
+   *     will be supported for 1 more year at the time of writing. Older job scheduling has always
+   *     had issues with users missing during job execution.
+   */
+  public boolean isDefaultExecutedByCreator() {
+    return this == AGGREGATE_DATA_EXCHANGE;
+  }
+
   public boolean isUsingNotifications() {
     return this == RESOURCE_TABLE
         || this == SEND_SCHEDULED_MESSAGE
