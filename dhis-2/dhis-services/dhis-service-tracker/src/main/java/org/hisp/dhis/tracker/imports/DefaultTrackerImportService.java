@@ -122,12 +122,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
       trackerBundle.setEvents(result.getEvents());
       trackerBundle.setRelationships(result.getRelationships());
 
-      jobProgress.startingStage("Calculating Payload Size After Rule Engine");
-      Map<TrackerType, Integer> updatedBundleSize =
-          jobProgress.nonNullStagePostCondition(
-              jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
-
-      originalBundleSize = consolidateBundleSize(originalBundleSize, updatedBundleSize);
+      originalBundleSize = consolidateBundleSize(originalBundleSize, trackerBundle);
 
       validationReport = ValidationReport.merge(validationResult, result);
     }
@@ -197,18 +192,18 @@ public class DefaultTrackerImportService implements TrackerImportService {
   }
 
   /**
-   * Consolidates the original and final bundle sizes into a single map. For most {@link
-   * TrackerType}s, it retains the size from the original bundle. However, for {@code
-   * TrackerType.EVENT}, it uses the size from the final bundle since this type may be modified
-   * during rule engine validation phase.
+   * Builds a consolidated map of bundle sizes by combining original sizes with the final state of
+   * the bundle. For all {@link TrackerType}s except {@link TrackerType#EVENT}, the original bundle
+   * size is retained. The {@code EVENT} type is recalculated from the final {@link TrackerBundle},
+   * as rule engine validation process may modify the number of events.
    */
   private Map<TrackerType, Integer> consolidateBundleSize(
-      Map<TrackerType, Integer> originalBundleSize, Map<TrackerType, Integer> finalBundleSize) {
+      Map<TrackerType, Integer> originalBundleSize, TrackerBundle trackerBundle) {
     Map<TrackerType, Integer> consolidated = new EnumMap<>(TrackerType.class);
     for (TrackerType type : TrackerType.values()) {
       int size =
           (type == TrackerType.EVENT)
-              ? finalBundleSize.getOrDefault(type, 0)
+              ? trackerBundle.getEvents().size()
               : originalBundleSize.getOrDefault(type, 0);
 
       consolidated.put(type, size);
