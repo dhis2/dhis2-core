@@ -95,6 +95,9 @@ class EnrollmentQueryParams {
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;
 
+  /** Indicates whether to include tracked entity attribute data in the enrollment */
+  private boolean includeAttributes;
+
   private List<Order> order;
 
   // -------------------------------------------------------------------------

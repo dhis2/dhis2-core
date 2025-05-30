@@ -91,6 +91,7 @@ class EnrollmentOperationParamsMapper {
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
     params.setOrder(operationParams.getOrder());
     params.setEnrollments(operationParams.getEnrollments());
+    params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
 
     mergeOrgUnitModes(operationParams, params, user);
 

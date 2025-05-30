@@ -202,14 +202,15 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testConcat() {
-    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  void testSafeConcat() {
+    assertEquals(
+        "concat(de.uid, pe.iso, ou.uid)", sqlBuilder.safeConcat("de.uid", "pe.iso", "ou.uid"));
   }
 
   @Test
-  void testConcat_FromList() {
+  void testConcat() {
     String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
-    assertEquals("concat(column1, column2, column3)", result);
+    assertEquals("(column1 || column2 || column3)", result);
   }
 
   @Test

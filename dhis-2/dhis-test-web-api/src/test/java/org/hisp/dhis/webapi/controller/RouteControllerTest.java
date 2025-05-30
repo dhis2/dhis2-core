@@ -40,6 +40,7 @@ import static org.mockserver.model.HttpRequest.request;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -198,6 +199,39 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @AfterEach
     void afterEach() {
       upstreamMockServerClient.reset();
+    }
+
+    @Test
+    void testRunRouteAsyncRequestTimeoutIsNotDefault() throws JsonProcessingException {
+      upstreamMockServerClient
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+      long asyncRequestTimeout =
+          webRequestWithMvcResult(
+                  buildMockRequest(
+                      HttpMethod.GET,
+                      "/routes/"
+                          + postHttpResponse
+                              .content()
+                              .get("response.uid")
+                              .as(JsonString.class)
+                              .string()
+                          + "/run",
+                      new ArrayList<>(),
+                      "application/json",
+                      null))
+              .getRequest()
+              .getAsyncContext()
+              .getTimeout();
+
+      assertEquals(Duration.ofMinutes(5).toMillis(), asyncRequestTimeout);
     }
 
     @Test

@@ -80,8 +80,9 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.export.JdbcPredicate;
-import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -259,18 +260,18 @@ class EventOperationParamsMapperTest {
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
 
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = queryParams.getAttributes();
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = queryParams.getAttributes();
     assertNotNull(attributes);
     assertEquals(2, attributes.size());
 
     assertContainsOnly(List.of(tea1, tea2), attributes.keySet());
 
-    List<JdbcPredicate> tea1Filters = attributes.get(tea1);
+    List<FilterJdbcPredicate> tea1Filters = attributes.get(tea1);
     assertEquals(1, tea1Filters.size());
     assertQueryFilterValue(
         tea1Filters.get(0), "=", new SqlParameterValue(Types.INTEGER, List.of(2)));
 
-    List<JdbcPredicate> tea2Filters = attributes.get(tea2);
+    List<FilterJdbcPredicate> tea2Filters = attributes.get(tea2);
     assertEquals(1, tea2Filters.size());
     assertQueryFilterValue(
         tea2Filters.get(0), "=", new SqlParameterValue(Types.VARCHAR, List.of("foo")));
@@ -379,20 +380,20 @@ class EventOperationParamsMapperTest {
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
 
-    Map<DataElement, List<JdbcPredicate>> dataElements = queryParams.getDataElements();
+    Map<DataElement, List<FilterJdbcPredicate>> dataElements = queryParams.getDataElements();
     assertNotNull(dataElements);
 
     assertEquals(2, dataElements.size());
 
     assertContainsOnly(List.of(de1, de2), dataElements.keySet());
 
-    List<JdbcPredicate> de1Filters = dataElements.get(de1);
+    List<FilterJdbcPredicate> de1Filters = dataElements.get(de1);
     assertEquals(2, de1Filters.size());
     assertQueryFilterValue(
         de1Filters.get(0), "=", new SqlParameterValue(Types.INTEGER, List.of(2)));
     assertQueryFilterValue(de1Filters.get(1), "is not null", null);
 
-    List<JdbcPredicate> de2Filters = dataElements.get(de2);
+    List<FilterJdbcPredicate> de2Filters = dataElements.get(de2);
     assertEquals(1, de2Filters.size());
     assertQueryFilterValue(
         de2Filters.get(0), "=", new SqlParameterValue(Types.VARCHAR, List.of("foo")));
@@ -530,7 +531,7 @@ class EventOperationParamsMapperTest {
   }
 
   private static void assertQueryFilterValue(
-      JdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
+      FilterJdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
     assertContains(sqlOperator, actual.getSql());
 
     if (value != null) {

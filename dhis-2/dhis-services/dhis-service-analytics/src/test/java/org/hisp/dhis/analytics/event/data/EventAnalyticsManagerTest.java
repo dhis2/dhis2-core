@@ -94,6 +94,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
@@ -176,6 +177,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
+    SystemSettings mockSettings = mock(SystemSettings.class);
+    when(systemSettingsService.getCurrentSettings()).thenReturn(mockSettings);
   }
 
   @Test

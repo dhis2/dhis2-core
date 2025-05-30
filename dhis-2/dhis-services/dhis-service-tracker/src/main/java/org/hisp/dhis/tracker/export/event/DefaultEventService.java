@@ -33,7 +33,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -49,9 +48,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -59,8 +55,6 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,98 +72,11 @@ class DefaultEventService implements EventService {
 
   private final IdentifiableObjectManager manager;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   private final DataElementService dataElementService;
-
-  private final FileResourceService fileResourceService;
 
   private final EventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
-
-  @Override
-  public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
-      throws NotFoundException, ForbiddenException {
-    FileResource fileResource = getFileResourceMetadata(event, dataElement);
-    return FileResourceStream.of(fileResourceService, fileResource);
-  }
-
-  @Override
-  public FileResourceStream getFileResourceImage(
-      @Nonnull UID event, @Nonnull UID dataElement, ImageFileDimension dimension)
-      throws NotFoundException, ForbiddenException {
-    FileResource fileResource = getFileResourceMetadata(event, dataElement);
-    return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
-  }
-
-  private FileResource getFileResourceMetadata(UID eventUid, UID dataElementUid)
-      throws NotFoundException, ForbiddenException {
-    // EventOperationParamsMapper throws BadRequestException if the data element is not found but
-    // we need the NotFoundException here
-    DataElement dataElement = dataElementService.getDataElement(dataElementUid.getValue());
-    if (dataElement == null) {
-      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
-    }
-    if (!dataElement.getValueType().isFile()) {
-      throw new NotFoundException(
-          "Data element " + dataElementUid.getValue() + " is not a file (or image).");
-    }
-
-    Page<Event> events;
-    try {
-      EventOperationParams operationParams =
-          EventOperationParams.builder()
-              .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-              .events(Set.of(eventUid))
-              .filterByDataElement(dataElementUid)
-              .build();
-      events = findEvents(operationParams, PageParams.single());
-    } catch (BadRequestException e) {
-      throw new IllegalArgumentException(
-          "this must be a bug in how the EventOperationParams are built");
-    }
-    if (events.getItems().isEmpty()) {
-      throw new NotFoundException(
-          "Event "
-              + eventUid.getValue()
-              + " with data element "
-              + dataElementUid.getValue()
-              + " could not be found.");
-    }
-    Event event = events.getItems().get(0);
-
-    List<String> errors =
-        trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement, false);
-    if (!errors.isEmpty()) {
-      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
-    }
-
-    String fileResourceUid = null;
-    for (EventDataValue eventDataValue : event.getEventDataValues()) {
-      if (dataElementUid.getValue().equals(eventDataValue.getDataElement())) {
-        fileResourceUid = eventDataValue.getValue();
-        break;
-      }
-    }
-
-    if (fileResourceUid == null) {
-      throw new NotFoundException(
-          "DataValue for data element " + dataElementUid.getValue() + " could not be found.");
-    }
-
-    return fileResourceService.getExistingFileResource(fileResourceUid);
-  }
-
-  @Nonnull
-  @Override
-  public Optional<Event> findEvent(@Nonnull UID event) {
-    try {
-      return Optional.of(getEvent(event));
-    } catch (NotFoundException e) {
-      return Optional.empty();
-    }
-  }
 
   @Nonnull
   @Override
