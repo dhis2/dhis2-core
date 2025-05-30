@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
@@ -186,5 +189,35 @@ public class ValidationHelper {
    */
   public static void validateRow(ApiResponse response, List<String> expectedValues) {
     response.validate().body("rows", hasItems(expectedValues));
+  }
+
+  /**
+   * Validate/assert that a response contains a dataValue with the given properties.
+   *
+   * @param response The ApiResponse object.
+   * @param dataElement The dataElement of the dataValue.
+   * @param period The period of the dataValue.
+   * @param orgUnit The orgUnit of the dataValue.
+   * @param categoryOptionCombo The categoryOptionCombo of the dataValue.
+   * @param value The value of the dataValue.
+   */
+  public static void validateDataValue(
+      ApiResponse response,
+      String dataElement,
+      String period,
+      String orgUnit,
+      String categoryOptionCombo,
+      String value) {
+    response
+        .validate()
+        .body(
+            "dataValues",
+            hasItem(
+                allOf(
+                    hasEntry("dataElement", dataElement),
+                    hasEntry("period", period),
+                    hasEntry("orgUnit", orgUnit),
+                    hasEntry("value", value),
+                    hasEntry("categoryOptionCombo", categoryOptionCombo))));
   }
 }

@@ -700,7 +700,8 @@ public enum ConfigurationKey {
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
   /** The maximum number of category options in a single category */
-  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "50", false),
+
   /** The maximum number of categories per category combo */
   METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
   /**

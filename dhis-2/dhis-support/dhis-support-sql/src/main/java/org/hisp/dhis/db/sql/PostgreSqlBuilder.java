@@ -31,6 +31,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import java.util.List;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -245,6 +246,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("%s ~* %s", value, pattern);
   }
 
+  /**
+   * Postgres functions, including concat(), can only take up to 40 arguments. Program indicator
+   * disaggregation needs concatenation of a larger list of strings that are known to be non-null.
+   * Using the concatenation operator there is no limit on the number of strings that can be joined.
+   */
+  @Override
+  public String concat(List<String> columns) {
+    return "(" + String.join(" || ", columns) + ")";
+  }
+
   @Override
   public String coalesce(String expression, String defaultValue) {
     return "coalesce(" + expression + ", " + defaultValue + ")";
@@ -359,7 +370,8 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
         String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
         String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
 
-        sql.append(quote(column.getName()) + " ")
+        sql.append(quote(column.getName()))
+            .append(" ")
             .append(dataType)
             .append(nullable)
             .append(collation)
@@ -383,7 +395,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     if (table.hasChecks()) {
       for (String check : table.getChecks()) {
-        sql.append("check(" + check + ")").append(COMMA);
+        sql.append("check(").append(check).append(")").append(COMMA);
       }
     }
 
