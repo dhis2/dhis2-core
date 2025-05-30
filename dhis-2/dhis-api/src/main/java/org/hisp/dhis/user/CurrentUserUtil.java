@@ -30,7 +30,9 @@ package org.hisp.dhis.user;
 import java.io.Serializable;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -144,5 +146,21 @@ public class CurrentUserUtil {
         }
       }
     }
+  }
+
+  public static void injectUserInSecurityContext(UserDetails actingUser) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
+  public static void clearSecurityContext() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
+    SecurityContextHolder.clearContext();
   }
 }
