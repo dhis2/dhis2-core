@@ -104,6 +104,12 @@ public enum ConfigurationKey {
   /** Analytics Database connection URL. */
   ANALYTICS_CONNECTION_URL("analytics.connection.url", "", false),
 
+  /** Tracker Read Replica Database connection URL. */
+  TRACKER_READ_REPLICA_CONNECTION_URL("tracker.read_replica.connection.url", "", false),
+
+  /** Use read replica database for tracker queries. (default: false) */
+  TRACKER_READ_REPLICA_ENABLED("tracker.read_replica.enabled", Constants.OFF, false),
+
   /** Database username. */
   CONNECTION_USERNAME("connection.username", "", false),
 
