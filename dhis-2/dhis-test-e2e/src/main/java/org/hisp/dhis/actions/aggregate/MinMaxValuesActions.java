@@ -25,34 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.actions.aggregate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.minmax.MinMaxValue;
-import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * DTO which represents data values and min-max values for a data entry form.
- *
- * @author Lars Helge Overland
+ * @author Jason P. Pickering <jason@dhis2.org>
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-public class DataValuesDto {
-  @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
+public class MinMaxValuesActions extends RestApiActions {
+  public MinMaxValuesActions() {
+    super("/minMaxDataElements ");
+  }
 
-  @JsonProperty private List<MinMaxValue> minMaxValues = new ArrayList<>();
-
-  @JsonProperty private LockStatus lockStatus;
-
-  @JsonProperty private CompleteStatusDto completeStatus;
+  public MinMaxValuesActions(String endpoint) {
+    super("/minMaxDataElements/" + endpoint);
+  }
 }
