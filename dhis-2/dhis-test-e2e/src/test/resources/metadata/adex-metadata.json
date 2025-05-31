@@ -1,0 +1,111 @@
+{
+  "dataSets": [
+    {
+      "name": "ANX DX test",
+      "shortName": "ANC DX test",
+      "periodType": "Monthly",
+      "dataSetElements": [
+        {
+          "dataSet": {
+            "id": "H91km2xaqGN"
+          },
+          "dataElement": {
+            "id": "ny4hnfb4rDF"
+          }
+        }
+      ],
+      "indicators": [
+        {
+          "id": "N2OO7qp1XhT"
+        }
+      ],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "id": "H91km2xaqGN",
+      "organisationUnits": [
+        {
+          "id": "ImspTQPwCqd"
+        }
+      ]
+    }
+  ],
+  "dataElements": [
+    {
+      "code": "ANC1_TARGET",
+      "name": "ANC1 target",
+      "shortName": "ANC1 target",
+      "aggregationType": "SUM",
+      "valueType": "INTEGER_ZERO_OR_POSITIVE",
+      "domainType": "AGGREGATE",
+      "id": "ny4hnfb4rDF",
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      }
+    }
+  ],
+  "indicators": [
+    {
+      "code": "ANC1_TARGET",
+      "name": "ANC1 source",
+      "sharing": {
+        "owner": "xE7jOejl9FI",
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      },
+      "shortName": "ANC1 source",
+      "indicatorType": {
+        "id": "JkWynlWMjJR"
+      },
+      "numerator": "#{fbfJHSPpUQD}",
+      "numeratorDescription": "ANC 1",
+      "denominator": "1",
+      "denominatorDescription": "1",
+      "id": "N2OO7qp1XhT"
+    }
+  ],
+  "indicatorTypes": [
+    {
+      "name": "test indicator type",
+      "id": "JkWynlWMjJR",
+      "factor": 12,
+      "number": true
+    }
+  ],
+  "aggregateDataExchanges": [
+    {
+      "name": "ANC test",
+      "source": {
+        "requests": [
+          {
+            "name": "ANC 1",
+            "dx": [
+              "N2OO7qp1XhT"
+            ],
+            "pe": [
+              "LAST_12_MONTHS"
+            ],
+            "ou": [
+              "fdc6uOvgoji",
+              "LEVEL-m9lBJogzE95"
+            ],
+            "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "CODE",
+            "outputOrgUnitIdScheme": "CODE",
+            "outputIdScheme": "CODE"
+          }
+        ]
+      },
+      "target": {
+        "type": "INTERNAL",
+        "request": {
+          "dataElementIdScheme": "CODE",
+          "idScheme": "CODE"
+        }
+      },
+      "id": "R9Urc25BSio"
+    }
+  ]
+}

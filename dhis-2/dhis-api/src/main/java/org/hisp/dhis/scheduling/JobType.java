@@ -193,7 +193,7 @@ public enum JobType {
    *     creation unless it was set explicitly
    */
   public boolean isDefaultExecutedByCreator() {
-    return this == HTML_PUSH_ANALYTICS;
+    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE;
   }
 
   /**
