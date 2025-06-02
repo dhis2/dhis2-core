@@ -41,7 +41,6 @@ import jakarta.persistence.EntityManager;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +54,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -100,8 +98,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           entry(ENROLLMENT_DATE_KEY, ENROLLMENT_DATE_ALIAS),
           entry("inactive", "inactive"));
 
-  private final OrganisationUnitStore organisationUnitStore;
-
   private final SystemSettingsProvider settingsProvider;
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -119,7 +115,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     checkNotNull(organisationUnitStore);
     checkNotNull(settingsProvider);
 
-    this.organisationUnitStore = organisationUnitStore;
     this.settingsProvider = settingsProvider;
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
@@ -497,10 +492,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         programTableAlias,
         orgUnitTableAlias,
         MAIN_QUERY_ALIAS);
-  }
-
-  private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
-    return new HashSet<>(organisationUnitStore.getByUid(uids));
   }
 
   /**
