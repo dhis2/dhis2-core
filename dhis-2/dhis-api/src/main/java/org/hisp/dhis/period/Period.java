@@ -353,7 +353,7 @@ public class Period extends BaseDimensionalItemObject {
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || (obj instanceof Period && objectEquals((Period) obj));
+    return this == obj || (obj instanceof Period period && objectEquals(period));
   }
 
   private boolean objectEquals(Period other) {
