@@ -225,14 +225,20 @@ services:
     image: timberio/vector:0.46.1-alpine
     command:
       ["-c", "/etc/vector/vector.toml"]
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     volumes:
       - ./docker/vector.toml:/etc/vector/vector.toml:ro
-      # Use nginx logs directory from the nginx container instead of host
       - type: volume
         source: nginx-logs
         target: /var/log/nginx
+      # mount CA certificate for secure Elasticsearch communication
+      - certs:/etc/vector/certs:ro
     depends_on:
-      - nginx
+      nginx:
+        condition: service_started
+      es01:
+        condition: service_healthy
 
 volumes:
   db-dump: {}

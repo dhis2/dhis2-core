@@ -39,28 +39,32 @@ source = '''
 }
 '''
 
-# TODO Elasticsearch's Data streams feature requires Vector to be configured with the create bulk.action. This is not enabled by default.
 # =====================================================
 # SINK CONFIGURATION FOR ELASTICSEARCH
 # =====================================================
-# [sinks.elasticsearch]
-# type = "elasticsearch"
-# inputs = ["parse_nginx"]
-# endpoint = "http://es01:9200"
-# index = "nginx-logs-%Y.%m.%d"
-# compression = "gzip"
-# Elasticsearch authentication if needed
-# auth.strategy = "basic"
-# auth.user = "elastic"
-# auth.password = "password"
+# use this sink when running with the full ELK stack (docker compose --profile logs up)
+[sinks.elasticsearch]
+type = "elasticsearch"
+inputs = ["parse_nginx"]
+endpoints = ["https://es01:9200"]
+bulk.action = "create"
+bulk.index = "nginx-logs-%Y.%m.%d"
+compression = "gzip"
+# elasticsearch authentication (required for Elasticsearch 9.x)
+auth.strategy = "basic"
+auth.user = "elastic"
+auth.password = "${ELASTIC_PASSWORD}"
+# SSL configuration (required for secure Elasticsearch setup)
+tls.ca_file = "/etc/vector/certs/ca/ca.crt"
+tls.verify_certificate = true
+tls.verify_hostname = true
 
 # =====================================================
 # LOCAL DEBUGGING SINK CONFIGURATION
 # =====================================================
-# uncomment this configuration instead of the above elasticsearch for local debugging to see json
-# output
-[sinks.console]
-type = "console"
-inputs = ["parse_nginx"]
-encoding.codec = "json"
-target = "stdout"
+# comment out the elasticsearch sink above and uncomment this section
+# [sinks.console]
+# type = "console"
+# inputs = ["parse_nginx"]
+# encoding.codec = "json"
+# target = "stdout"
