@@ -31,9 +31,7 @@ package org.hisp.dhis.analytics.aggregate;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
-import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -133,9 +131,6 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
 
   @Test
   public void tableLayoutKeepOrderOfColumnsHeaders() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
-
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -153,14 +148,14 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
 
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
-    validateResponseStructure(
-        response,
-        expectPostgis,
-        12,
-        11,
-        8); // Pass runtime flag, row count, and expected header counts
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(8)))
+        .body("rows", hasSize(equalTo(12)))
+        .body("height", equalTo(12))
+        .body("width", equalTo(8))
+        .body("headerWidth", equalTo(8));
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -175,71 +170,48 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "Period ID", "periodid", "TEXT", "java.lang.String", true, true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "Period", "periodname", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
+    validateHeader(response, 0, "Period ID", "periodid", "TEXT", "java.lang.String", true, true);
+    validateHeader(response, 1, "Period", "periodname", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 2, "Period code", "periodcode", "TEXT", "java.lang.String", true, true);
+    validateHeader(
         response,
-        actualHeaders,
-        "Period code",
-        "periodcode",
-        "TEXT",
-        "java.lang.String",
-        true,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
+        3,
         "Period description",
         "perioddescription",
         "TEXT",
         "java.lang.String",
         true,
         true);
-    validateHeaderPropertiesByName(
+    validateHeader(
         response,
-        actualHeaders,
+        4,
         "anc 1 coverage",
         "ANC 1 Coverage",
         "NUMBER",
         "java.lang.Double",
         false,
         false);
-    validateHeaderPropertiesByName(
+    validateHeader(
         response,
-        actualHeaders,
+        5,
         "anc 2 coverage",
         "ANC 2 Coverage",
         "NUMBER",
         "java.lang.Double",
         false,
         false);
-    validateHeaderPropertiesByName(
+    validateHeader(
         response,
-        actualHeaders,
+        6,
         "anc 3 coverage",
         "ANC 3 Coverage",
         "NUMBER",
         "java.lang.Double",
         false,
         false);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "anc 2nd visit",
-        "ANC 2nd visit",
-        "NUMBER",
-        "java.lang.Double",
-        false,
-        false);
-
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
+    validateHeader(
+        response, 7, "anc 2nd visit", "ANC 2nd visit", "NUMBER", "java.lang.Double", false, false);
 
     // rowContext not found or empty in the response, skipping assertions.
 
