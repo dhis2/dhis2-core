@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.oneOf;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -218,6 +219,19 @@ public class ProgramActions extends RestApiActions {
     JsonObjectBuilder.jsonObject(object);
 
     return this.update(programId, object).validateStatus(200);
+  }
+
+  /** Adds or replaces program category mappings (idempotent) */
+  public ApiResponse addOrReplaceCategoryMappings(String programId, List<JsonObject> mappings) {
+    JsonObjectBuilder builder =
+        this.get(programId, new QueryParamsBuilder().add("fields=*")).getBodyAsJsonBuilder();
+
+    for (JsonObject mapping : mappings) {
+      builder.removeFromArray("categoryMappings", "categoryId", mapping.get("categoryId"));
+      builder.addOrAppendToArray("categoryMappings", mapping);
+    }
+
+    return this.update(programId, builder.build()).validateStatus(200);
   }
 
   public JsonObject buildProgram() {

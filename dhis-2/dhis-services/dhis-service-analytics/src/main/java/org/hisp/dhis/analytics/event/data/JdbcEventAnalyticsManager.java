@@ -40,6 +40,7 @@ import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
+import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
@@ -54,6 +55,7 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +69,8 @@ import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -74,12 +78,14 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInit
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -90,9 +96,11 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
@@ -148,7 +156,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql = getAggregatedEnrollmentsSql(params, maxLimit);
+    String sql =
+        useExperimentalAnalyticsQueryEngine()
+            ? buildEnrollmentQueryWithCte(params)
+            : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -276,7 +287,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     } else {
       count =
           withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
-              .orElse(0l);
+              .orElse(0L);
     }
 
     return count;
@@ -354,6 +365,43 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return "select " + StringUtils.join(selectCols, ",") + " ";
   }
 
+  @Override
+  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+    Set<String> columns = new LinkedHashSet<>();
+
+    // Get the CTE definition for the item
+    CteDefinition cteDef = cteContext.getDefinitionByItemUid(computeKey(item));
+    if (cteDef == null) {
+      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
+    }
+    int programStageOffset = computeRowNumberOffset(item.getProgramStageOffset());
+    // calculate the alias for the column
+    // if the item is not a repeatable stage, the alias is the program stage + item name
+    String alias =
+        getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
+    columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
+    if (cteDef.isRowContext()) {
+      // Add additional status and exists columns for row context
+      columns.add(
+          "coalesce(%s.rn = %s, false) as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  programStageOffset + 1,
+                  quote(alias + ".exists")));
+      columns.add(
+          "%s.eventstatus as %s"
+              .formatted(cteDef.getAlias(programStageOffset), quote(alias + ".status")));
+    }
+    return String.join(",\n", columns);
+  }
+
+  @Override
+  void addFromClause(SelectBuilder sb, EventQueryParams params) {
+
+    // FIXME: use same logic from `getFromClause` method
+    sb.from(params.getTableName(), "ax");
+  }
+
   /**
    * Returns a list of names of standard columns.
    *
@@ -410,12 +458,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
-  }
-
-  @Override
-  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
-    // TODO: Implement
-    return "";
   }
 
   /**
@@ -862,7 +904,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     String partitionColumns =
         dimensions.stream()
             .map(DimensionalObject::getDimensionName)
-            .map(col -> sqlBuilder.quoteAx(col))
+            .map(sqlBuilder::quoteAx)
             .collect(Collectors.joining(","));
 
     String sql = "";
@@ -915,6 +957,70 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     return coors;
+  }
+
+  @Override
+  void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
+
+    List<String> columns = new ArrayList<>(getStandardColumns(params));
+    addDimensionSelectColumns(columns, params, false);
+    addEventsItemSelectColumns(columns, params, cteContext);
+
+    columns.forEach(
+        column -> {
+          if (columnIsInFormula(column) || hasColunnPrefix(column, "ax")) {
+            sb.addColumn(column);
+          } else {
+            sb.addColumn(column, "ax");
+          }
+        });
+    if (cteContext.hasCteDefinitions()) {
+      // if there are no CTEs, we can use the standard columns
+      getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
+    }
+  }
+
+  private void addEventsItemSelectColumns(
+      List<String> columns, EventQueryParams params, CteContext cteContext) {
+    for (QueryItem queryItem : params.getItems()) {
+      ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
+
+      if (columnAndAlias != null && !cteContext.containsCte(columnAndAlias.alias)) {
+        columns.add(columnAndAlias.asSql());
+      }
+
+      // asked for row context if allowed and needed based on column and its alias
+      handleRowContext(columns, params, queryItem, columnAndAlias);
+    }
+  }
+
+  private boolean hasColunnPrefix(String column, String prefix) {
+    return column.startsWith(prefix + ".");
+  }
+
+  @Override
+  protected CteContext getCteDefinitions(EventQueryParams params) {
+    return getCteDefinitions(params, null);
+  }
+
+  @Override
+  CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
+    if (cteContext == null) {
+      cteContext = new CteContext(EndpointItem.EVENT);
+    }
+
+    for (QueryItem item : params.getItems()) {
+      if (item.isProgramIndicator()) {
+        ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
+        // Handle any program indicator CTE logic.
+        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)) {
+          // CTE needed only for Enrollment type
+          handleProgramIndicatorCte(item, cteContext, params);
+        }
+      }
+    }
+
+    return cteContext;
   }
 
   protected static class ExceptionHandler {

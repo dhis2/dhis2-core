@@ -32,12 +32,10 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
@@ -355,10 +353,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     addJoinOnAttributes(sql, params);
     sql.append(" ");
 
-    SqlHelper whereAnd = new SqlHelper(true);
-    addAttributeFilterConditions(sql, sqlParameters, params, whereAnd);
-    addTrackedEntityConditions(sql, sqlParameters, params, whereAnd);
-    addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, whereAnd);
+    SqlHelper sqlHelper = new SqlHelper(true);
+    addAttributeFilterConditions(sql, sqlParameters, params, sqlHelper);
+    addTrackedEntityConditions(sql, sqlParameters, params, sqlHelper);
+    addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, sqlHelper);
 
     if (!isCountQuery) {
       sql.append(" ");
@@ -482,7 +480,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     Set<OrganisationUnit> captureScopeOrgUnits =
         getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
 
-    sql.append("inner join organisationunit ou on ou.organisationunitid = ");
+    String orgUnitTableAlias = "ou";
+    String programTableAlias = "p";
+
+    sql.append("inner join organisationunit ");
+    sql.append(orgUnitTableAlias);
+    sql.append(" on ou.organisationunitid = ");
     if (params.hasEnrolledInTrackerProgram()) {
       sql.append("po.organisationunitid ");
     } else {
@@ -491,68 +494,22 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (params.hasOrganisationUnits()) {
       sql.append("and ");
-      if (params.isOrganisationUnitMode(DESCENDANTS)) {
-        addOrgUnitDescendantsCondition(sql, params);
-      } else if (params.isOrganisationUnitMode(CHILDREN)) {
-        addOrgUnitsChildrenCondition(sql, params);
-      } else if (params.isOrganisationUnitMode(SELECTED)) {
-        sql.append("ou.organisationunitid in (:orgUnits)");
-        sqlParameters.addValue("orgUnits", getIdentifiers(params.getOrgUnits()));
-      }
-      sql.append(" ");
+      buildOrgUnitModeClause(
+          sql, sqlParameters, params.getOrgUnits(), params.getOrgUnitMode(), orgUnitTableAlias);
     }
 
-    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
-      return;
-    }
-
-    sql.append(
-        "and ((p.accesslevel in ('OPEN', 'AUDITED') and (ou.path like any (:effectiveSearchScopePaths))) ");
-    sqlParameters.addValue(
-        "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
-
-    sql.append(
-        "or (p.accesslevel in ('PROTECTED', 'CLOSED') and (ou.path like any (:captureScopePaths))))");
-    sqlParameters.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
+    buildOwnershipClause(
+        sql,
+        sqlParameters,
+        params.getOrgUnitMode(),
+        effectiveSearchOrgUnits,
+        captureScopeOrgUnits,
+        programTableAlias,
+        orgUnitTableAlias);
   }
 
   private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
     return new HashSet<>(organisationUnitStore.getByUid(uids));
-  }
-
-  private String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
-    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
-  }
-
-  private void addOrgUnitDescendantsCondition(StringBuilder sql, TrackedEntityQueryParams params) {
-    SqlHelper orHlp = new SqlHelper(true);
-
-    sql.append("(");
-    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-      sql.append(orHlp.or())
-          .append("ou.path like '")
-          .append(organisationUnit.getStoredPath())
-          .append("%'");
-    }
-    sql.append(")");
-  }
-
-  private void addOrgUnitsChildrenCondition(StringBuilder sql, TrackedEntityQueryParams params) {
-    SqlHelper orHlp = new SqlHelper(true);
-
-    sql.append("(");
-    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-      sql.append(orHlp.or())
-          .append(" ou.path like '")
-          .append(organisationUnit.getStoredPath())
-          .append("%'")
-          .append(" and (ou.hierarchylevel = ")
-          .append(organisationUnit.getHierarchyLevel())
-          .append(" or ou.hierarchylevel = ")
-          .append((organisationUnit.getHierarchyLevel() + 1))
-          .append(")");
-    }
-    sql.append(")");
   }
 
   /**

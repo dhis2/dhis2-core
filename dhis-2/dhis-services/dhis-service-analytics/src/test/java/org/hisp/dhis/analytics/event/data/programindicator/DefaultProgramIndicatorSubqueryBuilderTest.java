@@ -57,6 +57,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -115,7 +116,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     programIndicator.setProgram(program);
     programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT); // Focus on enrollment context
 
-    cteContext = new CteContext();
+    cteContext = new CteContext(EndpointItem.ENROLLMENT);
 
     program = new Program();
     program.setUid(programUid);
@@ -746,7 +747,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testBuildLeftJoins_HandlesDifferentCteTypes() {
-    CteContext localCteContext = new CteContext();
+    CteContext localCteContext = new CteContext(EndpointItem.ENROLLMENT);
     String varKey = "varKey1";
     String psdeKey1 = "psdeKey1";
     String psdeKey2 = "psdeKey2";

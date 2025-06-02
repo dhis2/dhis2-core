@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.hisp.dhis.program.AnalyticsType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -65,7 +66,8 @@ class CteDefinitionTest {
     @Test
     @DisplayName("forProgramIndicator sets the expected flags and values")
     void forProgramIndicator_happyPath() {
-      var cte = CteDefinition.forProgramIndicator("piUid", "select *", true);
+      var cte =
+          CteDefinition.forProgramIndicator("piUid", AnalyticsType.ENROLLMENT, "select *", true);
 
       assertAll(
           () -> assertEquals("piUid", cte.getProgramIndicatorUid()),
@@ -180,7 +182,7 @@ class CteDefinitionTest {
     @Test
     @DisplayName("getAlias() returns raw alias when no offsets present")
     void rawAliasWhenNoOffsets() {
-      var cte = CteDefinition.forProgramIndicator("pi", "sql", false);
+      var cte = CteDefinition.forProgramIndicator("pi", AnalyticsType.ENROLLMENT, "sql", false);
       assertRandomAlias(cte.getAlias());
     }
 
@@ -275,9 +277,10 @@ class CteDefinitionTest {
   void testForProgramIndicatorFactorySetsCorrectType() {
     String piUid = "piUid";
     String sql = "SELECT ...";
-    CteDefinition result = CteDefinition.forProgramIndicator(piUid, sql, true);
+    CteDefinition result =
+        CteDefinition.forProgramIndicator(piUid, AnalyticsType.ENROLLMENT, sql, true);
     assertNotNull(result);
-    assertEquals(CteDefinition.CteType.PROGRAM_INDICATOR, result.getCteType());
+    assertEquals(CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT, result.getCteType());
     assertTrue(result.isRequiresCoalesce());
   }
 

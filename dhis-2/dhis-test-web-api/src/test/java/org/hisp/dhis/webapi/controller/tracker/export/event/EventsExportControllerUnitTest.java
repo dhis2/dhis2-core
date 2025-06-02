@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,7 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class EventsExportControllerUnitTest {
-  @Mock private EventService eventService;
+  @Mock private TrackerEventService eventService;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
@@ -70,18 +70,7 @@ class EventsExportControllerUnitTest {
             IllegalStateException.class,
             () ->
                 new EventsExportController(
-                    eventService,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null));
+                    eventService, null, null, null, null, null, null, null, null, null, null));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),
