@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -89,8 +88,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
-    return concat(ListUtils.of(columns));
+  public String safeConcat(String... columns) {
+    return "concat(" + String.join(", ", columns) + ")";
   }
 
   @Override

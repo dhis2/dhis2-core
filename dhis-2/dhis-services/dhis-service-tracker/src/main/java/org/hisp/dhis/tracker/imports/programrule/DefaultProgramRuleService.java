@@ -50,9 +50,9 @@ import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.event.EventFields;
-import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -69,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultProgramRuleService implements ProgramRuleService {
   private final ProgramRuleEngine programRuleEngine;
 
-  private final EventService eventService;
+  private final TrackerEventService trackerEventService;
 
   private final RuleActionEnrollmentMapper ruleActionEnrollmentMapper;
 
@@ -94,7 +94,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             RuleEngineEffects.merge(
                 calculateEnrollmentRuleEffects(bundle, preheat),
                 calculateTrackerEventRuleEffects(bundle, preheat)),
-            calculateProgramEventRuleEffects(bundle, preheat));
+            calculateSingleEventRuleEffects(bundle, preheat));
 
     bundle.setEnrollmentNotifications(ruleEffects.getEnrollmentNotifications());
     bundle.setEventNotifications(ruleEffects.getEventNotifications());
@@ -150,7 +150,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .orElse(RuleEngineEffects.empty());
   }
 
-  private RuleEngineEffects calculateProgramEventRuleEffects(
+  private RuleEngineEffects calculateSingleEventRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
     Map<Program, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents =
         bundle.getEvents().stream()
@@ -162,7 +162,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             entry -> {
               List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
 
-              return programRuleEngine.evaluateProgramEvents(
+              return programRuleEngine.evaluateSingleEvents(
                   events, entry.getKey(), bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)
@@ -216,10 +216,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
     Stream<Event> events;
     try {
       events =
-          eventService
+          trackerEventService
               .findEvents(
-                  EventOperationParams.builder()
-                      .fields(EventFields.all())
+                  TrackerEventOperationParams.builder()
+                      .fields(TrackerEventFields.all())
                       .orgUnitMode(ACCESSIBLE)
                       .enrollments(Set.of(enrollmentUid))
                       .build())

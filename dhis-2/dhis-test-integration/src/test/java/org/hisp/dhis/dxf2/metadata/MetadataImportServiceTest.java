@@ -999,11 +999,11 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
     TypeReport typeReport = report.getTypeReport(AggregateDataExchange.class);
 
-    assertNotNull(report.getAccumulatedStats());
+    assertNotNull(report.getStats());
     assertNotNull(typeReport);
     assertEquals(Status.OK, report.getStatus(), report.toString());
     assertEquals(0, report.getErrorReportsCount());
-    assertEquals(6, report.getAccumulatedStats().created());
+    assertEquals(6, report.getStats().created());
     assertEquals(3, typeReport.getStats().created());
 
     AggregateDataExchange aeA = manager.get(AggregateDataExchange.class, "iFOyIpQciyk");

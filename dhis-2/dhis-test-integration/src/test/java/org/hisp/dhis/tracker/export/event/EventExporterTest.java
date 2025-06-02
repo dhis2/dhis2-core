@@ -131,8 +131,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
     List<Event> events = eventService.findEvents(params);
 
-    assertEquals(
-        get(Event.class, "D9PbzJY8bJM").getAssignedUser(), events.get(0).getAssignedUser());
+    assertEquals("M5zQapPyTZI", events.get(0).getAssignedUser().getUid());
   }
 
   @Test

@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.event;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -84,6 +84,7 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.export.EventUtils;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -919,19 +920,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
-    if (params.getProgramType() != null) {
-      sqlParameters.addValue("programType", params.getProgramType().name());
-
-      fromBuilder.append(hlp.whereAnd()).append(" p.type = ").append(":programType").append(" ");
-    }
-
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
     if (params.getEvents() != null
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
       sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.uid in (").append(":ev_uid").append(") ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {

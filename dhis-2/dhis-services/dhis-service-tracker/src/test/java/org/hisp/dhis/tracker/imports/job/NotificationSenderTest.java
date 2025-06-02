@@ -222,13 +222,13 @@ class NotificationSenderTest {
 
   @Test
   void
-      shouldPassValidationForProgramEventWhenSchedulingMessageAndNotRepeatableNotificationLogIsPresent() {
+      shouldPassValidationForSingleEventWhenSchedulingMessageAndNotRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
     Notification ruleEffect = scheduleMessage();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
     when(notificationTemplateService.createNotificationInstance(template, ruleEffect.scheduledAt()))
         .thenReturn(new ProgramNotificationInstance());
-    notificationSender.send(ruleEffect, programEvent());
+    notificationSender.send(ruleEffect, singleEvent());
 
     verify(programNotificationInstanceService, times(1)).save(any());
     verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
@@ -237,11 +237,11 @@ class NotificationSenderTest {
 
   @Test
   void
-      shouldPassValidationForProgramEventWhenSendingMessageAndNotRepeatableNotificationLogIsPresent() {
+      shouldPassValidationForSingleEventWhenSendingMessageAndNotRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
     Notification ruleEffect = sendMessage();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
-    notificationSender.send(ruleEffect, programEvent());
+    notificationSender.send(ruleEffect, singleEvent());
 
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, times(1))
@@ -354,7 +354,7 @@ class NotificationSenderTest {
     return event;
   }
 
-  private Event programEvent() {
+  private Event singleEvent() {
     Program program = new Program();
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     Event event = new Event();

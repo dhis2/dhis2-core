@@ -785,6 +785,7 @@
   "programStages": [
     {
       "id": "NpsdDv6kKSO",
+      "enableUserAssignment": true,
       "attributeValues": [
         {
           "attribute": {
@@ -1536,7 +1537,7 @@
       "id": "shPjYNifvMK",
       "accessLevel": "OPEN",
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "O4VaNks6tta"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
