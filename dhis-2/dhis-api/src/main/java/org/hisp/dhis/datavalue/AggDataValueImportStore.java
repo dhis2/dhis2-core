@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
-public interface AggDataValueStore {
+public interface AggDataValueImportStore {
 
   int deleteByKeys(List<AggDataValueKey> keys);
 
@@ -58,5 +58,13 @@ public interface AggDataValueStore {
 
   Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements);
 
+  Map<String, String> getPeriodTypeByDataSet(Stream<UID> dataSets);
+
   Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements);
+
+  /**
+   * @return The {@link org.hisp.dhis.period.PeriodType} names for the given ISO periods. Does not
+   *     contain ISO key entries which do not map to a type.
+   */
+  Map<String, String> getPeriodTypeByIsoPeriod(Stream<String> isoPeriods);
 }

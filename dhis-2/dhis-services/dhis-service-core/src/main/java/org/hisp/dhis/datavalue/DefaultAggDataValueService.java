@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -55,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultAggDataValueService implements AggDataValueService {
 
-  private final AggDataValueStore store;
+  private final AggDataValueImportStore store;
 
   @Override
   @Transactional
@@ -102,7 +104,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
     validateKeyConsistency(request, dsByDe);
 
     // ----------------------------------------------
-    // DS based gate-keepers
+    // DS based gate-keepers (if DS specified only consider the single DS)
     // - DS not locked (lock exceptions)
     // - DS not already approved (data approval)
     // - DS input period is open (no entering in the past)
@@ -125,7 +127,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
     List<String> noAccessOrgUnits =
         store.getOrgUnitsNotInUserHierarchy(
             UID.of(userId), request.values().stream().map(AggDataValue::orgUnit));
-    if (!noAccessOrgUnits.isEmpty()) throw new ConflictException("user has no access to...");
+    if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
 
     // - DS ACL check canDataWrite
     List<UID> allDs =
@@ -142,16 +144,15 @@ public class DefaultAggDataValueService implements AggDataValueService {
   private void validateKeyConsistency(
       AggDataValueUpsertRequest request, Map<String, Set<String>> dsByDe)
       throws ConflictException, BadRequestException {
-    String ds = request.dataSet() == null ? null : request.dataSet().getValue();
-    // - DE must belong to the scope DS (when specified)?
+    String ds = request.dataSet() == null ? commonDataSet(dsByDe) : request.dataSet().getValue();
     if (ds != null) {
+      // - DE must belong to the specified DS (scope)
       List<String> desNotInDs =
           dsByDe.entrySet().stream()
               .filter(e -> !e.getValue().contains(ds))
               .map(Map.Entry::getKey)
               .toList();
-      if (!desNotInDs.isEmpty())
-        throw new BadRequestException("use DE only linked to other DS" + desNotInDs);
+      if (!desNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, desNotInDs);
     }
     // - do all DEs have a DS?
     Set<String> des = dsByDe.keySet();
@@ -162,14 +163,49 @@ public class DefaultAggDataValueService implements AggDataValueService {
             .filter(not(des::contains))
             .distinct()
             .toList();
-    if (!deNoDs.isEmpty()) throw new ConflictException("DE has no DS" + deNoDs);
+    if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E7606, deNoDs);
 
     // key consistency (Bad Request)
-
     // - COC must link (belong) to the CC of the DE (if CC override skip validation)
     // - AOC must link (belong) to the CC of the DS!
-    // - PE must be of PT used by the DS for the DE (could be in multiple :/)
     // - OU must be a source of the DS for the DE (could be in multiple :/)
+
+    // - PE ISO value must map to an existing PT
+    Map<String, String> periodTypeByIsoPeriod =
+        store.getPeriodTypeByIsoPeriod(request.values().stream().map(AggDataValue::period));
+    List<String> isoNoPT =
+        request.values().stream()
+            .map(AggDataValue::period)
+            .filter(not(periodTypeByIsoPeriod::containsKey))
+            .distinct()
+            .toList();
+    if (!isoNoPT.isEmpty()) throw new ConflictException(ErrorCode.E7607, isoNoPT);
+    // - PE ISO must be of PT used by the DS for the DE (could be in multiple :/)
+    if (ds != null) {
+      String ptTarget = store.getPeriodTypeByDataSet(Stream.of(UID.of(ds))).get(ds);
+      List<String> isoWrongPT =
+          request.values().stream()
+              .map(AggDataValue::period)
+              .filter(iso -> isNotSamePeriodType(ptTarget, periodTypeByIsoPeriod.get(iso)))
+              .distinct()
+              .toList();
+      if (!isoWrongPT.isEmpty()) throw new ConflictException(ErrorCode.E7608, ptTarget, isoWrongPT);
+    } else {
+      Map<String, String> periodTypeByDataSet =
+          store.getPeriodTypeByDataSet(dsByDe.values().stream().flatMap(Set::stream).map(UID::of));
+      for (AggDataValue v : request.values()) {
+        String pt = periodTypeByIsoPeriod.get(v.period());
+        for (String dsTarget : dsByDe.get(v.dataElement().getValue())) {
+          String ptTarget = periodTypeByDataSet.get(dsTarget);
+          if (isNotSamePeriodType(ptTarget, pt))
+            throw new ConflictException(ErrorCode.E7608, ptTarget, v.period());
+        }
+      }
+    }
+  }
+
+  private static boolean isNotSamePeriodType(String expected, String actual) {
+    return actual == null || !actual.equals(expected);
   }
 
   /**
@@ -189,8 +225,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
     for (AggDataValue e : values) {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
-      AggDataValue ne = normalizeValue(e, type);
-      String val = ne.value();
+      String val = normalizeValue(e, type);
       // - value not null/empty (not for delete or deleted value)
       if ((val == null || val.isEmpty()) && e.deleted() != Boolean.TRUE) {
         errors.add(error(index, ErrorCode.E7619, e));
@@ -226,13 +261,20 @@ public class DefaultAggDataValueService implements AggDataValueService {
     return res;
   }
 
-  private static AggDataValue normalizeValue(AggDataValue e, ValueType type) {
-    if (type == null || !type.isBoolean()) return e;
+  private static String normalizeValue(AggDataValue e, ValueType type) {
+    if (type == null || !type.isBoolean()) return e.value();
     String val = e.value();
     if (val.equalsIgnoreCase("false") || val.equalsIgnoreCase("f") || "0".equals(val))
       val = "false";
     if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("t") || "1".equals(val)) val = "true";
-    if (val.equals(e.value())) return e;
-    return e.withValue(val);
+    return val;
+  }
+
+  @CheckForNull
+  private String commonDataSet(Map<String, Set<String>> dsByDe) {
+    if (dsByDe.isEmpty()) return null;
+    if (dsByDe.values().stream().anyMatch(ds -> ds.size() != 1)) return null;
+    Set<String> ds1 = dsByDe.values().iterator().next();
+    return dsByDe.values().stream().allMatch(ds1::equals) ? ds1.iterator().next() : null;
   }
 }

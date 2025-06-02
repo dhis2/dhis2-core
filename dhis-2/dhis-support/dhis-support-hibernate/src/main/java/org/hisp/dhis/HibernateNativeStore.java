@@ -154,11 +154,11 @@ public abstract class HibernateNativeStore<T> {
         SELECT t.uid, t."%s"
         FROM "%s" t
         JOIN unnest(:ids) AS u(uid) ON t.uid = u.uid""";
-    List<Object[]> results =
+    Stream<Object[]> results =
         getSession()
             .createNativeQuery(sql.formatted(columnName.name(), tableName.name()))
             .setParameter("ids", uids)
-            .list();
-    return results.stream().collect(toMap(row -> (String) row[0], row -> toValue.apply(row[1])));
+            .stream();
+    return results.collect(toMap(row -> (String) row[0], row -> toValue.apply(row[1])));
   }
 }

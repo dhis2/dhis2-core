@@ -50,8 +50,8 @@ import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.AggDataValue;
+import org.hisp.dhis.datavalue.AggDataValueImportStore;
 import org.hisp.dhis.datavalue.AggDataValueKey;
-import org.hisp.dhis.datavalue.AggDataValueStore;
 import org.hisp.dhis.datavalue.AggDataValueUpsert;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -70,8 +70,8 @@ import org.springframework.stereotype.Repository;
  * @since 2.43
  */
 @Repository
-public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
-    implements AggDataValueStore {
+public class HibernateAggDataValueImportStore extends HibernateGenericStore<DataValue>
+    implements AggDataValueImportStore {
 
   private final PeriodStore periodStore;
 
@@ -80,7 +80,7 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
    */
   private static final int MAX_ROWS_PER_INSERT = 500;
 
-  public HibernateAggDataValueStore(
+  public HibernateAggDataValueImportStore(
       EntityManager entityManager,
       PeriodStore periodStore,
       JdbcTemplate jdbcTemplate,
@@ -155,15 +155,24 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
     return listAsUidMap(sql, dataElements);
   }
 
-  @Nonnull
-  private Map<String, Set<String>> listAsUidMap(
-      @Language("sql") String sql, Stream<UID> dataElements) {
-    String[] ids = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+  @Override
+  public Map<String, String> getPeriodTypeByDataSet(Stream<UID> dataSets) {
+    String sql =
+        """
+      SELECT ds.uid, pt.name from dataset ds join periodtype pt on ds.periodtypeid = pt.periodtypeid
+      """;
     @SuppressWarnings("unchecked")
-    List<Object[]> results =
-        getSession().createNativeQuery(sql).setParameterList("ids", ids).list();
-    return results.stream()
-        .collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
+    Stream<Object[]> res = getSession().createNativeQuery(sql).stream();
+    return res.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+  }
+
+  @Nonnull
+  private Map<String, Set<String>> listAsUidMap(@Language("sql") String sql, Stream<UID> idSet) {
+    String[] ids = idSet.map(UID::getValue).distinct().toArray(String[]::new);
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> results =
+        getSession().createNativeQuery(sql).setParameterList("ids", ids).stream();
+    return results.collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
   }
 
   @Override
@@ -177,6 +186,7 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
 
   @Override
   public int deleteByKeys(List<AggDataValueKey> keys) {
+    // TODO
     return 0;
   }
 
@@ -303,7 +313,7 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
             Stream.concat(
                 values.stream().map(AggDataValue::categoryOptionCombo),
                 values.stream().map(AggDataValue::attributeOptionCombo).filter(Objects::nonNull)));
-    res.put("default", defaultCoc);
+    res.put("", defaultCoc);
     return res;
   }
 
@@ -315,5 +325,18 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
     Map<String, Long> pes = new HashMap<>(periodsByISO.size());
     periodsByISO.forEach((iso, period) -> pes.put(iso, periodStore.getPeriodId(period)));
     return pes;
+  }
+
+  @Override
+  public Map<String, String> getPeriodTypeByIsoPeriod(Stream<String> isoPeriods) {
+    Map<String, String> res = new HashMap<>();
+    isoPeriods
+        .distinct()
+        .forEach(
+            iso -> {
+              PeriodType t = PeriodType.getPeriodTypeFromIsoString(iso);
+              if (t != null) res.put(iso, t.getName());
+            });
+    return res;
   }
 }
