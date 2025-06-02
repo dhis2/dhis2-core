@@ -23,7 +23,9 @@ source = '''
     .@timestamp = parsed[0]
     .request_method = parsed[1]
     .uri = parsed[2]
-    .query_string = parsed[3]
+    if parsed[3] != "" {
+      .query_string = parse_query_string!(parsed[3])
+    }
     .status = to_int!(parsed[4])
     .referer = parsed[5]
     .user_agent = parsed[6]
