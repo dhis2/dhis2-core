@@ -36,7 +36,6 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import java.sql.Types;
@@ -65,7 +64,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -474,12 +472,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private void addJoinOnOrgUnit(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    UserDetails userDetails = getCurrentUserDetails();
-    Set<OrganisationUnit> effectiveSearchOrgUnits =
-        getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
-    Set<OrganisationUnit> captureScopeOrgUnits =
-        getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
-
     String orgUnitTableAlias = "ou";
     String programTableAlias = "p";
 
@@ -502,12 +494,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         sql,
         sqlParameters,
         params.getOrgUnitMode(),
-        effectiveSearchOrgUnits,
-        captureScopeOrgUnits,
         programTableAlias,
         orgUnitTableAlias,
-        MAIN_QUERY_ALIAS,
-        userDetails);
+        MAIN_QUERY_ALIAS);
   }
 
   private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {

@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
 import lombok.AccessLevel;
@@ -91,12 +92,11 @@ public class OrgUnitQueryBuilder {
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
       OrganisationUnitSelectionMode orgUnitMode,
-      Set<OrganisationUnit> effectiveSearchOrgUnits,
-      Set<OrganisationUnit> captureScopeOrgUnits,
       String programTableAlias,
       String orgUnitTableAlias,
-      String trackedEntityTableAlias,
-      UserDetails userDetails) {
+      String trackedEntityTableAlias) {
+    UserDetails userDetails = getCurrentUserDetails();
+
     if (orgUnitMode == ALL || userDetails.isSuper()) {
       return;
     }
@@ -109,11 +109,13 @@ public class OrgUnitQueryBuilder {
         .append(".accesslevel in ('OPEN', 'AUDITED') and ")
         .append(orgUnitTableAlias);
     if (orgUnitMode == CAPTURE) {
-      sql.append(".path like any (:captureScopePaths))");
+      sql.append(
+          ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
     } else {
-      sql.append(".path like any (:effectiveSearchScopePaths))");
+      sql.append(
+          ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:effectiveSearchScopeOrgUnits)))");
       sqlParameters.addValue(
-          "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
+          "effectiveSearchScopeOrgUnits", userDetails.getUserEffectiveSearchOrgUnitIds());
     }
 
     sql.append(sqlHelper.andOr())
@@ -121,8 +123,9 @@ public class OrgUnitQueryBuilder {
         .append(programTableAlias)
         .append(".accesslevel in ('PROTECTED', 'CLOSED') and ")
         .append(orgUnitTableAlias)
-        .append(".path like any (:captureScopePaths))");
-    sqlParameters.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
+        .append(
+            ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
+    sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
 
     sql.append(sqlHelper.andOr())
         .append(
@@ -194,9 +197,5 @@ public class OrgUnitQueryBuilder {
       index++;
     }
     sql.append(")");
-  }
-
-  private static String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
-    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
   }
 }
