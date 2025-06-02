@@ -176,6 +176,13 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "tableLayoutKeepOrderOfColumnsHeaders",
+      "query": "/api/analytics.json?dimension=dx:Uvn6LCg7dVU;OdiHJayrsKo;sB79w2hiLp8;cYeuwXTCPkU&dimension=pe:LAST_12_MONTHS&tableLayout=true&columns=dx&rows=pe&skipRounding=false&completedOnly=false&filter=ou:USER_ORGUNIT&relativePeriodDate=2023-01-01",
+      "version": {
+        "min": 40
+      }
     }
   ]
 }
