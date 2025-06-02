@@ -43,7 +43,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
