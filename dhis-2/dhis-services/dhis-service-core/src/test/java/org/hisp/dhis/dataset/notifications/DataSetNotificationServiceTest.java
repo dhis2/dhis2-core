@@ -298,6 +298,13 @@ class DataSetNotificationServiceTest extends TestBase {
   @SuppressWarnings("unchecked")
   void sendCompleteDataSetNotificationsTest() {
     // setup
+    org.hisp.dhis.user.User userEnabled = makeUser("testUserEnabled");
+    userEnabled.setDisabled(false);
+    userEnabled.setEmail("enabled@example.com");
+    userEnabled.addOrganisationUnit(organisationUnitA);
+
+    org.hisp.dhis.user.UserGroup userGroup = createUserGroup('A', Sets.newHashSet(userEnabled));
+
     List<DataSetNotificationTemplate> emailTemplates = new ArrayList<>();
     DataSetNotificationTemplate emailTemplateInternal = new DataSetNotificationTemplate();
     emailTemplateInternal.setDataSetNotificationTrigger(
@@ -305,6 +312,7 @@ class DataSetNotificationServiceTest extends TestBase {
     emailTemplateInternal.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
     emailTemplateInternal.setNotificationRecipient(DataSetNotificationRecipient.USER_GROUP);
     emailTemplateInternal.getDataSets().add(dataSetA);
+    emailTemplateInternal.setRecipientUserGroup(userGroup);
 
     emailTemplates.add(emailTemplateInternal);
 

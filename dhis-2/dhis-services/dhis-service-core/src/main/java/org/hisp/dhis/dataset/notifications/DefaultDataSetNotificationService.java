@@ -474,8 +474,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
         "Dispatching DHIS " + type + " notification messages", messages.size(), SKIP_ITEM_OUTLIER);
 
     // filter out messages without recipients
-    messages =
-        messages.stream().filter(msg -> !msg.recipients.isEmpty()).collect(Collectors.toList());
+    messages = messages.stream().filter(msg -> !msg.recipients.isEmpty()).toList();
 
     progress.runStage(
         messages,
