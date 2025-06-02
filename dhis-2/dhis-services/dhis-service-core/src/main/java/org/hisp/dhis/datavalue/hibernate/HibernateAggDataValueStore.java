@@ -84,10 +84,8 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
       EntityManager entityManager,
       PeriodStore periodStore,
       JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<DataValue> clazz,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, cacheable);
+      ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
   }
 
@@ -162,7 +160,8 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
       @Language("sql") String sql, Stream<UID> dataElements) {
     String[] ids = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
     @SuppressWarnings("unchecked")
-    List<Object[]> results = getSession().createNativeQuery(sql).setParameter("ids", ids).list();
+    List<Object[]> results =
+        getSession().createNativeQuery(sql).setParameterList("ids", ids).list();
     return results.stream()
         .collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
   }
@@ -211,7 +210,8 @@ public class HibernateAggDataValueStore extends HibernateGenericStore<DataValue>
     AtomicInteger imported = new AtomicInteger();
     session.doWork(
         conn -> {
-          try (PreparedStatement stmt = conn.prepareStatement("SET LOCAL dhis2.user TO ?")) {
+          try (PreparedStatement stmt =
+              conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
             stmt.setString(1, user);
             stmt.execute();
           }

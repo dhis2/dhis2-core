@@ -27,17 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.feedback;
 
 import java.util.List;
-import org.hisp.dhis.feedback.ErrorCode;
+import javax.annotation.Nonnull;
 
 /**
- * @param upserted number of rows that were attempted to upsert
- * @param imported number of rows affected by the import (ideally same as upserted)
+ * @param attempted number of rows that were attempted to import
+ * @param succeeded number of rows affected by the import (ideally same as upserted)
  */
-public record AggDataValueUpsertSummary(
-    int upserted, int imported, List<AggDataValueUpsertError> errors) {
+public record ImportResult(int attempted, int succeeded, @Nonnull List<ImportError> errors) {
 
-  record AggDataValueUpsertError(int index, ErrorCode code, AggDataValue value) {}
+  public static ImportError error(int index, ErrorCode code, Object... args) {
+    return new ImportError(index, code, List.of(args));
+  }
+
+  public record ImportError(int index, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 }

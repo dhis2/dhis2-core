@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.function.Predicate.not;
+import static org.hisp.dhis.feedback.ImportResult.error;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
@@ -40,10 +41,11 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.datavalue.AggDataValueUpsertSummary.AggDataValueUpsertError;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ImportResult;
+import org.hisp.dhis.feedback.ImportResult.ImportError;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Service;
@@ -58,7 +60,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
   @Override
   @Transactional
   public void importValue(AggDataValue value) throws ConflictException, BadRequestException {
-    List<AggDataValueUpsertError> errors = new ArrayList<>(1);
+    List<ImportError> errors = new ArrayList<>(1);
     List<AggDataValue> validValues =
         validate(new AggDataValueUpsertRequest(null, List.of(value)), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
@@ -68,12 +70,12 @@ public class DefaultAggDataValueService implements AggDataValueService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public AggDataValueUpsertSummary importAll(AggDataValueUpsertRequest request)
+  public ImportResult importAll(AggDataValueUpsertRequest request)
       throws BadRequestException, ConflictException {
-    List<AggDataValueUpsertError> errors = new ArrayList<>();
+    List<ImportError> errors = new ArrayList<>();
     List<AggDataValue> validValues = validate(request, errors);
     int imported = store.upsertValues(validValues);
-    return new AggDataValueUpsertSummary(validValues.size(), imported, errors);
+    return new ImportResult(validValues.size(), imported, errors);
   }
 
   @Override
@@ -92,8 +94,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
   // 1. mark all as assigned that are used
   // 2. mark all as not assigned that are not used by any
 
-  private List<AggDataValue> validate(
-      AggDataValueUpsertRequest request, List<AggDataValueUpsertError> errors)
+  private List<AggDataValue> validate(AggDataValueUpsertRequest request, List<ImportError> errors)
       throws ConflictException, BadRequestException {
     Map<String, Set<String>> dsByDe =
         store.getDataSetsByDataElements(request.values().stream().map(AggDataValue::dataElement));
@@ -176,8 +177,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
    * context. Non-conforming values will be removed from the result, and an error is added to the
    * errors list.
    */
-  private List<AggDataValue> validateValues(
-      List<AggDataValue> values, List<AggDataValueUpsertError> errors) {
+  private List<AggDataValue> validateValues(List<AggDataValue> values, List<ImportError> errors) {
     List<UID> dataElements = values.stream().map(AggDataValue::dataElement).distinct().toList();
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());
     Map<String, Set<String>> commentOptionsByDe =
@@ -193,26 +193,26 @@ public class DefaultAggDataValueService implements AggDataValueService {
       String val = ne.value();
       // - value not null/empty (not for delete or deleted value)
       if ((val == null || val.isEmpty()) && e.deleted() != Boolean.TRUE) {
-        errors.add(new AggDataValueUpsertError(index, ErrorCode.E7619, e));
+        errors.add(error(index, ErrorCode.E7619, e));
       } else {
         // - value valid for the DE value type?
         String error = ValidationUtils.valueIsValid(val, type);
         if (error != null) {
-          errors.add(new AggDataValueUpsertError(index, ErrorCode.E7619, e));
+          errors.add(error(index, ErrorCode.E7619, e));
         } else {
           // - if DE uses OptionSet - is value a valid option?
           Set<String> options = optionsByDe.get(de);
           if (options != null && !options.contains(val)) {
-            errors.add(new AggDataValueUpsertError(index, ErrorCode.E7621, e));
+            errors.add(error(index, ErrorCode.E7621, e));
           } else {
             // - if DE uses comment OptionSet - is comment a valid option?
             Set<String> cOptions = commentOptionsByDe.get(de);
             if (cOptions != null && (e.comment() == null || !cOptions.contains(e.comment()))) {
-              errors.add(new AggDataValueUpsertError(index, ErrorCode.E7620, e));
+              errors.add(error(index, ErrorCode.E7620, e));
             } else {
               // - does the comment not exceed maximum length?
               if (e.comment() != null && e.comment().length() > 5000) {
-                errors.add(new AggDataValueUpsertError(index, ErrorCode.E7620, e));
+                errors.add(error(index, ErrorCode.E7620, e));
               } else {
                 // finally: all is good, we try to upsert this value
                 res.add(e);
@@ -226,13 +226,13 @@ public class DefaultAggDataValueService implements AggDataValueService {
     return res;
   }
 
-  private static AggDataValue normalizeValue(AggDataValue value, ValueType type) {
-    if (type == null || !type.isBoolean()) return value;
-    String val = value.value();
+  private static AggDataValue normalizeValue(AggDataValue e, ValueType type) {
+    if (type == null || !type.isBoolean()) return e;
+    String val = e.value();
     if (val.equalsIgnoreCase("false") || val.equalsIgnoreCase("f") || "0".equals(val))
       val = "false";
     if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("t") || "1".equals(val)) val = "true";
-    if (val.equals(value.value())) return value;
-    return value.withValue(val);
+    if (val.equals(e.value())) return e;
+    return e.withValue(val);
   }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ImportResult;
 
 public interface AggDataValueService {
 
@@ -38,7 +39,7 @@ public interface AggDataValueService {
 
   void deleteValue(AggDataValueKey key);
 
-  AggDataValueUpsertSummary importAll(AggDataValueUpsertRequest request)
+  ImportResult importAll(AggDataValueUpsertRequest request)
       throws BadRequestException, ConflictException;
 
   int deleteAll(AggDataValueDeleteRequest request) throws BadRequestException;
