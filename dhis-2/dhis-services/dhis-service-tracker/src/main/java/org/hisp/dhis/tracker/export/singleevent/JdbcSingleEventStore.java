@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

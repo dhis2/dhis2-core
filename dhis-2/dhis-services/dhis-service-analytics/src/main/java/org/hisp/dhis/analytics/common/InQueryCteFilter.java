@@ -72,7 +72,7 @@ public class InQueryCteFilter {
    *
    * @param offset An integer value used to generate the unique CTE alias in the form
    *     "alias_offset". This allows for multiple references to the same CTE in different parts of
-   *     the query.
+   *     the query. This value can be null to signal that there is no need for an offset index.
    * @return A String containing the SQL filter condition. The exact format depends on the filter
    *     type: - For regular values with numeric field: "alias_0.field in (10,11,12)" - For regular
    *     values with text field: "alias_0.field in ('value1','value2')" - For missing values (NV):
@@ -96,11 +96,11 @@ public class InQueryCteFilter {
    * String sql3 = filter3.getSqlFilter(0); // Returns: "alias_0.enrollment is not null and alias_0.name is null"
    * </pre>
    */
-  public String getSqlFilter(int offset) {
+  public String getSqlFilter(Integer offset) {
     List<String> filterItems = QueryFilter.getFilterItems(this.filter);
 
     StringBuilder condition = new StringBuilder();
-    String alias = cteDefinition.getAlias(offset);
+    String alias = offset == null ? cteDefinition.getAlias() : cteDefinition.getAlias(offset);
     if (hasNonMissingValue(filterItems)) {
       condition
           .append("%s.%s in".formatted(alias, field))
