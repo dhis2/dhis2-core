@@ -94,6 +94,7 @@ services:
       - "8080:80"
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
     depends_on:
       - web
 
@@ -219,13 +220,19 @@ services:
       timeout: 10s
       retries: 120
 
-  # vector:
-  #   image: timberio/vector:0.46.1-alpine
-  #   # TODO mount nginx /var/log
-  #   volumes:
-  #     - ./docker/vector.yaml:/etc/vector/vector.yaml:ro
-  #   depends_on:
-  #     - nginx
+  vector:
+    profiles: [logs]
+    image: timberio/vector:0.46.1-alpine
+    command:
+      ["-c", "/etc/vector/vector.toml"]
+    volumes:
+      - ./docker/vector.toml:/etc/vector/vector.toml:ro
+      # Use nginx logs directory from the nginx container instead of host
+      - type: volume
+        source: nginx-logs
+        target: /var/log/nginx
+    depends_on:
+      - nginx
 
 volumes:
   db-dump: {}
@@ -234,4 +241,6 @@ volumes:
   esdata01:
     driver: local
   kibanadata:
+    driver: local
+  nginx-logs:
     driver: local

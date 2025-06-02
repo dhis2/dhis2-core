@@ -1,0 +1,66 @@
+[api]
+enabled = true
+
+[sources.nginx_logs]
+type = "file"
+include = ["/var/log/nginx/tracker_access.log"]
+read_from = "beginning"
+
+# =====================================================
+# TRANSFORM CONFIGURATION - PARSES NGINX LOGS
+# =====================================================
+[transforms.parse_nginx]
+type = "remap"
+inputs = ["nginx_logs"]
+source = '''
+  # parse tracker_log format directly as defined in nginx.conf
+  parsed, err = parse_csv(.message, "|")
+
+  if err != null {
+    log("Unable to parse nginx log line: " + err, level: "error")
+  } else {
+    # map the parsed fields to structured JSON matching the nginx tracker_log format
+    .@timestamp = parsed[0]
+    .request_method = parsed[1]
+    .uri = parsed[2]
+    .query_string = parsed[3]
+    .status = to_int!(parsed[4])
+    .referer = parsed[5]
+    .user_agent = parsed[6]
+    .bytes_sent = to_int!(parsed[7])
+    .body_bytes_sent = to_int!(parsed[8])
+    .connection = to_int!(parsed[9])
+    .connection_requests = to_int!(parsed[10])
+    .connection_time = to_float!(parsed[11])
+    .request_time = to_float!(parsed[12])
+
+    # add common Elasticsearch metadata fields
+    .type = "tracker_access"
+}
+'''
+
+# TODO Elasticsearch's Data streams feature requires Vector to be configured with the create bulk.action. This is not enabled by default.
+# =====================================================
+# SINK CONFIGURATION FOR ELASTICSEARCH
+# =====================================================
+# [sinks.elasticsearch]
+# type = "elasticsearch"
+# inputs = ["parse_nginx"]
+# endpoint = "http://es01:9200"
+# index = "nginx-logs-%Y.%m.%d"
+# compression = "gzip"
+# Elasticsearch authentication if needed
+# auth.strategy = "basic"
+# auth.user = "elastic"
+# auth.password = "password"
+
+# =====================================================
+# LOCAL DEBUGGING SINK CONFIGURATION
+# =====================================================
+# uncomment this configuration instead of the above elasticsearch for local debugging to see json
+# output
+[sinks.console]
+type = "console"
+inputs = ["parse_nginx"]
+encoding.codec = "json"
+target = "stdout"
