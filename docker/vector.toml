@@ -23,7 +23,7 @@ source = '''
     .@timestamp = parsed[0]
     .request_method = parsed[1]
     .uri = parsed[2]
-    if parsed[3] != "" {
+    if parsed[3] != "" && parsed[3] != "-"  {
       .query_string = parse_query_string!(parsed[3])
     }
     .status = to_int!(parsed[4])
@@ -45,6 +45,10 @@ source = '''
     # time in seconds with a milliseconds resolution
     .connection_time_ms = to_float!(parsed[13]) * 1000
     .request_time_ms = to_float!(parsed[14]) * 1000
+
+    if parsed[15] != "-" {
+      .sessionid = parsed[15]
+    }
 
     # add common Elasticsearch metadata fields
     .type = "tracker_access"
