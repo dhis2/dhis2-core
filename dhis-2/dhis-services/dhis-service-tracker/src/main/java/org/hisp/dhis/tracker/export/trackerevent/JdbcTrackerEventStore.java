@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,7 +71,6 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
@@ -225,8 +223,6 @@ class JdbcTrackerEventStore {
   private final UserService userService;
 
   private final IdentifiableObjectManager manager;
-
-  private final OrganisationUnitStore organisationUnitStore;
 
   public List<Event> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -779,7 +775,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         new StringBuilder(" from event ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
             .append("inner join program p on p.programid=en.programid ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+            .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+            .append("inner join trackedentity te on te.trackedentityid=en.trackedentityid ");
 
     fromBuilder
         .append(
@@ -789,9 +786,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 + " ev.organisationunitid)=evou.organisationunitid) ")
         .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
 
-    fromBuilder
-        .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
-        .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
+    fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // LEFT JOIN attributes we need to sort on and/or filter by.
     fromBuilder.append(getLeftJoinFromAttributes(params));
@@ -988,12 +983,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
     StringBuilder orgUnitBuilder = new StringBuilder();
 
-    UserDetails userDetails = getCurrentUserDetails();
-    Set<OrganisationUnit> effectiveSearchOrgUnits =
-        getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
-    Set<OrganisationUnit> captureScopeOrgUnits =
-        getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
-
     StringBuilder modeBuilder = new StringBuilder();
     if (params.getOrgUnit() != null) {
       buildOrgUnitModeClause(
@@ -1004,14 +993,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       orgUnitBuilder.append(hlp.whereAnd()).append(modeBuilder);
     }
 
-    buildOwnershipClause(
-        orgUnitBuilder,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        effectiveSearchOrgUnits,
-        captureScopeOrgUnits,
-        "p",
-        "ou");
+    buildOwnershipClause(orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te");
 
     return orgUnitBuilder.toString();
   }
@@ -1206,9 +1188,5 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
               .map(UID::of)
               .collect(Collectors.toSet()));
     }
-  }
-
-  private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
-    return new HashSet<>(organisationUnitStore.getByUid(uids));
   }
 }
