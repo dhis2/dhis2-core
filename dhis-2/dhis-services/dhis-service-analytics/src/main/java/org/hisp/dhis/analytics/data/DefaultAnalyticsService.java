@@ -263,14 +263,12 @@ public class DefaultAnalyticsService implements AnalyticsService {
         Optional.ofNullable(columns)
             .map(cols -> getGridItems(grid, columnsDimensionItemsByDimension, cols))
             .filter(CollectionUtils::isNotEmpty)
-            .map(this::reorderItems)
             .orElseGet(() -> CombinationGenerator.newInstance(tableColumns).getCombinations());
 
     List<List<DimensionalItemObject>> gridRows =
         Optional.ofNullable(rows)
             .map(rws -> getGridItems(grid, rowsDimensionItemsByDimension, rws))
             .filter(CollectionUtils::isNotEmpty)
-            .map(this::reorderItems)
             .orElseGet(() -> CombinationGenerator.newInstance(tableRows).getCombinations());
 
     visualization
@@ -292,15 +290,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
         valueMap,
         params.getDisplayProperty(),
         false);
-  }
-
-  private List<List<DimensionalItemObject>> reorderItems(
-      List<List<DimensionalItemObject>> alternateItems) {
-    return alternateItems.stream().sorted(this::compareItems).toList();
-  }
-
-  private int compareItems(List<DimensionalItemObject> dio, List<DimensionalItemObject> other) {
-    return dio.get(0).getDisplayName().compareTo(other.get(0).getDisplayName());
   }
 
   /**
