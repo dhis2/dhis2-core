@@ -27,20 +27,23 @@ source = '''
       .query_string = parse_query_string!(parsed[3])
     }
     .status = to_int!(parsed[4])
+    .request_completion = parsed[5]
+
     # no value is indicated by "-" in the nginx logs, only add fields with values
     # to make querying in ES easier and to not mess with the autodetected data type in its index
-    if parsed[5] != "-" {
-      .referer = parsed[5]
-    }
     if parsed[6] != "-" {
-      .user_agent = parsed[6]
+      .referer = parsed[6]
     }
-    .bytes_sent = to_int!(parsed[7])
-    .body_bytes_sent = to_int!(parsed[8])
-    .connection = to_int!(parsed[9])
-    .connection_requests = to_int!(parsed[10])
-    .connection_time = to_float!(parsed[11])
-    .request_time = to_float!(parsed[12])
+    if parsed[7] != "-" {
+      .user_agent = parsed[7]
+    }
+    .bytes_sent = to_int!(parsed[8])
+    .body_bytes_sent = to_int!(parsed[9])
+    .connection = to_int!(parsed[10])
+    .connection_requests = to_int!(parsed[11])
+    # time in seconds with a milliseconds resolution
+    .connection_time_ms = to_float!(parsed[12]) * 1000
+    .request_time_ms = to_float!(parsed[13]) * 1000
 
     # add common Elasticsearch metadata fields
     .type = "tracker_access"
