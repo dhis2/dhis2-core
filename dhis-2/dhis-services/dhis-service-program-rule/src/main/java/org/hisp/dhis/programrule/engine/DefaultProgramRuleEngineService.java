@@ -85,7 +85,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     List<ProgramRule> programRules =
-        programRuleEngine.getProgramRules(programInstance.getProgram());
+        programRuleEngine.getProgramRulesForEnrollment(programInstance.getProgram());
 
     if (programRules.isEmpty()) {
       return List.of();
