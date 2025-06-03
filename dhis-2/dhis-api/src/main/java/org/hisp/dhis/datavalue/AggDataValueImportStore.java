@@ -49,6 +49,12 @@ public interface AggDataValueImportStore {
   List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
 
   /**
+   * @return for each OU in the given set it includes all DS in the given set that are mapped for
+   *     the OU. OUs not mapped to any of the DS provided are not in the result map at all.
+   */
+  Map<String, Set<String>> getDataSetsByOrgUnits(Stream<UID> orgUnits, Stream<UID> dataSets);
+
+  /**
    * @return All dataset UIDs for each of the DE UIDs. A DE that has no DS will not be contained in
    *     the result map
    */

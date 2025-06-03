@@ -564,7 +564,7 @@ public enum ErrorCode {
   E7503("Filter for created date period is not valid: `{0}`"),
 
   /* Data import validation */
-  // Data Set validation
+  // Data Set validation (in context of data value import)
   E7600("Data set not found or not accessible: `{0}`"),
   E7601("User does not have write access for DataSet: `{0}`"),
   E7602("A valid dataset is required"),
@@ -573,7 +573,8 @@ public enum ErrorCode {
   E7605("Data elements not part of dataset {0}: `{1}`"),
   E7606("Data elements are not assigned to a dataset: `{0}`"),
   E7607("ISO period(s) not recognized: `{0}`"),
-  E7608("ISO period(s) do not match expected type {0}: `{1}`"),
+  E7608("ISO period(s) do not match expected type {0} of data set {1}: `{2}`"),
+  E7609("Org unit(s) not valid for data set {0}: `{1}`"),
 
   // Data Value validation
   E7610("Data element not found or not accessible: `{0}`"),
@@ -589,6 +590,7 @@ public enum ErrorCode {
   E7620("Invalid comment: {0}"),
   E7621("Data value is not a valid option of the data element option set: `{0}`"),
   E7622("Current user `{0}` has no access to any organisation unit data"),
+
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),
   E7631("Attribute option combo is required but is not specified"),

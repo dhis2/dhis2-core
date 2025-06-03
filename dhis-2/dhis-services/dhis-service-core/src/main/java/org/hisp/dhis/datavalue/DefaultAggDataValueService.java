@@ -31,6 +31,10 @@ package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.feedback.ImportResult.error;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -147,20 +151,21 @@ public class DefaultAggDataValueService implements AggDataValueService {
     String ds = request.dataSet() == null ? commonDataSet(dsByDe) : request.dataSet().getValue();
     if (ds != null) {
       // - DE must belong to the specified DS (scope)
-      List<String> desNotInDs =
+      List<String> deNotInDs =
           dsByDe.entrySet().stream()
               .filter(e -> !e.getValue().contains(ds))
               .map(Map.Entry::getKey)
               .toList();
-      if (!desNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, desNotInDs);
+      if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
     }
     // - do all DEs have a DS?
-    Set<String> des = dsByDe.keySet();
+    Set<String> dataElements = dsByDe.keySet();
+    List<AggDataValue> values = request.values();
     List<String> deNoDs =
-        request.values().stream()
+        values.stream()
             .map(AggDataValue::dataElement)
             .map(UID::getValue)
-            .filter(not(des::contains))
+            .filter(not(dataElements::contains))
             .distinct()
             .toList();
     if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E7606, deNoDs);
@@ -168,39 +173,84 @@ public class DefaultAggDataValueService implements AggDataValueService {
     // key consistency (Bad Request)
     // - COC must link (belong) to the CC of the DE (if CC override skip validation)
     // - AOC must link (belong) to the CC of the DS!
+
     // - OU must be a source of the DS for the DE (could be in multiple :/)
+    if (ds != null) {
+      Map<String, Set<String>> dsByOu =
+          store.getDataSetsByOrgUnits(
+              values.stream().map(AggDataValue::orgUnit), Stream.of(UID.of(ds)));
+      List<String> ouNotInDs =
+          values.stream()
+              .map(AggDataValue::orgUnit)
+              .map(UID::getValue)
+              .distinct()
+              .filter(ou -> !dsByOu.containsKey(ou) || !dsByOu.get(ou).contains(ds))
+              .toList();
+      if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
+    } else {
+      Map<String, Set<String>> dsByOu =
+          store.getDataSetsByOrgUnits(
+              values.stream().map(AggDataValue::orgUnit),
+              dsByDe.values().stream().flatMap(Set::stream).map(UID::of));
+      // TODO like above but for each DS
+    }
 
     // - PE ISO value must map to an existing PT
-    Map<String, String> periodTypeByIsoPeriod =
-        store.getPeriodTypeByIsoPeriod(request.values().stream().map(AggDataValue::period));
+    Map<String, String> ptByIso =
+        store.getPeriodTypeByIsoPeriod(values.stream().map(AggDataValue::period));
     List<String> isoNoPT =
-        request.values().stream()
+        values.stream()
             .map(AggDataValue::period)
-            .filter(not(periodTypeByIsoPeriod::containsKey))
+            .filter(not(ptByIso::containsKey))
             .distinct()
             .toList();
     if (!isoNoPT.isEmpty()) throw new ConflictException(ErrorCode.E7607, isoNoPT);
     // - PE ISO must be of PT used by the DS for the DE (could be in multiple :/)
     if (ds != null) {
       String ptTarget = store.getPeriodTypeByDataSet(Stream.of(UID.of(ds))).get(ds);
-      List<String> isoWrongPT =
-          request.values().stream()
+      List<String> isoWrongPt =
+          values.stream()
               .map(AggDataValue::period)
-              .filter(iso -> isNotSamePeriodType(ptTarget, periodTypeByIsoPeriod.get(iso)))
               .distinct()
+              .filter(iso -> isNotSamePeriodType(ptTarget, ptByIso.get(iso)))
               .toList();
-      if (!isoWrongPT.isEmpty()) throw new ConflictException(ErrorCode.E7608, ptTarget, isoWrongPT);
+      if (!isoWrongPt.isEmpty())
+        throw new ConflictException(ErrorCode.E7608, ptTarget, ds, isoWrongPt);
     } else {
-      Map<String, String> periodTypeByDataSet =
+      Map<String, String> ptByDs =
           store.getPeriodTypeByDataSet(dsByDe.values().stream().flatMap(Set::stream).map(UID::of));
-      for (AggDataValue v : request.values()) {
-        String pt = periodTypeByIsoPeriod.get(v.period());
-        for (String dsTarget : dsByDe.get(v.dataElement().getValue())) {
-          String ptTarget = periodTypeByDataSet.get(dsTarget);
-          if (isNotSamePeriodType(ptTarget, pt))
-            throw new ConflictException(ErrorCode.E7608, ptTarget, v.period());
-        }
-      }
+      Map<String, Set<String>> ptByDe =
+          values.stream()
+              .map(AggDataValue::dataElement)
+              .map(UID::getValue)
+              .distinct()
+              .collect(
+                  toMap(de -> de, de -> dsByDe.get(de).stream().map(ptByDs::get).collect(toSet())));
+      Map<String, Set<String>> isoByDe =
+          values.stream()
+              .collect(
+                  groupingBy(
+                      v -> v.dataElement().getValue(), mapping(AggDataValue::period, toSet())));
+      Map.Entry<String, Set<String>> deIsoWrongPt =
+          isoByDe.entrySet().stream()
+              .flatMap(
+                  e -> {
+                    String de = e.getKey();
+                    Set<String> ptTargets = ptByDe.get(de);
+                    if (e.getValue().stream().anyMatch(iso -> ptTargets.contains(ptByIso.get(iso))))
+                      return Stream.empty();
+                    return Stream.of(
+                        Map.entry(
+                            de,
+                            e.getValue().stream()
+                                .filter(iso -> !ptTargets.contains(ptByIso.get(iso)))
+                                .collect(toSet())));
+                  })
+              .findFirst()
+              .orElse(null);
+      if (deIsoWrongPt != null)
+        throw new ConflictException(
+            ErrorCode.E7608, ptByDe.get(deIsoWrongPt.getKey()), deIsoWrongPt.getValue());
     }
   }
 
