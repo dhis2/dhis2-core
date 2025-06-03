@@ -211,7 +211,20 @@ public class Period extends BaseDimensionalItemObject {
    * @return the period string
    */
   public String getIsoDate() {
-    return isoPeriod != null ? isoPeriod : periodType.getIsoDate(this);
+    return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
+  }
+
+  /**
+   * It returns the ISO date for the current periodType of "this" object.
+   *
+   * @return the ISO date.
+   */
+  private String getPeriodTypeIsoDate() {
+    if (periodType != null) {
+      return periodType.getIsoDate(this);
+    }
+
+    return "";
   }
 
   /**
