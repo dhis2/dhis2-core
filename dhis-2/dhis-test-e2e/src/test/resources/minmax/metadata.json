@@ -1,0 +1,68 @@
+{
+  "dataElements": [
+    {
+      "code": "MINMAX_DE1",
+      "id": "elD9B1HiTJO",
+      "name": "MinMax DE",
+      "shortName": "MinMax DE1",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "INTEGER_ZERO_OR_POSITIVE"
+    },
+    {
+      "code": "MINMAX_DE2",
+      "id": "c6Fi8CNxGJ1",
+      "name": "MinMax DE2",
+      "shortName": "MinMax DE2",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "INTEGER_ZERO_OR_POSITIVE"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "name": "MinMaxland",
+      "id": "fKiYlhodhB1",
+      "shortName": "MinMaxland",
+      "openingDate": "2018-10-31T00:00:00.000"
+    },
+    {
+      "name": "MinMaxState",
+      "id": "MU1nUGOpV4Q",
+      "shortName": "MinMaxState",
+      "parent": {
+        "id": "fKiYlhodhB1"
+      },
+      "openingDate": "2018-10-31T00:00:00.000"
+    }
+  ],
+  "dataSets": [
+    {
+      "id": "nr5MC9XoK2n",
+      "name": "MinMax DataSet",
+      "shortName": "MinMax DataSet",
+      "periodType": "Monthly",
+      "aggregationType": "SUM",
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "elD9B1HiTJO"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "c6Fi8CNxGJ1"
+          }
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "fKiYlhodhB1"
+        },
+        {
+          "id": "MU1nUGOpV4Q"
+        }
+      ]
+    }
+  ]
+}

@@ -25,53 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import java.util.Collection;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxValueId;
+import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
+ * DTO which represents a {@link MinMaxDataElement} in the API.
+ *
  * @author Lars Helge Overland
  */
-public interface MinMaxDataElementService {
+public record MinMaxValue(
+    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @JsonAlias("categoryOptionCombo")
+        @Nonnull
+        @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+        UID optionCombo,
+    @Nonnull Integer minValue,
+    @Nonnull Integer maxValue,
+    Boolean generated)
+    implements MinMaxValueId {
 
-  // TODO replace all parameter of type IdentifiableObject with their UIDs
+  @Nonnull
+  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValue(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()),
+        obj.getMin(),
+        obj.getMax(),
+        obj.isGenerated());
+  }
 
-  MinMaxDataElement getMinMaxDataElement(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
+  public MinMaxValue generated(boolean generated) {
+    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
+  }
 
-  List<MinMaxDataElement> getMinMaxDataElements(
-      OrganisationUnit source, Collection<DataElement> dataElements);
-
-  // TODO replace with use of QueryService once it does no longer require IdentifiableObject
-  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void removeMinMaxDataElements(OrganisationUnit organisationUnit);
-
-  void removeMinMaxDataElements(DataElement dataElement);
-
-  void removeMinMaxDataElements(CategoryOptionCombo optionCombo);
-
-  void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  void importValue(MinMaxValue value) throws BadRequestException;
-
-  int importAll(MinMaxValueUpsertRequest request) throws BadRequestException;
-
-  void deleteValue(MinMaxValueKey key) throws BadRequestException, NotFoundException;
-
-  int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException;
+  public MinMaxValueKey key() {
+    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
+  }
 }
