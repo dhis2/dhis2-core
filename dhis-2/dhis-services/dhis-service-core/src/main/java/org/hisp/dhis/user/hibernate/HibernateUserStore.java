@@ -512,12 +512,12 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+  public Map<String, String> getActiveUserGroupUserEmailsByUsername(String userGroupId) {
     String sql =
         """
             select u.username, u.email from userinfo u
             where u.email is not null
-              and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
+            and u.disabled = false and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
             """;
     NativeQuery<?> emailsByUsername =
         nativeSynchronizedQuery(sql)

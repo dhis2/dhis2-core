@@ -75,27 +75,8 @@ public class DefaultEmailService implements EmailService {
   }
 
   @Override
-  public OutboundMessageResponse sendEmail(Email email) {
-    return emailMessageSender.sendMessage(
-        email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true);
-  }
-
-  @Override
   public OutboundMessageResponse sendEmail(String subject, String message, Set<String> recipients) {
     return emailMessageSender.sendMessage(subject, message, recipients);
-  }
-
-  @Override
-  public OutboundMessageResponse sendTestEmail() {
-    String instanceName = settingsProvider.getCurrentSettings().getApplicationTitle();
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    Email email =
-        new Email(
-            TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null, Sets.newHashSet(currentUser));
-
-    return sendEmail(email);
   }
 
   @Override
@@ -122,5 +103,19 @@ public class DefaultEmailService implements EmailService {
 
     return emailMessageSender.sendMessage(
         email.getSubject(), email.getText(), null, sender, Sets.newHashSet(user), true);
+  }
+
+  @Override
+  public OutboundMessageResponse sendTestEmail() {
+    String instanceName = settingsProvider.getCurrentSettings().getApplicationTitle();
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    Email email =
+        new Email(
+            TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null, Sets.newHashSet(currentUser));
+
+    return emailMessageSender.sendMessage(
+        email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true);
   }
 }
