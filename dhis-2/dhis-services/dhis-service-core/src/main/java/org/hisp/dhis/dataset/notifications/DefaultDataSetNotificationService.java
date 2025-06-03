@@ -41,7 +41,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -73,7 +72,6 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -460,13 +458,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
             user ->
                 user != null
                     && !user.isDisabled()
-                    && Objects.requireNonNull(
-                            UserDetails.createUserDetails(user, true, true, null, null, null, true))
-                        .isInUserHierarchy(
-                            registration.getSource().getUid(),
-                            user.getOrganisationUnits().stream()
-                                .map(OrganisationUnit::getUid)
-                                .collect(toSet())))
+                    && organisationUnitService.isInUserHierarchy(
+                        registration.getSource().getUid(), user.getOrganisationUnits()))
         .collect(toSet());
   }
 
