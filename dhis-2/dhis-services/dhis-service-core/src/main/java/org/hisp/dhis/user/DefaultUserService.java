@@ -888,8 +888,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
-    return userStore.getUserGroupUserEmailsByUsername(userGroupId);
+  public Map<String, String> getActiveUserGroupUserEmailsByUsername(String userGroupId) {
+    return userStore.getActiveUserGroupUserEmailsByUsername(userGroupId);
   }
 
   @Override

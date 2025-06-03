@@ -42,13 +42,6 @@ public interface EmailService {
   boolean emailConfigured();
 
   /**
-   * Sends an email to the recipient user from the sender.
-   *
-   * @param email the email to send.
-   */
-  OutboundMessageResponse sendEmail(Email email);
-
-  /**
    * Sends an email to the list of recipient users from the sender.
    *
    * @param subject the subject.
