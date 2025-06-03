@@ -67,8 +67,6 @@ class EnrollmentRequestParamsMapperTest {
 
   private static final UID PROGRAM_UID = UID.of("XhBYIraw7sv");
 
-  private static final UID TRACKED_ENTITY_TYPE_UID = UID.of("Dp8baZYrLtr");
-
   private static final UID TRACKED_ENTITY_UID = UID.of("DGbr8GHG4li");
 
   @Mock private FieldFilterService fieldFilterService;
