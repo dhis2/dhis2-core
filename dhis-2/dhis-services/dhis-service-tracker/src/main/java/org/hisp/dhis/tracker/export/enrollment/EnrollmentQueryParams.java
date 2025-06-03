@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
@@ -44,7 +45,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
@@ -72,8 +72,17 @@ class EnrollmentQueryParams {
   /** Selection mode for the specified organisation units. */
   private OrganisationUnitSelectionMode organisationUnitMode;
 
-  /** Program for which instances in the response must be enrolled in. */
-  private Program program;
+  /**
+   * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
+   * #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   */
+  @Getter private Program enrolledInTrackerProgram;
+
+  /**
+   * Tracker programs the user has data read access to. This should not be set when {@link
+   * #enrolledInTrackerProgram} is set.
+   */
+  private List<Program> accessibleTrackerPrograms = List.of();
 
   /** Status of a tracked entities enrollment into a given program. */
   private EnrollmentStatus enrollmentStatus;
@@ -86,9 +95,6 @@ class EnrollmentQueryParams {
 
   /** End date for enrollment in the given program. */
   private Date programEndDate;
-
-  /** Tracked entity of the instances in the response. */
-  private TrackedEntityType trackedEntityType;
 
   private TrackedEntity trackedEntity;
 
@@ -134,9 +140,9 @@ class EnrollmentQueryParams {
     return organisationUnits != null && !organisationUnits.isEmpty();
   }
 
-  /** Indicates whether this params specifies a program. */
-  public boolean hasProgram() {
-    return program != null;
+  /** Indicates whether these parameters specify a program. */
+  public boolean hasEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram != null;
   }
 
   /** Indicates whether this params specifies an enrollment status. */
@@ -163,22 +169,12 @@ class EnrollmentQueryParams {
   }
 
   /** Indicates whether this params specifies a tracked entity. */
-  public boolean hasTrackedEntityType() {
-    return trackedEntityType != null;
-  }
-
-  /** Indicates whether this params specifies a tracked entity. */
   public boolean hasTrackedEntity() {
     return this.trackedEntity != null;
   }
 
   public boolean hasEnrollmentUids() {
     return isNotEmpty(this.enrollments);
-  }
-
-  /** Indicates whether this params is of the given organisation unit mode. */
-  public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return organisationUnitMode != null && organisationUnitMode.equals(mode);
   }
 
   /**

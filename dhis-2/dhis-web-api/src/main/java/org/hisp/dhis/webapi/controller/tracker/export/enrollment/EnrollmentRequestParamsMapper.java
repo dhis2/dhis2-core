@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateProgram;
 
 import java.util.List;
 import java.util.Set;
@@ -67,6 +68,7 @@ class EnrollmentRequestParamsMapper {
 
   public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException {
+    validateProgram(enrollmentRequestParams.getProgram());
     OrganisationUnitSelectionMode orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             enrollmentRequestParams.getOrgUnits(), enrollmentRequestParams.getOrgUnitMode());
@@ -93,7 +95,6 @@ class EnrollmentRequestParamsMapper {
                 applyIfNotNull(enrollmentRequestParams.getEnrolledAfter(), StartDateTime::toDate))
             .programEndDate(
                 applyIfNotNull(enrollmentRequestParams.getEnrolledBefore(), EndDateTime::toDate))
-            .trackedEntityType(enrollmentRequestParams.getTrackedEntityType())
             .trackedEntity(enrollmentRequestParams.getTrackedEntity())
             .orgUnits(enrollmentRequestParams.getOrgUnits())
             .orgUnitMode(orgUnitMode)
@@ -125,35 +126,6 @@ class EnrollmentRequestParamsMapper {
   }
 
   private void validateRequestParams(EnrollmentRequestParams params) throws BadRequestException {
-    if (params.getProgram() != null && params.getTrackedEntityType() != null) {
-      throw new BadRequestException(
-          "`program` and `trackedEntityType` cannot be specified simultaneously");
-    }
-
-    if (params.getProgram() == null) {
-      if (params.getProgramStatus() != null) {
-        throw new BadRequestException("`program` must be defined when `programStatus` is defined");
-      }
-      if (params.getStatus() != null) {
-        throw new BadRequestException("`program` must be defined when `status` is defined");
-      }
-
-      if (params.getFollowUp() != null) {
-        throw new BadRequestException(
-            "`program` must be defined when `followUp` status is defined");
-      }
-
-      if (params.getEnrolledAfter() != null) {
-        throw new BadRequestException(
-            "`program` must be defined when `enrolledAfter` is specified");
-      }
-
-      if (params.getEnrolledBefore() != null) {
-        throw new BadRequestException(
-            "`program` must be defined when `enrolledBefore` is specified");
-      }
-    }
-
     if (params.getUpdatedWithin() != null && params.getUpdatedAfter() != null) {
       throw new BadRequestException(
           "`updatedAfter` and `updatedWithin` cannot be specified simultaneously");

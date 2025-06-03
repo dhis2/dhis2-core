@@ -48,9 +48,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -92,6 +90,7 @@ class EnrollmentRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
+    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -103,6 +102,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
     enrollmentRequestParams.setStatus(EnrollmentStatus.ACTIVE);
+    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
 
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
@@ -121,19 +121,10 @@ class EnrollmentRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingTrackedEntityType() throws BadRequestException {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
-
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
-
-    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityType());
-  }
-
-  @Test
   void testMappingTrackedEntity() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setTrackedEntity(TRACKED_ENTITY_UID);
+    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -145,6 +136,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrder(
         OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
+    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -160,6 +152,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrder(
         OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
+    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
@@ -171,6 +164,7 @@ class EnrollmentRequestParamsMapperTest {
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -178,78 +172,13 @@ class EnrollmentRequestParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenProgramAndTrackedEntityTypeProvided() {
+  void shouldFailWhenProgramNotProvided() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setProgram(UID.of("madeUpUid01"));
-    requestParams.setTrackedEntityType(UID.of("madeUpUid02"));
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertEquals(
-        "`program` and `trackedEntityType` cannot be specified simultaneously",
-        badRequestException.getMessage());
-  }
-
-  @Test
-  void shouldFailIfProgramStatusIsSetWithoutProgram() {
-    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
-
-    Exception exception =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertStartsWith("`program` must be defined when `programStatus`", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailIfEnrollmentStatusIsSetWithoutProgram() {
-    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setStatus(EnrollmentStatus.ACTIVE);
-
-    Exception exception =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertStartsWith("`program` must be defined when `status`", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenFollowUpProvidedAndProgramNotPresent() {
-    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setFollowUp(true);
-
-    Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertEquals(
-        "`program` must be defined when `followUp` status is defined",
-        badRequestException.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenEnrolledAfterProvidedAndProgramNotPresent() {
-    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setEnrolledAfter(StartDateTime.of("2020-01-01"));
-
-    Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertEquals(
-        "`program` must be defined when `enrolledAfter` is specified",
-        badRequestException.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenEnrolledBeforeProvidedAndProgramNotPresent() {
-    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setEnrolledBefore(EndDateTime.of("2020-01-01"));
-
-    Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
-
-    assertEquals(
-        "`program` must be defined when `enrolledBefore` is specified",
-        badRequestException.getMessage());
+    assertEquals("Program is mandatory", badRequestException.getMessage());
   }
 
   @Test
@@ -257,9 +186,10 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
     requestParams.setUpdatedAfter(StartDateTime.of("2020-01-01"));
     requestParams.setUpdatedWithin("2h");
+    requestParams.setProgram(UID.of("madeUpUid01"));
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertEquals(
         "`updatedAfter` and `updatedWithin` cannot be specified simultaneously",
@@ -270,9 +200,10 @@ class EnrollmentRequestParamsMapperTest {
   void shouldFailWhenUpdatedWithinProvidedButNotValid() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
     requestParams.setUpdatedWithin("invalid value");
+    requestParams.setProgram(UID.of("madeUpUid01"));
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertEquals(
         String.format("`updatedWithin` is not valid: %s", requestParams.getUpdatedWithin()),
