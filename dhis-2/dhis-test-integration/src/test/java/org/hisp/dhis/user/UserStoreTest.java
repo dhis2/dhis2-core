@@ -33,6 +33,7 @@ import static io.hypersistence.utils.jdbc.validator.SQLStatementCountValidator.a
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -240,17 +241,21 @@ class UserStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetUserGroupUserEmailsByUsername() {
+  void testGetActiveUserGroupUserEmailsByUsername() {
     User userA = makeUser("A");
+    userA.setDisabled(true);
     User userB = makeUser("B");
     userStore.save(userA);
     userStore.save(userB);
+
     UserGroup group = createUserGroup('A', Set.of(userA, userB));
     userGroupService.addUserGroup(group);
 
     Map<String, String> emailsByUsername =
-        userStore.getUserGroupUserEmailsByUsername(group.getUid());
-    assertEquals(Map.of("usernamea", "emaila", "usernameb", "emailb"), emailsByUsername);
+        userStore.getActiveUserGroupUserEmailsByUsername(group.getUid());
+
+    assertNotEquals(Map.of("usernamea", "emaila", "usernameb", "emailb"), emailsByUsername);
+    assertEquals(Map.of("usernameb", "emailb"), emailsByUsername);
   }
 
   @Test
