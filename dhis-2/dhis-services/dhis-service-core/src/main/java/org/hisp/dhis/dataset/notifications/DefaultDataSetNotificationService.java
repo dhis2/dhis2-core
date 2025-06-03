@@ -232,7 +232,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
 
   private MessageBatch createBatchForCompletionNotifications(
       CompleteDataSetRegistration registration, Collection<DataSetNotificationTemplate> templates) {
-    return createMessageBatch(templates.stream().map(t -> Map.of(registration, t)).toList());
+    return createMessageBatch(
+        templates.stream().map(t -> Map.of(registration, t)).collect(Collectors.toList()));
   }
 
   private String createSubjectString(DataSetNotificationTemplate template) {
@@ -458,7 +459,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
                 user != null
                     && !user.isDisabled()
                     && Objects.requireNonNull(
-                            UserDetails.createUserDetails(user, true, true, null, null, null, true))
+                            UserDetails.createUserDetails(user, true, true, null, null, null, null))
                         .isInUserHierarchy(
                             registration.getSource().getUid(),
                             user.getOrganisationUnits().stream()
@@ -473,7 +474,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
         "Dispatching DHIS " + type + " notification messages", messages.size(), SKIP_ITEM_OUTLIER);
 
     // filter out messages without recipients
-    messages = messages.stream().filter(msg -> !msg.recipients.isEmpty()).toList();
+    messages =
+        messages.stream().filter(msg -> !msg.recipients.isEmpty()).collect(Collectors.toList());
 
     progress.runStage(
         messages,
