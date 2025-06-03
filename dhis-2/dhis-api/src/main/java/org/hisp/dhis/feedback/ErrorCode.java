@@ -148,7 +148,8 @@ public enum ErrorCode {
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
   E2045("Case insensitive operators can only be used with constant values"),
-
+  E2046("Error parsing CSV file: {0}"),
+  E2047("Data value key combination does not exist: {0}"),
   /* Outlier detection */
   E2200("At least one data element must be specified"),
   E2201("Start date and end date or relative period must be specified"),
