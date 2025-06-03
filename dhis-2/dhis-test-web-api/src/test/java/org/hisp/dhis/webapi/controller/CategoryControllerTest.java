@@ -164,11 +164,11 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testMaxOptionsPerCategoryLimit() {
-    List<String> options = IntStream.range(1, 40).mapToObj(i -> "o" + i).toList();
+    List<String> options = IntStream.range(1, 55).mapToObj(i -> "o" + i).toList();
     JsonWebMessage msg =
         postCategory("maxOpt", DISAGGREGATION, options).content(CONFLICT).as(JsonWebMessage.class);
     assertContains(
-        " cannot have more than 31 options, but had: 39",
+        " cannot have more than 50 options, but had: 54",
         msg.getResponse().getArray("errorReports").getObject(0).getString("message").string());
   }
 

@@ -219,12 +219,12 @@ class RepeatedEventsValidatorTest extends TestBase {
   }
 
   @Test
-  void testTwoProgramEventsInSameProgramStageArePassingValidation() {
+  void testTwoSingleEventsInSameProgramStageArePassingValidation() {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithoutRegistration());
-    Event eventProgramA = programEvent();
-    Event eventProgramB = programEvent();
+    Event eventProgramA = singleEvent();
+    Event eventProgramB = singleEvent();
     List<Event> events = List.of(eventProgramA, eventProgramB);
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
@@ -267,7 +267,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     return program;
   }
 
-  private Event programEvent() {
+  private Event singleEvent() {
     Event event = new Event();
     event.setEvent(UID.generate());
     event.setEnrollment(ENROLLMENT_B);

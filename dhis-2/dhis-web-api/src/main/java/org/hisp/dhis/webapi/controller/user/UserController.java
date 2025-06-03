@@ -629,8 +629,7 @@ public class UserController
     ImportReport importReport =
         importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
-    if (importReport.getStatus() == Status.OK
-        && importReport.getAccumulatedStats().updated() == 1) {
+    if (importReport.getStatus() == Status.OK && importReport.getStats().updated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
 
       // If it was a pw change attempt (input.pw != null) and update was
@@ -741,8 +740,7 @@ public class UserController
     ImportReport importReport =
         importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
-    if (importReport.getStatus() == Status.OK
-        && importReport.getAccumulatedStats().created() == 1) {
+    if (importReport.getStatus() == Status.OK && importReport.getStats().created() == 1) {
       userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);
     }
 
@@ -781,7 +779,7 @@ public class UserController
     ObjectReport objectReport = getObjectReport(importReport);
 
     if (importReport.getStatus() == Status.OK
-        && importReport.getAccumulatedStats().created() == 1
+        && importReport.getStats().created() == 1
         && objectReport != null) {
       userService.sendRestoreOrInviteMessage(
           user, HttpServletRequestPaths.getContextPath(request), restoreOptions);

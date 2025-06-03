@@ -32,6 +32,7 @@ package org.hisp.dhis.minmax;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.log.TimeExecution;
 
 /**
  * @author Jan Bernitt
@@ -40,4 +41,4 @@ import org.hisp.dhis.common.UID;
  *     MinMaxValueUpsertRequest#values()} so that the same JSON can be used to run delete or upsert.
  */
 public record MinMaxValueDeleteRequest(
-    @Nonnull UID dataSet, @Nonnull List<MinMaxValueKey> values) {}
+    @Nonnull UID dataSet, @Nonnull @TimeExecution.Include List<MinMaxValueKey> values) {}

@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,13 +48,13 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-class JdbcPredicateTest {
+class FilterJdbcPredicateTest {
   private TrackedEntityAttribute tea;
   private DataElement de;
 
@@ -72,7 +72,7 @@ class JdbcPredicateTest {
     tea.setValueType(ValueType.NUMBER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.NNULL);
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertEquals(
 """
@@ -86,7 +86,7 @@ lower("%s".value) is not null"""
   void shouldCreateFilterGivenUnaryOperatorOnDataElement() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.NNULL);
 
-    JdbcPredicate filter = JdbcPredicate.of(de, queryFilter, "ev");
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
 
     assertEquals(
 """
@@ -100,7 +100,7 @@ ev.eventdatavalues -> '%s' is not null"""
   void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeText() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "summer;Winter;SPRING");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -114,7 +114,7 @@ lower("%s".value) in (:"""
   void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeTextAndDataElement() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "summer;Winter;SPRING");
 
-    JdbcPredicate filter = JdbcPredicate.of(de, queryFilter, "ev");
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
 
     assertStartsWith(
 """
@@ -129,7 +129,7 @@ lower(ev.eventdatavalues #>> '{%s, value}') in (:"""
     tea.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42;17;7");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -144,7 +144,7 @@ cast ("%s".value as integer) in (:"""
     de.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42;17;7");
 
-    JdbcPredicate filter = JdbcPredicate.of(de, queryFilter, "ev");
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
 
     assertStartsWith(
 """
@@ -159,7 +159,7 @@ cast (ev.eventdatavalues #>> '{%s, value}' as integer) in (:"""
     tea.setValueType(ValueType.NUMBER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42.5;17.2;7");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -180,7 +180,7 @@ cast ("%s".value as numeric) in (:"""
       shouldCreateFilterGivenTextInputWithLikeBasedOperatorForValueTypeTextAndWildcardCharacters() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EW, "80%_60%");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -195,7 +195,7 @@ lower("%s".value) like :"""
     // % is not a wildcard in operators other than SQL like so will not be escaped
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "summer % DAY");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -210,7 +210,7 @@ lower("%s".value) = :"""
     tea.setValueType(ValueType.TEXT);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42.5");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -225,7 +225,7 @@ lower("%s".value) = :"""
     tea.setValueType(ValueType.NUMBER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42.5");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -240,7 +240,7 @@ cast ("%s".value as numeric) = :"""
     tea.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -255,7 +255,7 @@ cast ("%s".value as integer) = :"""
     tea.setValueType(ValueType.DATE);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.GT, "2013-04-01");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -269,7 +269,7 @@ lower("%s".value) > :"""
   void shouldCreateFilterGivenTextInputWithLikeOperatorForValueTypeText() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.LIKE, "summer");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -283,7 +283,7 @@ lower("%s".value) like :"""
   void shouldCreateFilterGivenTextInputWithSWOperatorForValueTypeText() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.SW, "summer");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -297,7 +297,7 @@ lower("%s".value) like :"""
   void shouldCreateFilterGivenTextInputWithEWOperatorForValueTypeText() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EW, "summer");
 
-    JdbcPredicate filter = JdbcPredicate.of(tea, queryFilter);
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
 
     assertStartsWith(
 """
@@ -313,7 +313,8 @@ lower("%s".value) like :"""
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42.5");
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> JdbcPredicate.of(tea, queryFilter));
+        assertThrows(
+            IllegalArgumentException.class, () -> FilterJdbcPredicate.of(tea, queryFilter));
 
     assertContains("attribute", exception.getMessage());
     assertContains("value type is INTEGER but the value `42.5`", exception.getMessage());
@@ -325,7 +326,8 @@ lower("%s".value) like :"""
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42;17.5;7");
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> JdbcPredicate.of(tea, queryFilter));
+        assertThrows(
+            IllegalArgumentException.class, () -> FilterJdbcPredicate.of(tea, queryFilter));
 
     assertContains("value type is INTEGER but the value `17.5`", exception.getMessage());
   }
@@ -336,7 +338,8 @@ lower("%s".value) like :"""
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "not a number");
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> JdbcPredicate.of(tea, queryFilter));
+        assertThrows(
+            IllegalArgumentException.class, () -> FilterJdbcPredicate.of(tea, queryFilter));
 
     assertContains("value type is NUMBER but the value `not a number`", exception.getMessage());
   }
@@ -347,7 +350,8 @@ lower("%s".value) like :"""
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42.5;not a number;7");
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> JdbcPredicate.of(tea, queryFilter));
+        assertThrows(
+            IllegalArgumentException.class, () -> FilterJdbcPredicate.of(tea, queryFilter));
 
     assertContains("value type is NUMBER but the value `not a number`", exception.getMessage());
   }
@@ -381,9 +385,10 @@ lower("%s".value) like :"""
     TrackedEntityAttribute tea3 = trackedEntityAttribute();
 
     // use LinkedHashMap for deterministic order so assertion is not flaky
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> predicates = new LinkedHashMap<>();
-    predicates.put(tea, List.of(JdbcPredicate.of(tea, notNull), JdbcPredicate.of(tea, notNull)));
-    predicates.put(tea2, List.of(JdbcPredicate.of(tea2, notNull)));
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> predicates = new LinkedHashMap<>();
+    predicates.put(
+        tea, List.of(FilterJdbcPredicate.of(tea, notNull), FilterJdbcPredicate.of(tea, notNull)));
+    predicates.put(tea2, List.of(FilterJdbcPredicate.of(tea2, notNull)));
     predicates.put(tea3, List.of());
 
     MapSqlParameterSource params = new MapSqlParameterSource();
@@ -403,8 +408,8 @@ lower("%s".value) is not null and lower("%s".value) is not null and lower("%s".v
     QueryFilter eq = new QueryFilter(QueryOperator.EQ, "blue");
 
     // use LinkedHashMap for deterministic order so assertion is not flaky
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> predicates = new LinkedHashMap<>();
-    JdbcPredicate predicate = JdbcPredicate.of(tea, eq);
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> predicates = new LinkedHashMap<>();
+    FilterJdbcPredicate predicate = FilterJdbcPredicate.of(tea, eq);
     predicates.put(tea, List.of(predicate));
 
     MapSqlParameterSource params = new MapSqlParameterSource();
@@ -434,7 +439,7 @@ lower("%s".value) = :"""
     return tea;
   }
 
-  private static void assertNoParameter(JdbcPredicate filter) {
+  private static void assertNoParameter(FilterJdbcPredicate filter) {
     assertTrue(
         filter.getParameter().isEmpty(),
         () -> "getParameter should be empty but got " + filter.getParameter().get());
@@ -442,7 +447,7 @@ lower("%s".value) = :"""
 
   private static void assertParameter(
       ValueTypedDimensionalItemObject valueTypedObject,
-      JdbcPredicate filter,
+      FilterJdbcPredicate filter,
       int expectedType,
       Object... expectedValue) {
     assertTrue(filter.getParameter().isPresent(), "expected a getParameter but got none");

@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -52,8 +53,15 @@ public class CteContext {
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
+  /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
+  @Getter private final EndpointItem endpointItem;
+
   public CteDefinition getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
+  }
+
+  public CteContext(EndpointItem endpointItem) {
+    this.endpointItem = endpointItem;
   }
 
   /**
@@ -126,7 +134,10 @@ public class CteContext {
     cteDefinitions.put(
         programIndicator.getUid(),
         CteDefinition.forProgramIndicator(
-            programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+            programIndicator.getUid(),
+            programIndicator.getAnalyticsType(),
+            cteDefinition,
+            functionRequiresCoalesce));
   }
 
   /**
@@ -308,6 +319,15 @@ public class CteContext {
   }
 
   /**
+   * Determines if there are any CTE (Common Table Expression) definitions present in the context.
+   *
+   * @return true if there are CTE definitions, false otherwise
+   */
+  public boolean hasCteDefinitions() {
+    return !cteDefinitions.isEmpty();
+  }
+
+  /**
    * Retrieves a CTE definition by its unique key.
    *
    * @param key the unique key of the CTE definition.
@@ -315,6 +335,15 @@ public class CteContext {
    */
   public CteDefinition getDefinitionByKey(String key) {
     return cteDefinitions.get(key);
+  }
+
+  /**
+   * Checks if the analytics query type is for events.
+   *
+   * @return true if the query type is EVENT, false otherwise.
+   */
+  public boolean isEventsAnalytics() {
+    return endpointItem == EndpointItem.EVENT;
   }
 
   public boolean containsCte(String cteName) {

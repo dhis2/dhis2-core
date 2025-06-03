@@ -357,7 +357,7 @@ public class Period extends BaseDimensionalItemObject {
   private boolean objectEquals(Period other) {
     return startDate.equals(other.getStartDate())
         && endDate.equals(other.getEndDate())
-        && periodType.equals(other.getPeriodType())
+        && Objects.equals(periodType, other.periodType)
         && Objects.equals(dateField, other.getDateField());
   }
 

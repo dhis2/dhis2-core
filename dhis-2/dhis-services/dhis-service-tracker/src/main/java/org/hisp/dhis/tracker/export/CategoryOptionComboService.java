@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-class CategoryOptionComboService {
+public class CategoryOptionComboService {
   private final Cache<Long> attrOptionComboIdCache;
 
   private final CategoryService categoryService;

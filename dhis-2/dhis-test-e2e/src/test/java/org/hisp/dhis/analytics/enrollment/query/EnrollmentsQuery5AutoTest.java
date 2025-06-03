@@ -322,8 +322,8 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rows.
-    validateRow(response, 0, List.of("Ngelehun CHC", "2019-08-21 13:29:58.317", "77.0"));
-    validateRow(response, 1, List.of("Ngelehun CHC", "2019-08-21 13:30:13.73", "78.0"));
+    validateRow(response, 0, List.of("Ngelehun CHC", "2019-08-21 13:29:58.317", "77"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "2019-08-21 13:30:13.73", "78"));
   }
 
   @Test
