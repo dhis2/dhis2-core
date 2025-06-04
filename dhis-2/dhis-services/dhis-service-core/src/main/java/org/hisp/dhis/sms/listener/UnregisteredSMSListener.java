@@ -30,6 +30,7 @@
 package org.hisp.dhis.sms.listener;
 
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -93,22 +94,29 @@ public class UnregisteredSMSListener extends CommandSMSListener {
     String userName = sms.getOriginator();
 
     if (userGroup != null) {
-      User anonymousUser = userService.getUserByUsername(userName);
-      if (anonymousUser == null) {
+      User originatorUser = userService.getUserByUsername(userName);
+      if (originatorUser == null) {
         User user = new User();
         user.setSurname(userName);
         user.setFirstName("");
         user.setAutoFields();
-
         userService.addUser(user);
-
-        anonymousUser = userService.getUserByUsername(userName);
+        originatorUser = userService.getUserByUsername(userName);
       }
+
+      // exit if anonymousUser is disabled
+      if (originatorUser.isDisabled()) {
+        return;
+      }
+
+      Set<User> recipients = userGroup.getMembers();
+      // filter out all recipient users that are disabled
+      recipients.removeIf(User::isDisabled);
 
       messageService.sendMessage(
           new MessageConversationParams.Builder(
-                  userGroup.getMembers(),
-                  anonymousUser,
+                  recipients,
+                  originatorUser,
                   smsCommand.getName(),
                   sms.getText(),
                   MessageType.SYSTEM,

@@ -200,8 +200,9 @@ public class SmsMessageSender implements MessageSender {
 
   private boolean isQualifiedReceiver(User user) {
     return userSettingsService
-        .getUserSettings(user.getUsername(), true)
-        .getUserMessageSmsNotification();
+            .getUserSettings(user.getUsername(), true)
+            .getUserMessageSmsNotification()
+        && !user.isDisabled();
   }
 
   private OutboundMessageResponse sendMessage(
