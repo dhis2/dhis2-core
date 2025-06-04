@@ -171,6 +171,85 @@ class JdbcSubexpressionQueryGeneratorTest {
     assertEquals(expected, actual);
   }
 
+  @Test
+  void testGetSql_withPeriodOffset() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    Period peA = createPeriod("202305");
+
+    QueryModifiers queryModsMin = QueryModifiers.builder().periodOffset(-1).build();
+
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('A');
+
+    deB.setQueryMods(queryModsMin);
+
+    List<DimensionalItemObject> items = List.of(deA, deB);
+
+    String subexSql =
+        " case when coalesce(\"%s\",0) - coalesce(\"%s_minus_1\",0) > 0 then 1 else 0 end"
+            .formatted(deA.getUid(), deA.getUid());
+
+    SubexpressionDimensionItem subex = new SubexpressionDimensionItem(subexSql, items, null);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataType(DataType.NUMERIC)
+            .withTableName("analytics")
+            .withAggregationType(AnalyticsAggregationType.SUM)
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subex)))
+            .addFilters(
+                List.of(
+                    new BaseDimensionalObject(
+                        ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)),
+                    new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA))))
+            .withPeriodType("monthly")
+            .build();
+
+    JdbcSubexpressionQueryGenerator target =
+        new JdbcSubexpressionQueryGenerator(jam, params, DATA_VALUE);
+
+    String expected =
+        """
+            select \
+            'subexprxUID' as "dx",\
+            sum( case when coalesce("deabcdefghA",0) - coalesce("deabcdefghA_minus_1",0) > 0 then 1 else 0 end) as "value" \
+            from \
+            (\
+            select \
+            shift."reportperiod" as monthly, \
+            sum(case when ax."dx"='deabcdefghA' and shift."delta" = 0 then "value"::numeric else null end) as "deabcdefghA",\
+            sum(case when ax."dx"='deabcdefghA' and shift."delta" = -1 then "value"::numeric else null end) as "deabcdefghA_minus_1" \
+            from \
+            analytics as ax  \
+            join (\
+            values(-1,\
+            '202305',\
+            '202304'),\
+            (0,\
+            '202305',\
+            '202305')) as shift ("delta", \
+            "reportperiod", \
+            "dataperiod") on \
+            "dataperiod" = "monthly"\
+            where ax."monthly" in ('202304', '202305') \
+            and ( ax."pe" in ('202305') ) \
+            and ( ax."ou" in ('ouabcdefghA') ) \
+            and ax."dx" in ('deabcdefghA')  \
+            group by \
+            ax."ou",\
+            shift."reportperiod") as ax \
+            where  \
+            case \
+            when coalesce("deabcdefghA",0) - coalesce("deabcdefghA_minus_1",0) > 0 then 1 \
+            else 0 \
+            end is not null\
+            """;
+    String actual = anonymize(target.getSql());
+    assertEquals(expected, actual.trim());
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------

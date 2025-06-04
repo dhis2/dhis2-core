@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.dependsOn.services;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+public final class ProgramIndicatorService extends BaseResourceService {
 
-/**
- * DTO which represents a min-max value.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-public class MinMaxValueDto {
-  @JsonProperty
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String dataElement;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String orgUnit;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String categoryOptionCombo;
-
-  @JsonProperty private Integer minValue;
-
-  @JsonProperty private Integer maxValue;
+  public ProgramIndicatorService() {
+    super("/programIndicators", "programIndicators", "ProgramIndicator");
+  }
 }

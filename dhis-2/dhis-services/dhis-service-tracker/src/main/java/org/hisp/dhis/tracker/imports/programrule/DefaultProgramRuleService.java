@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -124,7 +125,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
 
               return programRuleEngine
-                  .evaluateEnrollmentAndEvents(
+                  .evaluateEnrollmentAndTrackerEvents(
                       enrollment,
                       getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
                       getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat))
@@ -146,7 +147,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .flatMap(
             enrollment ->
                 programRuleEngine
-                    .evaluateEnrollmentAndEvents(
+                    .evaluateEnrollmentAndTrackerEvents(
                         enrollment,
                         getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
                         getAttributes(
@@ -187,13 +188,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
+            .map(this::filterNullAttributes)
             .map(attributes -> attributeValueTrackerConverterService.from(preheat, attributes))
             .orElse(new ArrayList<>());
 
     List<TrackedEntityAttributeValue> payloadAttributeValues =
         bundle
             .findTrackedEntityByUid(teUid)
-            .map(te -> attributeValueTrackerConverterService.from(preheat, te.getAttributes()))
+            .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
+            .map(this::filterNullAttributes)
+            .map(attributes -> attributeValueTrackerConverterService.from(preheat, attributes))
             .orElse(Collections.emptyList());
     attributeValues.addAll(payloadAttributeValues);
 
@@ -239,5 +243,12 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(event -> eventTrackerConverterService.fromForRuleEngine(preheat, event));
 
     return Stream.concat(events, bundleEvents).collect(Collectors.toSet());
+  }
+
+  private List<Attribute> filterNullAttributes(List<Attribute> attributes) {
+    return attributes.stream()
+        .filter(Objects::nonNull)
+        .filter(attr -> attr.getValue() != null)
+        .toList();
   }
 }

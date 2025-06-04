@@ -294,7 +294,8 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     userService.addUser(user4);
 
     // when retrieving users by org unit uid
-    List<User> users = userStore.getUsersWithOrgUnit(UserOrgUnitProperty.ORG_UNITS, UID.of(ou1));
+    List<User> users =
+        userStore.getUsersWithOrgUnits(UserOrgUnitProperty.ORG_UNITS, Set.of(UID.of(ou1)));
     // getting each org unit to assert later that no other select queries triggered
     users.forEach(
         u ->

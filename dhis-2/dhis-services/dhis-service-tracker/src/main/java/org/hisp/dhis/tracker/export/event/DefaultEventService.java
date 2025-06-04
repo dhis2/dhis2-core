@@ -208,7 +208,9 @@ class DefaultEventService implements EventService {
 
       for (RelationshipItem relationshipItem : event.getRelationshipItems()) {
         Relationship daoRelationship = relationshipItem.getRelationship();
-        if (trackerAccessManager.canRead(currentUser, daoRelationship).isEmpty()
+        if ((relationshipItem.getRelationship().getFrom().equals(relationshipItem)
+                || relationshipItem.getRelationship().getRelationshipType().isBidirectional())
+            && trackerAccessManager.canRead(currentUser, daoRelationship).isEmpty()
             && (!daoRelationship.isDeleted())) {
           relationshipItems.add(relationshipItem);
         }

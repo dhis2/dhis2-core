@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.dependsOn;
 
-import java.util.Set;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.io.Serial;
+import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class OrganisationUnitSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+/**
+ * Thrown when the {@code @DependsOn} infrastructure encounters a problem while preparing or
+ * cleaning up test dependencies (e.g. missing JSON file, malformed payload, HTTP error, duplicate
+ * UID, etc.).
+ *
+ * <p>Extends JUnit 5’s {@link ExtensionConfigurationException} so that any failure surfaces
+ * naturally through the Jupiter extension mechanism and aborts the current test.
+ */
+public class DependencySetupException extends ExtensionConfigurationException {
 
-  private String description;
+  @Serial private static final long serialVersionUID = 1L;
 
-  private String shortName;
+  public DependencySetupException(String message) {
+    super(message);
+  }
 
-  private OrganisationUnitSnapshot parent;
-
-  private Set<UserSnapshot> users;
+  public DependencySetupException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -27,12 +27,21 @@
  */
 package org.hisp.dhis.option;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Chau Thu Tran
  */
 public interface OptionStore extends IdentifiableObjectStore<Option> {
-  List<Option> getOptions(long optionSetId, String key, Integer max);
+
+  List<Option> findOptionsByNamePattern(UID optionSet, String infix, Integer maxResults);
+
+  boolean existsAllOptions(@Nonnull UID optionSet, @Nonnull Collection<String> codes);
+
+  Optional<Option> findOptionByCode(@Nonnull UID optionSet, @Nonnull String code);
 }

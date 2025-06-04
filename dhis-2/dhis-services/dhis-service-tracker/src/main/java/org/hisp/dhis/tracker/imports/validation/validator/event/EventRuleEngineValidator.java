@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 import static org.hisp.dhis.tracker.imports.validation.validator.All.all;
 import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
 
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -42,8 +43,12 @@ import org.springframework.stereotype.Component;
 public class EventRuleEngineValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
-  public EventRuleEngineValidator(RuleEngineValidator ruleEngineValidator) {
-    validator = each(TrackerBundle::getEvents, all(ruleEngineValidator, new DataValuesValidator()));
+  public EventRuleEngineValidator(
+      RuleEngineValidator ruleEngineValidator, OptionService optionService) {
+    validator =
+        each(
+            TrackerBundle::getEvents,
+            all(ruleEngineValidator, new DataValuesValidator(optionService)));
   }
 
   @Override

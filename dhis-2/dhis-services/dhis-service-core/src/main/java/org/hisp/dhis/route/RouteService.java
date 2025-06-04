@@ -29,8 +29,6 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -77,8 +75,6 @@ public class RouteService {
   public static final int DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE = 50;
 
   private final RouteStore routeStore;
-
-  private final ObjectMapper objectMapper;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
@@ -157,17 +153,6 @@ public class RouteService {
       return null;
     }
 
-    try {
-      route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Unable to create clone of route: '{}'", route.getUid());
-      return null;
-    }
-
-    if (route.getAuth() != null) {
-      route.setAuth(route.getAuth().decrypt(encryptor::decrypt));
-    }
-
     return route;
   }
 
@@ -193,7 +178,7 @@ public class RouteService {
     request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
 
     if (route.getAuth() != null) {
-      route.getAuth().apply(headers, queryParameters);
+      route.getAuth().decrypt(encryptor::decrypt).apply(headers, queryParameters);
     }
 
     UriComponentsBuilder uriComponentsBuilder =

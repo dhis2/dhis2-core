@@ -39,7 +39,6 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
@@ -103,14 +102,11 @@ public class ProgramRuleEngine {
         null, null, program, List.of(), getRuleEvents(Set.of(event), null), rules);
   }
 
-  public List<RuleEffects> evaluateEnrollmentAndEvents(
+  public List<RuleEffects> evaluateEnrollmentAndTrackerEvents(
       Enrollment enrollment,
       Set<Event> events,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    List<ProgramRule> rules =
-        getProgramRules(
-            enrollment.getProgram(),
-            events.stream().map(Event::getProgramStage).distinct().toList());
+    List<ProgramRule> rules = implementableRuleService.getProgramRules(enrollment.getProgram());
     return evaluateProgramRulesForMultipleTrackerObjects(
         getRuleEnrollment(enrollment, trackedEntityAttributeValues),
         enrollment.getProgram(),
@@ -119,7 +115,7 @@ public class ProgramRuleEngine {
   }
 
   public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
-    List<ProgramRule> rules = getProgramRules(program);
+    List<ProgramRule> rules = implementableRuleService.getProgramRules(program);
     return evaluateProgramRulesForMultipleTrackerObjects(
         null, program, getRuleEvents(events, null), rules);
   }
@@ -157,21 +153,8 @@ public class ProgramRuleEngine {
     }
   }
 
-  public List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
-    if (programStage.isEmpty()) {
-      return implementableRuleService.getProgramRules(program, null);
-    }
-
-    Set<ProgramRule> programRules =
-        programStage.stream()
-            .flatMap(ps -> implementableRuleService.getProgramRules(program, ps.getUid()).stream())
-            .collect(Collectors.toSet());
-
-    return List.copyOf(programRules);
-  }
-
   public List<ProgramRule> getProgramRules(Program program) {
-    return implementableRuleService.getProgramRules(program, null);
+    return implementableRuleService.getProgramRules(program);
   }
 
   /**

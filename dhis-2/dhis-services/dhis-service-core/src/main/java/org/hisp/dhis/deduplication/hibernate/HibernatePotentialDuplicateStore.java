@@ -30,7 +30,6 @@ package org.hisp.dhis.deduplication.hibernate;
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -62,7 +61,6 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -90,8 +88,6 @@ public class HibernatePotentialDuplicateStore
 
   private final TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore;
 
-  private final DhisConfigurationProvider config;
-
   public HibernatePotentialDuplicateStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -99,13 +95,11 @@ public class HibernatePotentialDuplicateStore
       AclService aclService,
       TrackedEntityStore trackedEntityStore,
       AuditManager auditManager,
-      TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore,
-      DhisConfigurationProvider config) {
+      TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
     this.trackedEntityStore = trackedEntityStore;
     this.auditManager = auditManager;
     this.trackedEntityAttributeValueChangeLogStore = trackedEntityAttributeValueChangeLogStore;
-    this.config = config;
   }
 
   @Override
@@ -241,28 +235,26 @@ public class HibernatePotentialDuplicateStore
 
               getSession().saveOrUpdate(updatedTeav);
 
-              auditTeav(av, updatedTeav, changeLogType);
+              addTrackedEntityAttributeValueChangeLog(av, updatedTeav, changeLogType);
             });
   }
 
-  private void auditTeav(
+  private void addTrackedEntityAttributeValueChangeLog(
       TrackedEntityAttributeValue av,
       TrackedEntityAttributeValue createOrUpdateTeav,
       ChangeLogType changeLogType) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    TrackedEntityAttributeValueChangeLog deleteTeavAudit =
+    TrackedEntityAttributeValueChangeLog deleteTeavChangeLog =
         new TrackedEntityAttributeValueChangeLog(av, av.getAuditValue(), currentUsername, DELETE);
-    TrackedEntityAttributeValueChangeLog updatedTeavAudit =
+    TrackedEntityAttributeValueChangeLog updatedTeavChangeLog =
         new TrackedEntityAttributeValueChangeLog(
             createOrUpdateTeav, createOrUpdateTeav.getValue(), currentUsername, changeLogType);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
-          deleteTeavAudit);
-      trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
-          updatedTeavAudit);
-    }
+    trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
+        deleteTeavChangeLog);
+    trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
+        updatedTeavChangeLog);
   }
 
   @Override

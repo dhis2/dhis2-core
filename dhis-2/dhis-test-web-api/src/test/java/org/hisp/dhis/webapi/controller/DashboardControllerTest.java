@@ -120,4 +120,20 @@ class DashboardControllerTest extends DhisControllerIntegrationTest {
     assertTrue(dashboardItem.isPresent());
     assertEquals("gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid());
   }
+
+  @Test
+  void testGetPrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Body("dashboard/create_dashboard.json")).content();
+    switchToSuperuser();
+    GET("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
+
+  @Test
+  void testDeletePrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Body("dashboard/create_dashboard.json")).content();
+    switchToSuperuser();
+    DELETE("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
 }

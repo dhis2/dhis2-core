@@ -31,19 +31,16 @@ import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Lars Helge Overland
  */
 public interface MinMaxDataElementService {
-  long addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
 
-  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  MinMaxDataElement getMinMaxDataElement(long id);
+  // TODO replace all parameter of type IdentifiableObject with their UIDs
 
   MinMaxDataElement getMinMaxDataElement(
       OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
@@ -51,9 +48,16 @@ public interface MinMaxDataElementService {
   List<MinMaxDataElement> getMinMaxDataElements(
       OrganisationUnit source, Collection<DataElement> dataElements);
 
+  // TODO replace with use of QueryService once it does no longer require IdentifiableObject
   List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
 
   int countMinMaxDataElements(MinMaxDataElementQueryParams query);
+
+  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+
+  void addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+
+  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
 
   void removeMinMaxDataElements(OrganisationUnit organisationUnit);
 
@@ -62,4 +66,12 @@ public interface MinMaxDataElementService {
   void removeMinMaxDataElements(CategoryOptionCombo optionCombo);
 
   void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
+
+  void importValue(MinMaxValue value) throws BadRequestException;
+
+  int importAll(MinMaxValueUpsertRequest request) throws BadRequestException;
+
+  void deleteValue(MinMaxValueKey key) throws BadRequestException, NotFoundException;
+
+  int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException;
 }

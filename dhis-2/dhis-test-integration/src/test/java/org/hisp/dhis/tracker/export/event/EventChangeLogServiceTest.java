@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,6 +39,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -63,6 +65,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Autowired protected UserService _userService;
 
+  @Autowired private DhisConfigurationProvider config;
+
   private User importUser;
 
   private TrackerImportParams importParams;
@@ -84,6 +88,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @BeforeEach
   void setUpUser() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
     importUser = userService.getUser("M5zQapPyTZI");
     injectSecurityContextUser(importUser);
   }
@@ -251,6 +256,52 @@ class EventChangeLogServiceTest extends TrackerTest {
         () -> assertDelete(dataElementUid, "20", changeLogs.getItems().get(0)),
         () -> assertUpdate(dataElementUid, "15", "20", changeLogs.getItems().get(1)),
         () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
+  }
+
+  @Test
+  void shouldReturnChangeLogsWhenDataValueIsCreatedDeletedAndCreatedAgain()
+      throws IOException, NotFoundException {
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+
+    updateDataValue(trackerObjects, event, dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(3, changeLogs.getItems());
+    assertAll(
+        () -> assertCreate(dataElementUid, "20", changeLogs.getItems().get(0)),
+        () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(1)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
+  }
+
+  @Test
+  void shouldNotLogChangesWhenChangeLogConfigDisabled() throws IOException, NotFoundException {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    updateDataValue(trackerObjects, event, dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    // There's one event change log because of importing during setup
+    assertNumberOfChanges(1, changeLogs.getItems());
   }
 
   private void updateDataValue(

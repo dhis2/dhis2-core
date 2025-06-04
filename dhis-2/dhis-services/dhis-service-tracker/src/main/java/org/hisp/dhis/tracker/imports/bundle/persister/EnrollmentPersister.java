@@ -32,7 +32,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import javax.persistence.EntityManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -187,7 +189,7 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(Enrollment entity) {
-    return entity.getTrackedEntity().getUid();
+  protected Set<UID> getUpdatedTrackedEntities(Enrollment entity) {
+    return Set.of(UID.of(entity.getTrackedEntity()));
   }
 }

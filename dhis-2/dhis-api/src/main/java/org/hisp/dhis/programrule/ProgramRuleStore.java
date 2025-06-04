@@ -65,9 +65,6 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
   List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes);
 
-  List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> actionTypes, String programStageUid);
-
   List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes);
 
   List<String> getTrackedEntityAttributesPresentInProgramRules(

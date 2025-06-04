@@ -100,4 +100,42 @@ public class OutlierDetectionUtils {
       throw new QueryRuntimeException(E7131);
     }
   }
+
+  /**
+   * Regex pattern for identifying strings that can safely be cast to PostgreSQL {@code double
+   * precision}.
+   *
+   * <p><strong>Matches examples:</strong>
+   *
+   * <ul>
+   *   <li>{@code "42"}
+   *   <li>{@code "-3.14"}
+   *   <li>{@code "0.5"}
+   *   <li>{@code "0001.00"}
+   * </ul>
+   *
+   * <p><strong>Does not match examples:</strong>
+   *
+   * <ul>
+   *   <li>{@code "1e5"} (scientific notation)
+   *   <li>{@code "1,000.00"} (comma separator)
+   *   <li>{@code "abc123"} (non-numeric characters)
+   *   <li>{@code "11.11.11"} (multiple decimal points)
+   *   <li>{@code ""} (empty string)
+   *   <li>{@code " "} (whitespace only)
+   * </ul>
+   *
+   * <p>This pattern is used to pre-filter text-based numeric values to avoid runtime casting
+   * exceptions when converting to {@code double precision} in SQL. Since data values are stored as
+   * strings in the database, there is no guarantee that a given string is safely castable without
+   * prior validation.
+   *
+   * <p><strong>Important:</strong> This regex does not account for cases where the integer part of
+   * the number exceeds the allowed range for PostgreSQL {@code double precision} (approximately
+   * {@code 1.7E308}). Therefore, it is necessary to separately check and limit the length of the
+   * integer portion of the numeric string to a maximum of 307 digits. This limit allows for
+   * extremely large numbers but still maintains a safety margin. In practice, the presence of such
+   * large numbers in DHIS2 is almost always the result of data entry errors.
+   */
+  public static final String PG_DOUBLE_REGEX = "^[+-]?(\\d+(\\.\\d*)?|\\.\\d+)$";
 }

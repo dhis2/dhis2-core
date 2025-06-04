@@ -323,6 +323,7 @@ class IndicatorMergeProcessorTest extends IntegrationTestBase {
     section.setName("section1");
     section.addIndicator(validSource1);
     section.addIndicator(validSource2);
+    section.addIndicator(validTarget);
     section.setDataSet(dataSet);
 
     viz = createVisualization('o');

@@ -65,6 +65,15 @@ public enum QueryOperator {
 
   private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE);
 
+  /**
+   * All query operators that are implemented using the SQL {@code like} operator (see {@link
+   * #value}).
+   *
+   * <p>This is a union of {@link #LIKE_OPERATORS} and SW, EW. So keep it in sync!
+   */
+  private static final Set<QueryOperator> LIKE_BASED_OPERATORS =
+      EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW);
+
   private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
 
   private final String value;
@@ -99,6 +108,11 @@ public enum QueryOperator {
 
   public boolean isLike() {
     return LIKE_OPERATORS.contains(this);
+  }
+
+  /** Returns true if this query operator is implemented using the SQL {@code like} operator. */
+  public boolean isLikeBased() {
+    return LIKE_BASED_OPERATORS.contains(this);
   }
 
   public boolean isIn() {

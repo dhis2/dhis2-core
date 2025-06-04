@@ -49,10 +49,8 @@ class OrgUnitMergeValidatorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateMissingSources() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
     OrganisationUnit ouB = createOrganisationUnit('B');
-    OrgUnitMergeRequest request =
-        new OrgUnitMergeRequest.Builder().addSource(ouA).withTarget(ouB).build();
+    OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().withTarget(ouB).build();
     assertEquals(ErrorCode.E1500, validator.validateForErrorMessage(request).getErrorCode());
   }
 
@@ -89,7 +87,7 @@ class OrgUnitMergeValidatorTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testValidateSuccess() {
+  void testMultiSourceValidateSuccess() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     OrganisationUnit ouB = createOrganisationUnit('B');
     OrganisationUnit ouC = createOrganisationUnit('C');
@@ -98,6 +96,17 @@ class OrgUnitMergeValidatorTest extends SingleSetupIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(ouC);
     OrgUnitMergeRequest request =
         new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    assertNull(validator.validateForErrorMessage(request));
+  }
+
+  @Test
+  void validateSingleSourceValidateSuccess() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).withTarget(ouB).build();
     assertNull(validator.validateForErrorMessage(request));
   }
 }

@@ -49,7 +49,7 @@ import org.springframework.util.StringUtils;
 public class ApiTokenAuthScheme extends AuthScheme {
   public static final String API_TOKEN_TYPE = "api-token";
 
-  @JsonProperty(required = true)
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
   private String token;
 
   public ApiTokenAuthScheme() {

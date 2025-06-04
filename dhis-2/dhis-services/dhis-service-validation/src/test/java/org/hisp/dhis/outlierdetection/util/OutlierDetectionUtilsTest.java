@@ -32,10 +32,13 @@ import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.withExceptionHandling;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -85,5 +88,72 @@ class OutlierDetectionUtilsTest {
     }
 
     return null;
+  }
+
+  @Test
+  void shouldMatchValidNumbers() {
+    assertTrue(matches("42"));
+    assertTrue(matches("0"));
+    assertTrue(matches("-123"));
+    assertTrue(matches("3.14"));
+    assertTrue(matches("0.0"));
+    assertTrue(matches("0001.00"));
+    assertTrue(matches("-0.5"));
+    assertTrue(matches("+42"));
+    assertTrue(matches(".5"));
+    assertTrue(matches("42."));
+    /* Some extremely large number but still valid */
+    String bigNumber = "9".repeat(307);
+    assertTrue(matches(bigNumber));
+    /* A huge number with a large number of decimal places */
+    String bigNumberWithDecimal = "9".repeat(307) + "." + "9".repeat(999);
+    assertTrue(matches(bigNumberWithDecimal));
+  }
+
+  @Test
+  void shouldNotMatchInvalidNumbers() {
+
+    assertFalse(matches("1e5"));
+    assertFalse(matches("1,000"));
+    assertFalse(matches("abc"));
+    assertFalse(matches(""));
+    assertFalse(matches(null));
+    assertFalse(matches("     "));
+    String bigNumber = "9".repeat(308);
+    assertFalse(matches(bigNumber));
+  }
+
+  /*
+   *  This helper function emulates the behavior of the PostgreSQL regex combined with the
+   *  length check in the SQL statement.
+   */
+
+  private static final Pattern NUMERIC_PATTERN =
+      Pattern.compile(OutlierDetectionUtils.PG_DOUBLE_REGEX);
+
+  private boolean matches(String value) {
+    if (value == null) {
+      return false;
+    }
+    value = value.trim();
+
+    if (!NUMERIC_PATTERN.matcher(value).matches()) {
+      return false;
+    }
+
+    String integerPart;
+    int dotIndex = value.indexOf('.');
+
+    if (dotIndex >= 0) {
+      integerPart = value.substring(0, dotIndex);
+    } else {
+      integerPart = value;
+    }
+
+    if (integerPart.startsWith("+") || integerPart.startsWith("-")) {
+      integerPart = integerPart.substring(1);
+    }
+
+    return integerPart.length() <= 307;
   }
 }

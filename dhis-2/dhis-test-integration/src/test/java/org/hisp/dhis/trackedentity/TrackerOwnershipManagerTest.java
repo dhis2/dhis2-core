@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -91,6 +93,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private IdentifiableObjectManager manager;
+
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
@@ -116,6 +120,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private TrackedEntityParams defaultParams;
 
+  private TrackedEntityType trackedEntityType;
+
   @Override
   protected void setUpTest() throws Exception {
     //    userService = _userService;
@@ -126,7 +132,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntityType.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
@@ -188,7 +194,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
                     entityInstanceA1, programA, userB, "testing reason"));
 
     assertEquals(
-        "The owner of the entity-program combination is not in the user's search scope.",
+        "Temporary ownership not created. The owner of the entity-program combination is not in the user's search scope.",
         exception.getMessage());
   }
 
@@ -400,6 +406,78 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     assertEquals(
         "Temporary ownership not created. Program supplied is not a tracker program.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfTrackedEntitySuppliedIsNull() {
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    null, programA, userA, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Tracked entity supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserHasNoAccessToProgram() {
+    programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.DEFAULT).build());
+    programService.updateProgram(programA);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, programA, userA, "test temporary ownership"));
+
+    assertStartsWith(
+        "Temporary ownership not created. User has no data read access to program",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserHasNoAccessToTET() {
+    trackedEntityType.setSharing(
+        Sharing.builder().publicAccess(AccessStringHelper.DEFAULT).build());
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    manager.update(entityInstanceA1);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, programA, userA, "test temporary ownership"));
+
+    assertStartsWith(
+        "Temporary ownership not created. User has no data read access to tracked entity type",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramTETDifferentThanTEs() {
+    TrackedEntityType differentTET = createTrackedEntityType('B');
+    trackedEntityTypeService.addTrackedEntityType(differentTET);
+    differentTET.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    trackedEntityTypeService.updateTrackedEntityType(differentTET);
+    entityInstanceA1.setTrackedEntityType(differentTET);
+    manager.update(entityInstanceA1);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    entityInstanceA1, programA, userA, "test temporary ownership"));
+
+    assertStartsWith(
+        "Temporary ownership not created. The tracked entity type of the program",
         exception.getMessage());
   }
 

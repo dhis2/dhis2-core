@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -865,14 +866,15 @@ public interface UserService {
   CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 
   /**
-   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in
+   * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit}s in
    * the given table
    *
    * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
-   * @param uid {@link OrganisationUnit} {@link UID} to match on
+   * @param uids {@link OrganisationUnit}s {@link UID}s to match on
    * @return matching {@link User}s
    */
-  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull UID uid);
+  List<User> getUsersWithOrgUnits(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
 
   /**
    * Sets the active account for the next login session.

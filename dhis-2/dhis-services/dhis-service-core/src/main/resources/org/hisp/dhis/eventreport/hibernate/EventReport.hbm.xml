@@ -154,7 +154,7 @@
 
         <property name="hideSubtitle"/>
 
-        <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
+        <property name="rawPeriods" column="relativeperiods" type="jbList"/>
 
         <set name="interpretations" inverse="true">
             <key column="eventreportid"/>

@@ -66,7 +66,8 @@ public class DashboardCheck implements ObjectValidationCheck {
     processAclChecks(bundle, klass, persistedObjects, addReports);
     processLayoutLimitCheck(
         selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy),
-        addReports);
+        addReports,
+        context);
   }
 
   private <T> void processAclChecks(
@@ -163,7 +164,7 @@ public class DashboardCheck implements ObjectValidationCheck {
    * @param addReports add {@link ErrorCode#E4070} if layout column limit exceeded
    */
   private <T> void processLayoutLimitCheck(
-      List<T> mergedObjects, Consumer<ObjectReport> addReports) {
+      List<T> mergedObjects, Consumer<ObjectReport> addReports, ValidationContext context) {
     mergedObjects.forEach(
         dashboard -> {
           Layout layout = ((Dashboard) dashboard).getLayout();
@@ -184,6 +185,9 @@ public class DashboardCheck implements ObjectValidationCheck {
                 new ObjectReport(Dashboard.class, 0, ((Dashboard) dashboard).getUid());
             objectReport.addErrorReport(error);
             addReports.accept(objectReport);
+            if (context != null) {
+              context.markForRemoval(((Dashboard) dashboard));
+            }
           }
         });
   }

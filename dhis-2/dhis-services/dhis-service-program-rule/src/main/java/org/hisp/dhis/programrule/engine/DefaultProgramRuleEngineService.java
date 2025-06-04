@@ -139,8 +139,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     Program program = event.getProgramStage().getProgram();
-    List<ProgramRule> programRules =
-        programRuleEngine.getProgramRules(program, List.of(event.getProgramStage()));
+    List<ProgramRule> programRules = programRuleEngine.getProgramRules(program);
 
     if (programRules.isEmpty()) {
       return List.of();

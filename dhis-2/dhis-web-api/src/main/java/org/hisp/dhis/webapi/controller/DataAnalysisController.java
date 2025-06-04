@@ -43,6 +43,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -78,6 +79,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -150,6 +153,8 @@ public class DataAnalysisController {
 
   @Autowired private FollowupAnalysisService followupAnalysisService;
 
+  @Autowired private SystemSettingManager systemSettingManager;
+
   @PostMapping(value = "/validationRules", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
@@ -168,6 +173,21 @@ public class DataAnalysisController {
       throw new WebMessageException(badRequest("No organisation unit defined"));
     }
 
+    int maxResults =
+        ObjectUtils.defaultIfNull(
+            validationRulesAnalysisParams.getMaxResults(),
+            ValidationService.MAX_INTERACTIVE_ALERTS);
+
+    final int MAX_ALLOWED_RESULTS =
+        systemSettingManager.getSystemSetting(SettingKey.MAX_DATA_QUALITY_LIMIT, Integer.class);
+
+    if (maxResults <= 0 || (maxResults > MAX_ALLOWED_RESULTS)) {
+      throw new WebMessageException(
+          badRequest(
+              "Max results must be greater than 0 and less than or equal to "
+                  + MAX_ALLOWED_RESULTS));
+    }
+
     ValidationAnalysisParams params =
         validationService
             .newParamsBuilder(
@@ -178,7 +198,7 @@ public class DataAnalysisController {
             .withIncludeOrgUnitDescendants(true)
             .withPersistResults(validationRulesAnalysisParams.isPersist())
             .withSendNotifications(validationRulesAnalysisParams.isNotification())
-            .withMaxResults(ValidationService.MAX_INTERACTIVE_ALERTS)
+            .withMaxResults(maxResults)
             .build();
 
     List<ValidationResult> validationResults =

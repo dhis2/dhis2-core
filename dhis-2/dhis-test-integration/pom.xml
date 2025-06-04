@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.41.4-SNAPSHOT</version>
+    <version>2.41.5-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-test-integration</artifactId>
@@ -136,6 +136,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-external</artifactId>
       <scope>compile</scope>
     </dependency>
 
@@ -332,6 +337,11 @@
     <dependency>
       <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-core</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

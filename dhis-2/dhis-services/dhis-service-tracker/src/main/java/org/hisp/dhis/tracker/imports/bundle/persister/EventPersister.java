@@ -41,11 +41,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -198,9 +200,11 @@ public class EventPersister
           EventDataValue eventDataValue = dataValueDBMap.get(dataElement.getUid());
 
           ValuesHolder valuesHolder = getAuditAndDateParameters(eventDataValue, dv);
+          if (valuesHolder.getChangeLogType() == null) {
+            return;
+          }
 
           eventDataValue = valuesHolder.getEventDataValue();
-
           eventDataValue.setDataElement(dataElement.getUid());
           eventDataValue.setStoredBy(dv.getStoredBy());
 
@@ -255,24 +259,25 @@ public class EventPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(Event entity) {
-    return Optional.ofNullable(entity.getEnrollment())
+  protected Set<UID> getUpdatedTrackedEntities(Event entity) {
+    return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> e.getTrackedEntity().getUid())
-        .orElse(null);
+        .map(e -> UID.of(e.getTrackedEntity()))
+        .collect(Collectors.toSet());
   }
 
   private boolean isNewDataValue(EventDataValue eventDataValue, DataValue dv) {
-    return eventDataValue == null
-        || (eventDataValue.getCreated() == null && StringUtils.isNotBlank(dv.getValue()));
+    return StringUtils.isNotBlank(dv.getValue()) && eventDataValue == null;
   }
 
   private boolean isDeletion(EventDataValue eventDataValue, DataValue dv) {
-    return StringUtils.isNotBlank(eventDataValue.getValue()) && StringUtils.isBlank(dv.getValue());
+    return eventDataValue != null
+        && StringUtils.isNotBlank(eventDataValue.getValue())
+        && StringUtils.isBlank(dv.getValue());
   }
 
   private boolean isUpdate(EventDataValue eventDataValue, DataValue dv) {
-    return !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
+    return eventDataValue != null && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
   }
 
   private ValuesHolder getAuditAndDateParameters(EventDataValue eventDataValue, DataValue dv) {
@@ -287,7 +292,7 @@ public class EventPersister
       persistedValue = dv.getValue();
       changeLogType = ChangeLogType.CREATE;
     } else {
-      persistedValue = eventDataValue.getValue();
+      persistedValue = eventDataValue != null ? eventDataValue.getValue() : null;
 
       if (isUpdate(eventDataValue, dv)) {
         changeLogType = ChangeLogType.UPDATE;

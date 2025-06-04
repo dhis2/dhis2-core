@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -93,6 +94,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.schema.annotation.Gist;
@@ -163,7 +165,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected RelativePeriods relatives;
 
-  protected List<String> rawRelativePeriods = new ArrayList<>();
+  protected List<String> rawPeriods = new ArrayList<>();
 
   protected int sortOrder;
 
@@ -353,7 +355,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   public boolean hasRelativePeriods() {
-    return rawRelativePeriods != null && !rawRelativePeriods.isEmpty();
+    return rawPeriods != null && !rawPeriods.isEmpty();
   }
 
   public boolean hasOrganisationUnitLevels() {
@@ -702,11 +704,31 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
           new BaseDimensionalObject(
               dimension, DimensionType.DATA_X, getDataDimensionNameableObjects()));
     } else if (PERIOD_DIM_ID.equals(actualDim)) {
-      List<Period> periodList = new ArrayList<>(periods);
+      List<Period> periodList = new ArrayList<>();
 
-      if (hasRelativePeriods()) {
-        for (String relPeriod : rawRelativePeriods) {
-          periodList.add(new Period(RelativePeriodEnum.valueOf(relPeriod)));
+      // For backward compatibility, where periods are not in the "raw" list yet.
+      if (rawPeriods != null) {
+        rawPeriods.addAll(
+            getPeriods().stream()
+                .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
+                .map(period -> period.getDimensionItem())
+                .collect(toSet()));
+      }
+
+      if (isNotEmpty(rawPeriods)) {
+        for (String period : rawPeriods) {
+          if (RelativePeriodEnum.contains(period)) {
+            RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
+            Period relPeriod = new Period(relPeriodTypeEnum);
+
+            periodList.add(relPeriod);
+          } else {
+            Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+
+            if (isoPeriod != null) {
+              periodList.add(isoPeriod);
+            }
+          }
         }
       }
 
@@ -1287,8 +1309,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (relatives == null) {
       List<RelativePeriodEnum> enums = new ArrayList<>();
 
-      if (rawRelativePeriods != null) {
-        for (String relativePeriod : rawRelativePeriods) {
+      if (rawPeriods != null) {
+        for (String relativePeriod : rawPeriods) {
           if (RelativePeriodEnum.contains(relativePeriod)) {
             enums.add(RelativePeriodEnum.valueOf(relativePeriod));
           }
@@ -1307,14 +1329,14 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   @JsonProperty
   @JsonIgnore
-  @JacksonXmlElementWrapper(localName = "rawRelativePeriods", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "rawRelativePeriods", namespace = DxfNamespaces.DXF_2_0)
-  public List<String> getRawRelativePeriods() {
-    return rawRelativePeriods;
+  @JacksonXmlElementWrapper(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getRawPeriods() {
+    return rawPeriods;
   }
 
-  public void setRawRelativePeriods(List<String> rawRelativePeriods) {
-    this.rawRelativePeriods = rawRelativePeriods;
+  public void setRawPeriods(List<String> rawPeriods) {
+    this.rawPeriods = rawPeriods;
   }
 
   @JsonProperty

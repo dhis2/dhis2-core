@@ -292,7 +292,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramRule programRule = setUpSendMessageForEnrollment();
     Enrollment enrollment = enrollmentService.getEnrollment("UID-P1");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             enrollment, Sets.newHashSet(), Lists.newArrayList());
     assertEquals(1, ruleEffects.size());
     RuleEffects enrollmentRuleEffects = ruleEffects.get(0);
@@ -326,7 +326,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     setUpNotificationForD2HasValue();
     Enrollment enrollment = enrollmentService.getEnrollment("UID-P2");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             enrollment, Sets.newHashSet(), Lists.newArrayList());
     assertEquals(1, ruleEffects.size());
     RuleEffects enrollmentRuleEffects = ruleEffects.get(0);
@@ -366,7 +366,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     setUpSendMessageForEnrollment();
     Event event = eventService.getEvent("UID-PS1");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             event.getEnrollment(), Sets.newHashSet(event), Lists.newArrayList());
     assertEquals(2, ruleEffects.size());
     RuleEffects enrollmentRuleEffects =
@@ -460,7 +460,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     setUpAssignValueDate();
     Event event = eventService.getEvent("UID-PS12");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             event.getEnrollment(), Sets.newHashSet(event), Lists.newArrayList());
     assertNotNull(ruleEffects);
     assertEquals(2, ruleEffects.size());

@@ -56,7 +56,8 @@ public class KafkaTarget extends Target {
 
   @JsonProperty private String username;
 
-  @JsonProperty private String password;
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String password;
 
   public KafkaTarget() {
     super(TYPE);

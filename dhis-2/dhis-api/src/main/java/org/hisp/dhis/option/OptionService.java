@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.option;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -67,7 +71,8 @@ public interface OptionService {
 
   List<OptionSet> getAllOptionSets();
 
-  List<Option> getOptions(long optionSetId, String name, Integer max);
+  List<Option> findOptionsByNamePattern(
+      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults);
 
   // -------------------------------------------------------------------------
   // Option
@@ -80,6 +85,10 @@ public interface OptionService {
   Option getOptionByCode(String code);
 
   void deleteOption(Option option);
+
+  boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes);
+
+  Optional<Option> findOptionByCode(@Nonnull String optionSet, @Nonnull String code);
 
   // -------------------------------------------------------------------------
   // OptionGroup

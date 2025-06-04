@@ -357,7 +357,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     for (RelationshipItem relationshipItem : trackedEntity.getRelationshipItems()) {
       Relationship daoRelationship = relationshipItem.getRelationship();
 
-      if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
+      if ((relationshipItem.getRelationship().getFrom().equals(relationshipItem)
+              || relationshipItem.getRelationship().getRelationshipType().isBidirectional())
+          && trackerAccessManager.canRead(user, daoRelationship).isEmpty()
           && (includeDeleted || !daoRelationship.isDeleted())) {
         items.add(relationshipItem);
       }

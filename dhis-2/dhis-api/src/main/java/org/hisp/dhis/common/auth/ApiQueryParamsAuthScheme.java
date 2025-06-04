@@ -46,7 +46,7 @@ import org.springframework.util.MultiValueMap;
 public class ApiQueryParamsAuthScheme extends AuthScheme {
   public static final String API_QUERY_PARAMS_TYPE = "api-query-params";
 
-  @JsonProperty(required = true)
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
   private Map<String, String> queryParams = new HashMap<>();
 
   public ApiQueryParamsAuthScheme() {

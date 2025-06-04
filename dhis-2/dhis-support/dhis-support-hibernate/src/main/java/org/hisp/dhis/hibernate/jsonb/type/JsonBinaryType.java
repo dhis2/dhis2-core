@@ -82,6 +82,9 @@ public class JsonBinaryType implements UserType, ParameterizedType {
 
     MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+    MAPPER.setAnnotationIntrospector(
+        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
   }
 
   ObjectWriter writer;

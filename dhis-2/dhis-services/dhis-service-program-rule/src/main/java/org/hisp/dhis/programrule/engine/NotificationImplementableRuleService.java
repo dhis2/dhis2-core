@@ -28,8 +28,6 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -38,30 +36,20 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class NotificationImplementableRuleService extends ImplementableRuleService {
-  private final Cache<Boolean> programHasRulesCache;
 
-  public NotificationImplementableRuleService(
-      ProgramRuleService programRuleService, final CacheProvider cacheProvider) {
+  public NotificationImplementableRuleService(ProgramRuleService programRuleService) {
     super(programRuleService);
-    this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid) {
+  public List<ProgramRule> getProgramRules(Program program) {
     List<ProgramRule> permittedRules =
-        getProgramRulesByActionTypes(
-            program, ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid);
+        getProgramRulesByActionTypes(program, ProgramRuleActionType.NOTIFICATION_LINKED_TYPES);
 
     if (permittedRules.isEmpty()) {
       return permittedRules;
     }
 
-    return getProgramRulesByActionTypes(
-        program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid);
-  }
-
-  @Override
-  Cache<Boolean> getProgramHasRulesCache() {
-    return this.programHasRulesCache;
+    return getProgramRulesByActionTypes(program, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
   }
 }

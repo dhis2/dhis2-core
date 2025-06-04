@@ -112,7 +112,7 @@ public class EventManager {
       eventPersistenceService.updateEventDataValues(de, event, context);
     }
 
-    auditTrackedEntityDataValueHistory(event, context, new Date());
+    addChangeLogTrackedEntityDataValueHistory(event, context, new Date());
 
     eventPersistenceService.updateTrackedEntityInstances(context, List.of(event));
 
@@ -206,7 +206,7 @@ public class EventManager {
       executorsByPhase.get(EventProcessorPhase.INSERT_POST).execute(workContext, savedEvents);
 
       Date today = new Date();
-      savedEvents.forEach(e -> auditTrackedEntityDataValueHistory(e, workContext, today));
+      savedEvents.forEach(e -> addChangeLogTrackedEntityDataValueHistory(e, workContext, today));
 
       incrementSummaryTotals(events, importSummaries, CREATE);
     }
@@ -283,7 +283,7 @@ public class EventManager {
       executorsByPhase.get(EventProcessorPhase.UPDATE_POST).execute(workContext, savedEvents);
 
       Date today = new Date();
-      savedEvents.forEach(e -> auditTrackedEntityDataValueHistory(e, workContext, today));
+      savedEvents.forEach(e -> addChangeLogTrackedEntityDataValueHistory(e, workContext, today));
 
       incrementSummaryTotals(events, importSummaries, UPDATE);
     }
@@ -344,7 +344,7 @@ public class EventManager {
       executorsByPhase.get(EventProcessorPhase.DELETE_POST).execute(workContext, deletedEvents);
 
       Date today = new Date();
-      deletedEvents.forEach(e -> auditTrackedEntityDataValueHistory(e, workContext, today));
+      deletedEvents.forEach(e -> addChangeLogTrackedEntityDataValueHistory(e, workContext, today));
 
       incrementSummaryTotals(events, importSummaries, DELETE);
     }
@@ -352,7 +352,7 @@ public class EventManager {
     return importSummaries;
   }
 
-  private void auditTrackedEntityDataValueHistory(
+  private void addChangeLogTrackedEntityDataValueHistory(
       org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
       WorkContext workContext,
       Date today) {
@@ -391,16 +391,16 @@ public class EventManager {
         persistedDataValue = eventDataValue.getValue();
       }
 
-      TrackedEntityDataValueChangeLog audit = new TrackedEntityDataValueChangeLog();
-      audit.setCreated(today);
-      audit.setAuditType(changeLogType);
-      audit.setProvidedElsewhere(dv.getProvidedElsewhere());
-      audit.setEvent(psi);
-      audit.setValue(persistedDataValue != null ? persistedDataValue : dv.getValue());
-      audit.setDataElement(workContext.getDataElementMap().get(dv.getDataElement()));
-      audit.setModifiedBy(CurrentUserUtil.getCurrentUsername());
+      TrackedEntityDataValueChangeLog changeLog = new TrackedEntityDataValueChangeLog();
+      changeLog.setCreated(today);
+      changeLog.setAuditType(changeLogType);
+      changeLog.setProvidedElsewhere(dv.getProvidedElsewhere());
+      changeLog.setEvent(psi);
+      changeLog.setValue(persistedDataValue != null ? persistedDataValue : dv.getValue());
+      changeLog.setDataElement(workContext.getDataElementMap().get(dv.getDataElement()));
+      changeLog.setModifiedBy(CurrentUserUtil.getCurrentUsername());
 
-      entityDataValueAuditService.addTrackedEntityDataValueChangeLog(audit);
+      entityDataValueAuditService.addTrackedEntityDataValueChangeLog(changeLog);
     }
   }
 

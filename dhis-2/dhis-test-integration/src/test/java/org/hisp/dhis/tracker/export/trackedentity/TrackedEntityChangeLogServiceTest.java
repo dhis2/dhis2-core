@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,6 +44,7 @@ import org.awaitility.Awaitility;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -77,6 +82,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private DhisConfigurationProvider config;
+
   private static final String MADE_UP_UID = "madeUpUid11";
 
   private OrganisationUnit orgUnitA;
@@ -102,6 +109,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   @Override
   protected void setUpTest() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
 
@@ -221,7 +229,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreated() throws NotFoundException {
-    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
+    updateAttributeValue(trackedEntityAttributeValue, CREATE, "new value");
     Program program = createAndAddProgram('C');
 
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
@@ -245,7 +253,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsDeleted() throws NotFoundException {
-    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.DELETE, "value");
+    updateAttributeValue(trackedEntityAttributeValue, DELETE, "value");
     Program program = createAndAddProgram('D');
 
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
@@ -329,9 +337,9 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreatedUpdatedAndDeleted()
       throws NotFoundException {
-    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
+    updateAttributeValue(trackedEntityAttributeValue, CREATE, "new value");
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
-    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.DELETE, "updated value");
+    updateAttributeValue(trackedEntityAttributeValue, DELETE, "updated value");
     Program program = createAndAddProgram('G');
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
@@ -363,7 +371,7 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsFromAccessibleTEAWhenProgramNotSpecified() throws NotFoundException {
-    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
+    updateAttributeValue(trackedEntityAttributeValue, CREATE, "new value");
     TrackedEntityTypeAttribute trackedEntityTypeAttribute =
         new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute);
     trackedEntityTypeAttribute.setPublicAccess(AccessStringHelper.CATEGORY_OPTION_DEFAULT);
@@ -383,8 +391,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnChangeLogsFromSpecifiedProgramOnlyWhenMultipleLogsExist()
       throws NotFoundException {
-    updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
-    updateAttributeValue(outOfScopeTrackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
+    updateAttributeValue(trackedEntityAttributeValue, CREATE, "new value");
+    updateAttributeValue(outOfScopeTrackedEntityAttributeValue, CREATE, "new value");
     Program program = createAndAddProgram('C');
 
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
@@ -404,6 +412,49 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
         () ->
             assertCreate(
                 trackedEntityAttribute.getUid(), "new value", changeLogs.getItems().get(0)));
+  }
+
+  @Test
+  void shouldNotLogChangesWhenChangeLogConfigDisabled() throws NotFoundException {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
+    updateAttributeValue(trackedEntityAttributeValue, CREATE, "10");
+    updateAttributeValue(trackedEntityAttributeValue, UPDATE, "5");
+    updateAttributeValue(trackedEntityAttributeValue, DELETE, "");
+    Program program = createAndAddProgram('C');
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
+        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
+    Page<TrackedEntityChangeLog> changeLogs =
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
+
+    assertNumberOfChanges(0, changeLogs.getItems());
+  }
+
+  @Test
+  void shouldLogChangesWhenTrackedEntityTypeAuditConfigDisabled() throws NotFoundException {
+    trackedEntityType.setAllowAuditLog(false);
+    manager.update(trackedEntityType);
+    updateAttributeValue(trackedEntityAttributeValue, CREATE, "10");
+    updateAttributeValue(trackedEntityAttributeValue, UPDATE, "5");
+    updateAttributeValue(trackedEntityAttributeValue, DELETE, "");
+    Program program = createAndAddProgram('C');
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
+        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    createAndPersistProgramAttribute(program, trackedEntityAttribute);
+
+    Page<TrackedEntityChangeLog> changeLogs =
+        trackedEntityChangeLogService.getTrackedEntityChangeLog(
+            UID.of(trackedEntity.getUid()),
+            UID.of(program.getUid()),
+            defaultOperationParams,
+            defaultPageParams);
+
+    assertNumberOfChanges(3, changeLogs.getItems());
   }
 
   private void updateAttributeValue(

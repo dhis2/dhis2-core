@@ -77,9 +77,13 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option> {
             .getPreheat()
             .get(bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet().getUid());
 
-    if (optionSet != null && optionSet.getOptionByUid(option.getUid()) == null) {
+    if (optionSet != null && !containsOption(optionSet, option.getUid())) {
       optionSet.addOption(option);
     }
+  }
+
+  private static boolean containsOption(OptionSet set, String uid) {
+    return set.getOptions().stream().anyMatch(option -> option.getUid().equals(uid));
   }
 
   /** Check for duplication of Option's name OR code within given OptionSet */

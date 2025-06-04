@@ -682,7 +682,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         response.get("trackedEntityType").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"nEenWmSyUEp"}""")));
 
     JsonNode simpleDimensionNode0 = response.get("simpleDimensions").node().element(0);
@@ -693,7 +693,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         simpleDimensionNode0.get("values").value().toString(),
         is(
             equalTo(
-                """
+"""
 ["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]""")));
     assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
 
@@ -715,14 +715,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         response.get("columnDimensions").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 ["deabcdefghP.deabcdefghB","deabcdefghC","deabcdefghP.eventDate","created"]""")));
 
     assertThat(
         response.get("filterDimensions").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 ["deabcdefghP.deabcdefghS.ou","deabcdefghE"]""")));
 
     JsonNode dataElementDimensionsNode0 = response.get("dataElementDimensions").node().element(0);
@@ -730,7 +730,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         dataElementDimensionsNode0.get("dataElement").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghC"}""")));
     assertThat(
         dataElementDimensionsNode0.get("filter").value().toString(), is(equalTo("IN:Female")));
@@ -740,7 +740,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         dataElementDimensionsNode1.get("dataElement").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghE"}""")));
     assertFalse(dataElementDimensionsNode1.isMember("filter"));
 
@@ -748,14 +748,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         response.get("programIndicatorDimensions").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"programIndicator":{"id":"deabcdefghB"}}]""")));
 
     assertThat(
         response.get("organisationUnits").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"id":"ImspTQPwCqd"}]""")));
 
     JsonNode repetitionsNode0 = response.get("repetitions").node().element(0);
@@ -778,7 +778,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         columnsNode0.get("program").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode0.get("dimension").value().toString(), is(equalTo("deabcdefghB")));
 
@@ -792,13 +792,13 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         columnsNode2.get("items").value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"id":"2023-07-21_2023-08-01"},{"id":"2023-01-21_2023-02-01"}]""")));
     assertThat(
         columnsNode2.get("program").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode2.get("dimension").value().toString(), is(equalTo("eventDate")));
 
@@ -807,7 +807,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         columnsNode3.get("items").value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"id":"2021-01-21_2021-02-01"}]""")));
     assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
 
@@ -822,7 +822,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
         filtersNode0.get("programStage").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghS"}""")));
     assertThat(filtersNode0.get("dimension").value().toString(), is(equalTo("ou")));
     assertThat(

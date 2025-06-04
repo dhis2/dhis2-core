@@ -337,9 +337,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true, null)
-        + (params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn() > 0
-            ? getLimitClause(params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn() + 1)
-            : "")
+        + (params.getMaxTeLimit() > 0 ? getLimitClause(params.getMaxTeLimit() + 1) : "")
         + " ) tecount";
   }
 

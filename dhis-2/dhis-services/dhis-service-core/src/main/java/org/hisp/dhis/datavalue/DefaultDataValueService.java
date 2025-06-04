@@ -29,7 +29,6 @@ package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -46,9 +45,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -65,13 +66,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.datavalue.DataValueService")
 public class DefaultDataValueService implements DataValueService {
+
   private final DataValueStore dataValueStore;
-
   private final DataValueAuditService dataValueAuditService;
-
   private final CategoryService categoryService;
-
   private final DhisConfigurationProvider config;
+  private final OptionService optionService;
 
   // -------------------------------------------------------------------------
   // Basic DataValue
@@ -89,7 +89,9 @@ public class DefaultDataValueService implements DataValueService {
       return false;
     }
 
-    String result = valueIsValid(dataValue.getValue(), dataValue.getDataElement());
+    String result =
+        ValidationUtils.valueIsValidOption(
+            dataValue.getValue(), dataValue.getDataElement(), optionService);
 
     if (result != null) {
       log.info("Data value is not valid: " + result);
@@ -156,7 +158,9 @@ public class DefaultDataValueService implements DataValueService {
     if (dataValue.isNullValue()
         || dataValueIsZeroAndInsignificant(dataValue.getValue(), dataValue.getDataElement())) {
       deleteDataValue(dataValue);
-    } else if (valueIsValid(dataValue.getValue(), dataValue.getDataElement()) == null) {
+    } else if (ValidationUtils.valueIsValidOption(
+            dataValue.getValue(), dataValue.getDataElement(), optionService)
+        == null) {
       dataValue.setLastUpdated(new Date());
 
       if (config.isEnabled(CHANGELOG_AGGREGATE)

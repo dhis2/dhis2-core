@@ -84,6 +84,8 @@ class ValidationOutlierDetectionRequestTest {
     subject = new ValidationOutlierDetectionRequest(systemSettingManager);
     when(systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class))
         .thenReturn(500);
+    when(systemSettingManager.getSystemSetting(SettingKey.MAX_DATA_QUALITY_LIMIT, Integer.class))
+        .thenReturn(500);
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
     deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);
@@ -204,6 +206,19 @@ class ValidationOutlierDetectionRequestTest {
             .build();
 
     assertRequest(request, ErrorCode.E2211);
+  }
+
+  @Test
+  void testErrorMaxResultsExceedsLimit() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
+            .withMaxResults(1000)
+            .build();
+
+    assertRequest(request, ErrorCode.E2206);
   }
 
   private void assertRequest(OutlierDetectionRequest request, ErrorCode errorCode) {

@@ -49,7 +49,7 @@
 
     <property name="endDate" />
 
-    <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
+    <property name="rawPeriods" column="relativeperiods" type="jbList"/>
 
     <list name="categoryDimensions" table="mapview_categorydimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />

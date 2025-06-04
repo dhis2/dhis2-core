@@ -34,8 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -182,5 +184,23 @@ public class JsonAssertions {
     List<String> reportEntityUids =
         jsonTypeReport.getEntityReport().stream().map(JsonEntity::getUid).toList();
     assertEquals(expectedEntityUids, reportEntityUids);
+  }
+
+  /**
+   * Asserts that the actual list contains an element matching the predicate. If the element is
+   * found, it is returned.
+   *
+   * @param actual the list to search
+   * @param predicate the predicate to match the element
+   * @param messageSubject the subject of the message in case the element is not found
+   * @return the element that matches the predicate
+   * @param <T> the type of the elements in the list
+   */
+  public static <T extends JsonValue> T assertContains(
+      JsonList<T> actual, Predicate<? super T> predicate, String messageSubject) {
+    Optional<T> element = actual.stream().filter(predicate).findFirst();
+    assertTrue(
+        element.isPresent(), () -> String.format("%s not found in %s", messageSubject, actual));
+    return element.get();
   }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.util;
 
+import static org.hisp.dhis.common.ValueType.AGE;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.DATE;
@@ -43,6 +44,7 @@ import static org.hisp.dhis.common.ValueType.LETTER;
 import static org.hisp.dhis.common.ValueType.LONG_TEXT;
 import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.PERCENTAGE;
 import static org.hisp.dhis.common.ValueType.PHONE_NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -491,6 +493,31 @@ class ValidationUtilsTest {
     assertNotNull(valueIsValid("2012304-01", de));
     assertNotNull(valueIsValid("Date", de));
 
+    de.setValueType(TIME);
+    assertNull(valueIsValid("12:30", de));
+    assertNotNull(valueIsValid("25:00", de));
+
+    de.setValueType(AGE);
+    assertNull(valueIsValid("2013-04-01", de));
+    assertNotNull(valueIsValid("2012304-01", de));
+    assertNotNull(valueIsValid("Date", de));
+
+    de.setValueType(PHONE_NUMBER);
+    assertNull(valueIsValid("(+47) 3398 7937", de));
+    assertNotNull(valueIsValid("12345", de));
+
+    de.setValueType(EMAIL);
+    assertNull(valueIsValid("validemail@dhis2.org", de));
+    assertNotNull(valueIsValid("notValidEmail", de));
+
+    de.setValueType(USERNAME);
+    assertNull(valueIsValid("enrico", de));
+    assertNotNull(valueIsValid("notValidUsername(^#2", de));
+
+    de.setValueType(ORGANISATION_UNIT);
+    assertNull(valueIsValid(CodeGenerator.generateUid(), de));
+    assertNotNull(valueIsValid("invalid uid", de));
+
     de.setValueType(DATETIME);
     assertNull(valueIsValid("2021-08-30T13:53:33.767412Z", de));
     assertNull(valueIsValid("2021-08-30T13:53:33.767412", de));
@@ -561,6 +588,7 @@ class ValidationUtilsTest {
     assertEquals("false", normalizeBoolean("False", BOOLEAN));
     assertEquals("false", normalizeBoolean("FALSE", BOOLEAN));
     assertEquals("false", normalizeBoolean("F", BOOLEAN));
+    assertNull(normalizeBoolean(null, TRUE_ONLY));
   }
 
   @Test

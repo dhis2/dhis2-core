@@ -1,0 +1,14 @@
+{
+  "type": "indicator",
+  "code": "EXP_PREG1",
+  "denominatorDescription":"Denominator",
+  "numeratorDescription":"Expected Pregnancies with offset",
+  "numerator":"subExpression(if(#{h0xKKjijTdI} - #{h0xKKjijTdI}.periodOffset(-1) > 0, 1, 0))",
+  "denominator":"1",
+  "name":"Expected Pregnancies",
+  "shortName":"Expected Pregnancies",
+  "indicatorType":{
+    "id":"JkWynlWMjJR"
+  },
+  "legendSets":[]
+}

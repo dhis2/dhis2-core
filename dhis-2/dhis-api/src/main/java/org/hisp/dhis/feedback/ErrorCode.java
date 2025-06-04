@@ -67,7 +67,7 @@ public enum ErrorCode {
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
 
   /* Org unit merge */
-  E1500("At least two source orgs unit must be specified"),
+  E1500("At least one source org unit must be specified"),
   E1501("Target org unit must be specified"),
   E1502("Target org unit cannot be a source org unit"),
   E1503("Source org unit does not exist: `{0}`"),
@@ -148,7 +148,8 @@ public enum ErrorCode {
   E2043("Max value must be specified"),
   E2044("Max value must be greater than min value"),
   E2045("Case insensitive operators can only be used with constant values"),
-
+  E2046("Error parsing CSV file: {0}"),
+  E2047("Data value key combination does not exist: {0}"),
   /* Outlier detection */
   E2200("At least one data element must be specified"),
   E2201("Start date and end date or relative period must be specified"),
@@ -449,6 +450,7 @@ public enum ErrorCode {
   E7146("A {0} date was not specified in periods, dimensions, filters"),
   E7147("Query failed because of a missing column: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
+  E7150("No periods found for subexpression query"),
   /* Analytics outliers */
 
   E7180(

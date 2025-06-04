@@ -39,6 +39,8 @@ public class JsonJobParametersType extends JsonBinaryType {
   static {
     MAPPER.enableDefaultTyping(); // TODO remove?
     MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    MAPPER.setAnnotationIntrospector(
+        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
   }
 
   @Override

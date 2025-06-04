@@ -52,9 +52,10 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
 import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuoteAndEscape;
 
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -172,7 +173,8 @@ public class JdbcSubexpressionQueryGenerator {
 
     String where = "where " + subex.getSubexSql() + " is not null ";
 
-    String groupBy = jam.getGroupByClause(paramsWithoutData);
+    String groupBy =
+        paramsWithoutData.getDimensions().isEmpty() ? "" : jam.getGroupByClause(paramsWithoutData);
 
     return select + from + where + groupBy;
   }
@@ -186,23 +188,20 @@ public class JdbcSubexpressionQueryGenerator {
     String dimensions =
         jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
 
-    String data = singleQuote(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
+    String data =
+        singleQuoteAndEscape(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
 
     String aggregate = getHighLevelAggregateFunction();
 
     String value = subex.getSubexSql();
 
-    return "select "
-        + dimensions
-        + ","
-        + data
-        + ","
-        + aggregate
-        + "("
-        + value
-        + ") as "
-        + quote(VALUE)
-        + " ";
+    // Dimensions can be empty if the query is a Single Value query.
+    if (StringUtils.isBlank(dimensions)) {
+      return String.format("select %s,%s(%s) as %s ", data, aggregate, value, quote(VALUE));
+    } else {
+      return String.format(
+          "select %s,%s,%s(%s) as %s ", dimensions, data, aggregate, value, quote(VALUE));
+    }
   }
 
   /** Gets the from clause for the main query, which is a subquery. */

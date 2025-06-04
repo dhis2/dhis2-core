@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuoteAndEscape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,13 +85,13 @@ public class HibernateTrackedEntityChangeLogStore
           StringBuilder sb = new StringBuilder();
           sb.append("(");
           sb.append("nextval('trackedentityinstanceaudit_sequence'), ");
-          sb.append(singleQuote(audit.getTrackedEntity())).append(",");
+          sb.append(singleQuoteAndEscape(audit.getTrackedEntity())).append(",");
           sb.append("now()").append(",");
-          sb.append(singleQuote(audit.getAccessedBy())).append(",");
-          sb.append(singleQuote(audit.getAuditType().name())).append(",");
+          sb.append(singleQuoteAndEscape(audit.getAccessedBy())).append(",");
+          sb.append(singleQuoteAndEscape(audit.getAuditType().name())).append(",");
           sb.append(
               StringUtils.isNotEmpty(audit.getComment())
-                  ? SqlUtils.singleQuote(audit.getComment())
+                  ? SqlUtils.singleQuoteAndEscape(audit.getComment())
                   : "''");
           sb.append(")");
           return sb.toString();

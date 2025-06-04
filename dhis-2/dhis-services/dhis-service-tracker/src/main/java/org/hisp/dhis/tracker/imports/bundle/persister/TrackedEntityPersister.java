@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
@@ -127,8 +129,8 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(TrackedEntity entity) {
-    return null; // We don't need to keep track, Tei has already been
+  protected Set<UID> getUpdatedTrackedEntities(TrackedEntity entity) {
+    return Set.of(); // We don't need to keep track, Tei has already been
     // updated
   }
 }

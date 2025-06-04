@@ -29,8 +29,10 @@ package org.hisp.dhis.minmax;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -56,4 +58,23 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
   void delete(CategoryOptionCombo optionCombo);
 
   void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
+
+  List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
+
+  /**
+   * Retrieve all {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link
+   * UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link MinMaxDataElement}s with references to {@link CategoryOptionCombo} {@link UID}
+   *     passed in
+   */
+  List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
+
+  @SuppressWarnings("unchecked")
+  List<String> getDataElementsByDataSet(UID dataSet);
+
+  int deleteByKeys(List<MinMaxValueKey> keys);
+
+  int upsertValues(List<MinMaxValue> values);
 }

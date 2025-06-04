@@ -533,7 +533,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndMaxTeLimitReached()
+  void validateSearchOutsideCaptureScopeAndProgramMaxTeLimitReached()
       throws ForbiddenException, BadRequestException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
@@ -551,6 +551,32 @@ class TrackedEntityOperationParamsMapperTest {
             .orgUnitMode(ACCESSIBLE)
             .user(user)
             .programUid(PROGRAM_UID)
+            .build();
+
+    Exception IllegalQueryException =
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+
+    assertEquals("maxteicountreached", IllegalQueryException.getMessage());
+  }
+
+  @Test
+  void validateSearchOutsideCaptureScopeAndTrackedEntityTypeMaxTeLimitReached()
+      throws ForbiddenException, BadRequestException {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
+    user.setOrganisationUnits(emptySet());
+
+    trackedEntityType.setMinAttributesRequiredToSearch(0);
+    trackedEntityType.setMaxTeiCountToReturn(1);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+    when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ACCESSIBLE)
+            .user(user)
+            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
             .build();
 
     Exception IllegalQueryException =

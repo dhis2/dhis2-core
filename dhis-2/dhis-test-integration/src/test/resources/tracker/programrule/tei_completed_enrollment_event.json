@@ -45,7 +45,18 @@
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
-      "attributes": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "displayName": "Attribute_Identifier_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER_POSITIVE",
+          "value": null
+        }
+      ],
       "enrollments": []
     }
   ],

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -50,6 +51,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -59,9 +64,11 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
+import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -267,6 +274,48 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> assertHasNoMember(pagerObject, "nextPage"));
   }
 
+  @Test
+  void shouldGetEventWithNoRelationshipsWhenEventIsOnTheToSideOfAUnidirectionalRelationship() {
+    TrackedEntity from = trackedEntity();
+    Event to = event(enrollment(from));
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType relationshipType =
+        manager.get(RelationshipType.class, relationship.getRelationshipType().getUid());
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(relationships.stream().toList());
+  }
+
+  @Test
+  void shouldGetPaginatedEventsFirstPage() {
+    JsonPage page =
+        GET(
+                "/tracker/events?events={uid}&program={programUid}&page=1&pageSize=1&totalPages=true",
+                event.getUid(),
+                event.getProgramStage().getProgram().getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertEquals(1, page.getList("events", JsonEvent.class).toList(JsonEvent::getEvent).size());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertEquals(1, pager.getTotal());
+    assertEquals(1, pager.getPageCount());
+  }
+
   private TrackedEntity trackedEntity() {
     TrackedEntity te = trackedEntity(orgUnit);
     manager.save(te, false);
@@ -322,6 +371,52 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     event.setAutoFields();
     manager.save(event);
     return event;
+  }
+
+  private Relationship relationship(TrackedEntity from, Event to) {
+    Relationship r = new Relationship();
+
+    RelationshipItem fromItem = new RelationshipItem();
+    fromItem.setTrackedEntity(from);
+    from.getRelationshipItems().add(fromItem);
+    r.setFrom(fromItem);
+    fromItem.setRelationship(r);
+
+    RelationshipItem toItem = new RelationshipItem();
+    toItem.setEvent(to);
+    to.getRelationshipItems().add(toItem);
+    r.setTo(toItem);
+    toItem.setRelationship(r);
+
+    RelationshipType type =
+        relationshipTypeAccessible(
+            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    r.setRelationshipType(type);
+    r.setKey(type.getUid());
+    r.setInvertedKey(type.getUid());
+
+    r.setAutoFields();
+    r.getSharing().setOwner(owner);
+    manager.save(r, false);
+    return r;
+  }
+
+  private RelationshipType relationshipTypeAccessible(
+      RelationshipEntity from, RelationshipEntity to) {
+    RelationshipType type = relationshipType(from, to);
+    type.getSharing().addUserAccess(userAccess());
+    manager.save(type, false);
+    return type;
+  }
+
+  private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
+    RelationshipType type = createRelationshipType('A');
+    type.getFromConstraint().setRelationshipEntity(from);
+    type.getToConstraint().setRelationshipEntity(to);
+    type.getSharing().setOwner(owner);
+    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(type, false);
+    return type;
   }
 
   private String createJson(Event event, String value) {

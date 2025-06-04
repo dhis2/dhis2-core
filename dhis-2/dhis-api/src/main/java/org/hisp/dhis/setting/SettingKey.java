@@ -117,6 +117,7 @@ public enum SettingKey {
    * unlimited records.
    */
   ANALYTICS_MAX_LIMIT("keyAnalyticsMaxLimit", 100000, Integer.class),
+  MAX_DATA_QUALITY_LIMIT("keyMaxDataQualityLimit", 500, Integer.class),
   INCLUDE_ZERO_VALUES_IN_ANALYTICS("keyIncludeZeroValuesInAnalytics", Boolean.FALSE, Boolean.class),
   SQL_VIEW_MAX_LIMIT("keySqlViewMaxLimit", -1, Integer.class),
   RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT(
