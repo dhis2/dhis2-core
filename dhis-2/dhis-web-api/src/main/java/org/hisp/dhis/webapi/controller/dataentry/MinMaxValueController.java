@@ -55,7 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
-@ApiVersion({ DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MinMaxValueController {
 
   private final MinMaxDataElementService minMaxValueService;
