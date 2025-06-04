@@ -390,10 +390,10 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
   void shouldNotReturnEventsWhenProgramOpenAndOrgUnitModeCaptureIfEventsOnSearchScopeOnly()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("BFcipDERJnf")).orgUnitMode(CAPTURE).build();
 
-    Assertions.assertIsEmpty(eventService.findEvents(params));
+    Assertions.assertIsEmpty(trackerEventService.findEvents(params));
   }
 
   @Test
