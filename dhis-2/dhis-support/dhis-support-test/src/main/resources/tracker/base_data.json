@@ -605,7 +605,6 @@
             "identifier": "DATAEL00001"
           },
           "value": "value00002",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -614,7 +613,6 @@
             "identifier": "DATAEL00002"
           },
           "value": "value00002",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -623,7 +621,6 @@
             "identifier": "DATAEL00005"
           },
           "value": "option2",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -632,7 +629,6 @@
             "identifier": "DATAEL00006"
           },
           "value": "70",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -641,7 +637,6 @@
             "identifier": "DATAEL00007"
           },
           "value": "70",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -911,7 +906,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:38.339",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1003,7 +997,6 @@
           "value": "option1"
         },
         {
-          "created": "2022-04-22T06:00:30.559",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "DATAEL00007"
@@ -1048,7 +1041,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:30.559",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1100,7 +1092,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:14.224",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1135,7 +1126,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:14.224",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1170,7 +1160,6 @@
       "status": "COMPLETED",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:14.224",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"

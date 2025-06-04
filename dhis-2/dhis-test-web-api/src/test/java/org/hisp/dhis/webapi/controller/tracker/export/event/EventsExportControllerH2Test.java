@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,8 +48,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.trackerevent.TrackerEventsExportControllerH2Test.Config;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventsExportControllerH2Test.Config;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = Config.class)
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TrackerEventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
+class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
 
   static class Config {
     @Bean
