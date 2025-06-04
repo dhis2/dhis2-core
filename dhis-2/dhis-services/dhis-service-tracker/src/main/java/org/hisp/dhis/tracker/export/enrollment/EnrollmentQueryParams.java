@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.Getter;
-import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
@@ -51,7 +50,6 @@ import org.hisp.dhis.tracker.export.Order;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Accessors(chain = true)
 class EnrollmentQueryParams {
 
   /** Set of enrollment uids to explicitly select. */
@@ -175,6 +173,22 @@ class EnrollmentQueryParams {
 
   public boolean hasEnrollmentUids() {
     return isNotEmpty(this.enrollments);
+  }
+
+  public void setEnrolledInTrackerProgram(Program program) {
+    if (program != null && !accessibleTrackerPrograms.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Cannot set 'enrolledInTrackerProgram' when 'accessibleTrackerPrograms' is already set.");
+    }
+    enrolledInTrackerProgram = program;
+  }
+
+  public void setAccessibleTrackerPrograms(List<Program> programs) {
+    if (enrolledInTrackerProgram != null && programs != null && !programs.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Cannot set 'accessibleTrackerPrograms' when 'enrolledInTrackerProgram' is already set.");
+    }
+    accessibleTrackerPrograms = programs == null ? List.of() : programs;
   }
 
   /**

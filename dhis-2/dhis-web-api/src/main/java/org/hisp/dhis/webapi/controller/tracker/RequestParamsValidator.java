@@ -393,7 +393,7 @@ public class RequestParamsValidator {
     }
   }
 
-  public static void validateProgram(UID program) throws BadRequestException {
+  public static void validateMandatoryProgram(UID program) throws BadRequestException {
     if (program == null) {
       throw new BadRequestException("Program is mandatory");
     }

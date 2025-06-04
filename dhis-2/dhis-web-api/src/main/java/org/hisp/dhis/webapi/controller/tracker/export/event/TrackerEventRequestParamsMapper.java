@@ -32,9 +32,9 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryProgram;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateProgram;
 import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
 
 import java.util.List;
@@ -76,7 +76,7 @@ public class TrackerEventRequestParamsMapper {
   public TrackerEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
-    validateProgram(eventRequestParams.getProgram());
+    validateMandatoryProgram(eventRequestParams.getProgram());
     OrganisationUnitSelectionMode orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             eventRequestParams.getOrgUnit() != null

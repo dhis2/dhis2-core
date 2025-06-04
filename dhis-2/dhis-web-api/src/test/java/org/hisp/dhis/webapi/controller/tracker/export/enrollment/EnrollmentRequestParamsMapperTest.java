@@ -88,7 +88,7 @@ class EnrollmentRequestParamsMapperTest {
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
-    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
+    enrollmentRequestParams.setProgram(UID.generate());
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -100,7 +100,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
     enrollmentRequestParams.setStatus(EnrollmentStatus.ACTIVE);
-    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
+    enrollmentRequestParams.setProgram(UID.generate());
 
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
@@ -122,7 +122,7 @@ class EnrollmentRequestParamsMapperTest {
   void testMappingTrackedEntity() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setTrackedEntity(TRACKED_ENTITY_UID);
-    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
+    enrollmentRequestParams.setProgram(UID.generate());
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -134,7 +134,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrder(
         OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
-    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
+    enrollmentRequestParams.setProgram(UID.generate());
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -150,7 +150,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrder(
         OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
-    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
+    enrollmentRequestParams.setProgram(UID.generate());
 
     Exception exception =
         assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
@@ -162,7 +162,7 @@ class EnrollmentRequestParamsMapperTest {
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setProgram(UID.of("madeUpUid01"));
+    enrollmentRequestParams.setProgram(UID.generate());
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
@@ -184,7 +184,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
     requestParams.setUpdatedAfter(StartDateTime.of("2020-01-01"));
     requestParams.setUpdatedWithin("2h");
-    requestParams.setProgram(UID.of("madeUpUid01"));
+    requestParams.setProgram(UID.generate());
 
     Exception badRequestException =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
@@ -198,7 +198,7 @@ class EnrollmentRequestParamsMapperTest {
   void shouldFailWhenUpdatedWithinProvidedButNotValid() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
     requestParams.setUpdatedWithin("invalid value");
-    requestParams.setProgram(UID.of("madeUpUid01"));
+    requestParams.setProgram(UID.generate());
 
     Exception badRequestException =
         assertThrows(BadRequestException.class, () -> mapper.map(requestParams));

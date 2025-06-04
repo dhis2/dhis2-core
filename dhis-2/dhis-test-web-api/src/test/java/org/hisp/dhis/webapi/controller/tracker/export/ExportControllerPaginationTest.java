@@ -36,7 +36,6 @@ import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -93,7 +92,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   private Enrollment enrollment2;
   private Event event1;
   private Event event2;
-  private Program program;
+  private final String program = "BFcipDERJnf";
 
   @BeforeAll
   void setUp() throws IOException {
@@ -113,8 +112,6 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     enrollment2 = getEnrollment(UID.of("JuioKiICQqI"));
     event1 = getEvent(UID.of("pTzf9KYMk72"));
     event2 = getEvent(UID.of("D9PbzJY8bJM"));
-
-    program = getProgram(UID.of("BFcipDERJnf"));
   }
 
   @BeforeEach
@@ -223,36 +220,9 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedEnrollmentsFirstPage() {
+  void shouldGetPaginatedEnrollmentsMiddlePage() {
     JsonPage page =
-        GET(
-                "/tracker/enrollments?program={uid}&page=1&pageSize=1&totalPages=true",
-                program.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    assertHasSize(
-        1, page.getList("enrollments", JsonEnrollment.class).toList(JsonEnrollment::getEnrollment));
-
-    JsonPager pager = page.getPager();
-    assertEquals(1, pager.getPage());
-    assertEquals(1, pager.getPageSize());
-    assertEquals(2, pager.getTotal());
-    assertEquals(2, pager.getPageCount());
-    assertNull(pager.getPrevPage());
-    assertPagerLink(
-        pager.getNextPage(),
-        2,
-        1,
-        String.format("http://localhost/api/tracker/enrollments?program=%s", program.getUid()));
-  }
-
-  @Test
-  void shouldGetPaginatedEnrollmentsLastPage() {
-    JsonPage page =
-        GET(
-                "/tracker/enrollments?program={uid}&page=2&pageSize=1&totalPages=true",
-                program.getUid())
+        GET("/tracker/enrollments?program={uid}&page=2&pageSize=1&totalPages=true", program)
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -262,20 +232,24 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPager pager = page.getPager();
     assertEquals(2, pager.getPage());
     assertEquals(1, pager.getPageSize());
-    assertEquals(2, pager.getTotal());
-    assertEquals(2, pager.getPageCount());
+    assertEquals(3, pager.getTotal());
+    assertEquals(3, pager.getPageCount());
     assertPagerLink(
         pager.getPrevPage(),
         1,
         1,
-        String.format("http://localhost/api/tracker/enrollments?program=%s", program.getUid()));
-    assertNull(pager.getNextPage());
+        String.format("http://localhost/api/tracker/enrollments?program=%s", program));
+    assertPagerLink(
+        pager.getNextPage(),
+        3,
+        1,
+        String.format("http://localhost/api/tracker/enrollments?program=%s", program));
   }
 
   @Test
   void shouldGetEmptyEventsPage() {
     JsonPage page =
-        GET("/tracker/events?events={uid}&program={programUid}", UID.generate(), program.getUid())
+        GET("/tracker/events?events={uid}&program={programUid}", UID.generate(), program)
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -292,7 +266,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPage page =
         GET(
                 "/tracker/events?program={programUid}&events={uid},{uid}",
-                program.getUid(),
+                program,
                 event1.getUid(),
                 event2.getUid())
             .content(HttpStatus.OK)
@@ -315,7 +289,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
                 "/tracker/events?events={uid},{uid}&program={programUid}&page=1&pageSize=1&totalPages=true",
                 event1.getUid(),
                 event2.getUid(),
-                program.getUid())
+                program)
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
