@@ -1,0 +1,220 @@
+{
+  "transactions": {
+    "slowThresholdMillis": 2000,
+    "profilingIntervalMillis": 1000,
+    "captureThreadStats": true
+  },
+  "jvm": {
+    "maskSystemProperties": [
+      "*password*",
+      "*token*",
+      "*access*",
+      "*secret*"
+    ],
+    "maskMBeanAttributes": [
+      "*password*",
+      "*token*",
+      "*access*",
+      "*secret*"
+    ]
+  },
+  "uiDefaults": {
+    "defaultTransactionType": "Web",
+    "defaultPercentiles": [
+      50.0,
+      95.0,
+      99.0
+    ],
+    "defaultGaugeNames": [
+      "java.lang:type=Memory:HeapMemoryUsage.used"
+    ]
+  },
+  "advanced": {
+    "immediatePartialStoreThresholdSeconds": 60,
+    "maxTransactionAggregates": 500,
+    "maxQueryAggregates": 500,
+    "maxServiceCallAggregates": 500,
+    "maxTraceEntriesPerTransaction": 2000,
+    "maxProfileSamplesPerTransaction": 50000,
+    "mbeanGaugeNotFoundDelaySeconds": 60
+  },
+  "gauges": [
+    {
+      "mbeanObjectName": "java.lang:type=Memory",
+      "mbeanAttributes": [
+        {
+          "name": "HeapMemoryUsage.used"
+        }
+      ]
+    },
+    {
+      "mbeanObjectName": "java.lang:type=GarbageCollector,name=*",
+      "mbeanAttributes": [
+        {
+          "name": "CollectionCount",
+          "counter": true
+        },
+        {
+          "name": "CollectionTime",
+          "counter": true
+        }
+      ]
+    },
+    {
+      "mbeanObjectName": "java.lang:type=MemoryPool,name=*",
+      "mbeanAttributes": [
+        {
+          "name": "Usage.used"
+        }
+      ]
+    },
+    {
+      "mbeanObjectName": "java.lang:type=OperatingSystem",
+      "mbeanAttributes": [
+        {
+          "name": "FreePhysicalMemorySize"
+        },
+        {
+          "name": "ProcessCpuLoad"
+        },
+        {
+          "name": "SystemCpuLoad"
+        }
+      ]
+    }
+  ],
+  "plugins": [
+    {
+      "id": "cassandra",
+      "properties": {
+        "stackTraceThresholdMillis": 1000.0
+      }
+    },
+    {
+      "id": "elasticsearch",
+      "properties": {
+        "stackTraceThresholdMillis": 1000.0
+      }
+    },
+    {
+      "id": "jakartaservlet",
+      "properties": {
+        "sessionUserAttribute": "",
+        "captureSessionAttributes": [ ],
+        "captureRequestParameters": [
+          "*"
+        ],
+        "maskRequestParameters": [
+          "*password*",
+          "*token*",
+          "*access*",
+          "*secret*"
+        ],
+        "captureRequestHeaders": [ ],
+        "captureResponseHeaders": [ ],
+        "traceErrorOn4xxResponseCode": false,
+        "captureRequestRemoteAddr": false,
+        "captureRequestRemoteHostname": false,
+        "captureRequestRemotePort": false,
+        "captureRequestLocalAddr": false,
+        "captureRequestLocalHostname": false,
+        "captureRequestLocalPort": false,
+        "captureRequestServerHostname": false,
+        "captureRequestServerPort": false
+      }
+    },
+    {
+      "id": "java-http-server",
+      "properties": {
+        "captureRequestHeaders": [ ],
+        "maskRequestHeaders": [
+          "Authorization"
+        ],
+        "captureRequestRemoteAddr": false,
+        "captureRequestRemoteHost": false,
+        "captureResponseHeaders": [ ],
+        "traceErrorOn4xxResponseCode": false
+      }
+    },
+    {
+      "id": "jaxrs",
+      "properties": {
+        "useAltTransactionNaming": false
+      }
+    },
+    {
+      "id": "jdbc",
+      "properties": {
+        "captureBindParametersIncludes": [
+          ".*"
+        ],
+        "captureBindParametersExcludes": [ ],
+        "captureResultSetNavigate": true,
+        "captureResultSetGet": false,
+        "captureConnectionPoolLeaks": false,
+        "captureConnectionPoolLeakDetails": false,
+        "captureGetConnection": true,
+        "captureConnectionClose": false,
+        "capturePreparedStatementCreation": false,
+        "captureStatementClose": false,
+        "captureTransactionLifecycleTraceEntries": false,
+        "captureConnectionLifecycleTraceEntries": false,
+        "stackTraceThresholdMillis": 1000.0
+      }
+    },
+    {
+      "id": "logger",
+      "properties": {
+        "traceErrorOnErrorWithThrowable": true,
+        "traceErrorOnErrorWithoutThrowable": false,
+        "traceErrorOnWarningWithThrowable": false,
+        "traceErrorOnWarningWithoutThrowable": false
+      }
+    },
+    {
+      "id": "mongodb",
+      "properties": {
+        "stackTraceThresholdMillis": 1000.0
+      }
+    },
+    {
+      "id": "play",
+      "properties": {
+        "useAltTransactionNaming": false
+      }
+    },
+    {
+      "id": "servlet",
+      "properties": {
+        "sessionUserAttribute": "",
+        "captureSessionAttributes": [ ],
+        "captureRequestParameters": [
+          "*"
+        ],
+        "maskRequestParameters": [
+          "*password*",
+          "*token*",
+          "*access*",
+          "*secret*"
+        ],
+        "captureRequestHeaders": [ ],
+        "captureResponseHeaders": [ ],
+        "traceErrorOn4xxResponseCode": false,
+        "captureRequestRemoteAddr": false,
+        "captureRequestRemoteHostname": false,
+        "captureRequestRemotePort": false,
+        "captureRequestLocalAddr": false,
+        "captureRequestLocalHostname": false,
+        "captureRequestLocalPort": false,
+        "captureRequestServerHostname": false,
+        "captureRequestServerPort": false
+      }
+    },
+    {
+      "id": "spring",
+      "properties": {
+        "useAltTransactionNaming": false
+      }
+    }
+  ]
+}

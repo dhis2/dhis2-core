@@ -43,10 +43,28 @@ services:
     <<: *web-base
     volumes:
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+      - ./docker/glowroot_admin.json:/opt/dhis2/admin.json
+      - ./docker/glowroot_config.json:/opt/dhis2/config.json
+      - ./docker/glowroot:/opt/glowroot/app
     ports:
       # - "127.0.0.1:8080:8080" # DHIS2
       - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
       - "127.0.0.1:9011:9011" # JMX port (for example for VisualVM)
+      - "127.0.0.1:4000:4000" # Glowroot UI
+    environment:
+      JAVA_OPTS:
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
+        -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
+        -Dcom.sun.management.jmxremote \
+        -Dcom.sun.management.jmxremote.port=9011 \
+        -Dcom.sun.management.jmxremote.local.only=false \
+        -Dcom.sun.management.jmxremote.authenticate=false \
+        -Dcom.sun.management.jmxremote.ssl=false
+        -javaagent:/opt/glowroot/app/glowroot.jar \
+        -Dglowroot.conf.dir=/opt/dhis2 \
+        -Dglowroot.data.dir=/opt/dhis2/glowroot/data \
+        -Dglowroot.log.dir=/opt/dhis2/glowroot/log \
+        -Dglowroot.tmp.dir=/opt/dhis2/glowroot/tmp"
     depends_on:
       db:
         condition: service_healthy

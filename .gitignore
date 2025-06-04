@@ -38,5 +38,6 @@ node_modules
 .cursor
 # ignore generated artifact directory
 docker/artifacts
+docker/glowroot
 # ignore local docker override files
 docker-compose.override.yml
