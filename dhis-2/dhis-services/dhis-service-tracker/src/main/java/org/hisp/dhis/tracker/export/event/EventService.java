@@ -29,18 +29,11 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.Page;
-import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,43 +41,8 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 public interface EventService {
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
-   * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
-   * #getEvent(UID, TrackerIdSchemeParams, EventFields)} instead to also get the events
-   * relationships and specify different {@code idSchemes}.
+   * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}.
    */
   @Nonnull
   Event getEvent(UID uid) throws NotFoundException;
-
-  /**
-   * Get event matching given {@code UID} and params under the privileges of the currently
-   * authenticated user. Metadata identifiers will use the {@code idScheme} defined by {@link
-   * TrackerIdSchemeParams}.
-   */
-  @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, EventFields fields)
-      throws NotFoundException;
-
-  /**
-   * Find all events matching given params under the privileges of the currently authenticated user.
-   */
-  @Nonnull
-  List<Event> findEvents(@Nonnull EventOperationParams params)
-      throws BadRequestException, ForbiddenException;
-
-  /**
-   * Get a page of events matching given params under the privileges of the currently authenticated
-   * user.
-   */
-  @Nonnull
-  Page<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
-      throws BadRequestException, ForbiddenException;
-
-  /**
-   * Fields the {@link #findEvents(EventOperationParams)} and {@link
-   * #findEvents(EventOperationParams, PageParams)} can order events by. Ordering by fields other
-   * than these is considered a programmer error. Validation of user provided field names should
-   * occur before calling {@link #findEvents(EventOperationParams)} or {@link
-   * #findEvents(EventOperationParams, PageParams)}.
-   */
-  Set<String> getOrderableFields();
 }
