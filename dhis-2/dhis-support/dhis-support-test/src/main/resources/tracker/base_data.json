@@ -605,7 +605,6 @@
             "identifier": "DATAEL00001"
           },
           "value": "value00002",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -614,7 +613,6 @@
             "identifier": "DATAEL00002"
           },
           "value": "value00002",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -623,7 +621,6 @@
             "identifier": "DATAEL00005"
           },
           "value": "option2",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -632,7 +629,6 @@
             "identifier": "DATAEL00006"
           },
           "value": "70",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
         },
         {
@@ -641,8 +637,15 @@
             "identifier": "DATAEL00007"
           },
           "value": "70",
-          "created": "2021-07-01T12:05:00",
           "storedBy": null
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HH"
+          },
+          "value": "15",
+          "providedElsewhere": false
         }
       ],
       "assignedUser": {
@@ -865,12 +868,14 @@
       "followUp": true,
       "attributeOptionCombo": {
         "idScheme": "UID",
-        "identifier": "HllvX50cXC0"
+        "identifier": "SeWJkpLAyLt"
       }
     },
     {
       "event": "QRYjLTiJTrA",
       "occurredAt": "2022-04-20T06:00:38.343",
+      "createdAtClient": "2022-04-20T12:17:30.163",
+      "updatedAtClient": "2022-04-30T12:17:30.163",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "SeWJkpLAyLt"
@@ -901,7 +906,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:38.339",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -937,6 +941,8 @@
     {
       "event": "kWjSezkXHVp",
       "occurredAt": "2022-04-22T06:00:38.343",
+      "createdAtClient": "2022-04-23T19:17:30.163",
+      "updatedAtClient": "2022-04-29T19:21:30.163",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "cr89ebDZrac"
@@ -982,12 +988,28 @@
           },
           "value": "10",
           "providedElsewhere": false
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00005"
+          },
+          "value": "option1"
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00007"
+          },
+          "value": "text"
         }
       ]
     },
     {
       "event": "OTmjvJDn0Fu",
       "occurredAt": "2022-04-23T06:00:38.343",
+      "createdAtClient": "2022-04-25T12:17:30.163",
+      "updatedAtClient": "2022-04-26T12:17:30.163",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "cr89ebDZrac"
@@ -1019,7 +1041,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:30.559",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1038,6 +1059,8 @@
     {
       "event": "ck7DzdxqLqA",
       "occurredAt": "2022-04-24T06:00:38.343",
+      "createdAtClient": "2022-04-24T12:22:30.163",
+      "updatedAtClient": "2022-04-24T12:22:31.163",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "tzsPhPtE94U"
@@ -1069,7 +1092,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:14.224",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1081,6 +1103,8 @@
     {
       "event": "lumVtWwwy0O",
       "occurredAt": "2022-04-21T06:00:38.343",
+      "createdAtClient": "2022-04-24T12:17:30.163",
+      "updatedAtClient": "2022-04-24T12:17:30.163",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "AeOORUC0ISH"
@@ -1102,7 +1126,6 @@
       "status": "ACTIVE",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:14.224",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
@@ -1115,6 +1138,8 @@
       "event": "cadc5eGj0j7",
       "occurredAt": "2022-04-20T03:00:38.343",
       "completedAt": "2022-07-15T00:00:50.743",
+      "createdAtClient": "2022-04-21T12:17:30.163",
+      "updatedAtClient": "2022-07-18T12:17:30.163",
       "attributeOptionCombo": {
         "idScheme": "UID",
         "identifier": "V2gbpszLQJm"
@@ -1135,12 +1160,11 @@
       "status": "COMPLETED",
       "dataValues": [
         {
-          "created": "2022-04-22T06:00:14.224",
           "dataElement": {
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
           },
-          "value": "12"
+          "value": "22"
         }
       ]
     },
@@ -1157,9 +1181,11 @@
       },
       "orgUnit": {
         "idScheme": "UID",
-        "identifier": "g4w96yEMlzO"
+        "identifier": "uoNW0E3xXUy"
       },
       "occurredAt": "2019-01-28T00:00:00.000",
+      "createdAtClient": "2019-01-02T12:17:30.163",
+      "updatedAtClient": "2018-01-03T12:17:30.163",
       "storedBy": "admin",
       "attributeOptionCombo": {
         "idScheme": "UID",
