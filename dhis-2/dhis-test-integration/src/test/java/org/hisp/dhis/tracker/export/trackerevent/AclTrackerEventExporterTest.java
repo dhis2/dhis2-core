@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -71,10 +72,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AclEventExporterTest extends PostgresIntegrationTestBase {
+class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -82,7 +83,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
   private Program program;
 
-  private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
+  private TrackerEventOperationParams.TrackerEventOperationParamsBuilder operationParamsBuilder;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -109,21 +110,21 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminIntoSecurityContext();
-    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder = TrackerEventOperationParams.builder();
   }
 
   @Test
   void shouldReturnEventsWhenProgramClosedOuModeDescendantsAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .program(UID.of("pcxIanBWlSY"))
             .orgUnit(orgUnit)
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -142,10 +143,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -166,14 +167,14 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenProgramClosedOuModeChildrenAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .program(UID.of("pcxIanBWlSY"))
             .orgUnit(orgUnit)
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -192,10 +193,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeChildrenAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -208,7 +209,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenProgramIsOpenAndOrgUnitNotInSearchScope() {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .program(program)
             .orgUnit(UID.of("DiszpKrYNg8"))
@@ -216,7 +217,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.findEvents(params));
+        assertThrows(ForbiddenException.class, () -> trackerEventService.findEvents(params));
     assertEquals(
         "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
@@ -224,7 +225,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenProgramIsClosedAndOrgUnitNotInSearchScope() {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .program(UID.of("pcxIanBWlSY"))
             .orgUnit(UID.of("DiszpKrYNg8"))
@@ -232,7 +233,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.findEvents(params));
+        assertThrows(ForbiddenException.class, () -> trackerEventService.findEvents(params));
     assertEquals(
         "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
@@ -241,14 +242,14 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenProgramClosedOuModeSelectedAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .program(UID.of("pcxIanBWlSY"))
             .orgUnit(UID.of("uoNW0E3xXUy"))
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -267,17 +268,23 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("nIidJVYpQQK"));
-    EventOperationParams params =
-        operationParamsBuilder.orgUnit(UID.of("DiszpKrYNg8")).orgUnitMode(SELECTED).build();
+    TrackerEventOperationParams params =
+        operationParamsBuilder
+            .program(UID.of("SeeUNWLQmZk"))
+            .orgUnit(UID.of("DiszpKrYNg8"))
+            .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
+            .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
+            .orgUnitMode(SELECTED)
+            .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode selected and org units in search scope");
 
     assertContainsOnly(
-        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp", "H0PbzJY8bJG"),
+        List.of("LCSfHnurnNB"),
         events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
@@ -285,10 +292,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInCaptureScope()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("RojfDTBhoGC")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -303,14 +310,14 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoSingleEvents()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .program(UID.of("shPjYNifvMK"))
             .orgUnit(orgUnit)
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
@@ -319,10 +326,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenProgramClosedOuModeAccessible()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program closed");
@@ -340,10 +347,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenProgramOpenOuModeAccessible()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program open");
@@ -361,10 +368,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsWhenProgramClosedOuModeCapture()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(CAPTURE).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode capture and program closed");
@@ -382,10 +389,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecified()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -404,19 +411,21 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
   void shouldReturnEventsNonSuperUserIsOwnerOrHasUserAccess()
       throws ForbiddenException, BadRequestException {
     // given events have a COC which has a CO which the
-    // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
-    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
+    // user owns xwZ2u3WyQR0 and has user read access to i4Nbp8S2G6A
+    injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
 
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
+            .program(UID.of("TsngICFQjvH"))
             .orgUnit(UID.of("DiszpKrYNg8"))
             .orgUnitMode(SELECTED)
-            .events(UID.of("lumVtWwwy0O", "cadc5eGj0j7"))
+            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
+            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "i4Nbp8S2G6A"))
             .build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
-    assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), uids(events));
+    assertContainsOnly(List.of("H0PbzJY8bJG"), uids(events));
     List<Executable> executables =
         events.stream()
             .map(
@@ -441,7 +450,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     // readable, user is not the owner and has no user access
     injectSecurityContextUser(userService.getUser("CYVgFNKCaUS"));
 
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder
             .orgUnit(UID.of("DiszpKrYNg8"))
             .orgUnitMode(SELECTED)
@@ -458,9 +467,9 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
 
-    EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
+    TrackerEventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -472,8 +481,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8",
-            "g4w96yEMlzO"),
+            "DiszpKrYNg8"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -482,10 +490,10 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
 
-    EventOperationParams params =
+    TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("uoNW0E3xXUy")).orgUnitMode(ALL).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -497,8 +505,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8",
-            "g4w96yEMlzO"),
+            "DiszpKrYNg8"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -508,23 +515,20 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
           throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(userService.getUser("nIidJVYpQQK"));
 
-    EventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
+    TrackerEventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.findEvents(params);
+    List<Event> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
     assertContainsOnly(
         List.of(
-            "ck7DzdxqLqA",
-            "OTmjvJDn0Fu",
-            "kWjSezkXHVp",
+            "LCSfHnurnNB",
             "jxgFyJEMUPf",
             "JaRDIvcEcEx",
             "YKmfzHdjUDL",
             "SbUJzkxKYAG",
-            "gvULMgNiAfM",
-            "H0PbzJY8bJG"),
+            "gvULMgNiAfM"),
         events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
@@ -534,8 +538,8 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     return t;
   }
 
-  private List<String> getEvents(EventOperationParams params)
+  private List<String> getEvents(TrackerEventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.findEvents(params));
+    return uids(trackerEventService.findEvents(params));
   }
 }

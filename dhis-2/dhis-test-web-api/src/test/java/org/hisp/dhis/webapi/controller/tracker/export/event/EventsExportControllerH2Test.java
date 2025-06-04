@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,10 +47,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.trackerevent.TrackerEventsExportControllerH2Test.Config;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventsExportControllerH2Test.Config;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,18 +62,9 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = Config.class)
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TrackerEventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
+class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
 
   static class Config {
-    @Bean
-    public EventService eventService() {
-      EventService eventService = mock(EventService.class);
-      // Orderable fields are checked within the controller constructor
-      when(eventService.getOrderableFields())
-          .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
-      return eventService;
-    }
-
     @Bean
     public TrackerEventService trackerEventService() {
       TrackerEventService trackerEventService = mock(TrackerEventService.class);
@@ -92,8 +81,6 @@ class TrackerEventsExportControllerH2Test extends H2ControllerIntegrationTestBas
   }
 
   @Autowired private TrackerEventService trackerEventService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private ProgramService programService;
 
