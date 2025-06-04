@@ -68,6 +68,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_QUERY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TIMEOUT;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
@@ -231,6 +232,30 @@ public final class DatabasePoolUtils {
     hc.addDataSourceProperty("prepStmtCacheSize", "250");
     hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
     hc.setConnectionTestQuery(connectionTestQuery);
+    final String leakThresholdStr =
+        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
+
+    if (leakThresholdStr != null && !leakThresholdStr.isBlank()) {
+      try {
+        long leakThreshold = Long.parseLong(leakThresholdStr);
+
+        // Enforce Hikari limits
+        final long MIN_LEAK_THRESHOLD = 2000L;
+        final long maxLifetime = hc.getMaxLifetime();
+        if (leakThreshold >= MIN_LEAK_THRESHOLD && leakThreshold < maxLifetime) {
+          log.info("Enabling HikariCP leak detection with threshold: {}ms", leakThreshold);
+          hc.setLeakDetectionThreshold(leakThreshold);
+        } else {
+          log.warn(
+              "Leak detection threshold {}ms is out of bounds (must be >= {}ms and < maxLifetime={}ms). Skipping.",
+              leakThreshold,
+              MIN_LEAK_THRESHOLD,
+              maxLifetime);
+        }
+      } catch (NumberFormatException e) {
+        log.warn("Invalid leak detection threshold value '{}', skipping.", leakThresholdStr);
+      }
+    }
 
     HikariDataSource ds = new HikariDataSource(hc);
     ds.setConnectionTimeout(connectionTimeout);

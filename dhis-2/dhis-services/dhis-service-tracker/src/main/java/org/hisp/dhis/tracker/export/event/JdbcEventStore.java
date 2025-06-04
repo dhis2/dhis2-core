@@ -993,7 +993,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String getOrgUnitSql(
       EventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
-      case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
+      case CAPTURE -> createCaptureSql(user, params, mapSqlParameterSource);
       case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
       case DESCENDANTS -> createDescendantsSql(user, params, mapSqlParameterSource);
       case CHILDREN -> createChildrenSql(user, params, mapSqlParameterSource);
@@ -1002,19 +1002,21 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     };
   }
 
-  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
-    return createCaptureScopeQuery(user, mapSqlParameterSource, "");
+  private String createCaptureSql(
+      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+    return createCaptureScopeQuery(user, params, mapSqlParameterSource, "");
   }
 
   private String createAccessibleSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
     if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
-      return createCaptureSql(user, mapSqlParameterSource);
+      return createCaptureSql(user, params, mapSqlParameterSource);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        user, params, USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createDescendantsSql(
@@ -1023,11 +1025,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
-          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+          user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
@@ -1044,13 +1047,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
           user,
+          params,
           mapSqlParameterSource,
           AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
     return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
@@ -1066,11 +1070,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
-      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
+      return createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(user, params, orgUnitPathEqualsMatchQuery);
   }
 
   /**
@@ -1080,18 +1084,43 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * @return a getSql clause to add to the main query
    */
   private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
+      User user,
+      EventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource,
+      String orgUnitMatcher) {
+
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
-    return " exists(select cs.organisationunitid "
-        + " from usermembership cs "
-        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
-        + " join userinfo u on u.userinfoid = cs.userinfoid "
-        + " where u.uid = :"
-        + COLUMN_USER_UID
-        + " and ou.path like concat(orgunit.path, '%') "
-        + orgUnitMatcher
-        + ") ";
+    String userMembershipSubquery =
+        " exists ("
+            + "  select cs.organisationunitid "
+            + "  from usermembership cs "
+            + "  join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
+            + "  join userinfo u on u.userinfoid = cs.userinfoid "
+            + "  where u.uid = :"
+            + COLUMN_USER_UID
+            + " "
+            + "    and ou.path like concat(orgunit.path, '%') "
+            + "    "
+            + orgUnitMatcher
+            + ")";
+
+    if (params.getTrackedEntity() != null) {
+      String tempOwnerSubquery =
+          "p.accesslevel = 'PROTECTED' and exists ("
+              + "  select 1 "
+              + "  from programtempowner "
+              + "  where programid = p.programid "
+              + "    and trackedentityid = te.trackedentityid "
+              + "    and userid = "
+              + user.getId()
+              + " "
+              + "    and extract(epoch from validtill) - extract(epoch from now()::timestamp) > 0"
+              + ")";
+
+      return "(" + userMembershipSubquery + " or " + tempOwnerSubquery + ")";
+    }
+    return userMembershipSubquery;
   }
 
   /**
@@ -1101,25 +1130,37 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * @param orgUnitMatcher specific condition to add depending on the ou mode
    * @return a getSql clause to add to the main query
    */
-  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
-    return " (exists(select ss.organisationunitid "
-        + " from userteisearchorgunits ss "
-        + " join userinfo u on u.userinfoid = ss.userinfoid "
-        + " join organisationunit orgunit on orgunit.organisationunitid = ss.organisationunitid "
-        + " where u.uid = :"
-        + COLUMN_USER_UID
-        + AND
-        + orgUnitMatcher
-        + " and p.accesslevel in ('OPEN', 'AUDITED')) "
-        + " or exists(select cs.organisationunitid "
-        + " from usermembership cs "
-        + " join userinfo u on u.userinfoid = cs.userinfoid "
-        + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
-        + " where u.uid = :"
-        + COLUMN_USER_UID
-        + AND
-        + orgUnitMatcher
-        + " )) ";
+  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+      User user, EventQueryParams params, String orgUnitMatcher) {
+    String sql =
+        " (exists(select ss.organisationunitid "
+            + " from userteisearchorgunits ss "
+            + " join userinfo u on u.userinfoid = ss.userinfoid "
+            + " join organisationunit orgunit on orgunit.organisationunitid = ss.organisationunitid "
+            + " where u.uid = :"
+            + COLUMN_USER_UID
+            + AND
+            + orgUnitMatcher
+            + " and p.accesslevel in ('OPEN', 'AUDITED')) "
+            + " or exists(select cs.organisationunitid "
+            + " from usermembership cs "
+            + " join userinfo u on u.userinfoid = cs.userinfoid "
+            + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
+            + " where u.uid = :"
+            + COLUMN_USER_UID
+            + AND
+            + orgUnitMatcher;
+
+    if (params.getTrackedEntity() != null) {
+      sql +=
+          ") or p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = te.trackedentityid and userid = "
+              + user.getId()
+              + " and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))";
+    } else {
+      sql += " )) ";
+    }
+
+    return sql;
   }
 
   private boolean isProgramRestricted(Program program) {
