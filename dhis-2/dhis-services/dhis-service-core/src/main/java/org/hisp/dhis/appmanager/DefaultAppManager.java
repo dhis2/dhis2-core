@@ -180,7 +180,8 @@ public class DefaultAppManager implements AppManager {
     bundledAppManager.installBundledApps(
         (key, appInfo, resource) -> {
           String fileName = key + ".zip";
-          // Install bundled apps if not already installed manually or automatic
+          // Install bundled apps if not already installed manually or automatically during startup
+          // here:
           installedApps.computeIfAbsent(
               key, x -> installBundledAppResource(resource, fileName, appInfo));
 
