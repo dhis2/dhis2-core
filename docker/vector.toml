@@ -45,9 +45,12 @@ source = '''
     # time in seconds with a milliseconds resolution
     .connection_time_ms = to_float!(parsed[13]) * 1000
     .request_time_ms = to_float!(parsed[14]) * 1000
+    .upstream_connect_time_ms = to_float!(parsed[15]) * 1000
+    .upstream_header_time_ms = to_float!(parsed[16]) * 1000
+    .upstream_response_time_ms = to_float!(parsed[17]) * 1000
 
-    if parsed[15] != "-" {
-      .sessionid = parsed[15]
+    if parsed[18] != "-" {
+      .sessionid_hash = parsed[18]
     }
 
     # add common Elasticsearch metadata fields
