@@ -480,9 +480,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasOrganisationUnits()) {
-      sql.append("and ");
       buildOrgUnitModeClause(
-          sql, sqlParameters, params.getOrgUnits(), params.getOrgUnitMode(), orgUnitTableAlias);
+          sql,
+          sqlParameters,
+          params.getOrgUnits(),
+          params.getOrgUnitMode(),
+          orgUnitTableAlias,
+          "and ");
     }
 
     buildOwnershipClause(

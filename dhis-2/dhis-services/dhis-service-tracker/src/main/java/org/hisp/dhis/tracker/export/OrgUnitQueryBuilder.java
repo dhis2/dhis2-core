@@ -30,8 +30,12 @@
 package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
@@ -69,7 +73,14 @@ public class OrgUnitQueryBuilder {
       MapSqlParameterSource sqlParameters,
       Set<OrganisationUnit> orgUnits,
       OrganisationUnitSelectionMode orgUnitMode,
-      String tableAlias) {
+      String tableAlias,
+      String clause) {
+
+    if (orgUnitModeDoesNotAcceptOrgUnitParams(orgUnitMode)) {
+      return;
+    }
+
+    sql.append(clause);
 
     switch (orgUnitMode) {
       case DESCENDANTS -> addOrgUnitDescendantsCondition(sql, orgUnits, sqlParameters, tableAlias);
@@ -78,10 +89,13 @@ public class OrgUnitQueryBuilder {
         sql.append(tableAlias).append(".organisationunitid in (:orgUnits) ");
         sqlParameters.addValue("orgUnits", getIdentifiers(orgUnits));
       }
-      case ALL, CAPTURE, ACCESSIBLE -> {
-        // these modes don't accept org units, so skip predicate
-      }
+      default -> throw new IllegalArgumentException("Unknown org unit mode: " + orgUnitMode);
     }
+  }
+
+  private static boolean orgUnitModeDoesNotAcceptOrgUnitParams(
+      OrganisationUnitSelectionMode orgUnitMode) {
+    return orgUnitMode == ALL || orgUnitMode == CAPTURE || orgUnitMode == ACCESSIBLE;
   }
 
   /**

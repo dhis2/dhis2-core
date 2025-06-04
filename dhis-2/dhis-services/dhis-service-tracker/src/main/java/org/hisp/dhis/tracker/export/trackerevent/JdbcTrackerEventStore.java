@@ -39,7 +39,6 @@ import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipCla
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Strings;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -983,14 +982,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
     StringBuilder orgUnitBuilder = new StringBuilder();
 
-    StringBuilder modeBuilder = new StringBuilder();
     if (params.getOrgUnit() != null) {
       buildOrgUnitModeClause(
-          modeBuilder, sqlParameters, Set.of(params.getOrgUnit()), params.getOrgUnitMode(), "ou");
-    }
-
-    if (!Strings.isNullOrEmpty(modeBuilder.toString())) {
-      orgUnitBuilder.append(hlp.whereAnd()).append(modeBuilder);
+          orgUnitBuilder,
+          sqlParameters,
+          Set.of(params.getOrgUnit()),
+          params.getOrgUnitMode(),
+          "ou",
+          hlp.whereAnd());
     }
 
     buildOwnershipClause(orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te");
