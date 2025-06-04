@@ -25,41 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.route;
+package org.hisp.dhis.actions;
 
-import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RouteActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-public class RouteTest extends ApiTest {
-
-  private RouteActions routeActions;
-
-  @BeforeEach
-  public void setUp() {
-    new TestCleanUp().deleteCreatedEntities("/routes");
-
-    routeActions = new RouteActions();
-
-    LoginActions loginActions = new LoginActions();
-    loginActions.loginAsDefaultUser();
-  }
-
-  @Test
-  void testRunRoute() {
-    JsonObject routeJsonObject = new JsonObject();
-    routeJsonObject.addProperty("name", "route-under-test");
-    routeJsonObject.addProperty("url", "https://dhis2.org/");
-
-    ApiResponse postApiResponse = routeActions.post(routeJsonObject);
-    String id = postApiResponse.getBody().getAsJsonObject("response").get("uid").getAsString();
-
-    ApiResponse runApiResponse = routeActions.get(id + "/run");
-    runApiResponse.validate().statusCode(200);
+public class RouteActions extends RestApiActions {
+  public RouteActions() {
+    super("/routes");
   }
 }
