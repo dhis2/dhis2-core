@@ -71,8 +71,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @RequiredArgsConstructor
 public class RouteService {
-  public static final int MAX_TOTAL_HTTP_CONNECTIONS = 500;
-  public static final int DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE = 50;
+  protected static final int MAX_TOTAL_HTTP_CONNECTIONS = 500;
+  protected static final int DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE = 50;
 
   private final RouteStore routeStore;
 
