@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -91,11 +92,12 @@ public class OrgUnitQueryBuilder {
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
       OrganisationUnitSelectionMode orgUnitMode,
-      Set<OrganisationUnit> effectiveSearchOrgUnits,
-      Set<OrganisationUnit> captureScopeOrgUnits,
       String programTableAlias,
-      String orgUnitTableAlias) {
-    if (orgUnitMode == ALL || getCurrentUserDetails().isSuper()) {
+      String orgUnitTableAlias,
+      String trackedEntityTableAlias) {
+    UserDetails userDetails = getCurrentUserDetails();
+
+    if (orgUnitMode == ALL || userDetails.isSuper()) {
       return;
     }
 
@@ -107,11 +109,13 @@ public class OrgUnitQueryBuilder {
         .append(".accesslevel in ('OPEN', 'AUDITED') and ")
         .append(orgUnitTableAlias);
     if (orgUnitMode == CAPTURE) {
-      sql.append(".path like any (:captureScopePaths))");
+      sql.append(
+          ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
     } else {
-      sql.append(".path like any (:effectiveSearchScopePaths))");
+      sql.append(
+          ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:effectiveSearchScopeOrgUnits)))");
       sqlParameters.addValue(
-          "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
+          "effectiveSearchScopeOrgUnits", userDetails.getUserEffectiveSearchOrgUnitIds());
     }
 
     sql.append(sqlHelper.andOr())
@@ -119,8 +123,19 @@ public class OrgUnitQueryBuilder {
         .append(programTableAlias)
         .append(".accesslevel in ('PROTECTED', 'CLOSED') and ")
         .append(orgUnitTableAlias)
-        .append(".path like any (:captureScopePaths)))");
-    sqlParameters.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
+        .append(
+            ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
+    sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+
+    sql.append(sqlHelper.andOr())
+        .append(
+            "(p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
+        .append(programTableAlias)
+        .append(".programid and trackedentityid = ")
+        .append(trackedEntityTableAlias)
+        .append(".trackedentityid and userid = ")
+        .append(userDetails.getId())
+        .append(" and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))");
   }
 
   private static void addOrgUnitDescendantsCondition(
@@ -182,9 +197,5 @@ public class OrgUnitQueryBuilder {
       index++;
     }
     sql.append(")");
-  }
-
-  private static String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
-    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
   }
 }

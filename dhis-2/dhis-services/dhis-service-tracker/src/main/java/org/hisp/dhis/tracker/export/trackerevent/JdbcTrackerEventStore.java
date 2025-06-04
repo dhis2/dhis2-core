@@ -779,7 +779,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         new StringBuilder(" from event ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
             .append("inner join program p on p.programid=en.programid ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+            .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+            .append("inner join trackedentity te on te.trackedentityid=en.trackedentityid ");
 
     fromBuilder
         .append(
@@ -789,9 +790,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 + " ev.organisationunitid)=evou.organisationunitid) ")
         .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
 
-    fromBuilder
-        .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
-        .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
+    fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // LEFT JOIN attributes we need to sort on and/or filter by.
     fromBuilder.append(getLeftJoinFromAttributes(params));
@@ -1012,7 +1011,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        user, USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createDescendantsSql(
@@ -1025,7 +1025,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        user, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
@@ -1048,7 +1049,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
     return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+        user, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
@@ -1068,7 +1069,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(user, orgUnitPathEqualsMatchQuery);
   }
 
   /**
@@ -1081,7 +1082,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
-    return " exists(select cs.organisationunitid "
+    return " (exists(select cs.organisationunitid "
         + " from usermembership cs "
         + " join organisationunit orgunit on orgunit.organisationunitid = cs.organisationunitid "
         + " join userinfo u on u.userinfoid = cs.userinfoid "
@@ -1089,7 +1090,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         + COLUMN_USER_UID
         + " and ou.path like concat(orgunit.path, '%') "
         + orgUnitMatcher
-        + ") ";
+        + ") or p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = te.trackedentityid and userid = "
+        + user.getId()
+        + " and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))";
   }
 
   /**
@@ -1099,7 +1102,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * @param orgUnitMatcher specific condition to add depending on the ou mode
    * @return a getSql clause to add to the main query
    */
-  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
+  private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+      User user, String orgUnitMatcher) {
     return " (exists(select ss.organisationunitid "
         + " from userteisearchorgunits ss "
         + " join userinfo u on u.userinfoid = ss.userinfoid "
@@ -1117,7 +1121,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         + COLUMN_USER_UID
         + AND
         + orgUnitMatcher
-        + " )) ";
+        + ") or p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = te.trackedentityid and userid = "
+        + user.getId()
+        + " and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))";
   }
 
   private boolean isProgramRestricted(Program program) {
