@@ -72,7 +72,6 @@ public class DefaultEmailService implements EmailService {
     return systemSettingManager.emailConfigured();
   }
 
-  @Override
   public OutboundMessageResponse sendEmail(Email email) {
     return emailMessageSender.sendMessage(
         email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true);

@@ -149,7 +149,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return a map of user emails by username for all users in the group that have an email
    *     configured
    */
-  Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId);
+  Map<String, String> getActiveUserGroupUserEmailsByUsername(String userGroupId);
 
   String getDisplayName(String userUid);
 
