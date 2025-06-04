@@ -41,7 +41,7 @@ class RouteServiceTest {
   @Test
   @Timeout(value = 30)
   void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
-    RouteService routeService = new RouteService(null, null, null);
+    RouteService routeService = new RouteService(null, null);
     routeService.setRestTemplate(new RestTemplate());
     routeService.postConstruct();
 
