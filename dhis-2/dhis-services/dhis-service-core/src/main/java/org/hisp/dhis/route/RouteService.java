@@ -45,6 +45,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.User;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
@@ -70,6 +71,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 @RequiredArgsConstructor
 public class RouteService {
+  public static final int MAX_TOTAL_HTTP_CONNECTIONS = 500;
+  public static final int DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE = 50;
+
   private final RouteStore routeStore;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
@@ -117,7 +121,15 @@ public class RouteService {
     requestFactory.setReadTimeout(30_000);
     requestFactory.setBufferRequestBody(true);
 
-    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
+    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+    connectionManager.setMaxTotal(MAX_TOTAL_HTTP_CONNECTIONS);
+    connectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE);
+
+    HttpClient httpClient =
+        HttpClientBuilder.create()
+            .setConnectionManager(connectionManager)
+            .disableCookieManagement()
+            .build();
 
     requestFactory.setHttpClient(httpClient);
 
