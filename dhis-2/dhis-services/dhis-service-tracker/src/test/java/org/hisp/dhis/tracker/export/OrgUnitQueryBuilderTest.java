@@ -101,9 +101,10 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOrgUnitModeClause(sql, params, orgUnits, DESCENDANTS, "ou");
+    buildOrgUnitModeClause(sql, params, orgUnits, DESCENDANTS, "ou", "and ");
 
-    assertEquals("(  ou.path like :orgUnitPath0 or ou.path like :orgUnitPath1)", sql.toString());
+    assertEquals(
+        "and (  ou.path like :orgUnitPath0 or ou.path like :orgUnitPath1)", sql.toString());
 
     expectedParams.put("orgUnitPath0", orgUnitA.getPath() + "%");
     expectedParams.put("orgUnitPath1", orgUnitB.getPath() + "%");
@@ -115,10 +116,10 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOrgUnitModeClause(sql, params, orgUnits, CHILDREN, "ou");
+    buildOrgUnitModeClause(sql, params, orgUnits, CHILDREN, "ou", "and ");
 
     assertEquals(
-        "(   ou.path like :orgUnitPath0 and (ou.hierarchylevel = :parentHierarchyLevel0 or ou.hierarchylevel = :childHierarchyLevel0) or  ou.path like :orgUnitPath1 and (ou.hierarchylevel = :parentHierarchyLevel1 or ou.hierarchylevel = :childHierarchyLevel1))",
+        "and (   ou.path like :orgUnitPath0 and (ou.hierarchylevel = :parentHierarchyLevel0 or ou.hierarchylevel = :childHierarchyLevel0) or  ou.path like :orgUnitPath1 and (ou.hierarchylevel = :parentHierarchyLevel1 or ou.hierarchylevel = :childHierarchyLevel1))",
         sql.toString());
 
     expectedParams.put("orgUnitPath0", orgUnitA.getPath() + "%");
@@ -135,9 +136,9 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOrgUnitModeClause(sql, params, Set.of(orgUnitA), SELECTED, "ou");
+    buildOrgUnitModeClause(sql, params, Set.of(orgUnitA), SELECTED, "ou", "where ");
 
-    assertEquals("ou.organisationunitid in (:orgUnits) ", sql.toString());
+    assertEquals("where ou.organisationunitid in (:orgUnits) ", sql.toString());
 
     expectedParams.put("orgUnits", List.of(orgUnitA.getId()));
     assertParameters(params);
@@ -154,7 +155,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOrgUnitModeClause(sql, params, orgUnits, orgUnitMode, "ou");
+    buildOrgUnitModeClause(sql, params, orgUnits, orgUnitMode, "ou", "and ");
 
     assertTrue(
         sql.toString().isEmpty(),

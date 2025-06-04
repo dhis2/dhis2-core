@@ -216,9 +216,13 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       SqlHelper hlp) {
     if (params.hasOrganisationUnits()) {
-      sql.append(hlp.whereAnd());
       buildOrgUnitModeClause(
-          sql, sqlParams, params.getOrganisationUnits(), params.getOrganisationUnitMode(), "en_ou");
+          sql,
+          sqlParams,
+          params.getOrganisationUnits(),
+          params.getOrganisationUnitMode(),
+          "en_ou",
+          hlp.whereAnd());
     }
   }
 
