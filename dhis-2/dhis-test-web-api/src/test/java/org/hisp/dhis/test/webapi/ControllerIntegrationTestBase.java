@@ -185,6 +185,16 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     return perform(buildMockRequest(method, url, headers, contentType, content));
   }
 
+  @Override
+  public HttpResponse performBinary(
+      @Nonnull HttpMethod method,
+      @Nonnull String url,
+      @Nonnull List<Header> headers,
+      String contentType,
+      byte[] content) {
+    return perform(buildMockRequestBinary(method, url, headers, contentType, content));
+  }
+
   protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
     return perform(multipart(makeApiUrl(url)).file(part));
   }
@@ -205,6 +215,26 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
   protected MockHttpServletRequestBuilder buildMockRequest(
       HttpMethod method, String url, List<Header> headers, String contentType, String content) {
+
+    MockHttpServletRequestBuilder request =
+        MockMvcRequestBuilders.request(
+            org.springframework.http.HttpMethod.valueOf(method.name()), makeApiUrl(url));
+
+    for (Header header : headers) {
+      request.header(header.name(), header.value());
+    }
+    if (contentType != null) {
+      request.contentType(contentType);
+    }
+    if (content != null) {
+      request.content(content);
+    }
+
+    return request;
+  }
+
+  protected MockHttpServletRequestBuilder buildMockRequestBinary(
+      HttpMethod method, String url, List<Header> headers, String contentType, byte[] content) {
 
     MockHttpServletRequestBuilder request =
         MockMvcRequestBuilders.request(
