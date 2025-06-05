@@ -1711,7 +1711,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   @Override
   @JsonProperty
-  @JsonDeserialize(contentAs = DimensionalObject.class)
+  @JsonDeserialize(contentAs = BaseDimensionalObject.class)
   @JacksonXmlElementWrapper(localName = "columns", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "column", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalObject> getColumns() {
@@ -1724,7 +1724,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   @Override
   @JsonProperty
-  @JsonDeserialize(contentAs = DimensionalObject.class)
+  @JsonDeserialize(contentAs = BaseDimensionalObject.class)
   @JacksonXmlElementWrapper(localName = "rows", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "row", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalObject> getRows() {
@@ -1737,7 +1737,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   @Override
   @JsonProperty
-  @JsonDeserialize(contentAs = DimensionalObject.class)
+  @JsonDeserialize(contentAs = BaseDimensionalObject.class)
   @JacksonXmlElementWrapper(localName = "filters", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "filter", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalObject> getFilters() {
