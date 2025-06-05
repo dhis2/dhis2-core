@@ -1,6 +1,6 @@
 {
   "transactions": {
-    "slowThresholdMillis": 2000,
+    "slowThresholdMillis": 500,
     "profilingIntervalMillis": 1000,
     "captureThreadStats": true
   },
@@ -21,9 +21,9 @@
   "uiDefaults": {
     "defaultTransactionType": "Web",
     "defaultPercentiles": [
-      50.0,
-      95.0,
-      99.0
+      50,
+      95,
+      99
     ],
     "defaultGaugeNames": [
       "java.lang:type=Memory:HeapMemoryUsage.used"
@@ -87,20 +87,20 @@
     {
       "id": "cassandra",
       "properties": {
-        "stackTraceThresholdMillis": 1000.0
+        "stackTraceThresholdMillis": 1000
       }
     },
     {
       "id": "elasticsearch",
       "properties": {
-        "stackTraceThresholdMillis": 1000.0
+        "stackTraceThresholdMillis": 1000
       }
     },
     {
       "id": "jakartaservlet",
       "properties": {
         "sessionUserAttribute": "",
-        "captureSessionAttributes": [ ],
+        "captureSessionAttributes": [],
         "captureRequestParameters": [
           "*"
         ],
@@ -110,8 +110,8 @@
           "*access*",
           "*secret*"
         ],
-        "captureRequestHeaders": [ ],
-        "captureResponseHeaders": [ ],
+        "captureRequestHeaders": [],
+        "captureResponseHeaders": [],
         "traceErrorOn4xxResponseCode": false,
         "captureRequestRemoteAddr": false,
         "captureRequestRemoteHostname": false,
@@ -126,13 +126,13 @@
     {
       "id": "java-http-server",
       "properties": {
-        "captureRequestHeaders": [ ],
+        "captureRequestHeaders": [],
         "maskRequestHeaders": [
           "Authorization"
         ],
         "captureRequestRemoteAddr": false,
         "captureRequestRemoteHost": false,
-        "captureResponseHeaders": [ ],
+        "captureResponseHeaders": [],
         "traceErrorOn4xxResponseCode": false
       }
     },
@@ -148,7 +148,7 @@
         "captureBindParametersIncludes": [
           ".*"
         ],
-        "captureBindParametersExcludes": [ ],
+        "captureBindParametersExcludes": [],
         "captureResultSetNavigate": true,
         "captureResultSetGet": false,
         "captureConnectionPoolLeaks": false,
@@ -159,7 +159,7 @@
         "captureStatementClose": false,
         "captureTransactionLifecycleTraceEntries": false,
         "captureConnectionLifecycleTraceEntries": false,
-        "stackTraceThresholdMillis": 1000.0
+        "stackTraceThresholdMillis": 1000
       }
     },
     {
@@ -174,7 +174,7 @@
     {
       "id": "mongodb",
       "properties": {
-        "stackTraceThresholdMillis": 1000.0
+        "stackTraceThresholdMillis": 1000
       }
     },
     {
@@ -187,7 +187,7 @@
       "id": "servlet",
       "properties": {
         "sessionUserAttribute": "",
-        "captureSessionAttributes": [ ],
+        "captureSessionAttributes": [],
         "captureRequestParameters": [
           "*"
         ],
@@ -197,8 +197,8 @@
           "*access*",
           "*secret*"
         ],
-        "captureRequestHeaders": [ ],
-        "captureResponseHeaders": [ ],
+        "captureRequestHeaders": [],
+        "captureResponseHeaders": [],
         "traceErrorOn4xxResponseCode": false,
         "captureRequestRemoteAddr": false,
         "captureRequestRemoteHostname": false,
