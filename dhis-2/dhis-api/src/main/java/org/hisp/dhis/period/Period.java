@@ -159,6 +159,7 @@ public class Period extends BaseDimensionalItemObject {
     this.periodType = periodType;
     this.startDate = startDate;
     this.endDate = endDate;
+    this.isoPeriod = periodType.getIsoDate(this);
   }
 
   protected Period(PeriodType periodType, Date startDate, Date endDate, String isoPeriod) {
@@ -210,7 +211,20 @@ public class Period extends BaseDimensionalItemObject {
    * @return the period string
    */
   public String getIsoDate() {
-    return isoPeriod != null ? isoPeriod : periodType.getIsoDate(this);
+    return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
+  }
+
+  /**
+   * It returns the ISO date for the current periodType of "this" object.
+   *
+   * @return the ISO date.
+   */
+  private String getPeriodTypeIsoDate() {
+    if (periodType != null) {
+      return periodType.getIsoDate(this);
+    }
+
+    return "";
   }
 
   /**
@@ -344,6 +358,7 @@ public class Period extends BaseDimensionalItemObject {
 
     result = result * prime + (startDate != null ? startDate.hashCode() : 0);
     result = result * prime + (endDate != null ? endDate.hashCode() : 0);
+    result = result * prime + (getCode() != null ? getCode().hashCode() : 0);
     result = result * prime + (periodType != null ? periodType.hashCode() : 0);
 
     return result;
@@ -351,12 +366,14 @@ public class Period extends BaseDimensionalItemObject {
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || obj instanceof Period && objectEquals((Period) obj);
+    return this == obj || (obj instanceof Period period && objectEquals(period));
   }
 
   private boolean objectEquals(Period other) {
     return startDate.equals(other.getStartDate())
         && endDate.equals(other.getEndDate())
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getIsoDate(), other.getIsoDate())
         && Objects.equals(periodType, other.periodType)
         && Objects.equals(dateField, other.getDateField());
   }

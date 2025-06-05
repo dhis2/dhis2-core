@@ -471,7 +471,7 @@ public interface UserService {
    * @return a map of user emails by username for all users in the group that have an email
    *     configured
    */
-  Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId);
+  Map<String, String> getActiveUserGroupUserEmailsByUsername(String userGroupId);
 
   /** Get user display name by concat( firstname,' ', surname ) Return null if User doesn't exist */
   String getDisplayName(String userUid);

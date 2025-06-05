@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
@@ -99,6 +100,14 @@ class JdbcEnrollmentStore {
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
+    // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
+    // tracker program. Return an empty result if there are no tracker programs or the user does
+    // not have access to one.
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()
+        && enrollmentParams.getAccessibleTrackerPrograms().isEmpty()) {
+      return List.of();
+    }
+
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
     String sql = getQuery(enrollmentParams, sqlParams);
     return jdbcTemplate.query(
@@ -216,9 +225,13 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       SqlHelper hlp) {
     if (params.hasOrganisationUnits()) {
-      sql.append(hlp.whereAnd());
       buildOrgUnitModeClause(
-          sql, sqlParams, params.getOrganisationUnits(), params.getOrganisationUnitMode(), "en_ou");
+          sql,
+          sqlParams,
+          params.getOrganisationUnits(),
+          params.getOrganisationUnitMode(),
+          "en_ou",
+          hlp.whereAnd());
     }
   }
 
@@ -230,9 +243,13 @@ class JdbcEnrollmentStore {
     sql.append(hlp.whereAnd()).append("p.type = :programType");
     sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
 
-    if (params.hasProgram()) {
+    if (params.hasEnrolledInTrackerProgram()) {
       sql.append(hlp.whereAnd()).append("p.uid = :programUid");
-      sqlParams.addValue("programUid", params.getProgram().getUid());
+      sqlParams.addValue("programUid", params.getEnrolledInTrackerProgram().getUid());
+    } else {
+      sql.append(" and p.programid in (:accessiblePrograms)");
+      sqlParams.addValue(
+          "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
     }
 
     if (params.hasProgramStartDate()) {
@@ -289,6 +306,14 @@ class JdbcEnrollmentStore {
 
   public Page<Enrollment> getEnrollments(
       EnrollmentQueryParams enrollmentParams, PageParams pageParams) {
+    // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
+    // tracker program. Return an empty result if there are no tracker programs or the user does
+    // not have access to one.
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()
+        && enrollmentParams.getAccessibleTrackerPrograms().isEmpty()) {
+      return Page.empty();
+    }
+
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
     String sql = getQuery(enrollmentParams, sqlParams);
     sql +=
