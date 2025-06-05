@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryProgram;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
@@ -75,7 +76,7 @@ public class TrackerEventRequestParamsMapper {
   public TrackerEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
-    validateProgram(eventRequestParams);
+    validateMandatoryProgram(eventRequestParams.getProgram());
     OrganisationUnitSelectionMode orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             eventRequestParams.getOrgUnit() != null
@@ -222,12 +223,6 @@ public class TrackerEventRequestParamsMapper {
         && DateUtils.getDuration(eventRequestParams.getUpdatedWithin()) == null) {
       throw new BadRequestException(
           "Duration is not valid: " + eventRequestParams.getUpdatedWithin());
-    }
-  }
-
-  private void validateProgram(EventRequestParams eventRequestParams) throws BadRequestException {
-    if (eventRequestParams.getProgram() == null) {
-      throw new BadRequestException("Program is mandatory");
     }
   }
 }

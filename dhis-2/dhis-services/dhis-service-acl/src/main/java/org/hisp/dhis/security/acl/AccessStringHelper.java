@@ -94,6 +94,9 @@ public class AccessStringHelper {
           .enable(Permission.DATA_WRITE)
           .build();
 
+  public static final String READ_ONLY =
+      AccessStringHelper.newInstance().enable(Permission.READ).enable(Permission.DATA_READ).build();
+
   public static final String FULL =
       AccessStringHelper.newInstance()
           .enable(Permission.READ)
