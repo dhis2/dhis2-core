@@ -54,17 +54,15 @@ public class JdbcSqlFileExecutor {
   private static final String DEFAULT_DELIMITER = ";";
 
   /**
-   * Regex to detect delimiter in SQL scripts. Ignores spaces, allows delimiter
-   * in comments and supports an optional equals sign.
+   * Regex to detect delimiter in SQL scripts. Ignores spaces, allows delimiter in comments and
+   * supports an optional equals sign.
    *
-   * <p>Previous implementation used nested repetition, which might trigger
-   * catastrophic backtracking for very long lines. This version simplifies the
-   * pattern to avoid nested quantifiers while keeping the same behaviour.
+   * <p>Previous implementation used nested repetition, which might trigger catastrophic
+   * backtracking for very long lines. This version simplifies the pattern to avoid nested
+   * quantifiers while keeping the same behaviour.
    */
   public static final Pattern DELIMITER_PATTERN =
-      Pattern.compile(
-          "^\\s*(?:--)?\\s*delimiter\\s*=?\\s*(\\S+)\\s*.*$",
-          Pattern.CASE_INSENSITIVE);
+      Pattern.compile("^\\s*(?:--)?\\s*delimiter\\s*=?\\s*(\\S+)\\s*.*$", Pattern.CASE_INSENSITIVE);
 
   private final Connection connection;
 
