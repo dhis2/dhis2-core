@@ -571,7 +571,7 @@ public enum ErrorCode {
   E7603("Org unit not found or not accessible: `{0}`"),
   E7604("Attribute option combo not found or not accessible: `{0}`"),
   E7605("Data elements not part of dataset {0}: `{1}`"),
-  E7606("Data elements are not assigned to a dataset: `{0}`"),
+  E7606("Data elements belong to multiple data sets: `{0}`"),
   E7607("ISO period(s) not recognized: `{0}`"),
   E7608("ISO period(s) do not match expected type {0} of data set {1}: `{2}`"),
   E7609("Org unit(s) not valid for data set {0}: `{1}`"),

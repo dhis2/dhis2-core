@@ -31,10 +31,6 @@ package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.feedback.ImportResult.error;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -42,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -102,10 +97,19 @@ public class DefaultAggDataValueService implements AggDataValueService {
 
   private List<AggDataValue> validate(AggDataValueUpsertRequest request, List<ImportError> errors)
       throws ConflictException, BadRequestException {
-    Map<String, Set<String>> dsByDe =
-        store.getDataSetsByDataElements(request.values().stream().map(AggDataValue::dataElement));
-    validateAccess(request, dsByDe);
-    validateKeyConsistency(request, dsByDe);
+    UID ds = request.dataSet();
+    List<AggDataValue> values = request.values();
+    if (ds == null) {
+      Map<String, Set<String>> dsByDe =
+          store.getDataSetsByDataElements(values.stream().map(AggDataValue::dataElement));
+      ds = commonDataSet(dsByDe);
+      if (ds == null)
+        throw new ConflictException(
+            ErrorCode.E7606, dsByDe.values().stream().flatMap(Set::stream).distinct().toList());
+    }
+
+    validateAccess(ds, values);
+    validateKeyConsistency(ds, values);
 
     // ----------------------------------------------
     // DS based gate-keepers (if DS specified only consider the single DS)
@@ -119,24 +123,21 @@ public class DefaultAggDataValueService implements AggDataValueService {
     // - OU must be linked to AOC (???)
     // ----------------------------------------------
 
-    return validateValues(request.values(), errors);
+    return validateValues(values, errors);
   }
 
   /** Is the user allowed to write (capture) the data values? */
-  private void validateAccess(AggDataValueUpsertRequest request, Map<String, Set<String>> dsByDe)
-      throws ConflictException {
-    // user access
+  private void validateAccess(UID ds, List<AggDataValue> values) throws ConflictException {
     // - OUs are in user hierarchy
     String userId = getCurrentUserDetails().getUid();
     List<String> noAccessOrgUnits =
         store.getOrgUnitsNotInUserHierarchy(
-            UID.of(userId), request.values().stream().map(AggDataValue::orgUnit));
+            UID.of(userId), values.stream().map(AggDataValue::orgUnit));
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
 
     // - DS ACL check canDataWrite
-    List<UID> allDs =
-        dsByDe.values().stream().flatMap(Set::stream).distinct().map(UID::of).toList();
-    // TODO run ACL check for user and all of the DS
+    boolean dsNoAccess = store.getDataSetAccessible(ds);
+    if (!dsNoAccess) throw new ConflictException(ErrorCode.E7601, ds);
 
     // - CO of COCs + AOCs : ACL canDataWrite
 
@@ -145,57 +146,23 @@ public class DefaultAggDataValueService implements AggDataValueService {
   /**
    * Are the data value components that make a unique data value key consistent with the metadata?
    */
-  private void validateKeyConsistency(
-      AggDataValueUpsertRequest request, Map<String, Set<String>> dsByDe)
+  private void validateKeyConsistency(UID ds, List<AggDataValue> values)
       throws ConflictException, BadRequestException {
-    String ds = request.dataSet() == null ? commonDataSet(dsByDe) : request.dataSet().getValue();
-    if (ds != null) {
-      // - DE must belong to the specified DS (scope)
-      List<String> deNotInDs =
-          dsByDe.entrySet().stream()
-              .filter(e -> !e.getValue().contains(ds))
-              .map(Map.Entry::getKey)
-              .toList();
-      if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
-    }
-    // - do all DEs have a DS?
-    Set<String> dataElements = dsByDe.keySet();
-    List<AggDataValue> values = request.values();
-    List<String> deNoDs =
-        values.stream()
-            .map(AggDataValue::dataElement)
-            .map(UID::getValue)
-            .filter(not(dataElements::contains))
-            .distinct()
-            .toList();
-    if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E7606, deNoDs);
+    // - DEs must belong to the specified DS
+    List<String> deNotInDs =
+        store.getDataElementsNotInDataSet(ds, values.stream().map(AggDataValue::dataElement));
+    if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
+    // - OU must be a source of the DS for the DE (could be in multiple :/)
+    List<String> ouNotInDs =
+        store.getOrgUnitsNotInDataSet(ds, values.stream().map(AggDataValue::orgUnit));
+    if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
 
     // key consistency (Bad Request)
     // - COC must link (belong) to the CC of the DE (if CC override skip validation)
     // - AOC must link (belong) to the CC of the DS!
 
-    // - OU must be a source of the DS for the DE (could be in multiple :/)
-    if (ds != null) {
-      Map<String, Set<String>> dsByOu =
-          store.getDataSetsByOrgUnits(
-              values.stream().map(AggDataValue::orgUnit), Stream.of(UID.of(ds)));
-      List<String> ouNotInDs =
-          values.stream()
-              .map(AggDataValue::orgUnit)
-              .map(UID::getValue)
-              .distinct()
-              .filter(ou -> !dsByOu.containsKey(ou) || !dsByOu.get(ou).contains(ds))
-              .toList();
-      if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
-    } else {
-      Map<String, Set<String>> dsByOu =
-          store.getDataSetsByOrgUnits(
-              values.stream().map(AggDataValue::orgUnit),
-              dsByDe.values().stream().flatMap(Set::stream).map(UID::of));
-      // TODO like above but for each DS
-    }
-
     // - PE ISO value must map to an existing PT
+    // TODO change to filter those ISO values that are not of the target PT
     Map<String, String> ptByIso =
         store.getPeriodTypeByIsoPeriod(values.stream().map(AggDataValue::period));
     List<String> isoNoPT =
@@ -206,52 +173,15 @@ public class DefaultAggDataValueService implements AggDataValueService {
             .toList();
     if (!isoNoPT.isEmpty()) throw new ConflictException(ErrorCode.E7607, isoNoPT);
     // - PE ISO must be of PT used by the DS for the DE (could be in multiple :/)
-    if (ds != null) {
-      String ptTarget = store.getPeriodTypeByDataSet(Stream.of(UID.of(ds))).get(ds);
-      List<String> isoWrongPt =
-          values.stream()
-              .map(AggDataValue::period)
-              .distinct()
-              .filter(iso -> isNotSamePeriodType(ptTarget, ptByIso.get(iso)))
-              .toList();
-      if (!isoWrongPt.isEmpty())
-        throw new ConflictException(ErrorCode.E7608, ptTarget, ds, isoWrongPt);
-    } else {
-      Map<String, String> ptByDs =
-          store.getPeriodTypeByDataSet(dsByDe.values().stream().flatMap(Set::stream).map(UID::of));
-      Map<String, Set<String>> ptByDe =
-          values.stream()
-              .map(AggDataValue::dataElement)
-              .map(UID::getValue)
-              .distinct()
-              .collect(
-                  toMap(de -> de, de -> dsByDe.get(de).stream().map(ptByDs::get).collect(toSet())));
-      Map<String, Set<String>> isoByDe =
-          values.stream()
-              .collect(
-                  groupingBy(
-                      v -> v.dataElement().getValue(), mapping(AggDataValue::period, toSet())));
-      Map.Entry<String, Set<String>> deIsoWrongPt =
-          isoByDe.entrySet().stream()
-              .flatMap(
-                  e -> {
-                    String de = e.getKey();
-                    Set<String> ptTargets = ptByDe.get(de);
-                    if (e.getValue().stream().anyMatch(iso -> ptTargets.contains(ptByIso.get(iso))))
-                      return Stream.empty();
-                    return Stream.of(
-                        Map.entry(
-                            de,
-                            e.getValue().stream()
-                                .filter(iso -> !ptTargets.contains(ptByIso.get(iso)))
-                                .collect(toSet())));
-                  })
-              .findFirst()
-              .orElse(null);
-      if (deIsoWrongPt != null)
-        throw new ConflictException(
-            ErrorCode.E7608, ptByDe.get(deIsoWrongPt.getKey()), deIsoWrongPt.getValue());
-    }
+    String ptTarget = store.getDataSetPeriodType(ds);
+    List<String> isoWrongPt =
+        values.stream()
+            .map(AggDataValue::period)
+            .distinct()
+            .filter(iso -> isNotSamePeriodType(ptTarget, ptByIso.get(iso)))
+            .toList();
+    if (!isoWrongPt.isEmpty())
+      throw new ConflictException(ErrorCode.E7608, ptTarget, ds, isoWrongPt);
   }
 
   private static boolean isNotSamePeriodType(String expected, String actual) {
@@ -265,6 +195,8 @@ public class DefaultAggDataValueService implements AggDataValueService {
    */
   private List<AggDataValue> validateValues(List<AggDataValue> values, List<ImportError> errors) {
     List<UID> dataElements = values.stream().map(AggDataValue::dataElement).distinct().toList();
+    // TODO (JB): Should DEs have an optional options regex-pattern that is used instead for big
+    // sets of uniform nature?
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());
     Map<String, Set<String>> commentOptionsByDe =
         store.getCommentOptionsByDataElements(dataElements.stream());
@@ -278,12 +210,12 @@ public class DefaultAggDataValueService implements AggDataValueService {
       String val = normalizeValue(e, type);
       // - value not null/empty (not for delete or deleted value)
       if ((val == null || val.isEmpty()) && e.deleted() != Boolean.TRUE) {
-        errors.add(error(index, ErrorCode.E7619, e));
+        errors.add(error(index, ErrorCode.E7618, e));
       } else {
         // - value valid for the DE value type?
         String error = ValidationUtils.valueIsValid(val, type);
         if (error != null) {
-          errors.add(error(index, ErrorCode.E7619, e));
+          errors.add(error(index, ErrorCode.E7619, type, e));
         } else {
           // - if DE uses OptionSet - is value a valid option?
           Set<String> options = optionsByDe.get(de);
@@ -321,10 +253,10 @@ public class DefaultAggDataValueService implements AggDataValueService {
   }
 
   @CheckForNull
-  private String commonDataSet(Map<String, Set<String>> dsByDe) {
+  private UID commonDataSet(Map<String, Set<String>> dsByDe) {
     if (dsByDe.isEmpty()) return null;
     if (dsByDe.values().stream().anyMatch(ds -> ds.size() != 1)) return null;
     Set<String> ds1 = dsByDe.values().iterator().next();
-    return dsByDe.values().stream().allMatch(ds1::equals) ? ds1.iterator().next() : null;
+    return dsByDe.values().stream().allMatch(ds1::equals) ? UID.of(ds1.iterator().next()) : null;
   }
 }

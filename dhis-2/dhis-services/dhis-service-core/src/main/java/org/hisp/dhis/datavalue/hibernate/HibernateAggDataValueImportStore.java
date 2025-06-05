@@ -30,8 +30,8 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.Math.min;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
@@ -61,6 +61,8 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -105,7 +107,7 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
       )
       SELECT ou.uid
       FROM organisationunit ou
-      JOIN unnest(:ids) AS oux(uid) ON ou.uid = oux.uid
+      JOIN unnest(:ou) AS oux(uid) ON ou.uid = oux.uid
       WHERE NOT EXISTS (
           SELECT 1
           FROM user_orgs
@@ -113,29 +115,40 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
              OR ou.path LIKE user_orgs.path || '/%'  -- Descendant match
       )
       """;
-    String[] ids = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("user", user.getValue())
-        .setParameter("ids", ids)
-        .list();
+    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql, q -> q.setParameter("user", user.getValue()).setParameter("ou", ou));
   }
 
   @Override
-  public Map<String, Set<String>> getDataSetsByOrgUnits(
-      Stream<UID> orgUnits, Stream<UID> dataSets) {
+  public List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits) {
     String sql =
         """
-     SELECT ou.uid, array_agg(ds.uid)
-     FROM datasetsource s
-     JOIN dataset ds ON s.datasetid = ds.datasetid
-     JOIN organisationunit ou ON s.sourceid = ou.organisationunitid
-     WHERE ds.uid IN (:ds)  -- (usually < 10)
-       AND ou.uid = ANY(STRING_TO_ARRAY(:ou, ','))  -- (potentially 50k+)
-     GROUP BY ou.uid""";
-    String[] ds = dataSets.map(UID::getValue).distinct().toArray(String[]::new);
-    String ou = orgUnits.map(UID::getValue).distinct().collect(joining(","));
-    return listAsStringMapOfSet(sql, q -> q.setParameter("ou", ou).setParameterList("ds", ds));
+     SELECT ou.uid
+     FROM organisationunit ou
+     LEFT JOIN (
+       SELECT s.sourceid
+       FROM datasetsource s
+       JOIN dataset ds ON s.datasetid = ds.datasetid AND ds.uid = :ds
+     ) excluded ON ou.organisationunitid = excluded.sourceid
+     WHERE ou.uid IN (:ou)""";
+    String ds = dataSet.getValue();
+    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql, q -> q.setParameterList("ou", ou).setParameter("ds", ds));
+  }
+
+  @Override
+  public Map<String, Set<String>> getCategoryOptionCombosByCategoryCombos(
+      Stream<UID> categoryCombos) {
+    String sql =
+        """
+     SELECT cc.uid, array_agg(coc.uid)
+     FROM categorycombos_optioncombos m
+     JOIN categorycombo cc ON m.categorycomboid = cc.categorycomboid
+     JOIN categoryoptioncombo coc ON m.categoryoptioncomboid = coc.categoryoptioncomboid
+     WHERE cc.uid IN (:cc)
+     GROUP BY cc.uid""";
+    String[] cc = categoryCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStringsMapOfSet(sql, q -> q.setParameterList("cc", cc));
   }
 
   @Override
@@ -146,9 +159,28 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
       FROM dataelement de
       JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
       JOIN dataset ds ON de_ds.datasetid = ds.datasetid
-      WHERE de.uid IN (:ids)
+      WHERE de.uid IN (:de)
       GROUP BY de.uid""";
-    return listAsStringMapOfSet(sql, dataElements);
+    String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
+  }
+
+  @Override
+  public List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements) {
+    String sql =
+        """
+      SELECT de.uid
+      FROM dataelement de
+      LEFT JOIN (
+          SELECT de_ds.dataelementid
+          FROM datasetelement de_ds
+          JOIN dataset ds ON de_ds.datasetid = ds.datasetid AND ds.uid = :ds
+      ) excluded ON de.dataelementid = excluded.dataelementid
+      WHERE de.uid IN (:de)
+        AND excluded.dataelementid IS NULL""";
+    String ds = dataSet.getValue();
+    String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql, q -> q.setParameter("ds", ds).setParameterList("de", de));
   }
 
   @Override
@@ -158,9 +190,10 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
       SELECT de.uid, ARRAY_AGG(ov.code)
       FROM dataelement de
       JOIN optionvalue ov ON de.optionsetid = ov.optionsetid
-      WHERE de.uid IN (:ids)
+      WHERE de.uid IN (:de)
       GROUP BY de.uid""";
-    return listAsStringMapOfSet(sql, dataElements);
+    String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
   }
 
   @Override
@@ -170,36 +203,25 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
       SELECT de.uid, ARRAY_AGG(ov.code)
       FROM dataelement de
       JOIN optionvalue ov ON de.commentoptionsetid = ov.optionsetid
-      WHERE de.uid IN (:ids)
+      WHERE de.uid IN (:de)
       GROUP BY de.uid""";
-    return listAsStringMapOfSet(sql, dataElements);
+    String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
   }
 
   @Override
-  public Map<String, String> getPeriodTypeByDataSet(Stream<UID> dataSets) {
+  public String getDataSetPeriodType(UID dataSet) {
     String sql =
         """
-      SELECT ds.uid, pt.name from dataset ds join periodtype pt on ds.periodtypeid = pt.periodtypeid
+      SELECT pt.name FROM dataset ds
+      JOIN periodtype pt ON ds.periodtypeid = pt.periodtypeid
+      WHERE ds.uid = :ds
       """;
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> res = getSession().createNativeQuery(sql).stream();
-    return res.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
-  }
-
-  @Nonnull
-  private Map<String, Set<String>> listAsStringMapOfSet(
-      @Language("sql") String sql, Stream<UID> idSet) {
-    String[] ids = idSet.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStringMapOfSet(sql, query -> query.setParameterList("ids", ids));
-  }
-
-  @Nonnull
-  private Map<String, Set<String>> listAsStringMapOfSet(
-      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
-    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> results = (Stream<Object[]>) query.stream();
-    return results.collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
+    return (String)
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .getSingleResult();
   }
 
   @Override
@@ -209,6 +231,21 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
         new DbName("valuetype"),
         dataElements,
         str -> ValueType.valueOf(str.toString()));
+  }
+
+  @Override
+  public boolean getDataSetAccessible(UID dataSet) {
+    String accessSql =
+        JpaQueryUtils.generateSQlQueryForSharingCheck(
+            "ds.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA);
+    @Language("SQL")
+    String sql =
+        """
+      SELECT ds.uid FROM dataset ds
+      WHERE ds.uid = :ds AND (%s);
+      """;
+    String ds = dataSet.getValue();
+    return !listAsStrings(sql.formatted(accessSql), q -> q.setParameter("ds", ds)).isEmpty();
   }
 
   @Override
@@ -365,5 +402,21 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
               if (t != null) res.put(iso, t.getName());
             });
     return res;
+  }
+
+  @Nonnull
+  private Map<String, Set<String>> listAsStringsMapOfSet(
+      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
+    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> results = (Stream<Object[]>) query.stream();
+    return results.collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
+  }
+
+  @Nonnull
+  @SuppressWarnings("unchecked")
+  private List<String> listAsStrings(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
+    return (List<String>) setParameters.apply(getSession().createNativeQuery(sql)).list();
   }
 }

@@ -38,6 +38,8 @@ import org.hisp.dhis.common.ValueType;
 
 public interface AggDataValueImportStore {
 
+  boolean getDataSetAccessible(UID dataSet);
+
   int deleteByKeys(List<AggDataValueKey> keys);
 
   int upsertValues(List<AggDataValue> values);
@@ -48,11 +50,9 @@ public interface AggDataValueImportStore {
 
   List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
 
-  /**
-   * @return for each OU in the given set it includes all DS in the given set that are mapped for
-   *     the OU. OUs not mapped to any of the DS provided are not in the result map at all.
-   */
-  Map<String, Set<String>> getDataSetsByOrgUnits(Stream<UID> orgUnits, Stream<UID> dataSets);
+  List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
+
+  Map<String, Set<String>> getCategoryOptionCombosByCategoryCombos(Stream<UID> categoryCombos);
 
   /**
    * @return All dataset UIDs for each of the DE UIDs. A DE that has no DS will not be contained in
@@ -60,11 +60,13 @@ public interface AggDataValueImportStore {
    */
   Map<String, Set<String>> getDataSetsByDataElements(Stream<UID> dataElements);
 
+  List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements);
+
   Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements);
 
   Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements);
 
-  Map<String, String> getPeriodTypeByDataSet(Stream<UID> dataSets);
+  String getDataSetPeriodType(UID dataSet);
 
   Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements);
 

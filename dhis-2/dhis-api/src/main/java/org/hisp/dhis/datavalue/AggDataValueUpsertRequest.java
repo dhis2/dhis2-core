@@ -35,4 +35,5 @@ import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.UID;
 
 public record AggDataValueUpsertRequest(
+    // TODO add common OU, PE
     @CheckForNull UID dataSet, @JsonAlias("dataValues") List<AggDataValue> values) {}
