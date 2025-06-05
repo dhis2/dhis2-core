@@ -29,13 +29,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jsonMapper;
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
@@ -146,7 +149,60 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkPostJson(
       @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
+    if (request.values().isEmpty()) {
+      throw new BadRequestException(ErrorCode.E2046, "No data found in the request.");
+    } else {
+      return handleUpsert(request);
+    }
+  }
 
+  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @Maturity.Alpha
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
+      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
+      throws BadRequestException {
+
+    List<MinMaxValue> values = csvToEntries(file);
+    return handleUpsert(new MinMaxValueUpsertRequest(dataSet, values));
+  }
+
+  @PostMapping(value = "/upsert-gzip-json", consumes = "application/gzip")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  public @ResponseBody ImportSuccessResponse bulkPostJsonGzip(HttpServletRequest request)
+      throws BadRequestException {
+    try (InputStream in = new GZIPInputStream(request.getInputStream())) {
+      MinMaxValueUpsertRequest upsertRequest =
+          jsonMapper.readValue(in, MinMaxValueUpsertRequest.class);
+      return handleUpsert(upsertRequest);
+    } catch (IOException ex) {
+      throw new BadRequestException(
+          ErrorCode.E2048, "Error reading gzip request: " + ex.getMessage());
+    }
+  }
+
+  @PostMapping(value = "/upsert-gzip-csv", consumes = "application/gzip")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @Maturity.Alpha
+  public @ResponseBody ImportSuccessResponse bulkPostCsvGzip(
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+
+    try (InputStream gzipIn = new GZIPInputStream(request.getInputStream())) {
+      List<MinMaxValue> entries = CSV.of(gzipIn).as(MinMaxValue.class).list();
+
+      if (entries.isEmpty()) {
+        throw new BadRequestException(ErrorCode.E2046, "No data found in the compressed CSV file.");
+      }
+
+      return handleUpsert(new MinMaxValueUpsertRequest(dataSet, entries));
+
+    } catch (IOException ex) {
+      throw new BadRequestException(ErrorCode.E2048, "Error reading gzip CSV: " + ex.getMessage());
+    }
+  }
+
+  private ImportSuccessResponse handleUpsert(MinMaxValueUpsertRequest request)
+      throws BadRequestException {
     int imported = minMaxService.importAll(request);
 
     return ImportSuccessResponse.ok()
@@ -168,16 +224,6 @@ public class MinMaxDataElementController {
         .successful(deleted)
         .ignored(request.values().size() - deleted)
         .build();
-  }
-
-  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  @Maturity.Alpha
-  public @ResponseBody ImportSuccessResponse bulkPostCsv(
-      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
-      throws BadRequestException {
-
-    return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, csvToEntries(file)));
   }
 
   @PostMapping(value = "/delete", consumes = "multipart/form-data")
