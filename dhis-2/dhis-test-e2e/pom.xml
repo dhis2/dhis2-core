@@ -22,7 +22,7 @@
     <json-tree.version>1.8</json-tree.version>
     <epam-reportportal.version>5.2.1</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
-    <opencsv.version>5.11</opencsv.version>
+    <opencsv.version>5.11.1</opencsv.version>
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
@@ -123,6 +123,12 @@
       <artifactId>opencsv</artifactId>
       <version>${opencsv.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.aeonbits.owner</groupId>
