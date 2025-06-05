@@ -103,9 +103,6 @@ public class SmsMessageSender implements MessageSender {
 
     Set<User> toSendList;
 
-    // Don't send to disabled users
-    users.removeIf(User::isDisabled);
-
     toSendList =
         users.stream().filter(u -> forceSend || isQualifiedReceiver(u)).collect(Collectors.toSet());
 
