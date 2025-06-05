@@ -150,7 +150,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
    *     value like "programUid.stageUid.dimUid".
    */
   private void with(String qualifiedDimension) {
-    Triple<Program, ProgramStage, BaseDimensionalObject> tripe = asBaseObjects(qualifiedDimension);
+    Triple<Program, ProgramStage, DimensionalObject> tripe = asBaseObjects(qualifiedDimension);
 
     this.program = tripe.getLeft() != null ? tripe.getLeft() : null;
     this.programStage = tripe.getMiddle() != null ? tripe.getMiddle() : null;
@@ -320,6 +320,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
    * filter has the IN operator and that at least one item is specified in the filter, returns null
    * if not.
    */
+  @Override
   public List<String> getFilterItemsAsList() {
     final String inOp = QueryOperator.IN.getValue().toLowerCase();
     final int opLen = inOp.length() + 1;
@@ -427,6 +428,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return items;
   }
 
+  @Override
   public void setItems(List<DimensionalItemObject> items) {
     this.items = items;
   }

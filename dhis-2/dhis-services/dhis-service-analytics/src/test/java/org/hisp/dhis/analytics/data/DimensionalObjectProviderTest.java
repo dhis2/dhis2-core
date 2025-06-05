@@ -75,11 +75,11 @@ import org.hisp.dhis.analytics.common.processing.MetadataDimensionsHandler;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -157,7 +157,7 @@ class DimensionalObjectProviderTest {
 
     List<String> itemsUid = List.of("IN_GROUP-" + indicatorGroupUid, "IN_GROUP-Behv9EO3hR1");
 
-    BaseDimensionalObject dimensionalObject = target.getDimension(itemsUid, UID);
+    DimensionalObject dimensionalObject = target.getDimension(itemsUid, UID);
 
     assertEquals("dx", dimensionalObject.getDimension());
     assertEquals("dx", dimensionalObject.getUid());
@@ -189,7 +189,7 @@ class DimensionalObjectProviderTest {
 
     List<String> itemsUid = List.of("DE_GROUP-" + deGroupUid, "DE_GROUP-Behv9EO3hR1");
 
-    BaseDimensionalObject dimensionalObject = target.getDimension(itemsUid, NAME);
+    DimensionalObject dimensionalObject = target.getDimension(itemsUid, NAME);
 
     assertEquals("dx", dimensionalObject.getDimension());
     assertEquals("dx", dimensionalObject.getUid());
@@ -236,7 +236,7 @@ class DimensionalObjectProviderTest {
             "LEVEL-" + ou1.getUid(),
             "OU_GROUP-" + ou2.getUid());
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         target.getOrgUnitDimension(itemsUid, SHORTNAME, organisationUnits, UID);
 
     assertEquals("ou", dimensionalObject.getDimension());
@@ -277,7 +277,7 @@ class DimensionalObjectProviderTest {
             "LEVEL-" + level2Ou1.getName(),
             "OU_GROUP-" + level2Ou2.getUid());
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
 
     assertEquals("ou", dimensionalObject.getDimension());
@@ -313,7 +313,7 @@ class DimensionalObjectProviderTest {
             substringAfter("DS-lyLU2wR22tC", KEY_DATASET)))
         .thenReturn(new ArrayList<>(asList(ou1, ou2)));
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
 
     // Then
@@ -342,7 +342,7 @@ class DimensionalObjectProviderTest {
             substringAfter("PR-lxAQ7Zs9VYR", KEY_PROGRAM)))
         .thenReturn(new ArrayList<>(asList(ou1, ou2)));
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
 
     // Then
@@ -380,7 +380,7 @@ class DimensionalObjectProviderTest {
 
     List<String> itemsUid = List.of("Achv9EO3hR1", "Blhv9EO3hR1");
 
-    BaseDimensionalObject dimensionalObject = target.getOrgUnitGroupDimension(itemsUid, UID);
+    DimensionalObject dimensionalObject = target.getOrgUnitGroupDimension(itemsUid, UID);
 
     assertEquals("oug", dimensionalObject.getDimension());
     assertEquals("oug", dimensionalObject.getUid());
@@ -402,7 +402,7 @@ class DimensionalObjectProviderTest {
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
     when(i18nManager.getI18n()).thenReturn(i18n);
 
-    BaseDimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());
+    DimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());
 
     assertEquals("pe", dimensionalObject.getDimension());
     assertEquals("pe", dimensionalObject.getUid());
@@ -445,7 +445,7 @@ class DimensionalObjectProviderTest {
     when(settings.getAnalyticsFinancialYearStart()).thenReturn(FINANCIAL_YEAR_APRIL);
     when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
 
-    BaseDimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());
+    DimensionalObject dimensionalObject = target.getPeriodDimension(itemsUid, new Date());
 
     assertEquals("pe", dimensionalObject.getDimension());
     assertEquals("pe", dimensionalObject.getUid());
@@ -474,7 +474,7 @@ class DimensionalObjectProviderTest {
 
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);
 
-    Optional<BaseDimensionalObject> dimensionalObject =
+    Optional<DimensionalObject> dimensionalObject =
         target.getDynamicDimension(categoryUid, itemsUid, DisplayProperty.NAME, UID);
 
     assertEquals(categoryUid, dimensionalObject.get().getDimension());
@@ -501,7 +501,7 @@ class DimensionalObjectProviderTest {
     when(aclService.canDataOrMetadataRead(any(UserDetails.class), any(CategoryOption.class)))
         .thenReturn(true);
 
-    Optional<BaseDimensionalObject> dimensionalObject =
+    Optional<DimensionalObject> dimensionalObject =
         target.getDynamicDimension(categoryUid, items, DisplayProperty.NAME, UID);
 
     // then
@@ -521,8 +521,7 @@ class DimensionalObjectProviderTest {
     when(i18nManager.getI18n()).thenReturn(i18n);
 
     // When
-    BaseDimensionalObject baseDimensionalObject =
-        target.getPeriodDimension(periods, aDayOfJune2024);
+    DimensionalObject baseDimensionalObject = target.getPeriodDimension(periods, aDayOfJune2024);
 
     // Then
     List<DimensionalItemObject> items = baseDimensionalObject.getItems();

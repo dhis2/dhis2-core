@@ -57,6 +57,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -336,7 +337,7 @@ class QueryPlannerGroupByAggregationTypeTest {
     assertThat(dataQueryParam.getFilterOrganisationUnits(), hasSize(1));
   }
 
-  private DataQueryParams createDataQueryParams(BaseDimensionalObject filterDataElements) {
+  private DataQueryParams createDataQueryParams(DimensionalObject filterDataElements) {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
 
@@ -359,7 +360,7 @@ class QueryPlannerGroupByAggregationTypeTest {
   }
 
   private DataQueryParams createDataQueryParamsWithAggregationType(
-      BaseDimensionalObject filterDataElements, AnalyticsAggregationType analyticsAggregationType) {
+      DimensionalObject filterDataElements, AnalyticsAggregationType analyticsAggregationType) {
     return createDataQueryParams(filterDataElements)
         .copyTo(DataQueryParams.newBuilder().withAggregationType(analyticsAggregationType).build());
   }

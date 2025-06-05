@@ -430,7 +430,7 @@ public class DefaultDataQueryService implements DataQueryService {
       return new BaseDimensionalObject(
           dimension, STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>());
     } else {
-      Optional<BaseDimensionalObject> baseDimensionalObject =
+      Optional<DimensionalObject> baseDimensionalObject =
           dimensionalObjectProducer.getDynamicDimension(
               dimension, items, displayProperty, inputIdScheme);
 
