@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.zip.GZIPInputStream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.Maturity;
@@ -46,6 +47,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -149,59 +151,44 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkPostJson(
       @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
-    if (request.values().isEmpty()) {
-      throw new BadRequestException(ErrorCode.E2046, "No data found in the request.");
-    } else {
-      return handleUpsert(request);
-    }
+    return bulkPostUpsert(request);
   }
 
-  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  @Maturity.Alpha
-  public @ResponseBody ImportSuccessResponse bulkPostCsv(
-      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
-      throws BadRequestException {
-
-    List<MinMaxValue> values = csvToEntries(file);
-    return handleUpsert(new MinMaxValueUpsertRequest(dataSet, values));
-  }
-
-  @PostMapping(value = "/upsert-gzip-json", consumes = "application/gzip")
+  @OpenApi.Ignore
+  @PostMapping(value = "/upsert", consumes = "application/json", headers = "Content-Encoding=gzip")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkPostJsonGzip(HttpServletRequest request)
-      throws BadRequestException {
+      throws BadRequestException, ConflictException {
     try (InputStream in = new GZIPInputStream(request.getInputStream())) {
       MinMaxValueUpsertRequest upsertRequest =
           jsonMapper.readValue(in, MinMaxValueUpsertRequest.class);
-      return handleUpsert(upsertRequest);
+      return bulkPostUpsert(upsertRequest);
     } catch (IOException ex) {
-      throw new BadRequestException(
-          ErrorCode.E2048, "Error reading gzip request: " + ex.getMessage());
+      throw new ConflictException(ErrorCode.E2048, ex.getMessage());
     }
   }
 
-  @PostMapping(value = "/upsert-gzip-csv", consumes = "application/gzip")
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
+  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
+      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
+      throws BadRequestException {
+    List<MinMaxValue> values = csvToEntries(file::getInputStream);
+    return bulkPostUpsert(new MinMaxValueUpsertRequest(dataSet, values));
+  }
+
+  @OpenApi.Ignore
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @PostMapping(value = "/upsert", consumes = "text/csv", headers = "Content-Encoding=gzip")
   public @ResponseBody ImportSuccessResponse bulkPostCsvGzip(
       @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
 
-    try (InputStream gzipIn = new GZIPInputStream(request.getInputStream())) {
-      List<MinMaxValue> entries = CSV.of(gzipIn).as(MinMaxValue.class).list();
-
-      if (entries.isEmpty()) {
-        throw new BadRequestException(ErrorCode.E2046, "No data found in the compressed CSV file.");
-      }
-
-      return handleUpsert(new MinMaxValueUpsertRequest(dataSet, entries));
-
-    } catch (IOException ex) {
-      throw new BadRequestException(ErrorCode.E2048, "Error reading gzip CSV: " + ex.getMessage());
-    }
+    List<MinMaxValue> values = csvToEntries(() -> new GZIPInputStream(request.getInputStream()));
+    return bulkPostUpsert(new MinMaxValueUpsertRequest(dataSet, values));
   }
 
-  private ImportSuccessResponse handleUpsert(MinMaxValueUpsertRequest request)
+  private ImportSuccessResponse bulkPostUpsert(MinMaxValueUpsertRequest request)
       throws BadRequestException {
     int imported = minMaxService.importAll(request);
 
@@ -236,8 +223,9 @@ public class MinMaxDataElementController {
     return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, csvToKeys(file)));
   }
 
-  private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
-    try (InputStream in = file.getInputStream()) {
+  private static List<MinMaxValue> csvToEntries(Callable<InputStream> getInput)
+      throws BadRequestException {
+    try (InputStream in = getInput.call()) {
       List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
       if (entries.isEmpty())
         throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");

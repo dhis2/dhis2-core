@@ -31,6 +31,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
+import static org.hisp.dhis.http.HttpClientAdapter.gzip;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.http.HttpStatus.OK;
@@ -126,11 +129,32 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
+  void testBulkImportJson_GZip() {
+    JsonImportSuccessResponse response =
+        POST("/minMaxDataElements/upsert", Body(gzip(json.formatted(ds, de, ou1, coc))))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(1, response.getSuccessful());
+  }
+
+  @Test
   void testBulkImportCsv() {
     MockMultipartFile file =
         new MockMultipartFile("file", csv.formatted(de, coc, ou1, ou2, ou3, ou4).getBytes());
     JsonImportSuccessResponse response =
         POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(4, response.getSuccessful());
+  }
+
+  @Test
+  void testBulkImportCsv_GZip() {
+    JsonImportSuccessResponse response =
+        POST(
+                "/minMaxDataElements/upsert?dataSet=" + ds,
+                Body(gzip(csv.formatted(de, coc, ou1, ou2, ou3, ou4))),
+                ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
