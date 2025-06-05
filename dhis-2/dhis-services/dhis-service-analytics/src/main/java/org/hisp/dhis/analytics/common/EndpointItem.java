@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.analytics.common;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.program.UserInfoSnapshot;
-
-@Slf4j
-public class EventUtils {
-  private EventUtils() {
-    throw new UnsupportedOperationException("Utility class");
-  }
-
-  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
-    try {
-      if (StringUtils.isNotEmpty(userInfoAsString)) {
-        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
-      }
-      return null;
-    } catch (IOException e) {
-      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
-      throw new IllegalArgumentException(e);
-    }
-  }
+/**
+ * Enum representing the different endpoint items for analytics queries. Used to distinguish between
+ * enrollment and event queries.
+ */
+public enum EndpointItem {
+  ENROLLMENT,
+  EVENT
 }

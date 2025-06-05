@@ -32,6 +32,7 @@ package org.hisp.dhis.minmax;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.log.TimeExecution;
 
 /**
  * A bulk request to insert or update {@link MinMaxDataElement}s.
@@ -40,4 +41,5 @@ import org.hisp.dhis.common.UID;
  * @param values the individual values to insert or update, all of which must belong to a DE
  *     connected to the {@link #dataSet()}
  */
-public record MinMaxValueUpsertRequest(@Nonnull UID dataSet, @Nonnull List<MinMaxValue> values) {}
+public record MinMaxValueUpsertRequest(
+    @Nonnull UID dataSet, @Nonnull @TimeExecution.Include List<MinMaxValue> values) {}

@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,12 +44,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EventQueryParamsTest extends TestBase {
+class TrackerEventQueryParamsTest extends TestBase {
 
   private TrackedEntityAttribute tea1;
 
@@ -65,13 +65,13 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() {
-    EventQueryParams params = new EventQueryParams();
+    TrackerEventQueryParams params = new TrackerEventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
     params.filterBy(tea1, filter);
 
     assertEquals(Set.of(tea1), params.getAttributes().keySet());
-    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getAttributes();
+    Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = params.getAttributes();
 
     params.orderBy(tea1, SortDirection.DESC);
 
@@ -80,7 +80,7 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void shouldAddDataElementToOrderButNotToDataElementsWhenOrderingByDataElement() {
-    EventQueryParams params = new EventQueryParams();
+    TrackerEventQueryParams params = new TrackerEventQueryParams();
 
     params.orderBy(de1, SortDirection.ASC);
 
@@ -91,14 +91,14 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void shouldKeepExistingDataElementFiltersWhenOrderingByDataElement() {
-    EventQueryParams params = new EventQueryParams();
+    TrackerEventQueryParams params = new TrackerEventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
     params.filterBy(de1, filter);
 
     assertTrue(params.hasDataElementFilter());
     assertEquals(Set.of(de1), params.getDataElements().keySet());
-    Map<DataElement, List<JdbcPredicate>> dataElements = params.getDataElements();
+    Map<DataElement, List<FilterJdbcPredicate>> dataElements = params.getDataElements();
 
     params.orderBy(de1, SortDirection.ASC);
 
@@ -108,7 +108,7 @@ class EventQueryParamsTest extends TestBase {
 
   @Test
   void shouldFailIfFilterValueForNumericDataElementIsNotNumeric() {
-    EventQueryParams params = new EventQueryParams();
+    TrackerEventQueryParams params = new TrackerEventQueryParams();
     de1.setValueType(ValueType.NUMBER);
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "not a number");
 

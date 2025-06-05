@@ -89,6 +89,21 @@ class MinMaxValueControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testSaveOrUpdateMinMaxValue_Alias() {
+    String json =
+        """
+      {
+      "dataElement": "%s",
+      "orgUnit": "%s",
+      "categoryOptionCombo": "%s",
+      "minValue": 1,
+      "maxValue": 100
+      }
+      """;
+    assertStatus(OK, POST("/dataEntry/minMaxValues", json.formatted(de, ou, coc)));
+  }
+
+  @Test
   void testRemoveMinMaxValue() {
     assertStatus(OK, POST("/dataEntry/minMaxValues", json.formatted(de, ou, coc)));
     assertStatus(

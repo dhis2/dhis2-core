@@ -32,19 +32,15 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
 import jakarta.persistence.EntityManager;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +54,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -67,7 +62,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -104,8 +98,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           entry(ENROLLMENT_DATE_KEY, ENROLLMENT_DATE_ALIAS),
           entry("inactive", "inactive"));
 
-  private final OrganisationUnitStore organisationUnitStore;
-
   private final SystemSettingsProvider settingsProvider;
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -123,7 +115,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     checkNotNull(organisationUnitStore);
     checkNotNull(settingsProvider);
 
-    this.organisationUnitStore = organisationUnitStore;
     this.settingsProvider = settingsProvider;
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
@@ -355,10 +346,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     addJoinOnAttributes(sql, params);
     sql.append(" ");
 
-    SqlHelper whereAnd = new SqlHelper(true);
-    addAttributeFilterConditions(sql, sqlParameters, params, whereAnd);
-    addTrackedEntityConditions(sql, sqlParameters, params, whereAnd);
-    addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, whereAnd);
+    SqlHelper sqlHelper = new SqlHelper(true);
+    addAttributeFilterConditions(sql, sqlParameters, params, sqlHelper);
+    addTrackedEntityConditions(sql, sqlParameters, params, sqlHelper);
+    addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, sqlHelper);
 
     if (!isCountQuery) {
       sql.append(" ");
@@ -476,13 +467,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private void addJoinOnOrgUnit(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    UserDetails userDetails = getCurrentUserDetails();
-    Set<OrganisationUnit> effectiveSearchOrgUnits =
-        getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
-    Set<OrganisationUnit> captureScopeOrgUnits =
-        getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
+    String orgUnitTableAlias = "ou";
+    String programTableAlias = "p";
 
-    sql.append("inner join organisationunit ou on ou.organisationunitid = ");
+    sql.append("inner join organisationunit ");
+    sql.append(orgUnitTableAlias);
+    sql.append(" on ou.organisationunitid = ");
     if (params.hasEnrolledInTrackerProgram()) {
       sql.append("po.organisationunitid ");
     } else {
@@ -490,69 +480,22 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasOrganisationUnits()) {
-      sql.append("and ");
-      if (params.isOrganisationUnitMode(DESCENDANTS)) {
-        addOrgUnitDescendantsCondition(sql, params);
-      } else if (params.isOrganisationUnitMode(CHILDREN)) {
-        addOrgUnitsChildrenCondition(sql, params);
-      } else if (params.isOrganisationUnitMode(SELECTED)) {
-        sql.append("ou.organisationunitid in (:orgUnits)");
-        sqlParameters.addValue("orgUnits", getIdentifiers(params.getOrgUnits()));
-      }
-      sql.append(" ");
+      buildOrgUnitModeClause(
+          sql,
+          sqlParameters,
+          params.getOrgUnits(),
+          params.getOrgUnitMode(),
+          orgUnitTableAlias,
+          "and ");
     }
 
-    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
-      return;
-    }
-
-    sql.append(
-        "and ((p.accesslevel in ('OPEN', 'AUDITED') and (ou.path like any (:effectiveSearchScopePaths))) ");
-    sqlParameters.addValue(
-        "effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
-
-    sql.append(
-        "or (p.accesslevel in ('PROTECTED', 'CLOSED') and (ou.path like any (:captureScopePaths))))");
-    sqlParameters.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
-  }
-
-  private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
-    return new HashSet<>(organisationUnitStore.getByUid(uids));
-  }
-
-  private String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
-    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
-  }
-
-  private void addOrgUnitDescendantsCondition(StringBuilder sql, TrackedEntityQueryParams params) {
-    SqlHelper orHlp = new SqlHelper(true);
-
-    sql.append("(");
-    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-      sql.append(orHlp.or())
-          .append("ou.path like '")
-          .append(organisationUnit.getStoredPath())
-          .append("%'");
-    }
-    sql.append(")");
-  }
-
-  private void addOrgUnitsChildrenCondition(StringBuilder sql, TrackedEntityQueryParams params) {
-    SqlHelper orHlp = new SqlHelper(true);
-
-    sql.append("(");
-    for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-      sql.append(orHlp.or())
-          .append(" ou.path like '")
-          .append(organisationUnit.getStoredPath())
-          .append("%'")
-          .append(" and (ou.hierarchylevel = ")
-          .append(organisationUnit.getHierarchyLevel())
-          .append(" or ou.hierarchylevel = ")
-          .append((organisationUnit.getHierarchyLevel() + 1))
-          .append(")");
-    }
-    sql.append(")");
+    buildOwnershipClause(
+        sql,
+        sqlParameters,
+        params.getOrgUnitMode(),
+        programTableAlias,
+        orgUnitTableAlias,
+        MAIN_QUERY_ALIAS);
   }
 
   /**

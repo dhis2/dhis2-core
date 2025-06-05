@@ -37,8 +37,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -48,7 +50,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
@@ -56,10 +57,10 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.export.event.EventFields;
-import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,9 +69,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
-  private final HibernateEnrollmentStore enrollmentStore;
+  private final JdbcEnrollmentStore enrollmentStore;
 
-  private final EventService eventService;
+  private final TrackerEventService trackerEventService;
 
   private final RelationshipService relationshipService;
 
@@ -164,15 +165,16 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
-  private Set<Event> getEvents(Enrollment enrollment, EventFields fields, boolean includeDeleted) {
-    EventOperationParams eventOperationParams =
-        EventOperationParams.builder()
+  private Set<Event> getEvents(
+      Enrollment enrollment, TrackerEventFields fields, boolean includeDeleted) {
+    TrackerEventOperationParams eventOperationParams =
+        TrackerEventOperationParams.builder()
             .enrollments(Set.of(UID.of(enrollment)))
             .fields(fields)
             .includeDeleted(includeDeleted)
             .build();
     try {
-      return Set.copyOf(eventService.findEvents(eventOperationParams));
+      return Set.copyOf(trackerEventService.findEvents(eventOperationParams));
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
@@ -236,14 +238,17 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(Enrollment enrollment) {
-    Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            List.of(enrollment.getProgram()), null);
+    Set<String> readableAttributes =
+        trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes(List.of(enrollment.getProgram()), null)
+            .stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
     Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
     for (TrackedEntityAttributeValue trackedEntityAttributeValue :
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues()) {
-      if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute())) {
+      if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute().getUid())) {
         attributeValues.add(trackedEntityAttributeValue);
       }
     }

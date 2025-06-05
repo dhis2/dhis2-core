@@ -168,7 +168,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             .getEventChangeLog(UID.of("kWjSezkXHVp"), params, defaultPageParams)
             .getItems();
 
-    assertNumberOfChanges(7, changeLogs);
+    assertNumberOfChanges(9, changeLogs);
     assertAll(
         () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(0)),
         () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(1)),
@@ -176,7 +176,9 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
         () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(3)),
         () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(4)),
         () -> assertFieldCreate("occurredAt", "2022-04-22 06:00:38.343", changeLogs.get(5)),
-        () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(6)));
+        () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(6)),
+        () -> assertDataElementCreate("DATAEL00007", "text", changeLogs.get(7)),
+        () -> assertDataElementCreate("DATAEL00005", "option1", changeLogs.get(8)));
   }
 
   @Test
@@ -193,15 +195,17 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             .getEventChangeLog(UID.of("kWjSezkXHVp"), params, defaultPageParams)
             .getItems();
 
-    assertNumberOfChanges(7, changeLogs);
+    assertNumberOfChanges(9, changeLogs);
     assertAll(
-        () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(0)),
-        () -> assertFieldCreate("occurredAt", "2022-04-22 06:00:38.343", changeLogs.get(1)),
-        () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(2)),
-        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(3)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(4)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(5)),
-        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(6)));
+        () -> assertDataElementCreate("DATAEL00005", "option1", changeLogs.get(0)),
+        () -> assertDataElementCreate("DATAEL00007", "text", changeLogs.get(1)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-26 06:00:34.323", changeLogs.get(2)),
+        () -> assertFieldCreate("occurredAt", "2022-04-22 06:00:38.343", changeLogs.get(3)),
+        () -> assertDataElementUpdate("GieVkTxp4HG", "10", "20", changeLogs.get(4)),
+        () -> assertDataElementCreate("GieVkTxp4HG", "10", changeLogs.get(5)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(6)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(7)),
+        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(8)));
   }
 
   @Test

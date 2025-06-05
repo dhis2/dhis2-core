@@ -40,6 +40,7 @@ import static org.mockserver.model.HttpRequest.request;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,7 +93,7 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static GenericContainer<?> tokenMockServerContainer;
-  private static MockServerClient tokentMockServerClient;
+  private static MockServerClient tokenMockServerClient;
 
   @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
@@ -158,13 +159,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
-    tokentMockServerClient =
+    tokenMockServerClient =
         new MockServerClient("localhost", tokenMockServerContainer.getFirstMappedPort());
   }
 
   @BeforeEach
   void beforeEach() {
-    tokentMockServerClient.reset();
+    tokenMockServerClient.reset();
   }
 
   @AfterAll
@@ -198,6 +199,39 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @AfterEach
     void afterEach() {
       upstreamMockServerClient.reset();
+    }
+
+    @Test
+    void testRunRouteAsyncRequestTimeoutIsNotDefault() throws JsonProcessingException {
+      upstreamMockServerClient
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+      long asyncRequestTimeout =
+          webRequestWithMvcResult(
+                  buildMockRequest(
+                      HttpMethod.GET,
+                      "/routes/"
+                          + postHttpResponse
+                              .content()
+                              .get("response.uid")
+                              .as(JsonString.class)
+                              .string()
+                          + "/run",
+                      new ArrayList<>(),
+                      "application/json",
+                      null))
+              .getRequest()
+              .getAsyncContext()
+              .getTimeout();
+
+      assertEquals(Duration.ofMinutes(5).toMillis(), asyncRequestTimeout);
     }
 
     @Test
@@ -350,7 +384,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
@@ -413,7 +447,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
@@ -465,7 +499,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(

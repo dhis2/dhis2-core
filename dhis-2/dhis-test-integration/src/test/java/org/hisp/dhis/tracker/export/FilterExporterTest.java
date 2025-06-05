@@ -53,15 +53,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,18 +78,23 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackedEntityService trackedEntityService;
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
+  @Autowired private SingleEventService singleEventService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit orgUnit;
+  private OrganisationUnit singleEventOrgUnit;
   private ProgramStage programStage;
   private Program program;
   private TrackedEntityType trackedEntityType;
 
   private User importUser;
 
-  private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
+  private TrackerEventOperationParams.TrackerEventOperationParamsBuilder
+      trackerEventOperationParamsBuilder;
+  private SingleEventOperationParams.SingleEventOperationParamsBuilder
+      singleEventOperationParamsBuilder;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -99,6 +105,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
 
     testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
+    singleEventOrgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
@@ -116,7 +123,10 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    operationParamsBuilder = EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+    trackerEventOperationParamsBuilder =
+        TrackerEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+    singleEventOperationParamsBuilder =
+        SingleEventOperationParams.builder().orgUnit(singleEventOrgUnit).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -446,13 +456,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEmptyEventsIfAttributeFilterDoesNotMatch()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "V66aa7a2122");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.EQ, "170000")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertIsEmpty(events);
   }
@@ -463,13 +473,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     // shows number semantics are applied since 170.0 == 170, this would fail if we were to treat
     // value type number as text "170.0" != "170"
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "V66aa7a2122");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.EQ, "170")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
@@ -477,15 +487,15 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByTextAttributesUsingEq()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnit(orgUnit)
             .filterByAttribute(
                 UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "summer day")))
             .build();
 
     List<String> trackedEntities =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -496,13 +506,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByIntegerAttributesUsingIn()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.IN, "70;72")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM", "jxgFyJEMUPf"), events);
   }
@@ -511,14 +521,14 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByTextAttributesUsingIn()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "toUpdate000");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(
                 UID.of(attr), List.of(new QueryFilter(QueryOperator.IN, "Summer day;rainy Day")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(
         List.of(
@@ -539,13 +549,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     // Operators sw is based on SQL like which is supported for numeric value types by not casting
     // values i.e. treating them as strings
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.SW, "7")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM", "jxgFyJEMUPf"), events);
   }
@@ -554,13 +564,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByTextAttributesUsingStartsWith()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "toUpdate000");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.SW, "RAiny")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -569,14 +579,14 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByTextAttributesUsingLike()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(
                 UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% \\Winter's")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -585,13 +595,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByIntegerAttributesUsingLessThan()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.LT, "71")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -599,8 +609,8 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByIntegerAttributesUsingRange()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnit(orgUnit)
             .filterByAttribute(
                 UID.of("integerAttr"),
@@ -610,7 +620,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -621,14 +631,14 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByTextAttributesUsingLessThan()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "toUpdate000");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(
                 UID.of(attr), List.of(new QueryFilter(QueryOperator.LT, "summer day")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -637,13 +647,13 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByTextAttributesUsingNotNull()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -652,14 +662,14 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   void shouldExportEventsWhenFilteringByIntegerAttributesUsingNotNull()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .trackedEntity(UID.of("dUE514NMOlo"))
             .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -667,11 +677,14 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOnlyIncludeEventsWithGivenAttributeWhenFilterAttributeHasNoQueryFilter()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orgUnit(orgUnit).filterByAttribute(UID.of("notUpdated0")).build();
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
+            .orgUnit(orgUnit)
+            .filterByAttribute(UID.of("notUpdated0"))
+            .build();
 
     List<String> trackedEntities =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -681,8 +694,8 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByAttributesWithMultipleFiltersOnDifferentAttributes()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnit(orgUnit)
             .filterByAttribute(
                 UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "rainy day")))
@@ -691,7 +704,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -701,8 +714,8 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByMultipleFiltersOnTheSameAttribute()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .orgUnit(orgUnit)
             .filterByAttribute(
                 UID.of("toUpdate000"),
@@ -712,7 +725,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.findEvents(params).stream()
+        trackerEventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -722,8 +735,8 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByCombiningTwoUnaryOperators()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByAttribute(
@@ -731,7 +744,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -739,8 +752,8 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByCombiningUnaryAndBinaryOperators()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByAttribute(
@@ -750,7 +763,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                     new QueryFilter(QueryOperator.EQ, "rainy day")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -758,12 +771,12 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByByNullValues()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("H0PbzJY8bJG"), events);
   }
@@ -771,57 +784,336 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExportEventsWhenFilteringByByNonNullValues()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .programStage(programStage)
             .filterByAttribute(UID.of("dIVt4l5vIOa"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldExportEmptyEventsIfDataElementFilterDoesNotMatch()
+  void shouldExportEmptySingleEventsIfDataElementFilterDoesNotMatch()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-    EventOperationParams params =
-        operationParamsBuilder
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "does not exist")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getSingleEvents(params);
 
     assertIsEmpty(events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByTextDataElementsUsingLike()
+  void shouldExportSingleEventsWhenFilteringByTextDataElementsUsingLike()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00007"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "eX")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByTextDataElementsUsingSW()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00007"));
+
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.SW, "te")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByTextDataElementsUsingEWWithProgramTypeFilter()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00007"));
+
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EW, "xt")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByTextDataElementsUsingIn()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00007"));
+
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.IN, "text;value")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByTextDataElementsUsingEqWithCategoryOptionSuperUser()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00007"));
+
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
+            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "text")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByDataElementsUsingEqWithCategoryOptionNotSuperUser()
+      throws ForbiddenException, BadRequestException {
+    injectSecurityContextUser(
+        createAndAddUser(
+            false,
+            "user",
+            Set.of(singleEventOrgUnit),
+            Set.of(singleEventOrgUnit),
+            "F_EXPORT_DATA"));
+    DataElement dataElement = dataElement(UID.of("DATAEL00007"));
+
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
+            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "text")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByDataElementsUsingOptionSetEqual()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByDataElementsUsingOptionSetIn()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.IN, "option1;option2")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByDataElementsUsingOptionSetLike()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "opt")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByNumericDataElementsUsingComparisonRange()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("GieVkTxp4HH"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement),
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "18"),
+                    new QueryFilter(QueryOperator.GT, "14")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp", "QRYjLTiJTrA"), events);
+  }
+
+  @Test
+  void shouldExportSingleEventsWhenFilteringByNumericDataElementsUsingSWAndEW()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("GieVkTxp4HH"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.SW, "2")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("cadc5eGj0j7"), events);
+  }
+
+  @Test
+  void shouldFilterBySingleEventsNumberDataValueUsingEq()
+      throws ForbiddenException, BadRequestException {
+    // shows number semantics are applied since 15.0 == 15, this would fail if we were to treat
+    // value type number as text "15.0" != "15"
+    SingleEventOperationParams params =
+        SingleEventOperationParams.builder()
+            .filterByDataElement(
+                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.EQ, "15.0")))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp", "QRYjLTiJTrA"), events);
+  }
+
+  @Test
+  void shouldFilterBySingleEventsContainingGivenDataValuesWhenFilteringByNonNullDataValues()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        SingleEventOperationParams.builder()
+            .filterByDataElement(
+                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .filterByDataElement(
+                UID.of("GieVkTxp4HG"), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp", "QRYjLTiJTrA"), events);
+  }
+
+  @Test
+  void shouldFilterBySingleEventsNotContainingGivenDataValueWhenFilteringByNullDataValues()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        SingleEventOperationParams.builder()
+            .filterByDataElement(
+                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NULL)))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("G9PbzJY8bJG"), events);
+  }
+
+  @Test
+  void
+      shouldFilterBySingleEventsContainingGivenDataValueWhenCombiningUnaryAndBinaryOperatorsInFilter()
+          throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("GieVkTxp4HH"));
+    SingleEventOperationParams params =
+        singleEventOperationParamsBuilder
+            .filterByDataElement(
+                UID.of(dataElement),
+                List.of(
+                    new QueryFilter(QueryOperator.IN, "13"), new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("OTmjvJDn0Fu"), events);
+  }
+
+  @Test
+  void shouldFilterBySingleEventsContainingGivenDataValueWhenCombiningTwoUnaryOperatorsInFilter()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        SingleEventOperationParams.builder()
+            .filterByDataElement(
+                UID.of("GieVkTxp4HH"),
+                List.of(new QueryFilter(QueryOperator.NULL), new QueryFilter(QueryOperator.NULL)))
+            .build();
+
+    List<String> events = getSingleEvents(params);
+
+    assertContainsOnly(List.of("G9PbzJY8bJG"), events);
+  }
+
+  @Test
+  void shouldExportEmptyTrackerEventsIfDataElementFilterDoesNotMatch()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "does not exist")))
+            .build();
+
+    List<String> events = getTrackerEvents(params);
+
+    assertIsEmpty(events);
+  }
+
+  @Test
+  void shouldExportTrackerEventsWhenFilteringByTextDataElementsUsingLike()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "VaL")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByTextDataElementsUsingSWWithStatusFilter()
+  void shouldExportTrackerEventsWhenFilteringByTextDataElementsUsingSWWithStatusFilter()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
@@ -829,37 +1121,36 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.SW, "val")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByTextDataElementsUsingEWWithProgramTypeFilter()
+  void shouldExportTrackerEventsWhenFilteringByTextDataElementsUsingEWWithProgramTypeFilter()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
-            .programType(ProgramType.WITH_REGISTRATION)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EW, "001")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByTextDataElementsUsingIn()
+  void shouldExportTrackerEventsWhenFilteringByTextDataElementsUsingIn()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
@@ -867,18 +1158,18 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                 List.of(new QueryFilter(QueryOperator.IN, "Value00001;Value00002")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByTextDataElementsUsingEqWithCategoryOptionSuperUser()
+  void shouldExportTrackerEventsWhenFilteringByTextDataElementsUsingEqWithCategoryOptionSuperUser()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .program(program)
@@ -888,20 +1179,20 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00001")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByDataElementsUsingEqWithCategoryOptionNotSuperUser()
+  void shouldExportTrackerEventsWhenFilteringByDataElementsUsingEqWithCategoryOptionNotSuperUser()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(
         createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
     DataElement dataElement = dataElement(UID.of("DATAEL00002"));
 
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
             .program(program)
@@ -911,68 +1202,68 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00002")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByDataElementsUsingOptionSetEqual()
+  void shouldExportTrackerEventsWhenFilteringByDataElementsUsingOptionSetEqual()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByDataElementsUsingOptionSetIn()
+  void shouldExportTrackerEventsWhenFilteringByDataElementsUsingOptionSetIn()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.IN, "option1;option2")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByDataElementsUsingOptionSetLike()
+  void shouldExportTrackerEventsWhenFilteringByDataElementsUsingOptionSetLike()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "opt")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByNumericDataElementsUsingComparisonRange()
+  void shouldExportTrackerEventsWhenFilteringByNumericDataElementsUsingComparisonRange()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00006"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
@@ -982,81 +1273,83 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                     new QueryFilter(QueryOperator.GT, "8")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldExportEventsWhenFilteringByNumericDataElementsUsingSWAndEW()
+  void shouldExportTrackerEventsWhenFilteringByNumericDataElementsUsingSWAndEW()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00006"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
                 UID.of(dataElement), List.of(new QueryFilter(QueryOperator.SW, "7")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldFilterByEventsNumberDataValueUsingEq() throws ForbiddenException, BadRequestException {
+  void shouldFilterByTrackerEventsNumberDataValueUsingEq()
+      throws ForbiddenException, BadRequestException {
     // shows number semantics are applied since 15.0 == 15, this would fail if we were to treat
     // value type number as text "15.0" != "15"
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .filterByDataElement(
-                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.EQ, "15.0")))
+                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.EQ, "15")))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
-    assertContainsOnly(List.of("kWjSezkXHVp", "QRYjLTiJTrA"), events);
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldFilterByEventsContainingGivenDataValuesWhenFilteringByNonNullDataValues()
+  void shouldFilterByTrackerEventsContainingGivenDataValuesWhenFilteringByNonNullDataValues()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .filterByDataElement(
-                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NNULL)))
+                UID.of("DATAEL00006"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .filterByDataElement(
-                UID.of("GieVkTxp4HG"), List.of(new QueryFilter(QueryOperator.NNULL)))
+                UID.of("DATAEL00007"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
-    assertContainsOnly(List.of("kWjSezkXHVp", "QRYjLTiJTrA"), events);
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldFilterByEventsNotContainingGivenDataValueWhenFilteringByNullDataValues()
+  void shouldFilterByTrackerEventsNotContainingGivenDataValueWhenFilteringByNullDataValues()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
                 UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test
-  void shouldFilterByEventsContainingGivenDataValueWhenCombiningUnaryAndBinaryOperatorsInFilter()
-      throws ForbiddenException, BadRequestException {
+  void
+      shouldFilterByTrackerEventsContainingGivenDataValueWhenCombiningUnaryAndBinaryOperatorsInFilter()
+          throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
+    TrackerEventOperationParams params =
+        trackerEventOperationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
@@ -1066,16 +1359,16 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                     new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
-  void shouldFilterByEventsContainingGivenDataValueWhenCombiningTwoUnaryOperatorsInFilter()
+  void shouldFilterByTrackerEventsContainingGivenDataValueWhenCombiningTwoUnaryOperatorsInFilter()
       throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .filterByDataElement(
@@ -1083,7 +1376,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
             .build();
 
-    List<String> events = getEvents(params);
+    List<String> events = getTrackerEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
@@ -1107,9 +1400,14 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     return uids(trackedEntityService.findTrackedEntities(params));
   }
 
-  private List<String> getEvents(EventOperationParams params)
+  private List<String> getTrackerEvents(TrackerEventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.findEvents(params));
+    return uids(trackerEventService.findEvents(params));
+  }
+
+  private List<String> getSingleEvents(SingleEventOperationParams params)
+      throws ForbiddenException, BadRequestException {
+    return uids(singleEventService.findEvents(params));
   }
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {

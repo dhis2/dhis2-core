@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,7 +54,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
@@ -62,14 +61,12 @@ import org.hisp.dhis.tracker.export.Order;
 @Getter
 @Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EventOperationParams {
+public class TrackerEventOperationParams {
   private UID program;
 
   private UID programStage;
 
   private EnrollmentStatus enrollmentStatus;
-
-  private ProgramType programType;
 
   private Boolean followUp;
 
@@ -123,9 +120,9 @@ public class EventOperationParams {
    * to stay in one collection as their order needs to be kept as provided by the user. We cannot
    * come up with a type-safe type that captures the above order features and that can be used in a
    * generic collection such as a List (see typesafe heterogeneous container). We therefore provide
-   * {@link EventOperationParamsBuilder#orderBy(String, SortDirection)} and {@link
-   * EventOperationParamsBuilder#orderBy(UID, SortDirection)} to advocate the types that can be
-   * ordered by while storing the order in a single List of {@link Order}.
+   * {@link TrackerEventOperationParamsBuilder#orderBy(String, SortDirection)} and {@link
+   * TrackerEventOperationParamsBuilder#orderBy(UID, SortDirection)} to advocate the types that can
+   * be ordered by while storing the order in a single List of {@link Order}.
    */
   private List<Order> order;
 
@@ -146,12 +143,12 @@ public class EventOperationParams {
 
   private Set<UID> enrollments;
 
-  @Builder.Default private EventFields fields = EventFields.none();
+  @Builder.Default private TrackerEventFields fields = TrackerEventFields.none();
 
   @Builder.Default
   private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
-  public static class EventOperationParamsBuilder {
+  public static class TrackerEventOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
 
@@ -163,56 +160,56 @@ public class EventOperationParams {
     // does not support. The repeated order field and private order method prevent access to order
     // via the builder.
     // Order should be added via the orderBy builder methods.
-    private EventOperationParamsBuilder order(List<Order> order) {
+    private TrackerEventOperationParamsBuilder order(List<Order> order) {
       return this;
     }
 
-    public EventOperationParamsBuilder orderBy(String field, SortDirection direction) {
+    public TrackerEventOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order.add(new Order(field, direction));
       return this;
     }
 
-    public EventOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
+    public TrackerEventOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
       this.order.add(new Order(uid, direction));
       return this;
     }
 
-    public EventOperationParamsBuilder program(UID uid) {
+    public TrackerEventOperationParamsBuilder program(UID uid) {
       this.program = uid;
       return this;
     }
 
-    public EventOperationParamsBuilder program(Program program) {
+    public TrackerEventOperationParamsBuilder program(Program program) {
       this.program = UID.of(program);
       return this;
     }
 
-    public EventOperationParamsBuilder programStage(UID uid) {
+    public TrackerEventOperationParamsBuilder programStage(UID uid) {
       this.programStage = uid;
       return this;
     }
 
-    public EventOperationParamsBuilder programStage(ProgramStage programStage) {
+    public TrackerEventOperationParamsBuilder programStage(ProgramStage programStage) {
       this.programStage = UID.of(programStage);
       return this;
     }
 
-    public EventOperationParamsBuilder orgUnit(UID uid) {
+    public TrackerEventOperationParamsBuilder orgUnit(UID uid) {
       this.orgUnit = uid;
       return this;
     }
 
-    public EventOperationParamsBuilder orgUnit(OrganisationUnit orgUnit) {
+    public TrackerEventOperationParamsBuilder orgUnit(OrganisationUnit orgUnit) {
       this.orgUnit = UID.of(orgUnit);
       return this;
     }
 
-    public EventOperationParamsBuilder trackedEntity(UID uid) {
+    public TrackerEventOperationParamsBuilder trackedEntity(UID uid) {
       this.trackedEntity = uid;
       return this;
     }
 
-    public EventOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
+    public TrackerEventOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
       this.trackedEntity = UID.of(trackedEntity);
       return this;
     }
@@ -222,7 +219,7 @@ public class EventOperationParams {
     // does not support. The repeated field and private method prevent access to
     // the filter map via the builder.
     // Filters should be added via the filterByDataElement builder methods.
-    private EventOperationParamsBuilder dataElementFilters(
+    private TrackerEventOperationParamsBuilder dataElementFilters(
         Map<UID, List<QueryFilter>> dataElementFilters) {
       return this;
     }
@@ -232,32 +229,32 @@ public class EventOperationParams {
     // does not support. The repeated field and private method prevent access to the filter map via
     // the builder.
     // Filters should be added via the filterByAttribute builder methods.
-    private EventOperationParamsBuilder attributeFilters(
+    private TrackerEventOperationParamsBuilder attributeFilters(
         Map<UID, List<QueryFilter>> attributeFilters) {
       return this;
     }
 
-    public EventOperationParamsBuilder filterByDataElement(
+    public TrackerEventOperationParamsBuilder filterByDataElement(
         @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
       this.dataElementFilters.putIfAbsent(attribute, new ArrayList<>());
       this.dataElementFilters.get(attribute).addAll(queryFilters);
       return this;
     }
 
-    public EventOperationParamsBuilder filterByDataElement(@Nonnull UID dataElement) {
+    public TrackerEventOperationParamsBuilder filterByDataElement(@Nonnull UID dataElement) {
       this.dataElementFilters.putIfAbsent(
           dataElement, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
 
-    public EventOperationParamsBuilder filterByAttribute(
+    public TrackerEventOperationParamsBuilder filterByAttribute(
         @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
       this.attributeFilters.putIfAbsent(attribute, new ArrayList<>());
       this.attributeFilters.get(attribute).addAll(queryFilters);
       return this;
     }
 
-    public EventOperationParamsBuilder filterByAttribute(@Nonnull UID attribute) {
+    public TrackerEventOperationParamsBuilder filterByAttribute(@Nonnull UID attribute) {
       this.attributeFilters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }

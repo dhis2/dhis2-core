@@ -522,7 +522,7 @@
       ],
       "aggregationType": "AVERAGE",
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "O4VaNks6tta"
       },
       "code": "DE_240794",
       "created": "2015-03-31T10:27:46.069",
@@ -785,6 +785,7 @@
   "programStages": [
     {
       "id": "NpsdDv6kKSO",
+      "enableUserAssignment": true,
       "attributeValues": [
         {
           "attribute": {
@@ -952,6 +953,26 @@
             "id": "NpsdDv6kKSO"
           },
           "sortOrder": 1
+        },
+        {
+          "id": "f4Fr954HH6n",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "GieVkTxp4HH"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "sharing": {},
+          "sortOrder": 1
         }
       ],
       "repeatable": true,
@@ -1118,6 +1139,46 @@
           "created": "2022-04-22T05:57:48.383",
           "dataElement": {
             "id": "GieVkTxp4HG"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "qLZC0lvvxQH"
+          },
+          "sharing": {},
+          "sortOrder": 2
+        },
+        {
+          "id": "hj8ZC0lvbc7",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "DATAEL00007"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "programStage": {
+            "id": "qLZC0lvvxQH"
+          },
+          "sharing": {},
+          "sortOrder": 3
+        },
+        {
+          "id": "e44Te4Rfer8",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "DATAEL00005"
           },
           "lastUpdated": "2022-04-22T05:57:59.783",
           "programStage": {
@@ -1477,7 +1538,7 @@
       "name": "ProgramG",
       "organisationUnits": [
         {
-          "id": "g4w96yEMlzO"
+          "id": "uoNW0E3xXUy"
         }
       ],
       "programStages": [
@@ -1486,9 +1547,6 @@
         }
       ],
       "programType": "WITHOUT_REGISTRATION",
-      "sharing": {
-        "public": "--------"
-      },
       "shortName": "ProgramG",
       "user": {
         "id": "tTgjgobT1oS"
@@ -1536,7 +1594,7 @@
       "id": "shPjYNifvMK",
       "accessLevel": "OPEN",
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "O4VaNks6tta"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
@@ -1682,7 +1740,7 @@
     },
     {
       "id": "SeeUNWLQmZk",
-      "accessLevel": "CLOSED",
+      "accessLevel": "OPEN",
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
@@ -1758,7 +1816,7 @@
       "id": "TsngICFQjvH",
       "accessLevel": "OPEN",
       "categoryCombo": {
-        "id": "bjDvmb4bfuf"
+        "id": "O4VaNks6tta"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
@@ -2460,6 +2518,45 @@
         }
       ],
       "username": "aaaa"
+    },
+    {
+      "id": "Hop98yh65pL",
+      "access": {
+        "delete": true,
+        "externalize": true,
+        "manage": true,
+        "read": true,
+        "update": true,
+        "write": true
+      },
+      "created": "2020-05-31T08:57:59.048",
+      "displayName": "single event user",
+      "email": "aaaa@dhis2.org",
+      "firstName": "single event user",
+      "name": "single event user",
+      "organisationUnits": [
+        {
+          "id": "g4w96yEMlzO"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "password": "Test123###...",
+      "passwordLastUpdated": "2020-05-31T08:57:59.060",
+      "phoneNumber": "+4740332255",
+      "surname": "single event user",
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "username": "singleEventUser"
     },
     {
       "id": "FIgVWzUCkpw",

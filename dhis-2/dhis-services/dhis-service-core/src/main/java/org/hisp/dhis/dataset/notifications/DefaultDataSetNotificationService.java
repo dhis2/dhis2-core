@@ -43,9 +43,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +74,7 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -433,8 +436,11 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
 
   private Set<User> resolveInternalRecipients(DataSetNotificationTemplate template) {
     UserGroup userGroup = template.getRecipientUserGroup();
-
-    return userGroup == null ? Set.of() : userGroup.getMembers();
+    return userGroup == null
+        ? Set.of()
+        : userGroup.getMembers().stream()
+            .filter(user -> !user.isDisabled())
+            .collect(Collectors.toSet());
   }
 
   private Set<User> resolveInternalRecipients(
@@ -445,11 +451,20 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       return Set.of();
     }
 
-    return userGroup.getMembers().stream()
+    Set<User> members = userGroup.getMembers();
+
+    return members.stream()
         .filter(
             user ->
-                organisationUnitService.isInUserHierarchy(
-                    registration.getSource().getUid(), user.getOrganisationUnits()))
+                user != null
+                    && !user.isDisabled()
+                    && Objects.requireNonNull(
+                            UserDetails.createUserDetails(user, true, true, null, null, null, true))
+                        .isInUserHierarchy(
+                            registration.getSource().getUid(),
+                            user.getOrganisationUnits().stream()
+                                .map(OrganisationUnit::getUid)
+                                .collect(toSet())))
         .collect(toSet());
   }
 
@@ -457,6 +472,10 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       String type, List<DhisMessage> messages, JobProgress progress) {
     progress.startingStage(
         "Dispatching DHIS " + type + " notification messages", messages.size(), SKIP_ITEM_OUTLIER);
+
+    // filter out messages without recipients
+    messages = messages.stream().filter(msg -> !msg.recipients.isEmpty()).toList();
+
     progress.runStage(
         messages,
         msg -> msg.message.getSubject(),

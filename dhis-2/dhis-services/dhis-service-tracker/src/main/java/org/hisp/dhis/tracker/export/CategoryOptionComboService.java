@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-class CategoryOptionComboService {
+public class CategoryOptionComboService {
   private final Cache<Long> attrOptionComboIdCache;
 
   private final CategoryService categoryService;
@@ -71,18 +71,12 @@ class CategoryOptionComboService {
    * textual message will be set on the response in case of invalid input. The response is cached.
    *
    * @param cc the category combo identifier.
-   * @param cp the category and option query string.
+   * @param options the options.
    * @param skipFallback whether to skip fallback to default option combo if attribute option combo
    *     is not found.
    * @return the attribute option combo identified from the given input, or null if the input was
    *     invalid.
    */
-  public CategoryOptionCombo getAttributeOptionCombo(String cc, String cp, boolean skipFallback) {
-    Set<String> options = TextUtils.splitToSet(cp, TextUtils.SEMICOLON);
-
-    return getAttributeOptionCombo(cc, options, skipFallback);
-  }
-
   public CategoryOptionCombo getAttributeOptionCombo(
       String cc, Set<String> options, boolean skipFallback) {
     String cacheKey =

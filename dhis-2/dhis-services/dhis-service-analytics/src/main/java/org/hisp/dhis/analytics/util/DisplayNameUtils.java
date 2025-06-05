@@ -48,7 +48,7 @@ public final class DisplayNameUtils {
     String surname = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "surname");
     String firstName = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "firstName");
     String username = extractJsonValue(sqlBuilder, tablePrefix, originColumn, "username");
-    String expression = sqlBuilder.concat(surname, "', '", firstName, "' ('", username, "')'");
+    String expression = sqlBuilder.safeConcat(surname, "', '", firstName, "' ('", username, "')'");
 
     return String.format("%s as %s", expression, columnAlias);
   }

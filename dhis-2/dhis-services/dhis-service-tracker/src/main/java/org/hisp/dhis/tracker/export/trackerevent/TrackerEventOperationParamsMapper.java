@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
@@ -54,6 +54,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -61,12 +62,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EventOperationParams} to {@link EventQueryParams} which is used to fetch events from
- * the DB.
+ * Maps {@link TrackerEventOperationParams} to {@link TrackerEventQueryParams} which is used to
+ * fetch events from the DB.
  */
 @Component
 @RequiredArgsConstructor
-class EventOperationParamsMapper {
+class TrackerEventOperationParamsMapper {
 
   private final ProgramStageService programStageService;
 
@@ -83,8 +84,8 @@ class EventOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public EventQueryParams map(
-      @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
+  public TrackerEventQueryParams map(
+      @Nonnull TrackerEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
     ProgramStage programStage =
@@ -107,7 +108,7 @@ class EventOperationParamsMapper {
 
     validateAttributeOptionCombo(attributeOptionCombo, user);
 
-    EventQueryParams queryParams = new EventQueryParams();
+    TrackerEventQueryParams queryParams = new TrackerEventQueryParams();
 
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
@@ -195,7 +196,7 @@ class EventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      EventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
+      TrackerEventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
     for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
       DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
@@ -217,9 +218,9 @@ class EventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      EventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
+      TrackerEventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
           trackedEntityAttributeService.getTrackedEntityAttribute(
               attributeFilter.getKey().getValue());
@@ -240,7 +241,7 @@ class EventOperationParamsMapper {
     }
   }
 
-  private void mapOrderParam(EventQueryParams params, List<Order> orders)
+  private void mapOrderParam(TrackerEventQueryParams params, List<Order> orders)
       throws BadRequestException {
     if (orders == null || orders.isEmpty()) {
       return;
