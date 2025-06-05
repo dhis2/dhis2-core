@@ -63,8 +63,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class UserRoleController
     extends AbstractCrudController<UserRole, UserRoleController.GetUserRoleObjectListParams> {
 
-  private final UserService userService;
-
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetUserRoleObjectListParams extends GetObjectListParams {
