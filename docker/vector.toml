@@ -67,7 +67,7 @@ del(.host)
 [sinks.elasticsearch]
 type = "elasticsearch"
 inputs = ["parse_nginx"]
-endpoints = ["https://es01:9200"]
+endpoints = ["https://es:9200"]
 bulk.action = "create"
 bulk.index = "nginx-logs-%Y.%m.%d"
 compression = "gzip"
