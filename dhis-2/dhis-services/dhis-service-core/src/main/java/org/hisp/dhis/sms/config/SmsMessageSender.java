@@ -103,6 +103,9 @@ public class SmsMessageSender implements MessageSender {
 
     Set<User> toSendList;
 
+    // Don't send to disabled users
+    users.removeIf(User::isDisabled);
+
     toSendList =
         users.stream().filter(u -> forceSend || isQualifiedReceiver(u)).collect(Collectors.toSet());
 
@@ -200,9 +203,8 @@ public class SmsMessageSender implements MessageSender {
 
   private boolean isQualifiedReceiver(User user) {
     return userSettingsService
-            .getUserSettings(user.getUsername(), true)
-            .getUserMessageSmsNotification()
-        && !user.isDisabled();
+        .getUserSettings(user.getUsername(), true)
+        .getUserMessageSmsNotification();
   }
 
   private OutboundMessageResponse sendMessage(
