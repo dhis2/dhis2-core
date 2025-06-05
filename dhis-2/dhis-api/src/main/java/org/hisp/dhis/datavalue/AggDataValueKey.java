@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
-
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebResponse;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-@Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = BAD_REQUEST, value = WebResponse.class)
-@SuppressWarnings({"java:S1165", "java:S1948"})
-public final class BadRequestException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrow(type, BadRequestException::new, operation);
-  }
-
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, BadRequestException> map, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrowMapped(type, map, operation);
-  }
-
-  private final ErrorCode code;
-  private final Object[] args;
-
-  @Setter private List<ErrorReport> errorReports = List.of();
-
-  public BadRequestException(String message) {
-    super(message);
-    this.code = ErrorCode.E1003;
-    this.args = new Object[0];
-  }
-
-  public BadRequestException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-    this.args = args;
-  }
-}
+public record AggDataValueKey(
+    @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID categoryOptionCombo,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID attributeOptionCombo,
+    String period)
+    implements AggDataValueId {}

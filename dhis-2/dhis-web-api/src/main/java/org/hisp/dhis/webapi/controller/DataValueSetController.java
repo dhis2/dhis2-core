@@ -57,6 +57,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.AggDataValueService;
+import org.hisp.dhis.datavalue.AggDataValueUpsertRequest;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
@@ -65,9 +67,13 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
@@ -84,6 +90,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -100,6 +107,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataValueSetController {
 
   private final DataValueSetService dataValueSetService;
+  private final AggDataValueService aggDataValueService;
   private final AdxDataService adxDataService;
   private final UserService userService;
   private final JobExecutionService jobExecutionService;
@@ -257,7 +265,7 @@ public class DataValueSetController {
     return importSummary(summary);
   }
 
-  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  @PostMapping(path = "old", consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postJsonDataValueSet(ImportOptions importOptions, HttpServletRequest request)
@@ -270,6 +278,27 @@ public class DataValueSetController {
     summary.setImportOptions(importOptions);
 
     return importSummary(summary);
+  }
+
+  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage postJsonDataValue(@RequestBody AggDataValueUpsertRequest request)
+      throws ConflictException {
+
+    try {
+      ImportResult result = aggDataValueService.importAll(request);
+      ImportSummary summary = new ImportSummary();
+      summary.setImportCount(
+          new ImportCount(result.succeeded(), 0, result.attempted() - result.succeeded(), 0));
+      for (ImportResult.ImportError error : result.errors()) {
+        summary.addRejected(error.index());
+        summary.addConflict(
+            ImportConflict.createUniqueConflict(error.index(), error.code(), error.args()));
+      }
+      return importSummary(summary);
+    } catch (BadRequestException ex) {
+      throw new ConflictException(ex.getCode(), ex.getArgs());
+    }
   }
 
   @PostMapping(consumes = "application/csv")

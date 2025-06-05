@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
-
-import java.text.MessageFormat;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebResponse;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 
-@Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = BAD_REQUEST, value = WebResponse.class)
-@SuppressWarnings({"java:S1165", "java:S1948"})
-public final class BadRequestException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrow(type, BadRequestException::new, operation);
-  }
+public interface AggDataValueImportStore {
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, BadRequestException> map, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrowMapped(type, map, operation);
-  }
+  boolean getDataSetAccessible(UID dataSet);
 
-  private final ErrorCode code;
-  private final Object[] args;
+  int deleteByKeys(List<AggDataValueKey> keys);
 
-  @Setter private List<ErrorReport> errorReports = List.of();
+  int upsertValues(List<AggDataValue> values);
 
-  public BadRequestException(String message) {
-    super(message);
-    this.code = ErrorCode.E1003;
-    this.args = new Object[0];
-  }
+  /*
+  Validation support
+   */
 
-  public BadRequestException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-    this.args = args;
-  }
+  List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
+
+  List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
+
+  Map<String, Set<String>> getCategoryOptionCombosByCategoryCombos(Stream<UID> categoryCombos);
+
+  /**
+   * @return All dataset UIDs for each of the DE UIDs. A DE that has no DS will not be contained in
+   *     the result map
+   */
+  Map<String, Set<String>> getDataSetsByDataElements(Stream<UID> dataElements);
+
+  List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements);
+
+  Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements);
+
+  Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements);
+
+  String getDataSetPeriodType(UID dataSet);
+
+  Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements);
+
+  /**
+   * @return The {@link org.hisp.dhis.period.PeriodType} names for the given ISO periods. Does not
+   *     contain ISO key entries which do not map to a type.
+   */
+  Map<String, String> getPeriodTypeByIsoPeriod(Stream<String> isoPeriods);
 }
