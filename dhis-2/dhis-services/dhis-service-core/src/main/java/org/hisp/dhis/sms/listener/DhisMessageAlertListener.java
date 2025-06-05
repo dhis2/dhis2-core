@@ -112,11 +112,6 @@ public class DhisMessageAlertListener extends CommandSMSListener {
       } else if (users != null && users.size() == 1) {
         User sender = users.iterator().next();
 
-        // Don't do anything if user is disabled
-        if (sender.isDisabled()) {
-          return;
-        }
-
         Set<User> receivers = new HashSet<>(userGroup.getMembers());
         messageService.sendMessage(
             new MessageConversationParams.Builder(
