@@ -170,7 +170,7 @@ class BaseAnalyticalObjectTest {
 
     assertNotNull(result.get(), "Must have a result.");
 
-    BaseDimensionalObject baseDimensionalObject = (BaseDimensionalObject) result.get();
+    DimensionalObject baseDimensionalObject = result.get();
 
     assertEquals(PROGRAM_DATA_ELEMENT, baseDimensionalObject.getDimensionType());
     assertEquals(dimensionUid, baseDimensionalObject.getDimension());
@@ -211,10 +211,8 @@ class BaseAnalyticalObjectTest {
 
     ev.populateDimensions(sameDimensions, dimensionalObjects);
 
-    BaseDimensionalObject baseDimensionalObject1 =
-        (BaseDimensionalObject) dimensionalObjects.get(0);
-    BaseDimensionalObject baseDimensionalObject2 =
-        (BaseDimensionalObject) dimensionalObjects.get(1);
+    DimensionalObject baseDimensionalObject1 = dimensionalObjects.get(0);
+    DimensionalObject baseDimensionalObject2 = dimensionalObjects.get(1);
 
     assertEquals(2, dimensionalObjects.size());
     assertEquals(PROGRAM_DATA_ELEMENT, baseDimensionalObject1.getDimensionType());

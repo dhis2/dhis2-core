@@ -668,13 +668,20 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .findEnrollments(operationParams, PageParams.of(2, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
+    assertEquals(new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, 3), secondPage, "second page");
+
+    Page<String> thirdPage =
+        enrollmentService
+            .findEnrollments(operationParams, PageParams.of(3, 1, false))
+            .withMappedItems(IdentifiableObject::getUid);
+
     assertEquals(
-        new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, null), secondPage, "second (last) page");
+        new Page<>(List.of("AbctCDhqH3s"), 3, 1, null, 2, null), thirdPage, "third (last) page");
 
-    Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, false));
+    Page<Enrollment> fourthPage =
+        enrollmentService.findEnrollments(operationParams, PageParams.of(4, 1, false));
 
-    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+    assertEquals(new Page<>(List.of(), 4, 1, null, 3, null), fourthPage, "past the last page");
   }
 
   @Test
@@ -692,20 +699,27 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .findEnrollments(operationParams, PageParams.of(1, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
-    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 2L, null, 2), firstPage, "first page");
+    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 3L, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
             .findEnrollments(operationParams, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
+    assertEquals(new Page<>(List.of("TvctPPhpD8z"), 2, 1, 3L, 1, 3), secondPage, "second page");
+
+    Page<String> thirdPage =
+        enrollmentService
+            .findEnrollments(operationParams, PageParams.of(3, 1, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
     assertEquals(
-        new Page<>(List.of("TvctPPhpD8z"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
+        new Page<>(List.of("AbctCDhqH3s"), 3, 1, 3L, 2, null), thirdPage, "third (last) page");
 
-    Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, true));
+    Page<Enrollment> fourthPage =
+        enrollmentService.findEnrollments(operationParams, PageParams.of(4, 1, true));
 
-    assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
+    assertEquals(new Page<>(List.of(), 4, 1, 3L, 3, null), fourthPage, "past the last page");
   }
 
   @Test
@@ -713,8 +727,9 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     Enrollment nxP7UnKhomJ = get(Enrollment.class, "nxP7UnKhomJ");
     Enrollment TvctPPhpD8z = get(Enrollment.class, "TvctPPhpD8z");
+    Enrollment AbctCDhqH3s = get(Enrollment.class, "AbctCDhqH3s");
     List<String> expected =
-        Stream.of(nxP7UnKhomJ, TvctPPhpD8z)
+        Stream.of(nxP7UnKhomJ, TvctPPhpD8z, AbctCDhqH3s)
             .sorted(Comparator.comparing(Enrollment::getId).reversed()) // reversed = desc
             .map(Enrollment::getUid)
             .toList();
@@ -738,7 +753,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     List<String> enrollments = getEnrollments(params);
 
-    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
+    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z", "AbctCDhqH3s"), enrollments);
   }
 
   @Test
@@ -752,7 +767,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     List<String> enrollments = getEnrollments(params);
 
-    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
+    assertEquals(List.of("AbctCDhqH3s", "TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
   }
 
   @Test

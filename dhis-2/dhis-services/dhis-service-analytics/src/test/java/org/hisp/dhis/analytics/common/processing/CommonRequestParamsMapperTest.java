@@ -63,6 +63,7 @@ import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -118,7 +119,7 @@ class CommonRequestParamsMapperTest {
             ElementWithOffset.of(programStage1, 2),
             StringUid.of("yLIPuJHRgey"));
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         new BaseDimensionalObject(
             deDimensionIdentifier.getDimension().getUid(),
             DATA_X,
@@ -218,7 +219,7 @@ class CommonRequestParamsMapperTest {
             ElementWithOffset.of(programStage1, 2),
             StringUid.of(queryItem));
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         new BaseDimensionalObject(
             deDimensionIdentifier.getDimension().getUid(),
             DATA_X,
@@ -320,7 +321,7 @@ class CommonRequestParamsMapperTest {
             ElementWithOffset.of(programStage1, 2),
             StringUid.of(orgUnitDimension));
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         new BaseDimensionalObject(
             deDimensionIdentifier.getDimension().getUid(),
             DATA_X,
@@ -329,7 +330,7 @@ class CommonRequestParamsMapperTest {
             emptyList(),
             new DimensionItemKeywords());
 
-    BaseDimensionalObject orgUnitObject =
+    DimensionalObject orgUnitObject =
         new BaseDimensionalObject(
             ouDimensionIdentifier.getDimension().getUid(),
             ORGANISATION_UNIT,
@@ -631,7 +632,7 @@ class CommonRequestParamsMapperTest {
             ElementWithOffset.of(programStage1, 2),
             StringUid.of("yLIPuJHRgey"));
 
-    BaseDimensionalObject dimensionalObject =
+    DimensionalObject dimensionalObject =
         new BaseDimensionalObject(
             deDimensionIdentifier.getDimension().getUid(),
             DATA_X,
