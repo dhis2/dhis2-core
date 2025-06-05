@@ -1,7 +1,8 @@
 [api]
 enabled = true
 
-[sources.nginx_logs]
+# the source name is used as ES index name and its suffix is used to tag the implementation in the indexed data
+[sources.nginx_local]
 type = "file"
 include = ["/var/log/nginx/tracker_access.log"]
 read_from = "beginning"
@@ -11,7 +12,7 @@ read_from = "beginning"
 # =====================================================
 [transforms.parse_nginx]
 type = "remap"
-inputs = ["nginx_logs"]
+inputs = ["nginx_local"]
 source = '''
   # parse tracker_log format directly as defined in nginx.conf
   parsed, err = parse_csv(.message, "|")
@@ -53,8 +54,11 @@ source = '''
       .sessionid_hash = parsed[18]
     }
 
+    # extract implementation suffix from source name (everything after last underscore)
+    .implementation = replace(.source_type, r"^.*_", "")
+
     # add common Elasticsearch metadata fields
-    .type = "tracker_access"
+    .type = "tracker_requests"
 }
 
 del(.host)
@@ -69,7 +73,7 @@ type = "elasticsearch"
 inputs = ["parse_nginx"]
 endpoints = ["https://es:9200"]
 bulk.action = "create"
-bulk.index = "nginx-logs-%Y.%m.%d"
+bulk.index = "tracker-${.implementation}"
 compression = "gzip"
 # elasticsearch authentication (required for Elasticsearch 9.x)
 auth.strategy = "basic"
