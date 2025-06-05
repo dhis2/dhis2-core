@@ -40,7 +40,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSuccessResponse;
@@ -117,34 +116,10 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     %1$s,%6$s,%2$s,0,10
     """;
 
-  private static byte[] gzip(String in) {
-    try {
-      java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
-      try (java.util.zip.GZIPOutputStream gz = new java.util.zip.GZIPOutputStream(bos)) {
-        gz.write(in.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-      }
-      return bos.toByteArray();
-    } catch (java.io.IOException ex) {
-      throw new RuntimeException(ex);
-    }
-  }
-
   @Test
   void testBulkImportJson() {
     JsonImportSuccessResponse response =
         POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc))
-            .content(OK)
-            .as(JsonImportSuccessResponse.class);
-    assertEquals(1, response.getSuccessful());
-  }
-
-  @Test
-  void testBulkImportJsonGzip() {
-    JsonImportSuccessResponse response =
-        POST(
-                "/minMaxDataElements/upsert-gzip-json",
-                HttpClientAdapter.BinaryBody(gzip(json.formatted(ds, de, ou1, coc))),
-                HttpClientAdapter.ContentType("application/gzip"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(1, response.getSuccessful());

@@ -82,22 +82,7 @@ public interface HttpClientAdapter {
       @CheckForNull String contentType,
       @CheckForNull String content);
 
-  @Nonnull
-  default HttpResponse performBinary(
-      @Nonnull HttpMethod method,
-      @Nonnull String url,
-      @Nonnull List<Header> headers,
-      @CheckForNull String contentType,
-      @CheckForNull byte[] content) {
-    return perform(
-        method,
-        url,
-        headers,
-        contentType,
-        content == null ? null : new String(content, java.nio.charset.StandardCharsets.UTF_8));
-  }
-
-  sealed interface RequestComponent permits Header, Body, BinaryBody {}
+  sealed interface RequestComponent permits Header, Body {}
 
   static Header Header(String name, Object value) {
     return new Header(name, value);
@@ -143,15 +128,9 @@ public interface HttpClientAdapter {
     return new Body(body);
   }
 
-  static BinaryBody BinaryBody(byte[] content) {
-    return new BinaryBody(content);
-  }
-
   record Header(String name, Object value) implements RequestComponent {}
 
   record Body(String content) implements RequestComponent {}
-
-  record BinaryBody(byte[] content) implements RequestComponent {}
 
   @Nonnull
   default HttpResponse GET(String url, Object... args) {
@@ -240,13 +219,9 @@ public interface HttpClientAdapter {
     }
     // configure body
     Body bodyComponent = HttpClientUtils.getComponent(Body.class, components);
-    BinaryBody binaryBodyComponent = HttpClientUtils.getComponent(BinaryBody.class, components);
     String body = bodyComponent == null ? "" : bodyComponent.content();
     String mediaType = contentMediaType != null ? contentMediaType : "application/json";
-    if (binaryBodyComponent != null) {
-      return performBinary(method, url, headers, mediaType, binaryBodyComponent.content());
-    }
-    if (body == null || body.isEmpty()) return perform(method, url, headers, null, (String) null);
+    if (body == null || body.isEmpty()) return perform(method, url, headers, null, null);
     if (mediaType.startsWith("application/json")) body = body.replace('\'', '"');
     return perform(method, url, headers, mediaType, body);
   }

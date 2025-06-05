@@ -31,11 +31,7 @@ package org.hisp.dhis.test;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.hisp.dhis.http.HttpClientAdapter;
-import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.test.config.IntegrationTestBaseConfig;
 import org.hisp.dhis.test.junit.SpringIntegrationTest;
 import org.hisp.dhis.user.User;
@@ -74,11 +70,4 @@ public abstract class IntegrationTestBase extends TestBase {
   protected final void injectAdminIntoSecurityContext() {
     injectSecurityContextUser(getAdminUser());
   }
-
-  public abstract HttpClientAdapter.HttpResponse performBinary(
-      @Nonnull HttpMethod method,
-      @Nonnull String url,
-      @Nonnull List<HttpClientAdapter.Header> headers,
-      String contentType,
-      byte[] content);
 }
