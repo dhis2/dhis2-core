@@ -45,7 +45,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.user.UserDetails;
@@ -72,10 +71,6 @@ class EnrollmentOperationParamsMapper {
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     List<Program> programs = getTrackerPrograms(program);
 
-    TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(
-            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
-
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrgUnits(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
@@ -89,7 +84,7 @@ class EnrollmentOperationParamsMapper {
     params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());
     params.setProgramStartDate(operationParams.getProgramStartDate());
     params.setProgramEndDate(operationParams.getProgramEndDate());
-    params.setTrackedEntity(trackedEntity);
+    params.setTrackedEntity(operationParams.getTrackedEntity());
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
