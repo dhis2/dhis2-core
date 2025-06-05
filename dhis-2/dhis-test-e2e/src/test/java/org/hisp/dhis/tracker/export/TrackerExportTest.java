@@ -611,7 +611,7 @@ public class TrackerExportTest extends TrackerApiTest {
   void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerImportExportActions.getWithHeaders(
-            "enrollments?enrollments=" + enrollment,
+            "enrollments?program=f1AyMswryyQ&enrollments=" + enrollment,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
