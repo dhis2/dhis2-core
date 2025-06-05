@@ -139,7 +139,7 @@ public class DimensionalObjectProvider {
    * @param inputIdScheme the identifier scheme to use.
    * @return a dimension based instance of {@link BaseDimensionalObject}.
    */
-  public BaseDimensionalObject getDimension(List<String> items, IdScheme inputIdScheme) {
+  public DimensionalObject getDimension(List<String> items, IdScheme inputIdScheme) {
     List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
@@ -190,7 +190,7 @@ public class DimensionalObjectProvider {
    * @param relativePeriodDate date that relative periods will be generated based on.
    * @return a period based instance of {@link BaseDimensionalObject}.
    */
-  public BaseDimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
+  public DimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
     List<Period> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
     AnalyticsFinancialYearStartKey financialYearStart =
@@ -360,7 +360,7 @@ public class DimensionalObjectProvider {
    * @param inputIdScheme the identifier scheme to use.
    * @return an organisation unit based instance of {@link BaseDimensionalObject}.
    */
-  public BaseDimensionalObject getOrgUnitDimension(
+  public DimensionalObject getOrgUnitDimension(
       List<String> items,
       DisplayProperty displayProperty,
       List<OrganisationUnit> userOrgUnits,
@@ -511,8 +511,7 @@ public class DimensionalObjectProvider {
    * @param inputIdScheme the identifier scheme to use.
    * @return an organisation unit group based instance of {@link BaseDimensionalObject}.
    */
-  public BaseDimensionalObject getOrgUnitGroupDimension(
-      List<String> items, IdScheme inputIdScheme) {
+  public DimensionalObject getOrgUnitGroupDimension(List<String> items, IdScheme inputIdScheme) {
     List<DimensionalItemObject> ougs = new ArrayList<>();
 
     for (String uid : items) {
@@ -541,7 +540,7 @@ public class DimensionalObjectProvider {
    * @return an {@link Optional} of a dynamic dimension based instance of {@link
    *     BaseDimensionalObject}.
    */
-  public Optional<BaseDimensionalObject> getDynamicDimension(
+  public Optional<DimensionalObject> getDynamicDimension(
       String dimension,
       List<String> items,
       DisplayProperty displayProperty,
