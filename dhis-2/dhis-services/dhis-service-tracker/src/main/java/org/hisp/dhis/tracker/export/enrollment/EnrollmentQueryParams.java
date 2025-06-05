@@ -43,7 +43,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
@@ -94,7 +93,7 @@ class EnrollmentQueryParams {
   /** End date for enrollment in the given program. */
   private Date programEndDate;
 
-  private TrackedEntity trackedEntity;
+  private UID trackedEntity;
 
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;

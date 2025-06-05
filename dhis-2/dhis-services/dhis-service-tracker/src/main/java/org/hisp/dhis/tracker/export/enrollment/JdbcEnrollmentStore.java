@@ -133,7 +133,7 @@ class JdbcEnrollmentStore {
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid, en_ou.path as en_org_unit_path,
             te_ou.uid as te_org_unit_uid, te_ou.path as te_org_unit_path,
-            tet.uid as tet_uid, tet.sharing as tet_sharing, notes.jsonnotes as notes
+            tet.uid as tet_uid, tet.allowauditlog as tet_allowlog, tet.sharing as tet_sharing, notes.jsonnotes as notes
         """);
 
     if (params.isIncludeAttributes()) {
@@ -295,7 +295,7 @@ class JdbcEnrollmentStore {
       SqlHelper hlp) {
     if (params.hasTrackedEntity()) {
       sql.append(hlp.whereAnd()).append("te.uid = :trackedEntityUid");
-      sqlParams.addValue("trackedEntityUid", params.getTrackedEntity().getUid());
+      sqlParams.addValue("trackedEntityUid", params.getTrackedEntity().getValue());
     }
   }
 
@@ -391,6 +391,7 @@ class JdbcEnrollmentStore {
 
       TrackedEntityType trackedEntityType = new TrackedEntityType();
       trackedEntityType.setUid(rs.getString("tet_uid"));
+      trackedEntityType.setAllowAuditLog(rs.getBoolean("tet_allowlog"));
       trackedEntityType.setSharing(mapSharingJsonIntoSharingObject(rs.getString("tet_sharing")));
 
       Program program = new Program();
