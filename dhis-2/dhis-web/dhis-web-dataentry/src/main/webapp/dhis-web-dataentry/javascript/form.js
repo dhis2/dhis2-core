@@ -3585,13 +3585,15 @@ dhis2.de.loadOptionSets = function()
                             url: '../api/optionSets/' + item.uid + '.json?fields=' + encodedFields,
                             type: 'GET',
                             cache: false
-                        } ).done( function ( data ) {
+                        } ).then( function ( data ) {
                             console.log( 'Successfully stored optionSet: ' + item.uid );
 
                             var obj = {};
                             obj.id = item.uid;
                             obj.optionSet = data;
                             DAO.store.set( 'optionSets', obj );
+                        }, function (error) {
+                            console.warn( 'Failed to load optionSet: ' + item.uid, error);
                         } );
                     } );
 
