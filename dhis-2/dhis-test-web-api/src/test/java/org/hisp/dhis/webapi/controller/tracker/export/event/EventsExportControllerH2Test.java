@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,8 +43,11 @@ import java.util.stream.Stream;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventsExportControllerH2Test.Config;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.TestInstance;
@@ -62,54 +66,64 @@ class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
 
   static class Config {
     @Bean
-    public EventService eventService() {
-      EventService eventService = mock(EventService.class);
+    public TrackerEventService trackerEventService() {
+      TrackerEventService trackerEventService = mock(TrackerEventService.class);
       // Orderable fields are checked within the controller constructor
-      when(eventService.getOrderableFields())
+      when(trackerEventService.getOrderableFields())
           .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
-      return eventService;
+      return trackerEventService;
+    }
+
+    @Bean
+    public ProgramService programService() {
+      return mock(ProgramService.class);
     }
   }
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
 
-  static Stream<Arguments>
-      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked() {
+  @Autowired private ProgramService programService;
+
+  static Stream<Arguments> callEventsEndpoint() {
     return Stream.of(
         arguments(
-            "/tracker/events.json.zip",
+            "/tracker/events.json.zip?program=bMcwwoVnbSR",
             "application/json+zip",
             "attachment; filename=events.json.zip",
             "binary"),
         arguments(
-            "/tracker/events.json.gz",
+            "/tracker/events.json.gz?program=bMcwwoVnbSR",
             "application/json+gzip",
             "attachment; filename=events.json.gz",
             "binary"),
         arguments(
-            "/tracker/events.csv",
+            "/tracker/events.csv?program=bMcwwoVnbSR",
             "application/csv; charset=UTF-8",
             "attachment; filename=events.csv",
             null),
         arguments(
-            "/tracker/events.csv.gz",
+            "/tracker/events.csv.gz?program=bMcwwoVnbSR",
             "application/csv+gzip",
             "attachment; filename=events.csv.gz",
             "binary"),
         arguments(
-            "/tracker/events.csv.zip",
+            "/tracker/events.csv.zip?program=bMcwwoVnbSR",
             "application/csv+zip",
             "attachment; filename=events.csv.zip",
             "binary"));
   }
 
   @ParameterizedTest
-  @MethodSource
-  void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
-      String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException {
+  @MethodSource(value = "callEventsEndpoint")
+  void
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForTrackerEvent(
+          String url, String expectedContentType, String expectedAttachment, String encoding)
+          throws ForbiddenException, BadRequestException {
 
-    when(eventService.findEvents(any())).thenReturn(List.of());
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    when(trackerEventService.findEvents(any())).thenReturn(List.of());
+    when(programService.getProgram(anyString())).thenReturn(program);
 
     HttpResponse res = GET(url);
     assertEquals(HttpStatus.OK, res.status());

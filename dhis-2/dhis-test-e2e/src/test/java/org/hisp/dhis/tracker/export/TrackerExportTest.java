@@ -454,7 +454,7 @@ public class TrackerExportTest extends TrackerApiTest {
   @Test
   public void shouldReturnRelationshipsWhenEventHasRelationshipsAndFieldsIncludeRelationships() {
     trackerImportExportActions
-        .get("events?events=" + event + "&fields=relationships")
+        .get("events?events=" + event + "&fields=relationships" + "&program=f1AyMswryyQ")
         .validate()
         .statusCode(200)
         .body("events", hasSize(greaterThanOrEqualTo(1)))
@@ -467,7 +467,7 @@ public class TrackerExportTest extends TrackerApiTest {
   @Test
   public void shouldNotReturnRelationshipsWhenEventHasRelationshipsAndFieldsExcludeRelationships() {
     trackerImportExportActions
-        .get("events?events=" + event)
+        .get("events?events=" + event + "&program=f1AyMswryyQ")
         .validate()
         .statusCode(200)
         .body("events[0].relationships", emptyOrNullString());
@@ -477,7 +477,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnEventWithEnrollmentOccurredOnADateWhenBeforeAndAfterIsTheSameDate() {
     trackerImportExportActions
         .get(
-            "events?enrollmentOccurredAfter=2019-08-19&enrollmentOccurredBefore=2019-08-19&events=ZwwuwNp6gVd")
+            "events?enrollmentOccurredAfter=2019-08-19&enrollmentOccurredBefore=2019-08-19&events=ZwwuwNp6gVd&program=f1AyMswryyQ")
         .validate()
         .statusCode(200)
         .rootPath("events[0]")
@@ -488,7 +488,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnDescOrderedEventByTrackedEntityAttribute() {
     ApiResponse response =
         trackerImportExportActions.get(
-            "events?order=dIVt4l5vIOa:desc&events=olfXZzSGacW,ZwwuwNp6gVd");
+            "events?order=dIVt4l5vIOa:desc&events=olfXZzSGacW,ZwwuwNp6gVd&program=f1AyMswryyQ");
     response.validate().statusCode(200).body("events", hasSize(equalTo(2)));
     List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
@@ -499,7 +499,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnAscOrderedEventByTrackedEntityAttribute() {
     ApiResponse response =
         trackerImportExportActions.get(
-            "events?order=dIVt4l5vIOa:asc&events=olfXZzSGacW,ZwwuwNp6gVd");
+            "events?order=dIVt4l5vIOa:asc&events=olfXZzSGacW,ZwwuwNp6gVd&program=f1AyMswryyQ");
     response.validate().statusCode(200).body("events", hasSize(equalTo(2)));
     List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
@@ -559,7 +559,7 @@ public class TrackerExportTest extends TrackerApiTest {
   void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerImportExportActions.getWithHeaders(
-            "events?events=" + event,
+            "events?events=" + event + "&program=f1AyMswryyQ",
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
@@ -574,7 +574,7 @@ public class TrackerExportTest extends TrackerApiTest {
   void whenGetEventsCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerImportExportActions.getWithHeaders(
-            "events.csv?events=" + event,
+            "events.csv?events=" + event + "&program=f1AyMswryyQ",
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 

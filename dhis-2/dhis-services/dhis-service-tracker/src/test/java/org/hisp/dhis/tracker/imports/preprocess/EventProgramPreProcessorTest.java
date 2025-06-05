@@ -106,7 +106,7 @@ class EventProgramPreProcessorTest {
   }
 
   @Test
-  void testProgramEventIsEnhancedWithProgram() {
+  void testSingleEventIsEnhancedWithProgram() {
     TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION)))
@@ -170,7 +170,7 @@ class EventProgramPreProcessorTest {
   }
 
   @Test
-  void testProgramEventIsEnhancedWithProgramStage() {
+  void testSingleEventIsEnhancedWithProgramStage() {
     TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION)))
@@ -208,7 +208,7 @@ class EventProgramPreProcessorTest {
 
   @Test
   void shouldNotProcessEventWhenEventIsInvalidWithNoProgramAndNoProgramStage() {
-    Event event = invalidProgramEventWithNoProgramAndNoProgramStage();
+    Event event = invalidSingleEventWithNoProgramAndNoProgramStage();
     TrackerBundle bundle =
         TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
@@ -221,11 +221,11 @@ class EventProgramPreProcessorTest {
   }
 
   @Test
-  void testProgramEventWithProgramAndProgramStageIsNotProcessed() {
+  void testSingleEventWithProgramAndProgramStageIsNotProcessed() {
     TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
-    Event event = completeProgramEvent();
+    Event event = completeSingleEvent();
     TrackerBundle bundle =
         TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
 
@@ -461,7 +461,7 @@ class EventProgramPreProcessorTest {
     return program;
   }
 
-  private Event invalidProgramEventWithNoProgramAndNoProgramStage() {
+  private Event invalidSingleEventWithNoProgramAndNoProgramStage() {
     return Event.builder()
         .event(UID.generate())
         .program(null)
@@ -488,7 +488,7 @@ class EventProgramPreProcessorTest {
         .build();
   }
 
-  private Event completeProgramEvent() {
+  private Event completeSingleEvent() {
     return Event.builder()
         .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION))

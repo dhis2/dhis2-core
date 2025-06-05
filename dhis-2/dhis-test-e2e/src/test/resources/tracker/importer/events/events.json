@@ -1,7 +1,6 @@
 {
   "events": [
     {
-      "scheduledAt": "2019-03-04T15:13:25.845",
       "program": "Zd2rkv8FsWq",
       "event": "uairHTqZ5ye",
       "programStage": "jKLB23QZS4I",
@@ -44,7 +43,6 @@
       ]
     },
     {
-      "scheduledAt": "2019-03-04T15:13:15.224",
       "program": "Zd2rkv8FsWq",
       "event": "lwBnlOXhd9P",
       "programStage": "jKLB23QZS4I",
@@ -83,7 +81,6 @@
       "notes": []
     },
     {
-      "scheduledAt": "2019-03-04T15:12:59.204",
       "program": "Zd2rkv8FsWq",
       "event": "XVPPQHHIE1q",
       "programStage": "jKLB23QZS4I",
@@ -125,7 +122,6 @@
       "notes": []
     },
     {
-      "scheduledAt": "2019-03-04T15:12:52.671",
       "program": "Zd2rkv8FsWq",
       "event": "pHhZHG4go5k",
       "programStage": "jKLB23QZS4I",

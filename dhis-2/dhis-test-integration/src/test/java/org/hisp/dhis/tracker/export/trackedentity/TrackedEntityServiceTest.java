@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -689,8 +690,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntity te =
         trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
-    assertEquals(1, te.getEnrollments().size());
-    assertEquals(enrollmentA.getUid(), te.getEnrollments().stream().findFirst().get().getUid());
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(te.getEnrollments()));
 
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.findTrackedEntities(operationParams);
@@ -2200,6 +2200,20 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         trackedEntityA,
         trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all()));
+  }
+
+  @Test
+  void shouldReturnTrackedEntitiesInCaptureScopeWhenOrgUnitModeCapture()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(CAPTURE)
+            .trackedEntityType(trackedEntityTypeA)
+            .build();
+
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA),
+        trackedEntityService.findTrackedEntities(params));
   }
 
   @Test

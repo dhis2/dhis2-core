@@ -45,7 +45,8 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -63,7 +64,9 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
+
+  @Autowired private SingleEventService singleEventService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -141,14 +144,28 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldCreateEventNote() throws ForbiddenException, NotFoundException, BadRequestException {
+  void shouldCreateTrackerEventNote()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Note note = note();
     noteService.addNoteForEvent(note, UID.of("pTzf9KYMk72"));
 
     manager.clear();
     manager.flush();
 
-    Event dbEvent = eventService.getEvent(UID.of("pTzf9KYMk72"));
+    Event dbEvent = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
+    assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
+  }
+
+  @Test
+  void shouldCreateSingleEventNote()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Note note = note();
+    noteService.addNoteForEvent(note, UID.of("QRYjLTiJTrA"));
+
+    manager.clear();
+    manager.flush();
+
+    Event dbEvent = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 
@@ -162,7 +179,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailToCreateEventNoteWhenEnrollmentIsNotPresent() {
+  void shouldFailToCreateEventNoteWhenEventIsNotPresent() {
     Note note = note();
     assertThrows(
         NotFoundException.class, () -> noteService.addNoteForEvent(note, UID.of("jPP9AnKh34U")));
@@ -178,7 +195,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailToCreateEventNoteIfUserHasNoAccessToEvent() {
+  void shouldFailToCreateTrackerEventNoteIfUserHasNoAccessToEvent() {
     User importUser = userService.getUser("nIidJVYpQQK");
     injectSecurityContext(UserDetails.fromUser(importUser));
 
@@ -186,6 +203,17 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class, () -> noteService.addNoteForEvent(note, UID.of("pTzf9KYMk72")));
+  }
+
+  @Test
+  void shouldFailToCreateSingleEventNoteIfUserHasNoAccessToEvent() {
+    User importUser = userService.getUser("nIidJVYpQQK");
+    injectSecurityContext(UserDetails.fromUser(importUser));
+
+    Note note = note();
+
+    assertThrows(
+        NotFoundException.class, () -> noteService.addNoteForEvent(note, UID.of("QRYjLTiJTrA")));
   }
 
   private void assertNotes(
@@ -200,6 +228,9 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
       assertEquals(note.getValue(), dbNote.getNoteText());
       assertEquals(note.getStoredBy(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
+      assertEquals(updatedBy.getUsername(), dbNote.getLastUpdatedBy().getUsername());
+      assertEquals(updatedBy.getFirstName(), dbNote.getLastUpdatedBy().getFirstName());
+      assertEquals(updatedBy.getSurname(), dbNote.getLastUpdatedBy().getSurname());
     }
   }
 

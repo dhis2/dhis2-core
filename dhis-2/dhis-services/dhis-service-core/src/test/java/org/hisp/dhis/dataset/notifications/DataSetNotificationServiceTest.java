@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -72,6 +73,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -163,6 +165,8 @@ class DataSetNotificationServiceTest extends TestBase {
   @Captor private ArgumentCaptor<DataSetNotificationTemplate> templateCaptor;
 
   @Captor private ArgumentCaptor<ArrayList<ProgramMessage>> programMessageCaptor;
+
+  @Captor private ArgumentCaptor<Set<User>> userRecipientsCaptor;
 
   private DataSetNotificationService subject;
 
@@ -294,6 +298,13 @@ class DataSetNotificationServiceTest extends TestBase {
   @SuppressWarnings("unchecked")
   void sendCompleteDataSetNotificationsTest() {
     // setup
+    org.hisp.dhis.user.User userEnabled = makeUser("testUserEnabled");
+    userEnabled.setDisabled(false);
+    userEnabled.setEmail("enabled@example.com");
+    userEnabled.addOrganisationUnit(organisationUnitA);
+
+    org.hisp.dhis.user.UserGroup userGroup = createUserGroup('A', Sets.newHashSet(userEnabled));
+
     List<DataSetNotificationTemplate> emailTemplates = new ArrayList<>();
     DataSetNotificationTemplate emailTemplateInternal = new DataSetNotificationTemplate();
     emailTemplateInternal.setDataSetNotificationTrigger(
@@ -301,6 +312,7 @@ class DataSetNotificationServiceTest extends TestBase {
     emailTemplateInternal.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
     emailTemplateInternal.setNotificationRecipient(DataSetNotificationRecipient.USER_GROUP);
     emailTemplateInternal.getDataSets().add(dataSetA);
+    emailTemplateInternal.setRecipientUserGroup(userGroup);
 
     emailTemplates.add(emailTemplateInternal);
 
@@ -334,5 +346,67 @@ class DataSetNotificationServiceTest extends TestBase {
         .sendMessageAsync(any(), any(), footerCaptor.capture(), any(), any(), anyBoolean());
     String footer = footerCaptor.getValue();
     assertTrue(footer.contains("https://dhis2.org/dhis-web-messaging/#/SYSTEM/"));
+  }
+
+  @Test
+  void testSendCompleteDataSetNotifications_shouldNotSendToDisabledUsers() {
+    // Setup
+    org.hisp.dhis.user.User userDisabled = makeUser("testUserDisabled");
+    userDisabled.setDisabled(true);
+    userDisabled.setEmail("disabled@example.com");
+    userDisabled.addOrganisationUnit(organisationUnitA);
+
+    org.hisp.dhis.user.User userEnabled = makeUser("testUserEnabled");
+    userEnabled.setDisabled(false);
+    userEnabled.setEmail("enabled@example.com");
+    userEnabled.addOrganisationUnit(organisationUnitA);
+
+    org.hisp.dhis.user.UserGroup userGroup =
+        createUserGroup('A', Sets.newHashSet(userDisabled, userEnabled));
+
+    DataSetNotificationTemplate emailTemplateForUserGroup = new DataSetNotificationTemplate();
+    emailTemplateForUserGroup.setUid("emailTemplateUserGroup");
+    emailTemplateForUserGroup.setDataSetNotificationTrigger(
+        DataSetNotificationTrigger.DATA_SET_COMPLETION);
+    emailTemplateForUserGroup.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
+    emailTemplateForUserGroup.setNotificationRecipient(DataSetNotificationRecipient.USER_GROUP);
+    emailTemplateForUserGroup.setRecipientUserGroup(userGroup);
+    emailTemplateForUserGroup.getDataSets().add(dataSetA);
+
+    List<DataSetNotificationTemplate> testTemplates = new ArrayList<>();
+    testTemplates.add(emailTemplateForUserGroup);
+
+    when(dsntService.getCompleteNotifications(dataSetA)).thenReturn(testTemplates);
+    when(renderer.render(
+            any(CompleteDataSetRegistration.class), any(DataSetNotificationTemplate.class)))
+        .thenReturn(notificationMessage);
+
+    I18nFormat format = Mockito.mock(I18nFormat.class);
+    when(i18nManager.getI18nFormat()).thenReturn(format);
+    when(format.formatPeriod(any())).thenReturn("2000-1-1");
+
+    Iterator<MessageSender> itr = Mockito.mock(Iterator.class);
+    when(messageSenders.iterator()).thenReturn(itr);
+    when(itr.hasNext()).thenReturn(true, false);
+    when(itr.next()).thenReturn(emailMessageSender);
+
+    subject.sendCompleteDataSetNotifications(registrationA);
+
+    verify(emailMessageSender, times(1))
+        .sendMessageAsync(
+            any(String.class),
+            any(String.class),
+            any(String.class),
+            any(),
+            userRecipientsCaptor.capture(),
+            anyBoolean());
+
+    Set<org.hisp.dhis.user.User> capturedUsers = userRecipientsCaptor.getValue();
+    assertEquals(1, capturedUsers.size(), "Only one user should receive the email.");
+    assertTrue(
+        capturedUsers.contains(userEnabled), "The enabled user should be in the recipient list.");
+    assertTrue(
+        !capturedUsers.contains(userDisabled),
+        "The disabled user should NOT be in the recipient list.");
   }
 }

@@ -163,7 +163,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testTrackerAndProgramEventUpdateSuccess() throws IOException {
+  void testTrackerAndSingleEventUpdateSuccess() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/program_and_tracker_events.json");
