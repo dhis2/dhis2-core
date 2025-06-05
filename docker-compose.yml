@@ -1,52 +1,15 @@
-x-web-base: &web-base
-  image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
-  volumes:
-    - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
-  environment:
-    JAVA_OPTS:
-      "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
-      -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
-      -Dcom.sun.management.jmxremote \
-      -Dcom.sun.management.jmxremote.port=9011 \
-      -Dcom.sun.management.jmxremote.local.only=false \
-      -Dcom.sun.management.jmxremote.authenticate=false \
-      -Dcom.sun.management.jmxremote.ssl=false"
-
-x-db-base: &db-base
-  image: ghcr.io/baosystems/postgis:12-3.3
-  # uncomment to enable query logging
-  # command:
-  #   ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
-  volumes:
-    - db-dump:/docker-entrypoint-initdb.d/
-  environment:
-    POSTGRES_USER: dhis
-    POSTGRES_DB: dhis
-    POSTGRES_PASSWORD: &postgres_password dhis
-    PGPASSWORD: *postgres_password # needed by psql in healthcheck
-  healthcheck:
-    test:
-      [
-        "CMD-SHELL",
-        'psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command "SELECT ''ok''" > /dev/null',
-      ]
-    start_period: 120s
-    interval: 1s
-    timeout: 3s
-    retries: 5
-  depends_on:
-    db-dump:
-      condition: service_completed_successfully # make sure the DB dump has been downloaded
-
 services:
   web:
-    <<: *web-base
+    profiles: [dhis2]
+    image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
     volumes:
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
       - ./docker/glowroot_admin.json:/opt/dhis2/admin.json
       - ./docker/glowroot_config.json:/opt/dhis2/config.json
       - ./docker/glowroot:/opt/glowroot/app
     ports:
+      # exposed via nginx instead
       # - "127.0.0.1:8080:8080" # DHIS2
       - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
       - "127.0.0.1:9011:9011" # JMX port (for example for VisualVM)
@@ -70,11 +33,36 @@ services:
         condition: service_healthy
 
   db:
-    <<: *db-base
+    profiles: [dhis2]
+    image: ghcr.io/baosystems/postgis:12-3.3
+    # uncomment to enable query logging
+    # command:
+    #   ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
+    volumes:
+      - db-dump:/docker-entrypoint-initdb.d/
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis
+      POSTGRES_PASSWORD: &postgres_password dhis
+      PGPASSWORD: *postgres_password # needed by psql in healthcheck
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command "SELECT ''ok''" > /dev/null',
+        ]
+      start_period: 120s
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      db-dump:
+        condition: service_completed_successfully # make sure the DB dump has been downloaded
     ports:
       - "127.0.0.1:5432:5432"
 
   db-dump:
+    profiles: [dhis2]
     image: busybox # busybox wget version does not have --no-clobber, so we need to do the [ -f ] test
     command: sh -c '[ -f dump.sql.gz ] && echo "dump.sql.gz exists" || wget --output-document dump.sql.gz $$DHIS2_DB_DUMP_URL' # only download file if it does not exist
     environment:
@@ -84,6 +72,7 @@ services:
       - db-dump:/opt/dump
 
   nginx:
+    profiles: [dhis2]
     image: nginx
     ports:
       - "8080:80"
@@ -93,8 +82,28 @@ services:
     depends_on:
       - web
 
-  setup:
-    profiles: [logs]
+  vector:
+    profiles: [ingest]
+    image: timberio/vector:0.46.1-alpine
+    command:
+      ["-c", "/etc/vector/vector.toml"]
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./docker/vector.toml:/etc/vector/vector.toml:ro
+      - type: volume
+        source: nginx-logs
+        target: /var/log/nginx
+      # mount CA certificate for secure Elasticsearch communication
+      - certs:/etc/vector/certs:ro
+    depends_on:
+      nginx:
+        condition: service_started
+      es01:
+        condition: service_healthy
+
+  elk-setup:
+    profiles: [analyze]
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
@@ -144,9 +153,9 @@ services:
       retries: 120
 
   es01:
-    profiles: [logs]
+    profiles: [analyze]
     depends_on:
-      setup:
+      elk-setup:
         condition: service_healthy
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
@@ -188,7 +197,7 @@ services:
       retries: 120
 
   kibana:
-    profiles: [logs]
+    profiles: [analyze]
     depends_on:
       es01:
         condition: service_healthy
@@ -215,25 +224,32 @@ services:
       timeout: 10s
       retries: 120
 
-  vector:
-    profiles: [logs]
-    image: timberio/vector:0.46.1-alpine
-    command:
-      ["-c", "/etc/vector/vector.toml"]
-    environment:
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-    volumes:
-      - ./docker/vector.toml:/etc/vector/vector.toml:ro
-      - type: volume
-        source: nginx-logs
-        target: /var/log/nginx
-      # mount CA certificate for secure Elasticsearch communication
-      - certs:/etc/vector/certs:ro
+  kibana-setup:
+    profiles: [analyze]
+    image: curlimages/curl:latest
     depends_on:
-      nginx:
-        condition: service_started
-      es01:
+      kibana:
         condition: service_healthy
+    volumes:
+      - ./docker/kibana-dashboards:/dashboards
+    environment:
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    command: >
+      sh -c '
+        echo "Waiting for Kibana to be ready..."
+        until curl -s -I http://kibana:5601 | grep -q "HTTP/1.1 302 Found"; do
+          sleep 10
+        done
+        echo "Kibana is ready, importing dashboards..."
+        for file in /dashboards/*.json; do
+          echo "Importing $file..."
+          curl -X POST "http://kibana:5601/api/saved_objects/_import" \
+            -H "kbn-xsrf: true" \
+            -H "Content-Type: application/json" \
+            --data-binary "@$file"
+        done
+        echo "Dashboard import completed"
+      '
 
 volumes:
   db-dump: {}
