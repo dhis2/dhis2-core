@@ -51,7 +51,6 @@ import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * Test the bulk import and delete endpoints of the {@link MinMaxDataElementController}.
@@ -129,7 +128,7 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
-  void testBulkImportJson_GZip() {
+  void testBulkImportJsonGzip() {
     JsonImportSuccessResponse response =
         POST("/minMaxDataElements/upsert", Body(gzip(json.formatted(ds, de, ou1, coc))))
             .content(OK)
@@ -139,17 +138,18 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void testBulkImportCsv() {
-    MockMultipartFile file =
-        new MockMultipartFile("file", csv.formatted(de, coc, ou1, ou2, ou3, ou4).getBytes());
     JsonImportSuccessResponse response =
-        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+        POST(
+                "/minMaxDataElements/upsert?dataSet=" + ds,
+                Body(csv.formatted(de, coc, ou1, ou2, ou3, ou4)),
+                ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
   }
 
   @Test
-  void testBulkImportCsv_GZip() {
+  void testBulkImportCsvGzip() {
     JsonImportSuccessResponse response =
         POST(
                 "/minMaxDataElements/upsert?dataSet=" + ds,
@@ -258,6 +258,16 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
+  void testBulkDeleteJson_Gzip() {
+    assertStatus(OK, POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc)));
+    JsonImportSuccessResponse response =
+        POST("/minMaxDataElements/delete", Body(gzip(json.formatted(ds, de, ou1, coc))))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(1, response.getSuccessful());
+  }
+
+  @Test
   void testBulkDeleteJson_IgnoresNonExisting() {
     assertStatus(OK, POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc)));
     JsonImportSuccessResponse response =
@@ -270,15 +280,32 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void testBulkDeleteCsv() {
-    MockMultipartFile file =
-        new MockMultipartFile("file", csv.formatted(de, coc, ou1, ou2, ou3, ou4).getBytes());
+    String content = csv.formatted(de, coc, ou1, ou2, ou3, ou4);
     JsonImportSuccessResponse response =
-        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+        POST("/minMaxDataElements/upsert?dataSet=" + ds, Body(content), ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
     response =
-        POST_MULTIPART("/minMaxDataElements/delete?dataSet=" + ds, file)
+        POST("/minMaxDataElements/delete?dataSet=" + ds, Body(content), ContentType("text/csv"))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(4, response.getSuccessful());
+  }
+
+  @Test
+  void testBulkDeleteCsvGzip() {
+    String content = csv.formatted(de, coc, ou1, ou2, ou3, ou4);
+    JsonImportSuccessResponse response =
+        POST("/minMaxDataElements/upsert?dataSet=" + ds, Body(content), ContentType("text/csv"))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(4, response.getSuccessful());
+    response =
+        POST(
+                "/minMaxDataElements/delete?dataSet=" + ds,
+                Body(gzip(content)),
+                ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
@@ -292,9 +319,11 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
       dataElement,orgUnit,optionCombo,maxValue
       %1$s,%3$s,%2$s,10
       """;
-    MockMultipartFile file = new MockMultipartFile("file", csv.formatted(de, coc, ou1).getBytes());
     JsonWebMessage response =
-        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+        POST(
+                "/minMaxDataElements/upsert?dataSet=" + ds,
+                Body(csv.formatted(de, coc, ou1)),
+                ContentType("text/csv"))
             .content(BAD_REQUEST)
             .as(JsonWebMessage.class);
     assertEquals(ErrorCode.E2046, response.getErrorCode());
