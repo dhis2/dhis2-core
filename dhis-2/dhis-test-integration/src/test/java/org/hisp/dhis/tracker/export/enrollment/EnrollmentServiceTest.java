@@ -192,13 +192,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.getSharing().setOwner(admin);
-    programA
-        .getSharing()
-        .setPublicAccess(
-            AccessStringHelper.newInstance()
-                .enable(AccessStringHelper.Permission.READ)
-                .enable(AccessStringHelper.Permission.DATA_READ)
-                .build());
+    programA.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
     manager.save(programA, false);
 
     Program programB = createProgram('B', new HashSet<>(), orgUnitB);
@@ -293,7 +287,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldGetEnrollmentWhenUserHasWriteAccessToProgramAndAccessToOrgUnit()
       throws NotFoundException {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.updateNoAcl(programA);
 
     Enrollment enrollment =
@@ -306,7 +300,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldGetEnrollmentWhenUserHasReadAccessToProgramAndAccessToOrgUnit()
       throws NotFoundException {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
     manager.updateNoAcl(programA);
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA));
@@ -515,7 +509,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
       throws ForbiddenException, BadRequestException {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =

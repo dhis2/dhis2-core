@@ -97,10 +97,6 @@ Get enrollments in the given status.
 
 See `status` for details.
 
-### `*.parameter.EnrollmentRequestParams.trackedEntityType`
-
-Get enrollments of tracked entities of the given type.
-
 ### `*.parameter.EnrollmentRequestParams.trackedEntity`
 
 Get enrollments of tracked entity with the given UID.
