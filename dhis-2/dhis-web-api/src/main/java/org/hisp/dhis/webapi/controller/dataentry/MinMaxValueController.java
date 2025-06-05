@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,6 +45,7 @@ import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MinMaxValueController {
 
   private final MinMaxDataElementService minMaxValueService;
