@@ -7,12 +7,21 @@ type = "file"
 include = ["/var/log/nginx/tracker_access.log"]
 read_from = "beginning"
 
+# this awkward workaround is needed as there does not seem to be a way to access the source id
+# https://github.com/vectordotdev/vector/discussions/11934
+[transforms.nginx_with_implementation_local]
+type = "remap"
+inputs = ["nginx_local"]
+source = '''
+  .implementation = "local"
+'''
+
 # =====================================================
 # TRANSFORM CONFIGURATION - PARSES NGINX LOGS
 # =====================================================
 [transforms.parse_nginx]
 type = "remap"
-inputs = ["nginx_local"]
+inputs = ["nginx_with_implementation_local"]
 source = '''
   # parse tracker_log format directly as defined in nginx.conf
   parsed, err = parse_csv(.message, "|")
@@ -54,14 +63,11 @@ source = '''
       .sessionid_hash = parsed[18]
     }
 
-    # extract implementation suffix from source name (everything after last underscore)
-    .implementation = replace(.source_type, r"^.*_", "")
-
     # add common Elasticsearch metadata fields
     .type = "tracker_requests"
-}
+  }
 
-del(.host)
+  del(.host)
 '''
 
 # =====================================================
@@ -73,7 +79,9 @@ type = "elasticsearch"
 inputs = ["parse_nginx"]
 endpoints = ["https://es:9200"]
 bulk.action = "create"
-bulk.index = "tracker-${.implementation}"
+# TODO how to make this dynamic?
+#bulk.index = "tracker-{{.implementation}}"
+bulk.index = "tracker-local"
 compression = "gzip"
 # elasticsearch authentication (required for Elasticsearch 9.x)
 auth.strategy = "basic"
