@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -651,7 +652,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<Period> periodList = new ArrayList<>();
 
       // For backward compatibility, where periods are not in the "raw" list yet.
-      if (rawPeriods != null) {
+      if (isEmpty(rawPeriods)) {
+        rawPeriods = new ArrayList<>();
         rawPeriods.addAll(
             getPeriods().stream()
                 .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
@@ -665,11 +667,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
             Period relPeriod = new Period(relPeriodTypeEnum);
 
-            periodList.add(relPeriod);
+            if (!periodList.contains(relPeriod)) {
+              periodList.add(relPeriod);
+            }
           } else {
             Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+            boolean isIsoPeriod = isoPeriod != null;
+            boolean addPeriod = isIsoPeriod && !periodList.contains(isoPeriod);
 
-            if (isoPeriod != null) {
+            if (addPeriod) {
               periodList.add(isoPeriod);
             }
           }
