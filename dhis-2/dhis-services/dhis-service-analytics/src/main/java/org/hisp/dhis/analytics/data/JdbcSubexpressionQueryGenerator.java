@@ -295,7 +295,7 @@ public class JdbcSubexpressionQueryGenerator {
   private DataQueryParams getParamsWithPeriodType(DataQueryParams query) {
     String periodType = query.getPeriodType();
     if (periodType != null) {
-      BaseDimensionalObject periodDim =
+      DimensionalObject periodDim =
           new BaseDimensionalObject(
               DimensionalObject.PERIOD_DIM_ID,
               DimensionType.PERIOD,

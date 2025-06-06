@@ -593,6 +593,9 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
       userGroupMembers.addAll(orgUnit.getUsers());
     }
 
+    // filter out all users that are disabled
+    userGroupMembers.removeIf(User::isDisabled);
+
     return userGroupMembers;
   }
 

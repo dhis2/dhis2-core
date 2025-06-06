@@ -43,7 +43,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -213,7 +213,7 @@ public class OutlierQueryParser {
       Set<OrganisationUnit> organisationUnitsSecurityConstrain,
       Set<String> organisationUnits,
       User currentUser) {
-    BaseDimensionalObject orgUnitDimension =
+    DimensionalObject orgUnitDimension =
         dimensionalObjectProducer.getOrgUnitDimension(
             organisationUnits.stream().toList(),
             DisplayProperty.NAME,

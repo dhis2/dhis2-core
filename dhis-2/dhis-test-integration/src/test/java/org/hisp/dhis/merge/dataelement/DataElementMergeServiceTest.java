@@ -2550,7 +2550,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
     Event e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -2606,7 +2606,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
     Event e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);

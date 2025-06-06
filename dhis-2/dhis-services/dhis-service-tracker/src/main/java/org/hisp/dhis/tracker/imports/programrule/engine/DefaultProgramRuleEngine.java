@@ -133,7 +133,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleEngineEffects evaluateProgramEvents(
+  public RuleEngineEffects evaluateSingleEvents(
       @Nonnull List<RuleEvent> events, @Nonnull Program program, @Nonnull UserDetails user) {
     return evaluateEnrollmentAndEvents(null, events, program, user);
   }

@@ -670,6 +670,7 @@ public class ValidationUtils {
    * @return normalized boolean value.
    */
   public static String normalizeBoolean(String bool, ValueType valueType) {
+    if (bool == null) return null;
     if (valueType != null && valueType.isBoolean()) {
       if (BOOL_FALSE_VARIANTS.contains(bool) && valueType != ValueType.TRUE_ONLY) {
         return FALSE;

@@ -36,9 +36,7 @@ import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -59,9 +57,6 @@ public class ProgramCategoryOptionMapping implements EmbeddedObject, Serializabl
 
   /** The category option UID to be mapped */
   private String optionId;
-
-  /** The category for this category mapping (from the category option UID) */
-  @Setter @Getter private transient CategoryOption option;
 
   /** The filter for this category option */
   private String filter;

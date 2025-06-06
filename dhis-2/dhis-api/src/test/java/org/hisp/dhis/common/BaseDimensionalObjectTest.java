@@ -73,7 +73,7 @@ class BaseDimensionalObjectTest {
     target.setDimensionalKeywords(
         new DimensionItemKeywords(
             rnd.objects(BaseIdentifiableObject.class, 5).collect(Collectors.toList())));
-    BaseDimensionalObject cloned = (BaseDimensionalObject) target.instance();
+    DimensionalObject cloned = target.instance();
     assertThat(cloned.getName(), is(target.getName()));
     assertThat(cloned.getUid(), is(target.getUid()));
     assertThat(cloned.getDimensionType(), is(target.getDimensionType()));

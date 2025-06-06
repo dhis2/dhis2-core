@@ -77,10 +77,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataImportTest extends ApiTest {
+class MetadataImportTest extends ApiTest {
   private MetadataActions metadataActions;
   private RestApiActions dataElementActions;
-
   private SystemActions systemActions;
 
   @BeforeAll
@@ -187,7 +186,7 @@ public class MetadataImportTest extends ApiTest {
 
   @ParameterizedTest(name = "withImportStrategy[{0}]")
   @CsvSource({"CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200"})
-  public void shouldUpdateExistingMetadata(
+  void shouldUpdateExistingMetadata(
       String importStrategy, String expected, int expectedStatusCode) {
     // arrange
     JsonObject exported = metadataActions.get().getBody();
@@ -221,7 +220,7 @@ public class MetadataImportTest extends ApiTest {
   }
 
   @Test
-  public void shouldImportUniqueMetadataAndReturnObjectReports() throws Exception {
+  void shouldImportUniqueMetadataAndReturnObjectReports() throws Exception {
     // arrange
     JsonObject object =
         new FileReaderUtils()
@@ -259,8 +258,7 @@ public class MetadataImportTest extends ApiTest {
   }
 
   @Test
-  public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
-      throws Exception {
+  void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse() throws Exception {
     // arrange
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll(
@@ -309,7 +307,7 @@ public class MetadataImportTest extends ApiTest {
   }
 
   @Test
-  public void shouldReturnImportSummariesWhenImportingInvalidMetadataAsync() throws Exception {
+  void shouldReturnImportSummariesWhenImportingInvalidMetadataAsync() throws Exception {
     // arrange
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll(
@@ -364,7 +362,7 @@ public class MetadataImportTest extends ApiTest {
   }
 
   @Test
-  public void shouldImportMetadataAsync() throws Exception {
+  void shouldImportMetadataAsync() throws Exception {
     JsonObject object =
         new FileReaderUtils()
             .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
@@ -410,15 +408,20 @@ public class MetadataImportTest extends ApiTest {
         .validate()
         .body(notNullValue())
         .body("status", equalTo("OK"))
+        .body("stats", notNullValue())
+        .body("stats.total", is(greaterThanOrEqualTo(0)))
+        .body("stats.created", is(greaterThanOrEqualTo(0)))
+        .body("stats.updated", is(greaterThanOrEqualTo(0)))
+        .body("stats.deleted", is(greaterThanOrEqualTo(0)))
+        .body("stats.ignored", is(greaterThanOrEqualTo(0)))
         .body("typeReports", notNullValue())
         .rootPath("typeReports")
         .body("stats", notNullValue())
-        .body("stats.total", everyItem(greaterThan(0)))
         .body("objectReports", hasSize(greaterThan(0)));
   }
 
   @Test
-  public void shouldNotSkipSharing() {
+  void shouldNotSkipSharing() {
     JsonObject object = generateMetadataObjectWithInvalidSharing();
 
     ApiResponse response =
@@ -436,7 +439,7 @@ public class MetadataImportTest extends ApiTest {
   }
 
   @Test
-  public void shouldSkipSharing() {
+  void shouldSkipSharing() {
     JsonObject metadata = generateMetadataObjectWithInvalidSharing();
 
     ApiResponse response =

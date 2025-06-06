@@ -33,7 +33,7 @@ import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.webapi.dimension.BaseDimensionMapper;
@@ -51,7 +51,7 @@ public class BaseDimensionalObjectMapper extends BaseDimensionMapper {
   @Override
   public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
     String dimensionType =
-        ((BaseDimensionalObject) prefixedDimension.getItem()).getDimensionType().name();
+        ((DimensionalObject) prefixedDimension.getItem()).getDimensionType().name();
     return super.map(prefixedDimension, prefix)
         .withDimensionType(dimensionTypeOrElse(prefixedDimension, dimensionType));
   }

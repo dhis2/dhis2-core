@@ -157,10 +157,12 @@ public enum ErrorCode {
   E2039("Stage offset is allowed only for repeatable stages (`{0}` is not repeatable)"),
   E2040("Both category combination and category options must be specified"),
   E2041("Attribute option combo does not exist for given category combo and category options"),
-  E2042("Min value must be specified"),
-  E2043("Max value must be specified"),
-  E2044("Max value must be greater than min value"),
+  E2042("Min value must be specified: `{0}`"),
+  E2043("Max value must be specified: `{0}`"),
+  E2044("Max value must be greater than min value: `{0}`"),
   E2045("Case insensitive operators can only be used with constant values"),
+  E2046("Error parsing CSV file: {0}"),
+  E2047("Data value key combination does not exist: {0}"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
@@ -327,6 +329,7 @@ public enum ErrorCode {
       "Multiple Category Options `{0}` while disaggregating Program Indicator `{1}`-`{2}` Category Combo `{3}`-`{4}` Category `{5}`-`{6}`"),
   E4079(
       "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
+  E4080("Program `{0}` category mapping `{1}` has an invalid option mapping `{1}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -622,14 +625,7 @@ public enum ErrorCode {
   E7710("User is not allowed to update the target organisation unit"),
   E7711("Organisation unit cannot be uniquely identified by its name"),
   E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
-
-  /*Bulk MinMax import error codes*/
-  E7800("Error parsing MinMax CSV file: {0}"),
-  E7801("Missing required fields for min-max object: {0}"),
-  E7802("Min value is greater than or equal to Max value for: {0}"),
-  E7803("Could not resolve references for min-max object: {0}"),
-  E7804("Could not delete min-max object: {0}"),
-  E7805("Invalid UID value in min-max object: {0}");
+  ;
 
   private String message;
 

@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -49,7 +48,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
-import org.hisp.dhis.program.ProgramCategoryMappingValidator;
+import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -73,8 +72,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   private final AclService aclService;
 
   private final IdentifiableObjectManager identifiableObjectManager;
-
-  private final ProgramCategoryMappingValidator categoryMappingValidator;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -187,18 +184,9 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
 
   /** Validates program category mappings. */
   private void validateCategoryMappings(Program program, Consumer<ErrorReport> addReports) {
-    validateCategoryMappingObjects(program, addReports);
     validateCategoryMappingUids(program, addReports);
     validateCategoryMappingNameUniqueness(program, addReports);
-  }
-
-  /** Validates that program category mappings reference to valid objects. */
-  private void validateCategoryMappingObjects(Program program, Consumer<ErrorReport> addReports) {
-    try {
-      categoryMappingValidator.validateProgramCategoryMappings(program);
-    } catch (ConflictException ex) {
-      addReports.accept(new ErrorReport(Program.class, ex.getCode(), ex.getArgs()));
-    }
+    validateCategoryOptionMappingUids(program, addReports);
   }
 
   /** Checks that mapping UIDs are valid and are unique within the program. */
@@ -223,7 +211,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
 
     Set<String> uniqueMappingNames = new HashSet<>();
     for (ProgramCategoryMapping mapping : program.getCategoryMappings()) {
-      // Ensure category mapping has a valid UID
       String categoryAndMappingName = mapping.getCategoryId() + mapping.getMappingName();
       if (uniqueMappingNames.contains(categoryAndMappingName)) {
         addReports.accept(
@@ -235,6 +222,28 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
                 mapping.getMappingName()));
       }
       uniqueMappingNames.add(categoryAndMappingName);
+    }
+  }
+
+  /** Validates category option mapping UIDs. */
+  private void validateCategoryOptionMappingUids(
+      Program program, Consumer<ErrorReport> addReports) {
+    for (ProgramCategoryMapping mapping : program.getCategoryMappings()) {
+      Set<String> uniqueUids = new HashSet<>();
+      for (ProgramCategoryOptionMapping optionMapping : mapping.getOptionMappings()) {
+        String uid = optionMapping.getOptionId();
+        if (!isValidUid(uid))
+          addReports.accept(
+              new ErrorReport(
+                  Program.class, ErrorCode.E4080, program.getUid(), mapping.getId(), uid));
+
+        if (uniqueUids.contains(uid)) {
+          addReports.accept(
+              new ErrorReport(
+                  Program.class, ErrorCode.E4079, program.getUid(), mapping.getId(), uid));
+        }
+        uniqueUids.add(uid);
+      }
     }
   }
 }
