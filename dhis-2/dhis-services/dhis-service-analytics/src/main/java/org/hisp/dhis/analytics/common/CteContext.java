@@ -232,6 +232,12 @@ public class CteContext {
     }
   }
 
+  public void addShadowCte(String tableName, String sql, CteDefinition.CteType cteType) {
+    // Use a simple CteDefinition for shadow CTEs
+    CteDefinition shadowCte = CteDefinition.forShadowTable(tableName, sql, cteType);
+    cteDefinitions.put(tableName, shadowCte);
+  }
+
   public CteDefinition getBaseAggregatedCte() {
     return cteDefinitions.get(ENROLLMENT_AGGR_BASE);
   }

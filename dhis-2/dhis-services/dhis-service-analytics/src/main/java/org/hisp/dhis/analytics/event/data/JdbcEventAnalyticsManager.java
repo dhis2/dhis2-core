@@ -158,7 +158,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
     String sql =
         useExperimentalAnalyticsQueryEngine()
-            ? buildEnrollmentQueryWithCte(params)
+            ? buildAnalyticsQuery(params)
             : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
@@ -408,7 +408,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    * @param params the {@link EventQueryParams}.
    * @return a list of names of standard columns.
    */
-  private List<String> getStandardColumns(EventQueryParams params) {
+  @Override
+  List<String> getStandardColumns(EventQueryParams params) {
     ListBuilder<String> columns = new ListBuilder<>();
 
     columns.add(

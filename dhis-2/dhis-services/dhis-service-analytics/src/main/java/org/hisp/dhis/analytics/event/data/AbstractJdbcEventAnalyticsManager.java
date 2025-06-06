@@ -55,6 +55,9 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -95,6 +98,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -150,6 +155,7 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -1749,7 +1755,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return Stream.of(types).anyMatch(type -> type == header.getValueType());
   }
 
-  String buildEnrollmentQueryWithCte(EventQueryParams params) {
+  /**
+   * Builds the full SQL query for enrollment or events analytics, including CTEs, SELECT, FROM,
+   * JOINs, WHERE, and ORDER BY clauses.
+   *
+   * @param params the {@link EventQueryParams} to drive the query generation.
+   * @return a complete SQL query string.
+   */
+  String buildAnalyticsQuery(EventQueryParams params) {
 
     // 1. Create the CTE context (collect all CTE definitions for program indicators, program
     // stages, etc.)
@@ -1761,13 +1774,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
 
+    if (needsOptimizedCtes(params, cteContext)) {
+      // 3.0: Add shadow CTEs to optimize the query
+      addShadowCtes(params, cteContext);
+    }
+
     // 3.1: Append the WITH clause if needed
     addCteClause(sb, cteContext);
 
     // 3.2: Append the SELECT clause, including columns from the CTE context
     addSelectClause(sb, params, cteContext);
 
-    // 3.3: Append the FROM clause (the main enrollment analytics table)
+    // 3.3: Append the "FROM" clause (the main enrollment analytics table)
     addFromClause(sb, params);
 
     // 3.4: Append LEFT JOINs for each relevant CTE definition
@@ -1783,12 +1801,382 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Checks if the query needs optimized CTEs based on a number of conditions:
+   * - If there are no program indicators in the query, it returns false.
+   *
+   * @param params the {@link EventQueryParams} to check.
+   * @return true if optimized CTEs are needed, false otherwise.
+   */
+  private boolean needsOptimizedCtes(EventQueryParams params, CteContext cteContext) {
+    if (params.getEndpointItem() != ENROLLMENT) {
+        // If the endpoint is not ENROLLMENT, we don't need optimized CTEs
+        // TODO for events analytics, we probably need to enable shadow ctes only
+        // if there are program indicators of type enrollment
+        return false;
+    }
+    if (!cteContext.hasCteDefinitions()) {
+      // If there are CTE definitions, we need to use optimized CTEs
+      return false;
+    }
+    // if no PI -> return false
+    return params.getItems().stream().anyMatch(QueryItem::isProgramIndicator);
+  }
+
+  /**
    * Appends the SELECT clause, including both the standard enrollment columns (or aggregated
    * columns) and columns derived from the CTE definitions.
    */
   abstract void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext);
 
   abstract void addFromClause(SelectBuilder sb, EventQueryParams params);
+
+  abstract List<String> getStandardColumns(EventQueryParams params);
+
+  /**
+   * Adds a sequence of "shadow" Common Table Expressions (CTEs) to the CteContext to optimize
+   * enrollment analytics queries, particularly when pagination is used.
+   *
+   * <p>The core rationale is to apply pagination and base filters as early as possible,
+   * significantly reducing the data processed by subsequent Program Indicator and event-related
+   * CTEs. This avoids performance issues where multiple CTEs would otherwise scan entire underlying
+   * tables before a final LIMIT clause is applied. This optimization works by:
+   *
+   * <ol>
+   *   <li>Creating a {@code top_enrollments} CTE: This selects the target page of enrollments from
+   *       the main analytics enrollment table (e.g., {@code analytics_enrollment_PROGRAMUID}) after
+   *       applying necessary enrollment-level filters and pagination (LIMIT/OFFSET).
+   *   <li>Creating a shadow {@code analytics_enrollment_PROGRAMUID} CTE: This CTE is named
+   *       <em>identically</em> to the actual enrollment analytics table. It simply selects all
+   *       columns from {@code top_enrollments}.
+   *   <li>Creating a shadow {@code analytics_event_PROGRAMUID} CTE: This CTE is named
+   *       <em>identically</em> to the actual event analytics table for the program. It joins the
+   *       real event table with {@code top_enrollments} and applies relevant event-level filters,
+   *       effectively pre-filtering events.
+   * </ol>
+   *
+   * <p>By defining these shadow CTEs with the same names as the original tables, all subsequent
+   * CTEs that reference these table names will transparently use these pre-filtered, optimized
+   * versions without needing any modification themselves.
+   *
+   * @param params The {@link EventQueryParams} driving the query.
+   * @param cteContext The {@link CteContext} to which these shadow CTEs will be added.
+   */
+  void addShadowCtes(EventQueryParams params, CteContext cteContext) {
+
+    addTopEnrollmentsCte(params, cteContext);
+    addShadowEnrollmentTableCte(params, cteContext);
+    addShadowEventTableCte(params, cteContext);
+  }
+
+  /**
+   * Creates and adds the {@code top_enrollments} Common Table Expression (CTE) to the provided
+   * {@link CteContext}.
+   *
+   * <p>This CTE is the main step in the shadow CTE optimization strategy. Its primary purpose is to
+   * select a paginated and filtered subset of enrollments from the main analytics enrollment table
+   * (e.g., {@code analytics_enrollment_PROGRAMUID}).
+   *
+   * <p>The {@code top_enrollments} CTE includes:
+   *
+   * <ul>
+   *   <li>All standard enrollment columns (from {@code getStandardColumns()}), ensuring that any
+   *       columns defined as SQL formulas (like {@code ST_AsGeoJSON(...)}) are given appropriate
+   *       aliases for consistent referencing.
+   *   <li>Relevant organization unit level columns based on the query parameters.
+   *   <li>Any additional enrollment-level attributes or data elements that are identified as being
+   *       required by downstream program indicator calculations or other CTEs that operate on
+   *       enrollment data.
+   *   <li>Enrollment-level filters derived from the {@link EventQueryParams}.
+   *   <li>Pagination (LIMIT and OFFSET) and sorting clauses to retrieve only the specific page of
+   *       enrollments requested.
+   * </ul>
+   *
+   * <p>This early filtering and pagination massively reduce the number of enrollment records that
+   * subsequent shadow CTEs (like the shadow event table) and program indicator CTEs need to
+   * process.
+   *
+   * @param params The {@link EventQueryParams} containing filters, pagination, sorting, and
+   *     dimension information.
+   * @param cteContext The {@link CteContext} to which the generated {@code top_enrollments} CTE
+   *     definition will be added. It's added with a specific type ({@code CteType.TOP_ENROLLMENTS})
+   *     to ensure correct ordering in the final SQL query.
+   */
+  void addTopEnrollmentsCte(EventQueryParams params, CteContext cteContext) {
+    SelectBuilder topEnrollments = new SelectBuilder();
+    Map<String, String> formulaAliases = getFormulaColumnAliases();
+
+    // Add all standard enrollment columns
+    for (String column : getStandardColumns(params)) {
+      if (columnIsInFormula(column)) {
+        String alias = formulaAliases.getOrDefault(column, createDefaultAlias(column));
+        topEnrollments.addColumn(column, null, alias); // null tablePrefix, explicit alias
+      } else {
+        topEnrollments.addColumn(column, "ax"); // existing logic for regular columns
+      }
+    }
+
+    for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
+      OrganisationUnit unit = (OrganisationUnit) object;
+      topEnrollments.addColumn(
+          params.getOrgUnitField().getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType()));
+    }
+    // add the `ou` column
+    topEnrollments.addColumn("ou", "ax");
+
+    Set<String> enrollmentColumns = getEnrollmentColumnsFromProgramIndicators(params);
+    for (String column : enrollmentColumns) {
+      topEnrollments.addColumn(quote(column), "ax");
+    }
+
+    // Build from clause and where clauses
+    addFromClause(topEnrollments, params);
+    topEnrollments.where(Condition.raw(getWhereClause(params)));
+
+    // Apply pagination
+    addPagingToBuilder(topEnrollments, params);
+
+    // Add to CTE context with special name and type
+    cteContext.addShadowCte("top_enrollments", topEnrollments.build(), TOP_ENROLLMENTS);
+  }
+
+  /**
+   * Creates and adds a "shadow" Common Table Expression (CTE) for the main analytics enrollment
+   * table to the provided {@link CteContext}.
+   *
+   * <p>This shadow CTE is a critical component of the shadow CTE optimization strategy. It is named
+   * <em>identically</em> to the actual underlying analytics enrollment table (e.g., {@code
+   * analytics_enrollment_PROGRAMUID}.
+   *
+   * <p>The definition of this shadow CTE is straightforward:
+   *
+   * <pre>{@code
+   * -- Assuming enrollmentTableName is "analytics_enrollment_PROGRAMUID"
+   * analytics_enrollment_PROGRAMUID AS (
+   *   SELECT * FROM top_enrollments
+   * )
+   * }</pre>
+   *
+   * It selects all columns from the previously defined {@code top_enrollments} CTE, which already
+   * contains the paginated and filtered set of target enrollments.
+   *
+   * <p>By naming this CTE the same as the real table, any subsequent CTEs (like those for program
+   * indicators or data elements that query enrollment attributes) or parts of the main query that
+   * reference the enrollment analytics table by its original name will transparently query this
+   * much smaller, pre-filtered shadow version instead of the full physical table. This is due to
+   * SQL's behavior where CTEs with the same name as a table take precedence within the scope of the
+   * query.
+   *
+   * <p>This effectively "replaces" the original enrollment table with a paginated and filtered
+   * version for the rest of the query construction, without requiring modifications to the SQL
+   * generation logic of those subsequent CTEs.
+   *
+   * @param params The {@link EventQueryParams} used to determine the original enrollment analytics
+   *     table name (via {@code params.getTableName()}).
+   * @param cteContext The {@link CteContext} to which the generated shadow enrollment table CTE
+   *     definition will be added. It's added with a specific type (e.g., {@code
+   *     CteType.SHADOW_ENROLLMENT_TABLE}) to ensure correct ordering.
+   */
+  private void addShadowEnrollmentTableCte(EventQueryParams params, CteContext cteContext) {
+    // Create a shadow CTE with the EXACT same name as the real enrollment table
+    String enrollmentTableName = params.getTableName(); // e.g., "analytics_enrollment_iphinat79uw"
+
+    String shadowEnrollmentSql = "select * from top_enrollments";
+
+    cteContext.addShadowCte(enrollmentTableName, shadowEnrollmentSql, SHADOW_ENROLLMENT_TABLE);
+  }
+
+  /**
+   * Creates and adds a "shadow" Common Table Expression (CTE) for the event analytics table
+   * associated with the program in the {@link EventQueryParams}.
+   *
+   * <p>This shadow CTE is a key part of the shadow CTE optimization strategy, designed to work in
+   * tandem with the {@code top_enrollments} CTE and the shadow enrollment table CTE. It is named
+   * <em>identically</em> to the actual underlying event analytics table (e.g., {@code
+   * analytics_event_PROGRAMUID}, where PROGRAMUID is the specific program's UID).
+   *
+   * <p>The construction of this shadow event CTE involves:
+   *
+   * <ol>
+   *   <li>Selecting all necessary columns (often {@code ae.*}) from the <em>actual</em> physical
+   *       event analytics table (aliased, e.g., as {@code ae}).
+   *   <li>Performing an {@code INNER JOIN} with the {@code top_enrollments} CTE. This is the
+   *       primary filtering mechanism, ensuring that only events belonging to the pre-selected
+   *       (paginated and filtered) enrollments are included.
+   *   <li>Optionally, it can include a WHERE clause that aggregates relevant event-level filters.
+   *       These filters might be derived from conditions originally intended for individual
+   *       event-based CTEs (like those for program stage data elements or event-based program
+   *       indicators). This further refines the set of events before they are used by subsequent
+   *       CTEs.
+   * </ol>
+   *
+   * <p>Example structure:
+   *
+   * <pre>{@code
+   * -- Assuming eventTableName is "analytics_event_PROGRAMUID"
+   * analytics_event_PROGRAMUID AS (
+   *   SELECT ae.*
+   *   FROM analytics_event_PROGRAMUID ae -- Real event table
+   *   INNER JOIN top_enrollments te ON te.enrollment = ae.enrollment
+   *   WHERE -- Optional aggregated event-level conditions --
+   *     (ae.ps = 'stageUid1' AND ae."dataElementUid1" > 10) OR
+   *     (ae.ps = 'stageUid2' AND ae."dataElementUid2" = 'true')
+   * )
+   * }</pre>
+   *
+   * <p>By defining this shadow CTE with the same name as the actual event table, any subsequent
+   * CTEs (e.g., for program stage data elements or event-scoped program indicators) that reference
+   * the event table by its original name will transparently query this significantly smaller,
+   * pre-filtered shadow version. This avoids scanning the entire event table multiple times,
+   * leading to substantial performance improvements.
+   *
+   * @param params The {@link EventQueryParams} used to determine the program UID (for constructing
+   *     the event table name) and to extract potential event-level filters.
+   * @param cteContext The {@link CteContext} to which the generated shadow event table CTE
+   *     definition will be added. It is typically added with a specific type (e.g., {@code
+   *     CteType.SHADOW_EVENT_TABLE}) to ensure correct ordering after {@code top_enrollments} and
+   *     the shadow enrollment table.
+   */
+  private void addShadowEventTableCte(EventQueryParams params, CteContext cteContext) {
+    // Create a shadow CTE with the EXACT same name as the real event table
+    String eventTableName = "analytics_event_" + params.getProgram().getUid();
+
+    SelectBuilder shadowEvents = new SelectBuilder();
+
+    // Select all columns from the real event table
+    shadowEvents
+        .addColumn("ae.*")
+        .from(eventTableName, "ae") // Reference the REAL table here
+        .innerJoin("top_enrollments", "te", alias -> alias + ".enrollment = ae.enrollment");
+
+    // Add aggregated WHERE conditions from all event-level CTEs
+    String eventFilters = aggregateEventFiltersFromCtes(cteContext, params);
+    if (!eventFilters.isEmpty()) {
+      shadowEvents.where(Condition.raw(eventFilters));
+    }
+
+    cteContext.addShadowCte(eventTableName, shadowEvents.build(), SHADOW_EVENT_TABLE);
+  }
+
+  private String aggregateEventFiltersFromCtes(CteContext cteContext, EventQueryParams params) {
+    List<String> conditions = new ArrayList<>();
+
+    // Collect conditions that should be applied to event-level filtering
+    // This includes conditions from program stage items, data elements, etc.
+
+    for (QueryItem item : params.getItems()) {
+      if (item.hasProgramStage() && !item.isProgramIndicator()) {
+        // Add conditions like: ps = 'XYZ' for program stages
+        conditions.add("ps = '" + item.getProgramStage().getUid() + "'");
+      }
+    }
+
+    for (QueryItem item : params.getItemFilters()) {
+      if (item.hasProgramStage() && item.hasFilter()) {
+        // Add program stage condition
+        conditions.add("ps = '" + item.getProgramStage().getUid() + "'");
+
+        // Add data element filters
+        String filterConditions = extractFiltersAsSql(item, quote(item.getItemName()));
+        if (!filterConditions.isEmpty()) {
+          conditions.add(filterConditions);
+        }
+      }
+    }
+
+    // Combine with OR within program stages, AND between different program stages
+    return combineEventConditions(conditions);
+  }
+
+  private String combineEventConditions(List<String> conditions) {
+    if (conditions.isEmpty()) {
+      return "";
+    }
+
+    // For now, simple AND combination - might need more sophisticated logic
+    return "(" + String.join(" OR ", conditions) + ")";
+  }
+
+  private Set<String> getEnrollmentColumnsFromProgramIndicators2(EventQueryParams params) {
+    Set<String> enrollmentColumns = new HashSet<>();
+
+    params.getProgram().getNonConfidentialTrackedEntityAttributes().stream()
+            .map(this::getColumnForAttribute)
+            .flatMap(Collection::stream)
+            .toList();
+
+    return enrollmentColumns;
+
+
+  }
+
+  private Set<String> getEnrollmentColumnsFromProgramIndicators(EventQueryParams params) {
+    Set<String> enrollmentColumns = new HashSet<>();
+
+    for (QueryItem item : params.getItems()) {
+      if (item.isProgramIndicator()) {
+        ProgramIndicator pi = (ProgramIndicator) item.getItem();
+
+        // Only process enrollment-level program indicators
+        if (pi.getAnalyticsType() == AnalyticsType.ENROLLMENT) {
+          enrollmentColumns.addAll(extractEnrollmentColumnsFromExpression(pi.getExpression()));
+        }
+      }
+    }
+
+    return enrollmentColumns;
+  }
+
+  private Set<String> extractEnrollmentColumnsFromExpression(String expression) {
+    Set<String> enrollmentColumns = new HashSet<>();
+    // TODO not sure about this logic, could be better instead
+    // to infer the columns names from the logic that creates the analytics tables?
+
+    // 1. Tracked entity attributes: A{UID} - these are enrollment-level
+    Pattern attributePattern = Pattern.compile("A\\{([A-Za-z0-9]{11})\\}");
+    Matcher attributeMatcher = attributePattern.matcher(expression);
+    while (attributeMatcher.find()) {
+      enrollmentColumns.add(attributeMatcher.group(1));
+    }
+
+    // 2. Program indicators can also reference enrollment-level data elements directly
+    // Pattern for direct column references (if any): "UID" or just UID
+    Pattern directColumnPattern = Pattern.compile("\"([A-Za-z0-9]{11})\"");
+    Matcher directMatcher = directColumnPattern.matcher(expression);
+    while (directMatcher.find()) {
+      enrollmentColumns.add(directMatcher.group(1));
+    }
+
+    // 3. TODO: Handle V{variable_name}?
+    // Variables could reference enrollment or event data, would need context to determine
+
+    return enrollmentColumns;
+  }
+
+  private void addPagingToBuilder(SelectBuilder builder, EventQueryParams params) {
+    if (params.isPaging()) {
+      if (params.isTotalPages()) {
+        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
+      } else {
+        builder
+            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
+            .offset(params.getOffset());
+      }
+    } else {
+      builder.limitPlusOne(5000);
+    }
+  }
+
+  private Map<String, String> getFormulaColumnAliases() {
+    Map<String, String> aliases = new HashMap<>();
+    aliases.put(COLUMN_ENROLLMENT_GEOMETRY_GEOJSON, "enrollmentgeometry_geojson");
+    // TODO Add other formula -> alias mappings as needed
+    return aliases;
+  }
+
+  private String createDefaultAlias(String formula) {
+    // Create a safe alias from the formula
+    return "formula_" + Math.abs(formula.hashCode());
+  }
 
   /**
    * Add to the {@link CteContext} the CTE definitions that are specified in the filters of {@link

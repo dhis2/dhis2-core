@@ -168,7 +168,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       sql =
           useExperimentalAnalyticsQueryEngine()
-              ? buildEnrollmentQueryWithCte(params)
+              ? buildAnalyticsQuery(params)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
     if (params.analyzeOnly()) {
@@ -539,7 +539,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(),
+            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -1089,7 +1089,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (params.isAggregatedEnrollments()) {
       sb.addColumn("count(eb.enrollment) as value");
     } else {
-      getStandardColumns()
+      getStandardColumns(params)
           .forEach(
               column -> {
                 if (columnIsInFormula(column)) {
@@ -1109,7 +1109,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    *
    * @return a list of names of standard columns.
    */
-  List<String> getStandardColumns() {
+  @Override
+  List<String> getStandardColumns(EventQueryParams params) {
     ListBuilder<String> columns = new ListBuilder<>();
 
     columns.add(
