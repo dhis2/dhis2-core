@@ -29,62 +29,19 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Transient;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.Type;
-import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 
-@MappedSuperclass
-public class TranslatableMetadataObject extends BaseMetadataObject {
+public interface TranslatableMetadataObject {
 
-  @Column
-  @Type(
-      type = "jblTranslations",
-      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
-  private Set<Translation> translations = new HashSet<>();
+  Set<Translation> getTranslations();
 
-  /**
-   * Cache for object translations, where the cache key is a combination of locale and translation
-   * property, and value is the translated value.
-   */
-  @Transient
-  protected final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  @Gist(included = Gist.Include.FALSE)
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Translation> getTranslations() {
-    if (translations == null) {
-      translations = new HashSet<>();
-    }
-
-    return translations;
-  }
-
-  /** Clears out cache when setting translations. */
-  public void setTranslations(Set<Translation> translations) {
-    this.translationCache.clear();
-    this.translations = translations;
-  }
+  Map<String, String> getTranslationCache();
 
   // -------------------------------------------------------------------------
   // Util methods
@@ -98,18 +55,19 @@ public class TranslatableMetadataObject extends BaseMetadataObject {
    * @param defaultValue the value to use if there are no translations.
    * @return a translated value.
    */
-  protected String getTranslation(String translationKey, String defaultValue) {
+  default String getTranslation(String translationKey, String defaultValue) {
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
+    if (locale == null || translationKey == null || CollectionUtils.isEmpty(getTranslations())) {
       return defaultValue;
     }
 
-    return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+    return getTranslationCache()
+        .computeIfAbsent(
+            Translation.getCacheKey(locale.toString(), translationKey),
+            key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
   }
 
   /**
@@ -118,7 +76,7 @@ public class TranslatableMetadataObject extends BaseMetadataObject {
    * @return Translation value if exists, otherwise return default value.
    */
   private String getTranslationValue(String locale, String translationKey, String defaultValue) {
-    for (Translation translation : translations) {
+    for (Translation translation : getTranslations()) {
       if (locale.equals(translation.getLocale())
           && translationKey.equals(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {

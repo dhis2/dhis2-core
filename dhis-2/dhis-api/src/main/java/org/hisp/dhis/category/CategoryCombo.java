@@ -40,6 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -73,6 +74,7 @@ import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -82,9 +84,8 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
-import org.hisp.dhis.common.TranslatableMetadataObject;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.common.annotation.EnableTranslation;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -95,6 +96,7 @@ import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -106,7 +108,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Table(name = "categorycombo")
 @Setter
 @JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryCombo extends TranslatableMetadataObject
+public class CategoryCombo extends BaseMetadataObject
     implements SystemDefaultMetadataObject, IdentifiableObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
@@ -152,6 +154,8 @@ public class CategoryCombo extends TranslatableMetadataObject
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
 
+  @Embedded private TranslationProperty translationProperty = new TranslationProperty();
+
   // -------------------------------------------------------------------------
   // Transient fields
   // -------------------------------------------------------------------------
@@ -163,6 +167,13 @@ public class CategoryCombo extends TranslatableMetadataObject
    * identifiable object (will be used on the web layer for navigating the REST API)
    */
   @Transient private transient String href;
+
+  /**
+   * Cache for object translations, where the cache key is a combination of locale and translation
+   * property, and value is the translated value.
+   */
+  @Transient
+  protected final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -444,7 +455,7 @@ public class CategoryCombo extends TranslatableMetadataObject
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getTranslation("NAME", name);
+    return translationProperty.getTranslation("NAME", name);
   }
 
   @Override
@@ -533,6 +544,18 @@ public class CategoryCombo extends TranslatableMetadataObject
   @Override
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);
+  }
+
+  public void setTranslations(Set<Translation> translations) {
+    this.translationProperty.setTranslations(translations);
+  }
+
+  @Gist(included = Gist.Include.FALSE)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translationProperty.getTranslations();
   }
 
   @Override
