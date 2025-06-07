@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.route;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Properties;
 import java.util.Random;
@@ -130,56 +130,62 @@ class RouteServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {
-      "x-custom-header",
-      "x-api-version", 
-      "x-request-id",
-      "custom-header",
-      "my-header-123",
-  })
+  @ValueSource(
+      strings = {
+        "x-custom-header",
+        "x-api-version",
+        "x-request-id",
+        "custom-header",
+        "my-header-123",
+      })
   void testValidateResponseHeader_ValidHeaders_ShouldPass(String headerName) {
     Properties properties = new Properties();
-    DhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider(properties);
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
     RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
 
     assertDoesNotThrow(() -> routeService.validateResponseHeader(headerName));
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {
-      "authorization",
-      "www-authenticate",
-      "proxy-authenticate", 
-      "proxy-authorization",
-      "set-cookie",
-      "cookie",
-      "x-forwarded-user",
-      "x-auth-token",
-      "x-api-key",
-      "server",
-      "x-powered-by"
-  })
+  @ValueSource(
+      strings = {
+        "authorization",
+        "www-authenticate",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "set-cookie",
+        "cookie",
+        "x-forwarded-user",
+        "x-auth-token",
+        "x-api-key",
+        "server",
+        "x-powered-by"
+      })
   void testValidateResponseHeader_DangerousHeaders_ShouldReject(String headerName) {
     Properties properties = new Properties();
-    DhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider(properties);
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
     RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
 
-    IllegalArgumentException exception = assertThrows(
-        IllegalArgumentException.class, 
-        () -> routeService.validateResponseHeader(headerName)
-    );
-    assert(exception.getMessage().contains("blacklisted for security reasons"));
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> routeService.validateResponseHeader(headerName));
+    assert (exception.getMessage().contains("blacklisted for security reasons"));
   }
 
   @Test
   void testValidateResponseHeader_CaseInsensitiveDangerousHeaders_ShouldReject() {
     Properties properties = new Properties();
-    DhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider(properties);
-    
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    assertThrows(IllegalArgumentException.class, () -> routeService.validateResponseHeader("AUTHORIZATION"));
-    assertThrows(IllegalArgumentException.class, () -> routeService.validateResponseHeader("Set-Cookie"));
-    assertThrows(IllegalArgumentException.class, () -> routeService.validateResponseHeader("X-API-KEY"));
-  }
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
 
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    assertThrows(
+        IllegalArgumentException.class, () -> routeService.validateResponseHeader("AUTHORIZATION"));
+    assertThrows(
+        IllegalArgumentException.class, () -> routeService.validateResponseHeader("Set-Cookie"));
+    assertThrows(
+        IllegalArgumentException.class, () -> routeService.validateResponseHeader("X-API-KEY"));
+  }
 }
