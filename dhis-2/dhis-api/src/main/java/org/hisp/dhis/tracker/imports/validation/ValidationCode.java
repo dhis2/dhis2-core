@@ -29,10 +29,15 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Getter
+@RequiredArgsConstructor
 public enum ValidationCode {
   /* General */
   E1000("User: `{0}`, has no write access to OrganisationUnit: `{1}`."),
@@ -159,13 +164,6 @@ public enum ValidationCode {
   E5000("\"{0}\" `{1}` cannot be created as \"{2}\" `{3}` referenced by it could not be created."),
   E9999("N/A.");
 
+  /** Validation error message. */
   private final String message;
-
-  ValidationCode(String message) {
-    this.message = message;
-  }
-
-  public String getMessage() {
-    return message;
-  }
 }
