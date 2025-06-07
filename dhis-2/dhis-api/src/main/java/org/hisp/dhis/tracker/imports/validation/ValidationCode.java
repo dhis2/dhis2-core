@@ -103,8 +103,7 @@ public enum ValidationCode {
   E1099("User: `{0}` has no write access to CategoryOption: `{1}`."),
   E1100("User: `{0}` is lacking 'F_TEI_CASCADE_DELETE' authority to delete TrackedEntity: `{1}`."),
   E1102("User: `{0}` does not have access to the tracked entity: `{1}` and Program: `{2}`."),
-  E1103(
-      "User: `{0}` is lacking 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
+  E1103("User: `{0}` lacks 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
   E1104("User: `{0}`, has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
   E1112("AttributeValue: `{0}` is confidential but encryption is not enabled: `{1}`"),
   E1113("Enrollment: `{0}` is already deleted and cannot be modified."),
@@ -151,8 +150,7 @@ public enum ValidationCode {
   E4006("Could not find RelationshipType: `{0}`."),
   E4010("RelationshipType `{0}` constraint requires a {1} but a {2} was found."),
   E4012("Could not find `{0}`: `{1}`, linked to relationship."),
-  E4014(
-      "RelationshipType `{0}` constraint requires a TrackedEntity having type `{1}` but `{2}` was found."),
+  E4014("RelationshipType `{0}` constraint requires TrackedEntity type `{1}` but `{2}` was found."),
   E4015("Relationship: `{0}` already exists."),
   E4016("Relationship: `{0}` do not exist."),
   E4017("Relationship: `{0}` is already deleted and cannot be modified."),
