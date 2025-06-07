@@ -169,7 +169,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `from` for relationship `" + relationshipUid + "`");
+        "RelationshipItem `from` for Relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -188,7 +188,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `to` for relationship `" + relationshipUid + "`");
+        "RelationshipItem `to` for Relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -208,7 +208,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `to` for relationship `" + relationshipUid + "`");
+        "RelationshipItem `to` for Relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -232,7 +232,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `to` for relationship `" + relationshipUid + "`");
+        "RelationshipItem `to` for Relationship `" + relationshipUid + "`");
   }
 
   @Test
