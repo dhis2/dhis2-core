@@ -40,12 +40,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ValidationCode {
   /* General */
-  E1000("User: `{0}`, has no write access to OrganisationUnit: `{1}`."),
-  E1001("User: `{0}`, has no data write access to TrackedEntityType: `{1}`."),
+  E1000("User: `{0}` has no write access to OrganisationUnit: `{1}`."),
+  E1001("User: `{0}` has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntity: `{0}`, already exists."),
   E1003("User: `{0}` has no write access to TrackedEntity: `{1}`."),
   E1005("Could not find TrackedEntityType: `{0}`."),
-  E1006("Attribute: `{0}`, does not exist."),
+  E1006("Attribute: `{0}` does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),
   E1008("Program stage `{0}` has no reference to a program, check program stage configuration."),
   E1009("File resource: `{0}` has already been assigned to another object."),
@@ -56,12 +56,12 @@ public enum ValidationCode {
   E1014(
       "Provided Program: `{0}` is a Program without registration. "
           + "An Enrollment cannot be created into Program without registration."),
-  E1015("TrackedEntity: `{0}`, already has an active Enrollment in Program `{1}`."),
+  E1015("TrackedEntity: `{0}` already has an active Enrollment in Program `{1}`."),
   E1016(
-      "TrackedEntity: `{0}`, already has an enrollment in Program: `{1}`, and this "
+      "TrackedEntity: `{0}` already has an enrollment in Program: `{1}`, and this "
           + "program only allows enrolling once."),
-  E1018("Attribute: `{0}`, is mandatory in program `{1}` but not declared in enrollment `{2}`."),
-  E1019("Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`."),
+  E1018("Attribute: `{0}` is mandatory in program `{1}` but not declared in enrollment `{2}`."),
+  E1019("Only ProgramAttributes are allowed for enrollment; Non valid attribute: `{0}`."),
   E1020("Enrollment date: `{0}` cannot be a future date."),
   E1021("Incident date: `{0}` cannot be a future date."),
   E1022("TrackedEntity: `{0}` must have same TrackedEntityType as Program `{1}`."),
@@ -100,8 +100,7 @@ public enum ValidationCode {
   E1082("Event: `{0}` is already deleted and cannot be modified."),
   E1083("User: `{0}` is not authorized to update completed events."),
   E1089("Event: `{0}` references ProgramStage `{1}` which do not belong to Program `{2}`."),
-  E1090(
-      "Attribute: `{0}` is mandatory in TrackedEntityType `{1}` but not declared in TrackedEntity `{2}`."),
+  E1090("Attribute: `{0}` is mandatory in TrackedEntityType `{1}` but not found in TrackedEntity `{2}`."),
   E1091("User: `{0}` has no data write access to Program: `{1}`."),
   E1095("User: `{0}` has no data write access to ProgramStage: `{1}`."),
   E1096("User: `{0}` has no data read access to Program: `{1}`."),
@@ -109,7 +108,7 @@ public enum ValidationCode {
   E1100("User: `{0}` is lacking 'F_TEI_CASCADE_DELETE' authority to delete TrackedEntity: `{1}`."),
   E1102("User: `{0}` does not have access to the tracked entity: `{1}` and Program: `{2}`."),
   E1103("User: `{0}` lacks 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
-  E1104("User: `{0}`, has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
+  E1104("User: `{0}` has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
   E1112("AttributeValue: `{0}` is confidential but encryption is not enabled: `{1}`"),
   E1113("Enrollment: `{0}` is already deleted and cannot be modified."),
   E1114("TrackedEntity: `{0}` is already deleted and cannot be modified."),
