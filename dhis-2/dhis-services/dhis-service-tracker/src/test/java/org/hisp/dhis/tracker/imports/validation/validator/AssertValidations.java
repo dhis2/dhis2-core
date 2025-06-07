@@ -85,7 +85,7 @@ public class AssertValidations {
                         && type.name().equals(v.getType())
                         && uid.equals(v.getUid())),
         String.format(
-            "Error with code %s for %s with uid %s is found but not expected",
+            "Error with code %s for %s with UID '%s' found but not expected",
             code, type.getName(), uid));
   }
 
@@ -147,7 +147,7 @@ public class AssertValidations {
                         && type.name().equals(v.getType())
                         && uid.equals(v.getUid())),
         String.format(
-            "%s with code %s for %s with uid %s not found in %s(s) %s",
+            "%s with code %s for %s with UID '%s' not found in %s(s) %s",
             validationType, code, type.getName(), uid, validationType, validations));
   }
 
@@ -171,7 +171,7 @@ public class AssertValidations {
                         && uid.equals(v.getUid())
                         && v.getMessage().contains(messageContains)),
         String.format(
-            "%s with code %s for %s with uid %s and (partial) message '%s' not found in %s(s) %s",
+            "%s with code %s for %s with UID '%s' and (partial) message '%s' not found in %s(s) %s",
             validationType,
             code,
             type.getName(),

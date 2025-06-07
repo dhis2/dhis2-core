@@ -68,11 +68,12 @@ class DefaultValidationServiceTest extends TestBase {
 
   private TrackerBundle bundle;
 
-  private Validator validator;
+  private Validator<TrackerBundle> validator;
 
-  private Validator ruleEngineValidator;
+  private Validator<TrackerBundle> ruleEngineValidator;
 
   @BeforeEach
+  @SuppressWarnings("unchecked")
   void setUp() {
     preheat = mock(TrackerPreheat.class);
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());

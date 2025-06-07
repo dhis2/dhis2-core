@@ -134,7 +134,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4010,
-        "Relationship type `to` constraint requires a trackedEntity but a enrollment was found.");
+        "RelationshipType `to` constraint requires a trackedEntity but a enrollment was found.");
   }
 
   @Test
@@ -159,9 +159,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4012,
-        "Could not find `trackedEntity`: `"
-            + relationship.getFrom().getTrackedEntity()
-            + "`, linked to relationship.");
+        "Could not find `trackedEntity`: `" + relationship.getFrom().getTrackedEntity() + "`");
   }
 
   @Test
@@ -185,7 +183,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4010,
-        "Relationship type `to` constraint requires a event but a enrollment was found.");
+        "RelationshipType `to` constraint requires a event but a enrollment was found.");
   }
 
   @Test
@@ -220,7 +218,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4014,
-        "Relationship type `from` constraint requires a tracked entity having type `madeUpUid` but"
+        "RelationshipType `from` constraint requires TrackedEntity type `madeUpUid` but"
             + " `"
             + uid
             + "` was found.");
@@ -273,7 +271,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4010,
-        "Relationship type `from` constraint requires a enrollment but a event was found.");
+        "RelationshipType `from` constraint requires a enrollment but a event was found.");
   }
 
   @Test
@@ -298,9 +296,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4012,
-        "Could not find `event`: `"
-            + relationship.getFrom().getEvent()
-            + "`, linked to relationship.");
+        "Could not find `event`: `" + relationship.getFrom().getEvent() + "`");
   }
 
   private RelationshipType createRelTypeConstraint(RelationshipEntity from, RelationshipEntity to) {
