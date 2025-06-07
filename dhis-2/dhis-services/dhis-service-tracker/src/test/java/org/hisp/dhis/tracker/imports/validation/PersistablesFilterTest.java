@@ -303,11 +303,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Relationship.class)),
         () ->
             assertHasError(
-                persistable,
-                RELATIONSHIP,
-                "Te3IC6TpnBB",
-                E5000,
-                "because enrollment `QxGbKYwChDM`"));
+                persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "enrollment `QxGbKYwChDM`"));
   }
 
   @Test
