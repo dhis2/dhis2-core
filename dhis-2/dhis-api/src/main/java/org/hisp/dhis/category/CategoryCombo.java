@@ -164,7 +164,18 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Category> categories = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "categoryCombo")
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "categorycombos_optioncombos",
+      joinColumns =
+          @JoinColumn(
+              name = "categorycomboid",
+              foreignKey = @ForeignKey(name = "fk_categorycombos_optioncombos_categorycomboid")),
+      inverseJoinColumns =
+          @JoinColumn(
+              name = "categoryoptioncomboid",
+              unique = true,
+              foreignKey = @ForeignKey(name = "fk_categorycombo_categoryoptioncomboid")))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 

@@ -605,9 +605,6 @@ public class DefaultCategoryService implements CategoryService {
 
     Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
     categoryOptionCombos.add(categoryOptionCombo);
-    categoryCombo.setOptionCombos(categoryOptionCombos);
-
-    updateCategoryCombo(categoryCombo, actingUser);
 
     categoryOption.setCategoryOptionCombos(categoryOptionCombos);
 
