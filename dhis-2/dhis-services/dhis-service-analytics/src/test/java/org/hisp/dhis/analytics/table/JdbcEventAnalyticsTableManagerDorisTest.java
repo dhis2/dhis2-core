@@ -61,6 +61,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -86,7 +87,6 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -117,7 +117,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
 
-  @InjectMocks private JdbcEventAnalyticsTableManager subject;
+  private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
 
@@ -146,6 +146,21 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @BeforeEach
   void setUp() {
+    subject =
+        new JdbcEventAnalyticsTableManager(
+            idObjectManager,
+            organisationUnitService,
+            categoryService,
+            settingsProvider,
+            null,
+            resourceTableService,
+            null,
+            null,
+            jdbcTemplate,
+            analyticsTableSettings,
+            periodDataProvider,
+            new ColumnUtils(sqlBuilder),
+            sqlBuilder);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);

@@ -61,8 +61,8 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMEN
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
-import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -98,8 +98,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -128,6 +126,8 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHand
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
@@ -215,6 +215,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
+
+  protected final ColumnUtils columnUtils;
 
   static final String ANALYTICS_EVENT = "analytics_event_";
 
@@ -1801,18 +1803,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Checks if the query needs optimized CTEs based on a number of conditions:
-   * - If there are no program indicators in the query, it returns false.
+   * Checks if the query needs optimized CTEs based on a number of conditions: - If there are no
+   * program indicators in the query, it returns false.
    *
    * @param params the {@link EventQueryParams} to check.
    * @return true if optimized CTEs are needed, false otherwise.
    */
   private boolean needsOptimizedCtes(EventQueryParams params, CteContext cteContext) {
     if (params.getEndpointItem() != ENROLLMENT) {
-        // If the endpoint is not ENROLLMENT, we don't need optimized CTEs
-        // TODO for events analytics, we probably need to enable shadow ctes only
-        // if there are program indicators of type enrollment
-        return false;
+      // If the endpoint is not ENROLLMENT, we don't need optimized CTEs
+      // TODO for events analytics, we probably need to enable shadow ctes only
+      // if there are program indicators of type enrollment
+      return false;
     }
     if (!cteContext.hasCteDefinitions()) {
       // If there are CTE definitions, we need to use optimized CTEs
@@ -2049,7 +2051,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .innerJoin("top_enrollments", "te", alias -> alias + ".enrollment = ae.enrollment");
 
     // Add aggregated WHERE conditions from all event-level CTEs
-    String eventFilters = aggregateEventFiltersFromCtes(cteContext, params);
+    String eventFilters = aggregateEventFiltersFromCtes(params);
     if (!eventFilters.isEmpty()) {
       shadowEvents.where(Condition.raw(eventFilters));
     }
@@ -2057,7 +2059,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     cteContext.addShadowCte(eventTableName, shadowEvents.build(), SHADOW_EVENT_TABLE);
   }
 
-  private String aggregateEventFiltersFromCtes(CteContext cteContext, EventQueryParams params) {
+  private String aggregateEventFiltersFromCtes(EventQueryParams params) {
     List<String> conditions = new ArrayList<>();
 
     // Collect conditions that should be applied to event-level filtering
@@ -2096,58 +2098,30 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return "(" + String.join(" OR ", conditions) + ")";
   }
 
-  private Set<String> getEnrollmentColumnsFromProgramIndicators2(EventQueryParams params) {
-    Set<String> enrollmentColumns = new HashSet<>();
-
-    params.getProgram().getNonConfidentialTrackedEntityAttributes().stream()
-            .map(this::getColumnForAttribute)
-            .flatMap(Collection::stream)
-            .toList();
-
-    return enrollmentColumns;
-
-
-  }
-
   private Set<String> getEnrollmentColumnsFromProgramIndicators(EventQueryParams params) {
     Set<String> enrollmentColumns = new HashSet<>();
 
-    for (QueryItem item : params.getItems()) {
-      if (item.isProgramIndicator()) {
-        ProgramIndicator pi = (ProgramIndicator) item.getItem();
+    Set<String> columns =
+        params.getProgram().getNonConfidentialTrackedEntityAttributes().stream()
+            .map(columnUtils::getColumnForAttribute)
+            .flatMap(Collection::stream)
+            .map(AnalyticsTableColumn::getName)
+            .collect(Collectors.toSet());
 
-        // Only process enrollment-level program indicators
-        if (pi.getAnalyticsType() == AnalyticsType.ENROLLMENT) {
-          enrollmentColumns.addAll(extractEnrollmentColumnsFromExpression(pi.getExpression()));
+    String expressions =
+        params.getItems().stream()
+            .filter(QueryItem::isProgramIndicator)
+            // do we need to filter by analytics type?
+            .map(item -> ((ProgramIndicator) item.getItem()).getExpression())
+            .collect(Collectors.joining("|"));
+    // check if any of the columns is part of the expression
+    if (!expressions.isEmpty() && !columns.isEmpty()) {
+      for (String column : columns) {
+        if (expressions.contains(column)) {
+          enrollmentColumns.add(column);
         }
       }
     }
-
-    return enrollmentColumns;
-  }
-
-  private Set<String> extractEnrollmentColumnsFromExpression(String expression) {
-    Set<String> enrollmentColumns = new HashSet<>();
-    // TODO not sure about this logic, could be better instead
-    // to infer the columns names from the logic that creates the analytics tables?
-
-    // 1. Tracked entity attributes: A{UID} - these are enrollment-level
-    Pattern attributePattern = Pattern.compile("A\\{([A-Za-z0-9]{11})\\}");
-    Matcher attributeMatcher = attributePattern.matcher(expression);
-    while (attributeMatcher.find()) {
-      enrollmentColumns.add(attributeMatcher.group(1));
-    }
-
-    // 2. Program indicators can also reference enrollment-level data elements directly
-    // Pattern for direct column references (if any): "UID" or just UID
-    Pattern directColumnPattern = Pattern.compile("\"([A-Za-z0-9]{11})\"");
-    Matcher directMatcher = directColumnPattern.matcher(expression);
-    while (directMatcher.find()) {
-      enrollmentColumns.add(directMatcher.group(1));
-    }
-
-    // 3. TODO: Handle V{variable_name}?
-    // Variables could reference enrollment or event data, would need context to determine
 
     return enrollmentColumns;
   }
@@ -2166,16 +2140,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
-  private Map<String, String> getFormulaColumnAliases() {
+  protected Map<String, String> getFormulaColumnAliases() {
     Map<String, String> aliases = new HashMap<>();
     aliases.put(COLUMN_ENROLLMENT_GEOMETRY_GEOJSON, "enrollmentgeometry_geojson");
     // TODO Add other formula -> alias mappings as needed
     return aliases;
   }
 
-  private String createDefaultAlias(String formula) {
+  protected String createDefaultAlias(String formula) {
     // Create a safe alias from the formula
-    return "formula_" + Math.abs(formula.hashCode());
+    return "formula_" + (formula.hashCode() & Integer.MAX_VALUE);
   }
 
   /**

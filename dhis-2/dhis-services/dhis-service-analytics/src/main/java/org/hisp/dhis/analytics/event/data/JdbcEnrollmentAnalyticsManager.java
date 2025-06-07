@@ -73,6 +73,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInit
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
@@ -142,7 +143,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
-      OrganisationUnitResolver organisationUnitResolver) {
+      OrganisationUnitResolver organisationUnitResolver,
+      ColumnUtils columnUtils) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -153,7 +155,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        columnUtils);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -1085,19 +1088,36 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
 
+    boolean useShadowCte = cteContext.containsCte("top_enrollments");
+
     // Append standard columns or aggregated columns
     if (params.isAggregatedEnrollments()) {
       sb.addColumn("count(eb.enrollment) as value");
     } else {
-      getStandardColumns(params)
-          .forEach(
-              column -> {
-                if (columnIsInFormula(column)) {
-                  sb.addColumn(column);
-                } else {
-                  sb.addColumn(column, "ax");
-                }
-              });
+      if (useShadowCte) {
+        // Shadow CTE logic with aliases
+        Map<String, String> formulaAliases = getFormulaColumnAliases();
+
+        for (String column : getStandardColumns(params)) {
+          if (columnIsInFormula(column)) {
+            String alias = formulaAliases.getOrDefault(column, createDefaultAlias(column));
+            sb.addColumn(alias, "ax");
+          } else {
+            sb.addColumn(column, "ax");
+          }
+        }
+      } else {
+        // Original logic
+        getStandardColumns(params)
+            .forEach(
+                column -> {
+                  if (columnIsInFormula(column)) {
+                    sb.addColumn(column);
+                  } else {
+                    sb.addColumn(column, "ax");
+                  }
+                });
+      }
     }
 
     // Append columns from CTE definitions

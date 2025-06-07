@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -57,9 +58,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -97,7 +98,28 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableHookService analyticsTableHookService;
 
-  @InjectMocks private JdbcTrackedEntityAnalyticsTableManager tableManager;
+  private JdbcTrackedEntityAnalyticsTableManager tableManager;
+
+  @BeforeEach
+  void setUp() {
+    tableManager =
+        new JdbcTrackedEntityAnalyticsTableManager(
+            identifiableObjectManager,
+            organisationUnitService,
+            categoryService,
+            systemSettingsProvider,
+            dataApprovalLevelService,
+            resourceTableService,
+            analyticsTableHookService,
+            partitionManager,
+            jdbcTemplate,
+            trackedEntityTypeService,
+            trackedEntityAttributeService,
+            analyticsTableSettings,
+            periodDataProvider,
+            new ColumnUtils(sqlBuilder),
+            sqlBuilder);
+  }
 
   @Test
   void verifyNonConfidentialTeasAreSkipped() {

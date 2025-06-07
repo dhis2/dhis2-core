@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -69,7 +70,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -106,13 +106,28 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @InjectMocks private JdbcEnrollmentAnalyticsTableManager subject;
+  private JdbcEnrollmentAnalyticsTableManager subject;
 
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   @BeforeEach
   public void setUp() {
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+    subject =
+        new JdbcEnrollmentAnalyticsTableManager(
+            idObjectManager,
+            organisationUnitService,
+            categoryService,
+            settingsProvider,
+            dataApprovalLevelService,
+            resourceTableService,
+            analyticsTableHookService,
+            partitionManager,
+            jdbcTemplate,
+            analyticsTableSettings,
+            periodDataProvider,
+            new ColumnUtils(sqlBuilder),
+            sqlBuilder);
   }
 
   @Test

@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -53,7 +55,7 @@ class AbstractEventJdbcTableManagerTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @InjectMocks private JdbcEventAnalyticsTableManager manager;
+  @InjectMocks private ColumnUtils manager;
 
   @Test
   void testToCommaSeparated() {
@@ -67,7 +69,7 @@ class AbstractEventJdbcTableManagerTest {
         """
         "dx","pe","value\"""";
 
-    assertEquals(expected, manager.toCommaSeparated(columns, col -> manager.quote(col.getName())));
+    assertEquals(expected, toCommaSeparated(columns, col -> manager.quote(col.getName())));
   }
 
   @Test

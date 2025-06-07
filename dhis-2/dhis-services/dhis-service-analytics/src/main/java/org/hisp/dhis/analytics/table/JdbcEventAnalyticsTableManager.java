@@ -33,16 +33,15 @@ import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
+import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
-import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -67,6 +66,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnUtils;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
@@ -77,7 +77,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -118,6 +117,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
+      ColumnUtils columnUtils,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -131,6 +131,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
+        columnUtils,
         sqlBuilder);
     fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
   }
@@ -175,7 +176,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ? idObjectManager.getAllNoAcl(Program.class)
             : idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .collect(toList());
+                .toList();
 
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
@@ -277,6 +278,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private boolean hasUpdatedLatestData(Date startDate, Date endDate, Program program) {
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             select ev.eventid \
             from ${event} ev \
@@ -300,6 +302,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       String sql =
           replaceQualify(
+              sqlBuilder,
               """
               delete from ${tableName} ax \
               where ax.event in ( \
@@ -310,7 +313,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               and ev.lastupdated >= '${startDate}' \
               and ev.lastupdated < '${endDate}');""",
               Map.of(
-                  "tableName", qualify(table.getName()),
+                  "tableName", sqlBuilder.qualifyTable(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
@@ -337,6 +340,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String fromClause =
         replaceQualify(
+            sqlBuilder,
             """
             \sfrom ${event} ev \
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
@@ -502,17 +506,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     DataType dataType = getColumnType(dataElement.getValueType(), isGeospatialSupport());
     String jsonExpression =
         sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
-    String columnExpression = getColumnExpression(dataElement.getValueType(), jsonExpression);
+    String columnExpression =
+        columnUtils.getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
     String selectExpression = getSelectExpression(dataElement, columnExpression);
-    Skip skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+    Skip skipIndex = columnUtils.skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
       return getColumnFromDataElementWithLegendSet(dataElement, columnExpression, dataFilterClause);
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitDataElement(dataElement));
+      columns.addAll(columnUtils.getColumnForOrgUnitDataElement(dataElement));
     }
 
     columns.add(
@@ -536,66 +541,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private String getSelectExpression(DataElement dataElement, String columnExpression) {
     return String.format("%s as %s", columnExpression, quote(dataElement.getUid()));
-  }
-
-  /**
-   * Returns a list of columns.
-   *
-   * @param dataElement the {@link DataElement}.
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
-    if (!sqlBuilder.supportsCorrelatedSubquery()) {
-      return List.of();
-    }
-
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    if (isGeospatialSupport()) {
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .dimensionType(AnalyticsDimensionType.DYNAMIC)
-              .dataType(GEOMETRY)
-              .selectExpression(getOrgUnitSelectSubquery(dataElement, "geometry"))
-              .indexType(IndexType.GIST)
-              .build());
-    }
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
-            .dimensionType(AnalyticsDimensionType.DYNAMIC)
-            .dataType(TEXT)
-            .selectExpression(getOrgUnitSelectSubquery(dataElement, "name"))
-            .skipIndex(SKIP)
-            .build());
-
-    return columns;
-  }
-
-  /**
-   * Returns a org unit select query.
-   *
-   * @param dataElement the {@link DataElement}.
-   * @param column the column name.
-   * @return an org unit select query.
-   */
-  private String getOrgUnitSelectSubquery(DataElement dataElement, String column) {
-    String format =
-        """
-        (select ou.${column} from ${organisationunit} ou \
-        where ou.uid = ${columnExpression}) as ${alias}""";
-    String columnExpression =
-        sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
-    String alias = quote(dataElement.getUid());
-
-    return replaceQualify(
-        format,
-        Map.of(
-            "column", column,
-            "columnExpression", columnExpression,
-            "alias", alias));
   }
 
   /**
@@ -653,6 +598,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
               String selectExpression =
                   replaceQualify(
+                      sqlBuilder,
                       query,
                       Map.of(
                           "castExpr", columnExpression,
@@ -698,6 +644,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               String column = dataElement.getUid() + PartitionUtils.SEP + ls.getUid();
               String sql =
                   replaceQualify(
+                      sqlBuilder,
                       query,
                       Map.of(
                           "select", selectExpression,
@@ -761,6 +708,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
