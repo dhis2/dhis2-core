@@ -732,6 +732,14 @@ public enum ConfigurationKey {
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
+  /**
+   * Additional response headers allowed to pass through from the Route endpoint. <br>
+   * These headers are added to the default set of common response headers. <br>
+   * Headers should be in a comma-separated style <br>
+   * e.g. route.response_headers_allowed = x-custom-header,x-api-version
+   */
+  ROUTE_RESPONSE_HEADERS_ALLOWED("route.response_headers_allowed", "", false),
+
   /** Enable OAuth2 authentication server. (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
 

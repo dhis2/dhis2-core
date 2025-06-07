@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +144,7 @@ public class RouteService {
           "etag");
 
   private final List<String> allowedRouteRegexRemoteServers = new ArrayList<>();
+  private final Set<String> allowedResponseHeaders = new HashSet<>();
 
   @PostConstruct
   public void postConstruct() {
@@ -153,6 +155,18 @@ public class RouteService {
         validateHost(host);
         allowedRouteRegexRemoteServers.add(TextUtils.createRegexFromGlob(host));
       }
+    }
+
+    allowedResponseHeaders.addAll(ALLOWED_RESPONSE_HEADERS);
+    
+    String routeResponseHeadersAllowed =
+        configuration.getProperty(ConfigurationKey.ROUTE_RESPONSE_HEADERS_ALLOWED).strip();
+    Set<String> additionalHeaders = TextUtils.splitToSet(routeResponseHeadersAllowed, TextUtils.COMMA);
+    if (additionalHeaders != null) {
+      additionalHeaders.stream()
+          .map(String::trim)
+          .map(String::toLowerCase)
+          .forEach(allowedResponseHeaders::add);
     }
 
     webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
@@ -483,7 +497,7 @@ public class RouteService {
    * @return an {@link HttpHeaders}.
    */
   private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+    return filterHeaders(responseHeaders.keySet(), allowedResponseHeaders, responseHeaders::get);
   }
 
   /**
