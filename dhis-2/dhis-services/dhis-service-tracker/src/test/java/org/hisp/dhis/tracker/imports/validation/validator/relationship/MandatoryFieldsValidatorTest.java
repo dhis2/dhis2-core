@@ -145,7 +145,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `from` for relationship `" + relationshipUid + "`");
+        "RelationshipItem `from` for relationship `" + relationshipUid + "`");
   }
 
   @Test
