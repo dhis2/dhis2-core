@@ -105,7 +105,7 @@ public enum ValidationCode {
   E1095("User: `{0}` has no data write access to ProgramStage: `{1}`."),
   E1096("User: `{0}` has no data read access to Program: `{1}`."),
   E1099("User: `{0}` has no write access to CategoryOption: `{1}`."),
-  E1100("User: `{0}` is lacking 'F_TEI_CASCADE_DELETE' authority to delete TrackedEntity: `{1}`."),
+  E1100("User: `{0}` lacks 'F_TEI_CASCADE_DELETE' authority to delete TrackedEntity: `{1}`."),
   E1102("User: `{0}` does not have access to the tracked entity: `{1}` and Program: `{2}`."),
   E1103("User: `{0}` lacks 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
   E1104("User: `{0}` has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
@@ -148,7 +148,7 @@ public enum ValidationCode {
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself."),
   E4001(
-      "RelationshipTtem `{0}` for Relationship `{1}` is invalid as an item must be associated with exactly one of TrackedEntity, Enrollment, Event."),
+      "RelationshipItem `{0}` for Relationship `{1}` is invalid as an item must be associated with exactly one of TrackedEntity, Enrollment, Event."),
   E4006("Could not find RelationshipType: `{0}`."),
   E4010("RelationshipType `{0}` constraint requires a {1} but a {2} was found."),
   E4012("Could not find `{0}`: `{1}`, linked to relationship."),
