@@ -137,7 +137,7 @@ class RepeatedEventsValidatorTest extends TestBase {
         E1039,
         "ProgramStage: `"
             + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
-            + "`, is not repeatable and an event already exists.");
+            + "` is not repeatable and an event already exists.");
   }
 
   @Test
@@ -159,7 +159,7 @@ class RepeatedEventsValidatorTest extends TestBase {
                 E1039,
                 "ProgramStage: `"
                     + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
-                    + "`, is not repeatable and an event already exists."),
+                    + "` is not repeatable and an event already exists."),
         () ->
             assertHasError(
                 reporter,
@@ -167,7 +167,7 @@ class RepeatedEventsValidatorTest extends TestBase {
                 E1039,
                 "ProgramStage: `"
                     + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
-                    + "`, is not repeatable and an event already exists."));
+                    + "` is not repeatable and an event already exists."));
   }
 
   @Test

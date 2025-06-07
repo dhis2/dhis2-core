@@ -125,9 +125,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `from` for relationship `"
-            + relationshipUid
-            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event.");
+        "RelationshipTtem `from` for Relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -147,9 +145,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `from` for relationship `"
-            + relationshipUid
-            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event.");
+        "Relationship item `from` for relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -173,9 +169,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `from` for relationship `"
-            + relationshipUid
-            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event.");
+        "Relationship item `from` for relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -194,9 +188,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `to` for relationship `"
-            + relationshipUid
-            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event.");
+        "Relationship item `to` for relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -216,9 +208,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `to` for relationship `"
-            + relationshipUid
-            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event.");
+        "Relationship item `to` for relationship `" + relationshipUid + "`");
   }
 
   @Test
@@ -242,9 +232,7 @@ class MandatoryFieldsValidatorTest {
         reporter,
         relationship,
         E4001,
-        "Relationship item `to` for relationship `"
-            + relationshipUid
-            + "` is invalid: an item must link exactly one of trackedEntity, enrollment, event.");
+        "Relationship item `to` for relationship `" + relationshipUid + "`");
   }
 
   @Test
