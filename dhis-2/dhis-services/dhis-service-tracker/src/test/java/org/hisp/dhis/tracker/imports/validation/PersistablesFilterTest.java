@@ -337,12 +337,13 @@ class PersistablesFilterTest {
                 "because \"event\" `QxGbKYwChDM`"));
   }
 
+  /**
+   * If entities are found to be invalid during the validation an error for the entity will already
+   * be in the validation report. Only add errors if it would not be clear why an entity cannot be
+   * persisted.
+   */
   @Test
   void testCreateAndUpdateOnlyReportErrorsIfItAddsNewInformation() {
-    // If entities are found to be invalid during the validation an error for the entity will
-    // already be in the
-    // validation report. Only add errors if it would not be clear why an entity cannot be
-    // persisted.
 
     Setup setup =
         new Setup.Builder()
@@ -636,10 +637,14 @@ class PersistablesFilterTest {
   private static EnumMap<TrackerType, Set<UID>> invalidEntities() {
     return new EnumMap<>(
         Map.of(
-            TRACKED_ENTITY, new HashSet<>(),
-            ENROLLMENT, new HashSet<>(),
-            EVENT, new HashSet<>(),
-            RELATIONSHIP, new HashSet<>()));
+            TRACKED_ENTITY,
+            new HashSet<>(),
+            ENROLLMENT,
+            new HashSet<>(),
+            EVENT,
+            new HashSet<>(),
+            RELATIONSHIP,
+            new HashSet<>()));
   }
 
   private static <T extends TrackerDto> void assertContainsOnly(
