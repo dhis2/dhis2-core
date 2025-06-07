@@ -176,11 +176,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
         () ->
             assertHasError(
-                persistable,
-                ENROLLMENT,
-                "t1zaUjKgT3p",
-                E5000,
-                "because trackedEntity `xK7H53f4Hc2`"));
+                persistable, ENROLLMENT, "t1zaUjKgT3p", E5000, "trackedEntity `xK7H53f4Hc2`"));
   }
 
   @Test
