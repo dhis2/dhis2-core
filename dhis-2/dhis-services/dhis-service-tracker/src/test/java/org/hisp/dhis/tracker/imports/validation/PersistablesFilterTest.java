@@ -180,7 +180,7 @@ class PersistablesFilterTest {
                 ENROLLMENT,
                 "t1zaUjKgT3p",
                 E5000,
-                "because \"trackedEntity\" `xK7H53f4Hc2`"));
+                "because trackedEntity `xK7H53f4Hc2`"));
   }
 
   @Test
@@ -223,7 +223,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Event.class)),
         () ->
             assertHasError(
-                persistable, EVENT, "Qck4PQ7TMun", E5000, "because \"enrollment\" `t1zaUjKgT3p`"));
+                persistable, EVENT, "Qck4PQ7TMun", E5000, "because enrollment `t1zaUjKgT3p`"));
   }
 
   @Test
@@ -307,7 +307,7 @@ class PersistablesFilterTest {
                 RELATIONSHIP,
                 "Te3IC6TpnBB",
                 E5000,
-                "because \"enrollment\" `QxGbKYwChDM`"));
+                "because enrollment `QxGbKYwChDM`"));
   }
 
   @Test
@@ -330,11 +330,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Relationship.class)),
         () ->
             assertHasError(
-                persistable,
-                RELATIONSHIP,
-                "Te3IC6TpnBB",
-                E5000,
-                "because \"event\" `QxGbKYwChDM`"));
+                persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "because event `QxGbKYwChDM`"));
   }
 
   /**
