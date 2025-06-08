@@ -161,7 +161,6 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType {
       year = date.get(weekFields.weekBasedYear());
       week = date.get(weekFields.weekOfWeekBasedYear());
     } else {
-      dateTimeUnit = adjustToStartOfWeek(dateTimeUnit, calendar);
       week = calendar.week(dateTimeUnit);
 
       if (week == 1 && dateTimeUnit.getMonth() == calendar.monthsInYear()) {
