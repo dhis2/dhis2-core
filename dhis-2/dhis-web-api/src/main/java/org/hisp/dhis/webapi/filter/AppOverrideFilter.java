@@ -87,14 +87,14 @@ public class AppOverrideFilter extends OncePerRequestFilter {
           resourcePath,
           destinationPath);
 
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      if (authentication != null
-          && authentication.isAuthenticated()
-          && !authentication.getPrincipal().equals("anonymousUser")) {
-        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(destinationPath);
-        dispatcher.forward(request, response);
-        return;
-      }
+//      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//      if (authentication != null
+//          && authentication.isAuthenticated()
+//          && !authentication.getPrincipal().equals("anonymousUser")) {
+//        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(destinationPath);
+//        dispatcher.forward(request, response);
+//        return;
+//      }
     }
 
     chain.doFilter(request, response);
