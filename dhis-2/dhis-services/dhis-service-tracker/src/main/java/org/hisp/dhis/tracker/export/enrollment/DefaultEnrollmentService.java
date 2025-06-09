@@ -174,12 +174,16 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
 
-    if (queryParams.getTrackedEntity() != null && !enrollments.isEmpty()) {
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+
+    return enrollmentsPage.withFilteredItems(enrollments);
+  }
+
+  private void addTrackedEntityAudit(UID trackedEntity, List<Enrollment> enrollments) {
+    if (trackedEntity != null && !enrollments.isEmpty()) {
       trackedEntityAuditService.addTrackedEntityAudit(
           READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
     }
-
-    return enrollmentsPage.withFilteredItems(enrollments);
   }
 
   private Set<Event> getEvents(
