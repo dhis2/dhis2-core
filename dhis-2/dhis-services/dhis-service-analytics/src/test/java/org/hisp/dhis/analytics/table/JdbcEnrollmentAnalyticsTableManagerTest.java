@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -126,7 +126,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,
-            new ColumnUtils(sqlBuilder),
+            new ColumnMapper(sqlBuilder),
             sqlBuilder);
   }
 

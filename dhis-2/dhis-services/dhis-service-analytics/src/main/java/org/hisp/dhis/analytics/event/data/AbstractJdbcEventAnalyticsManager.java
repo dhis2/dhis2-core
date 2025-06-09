@@ -127,7 +127,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInit
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
@@ -216,7 +216,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private final OrganisationUnitResolver organisationUnitResolver;
 
-  protected final ColumnUtils columnUtils;
+  protected final ColumnMapper columnMapper;
 
   static final String ANALYTICS_EVENT = "analytics_event_";
 
@@ -2103,7 +2103,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     Set<String> columns =
         params.getProgram().getNonConfidentialTrackedEntityAttributes().stream()
-            .map(columnUtils::getColumnForAttribute)
+            .map(columnMapper::getColumnsForAttribute)
             .flatMap(Collection::stream)
             .map(AnalyticsTableColumn::getName)
             .collect(Collectors.toSet());

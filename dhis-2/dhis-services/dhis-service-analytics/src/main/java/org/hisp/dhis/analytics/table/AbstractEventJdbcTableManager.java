@@ -39,7 +39,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -56,7 +56,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Markus Bekken
  */
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
-  protected final ColumnUtils columnUtils;
+  protected final ColumnMapper columnMapper;
 
   public AbstractEventJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -70,7 +70,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      ColumnUtils columnUtils,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -85,7 +85,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
-    this.columnUtils = columnUtils;
+    this.columnMapper = columnMapper;
   }
 
   @Override
@@ -120,7 +120,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a list of {@link AnalyticsTableColumn}.
    */
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
-    return columnUtils.getColumnForAttribute(attribute);
+    return columnMapper.getColumnsForAttribute(attribute);
   }
 
   /**

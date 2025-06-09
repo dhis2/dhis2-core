@@ -55,12 +55,12 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 class ColumnUtilsTest extends TestBase {
 
-  private ColumnUtils columnUtils;
+  private ColumnMapper columnMapper;
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @BeforeEach
   void setUp() {
-    columnUtils = new ColumnUtils(sqlBuilder);
+    columnMapper = new ColumnMapper(sqlBuilder);
   }
 
   @Nested
@@ -78,7 +78,7 @@ class ColumnUtilsTest extends TestBase {
         TrackedEntityAttribute tea = createTrackedEntityAttribute(valueType.name().charAt(0));
         tea.setValueType(valueType);
 
-        List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+        List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
         assertEquals(1, result.size());
 
         AnalyticsTableColumn column = result.get(0);
@@ -95,7 +95,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.TEXT);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -115,7 +115,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.NUMBER);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -135,7 +135,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.INTEGER);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -152,7 +152,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.BOOLEAN);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -170,7 +170,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.DATE);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -186,7 +186,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.COORDINATE);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -204,7 +204,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.ORGANISATION_UNIT);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(3, result.size()); // main column + geometry + name
@@ -236,7 +236,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setOptionSet(optionSet);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -251,7 +251,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.DATETIME);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -267,7 +267,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.TIME);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(1, result.size());
@@ -288,7 +288,7 @@ class ColumnUtilsTest extends TestBase {
       TrackedEntityAttribute tea = createTrackedEntityAttribute('A');
 
       // When
-      String result = columnUtils.getValueColumn(tea);
+      String result = columnMapper.getValueColumn(tea);
 
       // Then
       assertEquals("\"" + tea.getUid() + "\".value", result);
@@ -303,7 +303,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setUid(customUid);
 
       // When
-      String result = columnUtils.getValueColumn(tea);
+      String result = columnMapper.getValueColumn(tea);
 
       // Then
       assertEquals("\"" + customUid + "\".value", result);
@@ -321,7 +321,7 @@ class ColumnUtilsTest extends TestBase {
       TrackedEntityAttribute tea = createTrackedEntityAttribute('A');
 
       // When
-      String result = columnUtils.getValueColumn(tea);
+      String result = columnMapper.getValueColumn(tea);
 
       // Then
       assertEquals("\"" + tea.getUid() + "\".value", result);
@@ -336,7 +336,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setUid(customUid);
 
       // When
-      String result = columnUtils.getValueColumn(tea);
+      String result = columnMapper.getValueColumn(tea);
 
       // Then
       assertEquals("\"" + customUid + "\".value", result);
@@ -356,7 +356,7 @@ class ColumnUtilsTest extends TestBase {
       String dataType = "integer";
 
       // When
-      String result = columnUtils.getCastExpression(columnExpr, regex, dataType);
+      String result = columnMapper.getCastExpression(columnExpr, regex, dataType);
 
       // Then
       assertTrue(result.contains("case when"));
@@ -368,7 +368,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should handle empty column expression")
     void shouldHandleEmptyColumnExpression() {
       // When
-      String result = columnUtils.getCastExpression("", "'pattern'", "integer");
+      String result = columnMapper.getCastExpression("", "'pattern'", "integer");
 
       // Then
       assertTrue(result.contains("case when"));
@@ -384,7 +384,7 @@ class ColumnUtilsTest extends TestBase {
       String dataType = "timestamp";
 
       // When
-      String result = columnUtils.getCastExpression(columnExpr, regex, dataType);
+      String result = columnMapper.getCastExpression(columnExpr, regex, dataType);
 
       // Then
       assertTrue(result.contains("case when"));
@@ -401,7 +401,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should skip index for TEXT without option set")
     void shouldSkipIndexForTextWithoutOptionSet() {
       // When
-      Skip result = columnUtils.skipIndex(ValueType.TEXT, false);
+      Skip result = columnMapper.skipIndex(ValueType.TEXT, false);
 
       // Then
       assertEquals(Skip.SKIP, result);
@@ -411,7 +411,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should include index for TEXT with option set")
     void shouldIncludeIndexForTextWithOptionSet() {
       // When
-      Skip result = columnUtils.skipIndex(ValueType.TEXT, true);
+      Skip result = columnMapper.skipIndex(ValueType.TEXT, true);
 
       // Then
       assertEquals(Skip.INCLUDE, result);
@@ -421,7 +421,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should skip index for LONG_TEXT without option set")
     void shouldSkipIndexForLongTextWithoutOptionSet() {
       // When
-      Skip result = columnUtils.skipIndex(ValueType.LONG_TEXT, false);
+      Skip result = columnMapper.skipIndex(ValueType.LONG_TEXT, false);
 
       // Then
       assertEquals(Skip.SKIP, result);
@@ -431,7 +431,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should include index for LONG_TEXT with option set")
     void shouldIncludeIndexForLongTextWithOptionSet() {
       // When
-      Skip result = columnUtils.skipIndex(ValueType.LONG_TEXT, true);
+      Skip result = columnMapper.skipIndex(ValueType.LONG_TEXT, true);
 
       // Then
       assertEquals(Skip.INCLUDE, result);
@@ -444,7 +444,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should include index for non-text types")
     void shouldIncludeIndexForNonTextTypes(ValueType valueType) {
       // When
-      Skip result = columnUtils.skipIndex(valueType, false);
+      Skip result = columnMapper.skipIndex(valueType, false);
 
       // Then
       assertEquals(Skip.INCLUDE, result);
@@ -454,7 +454,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should include index for EMAIL without option set")
     void shouldIncludeIndexForEmailWithoutOptionSet() {
       // When
-      Skip result = columnUtils.skipIndex(ValueType.EMAIL, false);
+      Skip result = columnMapper.skipIndex(ValueType.EMAIL, false);
 
       // Then
       assertEquals(Skip.INCLUDE, result);
@@ -464,7 +464,7 @@ class ColumnUtilsTest extends TestBase {
     @DisplayName("Should include index for URL without option set")
     void shouldIncludeIndexForUrlWithoutOptionSet() {
       // When
-      Skip result = columnUtils.skipIndex(ValueType.URL, false);
+      Skip result = columnMapper.skipIndex(ValueType.URL, false);
 
       // Then
       assertEquals(Skip.INCLUDE, result);
@@ -482,7 +482,7 @@ class ColumnUtilsTest extends TestBase {
       DataElement dataElement = createDataElement('A');
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForOrgUnitDataElement(dataElement);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForOrgUnitDataElement(dataElement);
 
       // Then
       assertEquals(2, result.size()); // geometry + name
@@ -511,7 +511,7 @@ class ColumnUtilsTest extends TestBase {
       dataElement.setUid(customUid);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForOrgUnitDataElement(dataElement);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForOrgUnitDataElement(dataElement);
 
       // Then
       assertEquals(2, result.size());
@@ -526,7 +526,7 @@ class ColumnUtilsTest extends TestBase {
       DataElement dataElement = createDataElement('C');
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForOrgUnitDataElement(dataElement);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForOrgUnitDataElement(dataElement);
 
       // Then
       assertEquals(2, result.size());
@@ -559,7 +559,7 @@ class ColumnUtilsTest extends TestBase {
         // When/Then - should not throw exceptions
         assertDoesNotThrow(
             () -> {
-              List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+              List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
               assertNotNull(result);
               assertFalse(result.isEmpty());
             });
@@ -576,7 +576,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.ORGANISATION_UNIT);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then - Should still create org unit columns since PostgreSQL supports correlated subqueries
       assertEquals(3, result.size());
@@ -590,7 +590,7 @@ class ColumnUtilsTest extends TestBase {
       DataElement dataElement = createDataElement('Y');
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForOrgUnitDataElement(dataElement);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForOrgUnitDataElement(dataElement);
 
       // Then - Should still create columns since PostgreSQL supports correlated subqueries
       assertEquals(2, result.size());
@@ -604,8 +604,8 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.TEXT);
 
       // When
-      String valueColumn = columnUtils.getValueColumn(tea);
-      List<AnalyticsTableColumn> columns = columnUtils.getColumnForAttribute(tea);
+      String valueColumn = columnMapper.getValueColumn(tea);
+      List<AnalyticsTableColumn> columns = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertTrue(valueColumn.contains(tea.getUid()));
@@ -627,7 +627,7 @@ class ColumnUtilsTest extends TestBase {
       tea.setOptionSet(optionSet);
 
       // When
-      List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(3, result.size());
@@ -648,8 +648,8 @@ class ColumnUtilsTest extends TestBase {
       tea.setValueType(ValueType.NUMBER);
 
       // When
-      List<AnalyticsTableColumn> result1 = columnUtils.getColumnForAttribute(tea);
-      List<AnalyticsTableColumn> result2 = columnUtils.getColumnForAttribute(tea);
+      List<AnalyticsTableColumn> result1 = columnMapper.getColumnsForAttribute(tea);
+      List<AnalyticsTableColumn> result2 = columnMapper.getColumnsForAttribute(tea);
 
       // Then
       assertEquals(result1.size(), result2.size());
@@ -670,8 +670,8 @@ class ColumnUtilsTest extends TestBase {
       DataElement de2 = createDataElement('B');
 
       // When
-      List<AnalyticsTableColumn> result1 = columnUtils.getColumnForOrgUnitDataElement(de1);
-      List<AnalyticsTableColumn> result2 = columnUtils.getColumnForOrgUnitDataElement(de2);
+      List<AnalyticsTableColumn> result1 = columnMapper.getColumnsForOrgUnitDataElement(de1);
+      List<AnalyticsTableColumn> result2 = columnMapper.getColumnsForOrgUnitDataElement(de2);
 
       // Then
       assertEquals(result1.size(), result2.size());
@@ -702,7 +702,7 @@ class ColumnUtilsTest extends TestBase {
         TrackedEntityAttribute tea = createTrackedEntityAttribute(valueType.name().charAt(0));
         tea.setValueType(valueType);
 
-        List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+        List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
         assertEquals(1, result.size());
 
         AnalyticsTableColumn column = result.get(0);
@@ -722,7 +722,7 @@ class ColumnUtilsTest extends TestBase {
         TrackedEntityAttribute tea = createTrackedEntityAttribute(valueType.name().charAt(0));
         tea.setValueType(valueType);
 
-        List<AnalyticsTableColumn> result = columnUtils.getColumnForAttribute(tea);
+        List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
         assertEquals(1, result.size());
 
         AnalyticsTableColumn column = result.get(0);

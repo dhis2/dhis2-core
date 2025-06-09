@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -55,7 +55,7 @@ class AbstractEventJdbcTableManagerTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @InjectMocks private ColumnUtils manager;
+  @InjectMocks private ColumnMapper manager;
 
   @Test
   void testToCommaSeparated() {

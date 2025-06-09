@@ -66,7 +66,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -164,7 +164,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             new PostgreSqlBuilder(),
             dataElementService);
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
-    ColumnUtils columnUtils = new ColumnUtils(sqlBuilder);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -179,7 +179,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnUtils);
+            columnMapper);
   }
 
   @Test

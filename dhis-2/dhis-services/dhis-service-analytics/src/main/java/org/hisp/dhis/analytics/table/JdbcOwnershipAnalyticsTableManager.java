@@ -54,7 +54,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -129,7 +129,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       JdbcConfiguration jdbcConfiguration,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      ColumnUtils columnUtils,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -143,7 +143,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        columnUtils,
+        columnMapper,
         sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
   }

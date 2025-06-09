@@ -66,7 +66,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
@@ -117,7 +117,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      ColumnUtils columnUtils,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -131,7 +131,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        columnUtils,
+        columnMapper,
         sqlBuilder);
     fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
   }
@@ -507,17 +507,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String jsonExpression =
         sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
     String columnExpression =
-        columnUtils.getColumnExpression(dataElement.getValueType(), jsonExpression);
+        columnMapper.getColumnExpression(dataElement.getValueType(), jsonExpression);
     String dataFilterClause = getDataFilterClause(dataElement);
     String selectExpression = getSelectExpression(dataElement, columnExpression);
-    Skip skipIndex = columnUtils.skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+    Skip skipIndex = columnMapper.skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
       return getColumnFromDataElementWithLegendSet(dataElement, columnExpression, dataFilterClause);
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
-      columns.addAll(columnUtils.getColumnForOrgUnitDataElement(dataElement));
+      columns.addAll(columnMapper.getColumnsForOrgUnitDataElement(dataElement));
     }
 
     columns.add(

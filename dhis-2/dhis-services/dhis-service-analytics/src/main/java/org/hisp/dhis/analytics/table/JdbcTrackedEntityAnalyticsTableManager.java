@@ -66,7 +66,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.ColumnUtils;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -112,7 +112,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
       TrackedEntityAttributeService trackedEntityAttributeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      ColumnUtils columnUtils,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -126,7 +126,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        columnUtils,
+        columnMapper,
         sqlBuilder);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -223,7 +223,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                         .name(tea.getUid())
                         .dataType(getColumnType(tea.getValueType(), isGeospatialSupport()))
                         .selectExpression(
-                            columnUtils.getColumnExpression(
+                            columnMapper.getColumnExpression(
                                 tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
             .toList());

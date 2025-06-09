@@ -33,7 +33,6 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class ColumnSuffix {
-
   public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
   public static final String OU_NAME_COL_SUFFIX = "_name";
 }

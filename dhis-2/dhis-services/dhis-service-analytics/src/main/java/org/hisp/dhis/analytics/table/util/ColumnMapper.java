@@ -55,10 +55,16 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * This component is responsible for mapping {@link TrackedEntityAttribute} and {@link DataElement}
+ * to {@link AnalyticsTableColumn} objects, which are used in analytics tables.
+ */
 @Component
 @RequiredArgsConstructor
-public class ColumnUtils {
+@Transactional(readOnly = true)
+public class ColumnMapper {
 
   private final SqlBuilder sqlBuilder;
   private static final EnumSet<ValueType> NO_INDEX_VAL_TYPES =
@@ -80,7 +86,13 @@ public class ColumnUtils {
   protected static final String DATE_REGEXP =
       "'^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$'";
 
-  public List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
+  /**
+   * Returns a list of columns for the given {@link TrackedEntityAttribute}.
+   *
+   * @param attribute the {@link TrackedEntityAttribute} from which to map columns.
+   * @return a list of {@link AnalyticsTableColumn} mapped to the {@link TrackedEntityAttribute}.
+   */
+  public List<AnalyticsTableColumn> getColumnsForAttribute(TrackedEntityAttribute attribute) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     String valueColumn = getValueColumn(attribute);
@@ -106,6 +118,21 @@ public class ColumnUtils {
 
   public String getValueColumn(TrackedEntityAttribute attribute) {
     return String.format("%s.%s", quote(attribute.getUid()), "value");
+  }
+
+  /**
+   * Maps a {@link DataElement} to a list of {@link AnalyticsTableColumn}.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  public List<AnalyticsTableColumn> getColumnsForOrgUnitDataElement(DataElement dataElement) {
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      return List.of();
+    }
+
+    return buildOrgUnitColumns(
+        dataElement.getUid(), column -> getOrgUnitSelectSubquery(dataElement, column));
   }
 
   /**
@@ -193,21 +220,6 @@ public class ColumnUtils {
 
     return buildOrgUnitColumns(
         attribute.getUid(), column -> getOrgUnitSelectSubquery(attribute, column));
-  }
-
-  /**
-   * Returns a list of columns.
-   *
-   * @param dataElement the {@link DataElement}.
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  public List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
-    if (!sqlBuilder.supportsCorrelatedSubquery()) {
-      return List.of();
-    }
-
-    return buildOrgUnitColumns(
-        dataElement.getUid(), column -> getOrgUnitSelectSubquery(dataElement, column));
   }
 
   /**
