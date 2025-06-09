@@ -39,10 +39,10 @@ import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -61,8 +61,8 @@ import org.springframework.stereotype.Component;
 public class ColumnUtils {
 
   private final SqlBuilder sqlBuilder;
-  private static final Set<ValueType> NO_INDEX_VAL_TYPES =
-      Set.of(ValueType.TEXT, ValueType.LONG_TEXT);
+  private static final EnumSet<ValueType> NO_INDEX_VAL_TYPES =
+      EnumSet.of(ValueType.TEXT, ValueType.LONG_TEXT);
 
   /**
    * Matches the following patterns:
@@ -172,7 +172,6 @@ public class ColumnUtils {
    * @param hasOptionSet whether an option set exists.
    * @return a {@link Skip}.
    */
-  // TODO move to skipUtils??
   public Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
     boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
     return skipIndex ? Skip.SKIP : Skip.INCLUDE;
@@ -219,7 +218,7 @@ public class ColumnUtils {
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> buildOrgUnitColumns(
-      String uid, Function<String, String> subqueryProvider) {
+      String uid, UnaryOperator<String> subqueryProvider) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (isGeospatialSupport()) {

@@ -2143,7 +2143,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected Map<String, String> getFormulaColumnAliases() {
     Map<String, String> aliases = new HashMap<>();
     aliases.put(COLUMN_ENROLLMENT_GEOMETRY_GEOJSON, "enrollmentgeometry_geojson");
-    // TODO Add other formula -> alias mappings as needed
+
     return aliases;
   }
 
