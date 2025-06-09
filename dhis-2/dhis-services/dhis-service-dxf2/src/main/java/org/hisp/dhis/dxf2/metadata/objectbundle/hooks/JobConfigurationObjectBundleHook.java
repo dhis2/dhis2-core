@@ -178,6 +178,14 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     }
     if (persistedJobConfiguration != null) {
       jobConfiguration.setJobType(persistedJobConfiguration.getJobType());
+
+      // If no executedBy value is supplied in a job & the persisted job has an executedBy value,
+      // then set it in the job config. This allows JobType#isDefaultExecutedByCreator jobs to keep
+      // their executedBy value when updated, otherwise the value is lost and jobs fail.
+      if (persistedJobConfiguration.getExecutedBy() != null
+          && jobConfiguration.getExecutedBy() == null) {
+        jobConfiguration.setExecutedBy(persistedJobConfiguration.getExecutedBy());
+      }
     }
     return jobConfiguration;
   }
