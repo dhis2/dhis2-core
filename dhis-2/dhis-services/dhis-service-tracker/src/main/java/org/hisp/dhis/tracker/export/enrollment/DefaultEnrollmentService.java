@@ -109,7 +109,6 @@ class DefaultEnrollmentService implements EnrollmentService {
       throws NotFoundException {
     Page<Enrollment> enrollments;
     try {
-      trackerProgramService.getAccessibleTrackerPrograms();
       EnrollmentOperationParams operationParams =
           EnrollmentOperationParams.builder().enrollments(Set.of(uid)).fields(fields).build();
       enrollments = findEnrollments(operationParams, PageParams.single());
