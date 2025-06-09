@@ -211,8 +211,12 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   /** Indicates the analytics type of this dimensional object. */
   AnalyticsType getAnalyticsType();
 
+  void setDimensionName(String dimensionName);
+
   /** Indicates whether this object should be handled as a data dimension. Persistent property. */
   boolean isDataDimension();
+
+  void setEventRepetition(EventRepetition eventRepetition);
 
   /**
    * Indicates whether this dimension is fixed, meaning that the name of the dimension will be
@@ -224,6 +228,8 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
 
   /** Returns a unique key representing this dimension. */
   String getKey();
+
+  void setFixed(boolean fixed);
 
   /** Returns dimension item keywords for this dimension. */
   DimensionItemKeywords getDimensionItemKeywords();
