@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -131,8 +132,7 @@ class JdbcEnrollmentStore {
             p.description as program_description, p.created as program_created, p.lastupdated as program_lastupdated,
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
-            en_ou.uid as en_org_unit_uid, en_ou.path as en_org_unit_path,
-            te_ou.uid as te_org_unit_uid, te_ou.path as te_org_unit_path,
+            en_ou.uid as en_org_unit_uid,
             tet.uid as tet_uid, tet.allowauditlog as tet_allowlog, tet.sharing as tet_sharing, notes.jsonnotes as notes
         """);
 
@@ -162,12 +162,14 @@ class JdbcEnrollmentStore {
   private void addInnerJoins(StringBuilder sql) {
     sql.append(
         """
-      join trackedentity te on te.trackedentityid = e.trackedentityid
-      join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid
-      join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
-      join organisationunit te_ou on te_ou.organisationunitid = te.organisationunitid
-      join program p on p.programid = e.programid
+      inner join program p on p.programid = e.programid
+      inner join trackedentity te on te.trackedentityid = e.trackedentityid
+      inner join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid
+      inner join trackedentityprogramowner po on po.programid = e.programid and po.trackedentityid = te.trackedentityid and p.programid = po.programid
+      inner join organisationunit ou on ou.organisationunitid = po.organisationunitid
+      inner join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
       """);
+    // TODO Do I need the last inner join?
   }
 
   private void addLeftLateralNoteJoin(StringBuilder sql) {
@@ -230,9 +232,12 @@ class JdbcEnrollmentStore {
           sqlParams,
           params.getOrganisationUnits(),
           params.getOrganisationUnitMode(),
-          "en_ou",
+          "ou",
           hlp.whereAnd());
     }
+
+    buildOwnershipClause(
+        sql, sqlParams, params.getOrganisationUnitMode(), "p", "ou", "te", () -> hlp.whereAnd());
   }
 
   private void addProgramConditions(
@@ -413,15 +418,10 @@ class JdbcEnrollmentStore {
       trackedEntity.setUid(rs.getString("tracked_entity_uid"));
       trackedEntity.setCode(rs.getString("tracked_entity_code"));
       trackedEntity.setTrackedEntityType(trackedEntityType);
-      OrganisationUnit teOrgUnit = new OrganisationUnit();
-      teOrgUnit.setUid(rs.getString("te_org_unit_uid"));
-      teOrgUnit.setPath(rs.getString("te_org_unit_path"));
-      trackedEntity.setOrganisationUnit(teOrgUnit);
       enrollment.setTrackedEntity(trackedEntity);
 
       OrganisationUnit enrollmentOrgUnit = new OrganisationUnit();
       enrollmentOrgUnit.setUid(rs.getString("en_org_unit_uid"));
-      enrollmentOrgUnit.setPath(rs.getString("en_org_unit_path"));
       enrollment.setOrganisationUnit(enrollmentOrgUnit);
 
       String jsonNotes = rs.getString("notes");

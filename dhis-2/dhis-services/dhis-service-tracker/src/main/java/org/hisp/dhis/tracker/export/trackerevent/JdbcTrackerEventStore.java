@@ -992,7 +992,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp.whereAnd());
     }
 
-    buildOwnershipClause(orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te");
+    buildOwnershipClause(
+        orgUnitBuilder,
+        sqlParameters,
+        params.getOrgUnitMode(),
+        "p",
+        "ou",
+        "te",
+        () -> hlp.whereAnd());
 
     return orgUnitBuilder.toString();
   }

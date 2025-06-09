@@ -168,7 +168,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOwnershipClause(sql, params, ALL, "p", "ou", "t");
+    buildOwnershipClause(sql, params, ALL, "p", "ou", "t", () -> "and");
 
     assertTrue(
         sql.toString().isEmpty(),
@@ -181,7 +181,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOwnershipClause(sql, params, CAPTURE, "p", "ou", "t");
+    buildOwnershipClause(sql, params, CAPTURE, "p", "ou", "t", () -> " and ");
 
     assertEquals(
         " and ((p.accesslevel in ('OPEN', 'AUDITED') and ou.path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))) or (p.accesslevel in ('PROTECTED', 'CLOSED') and ou.path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))) or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))",
@@ -206,7 +206,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    buildOwnershipClause(sql, params, orgUnitMode, "p", "ou", "t");
+    buildOwnershipClause(sql, params, orgUnitMode, "p", "ou", "t", () -> " and ");
 
     assertEquals(
         " and ((p.accesslevel in ('OPEN', 'AUDITED') and ou.path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:effectiveSearchScopeOrgUnits))) or (p.accesslevel in ('PROTECTED', 'CLOSED') and ou.path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))) or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = p.programid and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))",

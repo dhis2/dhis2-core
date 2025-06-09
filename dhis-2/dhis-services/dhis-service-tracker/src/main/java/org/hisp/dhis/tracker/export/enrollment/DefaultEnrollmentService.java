@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.audit.AuditOperationType.READ;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -58,12 +56,12 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +85,8 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private final TrackedEntityAuditService trackedEntityAuditService;
 
+  private final TrackerProgramService trackerProgramService;
+
   @Nonnull
   @Override
   public Optional<Enrollment> findEnrollment(@Nonnull UID uid) {
@@ -109,6 +109,7 @@ class DefaultEnrollmentService implements EnrollmentService {
       throws NotFoundException {
     Page<Enrollment> enrollments;
     try {
+      trackerProgramService.getAccessibleTrackerPrograms();
       EnrollmentOperationParams operationParams =
           EnrollmentOperationParams.builder().enrollments(Set.of(uid)).fields(fields).build();
       enrollments = findEnrollments(operationParams, PageParams.single());
@@ -149,8 +150,7 @@ class DefaultEnrollmentService implements EnrollmentService {
         findEnrollments(
             new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
             params.getFields(),
-            params.isIncludeDeleted(),
-            queryParams.getOrganisationUnitMode());
+            params.isIncludeDeleted());
 
     if (queryParams.getTrackedEntity() != null) {
       addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
@@ -168,11 +168,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
-        findEnrollments(
-            enrollmentsPage.getItems(),
-            params.getFields(),
-            params.isIncludeDeleted(),
-            queryParams.getOrganisationUnitMode());
+        findEnrollments(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
 
     if (queryParams.getTrackedEntity() != null) {
       addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
@@ -286,19 +282,11 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private List<Enrollment> findEnrollments(
-      Iterable<Enrollment> enrollments,
-      EnrollmentFields fields,
-      boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode) {
+      Iterable<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
     List<Enrollment> enrollmentList = new ArrayList<>();
-    UserDetails currentUser = getCurrentUserDetails();
 
     for (Enrollment enrollment : enrollments) {
-      if (enrollment != null
-          && (orgUnitMode == ALL
-              || trackerOwnershipManager.hasAccess(
-                  currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
-          && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
+      if (enrollment != null) {
         enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
       }
     }
