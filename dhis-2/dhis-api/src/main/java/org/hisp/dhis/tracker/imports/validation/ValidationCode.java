@@ -155,7 +155,7 @@ public enum ValidationCode {
   E4006("Could not find RelationshipType: `{0}`."),
   E4010("RelationshipType `{0}` constraint requires a {1} but a {2} was found."),
   E4012("Could not find `{0}`: `{1}`, linked to relationship."),
-  E4014("RelationshipType `{0}` constraint requires TrackedEntity type `{1}` but `{2}` was found."),
+  E4014("RelationshipType `{0}` constraint requires TrackedEntityType `{1}` but `{2}` was found."),
   E4015("Relationship: `{0}` already exists."),
   E4016("Relationship: `{0}` do not exist."),
   E4017("Relationship: `{0}` is already deleted and cannot be modified."),
