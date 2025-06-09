@@ -169,7 +169,6 @@ class JdbcEnrollmentStore {
       inner join organisationunit ou on ou.organisationunitid = po.organisationunitid
       inner join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
       """);
-    // TODO Do I need the last inner join?
   }
 
   private void addLeftLateralNoteJoin(StringBuilder sql) {
