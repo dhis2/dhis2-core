@@ -46,7 +46,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -90,9 +89,6 @@ public class EnrollmentOperationParams {
   /** End date for enrollment in the given program. */
   private final Date programEndDate;
 
-  /** Tracked entity type of the tracked entity in the response. */
-  private final UID trackedEntityType;
-
   /** Tracked entity. */
   private final UID trackedEntity;
 
@@ -115,16 +111,6 @@ public class EnrollmentOperationParams {
 
     public EnrollmentOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order.add(new Order(field, direction));
-      return this;
-    }
-
-    public EnrollmentOperationParamsBuilder trackedEntityType(UID uid) {
-      this.trackedEntityType = uid;
-      return this;
-    }
-
-    public EnrollmentOperationParamsBuilder trackedEntityType(TrackedEntityType trackedEntityType) {
-      this.trackedEntityType = UID.of(trackedEntityType);
       return this;
     }
 

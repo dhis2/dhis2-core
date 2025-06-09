@@ -88,6 +88,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -1612,11 +1613,11 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   /** Params builder A for getting enrollments. */
   private EventQueryParams.Builder getEnrollmentQueryBuilderA() {
-    BaseDimensionalObject periodDimension =
+    DimensionalObject periodDimension =
         new BaseDimensionalObject(
             PERIOD_DIM_ID, DimensionType.PERIOD, getList(peJan, peFeb, peMar));
 
-    BaseDimensionalObject orgUnitDimension =
+    DimensionalObject orgUnitDimension =
         new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA));
 
     return getBaseEventQueryParamsBuilder()

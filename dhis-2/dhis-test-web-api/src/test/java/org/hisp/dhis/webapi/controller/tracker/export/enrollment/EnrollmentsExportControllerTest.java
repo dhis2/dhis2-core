@@ -59,6 +59,7 @@ import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -101,6 +102,8 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   private User importUser;
 
+  private Program program;
+
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata();
@@ -114,6 +117,8 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     manager.clear();
 
     deleteTrackedEntity(UID.of(DELETE_TRACKED_ENTITY_UID));
+
+    program = get(Program.class, "BFcipDERJnf");
   }
 
   @BeforeEach
@@ -130,7 +135,10 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonEnrollment.class);
     JsonList<JsonEnrollment> queryEnrollment =
-        GET("/tracker/enrollments?fields=*&enrollments={id}", enrollment.getUid())
+        GET(
+                "/tracker/enrollments?fields=*&enrollments={id}&program={id}",
+                enrollment.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
@@ -209,8 +217,9 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
     JsonList<JsonRelationship> jsonRelationships =
         GET(
-                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=false",
-                enrollment.getUid())
+                "/tracker/enrollments?enrollments={id}&program={id}&fields=*&includeDeleted=false",
+                enrollment.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class)
             .get(0)
@@ -231,8 +240,9 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
     JsonList<JsonRelationship> jsonRelationships =
         GET(
-                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
-                enrollment.getUid())
+                "/tracker/enrollments?enrollments={id}&program={id}&fields=*&includeDeleted=true",
+                enrollment.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class)
             .get(0)
@@ -299,8 +309,9 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
     JsonList<JsonRelationship> jsonRelationships =
         GET(
-                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
-                relationship.getTo().getEnrollment().getUid())
+                "/tracker/enrollments?enrollments={id}&program={id}&fields=*&includeDeleted=true",
+                relationship.getTo().getEnrollment().getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class)
             .get(0)
@@ -417,8 +428,9 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
     JsonList<JsonEvent> jsonEvents =
         GET(
-                "/tracker/enrollments?enrollments={id}&fields=events[event]&includeDeleted=true",
-                event.getEnrollment().getUid())
+                "/tracker/enrollments?enrollments={id}&program={id}&fields=events[event]&includeDeleted=true",
+                event.getEnrollment().getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class)
             .get(0)
@@ -430,10 +442,12 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
+    Program program = get(Program.class, "shPjYNifvMK");
     JsonList<JsonEnrollment> enrollments =
         GET(
-                "/tracker/enrollments?trackedEntity={te}&includeDeleted=true&fields=deleted,trackedEntity",
-                DELETE_TRACKED_ENTITY_UID)
+                "/tracker/enrollments?trackedEntity={te}&program={id}&includeDeleted=true&fields=deleted,trackedEntity",
+                DELETE_TRACKED_ENTITY_UID,
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
@@ -481,7 +495,11 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   private BiFunction<Enrollment, String, JsonEnrollment> getEnrollmentFromEnrollmentsEndpoint() {
     return (Enrollment enrollment, String fields) ->
-        GET("/tracker/enrollments?enrollments={id}&fields={fields}", enrollment.getUid(), fields)
+        GET(
+                "/tracker/enrollments?enrollments={id}&program={id}&fields={fields}",
+                enrollment.getUid(),
+                program.getUid(),
+                fields)
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class)
             .get(0);

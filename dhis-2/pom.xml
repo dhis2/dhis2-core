@@ -117,7 +117,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.7.0.RELEASE</lettuce.version>
+    <lettuce.version>6.7.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>11.8.2</flyway-database-postgresql.version>
@@ -198,7 +198,7 @@
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.1</commons-text.version>
-    <commons-fileupload.version>1.5</commons-fileupload.version>
+    <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.19.0</commons-io.version>
@@ -244,7 +244,7 @@
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.1.1</dependency-check-maven.version>
+    <dependency-check-maven.version>12.1.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.3.0</spotbugs-maven-plugin.version>
     <spotless.version>2.44.5</spotless.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>

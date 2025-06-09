@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -81,7 +82,7 @@ class OutlierQueryParserTest {
         .thenReturn(List.of(dataElement));
 
     OrganisationUnit organisationUnit = createOrganisationUnit('O');
-    BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject();
+    DimensionalObject baseDimensionalObject = new BaseDimensionalObject();
     baseDimensionalObject.setItems(List.of(organisationUnit));
     lenient()
         .when(

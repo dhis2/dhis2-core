@@ -93,7 +93,7 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static GenericContainer<?> tokenMockServerContainer;
-  private static MockServerClient tokentMockServerClient;
+  private static MockServerClient tokenMockServerClient;
 
   @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
@@ -159,13 +159,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
-    tokentMockServerClient =
+    tokenMockServerClient =
         new MockServerClient("localhost", tokenMockServerContainer.getFirstMappedPort());
   }
 
   @BeforeEach
   void beforeEach() {
-    tokentMockServerClient.reset();
+    tokenMockServerClient.reset();
   }
 
   @AfterAll
@@ -384,7 +384,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
@@ -447,7 +447,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
@@ -499,7 +499,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(

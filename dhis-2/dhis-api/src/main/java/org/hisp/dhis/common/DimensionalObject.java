@@ -102,7 +102,7 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
           PERIOD_DIM_ID, new MetadataItem("Period"),
           ORGUNIT_DIM_ID, new MetadataItem("Organisation unit"));
 
-  Set<Class<? extends BaseDimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
+  Set<Class<? extends DimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
       Set.of(
           Category.class,
           DataElementGroupSet.class,
@@ -163,6 +163,10 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   /** Dimension items. */
   List<DimensionalItemObject> getItems();
 
+  default void setItems(List<DimensionalItemObject> items) {
+    throw new UnsupportedOperationException(getClass().getSimpleName() + " does not have items");
+  }
+
   /** Indicates whether all available items in this dimension are included. */
   boolean isAllItems();
 
@@ -215,6 +219,8 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
    * returned as is for all dimension items in the response.
    */
   boolean isFixed();
+
+  List<String> getFilterItemsAsList();
 
   /** Returns a unique key representing this dimension. */
   String getKey();

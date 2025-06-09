@@ -50,7 +50,8 @@ import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescrip
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -74,7 +75,9 @@ public class ProgramNotificationInstanceController {
 
   private final EnrollmentService enrollmentService;
 
-  private final EventService eventService;
+  private final TrackerEventService trackerEventService;
+
+  private final SingleEventService singleEventService;
 
   private final IdentifiableObjectManager manager;
 
@@ -88,9 +91,15 @@ public class ProgramNotificationInstanceController {
 
     Event storedEvent = null;
     if (requestParams.getEvent() != null) {
-      eventService.getEvent(requestParams.getEvent());
       // TODO(tracker) jdbc-hibernate: check the impact on performance
       storedEvent = manager.get(Event.class, requestParams.getEvent());
+      if (storedEvent != null) {
+        if (storedEvent.getProgramStage().getProgram().isRegistration()) {
+          trackerEventService.getEvent(requestParams.getEvent());
+        } else {
+          singleEventService.getEvent(requestParams.getEvent());
+        }
+      }
     }
     Enrollment storedEnrollment = null;
     if (requestParams.getEnrollment() != null) {

@@ -182,7 +182,7 @@ public class DimensionalObjectUtils {
    * @return a {@link Triple} of {@link Program}, {@link ProgramStage} and {@link
    *     BaseDimensionalObject}.
    */
-  public static Triple<Program, ProgramStage, BaseDimensionalObject> asBaseObjects(
+  public static Triple<Program, ProgramStage, DimensionalObject> asBaseObjects(
       String qualifiedDimension) {
     String[] uids = qualifiedDimension.split("\\.");
     BaseDimensionalObject dimensionalObject = new BaseDimensionalObject();
@@ -458,7 +458,7 @@ public class DimensionalObjectUtils {
       return;
     }
 
-    BaseDimensionalObject dim = (BaseDimensionalObject) dimension;
+    DimensionalObject dim = dimension;
 
     List<String> filterItems = dim.getFilterItemsAsList();
 
