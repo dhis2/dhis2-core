@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.audit;
 
 import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -44,7 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,8 +94,7 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
 
     assertHasSize(countBeforeTest + 1, actualAudits);
     TrackedEntityAudit expectedAudit =
-        new TrackedEntityAudit(
-            trackedEntity.getValue(), CurrentUserUtil.getCurrentUsername(), READ);
+        new TrackedEntityAudit(trackedEntity.getValue(), getCurrentUsername(), READ);
     assertAudit(expectedAudit, actualAudits.get(0));
   }
 
