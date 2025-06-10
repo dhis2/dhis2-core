@@ -117,7 +117,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     CategoryCombo categoryCombo = createCategoryCombo('A');
     manager.save(categoryCombo);
     String translatedName = "translatedName";
-    Set<Translation> translations = new HashSet<>(categoryCombo.getTranslationProperty());
+    Set<Translation> translations = new HashSet<>(categoryCombo.getTranslations());
     translations.add(new Translation(locale.getLanguage(), "NAME", translatedName));
     manager.updateTranslations(categoryCombo, translations);
     assertEquals(translatedName, categoryCombo.getDisplayName());
