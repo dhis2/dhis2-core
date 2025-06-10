@@ -46,6 +46,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -89,7 +90,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
 
   @Override
   public void preCreate(JobConfiguration config, ObjectBundle bundle) {
-    if (isEmpty(config.getExecutedBy()) && config.getJobType().isDefaultExecutedByCreator()) {
+    if (isEmpty(config.getExecutedBy()) && config.getJobType().isValidUserRequiredForJob()) {
       UserDetails creator = CurrentUserUtil.getCurrentUserDetails();
       config.setExecutedBy(creator == null ? null : creator.getUid());
     }
@@ -179,11 +180,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     if (persistedJobConfiguration != null) {
       jobConfiguration.setJobType(persistedJobConfiguration.getJobType());
 
-      // If no executedBy value is supplied in a job & the persisted job has an executedBy value,
-      // then set it in the job config. This allows JobType#isDefaultExecutedByCreator jobs to keep
-      // their executedBy value when updated, otherwise the value is lost and jobs fail.
-      if (persistedJobConfiguration.getExecutedBy() != null
-          && jobConfiguration.getExecutedBy() == null) {
+      if (executedByShouldBeKept(jobConfiguration, persistedJobConfiguration)) {
         jobConfiguration.setExecutedBy(persistedJobConfiguration.getExecutedBy());
       }
     }
@@ -235,5 +232,25 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     }
 
     return null;
+  }
+
+  /**
+   * If no executedBy value is supplied in an updated job & the persisted job has an executedBy
+   * value, then indicate that we should keep the existing value. This allows {@link
+   * JobType#isValidUserRequiredForJob()} jobs to keep their executedBy value when updated,
+   * otherwise the value is lost and jobs fail.
+   *
+   * @param updatedJobConfiguration updated job
+   * @param persistedJobConfiguration persisted job
+   * @return whether the executedBy value should be kept
+   */
+  private boolean executedByShouldBeKept(
+      JobConfiguration updatedJobConfiguration, JobConfiguration persistedJobConfiguration) {
+    JobType jobType = persistedJobConfiguration.getJobType();
+    if (jobType == null) return false;
+
+    return persistedJobConfiguration.getExecutedBy() != null
+        && updatedJobConfiguration.getExecutedBy() == null
+        && jobType.isValidUserRequiredForJob();
   }
 }
