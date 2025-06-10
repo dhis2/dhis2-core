@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -144,7 +145,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -166,7 +167,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
@@ -201,7 +202,7 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -237,7 +238,7 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -278,7 +279,7 @@ class DataValuesValidatorTest {
         .thenReturn(event(eventUid, savedStatus, Set.of("MANDATORY_DE", DATA_ELEMENT_UID)));
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(eventUid)
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(newStatus)
@@ -318,7 +319,7 @@ class DataValuesValidatorTest {
     when(preheat.getEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(eventUid)
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(newStatus)
@@ -353,7 +354,7 @@ class DataValuesValidatorTest {
     DataValue dataValue = dataValue();
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -389,7 +390,7 @@ class DataValuesValidatorTest {
     DataValue notPresentDataValue = dataValue();
     notPresentDataValue.setDataElement(MetadataIdentifier.ofUid("de_not_present_in_program_stage"));
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -424,7 +425,7 @@ class DataValuesValidatorTest {
     DataValue dataValue = dataValue();
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -450,7 +451,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
@@ -478,7 +479,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -503,7 +504,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -529,7 +530,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -557,7 +558,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(eventUid)
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -583,7 +584,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -609,7 +610,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -635,7 +636,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -660,7 +661,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue("1");
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SCHEDULE)
@@ -685,7 +686,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue("1");
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
@@ -710,7 +711,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue("1");
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.OVERDUE)
@@ -735,7 +736,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
@@ -762,7 +763,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue("QX4LpiTZmUH");
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -799,7 +800,7 @@ class DataValuesValidatorTest {
     DataValue validDataValue = dataValue("QX4LpiTZmUH");
     when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -812,7 +813,13 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent(UID.generate());
+    event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
+            .build();
     UID uid = UID.generate();
     fileResource.setFileResourceOwner(uid.getValue());
 
@@ -824,7 +831,13 @@ class DataValuesValidatorTest {
 
     assertHasError(reporter, event, ValidationCode.E1009);
 
-    event.setEvent(uid);
+    event =
+        TrackerEvent.builder()
+            .event(uid)
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
+            .build();
     fileResource.setFileResourceOwner(uid.getValue());
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
@@ -877,7 +890,7 @@ class DataValuesValidatorTest {
     when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -911,7 +924,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
@@ -947,7 +960,7 @@ class DataValuesValidatorTest {
     when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -981,7 +994,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)
@@ -1006,7 +1019,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -1034,7 +1047,7 @@ class DataValuesValidatorTest {
         .thenReturn(programStage);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
@@ -1059,7 +1072,7 @@ class DataValuesValidatorTest {
     validDataValue.setDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID));
     validDataValue.setValue(value);
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.SKIPPED)

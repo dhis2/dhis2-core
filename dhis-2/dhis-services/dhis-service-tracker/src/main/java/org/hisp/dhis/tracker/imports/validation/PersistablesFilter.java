@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 
 /**
@@ -310,7 +311,7 @@ class PersistablesFilter {
     } else if (item.getEnrollment() != null) {
       return Enrollment.builder().enrollment(item.getEnrollment()).build();
     } else if (item.getEvent() != null) {
-      return Event.builder().event(item.getEvent()).build();
+      return TrackerEvent.builder().event(item.getEvent()).build();
     }
     // only reached if a new TrackerDto implementation is added
     throw new IllegalStateException("TrackerType for relationship item not yet supported.");

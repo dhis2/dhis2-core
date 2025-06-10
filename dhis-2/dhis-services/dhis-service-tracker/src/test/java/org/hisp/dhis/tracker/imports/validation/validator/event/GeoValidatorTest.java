@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,9 +91,12 @@ class GeoValidatorTest {
   @Test
   void testGeometryIsValid() {
     // given
-    Event event = new Event();
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
-    event.setGeometry(new GeometryFactory().createPoint());
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .geometry(new GeometryFactory().createPoint())
+            .build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -104,9 +108,12 @@ class GeoValidatorTest {
   @Test
   void testEventWithNoProgramStageThrowsAnError() {
     // given
-    Event event = new Event();
-    event.setProgramStage(null);
-    event.setGeometry(new GeometryFactory().createPoint());
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .programStage(null)
+            .geometry(new GeometryFactory().createPoint())
+            .build();
 
     when(preheat.getProgramStage((MetadataIdentifier) null)).thenReturn(null);
 
@@ -117,10 +124,12 @@ class GeoValidatorTest {
   @Test
   void testProgramStageWithNullFeatureTypeFailsGeometryValidation() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
-    event.setGeometry(new GeometryFactory().createPoint());
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .geometry(new GeometryFactory().createPoint())
+            .build();
 
     // when
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(new ProgramStage());
@@ -134,10 +143,12 @@ class GeoValidatorTest {
   @Test
   void testProgramStageWithFeatureTypeNoneFailsGeometryValidation() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
-    event.setGeometry(new GeometryFactory().createPoint());
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .geometry(new GeometryFactory().createPoint())
+            .build();
 
     // when
     ProgramStage programStage = new ProgramStage();
@@ -153,10 +164,12 @@ class GeoValidatorTest {
   @Test
   void testProgramStageWithFeatureTypeDifferentFromGeometryFails() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
-    event.setGeometry(new GeometryFactory().createPoint());
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .geometry(new GeometryFactory().createPoint())
+            .build();
 
     // when
     ProgramStage programStage = new ProgramStage();

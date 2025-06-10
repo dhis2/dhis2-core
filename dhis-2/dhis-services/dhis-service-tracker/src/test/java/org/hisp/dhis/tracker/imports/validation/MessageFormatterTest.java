@@ -55,9 +55,9 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -188,7 +188,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnEventIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, Event.builder().event(UID.of("zwccdzhk5zc")).build());
+            idSchemes, TrackerEvent.builder().event(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }

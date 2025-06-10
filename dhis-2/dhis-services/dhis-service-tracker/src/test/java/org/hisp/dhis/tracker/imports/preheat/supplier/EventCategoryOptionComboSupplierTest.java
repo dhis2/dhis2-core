@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,7 +95,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
@@ -140,7 +141,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(identifierParams.toMetadataIdentifier(stage))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
@@ -182,7 +183,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
@@ -228,7 +229,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
@@ -272,7 +273,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
@@ -306,7 +307,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
@@ -339,7 +340,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
@@ -380,7 +381,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .programStage(identifierParams.toMetadataIdentifier(stage))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
@@ -419,7 +420,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program.getUid()))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
@@ -452,7 +453,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
@@ -484,7 +485,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     program.setCategoryCombo(categoryCombo);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))

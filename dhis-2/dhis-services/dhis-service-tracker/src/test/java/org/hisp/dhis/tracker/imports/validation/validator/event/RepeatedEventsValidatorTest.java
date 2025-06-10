@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Error;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -268,27 +269,26 @@ class RepeatedEventsValidatorTest extends TestBase {
   }
 
   private Event singleEvent() {
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setEnrollment(ENROLLMENT_B);
-    event.setProgramStage(
-        MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION));
-    return event;
+    return TrackerEvent.builder()
+        .event(UID.generate())
+        .enrollment(ENROLLMENT_B)
+        .programStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION))
+        .build();
   }
 
   private Event notRepeatableEvent() {
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setEnrollment(ENROLLMENT_A);
-    event.setProgramStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION));
-    return event;
+    return TrackerEvent.builder()
+        .event(UID.generate())
+        .enrollment(ENROLLMENT_A)
+        .programStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION))
+        .build();
   }
 
   private Event repeatableEvent() {
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setEnrollment(ENROLLMENT_A);
-    event.setProgramStage(MetadataIdentifier.ofUid(REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION));
-    return event;
+    return TrackerEvent.builder()
+        .event(UID.generate())
+        .enrollment(ENROLLMENT_A)
+        .programStage(MetadataIdentifier.ofUid(REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION))
+        .build();
   }
 }

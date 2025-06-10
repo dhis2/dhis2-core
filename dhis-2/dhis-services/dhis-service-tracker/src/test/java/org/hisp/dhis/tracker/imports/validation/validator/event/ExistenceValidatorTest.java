@@ -82,7 +82,9 @@ class ExistenceValidatorTest {
   @Test
   void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(NOT_PRESENT_EVENT_UID)
+            .build();
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, event);
@@ -93,7 +95,9 @@ class ExistenceValidatorTest {
   @Test
   void verifyEventValidationSuccessWhenEventIsNotPresent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(NOT_PRESENT_EVENT_UID)
+            .build();
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
@@ -105,7 +109,7 @@ class ExistenceValidatorTest {
   @Test
   void verifyEventValidationSuccessWhenIsUpdate() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(EVENT_UID).build();
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(EVENT_UID).build();
     when(preheat.getEvent(EVENT_UID)).thenReturn(getEvent());
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -118,7 +122,9 @@ class ExistenceValidatorTest {
   @Test
   void verifyEventValidationFailsWhenIsSoftDeleted() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(SOFT_DELETED_EVENT_UID).build();
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(SOFT_DELETED_EVENT_UID)
+            .build();
     when(preheat.getEvent(SOFT_DELETED_EVENT_UID)).thenReturn(getSoftDeletedEvent());
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
@@ -131,7 +137,7 @@ class ExistenceValidatorTest {
   @Test
   void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(EVENT_UID).build();
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(EVENT_UID).build();
     when(preheat.getEvent(EVENT_UID)).thenReturn(getEvent());
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
@@ -143,7 +149,9 @@ class ExistenceValidatorTest {
   @Test
   void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(NOT_PRESENT_EVENT_UID)
+            .build();
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
     validator.validate(reporter, bundle, event);

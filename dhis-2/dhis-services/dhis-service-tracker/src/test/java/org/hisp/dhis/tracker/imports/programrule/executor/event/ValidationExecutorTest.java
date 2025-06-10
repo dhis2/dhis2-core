@@ -52,6 +52,7 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -210,7 +211,7 @@ class ValidationExecutorTest extends TestBase {
   }
 
   private Event activeEvent() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
@@ -218,7 +219,7 @@ class ValidationExecutorTest extends TestBase {
   }
 
   private Event completedEvent() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(COMPLETED_EVENT_UID)
         .status(EventStatus.COMPLETED)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
