@@ -428,7 +428,7 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMergeAnalyticalObjectB() {
     Visualization visualization = new Visualization();
-    BaseDimensionalObject deCDim =
+    DimensionalObject deCDim =
         new BaseDimensionalObject(
             deC.getUid(), DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, psA, "EQ:uidA");
     visualization.getColumns().add(deCDim);
@@ -459,7 +459,7 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
   void testMergeAnalyticalEventObjectB() {
     // Given
     EventVisualization eventVisualization = new EventVisualization("any");
-    BaseDimensionalObject deCDim =
+    DimensionalObject deCDim =
         new BaseDimensionalObject(
             deC.getUid(), DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, psA, "EQ:uidA");
     eventVisualization.getColumns().add(deCDim);

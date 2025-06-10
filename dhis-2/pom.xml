@@ -117,7 +117,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.6.0.RELEASE</lettuce.version>
+    <lettuce.version>6.7.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>11.8.2</flyway-database-postgresql.version>
@@ -126,9 +126,9 @@
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.11.0-pre2</c3p0.version>
+    <c3p0.version>0.11.1</c3p0.version>
     <HikariCP.version>6.3.0</HikariCP.version>
-    <postgresql-driver.version>42.7.5</postgresql-driver.version>
+    <postgresql-driver.version>42.7.6</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
     <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
@@ -195,10 +195,10 @@
     <joda-time.version>2.14.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
-    <commons-beanutils.version>1.10.1</commons-beanutils.version>
+    <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.1</commons-text.version>
-    <commons-fileupload.version>1.5</commons-fileupload.version>
+    <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.19.0</commons-io.version>
@@ -223,7 +223,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.21.0</testcontainers.version>
+    <testcontainers.version>1.21.1</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
     <swagger.version>2.1.27</swagger.version>
@@ -244,9 +244,9 @@
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.1.1</dependency-check-maven.version>
+    <dependency-check-maven.version>12.1.2</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.3.0</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.4</spotless.version>
+    <spotless.version>2.44.5</spotless.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>

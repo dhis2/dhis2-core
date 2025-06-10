@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -94,6 +95,8 @@ class EnrollmentOperationParamsMapperTest {
   @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private TrackerProgramService trackerProgramService;
 
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 

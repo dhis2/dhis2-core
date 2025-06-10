@@ -35,12 +35,18 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hisp.dhis.analytics.ValidationHelper.getHeadersFromResponse;
+import static org.hisp.dhis.analytics.ValidationHelper.setRowData;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -59,6 +65,8 @@ public class EventQueryTest extends AnalyticsApiTest {
 
   @Test
   public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse() {
+    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -77,9 +85,9 @@ public class EventQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(17)))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
+        .body("headers", hasSize(equalTo(expectPostgis ? 17 : 14)))
+        .body("width", equalTo(expectPostgis ? 17 : 14))
+        .body("headerWidth", equalTo(expectPostgis ? 17 : 14))
         .body("rows", hasSize(equalTo(3)))
         .body("height", equalTo(3))
         .body("metaData.pager.page", equalTo(1))
@@ -95,6 +103,8 @@ public class EventQueryTest extends AnalyticsApiTest {
         .body("metaData.dimensions.pe", hasSize(equalTo(0)))
         .body("metaData.dimensions.ou", hasSize(equalTo(1)))
         .body("metaData.dimensions.ou", hasItem("ImspTQPwCqd"));
+
+    List<Map<String, Object>> actualHeaders = getHeadersFromResponse(response);
 
     // Validate headers
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
@@ -131,100 +141,146 @@ public class EventQueryTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(
-        response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
-    validateHeader(
+    if (expectPostgis) {
+      validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(
+          response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+      validateHeader(
+          response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+    }
+    validateHeaderPropertiesByName(
         response,
-        12,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
         "ounamehierarchy",
         "Organisation unit name hierarchy",
         "TEXT",
         "java.lang.String",
         false,
         true);
-    validateHeader(
-        response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 15, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 16, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
 
     // Validate the first three rows, as samples.
     validateRow(
         response,
         0,
-        List.of(
-            "ohAH6BXIMad",
-            "dBwrot7S420",
-            "2022-04-07 00:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-04-12 16:05:41.933",
-            "",
-            "",
-            "0.0",
-            "0.0",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "ACTIVE",
-            "DiszpKrYNg8"));
+        setRowData(
+            List.of(
+                "ohAH6BXIMad",
+                "dBwrot7S420",
+                "2022-04-07 00:00:00.0",
+                "",
+                ",  ()",
+                ",  ()",
+                "2018-04-12 16:05:41.933",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8"),
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
 
     validateRow(
         response,
         1,
-        List.of(
-            "onXW2DQHRGS",
-            "dBwrot7S420",
-            "2022-04-01 00:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-04-12 16:05:28.015",
-            "",
-            "",
-            "0.0",
-            "0.0",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "ACTIVE",
-            "DiszpKrYNg8"));
+        setRowData(
+            List.of(
+                "onXW2DQHRGS",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                ",  ()",
+                ",  ()",
+                "2018-04-12 16:05:28.015",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8"),
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
 
     validateRow(
         response,
         2,
-        List.of(
-            "A7vnB73x5Xw",
-            "dBwrot7S420",
-            "2022-04-01 00:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-04-12 16:05:16.957",
-            "",
-            "",
-            "0.0",
-            "0.0",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "ACTIVE",
-            "DiszpKrYNg8"));
+        setRowData(
+            List.of(
+                "A7vnB73x5Xw",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                ",  ()",
+                ",  ()",
+                "2018-04-12 16:05:16.957",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8"),
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
   }
 
   @Test
   public void queryWithProgramAndProgramStageWhenTotalPagesIsTrueByDefault() {
+
+    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -242,9 +298,9 @@ public class EventQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(17)))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
+        .body("headers", hasSize(equalTo(expectPostgis ? 17 : 14)))
+        .body("width", equalTo(expectPostgis ? 17 : 14))
+        .body("headerWidth", equalTo(expectPostgis ? 17 : 14))
         .body("rows", hasSize(equalTo(3)))
         .body("height", equalTo(3))
         .body("metaData.pager.page", equalTo(1))
@@ -260,6 +316,8 @@ public class EventQueryTest extends AnalyticsApiTest {
         .body("metaData.dimensions.pe", hasSize(equalTo(0)))
         .body("metaData.dimensions.ou", hasSize(equalTo(1)))
         .body("metaData.dimensions.ou", hasItem("ImspTQPwCqd"));
+
+    List<Map<String, Object>> actualHeaders = getHeadersFromResponse(response);
 
     // Validate headers
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
@@ -296,96 +354,140 @@ public class EventQueryTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(
-        response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
-    validateHeader(
+    if (expectPostgis) {
+      validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(
+          response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+      validateHeader(
+          response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+    }
+    validateHeaderPropertiesByName(
         response,
-        12,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
         "ounamehierarchy",
         "Organisation unit name hierarchy",
         "TEXT",
         "java.lang.String",
         false,
         true);
-    validateHeader(
-        response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 15, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 16, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
 
     // Validate the first three rows, as samples.
     validateRow(
         response,
         0,
-        List.of(
-            "ohAH6BXIMad",
-            "dBwrot7S420",
-            "2022-04-07 00:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-04-12 16:05:41.933",
-            "",
-            "",
-            "0.0",
-            "0.0",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "ACTIVE",
-            "DiszpKrYNg8"));
+        setRowData(
+            List.of(
+                "ohAH6BXIMad",
+                "dBwrot7S420",
+                "2022-04-07 00:00:00.0",
+                "",
+                ",  ()",
+                ",  ()",
+                "2018-04-12 16:05:41.933",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8"),
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
 
     validateRow(
         response,
         1,
-        List.of(
-            "onXW2DQHRGS",
-            "dBwrot7S420",
-            "2022-04-01 00:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-04-12 16:05:28.015",
-            "",
-            "",
-            "0.0",
-            "0.0",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "ACTIVE",
-            "DiszpKrYNg8"));
+        setRowData(
+            List.of(
+                "onXW2DQHRGS",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                ",  ()",
+                ",  ()",
+                "2018-04-12 16:05:28.015",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8"),
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
 
     validateRow(
         response,
         2,
-        List.of(
-            "A7vnB73x5Xw",
-            "dBwrot7S420",
-            "2022-04-01 00:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-04-12 16:05:16.957",
-            "",
-            "",
-            "0.0",
-            "0.0",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "ACTIVE",
-            "DiszpKrYNg8"));
+        setRowData(
+            List.of(
+                "A7vnB73x5Xw",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                ",  ()",
+                ",  ()",
+                "2018-04-12 16:05:16.957",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8"),
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
   }
 
   @Test
@@ -803,6 +905,7 @@ public class EventQueryTest extends AnalyticsApiTest {
 
   @Test
   void testMetadataInfoForOptionSetForQuery() {
+    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -819,7 +922,7 @@ public class EventQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(24)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 24 : 21)))
         .body("height", equalTo(0))
         .body("width", equalTo(0))
         .body("rows", hasSize(equalTo(0)))
@@ -827,9 +930,11 @@ public class EventQueryTest extends AnalyticsApiTest {
         .body("metaData.items", not(hasKey("AZK4rjJCss5")))
         .body("metaData.items", not(hasKey("UrUdMteQzlT")));
 
+    List<Map<String, Object>> actualHeaders = getHeadersFromResponse(response);
+
     validateHeader(
         response,
-        22,
+        expectPostgis ? 22 : 19,
         "C0aLZo75dgJ.CklPZdOd6H1",
         "Sex",
         "TEXT",

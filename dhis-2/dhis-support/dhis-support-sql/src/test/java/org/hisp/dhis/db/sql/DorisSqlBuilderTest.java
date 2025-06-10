@@ -367,7 +367,7 @@ class DorisSqlBuilderTest {
 
   @Test
   void testLog10() {
-    assertEquals("log(value, 10)", sqlBuilder.log10("value"));
+    assertEquals("log(10, value)", sqlBuilder.log10("value"));
   }
 
   @Test

@@ -445,9 +445,9 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof BaseIdentifiableObject
+        || obj instanceof BaseIdentifiableObject other
             && getRealClass(this) == getRealClass(obj)
-            && typedEquals((IdentifiableObject) obj);
+            && typedEquals(other);
   }
 
   /**

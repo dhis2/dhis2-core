@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackerevent;
+package org.hisp.dhis.analytics.common;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.tracker.export.Order;
-
-@Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class TrackerEventChangeLogOperationParams {
-
-  private Order order;
-  private Pair<String, QueryFilter> filter;
-
-  public static class TrackerEventChangeLogOperationParamsBuilder {
-
-    // Do not remove these unused methods. They hide the order and filter fields from the builder
-    // which Lombok
-    // does not support.
-    // They should be added via their respective orderBy and filterBy builder methods.
-    private TrackerEventChangeLogOperationParamsBuilder order(Order order) {
-      return this;
-    }
-
-    private TrackerEventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
-      return this;
-    }
-
-    public TrackerEventChangeLogOperationParamsBuilder orderBy(
-        String field, SortDirection direction) {
-      this.order = new Order(field, direction);
-      return this;
-    }
-
-    public TrackerEventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
-      this.filter = Pair.of(field, filter);
-      return this;
-    }
-  }
+/**
+ * Enum representing the different endpoint items for analytics queries. Used to distinguish between
+ * enrollment and event queries.
+ */
+public enum EndpointItem {
+  ENROLLMENT,
+  EVENT
 }

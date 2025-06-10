@@ -77,7 +77,8 @@ public class SelectBuilder {
 
   public enum JoinType {
     INNER("inner join"),
-    LEFT("left join");
+    LEFT("left join"),
+    CROSS("cross join");
 
     private final String sql;
 
@@ -201,7 +202,10 @@ public class SelectBuilder {
    */
   public record Join(JoinType type, String table, String alias, String condition) {
     public String toSql() {
-      return String.format("%s %s %s ON %s", type.toSql(), table, alias, condition);
+      if (type == JoinType.CROSS) {
+        return String.format("%s %s as %s", type.toSql(), table, alias);
+      }
+      return String.format("%s %s %s on %s", type.toSql(), table, alias, condition);
     }
   }
 
@@ -340,6 +344,18 @@ public class SelectBuilder {
    */
   public SelectBuilder leftJoin(String table, String alias, JoinCondition condition) {
     joins.add(new Join(JoinType.LEFT, table, alias, condition.build(alias)));
+    return this;
+  }
+
+  /**
+   * Adds a CROSS JOIN clause to the query.
+   *
+   * @param table the table to join
+   * @param alias the alias for the joined table
+   * @return this builder instance
+   */
+  public SelectBuilder crossJoin(String table, String alias) {
+    joins.add(new Join(JoinType.CROSS, table, alias, null));
     return this;
   }
 

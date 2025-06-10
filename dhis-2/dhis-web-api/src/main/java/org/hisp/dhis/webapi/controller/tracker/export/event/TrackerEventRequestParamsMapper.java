@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryProgram;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
@@ -67,7 +68,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-class TrackerEventRequestParamsMapper {
+public class TrackerEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
   private final FieldFilterService fieldFilterService;
@@ -75,7 +76,7 @@ class TrackerEventRequestParamsMapper {
   public TrackerEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
-    validateProgram(eventRequestParams);
+    validateMandatoryProgram(eventRequestParams.getProgram());
     OrganisationUnitSelectionMode orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             eventRequestParams.getOrgUnit() != null
@@ -222,12 +223,6 @@ class TrackerEventRequestParamsMapper {
         && DateUtils.getDuration(eventRequestParams.getUpdatedWithin()) == null) {
       throw new BadRequestException(
           "Duration is not valid: " + eventRequestParams.getUpdatedWithin());
-    }
-  }
-
-  private void validateProgram(EventRequestParams eventRequestParams) throws BadRequestException {
-    if (eventRequestParams.getProgram() == null) {
-      throw new BadRequestException("Program is mandatory");
     }
   }
 }

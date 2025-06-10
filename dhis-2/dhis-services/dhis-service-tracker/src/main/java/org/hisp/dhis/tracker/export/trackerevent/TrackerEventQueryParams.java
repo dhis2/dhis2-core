@@ -57,7 +57,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
@@ -122,13 +122,13 @@ class TrackerEventQueryParams {
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   @Getter
-  private final Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = new HashMap<>();
+  private final Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = new HashMap<>();
 
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
    * data elements added via {@link #orderBy(DataElement, SortDirection)} will be ordered by.
    */
-  @Getter private final Map<DataElement, List<JdbcPredicate>> dataElements = new HashMap<>();
+  @Getter private final Map<DataElement, List<FilterJdbcPredicate>> dataElements = new HashMap<>();
 
   private boolean hasDataElementFilter;
 
@@ -288,7 +288,7 @@ class TrackerEventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
-  private Map<TrackedEntityAttribute, List<JdbcPredicate>> getOrderAttributes() {
+  private Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> getOrderAttributes() {
     return order.stream()
         .filter(o -> o.getField() instanceof TrackedEntityAttribute)
         .map(o -> (TrackedEntityAttribute) o.getField())
@@ -331,7 +331,7 @@ class TrackerEventQueryParams {
   public TrackerEventQueryParams filterBy(
       @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
-    this.attributes.get(tea).add(JdbcPredicate.of(tea, filter));
+    this.attributes.get(tea).add(FilterJdbcPredicate.of(tea, filter));
     return this;
   }
 
@@ -342,14 +342,14 @@ class TrackerEventQueryParams {
 
   public TrackerEventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
     this.dataElements.putIfAbsent(de, new ArrayList<>());
-    this.dataElements.get(de).add(JdbcPredicate.of(de, filter, "ev"));
+    this.dataElements.get(de).add(FilterJdbcPredicate.of(de, filter, "ev"));
     this.hasDataElementFilter = true;
     return this;
   }
 
   public TrackerEventQueryParams filterBy(DataElement de) {
     this.dataElements.putIfAbsent(
-        de, List.of(JdbcPredicate.of(de, new QueryFilter(QueryOperator.NNULL), "ev")));
+        de, List.of(FilterJdbcPredicate.of(de, new QueryFilter(QueryOperator.NNULL), "ev")));
     return this;
   }
 

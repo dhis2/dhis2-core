@@ -311,9 +311,14 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
+  /**
+   * For more information, see <a
+   * href="https://doris.apache.org/docs/3.0/sql-manual/sql-functions/scalar-functions/numeric-functions/log">Apache
+   * Doris Log function</a>.
+   */
   @Override
   public String log10(String expression) {
-    return String.format("log(%s, 10)", expression);
+    return String.format("log(10, %s)", expression);
   }
 
   @Override

@@ -44,7 +44,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -93,7 +92,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   private static final String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
 
-  private static final List<Class<? extends BaseDimensionalItemObject>> DATA_ITEM_CLASSES =
+  private static final List<Class<? extends DimensionalItemObject>> DATA_ITEM_CLASSES =
       List.of(DataElement.class, Indicator.class, DataSet.class, ProgramIndicator.class);
 
   private final DatastoreService dataStore;
@@ -317,7 +316,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
       return List.of();
     }
 
-    List<BaseDimensionalItemObject> dataItems =
+    List<DimensionalItemObject> dataItems =
         idObjectManager.getByUid(DATA_ITEM_CLASSES, profile.getDataItems());
 
     if (CollectionUtils.isEmpty(dataItems)) {
