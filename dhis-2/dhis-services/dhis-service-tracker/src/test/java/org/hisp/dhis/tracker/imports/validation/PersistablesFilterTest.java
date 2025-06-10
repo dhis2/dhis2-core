@@ -176,11 +176,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
         () ->
             assertHasError(
-                persistable,
-                ENROLLMENT,
-                "t1zaUjKgT3p",
-                E5000,
-                "because \"trackedEntity\" `xK7H53f4Hc2`"));
+                persistable, ENROLLMENT, "t1zaUjKgT3p", E5000, "trackedEntity `xK7H53f4Hc2`"));
   }
 
   @Test
@@ -223,7 +219,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Event.class)),
         () ->
             assertHasError(
-                persistable, EVENT, "Qck4PQ7TMun", E5000, "because \"enrollment\" `t1zaUjKgT3p`"));
+                persistable, EVENT, "Qck4PQ7TMun", E5000, "because enrollment `t1zaUjKgT3p`"));
   }
 
   @Test
@@ -303,11 +299,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Relationship.class)),
         () ->
             assertHasError(
-                persistable,
-                RELATIONSHIP,
-                "Te3IC6TpnBB",
-                E5000,
-                "because \"enrollment\" `QxGbKYwChDM`"));
+                persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "enrollment `QxGbKYwChDM`"));
   }
 
   @Test
@@ -330,19 +322,16 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Relationship.class)),
         () ->
             assertHasError(
-                persistable,
-                RELATIONSHIP,
-                "Te3IC6TpnBB",
-                E5000,
-                "because \"event\" `QxGbKYwChDM`"));
+                persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "because event `QxGbKYwChDM`"));
   }
 
+  /**
+   * If entities are found to be invalid during the validation an error for the entity will already
+   * be in the validation report. Only add errors if it would not be clear why an entity cannot be
+   * persisted.
+   */
   @Test
   void testCreateAndUpdateOnlyReportErrorsIfItAddsNewInformation() {
-    // If entities are found to be invalid during the validation an error for the entity will
-    // already be in the
-    // validation report. Only add errors if it would not be clear why an entity cannot be
-    // persisted.
 
     Setup setup =
         new Setup.Builder()
@@ -636,10 +625,14 @@ class PersistablesFilterTest {
   private static EnumMap<TrackerType, Set<UID>> invalidEntities() {
     return new EnumMap<>(
         Map.of(
-            TRACKED_ENTITY, new HashSet<>(),
-            ENROLLMENT, new HashSet<>(),
-            EVENT, new HashSet<>(),
-            RELATIONSHIP, new HashSet<>()));
+            TRACKED_ENTITY,
+            new HashSet<>(),
+            ENROLLMENT,
+            new HashSet<>(),
+            EVENT,
+            new HashSet<>(),
+            RELATIONSHIP,
+            new HashSet<>()));
   }
 
   private static <T extends TrackerDto> void assertContainsOnly(
