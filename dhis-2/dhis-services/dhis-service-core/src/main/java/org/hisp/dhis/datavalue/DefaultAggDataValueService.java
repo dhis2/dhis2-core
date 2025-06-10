@@ -30,7 +30,7 @@
 package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
-import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.groupingBy;
 import static org.hisp.dhis.feedback.ImportResult.error;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -152,40 +152,34 @@ public class DefaultAggDataValueService implements AggDataValueService {
     List<String> deNotInDs =
         store.getDataElementsNotInDataSet(ds, values.stream().map(AggDataValue::dataElement));
     if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
-    // - OU must be a source of the DS for the DE (could be in multiple :/)
+
+    // - OU must be a source of the DS for the DE
     List<String> ouNotInDs =
         store.getOrgUnitsNotInDataSet(ds, values.stream().map(AggDataValue::orgUnit));
     if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
 
-    // key consistency (Bad Request)
-    // - COC must link (belong) to the CC of the DE (if CC override skip validation)
-    // - AOC must link (belong) to the CC of the DS!
+    // - PE ISO must be of PT used by the DS
+    List<String> isoNotUsableInDs =
+        store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(AggDataValue::period));
+    if (!isoNotUsableInDs.isEmpty())
+      throw new ConflictException(ErrorCode.E7608, ds, isoNotUsableInDs);
 
-    // - PE ISO value must map to an existing PT
-    // TODO change to filter those ISO values that are not of the target PT
-    Map<String, String> ptByIso =
-        store.getPeriodTypeByIsoPeriod(values.stream().map(AggDataValue::period));
-    List<String> isoNoPT =
-        values.stream()
-            .map(AggDataValue::period)
-            .filter(not(ptByIso::containsKey))
-            .distinct()
-            .toList();
-    if (!isoNoPT.isEmpty()) throw new ConflictException(ErrorCode.E7607, isoNoPT);
-    // - PE ISO must be of PT used by the DS for the DE (could be in multiple :/)
-    String ptTarget = store.getDataSetPeriodType(ds);
-    List<String> isoWrongPt =
-        values.stream()
-            .map(AggDataValue::period)
-            .distinct()
-            .filter(iso -> isNotSamePeriodType(ptTarget, ptByIso.get(iso)))
-            .toList();
-    if (!isoWrongPt.isEmpty())
-      throw new ConflictException(ErrorCode.E7608, ptTarget, ds, isoWrongPt);
-  }
+    // - AOC must link (belong) to the CC of the DS
+    List<String> aocNotInDs =
+        store.getAttributeOptionCombosNotInDataSet(
+            ds, values.stream().map(AggDataValue::attributeOptionCombo));
+    if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7623, ds, aocNotInDs);
 
-  private static boolean isNotSamePeriodType(String expected, String actual) {
-    return actual == null || !actual.equals(expected);
+    // - COC must link (belong) to the CC of the DE
+    Map<UID, List<AggDataValue>> valuesByDe =
+        values.stream().collect(groupingBy(AggDataValue::dataElement));
+    for (Map.Entry<UID, List<AggDataValue>> e : valuesByDe.entrySet()) {
+      UID de = e.getKey();
+      List<String> cocNotInDs =
+          store.getCategoryOptionCombosNotInDataSet(
+              ds, de, e.getValue().stream().map(AggDataValue::categoryOptionCombo));
+      if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
+    }
   }
 
   /**
@@ -195,8 +189,6 @@ public class DefaultAggDataValueService implements AggDataValueService {
    */
   private List<AggDataValue> validateValues(List<AggDataValue> values, List<ImportError> errors) {
     List<UID> dataElements = values.stream().map(AggDataValue::dataElement).distinct().toList();
-    // TODO (JB): Should DEs have an optional options regex-pattern that is used instead for big
-    // sets of uniform nature?
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());
     Map<String, Set<String>> commentOptionsByDe =
         store.getCommentOptionsByDataElements(dataElements.stream());
@@ -252,6 +244,10 @@ public class DefaultAggDataValueService implements AggDataValueService {
     return val;
   }
 
+  /**
+   * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
+   * without risk of misinterpretation of the request.
+   */
   @CheckForNull
   private UID commonDataSet(Map<String, Set<String>> dsByDe) {
     if (dsByDe.isEmpty()) return null;

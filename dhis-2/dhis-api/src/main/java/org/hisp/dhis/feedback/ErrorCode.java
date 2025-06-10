@@ -574,7 +574,7 @@ public enum ErrorCode {
   E7605("Data elements not part of dataset {0}: `{1}`"),
   E7606("Data elements belong to multiple data sets: `{0}`"),
   E7607("ISO period(s) not recognized: `{0}`"),
-  E7608("ISO period(s) do not match expected type {0} of data set {1}: `{2}`"),
+  E7608("ISO period(s) not valid for data set {0}: `{1}`"),
   E7609("Org unit(s) not valid for data set {0}: `{1}`"),
 
   // Data Value validation
@@ -591,6 +591,8 @@ public enum ErrorCode {
   E7620("Invalid comment: {0}"),
   E7621("Data value is not a valid option of the data element option set: `{0}`"),
   E7622("Current user `{0}` has no access to any organisation unit data"),
+  E7623("Attribute option combo(s) not valid for data set {0}: `{1}`"),
+  E7624("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),
 
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),

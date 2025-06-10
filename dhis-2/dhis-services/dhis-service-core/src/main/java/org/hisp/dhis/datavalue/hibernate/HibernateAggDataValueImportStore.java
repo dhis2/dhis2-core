@@ -130,25 +130,58 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
        FROM datasetsource s
        JOIN dataset ds ON s.datasetid = ds.datasetid AND ds.uid = :ds
      ) excluded ON ou.organisationunitid = excluded.sourceid
-     WHERE ou.uid IN (:ou)""";
+     WHERE ou.uid IN (:ou)
+       AND excluded.sourceid IS NULL""";
     String ds = dataSet.getValue();
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameterList("ou", ou).setParameter("ds", ds));
   }
 
   @Override
-  public Map<String, Set<String>> getCategoryOptionCombosByCategoryCombos(
-      Stream<UID> categoryCombos) {
+  public List<String> getCategoryOptionCombosNotInDataSet(
+      UID dataSet, UID dataElement, Stream<UID> optionCombos) {
     String sql =
         """
-     SELECT cc.uid, array_agg(coc.uid)
-     FROM categorycombos_optioncombos m
-     JOIN categorycombo cc ON m.categorycomboid = cc.categorycomboid
-     JOIN categoryoptioncombo coc ON m.categoryoptioncomboid = coc.categoryoptioncomboid
-     WHERE cc.uid IN (:cc)
-     GROUP BY cc.uid""";
-    String[] cc = categoryCombos.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStringsMapOfSet(sql, q -> q.setParameterList("cc", cc));
+      SELECT coc.uid
+      FROM categoryoptioncombo coc
+      LEFT JOIN (
+          SELECT m.categoryoptioncomboid
+          FROM categorycombos_optioncombos m
+          WHERE m.categorycomboid = (
+              SELECT COALESCE(dse.categorycomboid, de.categorycomboid)
+              FROM datasetelement dse
+              JOIN dataelement de ON de.dataelementid = dse.dataelementid
+              JOIN dataset ds ON ds.datasetid = dse.datasetid
+              WHERE ds.uid = :ds
+                AND de.uid = :de
+          )
+      ) excluded ON coc.categoryoptioncomboid = excluded.categoryoptioncomboid
+      WHERE coc.uid IN (:coc)
+        AND excluded.categoryoptioncomboid IS NULL""";
+    String ds = dataSet.getValue();
+    String de = dataElement.getValue();
+    String[] coc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(
+        sql, q -> q.setParameterList("coc", coc).setParameter("ds", ds).setParameter("de", de));
+  }
+
+  @Override
+  public List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos) {
+    String sql =
+        """
+     SELECT aoc.uid
+     FROM categoryoptioncombo aoc
+     LEFT JOIN (
+       SELECT m.categoryoptioncomboid
+       FROM dataset ds
+       JOIN categorycombos_optioncombos m ON ds.categorycomboid = m.categorycomboid
+       WHERE ds.uid = :ds
+     ) excluded ON aoc.categoryoptioncomboid = excluded.categoryoptioncomboid
+     WHERE aoc.uid IN (:aoc)
+       AND excluded.categoryoptioncomboid IS NULL""";
+    String ds = dataSet.getValue();
+    String[] aoc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql, q -> q.setParameterList("aoc", aoc).setParameter("ds", ds));
   }
 
   @Override
@@ -207,21 +240,6 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
       GROUP BY de.uid""";
     String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
-  }
-
-  @Override
-  public String getDataSetPeriodType(UID dataSet) {
-    String sql =
-        """
-      SELECT pt.name FROM dataset ds
-      JOIN periodtype pt ON ds.periodtypeid = pt.periodtypeid
-      WHERE ds.uid = :ds
-      """;
-    return (String)
-        getSession()
-            .createNativeQuery(sql)
-            .setParameter("ds", dataSet.getValue())
-            .getSingleResult();
   }
 
   @Override
@@ -392,16 +410,31 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
   }
 
   @Override
-  public Map<String, String> getPeriodTypeByIsoPeriod(Stream<String> isoPeriods) {
-    Map<String, String> res = new HashMap<>();
-    isoPeriods
+  public String getDataSetPeriodType(UID dataSet) {
+    String sql =
+        """
+      SELECT pt.name FROM dataset ds
+      JOIN periodtype pt ON ds.periodtypeid = pt.periodtypeid
+      WHERE ds.uid = :ds
+      """;
+    return (String)
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .getSingleResult();
+  }
+
+  @Override
+  public List<String> getIsoPeriodsNotUsableInDataSet(UID dataSet, Stream<String> isoPeriods) {
+    String expected = getDataSetPeriodType(dataSet);
+    return isoPeriods
         .distinct()
-        .forEach(
+        .filter(
             iso -> {
-              PeriodType t = PeriodType.getPeriodTypeFromIsoString(iso);
-              if (t != null) res.put(iso, t.getName());
-            });
-    return res;
+              PeriodType actual = PeriodType.getPeriodTypeFromIsoString(iso);
+              return actual == null || !expected.equals(actual.getName());
+            })
+        .toList();
   }
 
   @Nonnull

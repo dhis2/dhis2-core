@@ -52,7 +52,10 @@ public interface AggDataValueImportStore {
 
   List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
 
-  Map<String, Set<String>> getCategoryOptionCombosByCategoryCombos(Stream<UID> categoryCombos);
+  List<String> getCategoryOptionCombosNotInDataSet(
+      UID dataSet, UID dataElement, Stream<UID> optionCombos);
+
+  List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos);
 
   /**
    * @return All dataset UIDs for each of the DE UIDs. A DE that has no DS will not be contained in
@@ -74,5 +77,5 @@ public interface AggDataValueImportStore {
    * @return The {@link org.hisp.dhis.period.PeriodType} names for the given ISO periods. Does not
    *     contain ISO key entries which do not map to a type.
    */
-  Map<String, String> getPeriodTypeByIsoPeriod(Stream<String> isoPeriods);
+  List<String> getIsoPeriodsNotUsableInDataSet(UID dataSet, Stream<String> isoPeriods);
 }
