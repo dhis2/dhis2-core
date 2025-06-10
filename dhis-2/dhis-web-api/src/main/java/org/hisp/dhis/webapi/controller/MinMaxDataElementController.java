@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -81,8 +81,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @OpenApi.Document(
-        entity = DataValue.class,
-        classifiers = {"team:platform", "purpose:data"})
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/minMaxDataElements")
 @AllArgsConstructor
@@ -94,7 +94,7 @@ public class MinMaxDataElementController {
 
   @GetMapping
   public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
-          throws QueryParserException {
+      throws QueryParserException {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
     query.setFilters(filters);
@@ -113,8 +113,8 @@ public class MinMaxDataElementController {
     }
 
     rootNode.addChild(
-            fieldFilterService.toCollectionNode(
-                    MinMaxDataElement.class, new FieldFilterParams(minMaxDataElements, fields)));
+        fieldFilterService.toCollectionNode(
+            MinMaxDataElement.class, new FieldFilterParams(minMaxDataElements, fields)));
 
     return rootNode;
   }
@@ -138,7 +138,7 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteObject(@RequestBody MinMaxDataElement body)
-          throws BadRequestException, NotFoundException {
+      throws BadRequestException, NotFoundException {
     minMaxService.deleteValue(MinMaxValueKey.of(body));
   }
 
@@ -149,7 +149,7 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/upsert", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkPostJson(
-          @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
+      @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
     return bulkPostUpsert(request);
   }
 
@@ -157,7 +157,7 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/upsert", consumes = "application/json", headers = "Content-Encoding=gzip")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkPostJsonGzip(HttpServletRequest request)
-          throws BadRequestException, ConflictException {
+      throws BadRequestException, ConflictException {
 
     return bulkPostUpsert(unzip(request, MinMaxValueUpsertRequest.class));
   }
@@ -166,7 +166,7 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/upsert", consumes = "text/csv")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkPostCsv(
-          @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
     List<MinMaxValue> values = csvToEntries(request::getInputStream);
     return bulkPostUpsert(new MinMaxValueUpsertRequest(dataSet, values));
   }
@@ -175,27 +175,27 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping(value = "/upsert", consumes = "text/csv", headers = "Content-Encoding=gzip")
   public @ResponseBody ImportSuccessResponse bulkPostCsvGzip(
-          @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
 
     List<MinMaxValue> values = csvToEntries(() -> new GZIPInputStream(request.getInputStream()));
     return bulkPostUpsert(new MinMaxValueUpsertRequest(dataSet, values));
   }
 
   private ImportSuccessResponse bulkPostUpsert(MinMaxValueUpsertRequest request)
-          throws BadRequestException {
+      throws BadRequestException {
     int imported = minMaxService.importAll(request);
 
     return ImportSuccessResponse.ok()
-            .message("Successfully imported %d min-max values".formatted(imported))
-            .successful(imported)
-            .ignored(request.values().size() - imported)
-            .build();
+        .message("Successfully imported %d min-max values".formatted(imported))
+        .successful(imported)
+        .ignored(request.values().size() - imported)
+        .build();
   }
 
   @PostMapping(value = "/delete", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkDeleteJson(
-          @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
+      @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
 
     return bulkDelete(request);
   }
@@ -204,7 +204,7 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/delete", consumes = "application/json", headers = "Content-Encoding=gzip")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody ImportSuccessResponse bulkDeleteJsonGZip(HttpServletRequest request)
-          throws BadRequestException, ConflictException {
+      throws BadRequestException, ConflictException {
 
     return bulkDelete(unzip(request, MinMaxValueDeleteRequest.class));
   }
@@ -213,7 +213,7 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping(value = "/delete", consumes = "text/csv")
   public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
-          @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
 
     return bulkDelete(new MinMaxValueDeleteRequest(dataSet, csvToKeys(request::getInputStream)));
   }
@@ -222,26 +222,26 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping(value = "/delete", consumes = "text/csv", headers = "Content-Encoding=gzip")
   public @ResponseBody ImportSuccessResponse bulkDeleteCsvGzip(
-          @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
 
     return bulkDelete(
-            new MinMaxValueDeleteRequest(
-                    dataSet, csvToKeys(() -> new GZIPInputStream(request.getInputStream()))));
+        new MinMaxValueDeleteRequest(
+            dataSet, csvToKeys(() -> new GZIPInputStream(request.getInputStream()))));
   }
 
   private ImportSuccessResponse bulkDelete(MinMaxValueDeleteRequest request)
-          throws BadRequestException {
+      throws BadRequestException {
     int deleted = minMaxService.deleteAll(request);
 
     return ImportSuccessResponse.ok()
-            .message("Successfully deleted %d min-max values".formatted(deleted))
-            .successful(deleted)
-            .ignored(request.values().size() - deleted)
-            .build();
+        .message("Successfully deleted %d min-max values".formatted(deleted))
+        .successful(deleted)
+        .ignored(request.values().size() - deleted)
+        .build();
   }
 
   private static List<MinMaxValue> csvToEntries(Callable<InputStream> getInput)
-          throws BadRequestException {
+      throws BadRequestException {
     try (InputStream in = getInput.call()) {
       List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
       if (entries.isEmpty())
@@ -253,7 +253,7 @@ public class MinMaxDataElementController {
   }
 
   private static List<MinMaxValueKey> csvToKeys(Callable<InputStream> getInput)
-          throws BadRequestException {
+      throws BadRequestException {
     try (InputStream in = getInput.call()) {
       List<MinMaxValueKey> keys = CSV.of(in).as(MinMaxValueKey.class).list();
       if (keys.isEmpty())

@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -79,11 +79,11 @@ public interface HttpClientAdapter {
    */
   @Nonnull
   HttpResponse perform(
-          @Nonnull HttpMethod method,
-          @Nonnull String url,
-          @Nonnull List<Header> headers,
-          @CheckForNull String contentType,
-          @CheckForNull Body content);
+      @Nonnull HttpMethod method,
+      @Nonnull String url,
+      @Nonnull List<Header> headers,
+      @CheckForNull String contentType,
+      @CheckForNull Body content);
 
   sealed interface RequestComponent permits Header, Body {}
 
@@ -141,7 +141,7 @@ public interface HttpClientAdapter {
 
   static byte[] gzip(byte[] binary) {
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         GZIPOutputStream gz = new GZIPOutputStream(bos)) {
+        GZIPOutputStream gz = new GZIPOutputStream(bos)) {
       gz.write(binary);
       gz.finish();
       return bos.toByteArray();
@@ -187,19 +187,19 @@ public interface HttpClientAdapter {
     // Default mime-type is added as first element so that content type in
     // arguments does not override it
     return perform(
-            HttpMethod.PATCH,
-            substitutePlaceholders(url, args),
-            insert(0, requestComponentsIn(args), ContentType("application/json-patch+json")));
+        HttpMethod.PATCH,
+        substitutePlaceholders(url, args),
+        insert(0, requestComponentsIn(args), ContentType("application/json-patch+json")));
   }
 
   @Nonnull
   default HttpResponse PATCH(String url, Path body) {
     return exceptionAsFail(
-            () ->
-                    PATCH(
-                            url,
-                            Body(fileContent(body.toString())),
-                            ContentType("application/json-patch+json")));
+        () ->
+            PATCH(
+                url,
+                Body(fileContent(body.toString())),
+                ContentType("application/json-patch+json")));
   }
 
   @Nonnull
@@ -369,9 +369,9 @@ public interface HttpClientAdapter {
           errorMessage = '"' + errorMessage + '"';
         }
         String error =
-                String.format(
-                        "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
-                        status().name(), response.getStatus(), errorMessage);
+            String.format(
+                "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
+                status().name(), response.getStatus(), errorMessage);
         return JsonValue.of(error).as(JsonError.class);
       }
       return contentUnchecked().as(JsonError.class);
