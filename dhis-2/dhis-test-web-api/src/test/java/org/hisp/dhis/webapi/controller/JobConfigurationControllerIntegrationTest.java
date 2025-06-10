@@ -75,4 +75,55 @@ class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegr
     // then the executedBy value should be that of the job creator
     assertEquals("M5zQapPyTZI", executedBy);
   }
+
+  @Test
+  @DisplayName(
+      "AGGREGATE_DATA_EXCHANGE job should have an executedBy value when job is updated without that value")
+  void aggregateDataExchangeJobHasExecutedByValueOnUpdateTest() {
+    // given an agg data exchange job is set up
+    @Language("json5")
+    String job =
+        """
+        {
+             "name": "adex-job-2",
+             "jobType": "AGGREGATE_DATA_EXCHANGE",
+             "cronExpression": "2 2 * ? * *",
+             "jobParameters": {
+                 "dataExchangeIds": [
+                     "RandomUid86"
+                 ]
+             }
+         }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job));
+
+    HttpResponse get = GET("/jobConfigurations/" + jobId);
+    String executedBy = get.content().getString("executedBy").string();
+
+    // and the executedBy value is set
+    assertEquals("M5zQapPyTZI", executedBy);
+
+    // when that job is updated (e.g. new cron expression)
+    @Language("json5")
+    String jobUpdated =
+        """
+        {
+             "name": "adex-job-2",
+             "jobType": "AGGREGATE_DATA_EXCHANGE",
+             "cronExpression": "12 12 * ? * *",
+             "jobParameters": {
+                 "dataExchangeIds": [
+                     "RandomUid86"
+                 ]
+             }
+         }
+        """;
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, jobUpdated));
+
+    // then the executedBy value should still be that of the job creator
+    HttpResponse get2 = GET("/jobConfigurations/" + jobId);
+    String executedBy2 = get2.content().getString("executedBy").string();
+
+    assertEquals("M5zQapPyTZI", executedBy2);
+  }
 }
