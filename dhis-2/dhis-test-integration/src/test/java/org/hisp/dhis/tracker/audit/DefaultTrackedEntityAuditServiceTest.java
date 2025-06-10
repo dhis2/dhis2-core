@@ -29,15 +29,20 @@
  */
 package org.hisp.dhis.tracker.audit;
 
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
@@ -63,6 +68,7 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
 
   private final UID program = UID.of("BFcipDERJnf");
   private final UID trackedEntity = UID.of("QS6w44flWAf");
+  private static final Integer TIMEOUT = 5;
   private TrackedEntityAuditQueryParams params;
   private int countBeforeTest;
 
@@ -90,8 +96,11 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     enrollmentService.findEnrollments(
         EnrollmentOperationParams.builder().program(program).trackedEntity(trackedEntity).build());
-    List<TrackedEntityAudit> actualAudits = auditService.getTrackedEntityAudits(params);
+    await()
+        .atMost(TIMEOUT, TimeUnit.SECONDS)
+        .until(() -> auditService.getTrackedEntityAuditsCount(params) == countBeforeTest + 1);
 
+    List<TrackedEntityAudit> actualAudits = auditService.getTrackedEntityAudits(params);
     assertHasSize(countBeforeTest + 1, actualAudits);
     TrackedEntityAudit expectedAudit =
         new TrackedEntityAudit(
@@ -104,7 +113,22 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     enrollmentService.findEnrollments(EnrollmentOperationParams.builder().program(program).build());
 
-    assertHasSize(countBeforeTest, auditService.getTrackedEntityAudits(params));
+    assertEquals(countBeforeTest, auditService.getTrackedEntityAudits(params).size());
+  }
+
+  @Test
+  void shouldNotCreateReadAuditWhenNotGettingEnrollmentAndTrackedEntitySupplied()
+      throws ForbiddenException, BadRequestException {
+    List<Enrollment> enrollments =
+        enrollmentService.findEnrollments(
+            EnrollmentOperationParams.builder()
+                .program(program)
+                .trackedEntity(trackedEntity)
+                .enrollments(Set.of(UID.generate()))
+                .build());
+
+    assertIsEmpty(enrollments);
+    assertEquals(countBeforeTest, auditService.getTrackedEntityAudits(params).size());
   }
 
   private void assertAudit(TrackedEntityAudit expected, TrackedEntityAudit actual) {
