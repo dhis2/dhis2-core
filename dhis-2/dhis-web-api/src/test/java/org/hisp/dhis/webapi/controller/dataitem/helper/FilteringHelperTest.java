@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Set;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
@@ -64,7 +64,7 @@ class FilteringHelperTest {
   void testExtractEntitiesFromInFilter() {
     // Given
     final String anyFilters = "dimensionItemType:in:[INDICATOR,DATA_SET]";
-    final Class<? extends BaseDimensionalItemObject>[] expectedClasses =
+    final Class<? extends DimensionalItemObject>[] expectedClasses =
         new Class[] {Indicator.class, DataSet.class};
     // When
     final Set<Class<? extends IdentifiableObject>> actualClasses =
@@ -116,7 +116,7 @@ class FilteringHelperTest {
   void testExtractEntityFromEqualFilter() {
     // Given
     final String anyFilter = "dimensionItemType:eq:DATA_SET";
-    final Class<? extends BaseDimensionalItemObject> expectedClass = DataSet.class;
+    final Class<? extends DimensionalItemObject> expectedClass = DataSet.class;
     // When
     final Class<? extends IdentifiableObject> actualClass = extractEntityFromEqualFilter(anyFilter);
     // Then

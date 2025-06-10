@@ -179,11 +179,10 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || super.equals(obj) && objectEquals((BaseDimensionalItemObject) obj);
-  }
-
-  private boolean objectEquals(BaseDimensionalItemObject that) {
-    return Objects.equals(queryMods, that.queryMods);
+    return this == obj
+        || super.equals(obj)
+            && obj instanceof BaseDimensionalItemObject that
+            && Objects.equals(queryMods, that.queryMods);
   }
 
   @Override

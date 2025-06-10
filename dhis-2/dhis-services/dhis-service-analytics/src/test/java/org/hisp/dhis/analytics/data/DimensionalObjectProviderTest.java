@@ -74,7 +74,6 @@ import java.util.stream.Stream;
 import org.hisp.dhis.analytics.common.processing.MetadataDimensionsHandler;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionService;
@@ -574,7 +573,7 @@ class DimensionalObjectProviderTest {
   }
 
   private void assertKeywordForDimensionalObject(
-      Keyword keyword, BaseDimensionalItemObject dimensionalItemObject) {
+      Keyword keyword, DimensionalItemObject dimensionalItemObject) {
     assertEquals(keyword.getKey(), dimensionalItemObject.getUid());
     assertEquals(keyword.getMetadataItem().getName(), dimensionalItemObject.getName());
     assertEquals(keyword.getMetadataItem().getCode(), dimensionalItemObject.getCode());
@@ -590,7 +589,7 @@ class DimensionalObjectProviderTest {
   }
 
   private void assertBaseDimensionalObjects(
-      BaseDimensionalItemObject expected, BaseDimensionalItemObject actual) {
+      DimensionalItemObject expected, DimensionalItemObject actual) {
     assertEquals(expected.getShortName(), actual.getShortName());
     assertEquals(expected.getUid(), actual.getUid());
     assertEquals(expected.getCode(), actual.getCode());
