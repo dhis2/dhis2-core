@@ -218,7 +218,7 @@ class ConstraintValidatorTest {
         reporter,
         relationship,
         E4014,
-        "RelationshipType `from` constraint requires TrackedEntity type `madeUpUid` but"
+        "RelationshipType `from` constraint requires TrackedEntityType `madeUpUid` but"
             + " `"
             + uid
             + "` was found.");
