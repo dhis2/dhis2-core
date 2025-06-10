@@ -105,12 +105,30 @@ public class DimensionalObjectUtils {
 
     if (dimensions != null) {
       for (DimensionalObject dimension : dimensions) {
-        DimensionalObject object = ((BaseDimensionalObject) dimension).instance();
-        list.add(object);
+        list.add(copyOf(dimension));
       }
     }
 
     return list;
+  }
+
+  public static DimensionalObject copyOf(DimensionalObject sample) {
+    BaseDimensionalObject object =
+        new BaseDimensionalObject(
+            sample.getUid(),
+            sample.getDimensionType(),
+            sample.getDimensionName(),
+            sample.getDimensionDisplayName(),
+            sample.getItems(),
+            sample.isAllItems());
+
+    object.setLegendSet(sample.getLegendSet());
+    object.setAggregationType(sample.getAggregationType());
+    object.setFilter(sample.getFilter());
+    object.setDataDimension(sample.isDataDimension());
+    object.setFixed(sample.isFixed());
+    object.setDimensionalKeywords(sample.getDimensionItemKeywords());
+    return object;
   }
 
   /**
@@ -164,7 +182,7 @@ public class DimensionalObjectUtils {
                   || dimension.equals(eventRepetition.qualifiedDimension());
 
           if (associationFound) {
-            ((BaseDimensionalObject) dimensionalObject).setEventRepetition(eventRepetition);
+            dimensionalObject.setEventRepetition(eventRepetition);
           }
         }
       }

@@ -40,7 +40,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdScheme;
@@ -344,7 +343,7 @@ public class DataDimensionExtractor {
   private DimensionalItemObject getDimensionalItemObject(
       MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects,
       DimensionalItemId id) {
-    BaseDimensionalItemObject dimensionalItemObject = null;
+    DimensionalItemObject dimensionalItemObject = null;
 
     switch (id.getDimensionItemType()) {
       case DATA_ELEMENT:
@@ -440,14 +439,13 @@ public class DataDimensionExtractor {
    * @param id the item id that may have non-default query modifiers.
    * @return the item or its clone.
    */
-  private BaseDimensionalItemObject withQueryMods(
-      BaseDimensionalItemObject item, DimensionalItemId id) {
+  private DimensionalItemObject withQueryMods(DimensionalItemObject item, DimensionalItemId id) {
     if (item == null || id.getQueryMods() == null) {
       return item;
     }
 
     try {
-      BaseDimensionalItemObject clone = (BaseDimensionalItemObject) BeanUtils.cloneBean(item);
+      DimensionalItemObject clone = (DimensionalItemObject) BeanUtils.cloneBean(item);
       clone.setQueryMods(id.getQueryMods());
       return clone;
     } catch (Exception e) {

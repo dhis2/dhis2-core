@@ -267,25 +267,6 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   // Logic
   // -------------------------------------------------------------------------
 
-  public DimensionalObject instance() {
-    BaseDimensionalObject object =
-        new BaseDimensionalObject(
-            this.uid,
-            this.dimensionType,
-            this.dimensionName,
-            this.dimensionDisplayName,
-            this.items,
-            this.allItems);
-
-    object.legendSet = this.legendSet;
-    object.aggregationType = this.aggregationType;
-    object.filter = this.filter;
-    object.dataDimension = this.dataDimension;
-    object.fixed = this.fixed;
-    object.dimensionalKeywords = this.dimensionalKeywords;
-    return object;
-  }
-
   private void setProgram() {
     if (programStage != null) {
       program = programStage.getProgram();
@@ -385,6 +366,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     this.dataDimensionType = dataDimensionType;
   }
 
+  @Override
   public void setDimensionName(String dimensionName) {
     this.dimensionName = dimensionName;
   }
@@ -509,6 +491,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return eventRepetition;
   }
 
+  @Override
   public void setEventRepetition(EventRepetition eventRepetition) {
     this.eventRepetition = eventRepetition;
   }
@@ -519,6 +502,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return fixed;
   }
 
+  @Override
   public void setFixed(boolean fixed) {
     this.fixed = fixed;
   }
