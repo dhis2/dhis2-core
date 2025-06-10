@@ -192,7 +192,7 @@ public enum JobType {
    * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
    *     creation unless it was set explicitly
    */
-  public boolean isDefaultExecutedByCreator() {
+  public boolean isValidUserRequiredForJob() {
     return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE;
   }
 
