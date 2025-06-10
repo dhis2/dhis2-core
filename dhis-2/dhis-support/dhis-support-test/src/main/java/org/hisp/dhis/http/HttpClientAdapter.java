@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -41,9 +41,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -54,7 +57,7 @@ import org.intellij.lang.annotations.Language;
 /**
  * The purpose of this interface is to allow mixin style addition of the convenience web API by
  * implementing this interface's essential method {@link #perform(HttpMethod, String, List, String,
- * String)}.
+ * Body)}.
  *
  * @author Jan Bernitt
  */
@@ -76,11 +79,11 @@ public interface HttpClientAdapter {
    */
   @Nonnull
   HttpResponse perform(
-      @Nonnull HttpMethod method,
-      @Nonnull String url,
-      @Nonnull List<Header> headers,
-      @CheckForNull String contentType,
-      @CheckForNull String content);
+          @Nonnull HttpMethod method,
+          @Nonnull String url,
+          @Nonnull List<Header> headers,
+          @CheckForNull String contentType,
+          @CheckForNull Body content);
 
   sealed interface RequestComponent permits Header, Body {}
 
@@ -124,13 +127,40 @@ public interface HttpClientAdapter {
     return Header("Accept", mimeType);
   }
 
-  static Body Body(String body) {
-    return new Body(body);
+  static Body Body(String text) {
+    return new Body(text);
+  }
+
+  static Body Body(byte[] binary) {
+    return new Body(null, binary);
+  }
+
+  static byte[] gzip(String text) {
+    return gzip(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+  }
+
+  static byte[] gzip(byte[] binary) {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         GZIPOutputStream gz = new GZIPOutputStream(bos)) {
+      gz.write(binary);
+      gz.finish();
+      return bos.toByteArray();
+    } catch (java.io.IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
   record Header(String name, Object value) implements RequestComponent {}
 
-  record Body(String content) implements RequestComponent {}
+  record Body(String text, byte[] binary) implements RequestComponent {
+    public Body(String content) {
+      this(content, null);
+    }
+
+    public Body {
+      assertTrue(text != null || binary != null);
+    }
+  }
 
   @Nonnull
   default HttpResponse GET(String url, Object... args) {
@@ -157,19 +187,19 @@ public interface HttpClientAdapter {
     // Default mime-type is added as first element so that content type in
     // arguments does not override it
     return perform(
-        HttpMethod.PATCH,
-        substitutePlaceholders(url, args),
-        insert(0, requestComponentsIn(args), ContentType("application/json-patch+json")));
+            HttpMethod.PATCH,
+            substitutePlaceholders(url, args),
+            insert(0, requestComponentsIn(args), ContentType("application/json-patch+json")));
   }
 
   @Nonnull
   default HttpResponse PATCH(String url, Path body) {
     return exceptionAsFail(
-        () ->
-            PATCH(
-                url,
-                Body(fileContent(body.toString())),
-                ContentType("application/json-patch+json")));
+            () ->
+                    PATCH(
+                            url,
+                            Body(fileContent(body.toString())),
+                            ContentType("application/json-patch+json")));
   }
 
   @Nonnull
@@ -206,6 +236,7 @@ public interface HttpClientAdapter {
   default HttpResponse perform(HttpMethod method, String url, RequestComponent... components) {
     // configure headers
     String contentMediaType = null;
+    String contentEncoding = null;
     List<Header> headers = new ArrayList<>();
     for (RequestComponent c : components) {
       if (c instanceof Header header) {
@@ -213,17 +244,30 @@ public interface HttpClientAdapter {
           // last provided content type wins
           contentMediaType = header.value().toString();
         } else {
+          if (header.name().equalsIgnoreCase("Content-Encoding"))
+            contentEncoding = header.value().toString();
           headers.add(header);
         }
       }
     }
     // configure body
     Body bodyComponent = HttpClientUtils.getComponent(Body.class, components);
-    String body = bodyComponent == null ? "" : bodyComponent.content();
-    String mediaType = contentMediaType != null ? contentMediaType : "application/json";
-    if (body == null || body.isEmpty()) return perform(method, url, headers, null, null);
-    if (mediaType.startsWith("application/json")) body = body.replace('\'', '"');
-    return perform(method, url, headers, mediaType, body);
+    if (bodyComponent != null) {
+      String text = bodyComponent.text();
+      if (text != null) {
+        if (text.isEmpty()) return perform(method, url, headers, null, null);
+        if (contentMediaType == null) contentMediaType = "application/json";
+        // replace single quote with double quote (allowed for convenience)
+        if (contentMediaType.startsWith("application/json")) text = text.replace('\'', '"');
+        bodyComponent = new Body(text);
+      } else {
+        byte[] binary = bodyComponent.binary;
+        if (binary == null || binary.length == 0) perform(method, url, headers, null, null);
+        if (contentMediaType == null) contentMediaType = "application/json";
+        if (contentEncoding == null) headers.add(Header("Content-Encoding", "gzip"));
+      }
+    }
+    return perform(method, url, headers, contentMediaType, bodyComponent);
   }
 
   /** Implemented to adapt the {@link HttpClientAdapter} API to an actual implementation response */
@@ -325,9 +369,9 @@ public interface HttpClientAdapter {
           errorMessage = '"' + errorMessage + '"';
         }
         String error =
-            String.format(
-                "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
-                status().name(), response.getStatus(), errorMessage);
+                String.format(
+                        "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
+                        status().name(), response.getStatus(), errorMessage);
         return JsonValue.of(error).as(JsonError.class);
       }
       return contentUnchecked().as(JsonError.class);
