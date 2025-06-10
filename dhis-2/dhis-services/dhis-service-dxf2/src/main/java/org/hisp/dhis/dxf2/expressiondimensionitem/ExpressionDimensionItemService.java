@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -73,7 +74,7 @@ public class ExpressionDimensionItemService {
    * @param dataDimensionItem {@link IdentifiableObjectManager} expression dimension item
    * @return list of {@link BaseDimensionalItemObject}
    */
-  public List<BaseDimensionalItemObject> getExpressionItems(DataDimensionItem dataDimensionItem) {
+  public List<DimensionalItemObject> getExpressionItems(DataDimensionItem dataDimensionItem) {
     if (dataDimensionItem.getExpressionDimensionItem() == null) {
       return new ArrayList<>();
     }
@@ -82,7 +83,7 @@ public class ExpressionDimensionItemService {
 
     List<String> expressionTokens = getExpressionTokens(EXPRESSION_PATTERN, expression);
 
-    List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
+    List<DimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
 
     expressionTokens.forEach(
         et -> {

@@ -73,7 +73,7 @@ class BaseDimensionalObjectTest {
     target.setDimensionalKeywords(
         new DimensionItemKeywords(
             rnd.objects(BaseIdentifiableObject.class, 5).collect(Collectors.toList())));
-    DimensionalObject cloned = target.instance();
+    DimensionalObject cloned = DimensionalObjectUtils.copyOf(target);
     assertThat(cloned.getName(), is(target.getName()));
     assertThat(cloned.getUid(), is(target.getUid()));
     assertThat(cloned.getDimensionType(), is(target.getDimensionType()));
@@ -105,7 +105,7 @@ class BaseDimensionalObjectTest {
   @Test
   void testConstructorWithFullQualifiedDimension() {
     // When
-    BaseDimensionalObject baseDimensionalObject =
+    DimensionalObject baseDimensionalObject =
         new BaseDimensionalObject("programUid.programStageUid.dimensionUid");
 
     // Then
@@ -119,8 +119,7 @@ class BaseDimensionalObjectTest {
   @Test
   void testConstructorQualifiedDimensionNoStage() {
     // When
-    BaseDimensionalObject baseDimensionalObject =
-        new BaseDimensionalObject("programUid.dimensionUid");
+    DimensionalObject baseDimensionalObject = new BaseDimensionalObject("programUid.dimensionUid");
 
     // Then
     assertTrue(baseDimensionalObject.hasProgram());
@@ -133,7 +132,7 @@ class BaseDimensionalObjectTest {
   @Test
   void testConstructorQualifiedDimensionOnlyDimensionItem() {
     // When
-    BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject("dimensionUid");
+    DimensionalObject baseDimensionalObject = new BaseDimensionalObject("dimensionUid");
 
     // Then
     assertFalse(baseDimensionalObject.hasProgram());

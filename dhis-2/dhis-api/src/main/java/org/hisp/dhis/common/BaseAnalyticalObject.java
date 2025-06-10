@@ -126,13 +126,13 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
 
-  private static final BaseDimensionalItemObject USER_OU_ITEM_OBJ =
+  private static final DimensionalItemObject USER_OU_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT, "User organisation unit");
 
-  private static final BaseDimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
+  private static final DimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
 
-  private static final BaseDimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
+  private static final DimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT_GRANDCHILDREN, "User organisation unit grand children");
 
   public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
@@ -343,7 +343,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @param name the dimension name.
    * @return the DimensionalObject.
    */
-  private static BaseDimensionalItemObject buildDimItemObj(String uid, String name) {
+  private static DimensionalItemObject buildDimItemObj(String uid, String name) {
     BaseDimensionalItemObject itemObj = new BaseDimensionalItemObject(uid);
     itemObj.setName(name);
     return itemObj;
