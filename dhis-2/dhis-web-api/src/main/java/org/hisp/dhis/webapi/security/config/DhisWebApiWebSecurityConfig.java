@@ -315,11 +315,11 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
                   .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
+                  .requestMatchers(new AntPathRequestMatcher("/apps/login/**"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
                   .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/login.html"))
+                  .requestMatchers(new AntPathRequestMatcher("/login/**"))
                   .permitAll()
                   .requestMatchers(
                       new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
@@ -426,7 +426,7 @@ public class DhisWebApiWebSecurityConfig {
                     .tokenEndpoint()
                     .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
                     .and()
-                    .failureUrl("/dhis-web-login/?oidcFailure=true")
+                    .failureUrl("/login/?oidcFailure=true")
                     .clientRegistrationRepository(dhisOidcProviderRepository)
                     .loginProcessingUrl("/oauth2/code/*")
                     .authorizationEndpoint()
@@ -456,14 +456,12 @@ public class DhisWebApiWebSecurityConfig {
 
   @Bean
   public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
-    return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
+    return new FormLoginBasicAuthenticationEntryPoint("/login/");
   }
 
   @Bean
   public Http401LoginUrlAuthenticationEntryPoint entryPoint() {
-    // Converts to a HTTP basic login if "XMLHttpRequest".equals(
-    // request.getHeader( "X-Requested-With" ) )
-    return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-login/");
+    return new Http401LoginUrlAuthenticationEntryPoint("/login/");
   }
 
   @Bean

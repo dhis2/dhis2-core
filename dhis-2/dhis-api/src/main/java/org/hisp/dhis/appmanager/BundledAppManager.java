@@ -31,6 +31,7 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -86,7 +87,15 @@ public class BundledAppManager {
     }
   }
 
-  private AppBundleInfo getAppBundleInfo() {
+  public static AppBundleInfo getAppBundleInfo() {
+    try {
+      return objectMapper.readValue(getAppBundleInfoInputStream(), AppBundleInfo.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static InputStream getAppBundleInfoInputStream() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
@@ -97,7 +106,7 @@ public class BundledAppManager {
         return null;
       }
 
-      return objectMapper.readValue(resources[0].getInputStream(), AppBundleInfo.class);
+      return resources[0].getInputStream();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

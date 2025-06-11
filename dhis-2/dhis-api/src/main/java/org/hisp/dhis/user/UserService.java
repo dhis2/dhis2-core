@@ -61,7 +61,7 @@ public interface UserService {
 
   String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
-  String RESTORE_PATH = "/dhis-web-login/index.html#/";
+  String RESTORE_PATH = "/login/#/";
 
   String TBD_NAME = "(TBD)";
 

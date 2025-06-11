@@ -190,7 +190,8 @@ public class AppController {
     }
 
     // Get page requested
-    String resource = getResourcePath(request.getPathInfo(), application, contextPath);
+    String pathInfo = request.getPathInfo();
+    String resource = getResourcePath(pathInfo, application, contextPath);
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 

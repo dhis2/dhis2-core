@@ -582,9 +582,7 @@ public class DefaultAppManager implements AppManager {
     if (resource instanceof ResourceResult.ResourceFound resourceFound) {
       if (pageName.equals("/manifest.webapp")) {
         // If request was for manifest.webapp, check for * and replace with host
-        if (app.getActivities() != null
-            && app.getActivities().getDhis() != null
-            && "*".equals(app.getActivities().getDhis().getHref())) {
+        if ("*".equals(app.getActivities().getDhis().getHref())) {
           app.getActivities().getDhis().setHref(contextPath);
         }
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -592,7 +590,9 @@ public class DefaultAppManager implements AppManager {
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "application/json");
-      } else if (pageName.endsWith(".html")) {
+      } else if (pageName.endsWith(".html")
+          || (resourceFound.resource().getFilename() != null
+              && resourceFound.resource().getFilename().endsWith(".html"))) {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();

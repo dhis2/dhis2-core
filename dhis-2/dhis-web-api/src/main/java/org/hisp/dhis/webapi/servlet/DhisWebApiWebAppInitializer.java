@@ -167,9 +167,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    context
-        .addServlet("RootPageServlet", LoginFallbackServlet.class)
-        .addMapping("/login.html", "/dhis-web-commons/security/login.action");
+    //    context
+    //        .addServlet("RootPageServlet", LoginFallbackServlet.class)
+    //        .addMapping("/login.html", "/dhis-web-commons/security/login.action");
 
     String profile = System.getProperty("spring.profiles.active");
     if (profile == null || !profile.equals("embeddedJetty")) {

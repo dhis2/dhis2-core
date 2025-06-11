@@ -168,8 +168,6 @@
           <version>${maven-war-plugin.version}</version>
           <configuration>
             <failOnMissingWebXml>false</failOnMissingWebXml>
-            <!-- this template is only needed by bundle-apps.js to generate the dhis-web-apps/index.html -->
-            <packagingExcludes>dhis-web-apps/template.html</packagingExcludes>
             <archiveClasses>true</archiveClasses>
             <archive>
               <compress>true</compress>
