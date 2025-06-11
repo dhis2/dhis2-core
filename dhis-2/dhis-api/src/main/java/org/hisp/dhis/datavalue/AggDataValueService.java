@@ -29,17 +29,22 @@
  */
 package org.hisp.dhis.datavalue;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ImportResult;
 
 public interface AggDataValueService {
 
-  void importValue(AggDataValue value) throws ConflictException, BadRequestException;
+  void importValue(@CheckForNull UID dataSet, @Nonnull AggDataValue value)
+      throws ConflictException, BadRequestException;
 
   void deleteValue(AggDataValueKey key);
 
-  ImportResult importAll(AggDataValueUpsertRequest request)
+  ImportResult importAll(
+      AggDataValueUpsertRequest.Options options, AggDataValueUpsertRequest request)
       throws BadRequestException, ConflictException;
 
   int deleteAll(AggDataValueDeleteRequest request) throws BadRequestException;

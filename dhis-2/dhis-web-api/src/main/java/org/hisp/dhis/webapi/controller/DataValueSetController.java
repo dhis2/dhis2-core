@@ -282,11 +282,12 @@ public class DataValueSetController {
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage postJsonDataValue(@RequestBody AggDataValueUpsertRequest request)
+  public WebMessage postJsonDataValue(
+      AggDataValueUpsertRequest.Options options, @RequestBody AggDataValueUpsertRequest request)
       throws ConflictException {
 
     try {
-      ImportResult result = aggDataValueService.importAll(request);
+      ImportResult result = aggDataValueService.importAll(options, request);
       ImportSummary summary = new ImportSummary();
       summary.setImportCount(
           new ImportCount(result.succeeded(), 0, result.attempted() - result.succeeded(), 0));

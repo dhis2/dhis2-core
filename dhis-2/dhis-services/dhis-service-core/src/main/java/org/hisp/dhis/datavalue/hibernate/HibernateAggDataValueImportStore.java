@@ -185,17 +185,16 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
   }
 
   @Override
-  public Map<String, Set<String>> getDataSetsByDataElements(Stream<UID> dataElements) {
+  public List<String> getDataSets(Stream<UID> dataElements) {
     String sql =
         """
-      SELECT de.uid, ARRAY_AGG(ds.uid)
+      SELECT DISTINCT ds.uid
       FROM dataelement de
       JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
       JOIN dataset ds ON de_ds.datasetid = ds.datasetid
-      WHERE de.uid IN (:de)
-      GROUP BY de.uid""";
+      WHERE de.uid IN (:de)""";
     String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
+    return listAsStrings(sql, q -> q.setParameterList("de", de));
   }
 
   @Override

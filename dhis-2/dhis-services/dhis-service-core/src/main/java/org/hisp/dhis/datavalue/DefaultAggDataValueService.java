@@ -39,9 +39,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.AggDataValueUpsertRequest.Options;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -52,6 +54,12 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implements bulk import operation upsert and delete for data values.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
 @Service
 @RequiredArgsConstructor
 public class DefaultAggDataValueService implements AggDataValueService {
@@ -60,10 +68,10 @@ public class DefaultAggDataValueService implements AggDataValueService {
 
   @Override
   @Transactional
-  public void importValue(AggDataValue value) throws ConflictException, BadRequestException {
+  public void importValue(@CheckForNull UID dataSet, @Nonnull AggDataValue value)
+      throws ConflictException, BadRequestException {
     List<ImportError> errors = new ArrayList<>(1);
-    List<AggDataValue> validValues =
-        validate(new AggDataValueUpsertRequest(null, List.of(value)), errors);
+    List<AggDataValue> validValues = validate(dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -71,11 +79,14 @@ public class DefaultAggDataValueService implements AggDataValueService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public ImportResult importAll(AggDataValueUpsertRequest request)
+  public ImportResult importAll(Options options, AggDataValueUpsertRequest request)
       throws BadRequestException, ConflictException {
     List<ImportError> errors = new ArrayList<>();
-    List<AggDataValue> validValues = validate(request, errors);
-    int imported = store.upsertValues(validValues);
+    List<AggDataValue> values = completedValues(request);
+    List<AggDataValue> validValues = validate(request.dataSet(), values, errors);
+    if (options.atomic() && values.size() > validValues.size())
+      throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
+    int imported = options.dryRun() ? validValues.size() : store.upsertValues(validValues);
     return new ImportResult(validValues.size(), imported, errors);
   }
 
@@ -95,33 +106,21 @@ public class DefaultAggDataValueService implements AggDataValueService {
   // 1. mark all as assigned that are used
   // 2. mark all as not assigned that are not used by any
 
-  private List<AggDataValue> validate(AggDataValueUpsertRequest request, List<ImportError> errors)
+  private List<AggDataValue> validate(UID ds, List<AggDataValue> values, List<ImportError> errors)
       throws ConflictException, BadRequestException {
-    UID ds = request.dataSet();
-    List<AggDataValue> values = request.values();
     if (ds == null) {
-      Map<String, Set<String>> dsByDe =
-          store.getDataSetsByDataElements(values.stream().map(AggDataValue::dataElement));
-      ds = commonDataSet(dsByDe);
-      if (ds == null)
-        throw new ConflictException(
-            ErrorCode.E7606, dsByDe.values().stream().flatMap(Set::stream).distinct().toList());
+      /*
+       * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
+       * without risk of misinterpretation of the request.
+       */
+      List<String> uniqueDs = store.getDataSets(values.stream().map(AggDataValue::dataElement));
+      if (uniqueDs.size() != 1) throw new ConflictException(ErrorCode.E7606, uniqueDs);
+      ds = UID.of(uniqueDs.get(0));
     }
 
     validateAccess(ds, values);
     validateKeyConsistency(ds, values);
-
-    // ----------------------------------------------
-    // DS based gate-keepers (if DS specified only consider the single DS)
-    // - DS not locked (lock exceptions)
-    // - DS not already approved (data approval)
-    // - DS input period is open (no entering in the past)
-    // - DS any having the same DE is open (BS?)
-
-    // AOC related
-    // - PE must be within AOC "range" (range super complicated to find)
-    // - OU must be linked to AOC (???)
-    // ----------------------------------------------
+    validateEntry(ds, values);
 
     return validateValues(values, errors);
   }
@@ -244,15 +243,46 @@ public class DefaultAggDataValueService implements AggDataValueService {
     return val;
   }
 
-  /**
-   * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
-   * without risk of misinterpretation of the request.
-   */
-  @CheckForNull
-  private UID commonDataSet(Map<String, Set<String>> dsByDe) {
-    if (dsByDe.isEmpty()) return null;
-    if (dsByDe.values().stream().anyMatch(ds -> ds.size() != 1)) return null;
-    Set<String> ds1 = dsByDe.values().iterator().next();
-    return dsByDe.values().stream().allMatch(ds1::equals) ? UID.of(ds1.iterator().next()) : null;
+  private static List<AggDataValue> completedValues(AggDataValueUpsertRequest request) {
+    List<AggDataValue> values = request.values();
+    UID de = request.dataElement();
+    UID ou = request.orgUnit();
+    String pe = request.period();
+    return (de == null && ou == null && pe == null)
+        ? values
+        : values.stream().map(e -> completeValue(e, de, ou, pe)).toList();
+  }
+
+  private static AggDataValue completeValue(
+      AggDataValue e, UID dataElement, UID orgUnit, String period) {
+    if (e.orgUnit() != null && e.dataElement() != null && e.period() != null) return e;
+    return new AggDataValue(
+        e.dataElement() == null ? dataElement : e.dataElement(),
+        e.orgUnit() == null ? orgUnit : e.orgUnit(),
+        e.categoryOptionCombo(),
+        e.attributeOptionCombo(),
+        e.period() == null ? period : e.period(),
+        e.value(),
+        e.comment(),
+        e.followUp(),
+        e.deleted());
+  }
+
+  /*
+  Everything below belongs to the additional DS based data entry validation mechanisms
+  like input periods, locking, approval...
+  */
+
+  private void validateEntry(UID ds, List<AggDataValue> values) {
+    // - DS input period is open (no entering in the past)
+
+    // DS based gate-keepers (if DS specified only consider the single DS)
+    // - DS not locked (lock exceptions)
+    // - DS not already approved (data approval)
+    // - DS any having the same DE is open (BS?)
+
+    // AOC related
+    // - PE must be within AOC "range" (range super complicated to find)
+    // - OU must be linked to AOC (???)
   }
 }

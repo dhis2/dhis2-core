@@ -35,5 +35,19 @@ import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.UID;
 
 public record AggDataValueUpsertRequest(
-    // TODO add common OU, PE
-    @CheckForNull UID dataSet, @JsonAlias("dataValues") List<AggDataValue> values) {}
+    @CheckForNull UID dataSet,
+    // common dimensions (optional)
+    @CheckForNull UID dataElement,
+    @CheckForNull UID orgUnit,
+    @CheckForNull String period,
+    @JsonAlias("dataValues") List<AggDataValue> values) {
+
+  /**
+   * Options for the import. By default, all are {@code false}.
+   *
+   * @param dryRun not actually do the upsert
+   * @param atomic then true, any validation error (including value validation) aborts the entire
+   *     import
+   */
+  public record Options(boolean dryRun, boolean atomic) {}
+}

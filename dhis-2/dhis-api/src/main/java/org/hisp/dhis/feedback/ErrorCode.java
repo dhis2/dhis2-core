@@ -593,6 +593,7 @@ public enum ErrorCode {
   E7622("Current user `{0}` has no access to any organisation unit data"),
   E7623("Attribute option combo(s) not valid for data set {0}: `{1}`"),
   E7624("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),
+  E7625("Atomic mode requires all values to be valid but only {0}/{1} were."),
 
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),

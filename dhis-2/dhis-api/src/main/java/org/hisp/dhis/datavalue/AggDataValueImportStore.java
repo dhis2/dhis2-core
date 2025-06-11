@@ -58,10 +58,9 @@ public interface AggDataValueImportStore {
   List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos);
 
   /**
-   * @return All dataset UIDs for each of the DE UIDs. A DE that has no DS will not be contained in
-   *     the result map
+   * @return List of unique data set UIDs for the given data elements
    */
-  Map<String, Set<String>> getDataSetsByDataElements(Stream<UID> dataElements);
+  List<String> getDataSets(Stream<UID> dataElements);
 
   List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements);
 
