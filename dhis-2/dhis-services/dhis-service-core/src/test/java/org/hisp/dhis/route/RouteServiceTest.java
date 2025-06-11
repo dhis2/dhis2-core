@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Properties;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class RouteServiceTest {
 
@@ -125,5 +127,65 @@ class RouteServiceTest {
     } else {
       assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
     }
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "x-custom-header",
+        "x-api-version",
+        "x-request-id",
+        "custom-header",
+        "my-header-123",
+      })
+  void testValidateResponseHeader_ValidHeaders_ShouldPass(String headerName) {
+    Properties properties = new Properties();
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+
+    assertDoesNotThrow(() -> routeService.validateResponseHeader(headerName));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "authorization",
+        "www-authenticate",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "set-cookie",
+        "cookie",
+        "x-forwarded-user",
+        "x-auth-token",
+        "x-api-key",
+        "server",
+        "x-powered-by"
+      })
+  void testValidateResponseHeader_DangerousHeaders_ShouldReject(String headerName) {
+    Properties properties = new Properties();
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> routeService.validateResponseHeader(headerName));
+    assert (exception.getMessage().contains("blacklisted for security reasons"));
+  }
+
+  @Test
+  void testValidateResponseHeader_CaseInsensitiveDangerousHeaders_ShouldReject() {
+    Properties properties = new Properties();
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    assertThrows(
+        IllegalArgumentException.class, () -> routeService.validateResponseHeader("AUTHORIZATION"));
+    assertThrows(
+        IllegalArgumentException.class, () -> routeService.validateResponseHeader("Set-Cookie"));
+    assertThrows(
+        IllegalArgumentException.class, () -> routeService.validateResponseHeader("X-API-KEY"));
   }
 }
