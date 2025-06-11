@@ -52,11 +52,11 @@ import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.datavalue.AggDataValue;
-import org.hisp.dhis.datavalue.AggDataValueImportStore;
-import org.hisp.dhis.datavalue.AggDataValueKey;
-import org.hisp.dhis.datavalue.AggDataValueUpsert;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DviKey;
+import org.hisp.dhis.datavalue.DviRow;
+import org.hisp.dhis.datavalue.DviStore;
+import org.hisp.dhis.datavalue.DviValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -75,8 +75,7 @@ import org.springframework.stereotype.Repository;
  * @since 2.43
  */
 @Repository
-public class HibernateAggDataValueImportStore extends HibernateGenericStore<DataValue>
-    implements AggDataValueImportStore {
+public class HibernateDviStore extends HibernateGenericStore<DataValue> implements DviStore {
 
   private final PeriodStore periodStore;
 
@@ -85,7 +84,7 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
    */
   private static final int MAX_ROWS_PER_INSERT = 500;
 
-  public HibernateAggDataValueImportStore(
+  public HibernateDviStore(
       EntityManager entityManager,
       PeriodStore periodStore,
       JdbcTemplate jdbcTemplate,
@@ -266,16 +265,16 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
   }
 
   @Override
-  public int deleteByKeys(List<AggDataValueKey> keys) {
+  public int deleteByKeys(List<DviKey> keys) {
     // TODO
     return 0;
   }
 
   @Override
-  public int upsertValues(List<AggDataValue> values) {
+  public int upsertValues(List<DviValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
-    List<AggDataValueUpsert> internalValues = upsertValuesResolveIds(values);
+    List<DviRow> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
     int size = internalValues.size();
@@ -312,7 +311,7 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
             int to = from + n;
             try (PreparedStatement stmt = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
               int p = 0;
-              for (AggDataValueUpsert value : internalValues.subList(from, to)) {
+              for (DviRow value : internalValues.subList(from, to)) {
                 stmt.setLong(p + 1, value.de());
                 stmt.setLong(p + 2, value.pe());
                 stmt.setLong(p + 3, value.ou());
@@ -336,16 +335,16 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
   }
 
   @Nonnull
-  private List<AggDataValueUpsert> upsertValuesResolveIds(List<AggDataValue> values) {
-    Map<String, Long> des = getDataElementIdMap(values.stream().map(AggDataValue::dataElement));
-    Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(AggDataValue::orgUnit));
+  private List<DviRow> upsertValuesResolveIds(List<DviValue> values) {
+    Map<String, Long> des = getDataElementIdMap(values.stream().map(DviValue::dataElement));
+    Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DviValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
     Function<UID, Long> cocOf = uid -> cocs.get(uid == null ? "default" : uid.getValue());
 
-    List<AggDataValueUpsert> internalValues = new ArrayList<>(values.size());
+    List<DviRow> internalValues = new ArrayList<>(values.size());
 
-    for (AggDataValue value : values) {
+    for (DviValue value : values) {
       Long de = des.get(value.dataElement().getValue());
       Long pe = pes.get(value.period());
       Long ou = ous.get(value.orgUnit().getValue());
@@ -355,7 +354,7 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
         Boolean deleted = value.deleted();
         if (deleted == null) deleted = false;
         internalValues.add(
-            new AggDataValueUpsert(
+            new DviRow(
                 de, pe, ou, coc, aoc, value.value(), value.comment(), value.followUp(), deleted));
       }
     }
@@ -387,20 +386,20 @@ public class HibernateAggDataValueImportStore extends HibernateGenericStore<Data
     return ((Number) getSession().createNativeQuery(sql).getSingleResult()).longValue();
   }
 
-  private Map<String, Long> getOptionComboIdMap(List<AggDataValue> values) {
+  private Map<String, Long> getOptionComboIdMap(List<DviValue> values) {
     long defaultCoc = getDefaultCategoryOptionComboId();
     Map<String, Long> res =
         getOptionComboIdMap(
             Stream.concat(
-                values.stream().map(AggDataValue::categoryOptionCombo),
-                values.stream().map(AggDataValue::attributeOptionCombo).filter(Objects::nonNull)));
+                values.stream().map(DviValue::categoryOptionCombo),
+                values.stream().map(DviValue::attributeOptionCombo).filter(Objects::nonNull)));
     res.put("", defaultCoc);
     return res;
   }
 
   @Nonnull
-  private Map<String, Long> getPeriodsIdMap(List<AggDataValue> values) {
-    List<String> periods = values.stream().map(AggDataValue::period).distinct().toList();
+  private Map<String, Long> getPeriodsIdMap(List<DviValue> values) {
+    List<String> periods = values.stream().map(DviValue::period).distinct().toList();
     Map<String, Period> periodsByISO = new HashMap<>(periods.size());
     periods.forEach(p -> periodsByISO.put(p, PeriodType.getPeriodFromIsoString(p)));
     Map<String, Long> pes = new HashMap<>(periodsByISO.size());

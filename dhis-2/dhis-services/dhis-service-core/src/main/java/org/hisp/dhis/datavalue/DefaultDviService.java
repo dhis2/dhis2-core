@@ -43,7 +43,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.datavalue.AggDataValueUpsertRequest.Options;
+import org.hisp.dhis.datavalue.DviUpsertRequest.Options;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -62,16 +62,16 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultAggDataValueService implements AggDataValueService {
+public class DefaultDviService implements DviService {
 
-  private final AggDataValueImportStore store;
+  private final DviStore store;
 
   @Override
   @Transactional
-  public void importValue(@CheckForNull UID dataSet, @Nonnull AggDataValue value)
+  public void importValue(@CheckForNull UID dataSet, @Nonnull DviValue value)
       throws ConflictException, BadRequestException {
     List<ImportError> errors = new ArrayList<>(1);
-    List<AggDataValue> validValues = validate(dataSet, List.of(value), errors);
+    List<DviValue> validValues = validate(dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -79,11 +79,11 @@ public class DefaultAggDataValueService implements AggDataValueService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public ImportResult importAll(Options options, AggDataValueUpsertRequest request)
+  public ImportResult importAll(Options options, DviUpsertRequest request)
       throws BadRequestException, ConflictException {
     List<ImportError> errors = new ArrayList<>();
-    List<AggDataValue> values = completedValues(request);
-    List<AggDataValue> validValues = validate(request.dataSet(), values, errors);
+    List<DviValue> values = completedValues(request);
+    List<DviValue> validValues = validate(request.dataSet(), values, errors);
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
     int imported = options.dryRun() ? validValues.size() : store.upsertValues(validValues);
@@ -92,12 +92,12 @@ public class DefaultAggDataValueService implements AggDataValueService {
 
   @Override
   @Transactional
-  public void deleteValue(AggDataValueKey key) {}
+  public void deleteValue(DviKey key) {}
 
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value deletion")
-  public int deleteAll(AggDataValueDeleteRequest request) throws BadRequestException {
+  public int deleteAll(DviDeleteRequest request) throws BadRequestException {
     return 0;
   }
 
@@ -106,14 +106,14 @@ public class DefaultAggDataValueService implements AggDataValueService {
   // 1. mark all as assigned that are used
   // 2. mark all as not assigned that are not used by any
 
-  private List<AggDataValue> validate(UID ds, List<AggDataValue> values, List<ImportError> errors)
+  private List<DviValue> validate(UID ds, List<DviValue> values, List<ImportError> errors)
       throws ConflictException, BadRequestException {
     if (ds == null) {
       /*
        * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
        * without risk of misinterpretation of the request.
        */
-      List<String> uniqueDs = store.getDataSets(values.stream().map(AggDataValue::dataElement));
+      List<String> uniqueDs = store.getDataSets(values.stream().map(DviValue::dataElement));
       if (uniqueDs.size() != 1) throw new ConflictException(ErrorCode.E7606, uniqueDs);
       ds = UID.of(uniqueDs.get(0));
     }
@@ -126,12 +126,11 @@ public class DefaultAggDataValueService implements AggDataValueService {
   }
 
   /** Is the user allowed to write (capture) the data values? */
-  private void validateAccess(UID ds, List<AggDataValue> values) throws ConflictException {
+  private void validateAccess(UID ds, List<DviValue> values) throws ConflictException {
     // - OUs are in user hierarchy
     String userId = getCurrentUserDetails().getUid();
     List<String> noAccessOrgUnits =
-        store.getOrgUnitsNotInUserHierarchy(
-            UID.of(userId), values.stream().map(AggDataValue::orgUnit));
+        store.getOrgUnitsNotInUserHierarchy(UID.of(userId), values.stream().map(DviValue::orgUnit));
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
 
     // - DS ACL check canDataWrite
@@ -145,38 +144,38 @@ public class DefaultAggDataValueService implements AggDataValueService {
   /**
    * Are the data value components that make a unique data value key consistent with the metadata?
    */
-  private void validateKeyConsistency(UID ds, List<AggDataValue> values)
+  private void validateKeyConsistency(UID ds, List<DviValue> values)
       throws ConflictException, BadRequestException {
     // - DEs must belong to the specified DS
     List<String> deNotInDs =
-        store.getDataElementsNotInDataSet(ds, values.stream().map(AggDataValue::dataElement));
+        store.getDataElementsNotInDataSet(ds, values.stream().map(DviValue::dataElement));
     if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
 
     // - OU must be a source of the DS for the DE
     List<String> ouNotInDs =
-        store.getOrgUnitsNotInDataSet(ds, values.stream().map(AggDataValue::orgUnit));
+        store.getOrgUnitsNotInDataSet(ds, values.stream().map(DviValue::orgUnit));
     if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
 
     // - PE ISO must be of PT used by the DS
     List<String> isoNotUsableInDs =
-        store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(AggDataValue::period));
+        store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(DviValue::period));
     if (!isoNotUsableInDs.isEmpty())
       throw new ConflictException(ErrorCode.E7608, ds, isoNotUsableInDs);
 
     // - AOC must link (belong) to the CC of the DS
     List<String> aocNotInDs =
         store.getAttributeOptionCombosNotInDataSet(
-            ds, values.stream().map(AggDataValue::attributeOptionCombo));
+            ds, values.stream().map(DviValue::attributeOptionCombo));
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7623, ds, aocNotInDs);
 
     // - COC must link (belong) to the CC of the DE
-    Map<UID, List<AggDataValue>> valuesByDe =
-        values.stream().collect(groupingBy(AggDataValue::dataElement));
-    for (Map.Entry<UID, List<AggDataValue>> e : valuesByDe.entrySet()) {
+    Map<UID, List<DviValue>> valuesByDe =
+        values.stream().collect(groupingBy(DviValue::dataElement));
+    for (Map.Entry<UID, List<DviValue>> e : valuesByDe.entrySet()) {
       UID de = e.getKey();
       List<String> cocNotInDs =
           store.getCategoryOptionCombosNotInDataSet(
-              ds, de, e.getValue().stream().map(AggDataValue::categoryOptionCombo));
+              ds, de, e.getValue().stream().map(DviValue::categoryOptionCombo));
       if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
     }
   }
@@ -186,16 +185,16 @@ public class DefaultAggDataValueService implements AggDataValueService {
    * context. Non-conforming values will be removed from the result, and an error is added to the
    * errors list.
    */
-  private List<AggDataValue> validateValues(List<AggDataValue> values, List<ImportError> errors) {
-    List<UID> dataElements = values.stream().map(AggDataValue::dataElement).distinct().toList();
+  private List<DviValue> validateValues(List<DviValue> values, List<ImportError> errors) {
+    List<UID> dataElements = values.stream().map(DviValue::dataElement).distinct().toList();
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());
     Map<String, Set<String>> commentOptionsByDe =
         store.getCommentOptionsByDataElements(dataElements.stream());
     Map<String, ValueType> valueTypeByDe = store.getValueTypeByDataElements(dataElements.stream());
 
     int index = 0;
-    List<AggDataValue> res = new ArrayList<>(values.size());
-    for (AggDataValue e : values) {
+    List<DviValue> res = new ArrayList<>(values.size());
+    for (DviValue e : values) {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
       String val = normalizeValue(e, type);
@@ -234,7 +233,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
     return res;
   }
 
-  private static String normalizeValue(AggDataValue e, ValueType type) {
+  private static String normalizeValue(DviValue e, ValueType type) {
     if (type == null || !type.isBoolean()) return e.value();
     String val = e.value();
     if (val.equalsIgnoreCase("false") || val.equalsIgnoreCase("f") || "0".equals(val))
@@ -243,8 +242,8 @@ public class DefaultAggDataValueService implements AggDataValueService {
     return val;
   }
 
-  private static List<AggDataValue> completedValues(AggDataValueUpsertRequest request) {
-    List<AggDataValue> values = request.values();
+  private static List<DviValue> completedValues(DviUpsertRequest request) {
+    List<DviValue> values = request.values();
     UID de = request.dataElement();
     UID ou = request.orgUnit();
     String pe = request.period();
@@ -253,10 +252,9 @@ public class DefaultAggDataValueService implements AggDataValueService {
         : values.stream().map(e -> completeValue(e, de, ou, pe)).toList();
   }
 
-  private static AggDataValue completeValue(
-      AggDataValue e, UID dataElement, UID orgUnit, String period) {
+  private static DviValue completeValue(DviValue e, UID dataElement, UID orgUnit, String period) {
     if (e.orgUnit() != null && e.dataElement() != null && e.period() != null) return e;
-    return new AggDataValue(
+    return new DviValue(
         e.dataElement() == null ? dataElement : e.dataElement(),
         e.orgUnit() == null ? orgUnit : e.orgUnit(),
         e.categoryOptionCombo(),
@@ -273,7 +271,7 @@ public class DefaultAggDataValueService implements AggDataValueService {
   like input periods, locking, approval...
   */
 
-  private void validateEntry(UID ds, List<AggDataValue> values) {
+  private void validateEntry(UID ds, List<DviValue> values) {
     // - DS input period is open (no entering in the past)
 
     // DS based gate-keepers (if DS specified only consider the single DS)

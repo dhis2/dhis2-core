@@ -29,20 +29,52 @@
  */
 package org.hisp.dhis.datavalue;
 
-import javax.annotation.CheckForNull;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 
-/**
- * A data value tuple when doing an insert or update operation.
- *
- * @since 2.43
- */
-public record AggDataValueUpsert(
-    long de,
-    long pe,
-    long ou,
-    long coc,
-    long aoc,
-    @CheckForNull String value,
-    @CheckForNull String comment,
-    @CheckForNull Boolean followup,
-    boolean deleted) {}
+public interface DviStore {
+
+  boolean getDataSetAccessible(UID dataSet);
+
+  int deleteByKeys(List<DviKey> keys);
+
+  int upsertValues(List<DviValue> values);
+
+  /*
+  Validation support
+   */
+
+  List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
+
+  List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
+
+  List<String> getCategoryOptionCombosNotInDataSet(
+      UID dataSet, UID dataElement, Stream<UID> optionCombos);
+
+  List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos);
+
+  /**
+   * @return List of unique data set UIDs for the given data elements
+   */
+  List<String> getDataSets(Stream<UID> dataElements);
+
+  List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements);
+
+  Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements);
+
+  Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements);
+
+  String getDataSetPeriodType(UID dataSet);
+
+  Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements);
+
+  /**
+   * @return The {@link org.hisp.dhis.period.PeriodType} names for the given ISO periods. Does not
+   *     contain ISO key entries which do not map to a type.
+   */
+  List<String> getIsoPeriodsNotUsableInDataSet(UID dataSet, Stream<String> isoPeriods);
+}

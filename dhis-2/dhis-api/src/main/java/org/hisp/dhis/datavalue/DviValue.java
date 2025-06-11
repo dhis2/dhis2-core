@@ -29,10 +29,20 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public record AggDataValueDeleteRequest(
-    @CheckForNull UID dataSet, @Nonnull List<AggDataValueKey> values) {}
+public record DviValue(
+    @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID categoryOptionCombo,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID attributeOptionCombo,
+    String period,
+    String value,
+    String comment,
+    Boolean followUp,
+    Boolean deleted)
+    implements DviId {}

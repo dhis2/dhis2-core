@@ -29,52 +29,17 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.ValueType;
 
-public interface AggDataValueImportStore {
+public interface DviId {
 
-  boolean getDataSetAccessible(UID dataSet);
+  UID dataElement();
 
-  int deleteByKeys(List<AggDataValueKey> keys);
+  UID orgUnit();
 
-  int upsertValues(List<AggDataValue> values);
+  UID categoryOptionCombo();
 
-  /*
-  Validation support
-   */
+  UID attributeOptionCombo();
 
-  List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
-
-  List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
-
-  List<String> getCategoryOptionCombosNotInDataSet(
-      UID dataSet, UID dataElement, Stream<UID> optionCombos);
-
-  List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos);
-
-  /**
-   * @return List of unique data set UIDs for the given data elements
-   */
-  List<String> getDataSets(Stream<UID> dataElements);
-
-  List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements);
-
-  Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements);
-
-  Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements);
-
-  String getDataSetPeriodType(UID dataSet);
-
-  Map<String, ValueType> getValueTypeByDataElements(Stream<UID> dataElements);
-
-  /**
-   * @return The {@link org.hisp.dhis.period.PeriodType} names for the given ISO periods. Does not
-   *     contain ISO key entries which do not map to a type.
-   */
-  List<String> getIsoPeriodsNotUsableInDataSet(UID dataSet, Stream<String> isoPeriods);
+  String period();
 }

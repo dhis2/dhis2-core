@@ -29,25 +29,28 @@
  */
 package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import java.util.List;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ImportResult;
 
-public record AggDataValueUpsertRequest(
-    @CheckForNull UID dataSet,
-    // common dimensions (optional)
-    @CheckForNull UID dataElement,
-    @CheckForNull UID orgUnit,
-    @CheckForNull String period,
-    @JsonAlias("dataValues") List<AggDataValue> values) {
+/**
+ * Service for DVI (Data Value Import).
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
+public interface DviService {
 
-  /**
-   * Options for the import. By default, all are {@code false}.
-   *
-   * @param dryRun not actually do the upsert
-   * @param atomic then true, any validation error (including value validation) aborts the entire
-   *     import
-   */
-  public record Options(boolean dryRun, boolean atomic) {}
+  void importValue(@CheckForNull UID dataSet, @Nonnull DviValue value)
+      throws ConflictException, BadRequestException;
+
+  void deleteValue(DviKey key);
+
+  ImportResult importAll(DviUpsertRequest.Options options, DviUpsertRequest request)
+      throws BadRequestException, ConflictException;
+
+  int deleteAll(DviDeleteRequest request) throws BadRequestException;
 }

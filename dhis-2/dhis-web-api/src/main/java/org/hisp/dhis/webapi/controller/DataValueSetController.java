@@ -57,10 +57,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.datavalue.AggDataValueService;
-import org.hisp.dhis.datavalue.AggDataValueUpsertRequest;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DviService;
+import org.hisp.dhis.datavalue.DviUpsertRequest;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -107,7 +107,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataValueSetController {
 
   private final DataValueSetService dataValueSetService;
-  private final AggDataValueService aggDataValueService;
+  private final DviService dviService;
   private final AdxDataService adxDataService;
   private final UserService userService;
   private final JobExecutionService jobExecutionService;
@@ -283,11 +283,11 @@ public class DataValueSetController {
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage postJsonDataValue(
-      AggDataValueUpsertRequest.Options options, @RequestBody AggDataValueUpsertRequest request)
+      DviUpsertRequest.Options options, @RequestBody DviUpsertRequest request)
       throws ConflictException {
 
     try {
-      ImportResult result = aggDataValueService.importAll(options, request);
+      ImportResult result = dviService.importAll(options, request);
       ImportSummary summary = new ImportSummary();
       summary.setImportCount(
           new ImportCount(result.succeeded(), 0, result.attempted() - result.succeeded(), 0));
