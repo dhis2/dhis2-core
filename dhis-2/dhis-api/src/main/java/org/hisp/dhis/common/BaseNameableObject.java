@@ -116,10 +116,10 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof BaseNameableObject
+        || obj instanceof BaseNameableObject other
             && getRealClass(this) == getRealClass(obj)
             && super.equals(obj)
-            && objectEquals((BaseNameableObject) obj);
+            && objectEquals(other);
   }
 
   private boolean objectEquals(BaseNameableObject other) {

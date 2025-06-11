@@ -31,8 +31,8 @@ package org.hisp.dhis.webapi.dimension.mappers;
 
 import java.util.Set;
 import lombok.Getter;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -56,7 +56,7 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper {
   @Override
   public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
     DimensionItemType dimensionItemType =
-        ((BaseDimensionalItemObject) prefixedDimension.getItem()).getDimensionItemType();
+        ((DimensionalItemObject) prefixedDimension.getItem()).getDimensionItemType();
 
     DimensionResponse responseWithDimensionType =
         super.map(prefixedDimension, prefix)

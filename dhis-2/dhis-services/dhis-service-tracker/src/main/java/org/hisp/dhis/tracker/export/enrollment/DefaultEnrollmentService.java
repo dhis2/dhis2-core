@@ -151,9 +151,7 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.getFields(),
             params.isIncludeDeleted());
 
-    if (queryParams.getTrackedEntity() != null) {
-      addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
-    }
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
 
     return enrollments;
   }
@@ -169,23 +167,16 @@ class DefaultEnrollmentService implements EnrollmentService {
     List<Enrollment> enrollments =
         findEnrollments(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
 
-    if (queryParams.getTrackedEntity() != null) {
-      addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
-    }
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
 
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
   private void addTrackedEntityAudit(UID trackedEntity, List<Enrollment> enrollments) {
-    Optional<Enrollment> enrollment =
-        enrollments.stream()
-            .filter(e -> e.getTrackedEntity().getUid().equals(trackedEntity.getValue()))
-            .findFirst();
-
-    enrollment.ifPresent(
-        e ->
-            trackedEntityAuditService.addTrackedEntityAudit(
-                READ, getCurrentUserDetails().getUsername(), e.getTrackedEntity()));
+    if (trackedEntity != null && !enrollments.isEmpty()) {
+      trackedEntityAuditService.addTrackedEntityAudit(
+          READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
+    }
   }
 
   private Set<Event> getEvents(
