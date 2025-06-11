@@ -276,9 +276,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     List<Enrollment> enrollmentList = new ArrayList<>();
 
     for (Enrollment enrollment : enrollments) {
-      if (enrollment != null) {
-        enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
-      }
+      enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
     }
 
     return enrollmentList;
