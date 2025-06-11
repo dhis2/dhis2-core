@@ -31,6 +31,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
+import static org.hisp.dhis.http.HttpClientAdapter.gzip;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.http.HttpStatus.OK;
@@ -48,7 +51,6 @@ import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * Test the bulk import and delete endpoints of the {@link MinMaxDataElementController}.
@@ -71,13 +73,13 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     @Language("json")
     String dsJson =
         """
-      {
-      "id": "%s",
-      "name": "My data set",
-      "shortName": "MDS",
-      "periodType": "Monthly",
-      "categoryCombo": { "id": "%s"},
-      "dataSetElements": [{"dataSet": {"id": "%s"}, "dataElement": { "id": "%s"}}]}""";
+          {
+          "id": "%s",
+          "name": "My data set",
+          "shortName": "MDS",
+          "periodType": "Monthly",
+          "categoryCombo": { "id": "%s"},
+          "dataSetElements": [{"dataSet": {"id": "%s"}, "dataElement": { "id": "%s"}}]}""";
     this.ds = assertStatus(CREATED, POST("/dataSets", dsJson.formatted(dsId, cc, dsId, de)));
     this.ou1 =
         assertStatus(CREATED, POST("/organisationUnits", toJson(createOrganisationUnit('X'))));
@@ -96,25 +98,25 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   @Language("json")
   private final String json =
       """
-      { "dataSet": "%s",
-        "values" : [{
-            "dataElement": "%s",
-            "orgUnit": "%s",
-            "optionCombo": "%s",
-              "minValue": 10,
-              "maxValue": 100
-          }]
-      }""";
+          { "dataSet": "%s",
+            "values" : [{
+                "dataElement": "%s",
+                "orgUnit": "%s",
+                "optionCombo": "%s",
+                  "minValue": 10,
+                  "maxValue": 100
+              }]
+          }""";
 
   @Language("csv")
   private final String csv =
       """
-    dataElement,orgUnit,optionCombo,minValue,maxValue
-    %1$s,%3$s,%2$s,0,10
-    %1$s,%4$s,%2$s,0,10
-    %1$s,%5$s,%2$s,0,10
-    %1$s,%6$s,%2$s,0,10
-    """;
+        dataElement,orgUnit,optionCombo,minValue,maxValue
+        %1$s,%3$s,%2$s,0,10
+        %1$s,%4$s,%2$s,0,10
+        %1$s,%5$s,%2$s,0,10
+        %1$s,%6$s,%2$s,0,10
+        """;
 
   @Test
   void testBulkImportJson() {
@@ -126,11 +128,33 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
-  void testBulkImportCsv() {
-    MockMultipartFile file =
-        new MockMultipartFile("file", csv.formatted(de, coc, ou1, ou2, ou3, ou4).getBytes());
+  void testBulkImportJsonGzip() {
     JsonImportSuccessResponse response =
-        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+        POST("/minMaxDataElements/upsert", Body(gzip(json.formatted(ds, de, ou1, coc))))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(1, response.getSuccessful());
+  }
+
+  @Test
+  void testBulkImportCsv() {
+    JsonImportSuccessResponse response =
+        POST(
+                "/minMaxDataElements/upsert?dataSet=" + ds,
+                Body(csv.formatted(de, coc, ou1, ou2, ou3, ou4)),
+                ContentType("text/csv"))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(4, response.getSuccessful());
+  }
+
+  @Test
+  void testBulkImportCsvGzip() {
+    JsonImportSuccessResponse response =
+        POST(
+                "/minMaxDataElements/upsert?dataSet=" + ds,
+                Body(gzip(csv.formatted(de, coc, ou1, ou2, ou3, ou4))),
+                ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
@@ -150,15 +174,15 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     @Language("json")
     String json =
         """
-      {
-        "dataSet": "%s",
-        "values": [{
-          "dataElement": "%s",
-          "orgUnit": "%s",
-          "optionCombo": "%s",
-          "minValue": 10
-        }]
-      }""";
+          {
+            "dataSet": "%s",
+            "values": [{
+              "dataElement": "%s",
+              "orgUnit": "%s",
+              "optionCombo": "%s",
+              "minValue": 10
+            }]
+          }""";
     JsonWebMessage response =
         POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc))
             .content(BAD_REQUEST)
@@ -171,15 +195,15 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     @Language("json")
     String json =
         """
-       {
-        "dataSet": "%s",
-        "values": [{
-          "dataElement": "%s",
-          "orgUnit": "%s",
-          "optionCombo": "%s",
-          "maxValue": 10
-        }]
-      }""";
+           {
+            "dataSet": "%s",
+            "values": [{
+              "dataElement": "%s",
+              "orgUnit": "%s",
+              "optionCombo": "%s",
+              "maxValue": 10
+            }]
+          }""";
     JsonWebMessage response =
         POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc))
             .content(BAD_REQUEST)
@@ -192,16 +216,16 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     @Language("json")
     String json =
         """
-      {
-        "dataSet": "%s",
-        "values": [{
-          "dataElement": "%s",
-          "orgUnit": "%s",
-          "optionCombo": "%s",
-          "minValue": 10,
-          "maxValue": 10
-        }]
-      }""";
+          {
+            "dataSet": "%s",
+            "values": [{
+              "dataElement": "%s",
+              "orgUnit": "%s",
+              "optionCombo": "%s",
+              "minValue": 10,
+              "maxValue": 10
+            }]
+          }""";
     JsonWebMessage response =
         POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc))
             .content(BAD_REQUEST)
@@ -214,7 +238,7 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     @Language("json")
     String json =
         """
-        { "dataSet": "%s", "values": [] }""";
+            { "dataSet": "%s", "values": [] }""";
     JsonImportSuccessResponse response =
         POST("/minMaxDataElements/upsert", json.formatted(ds))
             .content(OK)
@@ -234,6 +258,16 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
+  void testBulkDeleteJson_Gzip() {
+    assertStatus(OK, POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc)));
+    JsonImportSuccessResponse response =
+        POST("/minMaxDataElements/delete", Body(gzip(json.formatted(ds, de, ou1, coc))))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(1, response.getSuccessful());
+  }
+
+  @Test
   void testBulkDeleteJson_IgnoresNonExisting() {
     assertStatus(OK, POST("/minMaxDataElements/upsert", json.formatted(ds, de, ou1, coc)));
     JsonImportSuccessResponse response =
@@ -246,15 +280,32 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void testBulkDeleteCsv() {
-    MockMultipartFile file =
-        new MockMultipartFile("file", csv.formatted(de, coc, ou1, ou2, ou3, ou4).getBytes());
+    String content = csv.formatted(de, coc, ou1, ou2, ou3, ou4);
     JsonImportSuccessResponse response =
-        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+        POST("/minMaxDataElements/upsert?dataSet=" + ds, Body(content), ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
     response =
-        POST_MULTIPART("/minMaxDataElements/delete?dataSet=" + ds, file)
+        POST("/minMaxDataElements/delete?dataSet=" + ds, Body(content), ContentType("text/csv"))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(4, response.getSuccessful());
+  }
+
+  @Test
+  void testBulkDeleteCsvGzip() {
+    String content = csv.formatted(de, coc, ou1, ou2, ou3, ou4);
+    JsonImportSuccessResponse response =
+        POST("/minMaxDataElements/upsert?dataSet=" + ds, Body(content), ContentType("text/csv"))
+            .content(OK)
+            .as(JsonImportSuccessResponse.class);
+    assertEquals(4, response.getSuccessful());
+    response =
+        POST(
+                "/minMaxDataElements/delete?dataSet=" + ds,
+                Body(gzip(content)),
+                ContentType("text/csv"))
             .content(OK)
             .as(JsonImportSuccessResponse.class);
     assertEquals(4, response.getSuccessful());
@@ -265,12 +316,14 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     @Language("csv")
     String csv =
         """
-      dataElement,orgUnit,optionCombo,maxValue
-      %1$s,%3$s,%2$s,10
-      """;
-    MockMultipartFile file = new MockMultipartFile("file", csv.formatted(de, coc, ou1).getBytes());
+          dataElement,orgUnit,optionCombo,maxValue
+          %1$s,%3$s,%2$s,10
+          """;
     JsonWebMessage response =
-        POST_MULTIPART("/minMaxDataElements/upsert?dataSet=" + ds, file)
+        POST(
+                "/minMaxDataElements/upsert?dataSet=" + ds,
+                Body(csv.formatted(de, coc, ou1)),
+                ContentType("text/csv"))
             .content(BAD_REQUEST)
             .as(JsonWebMessage.class);
     assertEquals(ErrorCode.E2046, response.getErrorCode());
