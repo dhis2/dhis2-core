@@ -52,6 +52,14 @@ public interface DviStore {
 
   List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
 
+  /**
+   * Checks that all the provided OUs are valid to use with the AOC.
+   *
+   * <p>For an OU to be valid it must be identical or a descended of at least one of the OUs linked
+   * to each CO that is linked to the provided AOC.
+   *
+   * @return the OUs of the provided set that are not in the AOC hierarchy and thus illegal to use
+   */
   List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits);
 
   List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);

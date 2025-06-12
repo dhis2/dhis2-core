@@ -597,6 +597,7 @@ public enum ErrorCode {
   E7626(
       "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
   E7627("Category option(s) not accessible for writing data: `{0}`"),
+  E7628("Attribute option combo {0} not connected to Org unit(s): `{1}`"),
 
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),

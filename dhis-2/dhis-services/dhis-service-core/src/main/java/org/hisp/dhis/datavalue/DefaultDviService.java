@@ -198,7 +198,7 @@ public class DefaultDviService implements DviService {
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
         List<String> ouNotInAoc =
             store.getOrgUnitsNotInAocHierarchy(aoc, e.getValue().stream().map(DviValue::orgUnit));
-        if (!ouNotInAoc.isEmpty()) throw new ConflictException("");
+        if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E7628, aoc, ouNotInAoc);
       }
     }
   }
