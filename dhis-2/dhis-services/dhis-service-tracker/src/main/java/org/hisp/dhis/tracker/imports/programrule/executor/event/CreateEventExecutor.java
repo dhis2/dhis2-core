@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -60,7 +61,7 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
     }
 
     LocalDate localDate = LocalDate.parse(scheduledAt);
-    Event scheduledEvent = new Event();
+    TrackerEvent scheduledEvent = new TrackerEvent();
     scheduledEvent.setEvent(UID.generate());
     scheduledEvent.setEnrollment(event.getEnrollment());
     scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
