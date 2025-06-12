@@ -45,6 +45,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -91,7 +92,7 @@ class StatusUpdateValidatorTest {
     savedEvent.setStatus(fromStatus);
     when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
 
-    Event event = Event.builder().event(EVENT_UID).status(toStatus).build();
+    Event event = TrackerEvent.builder().event(EVENT_UID).status(toStatus).build();
 
     validator.validate(reporter, bundle, event);
 
@@ -107,7 +108,7 @@ class StatusUpdateValidatorTest {
     savedEvent.setStatus(fromStatus);
     when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
 
-    Event event = Event.builder().event(EVENT_UID).status(toStatus).build();
+    Event event = TrackerEvent.builder().event(EVENT_UID).status(toStatus).build();
 
     validator.validate(reporter, bundle, event);
 

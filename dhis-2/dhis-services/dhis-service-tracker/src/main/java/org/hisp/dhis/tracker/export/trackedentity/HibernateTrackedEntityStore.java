@@ -495,7 +495,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         params.getOrgUnitMode(),
         programTableAlias,
         orgUnitTableAlias,
-        MAIN_QUERY_ALIAS);
+        MAIN_QUERY_ALIAS,
+        () -> "and ");
   }
 
   /**

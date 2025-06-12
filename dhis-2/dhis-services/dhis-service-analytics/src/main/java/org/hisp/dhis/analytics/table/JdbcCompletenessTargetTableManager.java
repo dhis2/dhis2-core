@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
@@ -170,6 +172,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     sql +=
         qualifyVariables(
+            sqlBuilder,
             """
             from analytics_rs_datasetorganisationunitcategory doc \
             inner join analytics_rs_dataset ds on doc.datasetid=ds.datasetid \

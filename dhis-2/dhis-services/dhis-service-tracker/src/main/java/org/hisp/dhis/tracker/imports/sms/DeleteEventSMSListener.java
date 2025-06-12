@@ -46,7 +46,7 @@ import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -93,7 +93,8 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
   @Nonnull
   private static TrackerObjects map(@Nonnull DeleteSmsSubmission submission) {
     return TrackerObjects.builder()
-        .events(List.of(Event.builder().event(UID.of(submission.getEvent().getUid())).build()))
+        .events(
+            List.of(TrackerEvent.builder().event(UID.of(submission.getEvent().getUid())).build()))
         .build();
   }
 

@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.preprocess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -39,6 +40,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,10 +60,6 @@ class EventStatusPreProcessorTest {
   @Test
   void testVisitedStatusIsConvertedToActive() {
     // Given
-    Event event = new Event();
-    event.setStatus(EventStatus.VISITED);
-    event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
-    TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
     Enrollment enrollment = new Enrollment();
     enrollment.setUid("enrollmentUid");
     Program program = new Program();
@@ -72,6 +70,13 @@ class EventStatusPreProcessorTest {
     TrackerPreheat preheat = new TrackerPreheat();
     preheat.putEnrollmentsWithoutRegistration("programUid", enrollment);
     preheat.put(programStage);
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .status(EventStatus.VISITED)
+            .programStage(MetadataIdentifier.ofUid("programStageUid"))
+            .build();
+    TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
     bundle.setPreheat(preheat);
     // When
     preProcessorToTest.process(bundle);

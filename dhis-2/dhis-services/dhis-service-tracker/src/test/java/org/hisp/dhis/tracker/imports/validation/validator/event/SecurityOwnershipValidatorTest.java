@@ -151,7 +151,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForEventUsingDeleteStrategy() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -182,7 +182,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -210,7 +210,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   @Test
   void verifyValidationSuccessForTrackerEventCreation() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -238,7 +238,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   @Test
   void verifyValidationSuccessForTrackerEventUpdate() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -267,7 +267,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForEventUsingUpdateStrategy() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -298,7 +298,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     UID enrollmentUid = UID.generate();
     UID eventUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(eventUid)
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -345,7 +345,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -375,7 +375,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   @Test
   void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -403,7 +403,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void
       verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy() {
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -432,7 +432,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -460,7 +460,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void verifySuccessEventValidationWhenEventHasNoOrgUnitAssigned() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))

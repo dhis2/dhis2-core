@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
@@ -206,7 +207,7 @@ class SmsImportMapperTest extends TestBase {
 
     List<Event> expected =
         List.of(
-            Event.builder()
+            TrackerEvent.builder()
                 .event(UID.of(smsEvent.getEvent().getUid()))
                 .orgUnit(MetadataIdentifier.ofUid(smsEvent.getOrgUnit().getUid()))
                 .programStage(MetadataIdentifier.ofUid(smsEvent.getProgramStage().getUid()))
@@ -342,7 +343,7 @@ class SmsImportMapperTest extends TestBase {
     TrackerObjects actual = map(input, "francis");
 
     Event expected =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.of(input.getEvent().getUid()))
             .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
             .programStage(MetadataIdentifier.ofUid(input.getProgramStage().getUid()))
@@ -376,7 +377,7 @@ class SmsImportMapperTest extends TestBase {
     TrackerObjects actual = map(input, "francis");
 
     Event expected =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.of(input.getEvent().getUid()))
             .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
             .programStage(MetadataIdentifier.ofUid(input.getProgramStage().getUid()))
