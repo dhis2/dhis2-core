@@ -53,8 +53,10 @@ import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
@@ -163,6 +165,24 @@ public class TrackerBundle {
 
   public Set<UID> getUpdatedTrackedEntities() {
     return Set.copyOf(this.updatedTrackedEntities);
+  }
+
+  public List<SingleEvent> getSingleEvents() {
+    return this.events.stream()
+        .filter(event -> preheat.getProgram(event.getProgram()) != null)
+        .filter(event -> preheat.getProgram(event.getProgram()).isWithoutRegistration())
+        .map(event -> new SingleEvent())
+        .toList();
+  }
+
+  public List<TrackerEvent> getTrackerEvents() {
+    return this.events.stream()
+        .filter(
+            event ->
+                preheat.getProgram(event.getProgram()) == null
+                    || preheat.getProgram(event.getProgram()).isRegistration())
+        .map(event -> new TrackerEvent())
+        .toList();
   }
 
   public void addUpdatedTrackedEntities(Set<UID> updatedTrackedEntities) {

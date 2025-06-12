@@ -40,6 +40,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +60,7 @@ class EventWithoutRegistrationPreProcessorTest {
   @Test
   void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration() {
     // Given
-    Event event = new Event();
+    Event event = new TrackerEvent();
     event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
     TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
     Enrollment enrollment = new Enrollment();
@@ -83,7 +84,7 @@ class EventWithoutRegistrationPreProcessorTest {
   @Test
   void testEnrollmentIsNotAddedIntoEventWhenItProgramStageHasNoReferenceToProgram() {
     // Given
-    Event event = new Event();
+    Event event = new TrackerEvent();
     event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
     TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
     Enrollment enrollment = new Enrollment();

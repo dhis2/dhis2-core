@@ -76,6 +76,7 @@ import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -278,7 +279,7 @@ class SmsImportMapper {
   @Nonnull
   private static Event mapToEvent(
       @Nonnull SmsEvent submission, @Nonnull String username, @Nonnull Uid enrollment) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
         .enrollment(UID.of(enrollment.getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
@@ -302,7 +303,7 @@ class SmsImportMapper {
   @Nonnull
   private static Event mapEvent(
       @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
         .enrollment(UID.of(submission.getEnrollment().getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
@@ -326,7 +327,7 @@ class SmsImportMapper {
   @Nonnull
   private static Event mapEvent(
       @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .program(metadataUid(submission.getEventProgram()))
@@ -505,7 +506,7 @@ class SmsImportMapper {
       @Nonnull String orgUnit,
       @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(UID.generate())
         .orgUnit(MetadataIdentifier.ofUid(orgUnit))
         .program(metadataUid(smsCommand.getProgram()))

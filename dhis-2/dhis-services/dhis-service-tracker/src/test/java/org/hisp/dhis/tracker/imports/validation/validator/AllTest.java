@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Error;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -140,7 +141,7 @@ class AllTest {
               }
             });
 
-    validator.validate(reporter, bundle, Event.builder().event(uid).build());
+    validator.validate(reporter, bundle, TrackerEvent.builder().event(uid).build());
 
     assertContainsOnly(List.of("V2"), actualErrorMessages());
   }

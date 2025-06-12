@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -98,9 +99,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testAssignedUserIsValid() {
     // given
-    Event event = new Event();
-    event.setAssignedUser(VALID_USER);
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(VALID_USER)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -112,9 +116,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testAssignedUserIsNull() {
     // given
-    Event event = new Event();
-    event.setAssignedUser(null);
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(null)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -126,9 +133,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testAssignedUserIsEmpty() {
     // given
-    Event event = new Event();
-    event.setAssignedUser(User.builder().build());
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(User.builder().build())
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -140,10 +150,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testEventWithNotValidUsername() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setAssignedUser(INVALID_USER);
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(INVALID_USER)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     validator.validate(reporter, bundle, event);
@@ -155,10 +167,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testEventWithUserNotPresentInPreheat() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setAssignedUser(VALID_USER);
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(VALID_USER)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     TrackerPreheat preheat = new TrackerPreheat();
@@ -174,10 +188,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testEventWithNotEnabledUserAssignment() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setAssignedUser(VALID_USER);
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(VALID_USER)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     programStage.setEnableUserAssignment(false);
@@ -192,10 +208,12 @@ class AssignedUserValidatorTest extends TestBase {
   @Test
   void testEventWithNullEnabledUserAssignment() {
     // given
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setAssignedUser(VALID_USER);
-    event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .assignedUser(VALID_USER)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE))
+            .build();
 
     // when
     programStage.setEnableUserAssignment(null);
