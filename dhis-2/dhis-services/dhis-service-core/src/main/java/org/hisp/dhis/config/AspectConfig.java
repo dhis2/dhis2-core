@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.config;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.hisp.dhis.log.TimeExecution;
+import org.hisp.dhis.log.TimeExecutionInterceptor;
+import org.springframework.aop.Advisor;
+import org.springframework.aop.Pointcut;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.junit.jupiter.api.Test;
+@Configuration(proxyBeanMethods = false)
+public class AspectConfig implements BeanDefinitionRegistryPostProcessor {
+  @Override
+  public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry)
+      throws BeansException {
+    // Note: only the spring gods will know why I have to do this explicitly
+    // an Advisor should be ROLE_INFRASTRUCTURE just based on the class but
+    // this needed manual override, otherwise the bean is ignored
+    registry.getBeanDefinition("timingAdvisor").setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+  }
 
-/**
- * @author Lars Helge Overland
- */
-class DimensionalObjectTest {
-
-  @Test
-  void testGetFilterItemsAsList() {
-    DimensionalObject objectA =
-        new BaseDimensionalObject(
-            "dimA",
-            DimensionType.PROGRAM_DATA_ELEMENT,
-            null,
-            null,
-            null,
-            null,
-            "IN:uidA;uidB;uidC");
-    List<String> expectedA = new ArrayList<>(Arrays.asList("uidA", "uidB", "uidC"));
-    assertEquals(expectedA, objectA.getFilterItemsAsList());
-    DimensionalObject objectB =
-        new BaseDimensionalObject(
-            "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, null, "EQ:uidA");
-    assertNull(objectB.getFilterItemsAsList());
+  @Bean
+  public static Advisor timingAdvisor() {
+    Pointcut pointcut = new StaticAnnotationPointcut(Service.class, TimeExecution.class);
+    return new DefaultPointcutAdvisor(pointcut, new TimeExecutionInterceptor());
   }
 }

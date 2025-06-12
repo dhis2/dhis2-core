@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -57,6 +58,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
@@ -82,6 +84,8 @@ class DefaultEnrollmentService implements EnrollmentService {
   private final TrackerAccessManager trackerAccessManager;
 
   private final EnrollmentOperationParamsMapper paramsMapper;
+
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   @Nonnull
   @Override
@@ -141,11 +145,16 @@ class DefaultEnrollmentService implements EnrollmentService {
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
-    return findEnrollments(
-        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        params.getFields(),
-        params.isIncludeDeleted(),
-        queryParams.getOrganisationUnitMode());
+    List<Enrollment> enrollments =
+        findEnrollments(
+            new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+            params.getFields(),
+            params.isIncludeDeleted(),
+            queryParams.getOrganisationUnitMode());
+
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+
+    return enrollments;
   }
 
   @Nonnull
@@ -162,7 +171,17 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.getFields(),
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
+
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+
     return enrollmentsPage.withFilteredItems(enrollments);
+  }
+
+  private void addTrackedEntityAudit(UID trackedEntity, List<Enrollment> enrollments) {
+    if (trackedEntity != null && !enrollments.isEmpty()) {
+      trackedEntityAuditService.addTrackedEntityAudit(
+          READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
+    }
   }
 
   private Set<Event> getEvents(
@@ -195,6 +214,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     if (enrollment.getTrackedEntity() != null) {
       TrackedEntity trackedEntity = new TrackedEntity();
       trackedEntity.setUid(enrollment.getTrackedEntity().getUid());
+      trackedEntity.setTrackedEntityType(enrollment.getTrackedEntity().getTrackedEntityType());
       result.setTrackedEntity(trackedEntity);
     }
     OrganisationUnit organisationUnit = new OrganisationUnit();

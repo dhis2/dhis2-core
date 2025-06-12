@@ -9,7 +9,7 @@
   </parent>
   <artifactId>dhis-service-tracker</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Tracker services</name>
+  <name>DHIS Tracker service</name>
 
   <properties>
     <rootDir>../../</rootDir>

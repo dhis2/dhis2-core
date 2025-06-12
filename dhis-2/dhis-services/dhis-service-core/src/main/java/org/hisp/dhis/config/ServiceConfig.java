@@ -34,43 +34,18 @@ import java.util.Map;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
-import org.hisp.dhis.log.TimeExecution;
-import org.hisp.dhis.log.TimeExecutionInterceptor;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
-import org.springframework.aop.Advisor;
-import org.springframework.aop.Pointcut;
-import org.springframework.aop.support.DefaultPointcutAdvisor;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.stereotype.Service;
 
 /**
  * @author Luciano Fiandesio
  */
 @Configuration("coreServiceConfig")
-public class ServiceConfig implements BeanDefinitionRegistryPostProcessor {
-
-  @Override
-  public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry)
-      throws BeansException {
-    // Note: only the spring gods will know why I have to do this explicitly
-    // an Advisor should be ROLE_INFRASTRUCTURE just based on the class but
-    // this needed manual override, otherwise the bean is ignored
-    registry.getBeanDefinition("timingAdvisor").setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-  }
-
-  @Bean
-  public Advisor timingAdvisor() {
-    Pointcut pointcut = new StaticAnnotationPointcut(Service.class, TimeExecution.class);
-    return new DefaultPointcutAdvisor(pointcut, new TimeExecutionInterceptor());
-  }
+public class ServiceConfig {
 
   @Bean("taskScheduler")
   public ThreadPoolTaskScheduler threadPoolTaskScheduler() {

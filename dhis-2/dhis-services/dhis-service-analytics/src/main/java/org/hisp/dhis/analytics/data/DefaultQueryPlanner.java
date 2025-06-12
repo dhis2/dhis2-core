@@ -353,8 +353,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
                 .withEndDateRestriction(period.getEndDate())
                 .build();
 
-        BaseDimensionalObject staticPeriod =
-            (BaseDimensionalObject) query.getDimension(PERIOD_DIM_ID);
+        DimensionalObject staticPeriod = query.getDimension(PERIOD_DIM_ID);
         staticPeriod.setDimensionName(period.getIsoDate());
         staticPeriod.setFixed(true);
 

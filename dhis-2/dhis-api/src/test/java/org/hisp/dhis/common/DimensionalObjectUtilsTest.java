@@ -296,7 +296,7 @@ class DimensionalObjectUtilsTest {
   void testLinkAssociationsSuccessfully() {
     // Given
     EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
-    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    DimensionalObject dimensionalObject = stubDimensionalObject();
     org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
 
     // When
@@ -310,7 +310,7 @@ class DimensionalObjectUtilsTest {
   void testLinkAssociationsDoesNotFindValidAssociation() {
     // Given
     EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
-    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    DimensionalObject dimensionalObject = stubDimensionalObject();
     dimensionalObject.setUid("nonLinkableUid");
     org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
 
@@ -325,7 +325,7 @@ class DimensionalObjectUtilsTest {
   void testLinkAssociationsWithProgramAndStage() {
     // Given
     EventAnalyticalObject eventAnalyticalObject = stubEventAnalyticalObject();
-    BaseDimensionalObject dimensionalObject = stubDimensionalObject();
+    DimensionalObject dimensionalObject = stubDimensionalObject();
     org.hisp.dhis.eventvisualization.Attribute parent = COLUMN;
 
     // When
@@ -471,7 +471,7 @@ class DimensionalObjectUtilsTest {
     String qualifiedDim = "programUid.programStageUid.dimensionUid";
 
     // When
-    Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
+    Triple<Program, ProgramStage, DimensionalObject> result = asBaseObjects(qualifiedDim);
 
     // Then
     assertEquals("programUid", result.getLeft().getUid());
@@ -485,7 +485,7 @@ class DimensionalObjectUtilsTest {
     String qualifiedDim = "programUid.dimensionUid";
 
     // When
-    Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
+    Triple<Program, ProgramStage, DimensionalObject> result = asBaseObjects(qualifiedDim);
 
     // Then
     assertEquals("programUid", result.getLeft().getUid());
@@ -499,7 +499,7 @@ class DimensionalObjectUtilsTest {
     String qualifiedDim = "dimensionUid";
 
     // When
-    Triple<Program, ProgramStage, BaseDimensionalObject> result = asBaseObjects(qualifiedDim);
+    Triple<Program, ProgramStage, DimensionalObject> result = asBaseObjects(qualifiedDim);
 
     // Then
     assertNull(result.getLeft());

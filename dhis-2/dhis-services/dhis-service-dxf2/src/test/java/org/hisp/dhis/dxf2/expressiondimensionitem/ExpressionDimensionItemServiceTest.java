@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -64,7 +64,7 @@ class ExpressionDimensionItemServiceTest {
     DataDimensionItem dataDimensionItem = new DataDimensionItem();
 
     // When
-    List<BaseDimensionalItemObject> dimensionalItemObjects =
+    List<DimensionalItemObject> dimensionalItemObjects =
         itemService.getExpressionItems(dataDimensionItem);
 
     // Then
@@ -82,7 +82,7 @@ class ExpressionDimensionItemServiceTest {
     dataDimensionItem.setExpressionDimensionItem(expressionDimensionItem);
 
     // When
-    List<BaseDimensionalItemObject> dimensionalItemObjects =
+    List<DimensionalItemObject> dimensionalItemObjects =
         itemService.getExpressionItems(dataDimensionItem);
 
     // Then
@@ -100,7 +100,7 @@ class ExpressionDimensionItemServiceTest {
     dataDimensionItem.setExpressionDimensionItem(expressionDimensionItem);
 
     // When
-    List<BaseDimensionalItemObject> dimensionalItemObjects =
+    List<DimensionalItemObject> dimensionalItemObjects =
         itemService.getExpressionItems(dataDimensionItem);
 
     // Then
@@ -118,7 +118,7 @@ class ExpressionDimensionItemServiceTest {
     dataDimensionItem.setExpressionDimensionItem(expressionDimensionItem);
 
     // When
-    List<BaseDimensionalItemObject> dimensionalItemObjects =
+    List<DimensionalItemObject> dimensionalItemObjects =
         itemService.getExpressionItems(dataDimensionItem);
 
     // Then
