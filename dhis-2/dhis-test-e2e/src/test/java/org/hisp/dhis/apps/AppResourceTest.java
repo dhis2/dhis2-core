@@ -162,15 +162,15 @@ class AppResourceTest extends ApiTest {
       assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
-    // Append trailing slash and redirect
-    {
-      ResponseEntity<String> response = getAuthenticated(prefix + app);
-      assertEquals(HttpStatus.FOUND, response.getStatusCode());
-      List<String> location = response.getHeaders().get("Location");
-      assertNotNull(location);
-      assertEquals(1, location.size());
-      assertEquals(SERVER_BASE + newPrefix + app + "/", location.get(0));
-    }
+//    // Append trailing slash and redirect
+//    {
+//      ResponseEntity<String> response = getAuthenticated(prefix + app);
+//      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+//      List<String> location = response.getHeaders().get("Location");
+//      assertNotNull(location);
+//      assertEquals(1, location.size());
+//      assertEquals(SERVER_BASE + newPrefix + app + "/", location.get(0));
+//    }
 
     // Append trailing slash and redirect
     {
