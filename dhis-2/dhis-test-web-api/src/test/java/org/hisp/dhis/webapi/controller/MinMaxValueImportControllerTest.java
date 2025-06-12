@@ -187,8 +187,6 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
   @Test
   void testBulkImportCsv() {
 
-    String formattedCsv = csv.formatted(de, coc, ou1, ou2, ou3, ou4);
-
     JsonImportSuccessResponse response =
         POST(
                 "/minMaxDataElements/upsert?dataSet=" + ds,
