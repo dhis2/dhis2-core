@@ -55,6 +55,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonMinMaxDataElement;
 import org.hisp.dhis.test.webapi.json.domain.JsonMinMaxValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +98,24 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     this.ou4 =
         assertStatus(CREATED, POST("/organisationUnits", toJson(createOrganisationUnit('W'))));
     addOrgUnitsToUserHierarchy(ou1, ou2, ou3, ou4);
+  }
+
+  @AfterEach
+  void tearDown() {
+    String body = "{\"removals\":[{\"id\":\"" + ou1 + "\"},{\"id\":\"" + ou2 + "\"},"
+        + "{\"id\":\"" + ou3 + "\"},{\"id\":\"" + ou4 + "\"}]}";
+    assertStatus(
+        OK,
+        POST(
+            "/users/{id}/organisationUnits",
+            getCurrentUser().getUid(),
+            HttpClientAdapter.Body(body)));
+    //delete all the orgunits
+    assertStatus(OK, DELETE("/organisationUnits/" + ou1));
+    assertStatus(OK, DELETE("/organisationUnits/" + ou2));
+    assertStatus(OK, DELETE("/organisationUnits/" + ou3));
+    assertStatus(OK, DELETE("/organisationUnits/" + ou4));
+
   }
 
   private String toJson(IdentifiableObject de) throws JsonProcessingException {

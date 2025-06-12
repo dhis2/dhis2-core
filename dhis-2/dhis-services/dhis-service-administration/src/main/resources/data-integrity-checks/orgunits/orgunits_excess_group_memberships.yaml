@@ -56,7 +56,7 @@ details_sql: >-
   WITH ougs_multiple_groups as (
   SELECT ou_uid,ou_name,ougs_name,
   NULL As comment,
-  array_agg(oug_name || ':' || oug_uid) as ougs_groups
+  array_agg('ougs_name :' || ougs_name || '; ougs_id' || ougs_uid || ';oug_uid : ' || oug_uid || ';oug_name:' || oug_name  ) as ougs_groups
   FROM (
   SELECT  ougm.organisationunitid, 
   ougm.orgunitgroupid,
@@ -65,6 +65,7 @@ details_sql: >-
   ou.name as ou_name,
   oug.name as oug_name,
   oug.uid as oug_uid,
+  ougs.uid as ougs_uid,
   ougs.name as ougs_name
   FROM orgunitgroupmembers ougm
   INNER JOIN orgunitgroupsetmembers ougsm USING(orgunitgroupid)
