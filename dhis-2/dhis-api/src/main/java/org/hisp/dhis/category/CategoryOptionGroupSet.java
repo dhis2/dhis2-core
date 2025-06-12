@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
@@ -108,7 +107,7 @@ public class CategoryOptionGroupSet extends BaseDimensionalObject implements Met
 
   @Override
   @JsonProperty
-  @JsonSerialize(contentAs = BaseDimensionalItemObject.class)
+  @JsonSerialize(contentAs = DimensionalItemObject.class)
   @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalItemObject> getItems() {

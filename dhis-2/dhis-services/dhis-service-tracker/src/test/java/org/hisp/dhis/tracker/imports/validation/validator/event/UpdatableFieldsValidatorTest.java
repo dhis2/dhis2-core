@@ -135,7 +135,7 @@ class UpdatableFieldsValidatorTest {
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event validEvent() {
-    return org.hisp.dhis.tracker.imports.domain.Event.builder()
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .event(EVENT_UID)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .enrollment(ENROLLMENT_ID)

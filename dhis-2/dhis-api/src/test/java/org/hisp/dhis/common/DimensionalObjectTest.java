@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +44,7 @@ class DimensionalObjectTest {
 
   @Test
   void testGetFilterItemsAsList() {
-    BaseDimensionalObject objectA =
+    DimensionalObject objectA =
         new BaseDimensionalObject(
             "dimA",
             DimensionType.PROGRAM_DATA_ELEMENT,
@@ -54,9 +55,9 @@ class DimensionalObjectTest {
             "IN:uidA;uidB;uidC");
     List<String> expectedA = new ArrayList<>(Arrays.asList("uidA", "uidB", "uidC"));
     assertEquals(expectedA, objectA.getFilterItemsAsList());
-    BaseDimensionalObject objectB =
+    DimensionalObject objectB =
         new BaseDimensionalObject(
             "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, null, "EQ:uidA");
-    assertEquals(null, objectB.getFilterItemsAsList());
+    assertNull(objectB.getFilterItemsAsList());
   }
 }

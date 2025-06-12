@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
@@ -57,6 +58,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.analytics.AnalyticsStringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -290,6 +292,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
     StringBuilder sql = new StringBuilder();
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
@@ -301,7 +304,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
             and ${evDeletedClause} \
-            and ${teDeletedClause} """,
+            and ${teDeletedClause}""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
@@ -368,13 +371,15 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         sqlBuilder.supportsDeclarativePartitioning() ? "" : getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
-    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(AnalyticsStringUtils.toCommaSeparated(columns, col -> quote(col.getName())));
     sql.append(") select distinct ");
-    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
+    sql.append(
+        AnalyticsStringUtils.toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
     sql.append(" ");
 
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
             from ${event} ev \
             inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and ${enDeletedClause} \
@@ -385,7 +390,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
             where ev.status in (${statuses}) \
             ${partitionClause} \
-            and ${evDeletedClause} """,
+            and ${evDeletedClause}""",
             Map.of(
                 "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
                 "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),

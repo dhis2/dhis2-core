@@ -68,6 +68,7 @@ import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
@@ -177,12 +178,14 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
 
     trackerObjects = testSetup.fromJson("tracker/programrule/event_with_data_value.json");
 
-    trackerObjects
-        .getEvents()
-        .get(0)
-        .setOccurredAt(DateUtils.instantFromDateAsString(eventOccurredDate));
+    TrackerEvent trackerEvent =
+        TrackerEvent.builderFromEvent(trackerObjects.getEvents().get(0))
+            .occurredAt(DateUtils.instantFromDateAsString(eventOccurredDate))
+            .build();
 
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, TrackerObjects.builder().events(List.of(trackerEvent)).build());
     assertHasOnlyWarnings(importReport, E1308);
 
     Event event = manager.get(Event.class, "D9PbzJY8bZZ");
@@ -341,14 +344,13 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
       throws IOException {
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/programrule/event_without_date.json");
-    trackerObjects
-        .getEvents()
-        .get(0)
-        .setOccurredAt(DateUtils.instantFromDateAsString(occurredDate));
-    trackerObjects.getEvents().get(0).setEvent(eventUid);
-    trackerObjects.getEvents().get(0).getDataValues().iterator().next().setValue(value);
+    TrackerEvent event =
+        TrackerEvent.builderFromEvent(trackerObjects.getEvents().get(0), eventUid)
+            .occurredAt(DateUtils.instantFromDateAsString(occurredDate))
+            .build();
+    event.getDataValues().iterator().next().setValue(value);
 
-    return trackerObjects;
+    return TrackerObjects.builder().events(List.of(event)).build();
   }
 
   private List<String> getValueForAssignedDataElement(UID eventUid) {

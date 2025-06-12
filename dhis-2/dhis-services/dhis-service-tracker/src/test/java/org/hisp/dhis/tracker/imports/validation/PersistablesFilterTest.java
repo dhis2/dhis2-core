@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.AssertValidations;
 import org.junit.jupiter.api.Test;
@@ -176,11 +177,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
         () ->
             assertHasError(
-                persistable,
-                ENROLLMENT,
-                "t1zaUjKgT3p",
-                E5000,
-                "because \"trackedEntity\" `xK7H53f4Hc2`"));
+                persistable, ENROLLMENT, "t1zaUjKgT3p", E5000, "trackedEntity `xK7H53f4Hc2`"));
   }
 
   @Test
@@ -223,7 +220,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Event.class)),
         () ->
             assertHasError(
-                persistable, EVENT, "Qck4PQ7TMun", E5000, "because \"enrollment\" `t1zaUjKgT3p`"));
+                persistable, EVENT, "Qck4PQ7TMun", E5000, "because enrollment `t1zaUjKgT3p`"));
   }
 
   @Test
@@ -303,11 +300,7 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Relationship.class)),
         () ->
             assertHasError(
-                persistable,
-                RELATIONSHIP,
-                "Te3IC6TpnBB",
-                E5000,
-                "because \"enrollment\" `QxGbKYwChDM`"));
+                persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "enrollment `QxGbKYwChDM`"));
   }
 
   @Test
@@ -330,19 +323,16 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.get(Relationship.class)),
         () ->
             assertHasError(
-                persistable,
-                RELATIONSHIP,
-                "Te3IC6TpnBB",
-                E5000,
-                "because \"event\" `QxGbKYwChDM`"));
+                persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "because event `QxGbKYwChDM`"));
   }
 
+  /**
+   * If entities are found to be invalid during the validation an error for the entity will already
+   * be in the validation report. Only add errors if it would not be clear why an entity cannot be
+   * persisted.
+   */
   @Test
   void testCreateAndUpdateOnlyReportErrorsIfItAddsNewInformation() {
-    // If entities are found to be invalid during the validation an error for the entity will
-    // already be in the
-    // validation report. Only add errors if it would not be clear why an entity cannot be
-    // persisted.
 
     Setup setup =
         new Setup.Builder()
@@ -409,9 +399,9 @@ class PersistablesFilterTest {
     private final EnumMap<TrackerType, Set<UID>> invalidEntities;
 
     /**
-     * Setup builds the arguments for calling {@link PersistablesFilter#filter(TrackerBundle,
-     * EnumMap, TrackerImportStrategy)} Adding an entity with methods like {@link
-     * #trackedEntity(String)} always assumes the entity is valid and does not yet exist.
+     * Setup builds the arguments for calling {@link PersistablesFilter#filter(TrackerBundle, Map,
+     * TrackerImportStrategy)} Adding an entity with methods like {@link #trackedEntity(String)}
+     * always assumes the entity is valid and does not yet exist.
      *
      * <p>Call {@link #isNotValid()} or {@link #isInDB()} to mark the current entity as invalid or
      * existing. You need to make sure to add entities in the right order (hierarchy) otherwise
@@ -511,7 +501,7 @@ class PersistablesFilterTest {
         // set child/parent links only if the event has a parent. Events in an event program have no
         // enrollment.
         // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
-        Event event = Event.builder().event(uid).enrollment(parent.entity.getUid()).build();
+        Event event = TrackerEvent.builder().event(uid).enrollment(parent.entity.getUid()).build();
         return new Entity<>(event);
       }
 
@@ -636,10 +626,14 @@ class PersistablesFilterTest {
   private static EnumMap<TrackerType, Set<UID>> invalidEntities() {
     return new EnumMap<>(
         Map.of(
-            TRACKED_ENTITY, new HashSet<>(),
-            ENROLLMENT, new HashSet<>(),
-            EVENT, new HashSet<>(),
-            RELATIONSHIP, new HashSet<>()));
+            TRACKED_ENTITY,
+            new HashSet<>(),
+            ENROLLMENT,
+            new HashSet<>(),
+            EVENT,
+            new HashSet<>(),
+            RELATIONSHIP,
+            new HashSet<>()));
   }
 
   private static <T extends TrackerDto> void assertContainsOnly(

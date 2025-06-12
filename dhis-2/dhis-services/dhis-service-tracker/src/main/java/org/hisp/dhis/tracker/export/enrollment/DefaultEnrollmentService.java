@@ -146,14 +146,12 @@ class DefaultEnrollmentService implements EnrollmentService {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     List<Enrollment> enrollments =
-        findEnrollments(
+        mapEnrollment(
             new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
             params.getFields(),
             params.isIncludeDeleted());
 
-    if (queryParams.getTrackedEntity() != null) {
-      addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
-    }
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
 
     return enrollments;
   }
@@ -167,25 +165,18 @@ class DefaultEnrollmentService implements EnrollmentService {
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
-        findEnrollments(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
+        mapEnrollment(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
 
-    if (queryParams.getTrackedEntity() != null) {
-      addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
-    }
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
 
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
   private void addTrackedEntityAudit(UID trackedEntity, List<Enrollment> enrollments) {
-    Optional<Enrollment> enrollment =
-        enrollments.stream()
-            .filter(e -> e.getTrackedEntity().getUid().equals(trackedEntity.getValue()))
-            .findFirst();
-
-    enrollment.ifPresent(
-        e ->
-            trackedEntityAuditService.addTrackedEntityAudit(
-                READ, getCurrentUserDetails().getUsername(), e.getTrackedEntity()));
+    if (trackedEntity != null && !enrollments.isEmpty()) {
+      trackedEntityAuditService.addTrackedEntityAudit(
+          READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
+    }
   }
 
   private Set<Event> getEvents(
@@ -280,17 +271,9 @@ class DefaultEnrollmentService implements EnrollmentService {
     return attributeValues;
   }
 
-  private List<Enrollment> findEnrollments(
-      Iterable<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
-    List<Enrollment> enrollmentList = new ArrayList<>();
-
-    for (Enrollment enrollment : enrollments) {
-      if (enrollment != null) {
-        enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
-      }
-    }
-
-    return enrollmentList;
+  private List<Enrollment> mapEnrollment(
+      List<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
+    return enrollments.stream().map(e -> getEnrollment(e, fields, includeDeleted)).toList();
   }
 
   @Override

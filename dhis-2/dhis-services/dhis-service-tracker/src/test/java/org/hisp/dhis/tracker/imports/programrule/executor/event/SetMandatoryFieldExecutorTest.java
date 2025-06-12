@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.junit.jupiter.api.BeforeEach;
@@ -270,7 +271,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   }
 
   private Event getEventWithDeleteMandatoryValue() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(programStage))
@@ -279,7 +280,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   }
 
   private Event getEventWithMandatoryValueSet(TrackerIdSchemeParams idSchemes) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(idSchemes.toMetadataIdentifier(programStage))
@@ -288,7 +289,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   }
 
   private Event getEventWithMandatoryValueSet() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(programStage))
@@ -297,7 +298,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   }
 
   private Event getEventWithMandatoryValueNOTSet() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(COMPLETED_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(programStage))
@@ -305,7 +306,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
   }
 
   private Event getEventWithMandatoryValueNOTSet(EventStatus status) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(COMPLETED_EVENT_UID)
         .status(status)
         .programStage(MetadataIdentifier.ofUid(programStage))
