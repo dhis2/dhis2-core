@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,48 +29,18 @@
  */
 package org.hisp.dhis.feedback;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
-
-import java.text.MessageFormat;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webmessage.WebResponse;
+import javax.annotation.Nonnull;
 
-@Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = BAD_REQUEST, value = WebResponse.class)
-@SuppressWarnings({"java:S1165", "java:S1948"})
-public final class BadRequestException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrow(type, BadRequestException::new, operation);
+/**
+ * @param attempted number of rows that were attempted to import
+ * @param succeeded number of rows affected by the import (ideally same as upserted)
+ */
+public record ImportResult(int attempted, int succeeded, @Nonnull List<ImportError> errors) {
+
+  public static ImportError error(int index, ErrorCode code, Object... args) {
+    return new ImportError(index, code, List.of(args));
   }
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, BadRequestException> map, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrowMapped(type, map, operation);
-  }
-
-  private final ErrorCode code;
-  private final Object[] args;
-
-  @Setter private List<ErrorReport> errorReports = List.of();
-
-  public BadRequestException(String message) {
-    super(message);
-    this.code = ErrorCode.E1003;
-    this.args = new Object[0];
-  }
-
-  public BadRequestException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-    this.args = args;
-  }
+  public record ImportError(int index, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 }
