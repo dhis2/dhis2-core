@@ -123,6 +123,7 @@ public class DefaultDviService implements DviService {
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
     // TODO add option to skip all timeliness checks for entry that isn't "original"?
+    // TODO also a super-user might want to bypass these (opt-in or opt-out?)
     validateEntryTimeliness(ds, values);
 
     return validateValues(values, errors);
@@ -133,20 +134,26 @@ public class DefaultDviService implements DviService {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return; // super always can
 
-    // - OUs are in user hierarchy
+    // - require: OUs are in user hierarchy
     String userId = user.getUid();
     List<String> noAccessOrgUnits =
         store.getOrgUnitsNotInUserHierarchy(UID.of(userId), values.stream().map(DviValue::orgUnit));
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
 
-    // - DS ACL check canDataWrite
+    // - require: DS ACL check canDataWrite
     boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
     if (!dsNoAccess) throw new ConflictException(ErrorCode.E7601, ds);
 
-    // - AOCs => COs : ACL canDataWrite
+    // - require: AOCs => COs : ACL canDataWrite
     List<String> coNoAccess =
-        store.getCategoryOptionsNotCanDataWrite(
+        store.getCategoryOptionsCanNotDataWrite(
             values.stream().map(DviValue::attributeOptionCombo));
+    if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
+
+    // TODO combine with above?
+    // - require: COC => COs : ACL canDataWrite
+    coNoAccess =
+        store.getCategoryOptionsCanNotDataWrite(values.stream().map(DviValue::categoryOptionCombo));
     if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
   }
 
@@ -155,28 +162,28 @@ public class DefaultDviService implements DviService {
    */
   private void validateKeyConsistency(UID ds, List<DviValue> values)
       throws ConflictException, BadRequestException {
-    // - DEs must belong to the specified DS
+    // - require: DEs must belong to the specified DS
     List<String> deNotInDs =
         store.getDataElementsNotInDataSet(ds, values.stream().map(DviValue::dataElement));
     if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
 
-    // - OU must be a source of the DS for the DE
+    // - require: OU must be a source of the DS for the DE
     List<String> ouNotInDs =
         store.getOrgUnitsNotInDataSet(ds, values.stream().map(DviValue::orgUnit));
     if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
 
-    // - PE ISO must be of PT used by the DS
+    // - require: PE ISO must be of PT used by the DS
     List<String> isoNotUsableInDs =
         store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(DviValue::period));
     if (!isoNotUsableInDs.isEmpty())
       throw new ConflictException(ErrorCode.E7608, ds, isoNotUsableInDs);
 
-    // - AOC must link (belong) to the CC of the DS
+    // - require: AOC must link (belong) to the CC of the DS
     List<String> aocNotInDs =
         store.getAocNotInDataSet(ds, values.stream().map(DviValue::attributeOptionCombo));
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7623, ds, aocNotInDs);
 
-    // - COC must link (belong) to the CC of the DE
+    // - require: COC must link (belong) to the CC of the DE
     Map<UID, List<DviValue>> valuesByDe =
         values.stream().collect(groupingBy(DviValue::dataElement));
     for (Map.Entry<UID, List<DviValue>> e : valuesByDe.entrySet()) {
@@ -187,7 +194,7 @@ public class DefaultDviService implements DviService {
       if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
     }
 
-    // - OU must be within the hierarchy declared by AOC => COs => OUs
+    // - require: OU must be within the hierarchy declared by AOC => COs => OUs
     List<String> aocOuRestricted =
         store.getAocWithOrgUnitHierarchy(values.stream().map(DviValue::attributeOptionCombo));
     if (!aocOuRestricted.isEmpty()) {
@@ -221,26 +228,26 @@ public class DefaultDviService implements DviService {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
       String val = normalizeValue(e, type);
-      // - value not null/empty (not for delete or deleted value)
+      // - require: value not null/empty (not for delete or deleted value)
       if ((val == null || val.isEmpty()) && e.deleted() != Boolean.TRUE) {
         errors.add(error(index, ErrorCode.E7618, e));
       } else {
-        // - value valid for the DE value type?
+        // - require: value valid for the DE value type?
         String error = ValidationUtils.valueIsValid(val, type);
         if (error != null) {
           errors.add(error(index, ErrorCode.E7619, type, e));
         } else {
-          // - if DE uses OptionSet - is value a valid option?
+          // - require: if DE uses OptionSet - is value a valid option?
           Set<String> options = optionsByDe.get(de);
           if (options != null && !options.contains(val)) {
             errors.add(error(index, ErrorCode.E7621, e));
           } else {
-            // - if DE uses comment OptionSet - is comment a valid option?
+            // - require: if DE uses comment OptionSet - is comment a valid option?
             Set<String> cOptions = commentOptionsByDe.get(de);
             if (cOptions != null && (e.comment() == null || !cOptions.contains(e.comment()))) {
               errors.add(error(index, ErrorCode.E7620, e));
             } else {
-              // - does the comment not exceed maximum length?
+              // - require: does the comment not exceed maximum length?
               if (e.comment() != null && e.comment().length() > 5000) {
                 errors.add(error(index, ErrorCode.E7620, e));
               } else {
@@ -300,7 +307,7 @@ public class DefaultDviService implements DviService {
   */
 
   private void validateEntryTimeliness(UID ds, List<DviValue> values) throws ConflictException {
-    // - DS not already approved (data approval)
+    // - require: DS not already approved (data approval)
     List<String> aocInApproval = store.getDataSetAocInApproval(ds);
     if (!aocInApproval.isEmpty()) {
       Map<UID, List<DviValue>> byAoc =
@@ -329,12 +336,17 @@ public class DefaultDviService implements DviService {
       }
     }
 
-    // - DS input period is open (no entering in the past)
+    // - require: DS input period is open (no entering in the past)
     //   TODO load all input periods for DS (but only consider open ones), then check each value
 
-    // - DS not locked (lock exceptions)
+    // - require: DS not locked (expiryDays + lock exceptions)
+    // TODO if user has F_EDIT_EXPIRED we can skip this check
+    // expiryDays=0 => no expiry => skip
+    // otherwise a period is open until end + expiryDays
+    // since lock-exceptions are OU bound it makes most sense to fetch exceptions in scope
+    // as matching in DB would require building complicated match conditions
+    // for the DS-PE-OU combinations found in values
 
-    // AOC related
-    // - PE must be within AOC "range" (range super complicated to find)
+    // - require: PE must be within AOC "date range" (range super complicated to find)
   }
 }

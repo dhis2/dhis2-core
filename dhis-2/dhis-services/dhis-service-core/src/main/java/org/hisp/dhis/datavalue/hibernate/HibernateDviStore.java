@@ -324,7 +324,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public List<String> getCategoryOptionsNotCanDataWrite(Stream<UID> attrOptionCombos) {
+  public List<String> getCategoryOptionsCanNotDataWrite(Stream<UID> optionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
     String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_WRITE_DATA);
@@ -332,14 +332,14 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     String sql =
         """
       SELECT co.uid
-      FROM categoryoptioncombo aoc
-      JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+      FROM categoryoptioncombo coc
+      JOIN categoryoptioncombos_categoryoptions aoc_co ON coc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
       JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
-      WHERE aoc.uid IN (:aoc)
+      WHERE coc.uid IN (:coc)
       AND NOT (%s);
       """;
-    String[] aoc = attrOptionCombos.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("aoc", aoc));
+    String[] coc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("coc", coc));
   }
 
   @Override
