@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -145,6 +147,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     sql +=
         qualifyVariables(
+            sqlBuilder,
             """
             from ${orgunitgroupmembers} ougm \
             inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid \

@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -229,6 +231,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
 
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
             \sfrom ${enrollment} en \
             inner join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
@@ -237,7 +240,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             left join ${program} p on en.programid=p.programid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             where en.occurreddate is not null \
-            and ${enDeletedClause} """,
+            and ${enDeletedClause}""",
             Map.of(
                 "trackedEntityTypeId", valueOf(tetId),
                 "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),

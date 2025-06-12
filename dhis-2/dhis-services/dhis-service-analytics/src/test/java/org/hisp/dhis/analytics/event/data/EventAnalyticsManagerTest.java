@@ -72,6 +72,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
@@ -160,6 +161,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             new PostgreSqlBuilder(),
             dataElementService);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -173,7 +175,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
-            organisationUnitResolver);
+            organisationUnitResolver,
+            columnMapper);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
