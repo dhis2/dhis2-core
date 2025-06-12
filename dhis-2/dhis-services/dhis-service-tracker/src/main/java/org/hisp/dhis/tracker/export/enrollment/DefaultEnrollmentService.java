@@ -146,7 +146,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     List<Enrollment> enrollments =
-        findEnrollments(
+        mapEnrollment(
             new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
             params.getFields(),
             params.isIncludeDeleted());
@@ -165,7 +165,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
-        findEnrollments(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
+        mapEnrollment(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
 
     addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
 
@@ -271,15 +271,9 @@ class DefaultEnrollmentService implements EnrollmentService {
     return attributeValues;
   }
 
-  private List<Enrollment> findEnrollments(
-      Iterable<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
-    List<Enrollment> enrollmentList = new ArrayList<>();
-
-    for (Enrollment enrollment : enrollments) {
-      enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
-    }
-
-    return enrollmentList;
+  private List<Enrollment> mapEnrollment(
+      List<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
+    return enrollments.stream().map(e -> getEnrollment(e, fields, includeDeleted)).toList();
   }
 
   @Override
