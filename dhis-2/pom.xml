@@ -125,7 +125,7 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.11.1</c3p0.version>
     <HikariCP.version>6.3.0</HikariCP.version>
-    <postgresql-driver.version>42.7.6</postgresql-driver.version>
+    <postgresql-driver.version>42.7.7</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
 
