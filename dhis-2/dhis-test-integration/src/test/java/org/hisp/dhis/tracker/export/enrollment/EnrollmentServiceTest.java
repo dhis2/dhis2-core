@@ -77,6 +77,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -100,6 +101,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired protected UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private final Date incidentDate = new Date();
 
@@ -245,6 +248,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
     manager.save(enrollmentA, false);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA, programA, orgUnitA);
 
     relationshipA = new Relationship();
     relationshipA.setUid(CodeGenerator.generateUid());
@@ -270,13 +275,19 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);
     manager.save(enrollmentB);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, orgUnitB);
 
     enrollmentChildA = createEnrollment(programA, trackedEntityChildA, orgUnitChildA);
     manager.save(enrollmentChildA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityChildA, programA, orgUnitChildA);
 
     enrollmentGrandchildA =
         createEnrollment(programA, trackedEntityGrandchildA, orgUnitGrandchildA);
     manager.save(enrollmentGrandchildA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityGrandchildA, programA, orgUnitGrandchildA);
 
     manager.flush();
     manager.clear();

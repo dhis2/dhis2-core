@@ -89,6 +89,10 @@ public class TrackerProgramService {
 
     return programService.getAllPrograms().stream()
         .filter(p -> p.isRegistration() && aclService.canDataRead(user, p))
+        .filter(
+            p ->
+                aclService.canRead(user, p.getTrackedEntityType())
+                    && aclService.canDataRead(user, p.getTrackedEntityType()))
         .toList();
   }
 
