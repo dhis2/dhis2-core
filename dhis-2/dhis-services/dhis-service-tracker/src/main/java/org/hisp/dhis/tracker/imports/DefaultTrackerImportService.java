@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -186,6 +187,27 @@ public class DefaultTrackerImportService implements TrackerImportService {
         .map(reportMap -> reportMap.get(trackerType))
         .map(TrackerTypeReport::getNotificationDataBundles)
         .orElse(Collections.emptyList());
+  }
+
+  /**
+   * Builds a consolidated map of bundle sizes by combining original sizes with the final state of
+   * the bundle. For all {@link TrackerType}s except {@link TrackerType#EVENT}, the original bundle
+   * size is retained. The {@code EVENT} type is recalculated from the final {@link TrackerBundle},
+   * as rule engine validation process may modify the number of events.
+   */
+  private Map<TrackerType, Integer> consolidateBundleSize(
+      Map<TrackerType, Integer> originalBundleSize, TrackerBundle trackerBundle) {
+    Map<TrackerType, Integer> consolidated = new EnumMap<>(TrackerType.class);
+    for (TrackerType type : TrackerType.values()) {
+      int size =
+          (type == TrackerType.EVENT)
+              ? trackerBundle.getEvents().size()
+              : originalBundleSize.getOrDefault(type, 0);
+
+      consolidated.put(type, size);
+    }
+
+    return Collections.unmodifiableMap(consolidated);
   }
 
   protected PersistenceReport deleteBundle(TrackerBundle trackerBundle)
