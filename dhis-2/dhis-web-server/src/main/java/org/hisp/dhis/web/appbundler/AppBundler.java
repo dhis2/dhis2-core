@@ -42,13 +42,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -66,7 +65,7 @@ public class AppBundler {
   // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
   private static final Pattern GITHUB_URL_PATTERN =
       Pattern.compile("^https://github\\.com/([^/]+)/([^/#]+)(?:#(.+))?$");
-  private static final int DOWNLOAD_POOL_SIZE = 25; // Number of concurrent downloads
+  private static final int DOWNLOAD_POOL_SIZE = 30; // Number of concurrent downloads
   private static final String DEFAULT_BRANCH = "master";
 
   private static final String CHECKSUM_DIR = "checksums";
@@ -149,48 +148,35 @@ public class AppBundler {
 
   private void downloadApps(
       List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
-    ExecutorService executor = Executors.newFixedThreadPool(DOWNLOAD_POOL_SIZE);
-
-    List<Future<AppBundleInfo.AppInfo>> futures = new ArrayList<>();
-    for (AppGithubRepo repoInfo : appRepoInfos) {
-      futures.add(executor.submit(() -> downloadApp(repoInfo, artifactDirPath, checksumDirPath)));
-    }
-
-    for (Future<AppBundleInfo.AppInfo> future : futures) {
-      try {
-        AppBundleInfo.AppInfo appInfo = future.get(); // Blocks until completion
-        if (appInfo != null) {
-          bundleInfo.addApp(appInfo);
-        }
-
-      } catch (InterruptedException | ExecutionException e) {
-        log.error(
-            "Error retrieving result for an app download task: {} - {}",
-            e.getClass().getSimpleName(),
-            e.getMessage(),
-            e.getCause());
-      }
-    }
-
-    executor.shutdown();
-
+    ForkJoinPool customThreadPool = new ForkJoinPool(DOWNLOAD_POOL_SIZE);
     try {
-      // Wait a reasonable time for existing tasks to terminate
-      if (!executor.awaitTermination(5, TimeUnit.MINUTES)) {
-        log.error(
-            "Download executor did not terminate gracefully after 5 minutes, forcing shutdown.");
-        executor.shutdownNow();
-        // Wait again for tasks to respond to being cancelled
-        if (!executor.awaitTermination(60, TimeUnit.SECONDS))
-          log.error("Download executor did not terminate even after forced shutdown.");
-      }
+      List<AppBundleInfo.AppInfo> downloadedApps =
+          customThreadPool
+              .submit(
+                  () ->
+                      appRepoInfos.parallelStream()
+                          .map(
+                              repoInfo -> {
+                                try {
+                                  return downloadApp(repoInfo, artifactDirPath, checksumDirPath);
+                                } catch (IOException e) {
+                                  // error is logged in downloadApp()
+                                  return null;
+                                }
+                              })
+                          .filter(Objects::nonNull)
+                          .collect(Collectors.toList()))
+              .get();
 
-    } catch (InterruptedException ie) {
-      log.error("Interrupted while waiting for executor termination, forcing shutdown.", ie);
-      executor.shutdownNow();
-      Thread.currentThread().interrupt(); // Preserve interrupt status
+      downloadedApps.forEach(bundleInfo::addApp);
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error during parallel app download", e);
+      // Restore interrupt status
+      Thread.currentThread().interrupt();
+    } finally {
+      customThreadPool.shutdown();
     }
-    log.debug("Download executor shut down.");
+    log.debug("Finished downloading apps.");
   }
 
   /**

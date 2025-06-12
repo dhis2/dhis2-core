@@ -139,7 +139,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     } else {
       apps.values()
           .forEach(
-              (pair) ->
+              pair ->
                   log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
     }
 
