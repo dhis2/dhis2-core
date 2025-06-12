@@ -31,12 +31,16 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.Math.min;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
+import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +65,6 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.security.acl.AclService;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -104,7 +106,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
           JOIN organisationunit ou_inner ON um.organisationunitid = ou_inner.organisationunitid
           WHERE u.uid = :user
       )
-      SELECT ou.uid
+      SELECT DISTINCT ou.uid
       FROM organisationunit ou
       JOIN unnest(:ou) AS oux(uid) ON ou.uid = oux.uid
       WHERE NOT EXISTS (
@@ -112,17 +114,52 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
           FROM user_orgs
           WHERE ou.path = user_orgs.path  -- Exact match
              OR ou.path LIKE user_orgs.path || '/%'  -- Descendant match
-      )
-      """;
+      )""";
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameter("user", user.getValue()).setParameter("ou", ou));
+  }
+
+  @Override
+  public List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits) {
+    // WITH part builds lists of paths for each CO connected to the AOC
+    // the main SELECT then checks that any OU in parameter list
+    // that does not have an exact or descendant match in each path list
+    // is included in the result
+    String sql =
+        """
+        WITH aoc_orgs AS (
+          SELECT aoc_co.categoryoptionid, array_agg(DISTINCT ou.path) AS paths
+          FROM categoryoptioncombo aoc
+          JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+          JOIN categoryoption_organisationunits co_ou ON aoc_co.categoryoptionid = co_ou.categoryoptionid
+          JOIN organisationunit ou ON co_ou.organisationunitid = ou.organisationunitid
+          WHERE aoc.uid = :aoc
+          GROUP BY aoc_co.categoryoptionid
+        )
+        SELECT DISTINCT ou.uid
+        FROM organisationunit ou
+        JOIN unnest(:ou) AS oux(uid) ON ou.uid = oux.uid
+        WHERE EXISTS (
+          SELECT 1
+          FROM aoc_orgs
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM unnest(aoc_orgs.paths) AS org_path(path)
+            WHERE
+              ou.path = org_path.path OR         -- Exact match
+              ou.path LIKE org_path.path || '/%'  -- Descendant match
+          )
+        )""";
+    String aoc = attrOptionCombo.getValue();
+    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql, q -> q.setParameter("aoc", aoc).setParameterList("ou", ou));
   }
 
   @Override
   public List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits) {
     String sql =
         """
-     SELECT ou.uid
+     SELECT DISTINCT ou.uid
      FROM organisationunit ou
      LEFT JOIN (
        SELECT s.sourceid
@@ -137,11 +174,10 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public List<String> getCategoryOptionCombosNotInDataSet(
-      UID dataSet, UID dataElement, Stream<UID> optionCombos) {
+  public List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos) {
     String sql =
         """
-      SELECT coc.uid
+      SELECT DISTINCT coc.uid
       FROM categoryoptioncombo coc
       LEFT JOIN (
           SELECT m.categoryoptioncomboid
@@ -165,10 +201,10 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos) {
+  public List<String> getAocNotInDataSet(UID dataSet, Stream<UID> optionCombos) {
     String sql =
         """
-     SELECT aoc.uid
+     SELECT DISTINCT aoc.uid
      FROM categoryoptioncombo aoc
      LEFT JOIN (
        SELECT m.categoryoptioncomboid
@@ -181,6 +217,19 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     String ds = dataSet.getValue();
     String[] aoc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameterList("aoc", aoc).setParameter("ds", ds));
+  }
+
+  @Override
+  public List<String> getAocWithOrgUnitHierarchy(Stream<UID> attrOptionCombos) {
+    String sql =
+        """
+      SELECT DISTINCT aoc.uid
+      FROM categoryoptioncombo aoc
+      JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+      JOIN categoryoption_organisationunits co_ou ON aoc_co.categoryoptionid = co_ou.categoryoptionid
+      WHERE aoc.uid IN (:aoc)""";
+    String[] aoc = attrOptionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql, q -> q.setParameterList("aoc", aoc));
   }
 
   @Override
@@ -200,7 +249,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   public List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements) {
     String sql =
         """
-      SELECT de.uid
+      SELECT DISTINCT de.uid
       FROM dataelement de
       LEFT JOIN (
           SELECT de_ds.dataelementid
@@ -250,18 +299,36 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public boolean getDataSetAccessible(UID dataSet) {
+  public boolean getDataSetCanDataWrite(UID dataSet) {
     String accessSql =
-        JpaQueryUtils.generateSQlQueryForSharingCheck(
-            "ds.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA);
+        generateSQlQueryForSharingCheck("ds.sharing", getCurrentUserDetails(), LIKE_WRITE_DATA);
     @Language("SQL")
     String sql =
         """
-      SELECT ds.uid FROM dataset ds
-      WHERE ds.uid = :ds AND (%s);
+      SELECT ds.uid
+      FROM dataset ds
+      WHERE ds.uid = :ds AND NOT (%s);
       """;
     String ds = dataSet.getValue();
-    return !listAsStrings(sql.formatted(accessSql), q -> q.setParameter("ds", ds)).isEmpty();
+    return listAsStrings(sql.formatted(accessSql), q -> q.setParameter("ds", ds)).isEmpty();
+  }
+
+  @Override
+  public List<String> getCategoryOptionsNotCanDataWrite(Stream<UID> attrOptionCombos) {
+    String accessSql =
+        generateSQlQueryForSharingCheck("co.sharing", getCurrentUserDetails(), LIKE_WRITE_DATA);
+    @Language("SQL")
+    String sql =
+        """
+      SELECT co.uid
+      FROM categoryoptioncombo aoc
+      JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+      JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
+      WHERE aoc.uid IN (:aoc)
+      AND NOT (%s);
+      """;
+    String[] aoc = attrOptionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStrings(sql.formatted(accessSql), q -> q.setParameter("aoc", aoc));
   }
 
   @Override
@@ -433,6 +500,53 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
               return actual == null || !expected.equals(actual.getName());
             })
         .toList();
+  }
+
+  @Override
+  public List<String> getDataSetAocInApproval(UID dataSet) {
+    String sql =
+        """
+      SELECT DISTINCT aoc.uid
+      FROM dataset ds
+      JOIN dataapproval da ON ds.workflowid = da.workflowid
+      JOIN categoryoptioncombo aoc ON da.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE ds.uid = :ds
+        AND ds.workflowid IS NOT NULL""";
+    return listAsStrings(sql, q -> q.setParameter("ds", dataSet.getValue()));
+  }
+
+  @Override
+  public Map<String, Set<String>> getApprovedIsoPeriodsByOrgUnit(
+      UID dataSet, UID attrOptionCombo, Stream<UID> orgUnits) {
+    PeriodType pt = PeriodType.getPeriodTypeByName(getDataSetPeriodType(dataSet));
+    String sql =
+        """
+      SELECT ou.uid, array_agg(pe.startdate)
+      FROM dataset ds
+      JOIN dataapproval da ON ds.workflowid = da.workflowid
+      JOIN organisationunit ou ON da.organisationunitid = ou.organisationunitid
+      JOIN period pe ON da.periodid = pe.periodid
+      WHERE ds.uid = :ds
+        AND ou.uid IN (:ou)
+      GROUP BY ou.uid""";
+    String ds = dataSet.getValue();
+    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> res =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", ds)
+            .setParameterList("ou", ou)
+            .stream();
+    return res.collect(
+        toMap(
+            row -> (String) row[0],
+            row -> {
+              Date[] dates = (Date[]) row[1];
+              return Stream.of(dates)
+                  .map(date -> pt.createPeriod(date).getIsoDate())
+                  .collect(toSet());
+            }));
   }
 
   @Nonnull

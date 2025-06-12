@@ -594,6 +594,9 @@ public enum ErrorCode {
   E7623("Attribute option combo(s) not valid for data set {0}: `{1}`"),
   E7624("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),
   E7625("Atomic mode requires all values to be valid but only {0}/{1} were."),
+  E7626(
+      "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
+  E7627("Category option(s) not accessible for writing data: `{0}`"),
 
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),

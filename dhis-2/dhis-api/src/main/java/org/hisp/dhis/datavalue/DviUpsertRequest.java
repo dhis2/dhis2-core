@@ -40,6 +40,7 @@ public record DviUpsertRequest(
     @CheckForNull UID dataElement,
     @CheckForNull UID orgUnit,
     @CheckForNull String period,
+    @CheckForNull UID attrOptionCombo,
     @JsonAlias("dataValues") List<DviValue> values) {
 
   /**

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -113,20 +114,21 @@ public class DefaultDviService implements DviService {
        * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
        * without risk of misinterpretation of the request.
        */
-      List<String> uniqueDs = store.getDataSets(values.stream().map(DviValue::dataElement));
-      if (uniqueDs.size() != 1) throw new ConflictException(ErrorCode.E7606, uniqueDs);
-      ds = UID.of(uniqueDs.get(0));
+      List<String> dsForDe = store.getDataSets(values.stream().map(DviValue::dataElement));
+      if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7606, dsForDe);
+      ds = UID.of(dsForDe.get(0));
     }
 
-    validateAccess(ds, values);
+    validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
-    validateEntry(ds, values);
+    // TODO add option to skip all timeliness checks for entry that isn't "original"?
+    validateEntryTimeliness(ds, values);
 
     return validateValues(values, errors);
   }
 
   /** Is the user allowed to write (capture) the data values? */
-  private void validateAccess(UID ds, List<DviValue> values) throws ConflictException {
+  private void validateUserAccess(UID ds, List<DviValue> values) throws ConflictException {
     // - OUs are in user hierarchy
     String userId = getCurrentUserDetails().getUid();
     List<String> noAccessOrgUnits =
@@ -134,11 +136,14 @@ public class DefaultDviService implements DviService {
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
 
     // - DS ACL check canDataWrite
-    boolean dsNoAccess = store.getDataSetAccessible(ds);
+    boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
     if (!dsNoAccess) throw new ConflictException(ErrorCode.E7601, ds);
 
-    // - CO of COCs + AOCs : ACL canDataWrite
-
+    // - AOCs => COs : ACL canDataWrite
+    List<String> coNoAccess =
+        store.getCategoryOptionsNotCanDataWrite(
+            values.stream().map(DviValue::attributeOptionCombo));
+    if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
   }
 
   /**
@@ -164,8 +169,7 @@ public class DefaultDviService implements DviService {
 
     // - AOC must link (belong) to the CC of the DS
     List<String> aocNotInDs =
-        store.getAttributeOptionCombosNotInDataSet(
-            ds, values.stream().map(DviValue::attributeOptionCombo));
+        store.getAocNotInDataSet(ds, values.stream().map(DviValue::attributeOptionCombo));
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7623, ds, aocNotInDs);
 
     // - COC must link (belong) to the CC of the DE
@@ -174,9 +178,24 @@ public class DefaultDviService implements DviService {
     for (Map.Entry<UID, List<DviValue>> e : valuesByDe.entrySet()) {
       UID de = e.getKey();
       List<String> cocNotInDs =
-          store.getCategoryOptionCombosNotInDataSet(
+          store.getCocNotInDataSet(
               ds, de, e.getValue().stream().map(DviValue::categoryOptionCombo));
       if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
+    }
+
+    // - OU must be within the hierarchy declared by AOC => COs => OUs
+    List<String> aocOuRestricted =
+        store.getAocWithOrgUnitHierarchy(values.stream().map(DviValue::attributeOptionCombo));
+    if (!aocOuRestricted.isEmpty()) {
+      Map<UID, List<DviValue>> ouByAoc =
+          values.stream().collect(groupingBy(DviValue::attributeOptionCombo));
+      for (Map.Entry<UID, List<DviValue>> e : ouByAoc.entrySet()) {
+        UID aoc = e.getKey();
+        if (!aocOuRestricted.contains(aoc.getValue())) continue;
+        List<String> ouNotInAoc =
+            store.getOrgUnitsNotInAocHierarchy(aoc, e.getValue().stream().map(DviValue::orgUnit));
+        if (!ouNotInAoc.isEmpty()) throw new ConflictException("");
+      }
     }
   }
 
@@ -271,16 +290,42 @@ public class DefaultDviService implements DviService {
   like input periods, locking, approval...
   */
 
-  private void validateEntry(UID ds, List<DviValue> values) {
-    // - DS input period is open (no entering in the past)
-
-    // DS based gate-keepers (if DS specified only consider the single DS)
-    // - DS not locked (lock exceptions)
+  private void validateEntryTimeliness(UID ds, List<DviValue> values) throws ConflictException {
     // - DS not already approved (data approval)
-    // - DS any having the same DE is open (BS?)
+    List<String> aocInApproval = store.getDataSetAocInApproval(ds);
+    if (!aocInApproval.isEmpty()) {
+      Map<UID, List<DviValue>> byAoc =
+          values.stream().collect(groupingBy(DviValue::attributeOptionCombo));
+      for (Map.Entry<UID, List<DviValue>> e : byAoc.entrySet()) {
+        UID aoc = e.getKey();
+        if (!aocInApproval.contains(aoc.getValue())) continue;
+        Map<String, Set<String>> isoByOu =
+            store.getApprovedIsoPeriodsByOrgUnit(
+                ds, aoc, e.getValue().stream().map(DviValue::orgUnit));
+        if (!isoByOu.isEmpty()) {
+          Predicate<DviValue> dvApproved =
+              dv -> {
+                Set<String> isoPeriods = isoByOu.get(dv.orgUnit().getValue());
+                return isoPeriods != null && isoPeriods.contains(dv.period());
+              };
+          List<String> ouPeInApproval =
+              e.getValue().stream()
+                  .filter(dvApproved)
+                  .map(dv -> dv.orgUnit() + "-" + dv.period())
+                  .distinct()
+                  .toList();
+          if (!ouPeInApproval.isEmpty())
+            throw new ConflictException(ErrorCode.E7626, aoc, ouPeInApproval);
+        }
+      }
+    }
+
+    // - DS input period is open (no entering in the past)
+    //   TODO load all input periods for DS (but only consider open ones), then check each value
+
+    // - DS not locked (lock exceptions)
 
     // AOC related
     // - PE must be within AOC "range" (range super complicated to find)
-    // - OU must be linked to AOC (???)
   }
 }

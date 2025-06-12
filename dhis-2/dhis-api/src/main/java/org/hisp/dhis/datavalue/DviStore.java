@@ -38,8 +38,6 @@ import org.hisp.dhis.common.ValueType;
 
 public interface DviStore {
 
-  boolean getDataSetAccessible(UID dataSet);
-
   int deleteByKeys(List<DviKey> keys);
 
   int upsertValues(List<DviValue> values);
@@ -48,14 +46,21 @@ public interface DviStore {
   Validation support
    */
 
+  boolean getDataSetCanDataWrite(UID dataSet);
+
+  List<String> getCategoryOptionsNotCanDataWrite(Stream<UID> attrOptionCombos);
+
   List<String> getOrgUnitsNotInUserHierarchy(UID user, Stream<UID> orgUnits);
+
+  List<String> getOrgUnitsNotInAocHierarchy(UID attrOptionCombo, Stream<UID> orgUnits);
 
   List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits);
 
-  List<String> getCategoryOptionCombosNotInDataSet(
-      UID dataSet, UID dataElement, Stream<UID> optionCombos);
+  List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos);
 
-  List<String> getAttributeOptionCombosNotInDataSet(UID dataSet, Stream<UID> optionCombos);
+  List<String> getAocNotInDataSet(UID dataSet, Stream<UID> optionCombos);
+
+  List<String> getAocWithOrgUnitHierarchy(Stream<UID> attrOptionCombos);
 
   /**
    * @return List of unique data set UIDs for the given data elements
@@ -77,4 +82,9 @@ public interface DviStore {
    *     contain ISO key entries which do not map to a type.
    */
   List<String> getIsoPeriodsNotUsableInDataSet(UID dataSet, Stream<String> isoPeriods);
+
+  List<String> getDataSetAocInApproval(UID dataSet);
+
+  Map<String, Set<String>> getApprovedIsoPeriodsByOrgUnit(
+      UID dataSet, UID attrOptionCombo, Stream<UID> orgUnits);
 }
