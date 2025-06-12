@@ -90,7 +90,8 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
     this.ds = assertStatus(CREATED, POST("/dataSets", dsJson.formatted(dsId, cc, dsId, de)));
     this.ou1 =
         assertStatus(CREATED, POST("/organisationUnits", toJson(createOrganisationUnit('X'))));
-    assertStatus(CREATED, POST("/organisationUnits", toJson(createOrganisationUnit('Y'))));
+    this.ou2 =
+        assertStatus(CREATED, POST("/organisationUnits", toJson(createOrganisationUnit('Y'))));
     this.ou3 =
         assertStatus(CREATED, POST("/organisationUnits", toJson(createOrganisationUnit('Z'))));
     this.ou4 =
@@ -185,6 +186,9 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void testBulkImportCsv() {
+
+    String formattedCsv = csv.formatted(de, coc, ou1, ou2, ou3, ou4);
+
     JsonImportSuccessResponse response =
         POST(
                 "/minMaxDataElements/upsert?dataSet=" + ds,
