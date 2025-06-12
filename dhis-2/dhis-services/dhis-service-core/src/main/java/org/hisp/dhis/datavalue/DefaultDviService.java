@@ -52,6 +52,7 @@ import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.feedback.ImportResult.ImportError;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,8 +130,11 @@ public class DefaultDviService implements DviService {
 
   /** Is the user allowed to write (capture) the data values? */
   private void validateUserAccess(UID ds, List<DviValue> values) throws ConflictException {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return; // super always can
+
     // - OUs are in user hierarchy
-    String userId = getCurrentUserDetails().getUid();
+    String userId = user.getUid();
     List<String> noAccessOrgUnits =
         store.getOrgUnitsNotInUserHierarchy(UID.of(userId), values.stream().map(DviValue::orgUnit));
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
@@ -266,18 +270,23 @@ public class DefaultDviService implements DviService {
     UID de = request.dataElement();
     UID ou = request.orgUnit();
     String pe = request.period();
-    return (de == null && ou == null && pe == null)
+    UID aoc = request.attrOptionCombo();
+    return (de == null && ou == null && pe == null && aoc == null)
         ? values
-        : values.stream().map(e -> completeValue(e, de, ou, pe)).toList();
+        : values.stream().map(e -> completeValue(e, de, ou, pe, aoc)).toList();
   }
 
-  private static DviValue completeValue(DviValue e, UID dataElement, UID orgUnit, String period) {
-    if (e.orgUnit() != null && e.dataElement() != null && e.period() != null) return e;
+  private static DviValue completeValue(
+      DviValue e, UID dataElement, UID orgUnit, String period, UID aoc) {
+    if (e.orgUnit() != null
+        && e.dataElement() != null
+        && e.period() != null
+        && e.attributeOptionCombo() != null) return e;
     return new DviValue(
         e.dataElement() == null ? dataElement : e.dataElement(),
         e.orgUnit() == null ? orgUnit : e.orgUnit(),
         e.categoryOptionCombo(),
-        e.attributeOptionCombo(),
+        e.attributeOptionCombo() == null ? aoc : e.attributeOptionCombo(),
         e.period() == null ? period : e.period(),
         e.value(),
         e.comment(),

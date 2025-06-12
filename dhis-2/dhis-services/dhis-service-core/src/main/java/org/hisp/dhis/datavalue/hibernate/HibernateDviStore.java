@@ -65,6 +65,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.UserDetails;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -219,7 +220,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
               -- when CC is 'default' AOC must also be 'default'
               (cc_info.cc_name = 'default' AND NOT aoc.name = 'default')
               OR
-              -- For all other cases, require AOC to NOT be linked to the dataset
+              -- For all other cases, a AOC not linked to DS is an issue
               m.categoryoptioncomboid IS NULL
           )""";
     String ds = dataSet.getValue();
@@ -308,8 +309,9 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
 
   @Override
   public boolean getDataSetCanDataWrite(UID dataSet) {
-    String accessSql =
-        generateSQlQueryForSharingCheck("ds.sharing", getCurrentUserDetails(), LIKE_WRITE_DATA);
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return true;
+    String accessSql = generateSQlQueryForSharingCheck("ds.sharing", user, LIKE_WRITE_DATA);
     @Language("SQL")
     String sql =
         """
@@ -323,8 +325,9 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
 
   @Override
   public List<String> getCategoryOptionsNotCanDataWrite(Stream<UID> attrOptionCombos) {
-    String accessSql =
-        generateSQlQueryForSharingCheck("co.sharing", getCurrentUserDetails(), LIKE_WRITE_DATA);
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_WRITE_DATA);
     @Language("SQL")
     String sql =
         """
