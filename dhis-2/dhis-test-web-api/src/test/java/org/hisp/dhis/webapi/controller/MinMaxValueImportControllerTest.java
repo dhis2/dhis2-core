@@ -102,20 +102,28 @@ class MinMaxValueImportControllerTest extends PostgresControllerIntegrationTestB
 
   @AfterEach
   void tearDown() {
-    String body = "{\"removals\":[{\"id\":\"" + ou1 + "\"},{\"id\":\"" + ou2 + "\"},"
-        + "{\"id\":\"" + ou3 + "\"},{\"id\":\"" + ou4 + "\"}]}";
+    String body =
+        "{\"removals\":[{\"id\":\""
+            + ou1
+            + "\"},{\"id\":\""
+            + ou2
+            + "\"},"
+            + "{\"id\":\""
+            + ou3
+            + "\"},{\"id\":\""
+            + ou4
+            + "\"}]}";
     assertStatus(
         OK,
         POST(
             "/users/{id}/organisationUnits",
             getCurrentUser().getUid(),
             HttpClientAdapter.Body(body)));
-    //delete all the orgunits
+    // delete all the orgunits
     assertStatus(OK, DELETE("/organisationUnits/" + ou1));
     assertStatus(OK, DELETE("/organisationUnits/" + ou2));
     assertStatus(OK, DELETE("/organisationUnits/" + ou3));
     assertStatus(OK, DELETE("/organisationUnits/" + ou4));
-
   }
 
   private String toJson(IdentifiableObject de) throws JsonProcessingException {
