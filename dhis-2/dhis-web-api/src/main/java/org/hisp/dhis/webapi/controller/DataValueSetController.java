@@ -282,12 +282,12 @@ public class DataValueSetController {
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage postJsonDataValue(
-      DviUpsertRequest.Options options, @RequestBody DviUpsertRequest request)
+  public WebMessage postJsonDataValue(@RequestBody DviUpsertRequest request)
       throws ConflictException {
 
     try {
-      ImportResult result = dviService.importAll(options, request);
+      ImportResult result =
+          dviService.importAll(new DviUpsertRequest.Options(false, false), request);
       ImportSummary summary = new ImportSummary();
       summary.setImportCount(
           new ImportCount(result.succeeded(), 0, result.attempted() - result.succeeded(), 0));

@@ -152,7 +152,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
         )""";
     String aoc = attrOptionCombo.getValue();
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql, q -> q.setParameter("aoc", aoc).setParameterList("ou", ou));
+    return listAsStrings(sql, q -> q.setParameter("aoc", aoc).setParameter("ou", ou));
   }
 
   @Override
@@ -204,16 +204,24 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   public List<String> getAocNotInDataSet(UID dataSet, Stream<UID> optionCombos) {
     String sql =
         """
-     SELECT DISTINCT aoc.uid
-     FROM categoryoptioncombo aoc
-     LEFT JOIN (
-       SELECT m.categoryoptioncomboid
-       FROM dataset ds
-       JOIN categorycombos_optioncombos m ON ds.categorycomboid = m.categorycomboid
-       WHERE ds.uid = :ds
-     ) excluded ON aoc.categoryoptioncomboid = excluded.categoryoptioncomboid
-     WHERE aoc.uid IN (:aoc)
-       AND excluded.categoryoptioncomboid IS NULL""";
+        SELECT DISTINCT aoc.uid
+        FROM categoryoptioncombo aoc
+        CROSS JOIN (
+            SELECT ds.categorycomboid, cc.name AS cc_name
+            FROM dataset ds
+            JOIN categorycombo cc ON ds.categorycomboid = cc.categorycomboid
+            WHERE ds.uid = :ds
+        ) cc_info
+        LEFT JOIN categorycombos_optioncombos m ON aoc.categoryoptioncomboid = m.categoryoptioncomboid
+            AND cc_info.categorycomboid = m.categorycomboid
+        WHERE aoc.uid IN (:aoc)
+          AND (
+              -- when CC is 'default' AOC must also be 'default'
+              (cc_info.cc_name = 'default' AND NOT aoc.name = 'default')
+              OR
+              -- For all other cases, require AOC to NOT be linked to the dataset
+              m.categoryoptioncomboid IS NULL
+          )""";
     String ds = dataSet.getValue();
     String[] aoc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameterList("aoc", aoc).setParameter("ds", ds));
@@ -328,7 +336,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
       AND NOT (%s);
       """;
     String[] aoc = attrOptionCombos.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql.formatted(accessSql), q -> q.setParameter("aoc", aoc));
+    return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("aoc", aoc));
   }
 
   @Override
