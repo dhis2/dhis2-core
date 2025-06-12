@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -120,7 +121,7 @@ class DataRelationsValidatorTest extends TestBase {
     setUpDefaultCategoryCombo(program);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
@@ -150,7 +151,7 @@ class DataRelationsValidatorTest extends TestBase {
     setUpDefaultCategoryCombo(program);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(ENROLLMENT_ID)
             .program(MetadataIdentifier.ofUid(program))
@@ -178,7 +179,7 @@ class DataRelationsValidatorTest extends TestBase {
     setUpDefaultCategoryCombo(program);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
@@ -209,7 +210,7 @@ class DataRelationsValidatorTest extends TestBase {
     setUpDefaultCategoryCombo(program);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
@@ -241,7 +242,7 @@ class DataRelationsValidatorTest extends TestBase {
     setUpDefaultCategoryCombo(program);
 
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
@@ -962,8 +963,8 @@ class DataRelationsValidatorTest extends TestBase {
     return categoryCombo.getSortedOptionCombos().get(0);
   }
 
-  private Event.EventBuilder eventBuilder() {
-    return Event.builder()
+  private TrackerEvent.TrackerEventBuilder eventBuilder() {
+    return TrackerEvent.builder()
         .event(UID.generate())
         .program(MetadataIdentifier.ofUid(PROGRAM_UID))
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))

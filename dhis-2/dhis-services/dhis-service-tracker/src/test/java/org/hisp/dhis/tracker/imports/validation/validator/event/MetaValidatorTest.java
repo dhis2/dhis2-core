@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,7 +139,7 @@ class MetaValidatorTest {
   }
 
   private Event validEvent() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))

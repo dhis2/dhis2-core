@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.analytics.table;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.experimental.UtilityClass;
 
-@Mapper(
-    uses = {
-      RelationshipMapper.class,
-      NoteMapper.class,
-      DataValueMapper.class,
-      InstantMapper.class,
-      MetadataIdentifierMapper.class
-    })
-interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.imports.domain.Event> {
-  @Override
-  @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
-  @Mapping(
-      target = "programStage",
-      source = "programStage",
-      qualifiedByName = "programStageToMetadataIdentifier")
-  @Mapping(target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier")
-  @Mapping(
-      target = "attributeOptionCombo",
-      source = "attributeOptionCombo",
-      qualifiedByName = "attributeOptionComboToMetadataIdentifier")
-  @Mapping(
-      target = "attributeCategoryOptions",
-      source = "attributeCategoryOptions",
-      qualifiedByName = "attributeCategoryOptionsToMetadataIdentifier")
-  org.hisp.dhis.tracker.imports.domain.TrackerEvent from(
-      Event event, @Context TrackerIdSchemeParams idSchemeParams);
+@UtilityClass
+public class ColumnSuffix {
+  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
+  public static final String OU_NAME_COL_SUFFIX = "_name";
 }

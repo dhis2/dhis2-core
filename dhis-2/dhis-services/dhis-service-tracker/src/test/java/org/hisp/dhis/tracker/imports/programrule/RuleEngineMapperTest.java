@@ -373,7 +373,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event payloadEvent() {
-    return org.hisp.dhis.tracker.imports.domain.Event.builder()
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .enrollment(UID.generate())
         .event(UID.generate())
         .programStage(MetadataIdentifier.ofUid(programStage.getUid()))

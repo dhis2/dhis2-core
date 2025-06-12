@@ -50,6 +50,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
@@ -64,6 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
 class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private Enrollment enrollment;
 
@@ -94,6 +97,7 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     manager.save(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
     manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntityA, prA, orgUnit);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
     enrollmentNotification1.setName("enrollment A notification 1");

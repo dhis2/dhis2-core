@@ -98,6 +98,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
@@ -160,6 +161,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SingleEventService singleEventService;
 
   @Autowired private IncomingSmsService incomingSmsService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired
   @Qualifier("smsMessageSender")
@@ -776,6 +779,10 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     String originator = user2.getPhoneNumber();
     TrackedEntity trackedEntity = trackedEntity(originator);
     Enrollment enrollment = enrollment(trackedEntity);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        enrollment.getTrackedEntity(),
+        enrollment.getProgram(),
+        enrollment.getTrackedEntity().getOrganisationUnit());
 
     switchContextToUser(user2);
 

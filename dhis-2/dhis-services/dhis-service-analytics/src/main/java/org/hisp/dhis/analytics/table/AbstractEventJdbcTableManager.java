@@ -29,29 +29,20 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.db.model.DataType.GEOMETRY;
-import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -65,6 +56,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Markus Bekken
  */
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
+  protected final ColumnMapper columnMapper;
+
   public AbstractEventJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -77,6 +70,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -91,65 +85,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
-  }
-
-  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
-
-  public static final String OU_NAME_COL_SUFFIX = "_name";
-
-  /**
-   * Indicates whether creating an index should be skipped.
-   *
-   * @param valueType the {@link ValueType}.
-   * @param hasOptionSet whether an option set exists.
-   * @return a {@link Skip}.
-   */
-  protected Skip skipIndex(ValueType valueType, boolean hasOptionSet) {
-    boolean skipIndex = NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
-    return skipIndex ? Skip.SKIP : Skip.INCLUDE;
-  }
-
-  /**
-   * Returns a column expression, potentially with a cast statement, based on the given value type.
-   *
-   * @param valueType the {@link ValueType} to represent as database column type.
-   * @param columnExpression the expression or name of the column to be selected.
-   * @return a select expression appropriate for the given value type and context.
-   */
-  protected String getColumnExpression(ValueType valueType, String columnExpression) {
-    if (valueType.isDecimal()) {
-      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeDouble());
-    } else if (valueType.isInteger()) {
-      return getCastExpression(columnExpression, NUMERIC_REGEXP, sqlBuilder.dataTypeBigInt());
-    } else if (valueType.isBoolean()) {
-      return sqlBuilder.ifThenElse(
-          columnExpression + " = 'true'", "1", columnExpression + " = 'false'", "0", "null");
-    } else if (valueType.isDate()) {
-      return getCastExpression(columnExpression, DATE_REGEXP, sqlBuilder.dataTypeTimestamp());
-    } else if (valueType.isGeo() && isGeospatialSupport()) {
-      return String.format(
-          """
-          ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (%s) || \
-          ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
-          columnExpression);
-    } else {
-      return columnExpression;
-    }
-  }
-
-  /**
-   * Returns a cast expression which includes a value filter for the given value type.
-   *
-   * @param columnExpression the column expression.
-   * @param filterRegex the value type filter regular expression.
-   * @param dataType the SQL data type.
-   * @return a cast and validate expression.
-   */
-  protected String getCastExpression(String columnExpression, String filterRegex, String dataType) {
-    String filter = sqlBuilder.regexpMatch(columnExpression, filterRegex);
-    String result = String.format("cast(%s as %s)", columnExpression, dataType);
-
-    return sqlBuilder.ifThen(filter, result);
+    this.columnMapper = columnMapper;
   }
 
   @Override
@@ -184,99 +120,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return a list of {@link AnalyticsTableColumn}.
    */
   protected List<AnalyticsTableColumn> getColumnForAttribute(TrackedEntityAttribute attribute) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    String valueColumn = getValueColumn(attribute);
-    DataType dataType = getColumnType(attribute.getValueType(), isGeospatialSupport());
-    String selectExpression = getColumnExpression(attribute.getValueType(), valueColumn);
-    Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
-
-    if (attribute.getValueType().isOrganisationUnit()) {
-      columns.addAll(getColumnForOrgUnitAttribute(attribute));
-    }
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name(attribute.getUid())
-            .dimensionType(AnalyticsDimensionType.DYNAMIC)
-            .dataType(dataType)
-            .selectExpression(selectExpression)
-            .skipIndex(skipIndex)
-            .build());
-
-    return columns;
-  }
-
-  /**
-   * Returns a list of columns based on the given attribute.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  private List<AnalyticsTableColumn> getColumnForOrgUnitAttribute(
-      TrackedEntityAttribute attribute) {
-    if (!sqlBuilder.supportsCorrelatedSubquery()) {
-      return List.of();
-    }
-
-    Validate.isTrue(attribute.getValueType().isOrganisationUnit());
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    if (isGeospatialSupport()) {
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .dimensionType(AnalyticsDimensionType.DYNAMIC)
-              .dataType(GEOMETRY)
-              .selectExpression(getOrgUnitSelectSubquery(attribute, "geometry"))
-              .indexType(IndexType.GIST)
-              .build());
-    }
-
-    columns.add(
-        AnalyticsTableColumn.builder()
-            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .dimensionType(AnalyticsDimensionType.DYNAMIC)
-            .dataType(TEXT)
-            .selectExpression(getOrgUnitSelectSubquery(attribute, "name"))
-            .skipIndex(SKIP)
-            .build());
-
-    return columns;
-  }
-
-  /**
-   * Returns the value column with alias.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @return the vlaue column with alias.
-   */
-  private String getValueColumn(TrackedEntityAttribute attribute) {
-    return String.format("%s.%s", quote(attribute.getUid()), "value");
-  }
-
-  /**
-   * Returns a org unit select query.
-   *
-   * @param attribute the {@link TrackedEntityAttribute}.
-   * @param column the column name.
-   * @return an org unit select query.
-   */
-  private String getOrgUnitSelectSubquery(TrackedEntityAttribute attribute, String column) {
-    String format =
-        """
-        (select ou.${column} from ${organisationunit} ou \
-        where ou.uid = ${columnExpression}) as ${alias}""";
-    String valueColumn = getValueColumn(attribute);
-    String columnExpression = getColumnExpression(attribute.getValueType(), valueColumn);
-    String alias = quote(attribute.getUid());
-
-    return replaceQualify(
-        format,
-        Map.of(
-            "column", column,
-            "columnExpression", columnExpression,
-            "alias", alias));
+    return columnMapper.getColumnsForAttribute(attribute);
   }
 
   /**
@@ -293,7 +137,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
     return program.getNonConfidentialTrackedEntityAttributes().stream()
-        .map(attribute -> replaceQualify(template, toVariableMap(attribute)))
+        .map(attribute -> replaceQualify(sqlBuilder, template, toVariableMap(attribute)))
         .collect(Collectors.joining());
   }
 }

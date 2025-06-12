@@ -29,79 +29,66 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
-@JsonDeserialize(as = TrackerEvent.class)
-@JsonSerialize(as = TrackerEvent.class)
-public interface Event extends TrackerDto, Serializable {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SingleEvent implements TrackerDto, Serializable {
+  @Nonnull @JsonProperty private UID singleEvent;
+
+  @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
+
+  @JsonProperty private MetadataIdentifier program;
+
+  @JsonProperty private MetadataIdentifier orgUnit;
+
+  @JsonProperty private Instant occurredAt;
+
+  @JsonProperty private String storedBy;
+
+  @JsonProperty private Instant createdAtClient;
+
+  @JsonProperty private Instant updatedAtClient;
+
+  @JsonProperty private MetadataIdentifier attributeOptionCombo;
+
+  @JsonProperty @Builder.Default
+  private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
+
+  @JsonProperty private Instant completedAt;
+
+  @JsonProperty private Geometry geometry;
+
+  @JsonProperty private User assignedUser;
+
+  @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
+
+  @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
   @Override
-  default TrackerType getTrackerType() {
+  public UID getUid() {
+    return this.singleEvent;
+  }
+
+  @Override
+  public TrackerType getTrackerType() {
     return TrackerType.EVENT;
   }
-
-  UID getEvent();
-
-  EventStatus getStatus();
-
-  MetadataIdentifier getProgram();
-
-  MetadataIdentifier getProgramStage();
-
-  UID getEnrollment();
-
-  MetadataIdentifier getOrgUnit();
-
-  Instant getOccurredAt();
-
-  Instant getScheduledAt();
-
-  String getStoredBy();
-
-  Instant getCreatedAtClient();
-
-  Instant getUpdatedAtClient();
-
-  MetadataIdentifier getAttributeOptionCombo();
-
-  Set<MetadataIdentifier> getAttributeCategoryOptions();
-
-  Instant getCompletedAt();
-
-  Geometry getGeometry();
-
-  User getAssignedUser();
-
-  Set<DataValue> getDataValues();
-
-  List<Note> getNotes();
-
-  @JsonIgnore
-  default boolean isCreatableInSearchScope() {
-    return this.getStatus() == EventStatus.SCHEDULE
-        && this.getDataValues().isEmpty()
-        && this.getOccurredAt() == null;
-  }
-
-  void setEnrollment(UID of);
-
-  void setStatus(EventStatus eventStatus);
-
-  void setProgram(MetadataIdentifier metadataIdentifier);
-
-  void setProgramStage(MetadataIdentifier metadataIdentifier);
-
-  void setAttributeOptionCombo(MetadataIdentifier categoryOptionComboIdentifier);
-
-  void setNotes(List<Note> notes);
 }

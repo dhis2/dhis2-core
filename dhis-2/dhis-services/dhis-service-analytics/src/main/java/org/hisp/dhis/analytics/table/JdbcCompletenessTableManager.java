@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
@@ -151,6 +153,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             select cdr.datasetid \
             from ${completedatasetregistration} cdr \
@@ -167,6 +170,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             delete from ${tableName} ax \
             where ax.id in ( \
@@ -209,6 +213,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     sql +=
         replaceQualify(
+            sqlBuilder,
             """
             from ${completedatasetregistration} cdr \
             inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
@@ -287,6 +292,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             select distinct(extract(year from ps.startdate)) \
             from ${completedatasetregistration} cdr \

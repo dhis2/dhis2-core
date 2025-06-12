@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -91,8 +92,7 @@ class TrackerImporterServiceTest {
 
     injectSecurityContextNoSettings(user);
 
-    Event event = new Event();
-    event.setEvent(UID.generate());
+    Event event = TrackerEvent.builder().event(UID.generate()).build();
     final List<Event> events = List.of(event);
 
     params = TrackerImportParams.builder().build();

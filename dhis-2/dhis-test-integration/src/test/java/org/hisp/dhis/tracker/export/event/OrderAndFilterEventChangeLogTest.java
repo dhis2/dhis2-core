@@ -55,6 +55,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.joda.time.LocalDateTime;
@@ -391,13 +392,13 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              e.setOccurredAt(newDate);
-              e.setScheduledAt(newDate);
+              org.hisp.dhis.tracker.imports.domain.Event ev =
+                  TrackerEvent.builderFromEvent(e).occurredAt(newDate).scheduledAt(newDate).build();
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerObjects.builder().events(List.of(ev)).build()));
             });
   }
 
