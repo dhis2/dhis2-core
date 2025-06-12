@@ -306,29 +306,30 @@ public class DhisWebApiWebSecurityConfig {
               authorize
                   .requestMatchers(analyticsPluginResources())
                   .permitAll()
-
-                  // BUNDLED APPS
-                  ////////////////////////////////////////////////////////////////////////////////////////////////
-
-                  /////////////////////////////////////////////////////////////////////////////////////////////////
+                  // Authentication endpoint
                   .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
                   .permitAll()
-                  //                  .requestMatchers(new AntPathRequestMatcher("/apps/login/**"))
-                  //                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
+                  .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
                   .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/login.html"))
-                  .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/login/**"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
+                  .permitAll()
+                  // Login fallback and legacy login endpoint
+                  .requestMatchers(new AntPathRequestMatcher("/login.html"))
                   .permitAll()
                   .requestMatchers(
                       new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
                   .permitAll()
-
-                  /////////////////////////////////////////////////////////////////////////////////////////////////
-
+                  // Static resources
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/oidc/**"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/javascripts/**"))
@@ -351,14 +352,17 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/static/**"))
                   .permitAll()
-
-                  ///////////////////////////////////////////////////////////////////////////////////////////////
-
+                  .requestMatchers(
+                      new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
+                  .permitAll()
+                  .requestMatchers(
+                      new AntPathRequestMatcher(apiContextPath + "/**/externalFileResources/**"))
+                  .permitAll()
+                  .requestMatchers(
+                      new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
+                  .permitAll()
+                  // Account related endpoints
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/locales/ui"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
                   .permitAll()
                   .requestMatchers(
                       new AntPathRequestMatcher(apiContextPath + "/**/auth/forgotPassword"))
@@ -383,25 +387,7 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account"))
                   .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/externalFileResources/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
-                  .permitAll()
-
                   ///////////////////////////////////////////////////////////////////////////////////////////////
-
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
-                  .permitAll()
-
-                  ///////////////////////////////////////////////////////////////////////////////////////////////
-
                   .requestMatchers(new AntPathRequestMatcher("/**"))
                   .authenticated();
             })

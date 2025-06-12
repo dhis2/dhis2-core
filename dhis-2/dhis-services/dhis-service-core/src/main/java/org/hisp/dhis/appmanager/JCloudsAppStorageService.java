@@ -49,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -56,6 +57,7 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
@@ -87,7 +89,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final ObjectMapper jsonMapper;
   private final FileResourceContentStore fileResourceContentStore;
 
-  private void discoverInstalledApps(Consumer<App> handler) {
+  private void discoverInstalledApps(BiConsumer<App, AppInfo> handler) {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -116,10 +118,10 @@ public class JCloudsAppStorageService implements AppStorageService {
         if (bundledAppInfo != null) {
           InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream();
           AppInfo appInfo = mapper.readValue(bundledAppInfoStream, AppInfo.class);
-          app.setBundledAppInfo(appInfo);
+          handler.accept(app, appInfo);
+        } else {
+          handler.accept(app, null);
         }
-
-        handler.accept(app);
 
       } catch (IOException ex) {
         log.error("Could not read manifest file of " + resource.getName(), ex);
@@ -128,15 +130,17 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public Map<String, App> discoverInstalledApps() {
-    Map<String, App> apps = new HashMap<>();
-    discoverInstalledApps(app -> apps.put(app.getKey(), app));
+  public Map<String, Pair<App, AppInfo>> discoverInstalledApps() {
+    Map<String, Pair<App, AppInfo>> apps = new HashMap<>();
+    discoverInstalledApps((app, appInfo) -> apps.put(app.getKey(), Pair.of(app, appInfo)));
 
     if (apps.isEmpty()) {
       log.info("No apps found during JClouds discovery.");
     } else {
       apps.values()
-          .forEach(app -> log.info("Discovered app '{}' from JClouds storage ", app.getName()));
+          .forEach(
+              (pair) ->
+                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
     }
 
     return apps;
@@ -274,7 +278,6 @@ public class JCloudsAppStorageService implements AppStorageService {
                   });
 
       if (bundledAppInfo != null) {
-        app.setBundledAppInfo(bundledAppInfo);
         // Write the bundledAppInfo as JSON and upload to JClouds storage
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);

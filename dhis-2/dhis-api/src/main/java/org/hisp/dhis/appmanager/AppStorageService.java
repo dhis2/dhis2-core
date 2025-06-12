@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Future;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
@@ -55,7 +56,7 @@ public interface AppStorageService {
    *
    * @return A map of all app names and apps found
    */
-  Map<String, App> discoverInstalledApps();
+  Map<String, Pair<App, AppInfo>> discoverInstalledApps();
 
   /**
    * Installs an app using the AppServiceStore.
