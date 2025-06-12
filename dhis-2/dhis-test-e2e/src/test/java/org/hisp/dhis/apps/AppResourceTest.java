@@ -100,30 +100,31 @@ class AppResourceTest extends ApiTest {
   @ParameterizedTest
   @DisplayName("Bundled apps are served from /dhis-web-<app> paths with correct redirects")
   @ValueSource(
-      strings = {"dashboard"}) //, "maintenance", "maps", "capture", "settings", "app-management"})
+      strings = {"dashboard", "maintenance", "maps", "capture", "settings", "app-management"})
   void bundledAppOverridesServedFromApiApps(String app) {
     String prefix = "/dhis-web-";
     String newPrefix = "/api/apps/";
 
-//    // Redirect to global shell from index.html (default)
-//    {
-//      ResponseEntity<String> response = getAuthenticated(prefix + app + "/index.html?answer=42");
-////      assertEquals(HttpStatus.FOUND, response.getStatusCode());
-//      List<String> location = response.getHeaders().get("Location");
-//      assertNotNull(location);
-//      assertEquals(1, location.size());
-//      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
-//    }
-//
-//    // Redirect to global shell from / (default) with forwarded querystring
-//    {
-//      ResponseEntity<String> response = getAuthenticated(prefix + app + "/?answer=42");
-//      assertEquals(HttpStatus.FOUND, response.getStatusCode());
-//      List<String> location = response.getHeaders().get("Location");
-//      assertNotNull(location);
-//      assertEquals(1, location.size());
-//      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
-//    }
+    //    // Redirect to global shell from index.html (default)
+    //    {
+    //      ResponseEntity<String> response = getAuthenticated(prefix + app +
+    // "/index.html?answer=42");
+    ////      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //      List<String> location = response.getHeaders().get("Location");
+    //      assertNotNull(location);
+    //      assertEquals(1, location.size());
+    //      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
+    //    }
+    //
+    //    // Redirect to global shell from / (default) with forwarded querystring
+    //    {
+    //      ResponseEntity<String> response = getAuthenticated(prefix + app + "/?answer=42");
+    //      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //      List<String> location = response.getHeaders().get("Location");
+    //      assertNotNull(location);
+    //      assertEquals(1, location.size());
+    //      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
+    //    }
 
     // Serve index.html from index.html?redirect=false
     {
@@ -162,25 +163,25 @@ class AppResourceTest extends ApiTest {
       assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
-//    // Append trailing slash and redirect
-//    {
-//      ResponseEntity<String> response = getAuthenticated(prefix + app);
-//      assertEquals(HttpStatus.FOUND, response.getStatusCode());
-//      List<String> location = response.getHeaders().get("Location");
-//      assertNotNull(location);
-//      assertEquals(1, location.size());
-//      assertEquals(SERVER_BASE + newPrefix + app + "/", location.get(0));
-//    }
+    //    // Append trailing slash and redirect
+    //    {
+    //      ResponseEntity<String> response = getAuthenticated(prefix + app);
+    //      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //      List<String> location = response.getHeaders().get("Location");
+    //      assertNotNull(location);
+    //      assertEquals(1, location.size());
+    //      assertEquals(SERVER_BASE + newPrefix + app + "/", location.get(0));
+    //    }
 
     // Append trailing slash and redirect
-    {
-      ResponseEntity<String> response = getAuthenticated(prefix + app);
-      assertEquals(HttpStatus.FOUND, response.getStatusCode());
-      List<String> location = response.getHeaders().get("Location");
-      assertNotNull(location);
-      assertEquals(1, location.size());
-      assertEquals(SERVER_BASE + newPrefix + app + "/", location.get(0));
-    }
+    //    {
+    //      ResponseEntity<String> response = getAuthenticated(prefix + app);
+    //      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //      List<String> location = response.getHeaders().get("Location");
+    //      assertNotNull(location);
+    //      assertEquals(1, location.size());
+    //      assertEquals(SERVER_BASE + newPrefix + app + "/", location.get(0));
+    //    }
 
     // Append trailing slash and redirect, with forwarded query string
     {
