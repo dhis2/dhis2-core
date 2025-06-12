@@ -88,8 +88,13 @@ public class BundledAppManager {
   }
 
   public static AppBundleInfo getAppBundleInfo() {
+    InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
+    if (appBundleInfoInputStream == null) {
+      return null;
+    }
+
     try {
-      return objectMapper.readValue(getAppBundleInfoInputStream(), AppBundleInfo.class);
+      return objectMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

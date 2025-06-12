@@ -53,7 +53,7 @@ class AppBundlerTest {
 
   @BeforeEach
   void setUp() throws IOException {
-    // Create a temporary app list file
+    // Create a temporary app list file with some different examples of valid app URLs
     appListFile = tempDir.resolve("test-apps.json").toFile();
     new ObjectMapper()
         .writeValue(
@@ -72,7 +72,7 @@ class AppBundlerTest {
 
   @Test
   void testAppBundlerCreatesCorrectStructure() throws IOException {
-    // Execute the app bundler
+    // Execute the app bundler so we install the apps to our temp directory
     AppBundler bundler =
         new AppBundler(downloadDir, buildDir, artifactId, appListFile.getAbsolutePath(), "master");
     bundler.execute();
