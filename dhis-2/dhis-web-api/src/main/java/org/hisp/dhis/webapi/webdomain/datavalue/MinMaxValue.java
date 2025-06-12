@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
@@ -44,15 +45,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Lars Helge Overland
  */
 public record MinMaxValue(
-    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
-    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
-    @JsonAlias("categoryOptionCombo")
+    @JsonProperty @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @JsonProperty @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @JsonProperty("categoryOptionCombo")
+    @JsonAlias("optionCombo")
         @Nonnull
         @OpenApi.Property({UID.class, CategoryOptionCombo.class})
         UID optionCombo,
-    @Nonnull Integer minValue,
-    @Nonnull Integer maxValue,
-    Boolean generated)
+    @JsonProperty @Nonnull Integer minValue,
+    @JsonProperty @Nonnull Integer maxValue,
+    @JsonProperty Boolean generated)
     implements MinMaxValueId {
 
   @Nonnull
