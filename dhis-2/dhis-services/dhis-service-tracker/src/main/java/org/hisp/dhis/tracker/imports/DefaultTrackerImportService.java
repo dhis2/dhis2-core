@@ -122,8 +122,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
       trackerBundle.setEvents(result.getEvents());
       trackerBundle.setRelationships(result.getRelationships());
 
-      bundleSize = consolidateBundleSize(bundleSize, trackerBundle);
-
       validationReport = ValidationReport.merge(validationResult, result);
     }
 
