@@ -153,6 +153,10 @@ public class TrackerBundle {
     return findById(this.enrollments, uid);
   }
 
+  public Optional<TrackerEvent> findTrackerEventByUid(@Nonnull UID uid) {
+    return findById(this.getTrackerEvents(), uid);
+  }
+
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
     return findById(this.getEvents(), uid);
   }
