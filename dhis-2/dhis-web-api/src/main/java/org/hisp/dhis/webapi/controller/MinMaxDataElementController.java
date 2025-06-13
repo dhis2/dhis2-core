@@ -27,18 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jsonMapper;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.zip.GZIPInputStream;
+import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -68,7 +73,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -146,7 +150,38 @@ public class MinMaxDataElementController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
   public @ResponseBody ImportSuccessResponse bulkPostJson(
       @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
+    return bulkPostUpsert(request);
+  }
 
+  @OpenApi.Ignore
+  @PostMapping(value = "/upsert", consumes = "application/json", headers = "Content-Encoding=gzip")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkPostJsonGzip(HttpServletRequest request)
+      throws BadRequestException, ConflictException {
+
+    return bulkPostUpsert(unzip(request, MinMaxValueUpsertRequest.class));
+  }
+
+  @PostMapping(value = "/upsert", consumes = "text/csv")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+    List<MinMaxValue> values = csvToEntries(request::getInputStream);
+    return bulkPostUpsert(new MinMaxValueUpsertRequest(dataSet, values));
+  }
+
+  @OpenApi.Ignore
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @PostMapping(value = "/upsert", consumes = "text/csv", headers = "Content-Encoding=gzip")
+  public @ResponseBody ImportSuccessResponse bulkPostCsvGzip(
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+
+    List<MinMaxValue> values = csvToEntries(() -> new GZIPInputStream(request.getInputStream()));
+    return bulkPostUpsert(new MinMaxValueUpsertRequest(dataSet, values));
+  }
+
+  private ImportSuccessResponse bulkPostUpsert(MinMaxValueUpsertRequest request)
+      throws BadRequestException {
     int imported = minMaxService.importAll(request);
 
     return ImportSuccessResponse.ok()
@@ -161,6 +196,40 @@ public class MinMaxDataElementController {
   public @ResponseBody ImportSuccessResponse bulkDeleteJson(
       @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
 
+    return bulkDelete(request);
+  }
+
+  @OpenApi.Ignore
+  @PostMapping(value = "/delete", consumes = "application/json", headers = "Content-Encoding=gzip")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  public @ResponseBody ImportSuccessResponse bulkDeleteJsonGZip(HttpServletRequest request)
+      throws BadRequestException, ConflictException {
+
+    return bulkDelete(unzip(request, MinMaxValueDeleteRequest.class));
+  }
+
+  @OpenApi.Ignore
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @PostMapping(value = "/delete", consumes = "text/csv")
+  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+
+    return bulkDelete(new MinMaxValueDeleteRequest(dataSet, csvToKeys(request::getInputStream)));
+  }
+
+  @OpenApi.Ignore
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @PostMapping(value = "/delete", consumes = "text/csv", headers = "Content-Encoding=gzip")
+  public @ResponseBody ImportSuccessResponse bulkDeleteCsvGzip(
+      @RequestParam UID dataSet, HttpServletRequest request) throws BadRequestException {
+
+    return bulkDelete(
+        new MinMaxValueDeleteRequest(
+            dataSet, csvToKeys(() -> new GZIPInputStream(request.getInputStream()))));
+  }
+
+  private ImportSuccessResponse bulkDelete(MinMaxValueDeleteRequest request)
+      throws BadRequestException {
     int deleted = minMaxService.deleteAll(request);
 
     return ImportSuccessResponse.ok()
@@ -170,26 +239,9 @@ public class MinMaxDataElementController {
         .build();
   }
 
-  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public @ResponseBody ImportSuccessResponse bulkPostCsv(
-      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
+  private static List<MinMaxValue> csvToEntries(Callable<InputStream> getInput)
       throws BadRequestException {
-
-    return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, csvToEntries(file)));
-  }
-
-  @PostMapping(value = "/delete", consumes = "multipart/form-data")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
-  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
-      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
-      throws BadRequestException {
-
-    return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, csvToKeys(file)));
-  }
-
-  private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
-    try (InputStream in = file.getInputStream()) {
+    try (InputStream in = getInput.call()) {
       List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
       if (entries.isEmpty())
         throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");
@@ -199,14 +251,23 @@ public class MinMaxDataElementController {
     }
   }
 
-  private static List<MinMaxValueKey> csvToKeys(MultipartFile file) throws BadRequestException {
-    try (InputStream in = file.getInputStream()) {
+  private static List<MinMaxValueKey> csvToKeys(Callable<InputStream> getInput)
+      throws BadRequestException {
+    try (InputStream in = getInput.call()) {
       List<MinMaxValueKey> keys = CSV.of(in).as(MinMaxValueKey.class).list();
       if (keys.isEmpty())
         throw new BadRequestException(ErrorCode.E2046, "No data found in the CSV file.");
       return keys;
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       throw new BadRequestException(ErrorCode.E2046, ex.getMessage());
+    }
+  }
+
+  private static <T> T unzip(HttpServletRequest request, Class<T> as) throws ConflictException {
+    try (InputStream in = new GZIPInputStream(request.getInputStream())) {
+      return jsonMapper.readValue(in, as);
+    } catch (IOException ex) {
+      throw new ConflictException(ErrorCode.E2048, ex.getMessage());
     }
   }
 }

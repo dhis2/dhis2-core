@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.annotation.Nonnull;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -37,39 +40,31 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * DTO which represents a {@link MinMaxDataElement} in the API.
+ * DTO which represents a min-max value.
  *
  * @author Lars Helge Overland
  */
-public record MinMaxValue(
-    @JsonProperty @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
-    @JsonProperty @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
-    @JsonProperty("categoryOptionCombo")
-        @JsonAlias("optionCombo")
-        @Nonnull
-        @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-        UID optionCombo,
-    @JsonProperty @Nonnull Integer minValue,
-    @JsonProperty @Nonnull Integer maxValue,
-    @JsonProperty Boolean generated)
-    implements MinMaxValueId {
+@Getter
+@Setter
+@Accessors(chain = true)
+@NoArgsConstructor
+@EqualsAndHashCode
+public class MinMaxValueDto {
+  @JsonProperty
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String dataElement;
 
-  @Nonnull
-  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
-    return new MinMaxValue(
-        UID.of(obj.getDataElement().getUid()),
-        UID.of(obj.getSource().getUid()),
-        UID.of(obj.getOptionCombo().getUid()),
-        obj.getMin(),
-        obj.getMax(),
-        obj.isGenerated());
-  }
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String orgUnit;
 
-  public MinMaxValue generated(boolean generated) {
-    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
-  }
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String categoryOptionCombo;
 
-  public MinMaxValueKey key() {
-    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
-  }
+  @JsonProperty private Integer minValue;
+
+  @JsonProperty private Integer maxValue;
+
+  @JsonProperty private Boolean generated;
 }

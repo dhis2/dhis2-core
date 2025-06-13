@@ -152,18 +152,62 @@ class MinMaxImportTest extends ApiTest {
         .body("message", containsString("Successfully deleted 4 min-max values"));
   }
 
+  @Test
+  void minMaxValueCanBeDeletedInBulk_CSV_Gzip() throws IOException {
+    postMinMaxCSVGzipFile(); // Upload the gzipped CSV
+    ApiResponse response = deleteMinMaxCSVGzipFile(); // Delete using same file
+    response
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully deleted 4 min-max values"));
+  }
+
+  @Test
+  void minMaxValueCanBeDeletedInBulk_JSON_Gzip() throws IOException {
+    postMinMaxJSONGzipFile(); // Upload the gzipped JSON
+    ApiResponse response = deleteMinMaxJSONGzipFile(); // Delete using same file
+    response
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully deleted 1 min-max values"));
+  }
+
+  private ApiResponse deleteMinMaxCSVGzipFile() {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet);
+    return delete.postGzippedFile(
+        new File("src/test/resources/minmax/minmax.csv.gz"), queryParamsBuilder, "text/csv");
+  }
+
   private ApiResponse postMinMaxCSVFile() {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.add("dataSet", dataSet);
-    return upsert.postMultiPartFile(
-        new File("src/test/resources/minmax/minmax.csv"), "application/csv", queryParamsBuilder);
+    return upsert.postRawFile(
+        new File("src/test/resources/minmax/minmax.csv"), queryParamsBuilder, "text/csv");
+  }
+
+  private ApiResponse postMinMaxJSONGzipFile() {
+    return upsert.postGzippedFile(
+        new File("src/test/resources/minmax/minmax.json.gz"), null, "application/json");
+  }
+
+  private ApiResponse deleteMinMaxJSONGzipFile() {
+    return delete.postGzippedFile(
+        new File("src/test/resources/minmax/minmax.json.gz"), null, "application/json");
+  }
+
+  private ApiResponse postMinMaxCSVGzipFile() {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet);
+    return upsert.postGzippedFile(
+        new File("src/test/resources/minmax/minmax.csv.gz"), queryParamsBuilder, "text/csv");
   }
 
   private ApiResponse deleteMinMaxCSVFile() {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.add("dataSet", dataSet);
-    return delete.postMultiPartFile(
-        new File("src/test/resources/minmax/minmax.csv"), "application/csv", queryParamsBuilder);
+    return delete.postRawFile(
+        new File("src/test/resources/minmax/minmax.csv"), queryParamsBuilder, "text/csv");
   }
 
   @Test
