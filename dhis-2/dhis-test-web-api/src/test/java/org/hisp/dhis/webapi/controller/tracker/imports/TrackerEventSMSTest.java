@@ -779,10 +779,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     String originator = user2.getPhoneNumber();
     TrackedEntity trackedEntity = trackedEntity(originator);
     Enrollment enrollment = enrollment(trackedEntity);
-    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
-        enrollment.getTrackedEntity(),
-        enrollment.getProgram(),
-        enrollment.getTrackedEntity().getOrganisationUnit());
 
     switchContextToUser(user2);
 
@@ -877,6 +873,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
     manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        te, trackerProgram, te.getOrganisationUnit());
     return enrollment;
   }
 
