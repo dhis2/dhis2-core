@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 
 /**
@@ -41,6 +40,8 @@ import org.hisp.dhis.appmanager.AppShortcut;
  */
 @Data
 public class WebModule {
+  private static final String BUNDLED_APP_PREFIX = "dhis-web-";
+
   @JsonProperty private String name;
 
   @JsonProperty private String namespace;
@@ -82,7 +83,7 @@ public class WebModule {
 
     String description = subString(app.getDescription(), 0, 80);
 
-    String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
+    String key = app.isBundled() ? BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
 
     WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);

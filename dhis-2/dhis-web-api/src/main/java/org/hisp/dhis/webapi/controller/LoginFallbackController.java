@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.servlet;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2022, University of Oslo
@@ -59,12 +59,13 @@ package org.hisp.dhis.webapi.servlet;
 
 import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
 
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -72,9 +73,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class LoginFallbackServlet extends HttpServlet {
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+@Controller
+public class LoginFallbackController {
+
+  //  @GetMapping({"/login.html", "/dhis-web-commons/security/login.action"})
+  @GetMapping("/login.html")
+  protected void getLoginFallback(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException {
     if (session() != null && session().getAttribute("SPRING_SECURITY_CONTEXT") != null) {
       String referer = (String) req.getAttribute("origin");
       req.setAttribute("origin", referer);
