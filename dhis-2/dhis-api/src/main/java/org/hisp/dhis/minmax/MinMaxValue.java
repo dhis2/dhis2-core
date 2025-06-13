@@ -45,7 +45,7 @@ public record MinMaxValue(
     @JsonProperty @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
     @JsonProperty @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
     @JsonProperty("categoryOptionCombo")
-    @JsonAlias("optionCombo")
+        @JsonAlias("optionCombo")
         @Nonnull
         @OpenApi.Property({UID.class, CategoryOptionCombo.class})
         UID optionCombo,

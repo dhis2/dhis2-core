@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -52,21 +50,21 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class MinMaxValueDto {
-    @JsonProperty
-    @OpenApi.Property({UID.class, DataElement.class})
-    private String dataElement;
+  @JsonProperty
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String dataElement;
 
-    @JsonProperty
-    @OpenApi.Property({UID.class, OrganisationUnit.class})
-    private String orgUnit;
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String orgUnit;
 
-    @JsonProperty
-    @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-    private String categoryOptionCombo;
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String categoryOptionCombo;
 
-    @JsonProperty private Integer minValue;
+  @JsonProperty private Integer minValue;
 
-    @JsonProperty private Integer maxValue;
+  @JsonProperty private Integer maxValue;
 
-    @JsonProperty private Boolean generated;
+  @JsonProperty private Boolean generated;
 }

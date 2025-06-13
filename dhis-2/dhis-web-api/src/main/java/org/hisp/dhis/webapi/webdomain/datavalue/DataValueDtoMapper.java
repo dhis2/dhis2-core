@@ -31,7 +31,6 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -107,7 +106,7 @@ public class DataValueDtoMapper {
     return new MinMaxValueDto()
         .setDataElement(value.getDataElement().getUid())
         .setOrgUnit(value.getSource().getUid())
-            .setCategoryOptionCombo(value.getOptionCombo().getUid())
+        .setCategoryOptionCombo(value.getOptionCombo().getUid())
         .setMinValue(value.getMin())
         .setMaxValue(value.getMax())
         .setGenerated(value.isGenerated());
