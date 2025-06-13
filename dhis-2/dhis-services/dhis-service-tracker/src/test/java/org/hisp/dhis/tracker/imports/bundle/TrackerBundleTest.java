@@ -54,7 +54,7 @@ class TrackerBundleTest {
             .validationMode(ValidationMode.SKIP)
             .trackedEntities(Collections.singletonList(new TrackedEntity()))
             .enrollments(Collections.singletonList(new Enrollment()))
-            .events(Collections.singletonList(new TrackerEvent()))
+            .trackerEvents(Collections.singletonList(new TrackerEvent()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
     assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());
@@ -71,7 +71,7 @@ class TrackerBundleTest {
             .validationMode(ValidationMode.SKIP)
             .trackedEntities(Arrays.asList(new TrackedEntity(), new TrackedEntity()))
             .enrollments(Arrays.asList(new Enrollment(), new Enrollment()))
-            .events(Arrays.asList(new TrackerEvent(), new TrackerEvent()))
+            .trackerEvents(Arrays.asList(new TrackerEvent(), new TrackerEvent()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
     assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());

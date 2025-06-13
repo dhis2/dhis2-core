@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -949,7 +950,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   private List<Event> getEventsByEnrollment(UID enrollment) {
     return trackerObjects.getEvents().stream()
-        .filter(ev -> ev.getEnrollment().equals(enrollment))
+        .filter(ev -> Objects.equals(ev.getEnrollment(), enrollment))
         .toList();
   }
 

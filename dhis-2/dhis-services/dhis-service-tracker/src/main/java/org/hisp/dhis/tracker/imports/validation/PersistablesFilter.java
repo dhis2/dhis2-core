@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
@@ -107,7 +108,7 @@ class PersistablesFilter {
   private static final List<Function<Enrollment, TrackerDto>> ENROLLMENT_PARENTS =
       List.of(en -> TrackedEntity.builder().trackedEntity(en.getTrackedEntity()).build());
 
-  private static final List<Function<Event, TrackerDto>> EVENT_PARENTS =
+  private static final List<Function<TrackerEvent, TrackerDto>> EVENT_PARENTS =
       List.of(ev -> Enrollment.builder().enrollment(ev.getEnrollment()).build());
 
   private static final List<Function<Relationship, TrackerDto>> RELATIONSHIP_PARENTS =
@@ -160,15 +161,17 @@ class PersistablesFilter {
     if (onDelete()) {
       // bottom-up
       collectDeletables(Relationship.class, bundle.getRelationships());
-      collectDeletables(Event.class, bundle.getEvents());
+      collectDeletables(TrackerEvent.class, bundle.getTrackerEvents());
       collectDeletables(Enrollment.class, bundle.getEnrollments());
       collectDeletables(TrackedEntity.class, bundle.getTrackedEntities());
+      collectDeletables(SingleEvent.class, bundle.getSingleEvents());
     } else {
 
       // top-down
+      collectPersistables(SingleEvent.class, Collections.emptyList(), bundle.getSingleEvents());
       collectPersistables(TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities());
       collectPersistables(Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments());
-      collectPersistables(Event.class, EVENT_PARENTS, bundle.getEvents());
+      collectPersistables(TrackerEvent.class, EVENT_PARENTS, bundle.getTrackerEvents());
       collectPersistables(Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships());
     }
   }
@@ -346,7 +349,7 @@ class PersistablesFilter {
         return (List<T>) trackedEntities;
       } else if (type == Enrollment.class) {
         return (List<T>) enrollments;
-      } else if (type == Event.class) {
+      } else if (type == TrackerEvent.class || type == SingleEvent.class) {
         return (List<T>) events;
       } else if (type == Relationship.class) {
         return (List<T>) relationships;
