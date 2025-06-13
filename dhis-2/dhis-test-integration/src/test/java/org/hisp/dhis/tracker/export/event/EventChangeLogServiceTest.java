@@ -317,7 +317,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
+    String event = "H0PbzJY8bJG";
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
@@ -328,14 +328,14 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(1, scheduledAtLogs);
     assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(0)),
-        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", occurredAtLogs.get(0)));
+        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2019-01-28 00:00:00.000", occurredAtLogs.get(0)));
   }
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
       throws IOException, NotFoundException {
-    UID event = UID.of("OTmjvJDn0Fu");
+    UID event = UID.of("H0PbzJY8bJG");
     LocalDateTime currentTime = LocalDateTime.now();
 
     updateEventDates(event, currentTime.toDate().toInstant());
@@ -351,22 +351,22 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         () ->
             assertFieldUpdate(
                 "scheduledAt",
-                "2022-04-22 06:00:30.562",
+                "2019-01-28 12:10:38.100",
                 currentTime.toString(formatter),
                 scheduledAtLogs.get(0)),
-        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(1)),
+        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", scheduledAtLogs.get(1)),
         () ->
             assertFieldUpdate(
                 "occurredAt",
-                "2022-04-23 06:00:38.343",
+                "2019-01-28 00:00:00.000",
                 currentTime.toString(formatter),
                 occurredAtLogs.get(0)),
-        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", occurredAtLogs.get(1)));
+        () -> assertFieldCreate("occurredAt", "2019-01-28 00:00:00.000", occurredAtLogs.get(1)));
   }
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted() throws NotFoundException {
-    UID event = UID.of("OTmjvJDn0Fu");
+    UID event = UID.of("H0PbzJY8bJG");
 
     deleteScheduledAtDate(event);
 
@@ -378,9 +378,9 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(2, scheduledAtLogs);
     assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () -> assertFieldDelete("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(0)),
-        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(1)),
-        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", occurredAtLogs.get(0)));
+        () -> assertFieldDelete("scheduledAt", "2019-01-28 12:10:38.100", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", scheduledAtLogs.get(1)),
+        () -> assertFieldCreate("occurredAt", "2019-01-28 00:00:00.000", occurredAtLogs.get(0)));
   }
 
   @Test

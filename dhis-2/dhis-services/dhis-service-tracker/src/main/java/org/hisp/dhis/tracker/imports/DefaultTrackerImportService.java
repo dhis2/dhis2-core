@@ -44,6 +44,8 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
@@ -87,6 +89,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
       @Nonnull TrackerObjects trackerObjects,
       @Nonnull JobProgress jobProgress) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
         jobProgress.nonNullStagePostCondition(
@@ -145,7 +148,16 @@ public class DefaultTrackerImportService implements TrackerImportService {
     ValidationResult result = validationService.validate(bundle);
     bundle.setTrackedEntities(result.getTrackedEntities());
     bundle.setEnrollments(result.getEnrollments());
-    bundle.setEvents(result.getEvents());
+    bundle.setTrackerEvents(
+        result.getEvents().stream()
+            .filter(TrackerEvent.class::isInstance)
+            .map(e -> (TrackerEvent) e)
+            .toList());
+    bundle.setSingleEvents(
+        result.getEvents().stream()
+            .filter(SingleEvent.class::isInstance)
+            .map(e -> (SingleEvent) e)
+            .toList());
     bundle.setRelationships(result.getRelationships());
 
     return result;

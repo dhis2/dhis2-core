@@ -106,7 +106,7 @@ class RuleEngineMapper {
 
   static @Nonnull List<RuleEvent> mapPayloadEvents(
       @Nonnull TrackerPreheat preheat,
-      @Nonnull List<org.hisp.dhis.tracker.imports.domain.Event> events) {
+      @Nonnull List<? extends org.hisp.dhis.tracker.imports.domain.Event> events) {
     return events.stream().map(e -> mapPayloadEvent(preheat, e)).toList();
   }
 

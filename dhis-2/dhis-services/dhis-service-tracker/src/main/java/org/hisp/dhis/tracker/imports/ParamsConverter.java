@@ -29,8 +29,15 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import java.util.List;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -42,7 +49,11 @@ public class ParamsConverter {
   }
 
   public static TrackerBundle convert(
-      TrackerImportParams params, TrackerObjects trackerObjects, UserDetails user) {
+      TrackerImportParams params,
+      TrackerObjects trackerObjects,
+      UserDetails user,
+      TrackerPreheat preheat) {
+
     return TrackerBundle.builder()
         .importMode(params.getImportMode())
         .importStrategy(params.getImportStrategy())
@@ -53,9 +64,37 @@ public class ParamsConverter {
         .validationMode(params.getValidationMode())
         .trackedEntities(trackerObjects.getTrackedEntities())
         .enrollments(trackerObjects.getEnrollments())
-        .events(trackerObjects.getEvents())
+        .trackerEvents(buildTrackerEvents(trackerObjects.getEvents(), preheat))
+        .singleEvents(buildSingleEvents(trackerObjects.getEvents(), preheat))
         .relationships(trackerObjects.getRelationships())
         .user(user)
         .build();
+  }
+
+  private static List<TrackerEvent> buildTrackerEvents(List<Event> events, TrackerPreheat preheat) {
+    return events.stream()
+        .filter(
+            e -> {
+              Program program = preheat.getProgram(e.getProgram());
+              ProgramStage programStage = preheat.getProgramStage(e.getProgramStage());
+              return (program != null && program.isRegistration())
+                  || (programStage != null && programStage.getProgram().isRegistration())
+                  || (program == null && programStage == null);
+            })
+        .map(e -> TrackerEvent.builderFromEvent(e).build())
+        .toList();
+  }
+
+  private static List<SingleEvent> buildSingleEvents(List<Event> events, TrackerPreheat preheat) {
+    return events.stream()
+        .filter(
+            e -> {
+              Program program = preheat.getProgram(e.getProgram());
+              ProgramStage programStage = preheat.getProgramStage(e.getProgramStage());
+              return (program != null && program.isWithoutRegistration())
+                  || (programStage != null && programStage.getProgram().isWithoutRegistration());
+            })
+        .map(e -> SingleEvent.builderFromEvent(e).build())
+        .toList();
   }
 }

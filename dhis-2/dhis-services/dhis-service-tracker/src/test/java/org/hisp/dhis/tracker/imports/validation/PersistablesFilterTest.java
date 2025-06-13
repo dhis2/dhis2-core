@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
@@ -88,7 +87,7 @@ class PersistablesFilterTest {
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p", "Ok4Fe5moc3N"),
         () ->
             assertContainsOnly(
-                persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
+                persistable, TrackerEvent.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
@@ -114,7 +113,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertContainsOnly(persistable, Event.class, "Ox1qBWsnVwE"),
+        () -> assertContainsOnly(persistable, TrackerEvent.class, "Ox1qBWsnVwE"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
@@ -137,7 +136,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertContainsOnly(persistable, Event.class, "Qck4PQ7TMun"),
+        () -> assertContainsOnly(persistable, TrackerEvent.class, "Qck4PQ7TMun"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
@@ -197,7 +196,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
-        () -> assertContainsOnly(persistable, Event.class, "Qck4PQ7TMun"),
+        () -> assertContainsOnly(persistable, TrackerEvent.class, "Qck4PQ7TMun"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
@@ -217,7 +216,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
-        () -> assertIsEmpty(persistable.get(Event.class)),
+        () -> assertIsEmpty(persistable.get(TrackerEvent.class)),
         () ->
             assertHasError(
                 persistable, EVENT, "Qck4PQ7TMun", E5000, "because enrollment `t1zaUjKgT3p`"));
@@ -239,7 +238,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertIsEmpty(persistable.get(Event.class)),
+        () -> assertIsEmpty(persistable.get(TrackerEvent.class)),
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
@@ -376,7 +375,7 @@ class PersistablesFilterTest {
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p", "Ok4Fe5moc3N"),
         () ->
             assertContainsOnly(
-                persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
+                persistable, TrackerEvent.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
@@ -413,7 +412,7 @@ class PersistablesFilterTest {
 
       private final List<Entity<Enrollment>> enrollments = new ArrayList<>();
 
-      private final List<Entity<Event>> events = new ArrayList<>();
+      private final List<Entity<TrackerEvent>> events = new ArrayList<>();
 
       private final List<Entity<Relationship>> relationships = new ArrayList<>();
 
@@ -491,17 +490,18 @@ class PersistablesFilterTest {
        * @return builder
        */
       Builder event(String uid) {
-        Entity<Event> entity = event(UID.of(uid), currentEnrollment);
+        Entity<TrackerEvent> entity = event(UID.of(uid), currentEnrollment);
         this.events.add(entity);
         current = entity;
         return this;
       }
 
-      private static Entity<Event> event(UID uid, Entity<Enrollment> parent) {
+      private static Entity<TrackerEvent> event(UID uid, Entity<Enrollment> parent) {
         // set child/parent links only if the event has a parent. Events in an event program have no
         // enrollment.
         // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
-        Event event = TrackerEvent.builder().event(uid).enrollment(parent.entity.getUid()).build();
+        TrackerEvent event =
+            TrackerEvent.builder().event(uid).enrollment(parent.entity.getUid()).build();
         return new Entity<>(event);
       }
 
@@ -535,7 +535,7 @@ class PersistablesFilterTest {
 
         bundle.setTrackedEntities(toEntitiesInPayload(trackedEntities));
         bundle.setEnrollments(toEntitiesInPayload(enrollments));
-        bundle.setEvents(toEntitiesInPayload(events));
+        bundle.setTrackerEvents(toEntitiesInPayload(events));
         bundle.setRelationships(toEntitiesInPayload(relationships));
 
         EnumMap<TrackerType, Set<UID>> invalidEntities = PersistablesFilterTest.invalidEntities();

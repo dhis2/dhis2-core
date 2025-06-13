@@ -666,6 +666,13 @@
           "providedElsewhere": false
         }
       ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -11.4197,
+          8.1039
+        ]
+      },
       "assignedUser": {
         "uid": "xE7jOejl9FI",
         "firstName": "John",

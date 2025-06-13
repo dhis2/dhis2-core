@@ -38,7 +38,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -70,13 +69,14 @@ class EventStatusPreProcessorTest {
     TrackerPreheat preheat = new TrackerPreheat();
     preheat.putEnrollmentsWithoutRegistration("programUid", enrollment);
     preheat.put(programStage);
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .status(EventStatus.VISITED)
             .programStage(MetadataIdentifier.ofUid("programStageUid"))
             .build();
-    TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
+    TrackerBundle bundle =
+        TrackerBundle.builder().trackerEvents(Collections.singletonList(event)).build();
     bundle.setPreheat(preheat);
     // When
     preProcessorToTest.process(bundle);
