@@ -4,5 +4,3 @@
 # Skips test phase
 
 mvn clean install --batch-mode --no-transfer-progress -DskipTests=true
-
-
