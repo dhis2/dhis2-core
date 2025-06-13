@@ -40,6 +40,9 @@ import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.EndpointTracker;
@@ -333,16 +336,64 @@ public class RestApiActions {
     return response;
   }
 
-  public ApiResponse postMultiPartFile(
-      File file, String fileContentType, QueryParamsBuilder queryParamsBuilder) {
+  public ApiResponse postRawFile(
+      File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
+    if (contentType == null) {
+      throw new IllegalArgumentException("Content-Type must be specified for raw file uploads");
+    }
+
     String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
-    return new ApiResponse(
-        given()
-            .multiPart("file", file, fileContentType)
-            .contentType("multipart/form-data")
-            .when()
-            .post(url));
+    String fileContent;
+    try {
+      fileContent = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read file: " + file, e);
+    }
+
+    ApiResponse response =
+        new ApiResponse(
+            given()
+                .body(fileContent)
+                .header("Content-Type", contentType) // exact match
+                .when()
+                .post(url));
+
+    addCoverage("POST", url);
+    saveCreatedObjects(response);
+
+    return response;
+  }
+
+  public ApiResponse postGzippedFile(
+      File gzippedFile, QueryParamsBuilder queryParamsBuilder, String contentType) {
+
+    if (contentType == null) {
+      throw new IllegalArgumentException("Content-Type must be specified");
+    }
+
+    String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    byte[] gzippedBytes;
+    try {
+      gzippedBytes = Files.readAllBytes(gzippedFile.toPath());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to read gzipped file: " + gzippedFile, e);
+    }
+
+    ApiResponse response =
+        new ApiResponse(
+            given()
+                .body(gzippedBytes)
+                .header("Content-Type", contentType)
+                .header("Content-Encoding", "gzip")
+                .when()
+                .post(url));
+
+    addCoverage("POST", url);
+    saveCreatedObjects(response);
+
+    return response;
   }
 
   private void saveCreatedObjects(ApiResponse response) {
