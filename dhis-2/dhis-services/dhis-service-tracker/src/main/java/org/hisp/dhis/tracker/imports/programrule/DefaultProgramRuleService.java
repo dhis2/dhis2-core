@@ -128,9 +128,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
   private RuleEngineEffects calculateTrackerEventRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
     Set<Enrollment> enrollments =
-        bundle.getEvents().stream()
+        bundle.getTrackerEvents().stream()
             .filter(event -> bundle.findEnrollmentByUid(event.getEnrollment()).isEmpty())
-            .filter(event -> preheat.getProgram(event.getProgram()).isRegistration())
             .map(event -> preheat.getEnrollment(event.getEnrollment()))
             .collect(Collectors.toSet());
 
@@ -152,12 +151,11 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private RuleEngineEffects calculateSingleEventRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
-    Map<Program, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents =
-        bundle.getEvents().stream()
-            .filter(event -> preheat.getProgram(event.getProgram()).isWithoutRegistration())
+    Map<Program, List<org.hisp.dhis.tracker.imports.domain.SingleEvent>> singleEvents =
+        bundle.getSingleEvents().stream()
             .collect(Collectors.groupingBy(event -> preheat.getProgram(event.getProgram())));
 
-    return programEvents.entrySet().stream()
+    return singleEvents.entrySet().stream()
         .map(
             entry -> {
               List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
@@ -224,7 +222,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       .enrollments(Set.of(enrollmentUid))
                       .build())
               .stream()
-              .filter(e -> bundle.findEventByUid(UID.of(e)).isEmpty());
+              .filter(e -> bundle.findTrackerEventByUid(UID.of(e)).isEmpty());
     } catch (BadRequestException | ForbiddenException e) {
       throw new RuntimeException(e);
     }
@@ -232,7 +230,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     List<RuleEvent> ruleEvents =
         RuleEngineMapper.mapPayloadEvents(
             preheat,
-            bundle.getEvents().stream()
+            bundle.getTrackerEvents().stream()
                 .filter(e -> e.getEnrollment().equals(enrollmentUid))
                 .toList());
 
