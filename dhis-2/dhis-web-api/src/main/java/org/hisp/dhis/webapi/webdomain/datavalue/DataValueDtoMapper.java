@@ -35,7 +35,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueDto;
 
 /**
