@@ -87,7 +87,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
       @Nonnull TrackerObjects trackerObjects,
       @Nonnull JobProgress jobProgress) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
         jobProgress.nonNullStagePostCondition(
