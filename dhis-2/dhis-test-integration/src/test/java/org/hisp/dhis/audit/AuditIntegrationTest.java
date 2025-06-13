@@ -87,11 +87,6 @@ class AuditIntegrationTest extends IntegrationTestBase {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @BeforeEach
-  void skipAllTests() {
-    Assumptions.assumeTrue(false, "Temporarily skipping all tests in AuditIntegrationTest");
-  }
-
   @Test
   void testSaveMetadata() {
     DataElement dataElement = createDataElement('A');
