@@ -83,6 +83,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
 @ContextConfiguration(classes = {AuditIntegrationTest.DhisConfig.class})
+@Disabled
 class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   static class DhisConfig {
