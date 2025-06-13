@@ -51,6 +51,8 @@ public class App implements Serializable {
 
   public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
 
+  private static final String BUNDLED_APP_PREFIX = "dhis-web-";
+
   /** Required. */
   private String version;
 
@@ -118,8 +120,7 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(String contextPath) {
-    String prefix =
-        this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    String prefix = this.isBundled() ? BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
     this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
@@ -476,7 +477,7 @@ public class App implements Serializable {
 
   public String getSeeAppAuthority() {
     if (isBundled()) {
-      return SEE_APP_AUTHORITY_PREFIX + AppManager.BUNDLED_APP_PREFIX + getShortName();
+      return SEE_APP_AUTHORITY_PREFIX + BUNDLED_APP_PREFIX + getShortName();
     }
 
     return SEE_APP_AUTHORITY_PREFIX

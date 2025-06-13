@@ -38,6 +38,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -56,12 +57,46 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class AppOverrideFilter extends OncePerRequestFilter {
+
+  private static final String BUNDLED_APP_PREFIX = "dhis-web-";
+
+  /* To be removed in favor of dynamic ClassPath loading, see BundledAppStorageService */
+  @Deprecated(forRemoval = true)
+  private static final Set<String> BUNDLED_APPS =
+      Set.of(
+          "aggregate-data-entry",
+          "approval",
+          "app-management",
+          "cache-cleaner",
+          "capture",
+          "dashboard",
+          "data-administration",
+          "data-visualizer",
+          "data-quality",
+          "datastore",
+          "event-reports",
+          "event-visualizer",
+          "global-shell",
+          "import-export",
+          "interpretation",
+          "line-listing",
+          "login",
+          "maintenance",
+          "maps",
+          "menu-management",
+          "messaging",
+          "pivot",
+          "reports",
+          "scheduler",
+          "settings",
+          "sms-configuration",
+          "translations",
+          "usage-analytics",
+          "user",
+          "user-profile");
+
   public static final String APP_PATH_PATTERN_STRING =
-      "^/"
-          + AppManager.BUNDLED_APP_PREFIX
-          + "("
-          + String.join("|", AppManager.BUNDLED_APPS)
-          + ")(/?.*)";
+      "^/" + BUNDLED_APP_PREFIX + "(" + String.join("|", BUNDLED_APPS) + ")(/?.*)";
 
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
 
