@@ -42,7 +42,6 @@ import org.hamcrest.MatcherAssert;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -65,10 +64,13 @@ class AssignedUserPreProcessorTest extends TestBase {
 
   @Test
   void testPreprocessorWhenUserHasOnlyUidSet() {
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder().event(UID.generate()).assignedUser(userWithOnlyUid()).build();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+        TrackerBundle.builder()
+            .trackerEvents(Collections.singletonList(event))
+            .preheat(preheat)
+            .build();
 
     when(preheat.getUserByUid(USER_UID)).thenReturn(Optional.of(completeUser()));
 
@@ -83,10 +85,13 @@ class AssignedUserPreProcessorTest extends TestBase {
 
   @Test
   void testPreprocessorWhenUserHasOnlyUsernameSet() {
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder().event(UID.generate()).assignedUser(userWithOnlyUsername()).build();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+        TrackerBundle.builder()
+            .trackerEvents(Collections.singletonList(event))
+            .preheat(preheat)
+            .build();
 
     when(preheat.getUserByUsername(USERNAME)).thenReturn(Optional.of(completeUser()));
 
@@ -102,9 +107,12 @@ class AssignedUserPreProcessorTest extends TestBase {
   @ParameterizedTest
   @MethodSource("userInfoProvider")
   void testPreprocessorDoNothing(User user) {
-    Event event = TrackerEvent.builder().event(UID.generate()).assignedUser(user).build();
+    TrackerEvent event = TrackerEvent.builder().event(UID.generate()).assignedUser(user).build();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+        TrackerBundle.builder()
+            .trackerEvents(Collections.singletonList(event))
+            .preheat(preheat)
+            .build();
 
     preProcessorToTest.process(bundle);
 
