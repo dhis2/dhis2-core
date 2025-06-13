@@ -119,8 +119,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
 
   @Test
   void shouldMapPayloadEventsToRuleEvents() {
-    org.hisp.dhis.tracker.imports.domain.Event eventA = payloadEvent();
-    org.hisp.dhis.tracker.imports.domain.Event eventB = payloadEvent();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent eventA = payloadEvent();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent eventB = payloadEvent();
 
     TrackerPreheat trackerPreheat = new TrackerPreheat();
     trackerPreheat.put(programStage);
@@ -372,7 +372,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     return eventDataValue;
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Event payloadEvent() {
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent payloadEvent() {
     return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .enrollment(UID.generate())
         .event(UID.generate())
