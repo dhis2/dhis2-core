@@ -146,7 +146,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @ParameterizedTest
-  @Execution( ExecutionMode.SAME_THREAD)
+  @Execution(ExecutionMode.SAME_THREAD)
   @MethodSource("provideAuthSchemes")
   void testSaveRoute(AuthScheme authScheme) {
     Route route = new Route();
