@@ -74,6 +74,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +86,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
 @ContextConfiguration(classes = {AuditIntegrationTest.DhisConfig.class})
-@Disabled("Disabled until we can fix the issues with the audit service")
 class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   static class DhisConfig {
@@ -146,6 +147,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @ParameterizedTest
+  @Execution( ExecutionMode.SAME_THREAD)
   @MethodSource("provideAuthSchemes")
   void testSaveRoute(AuthScheme authScheme) {
     Route route = new Route();
