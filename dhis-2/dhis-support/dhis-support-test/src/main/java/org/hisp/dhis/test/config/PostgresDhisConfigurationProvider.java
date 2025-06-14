@@ -131,6 +131,15 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
     properties.setProperty("connection.url", POSTGRES_CONTAINER.getJdbcUrl());
     properties.setProperty("connection.username", POSTGRES_USERNAME);
     properties.setProperty("connection.password", POSTGRES_PASSWORD);
+
+    // C3P0 connection pool tuning
+    properties.setProperty("hibernate.c3p0.min_size", "5");
+    properties.setProperty("hibernate.c3p0.max_size", "30");
+    properties.setProperty("hibernate.c3p0.timeout", "300");
+    properties.setProperty("hibernate.c3p0.max_statements", "100");
+    properties.setProperty("hibernate.c3p0.idle_test_period", "300");
+    properties.setProperty("hibernate.c3p0.acquire_increment", "5");
+
     return properties;
   }
 }
