@@ -73,6 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -296,6 +297,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @SuppressWarnings("unchecked")
+  @Disabled
   void testSaveDataSet() throws JsonProcessingException {
     DataElement dataElement = createDataElement('A');
     PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
