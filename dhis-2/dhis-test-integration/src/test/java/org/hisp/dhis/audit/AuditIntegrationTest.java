@@ -64,7 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles(profiles = {"test-audit"})
-@Disabled("until we can inject dhis.conf property overrides")
 class AuditIntegrationTest extends IntegrationTestBase {
 
   private static final int TIMEOUT = 5;
