@@ -80,7 +80,7 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonIgnore
-  public boolean isAttachment() {
+  public boolean isAttachmentDefaultFalse() {
     return BooleanUtils.isTrue(attachment);
   }
 

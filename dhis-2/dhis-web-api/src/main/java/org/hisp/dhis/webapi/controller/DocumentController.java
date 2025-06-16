@@ -111,7 +111,7 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
           document.getContentType(),
           CacheStrategy.CACHE_TWO_WEEKS,
           document.getUrl(),
-          document.isAttachment());
+          document.isAttachmentDefaultFalse());
 
       try (InputStream in =
           locationManager.getInputStream(document.getUrl(), DocumentService.DIR)) {
