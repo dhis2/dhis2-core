@@ -87,6 +87,11 @@ public class OrgUnitField {
 
   private final OrgUnitFieldType type;
 
+  /**
+   * A SqlBuilder to use for quoting table and column names. This is set to a {@link
+   * PostgreSqlBuilder} by default, but can be overridden by calling {@link
+   * #withSqlBuilder(SqlBuilder)}.
+   */
   private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   public OrgUnitField(String field) {
@@ -233,6 +238,12 @@ public class OrgUnitField {
     return "[" + field + "-" + type + "]";
   }
 
+  /**
+   * Sets a custom SqlBuilder to use for quoting table and column names.
+   *
+   * @param sqlBuilder the SqlBuilder to use
+   * @return this OrgUnitField instance for method chaining
+   */
   public OrgUnitField withSqlBuilder(SqlBuilder sqlBuilder) {
     this.sqlBuilder = sqlBuilder;
     return this;
