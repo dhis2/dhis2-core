@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.preprocess;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -51,6 +52,7 @@ public class DefaultTrackerPreprocessService implements TrackerPreprocessService
   @Nonnull
   @Override
   public TrackerBundle preprocess(@Nonnull TrackerBundle bundle) {
+    preProcessors.sort(Comparator.comparingInt(BundlePreProcessor::getPriority));
     for (BundlePreProcessor preProcessor : preProcessors) {
       if (preProcessor.needsToRun(bundle.getImportStrategy())) {
         preProcessor.process(bundle);

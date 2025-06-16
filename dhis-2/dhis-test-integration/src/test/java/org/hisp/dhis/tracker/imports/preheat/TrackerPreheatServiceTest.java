@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,11 @@ class TrackerPreheatServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerPreheatService trackerPreheatService;
 
   @Autowired private TrackerIdentifierCollector identifierCollector;
+
+  @BeforeAll
+  void setup() throws IOException {
+    testSetup.importMetadata("tracker/event_metadata.json");
+  }
 
   @Test
   void testCollectIdentifiersEvents() throws IOException {
@@ -142,8 +148,6 @@ class TrackerPreheatServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testPreheatEvents() throws IOException {
-    testSetup.importMetadata("tracker/event_metadata.json");
-
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 

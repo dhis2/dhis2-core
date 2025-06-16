@@ -38,12 +38,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.springframework.stereotype.Component;
 
 /**
  * This preprocessor is responsible for setting the Program UID on an Event from the ProgramStage if
- * the Program is not present in the payload
+ * the Program is not present in the payload.
  *
  * @author Enrico Colasante
  */
@@ -90,10 +90,10 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
           bundle.getPreheat().put(programStage.getProgram());
         }
       }
-      // If it is a program event, extract program stage from program
+      // If it is a single event, extract program stage from program
       else if (nonNull(event.getProgram()) && event.getProgram().isNotBlank()) {
         Program program = bundle.getPreheat().getProgram(event.getProgram());
-        if (nonNull(program) && program.isWithoutRegistration()) {
+        if (nonNull(program) && event instanceof SingleEvent) {
           Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
           if (programStage.isPresent()) {
             TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
@@ -103,26 +103,10 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
         }
       }
     }
-    setAttributeOptionCombo(bundle);
   }
 
-  private void setAttributeOptionCombo(TrackerBundle bundle) {
-
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<Event> events =
-        bundle.getEvents().stream()
-            .filter(
-                e ->
-                    e.getAttributeOptionCombo().isBlank()
-                        && !e.getAttributeCategoryOptions().isEmpty())
-            .filter(e -> preheat.getProgram(e.getProgram()) != null)
-            .toList();
-
-    for (Event e : events) {
-      Program program = preheat.getProgram(e.getProgram());
-      e.setAttributeOptionCombo(
-          preheat.getCategoryOptionComboIdentifier(
-              program.getCategoryCombo(), e.getAttributeCategoryOptions()));
-    }
+  @Override
+  public int getPriority() {
+    return -1;
   }
 }
