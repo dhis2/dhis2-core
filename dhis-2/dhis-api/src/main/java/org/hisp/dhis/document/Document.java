@@ -119,7 +119,7 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
     this.attachment = attachment;
   }
 
-  // Do not expose in the API
+  // Do not expose in API
   @JsonIgnore
   public FileResource getFileResource() {
     return fileResource;

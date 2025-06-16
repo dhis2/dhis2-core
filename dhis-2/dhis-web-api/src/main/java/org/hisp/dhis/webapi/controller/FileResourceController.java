@@ -138,7 +138,7 @@ public class FileResourceController
 
     if (!checkSharing(fileResource, currentUser)) {
       throw new ForbiddenException(
-          String.format("File resource not found or not accessible: '{}'", uid));
+          String.format("File resource not found or not accessible: %s}'", uid));
     }
 
     response.setContentType(fileResource.getContentType());
@@ -154,7 +154,7 @@ public class FileResourceController
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
     } catch (IOException ex) {
-      log.error("Could not retrieve file for file resource: '" + uid + "'", ex);
+      log.error(String.format("Could not retrieve file for file resource: '%s'", uid), ex);
       throw new WebMessageException(
           error(
               "Failed fetching the file from storage",
