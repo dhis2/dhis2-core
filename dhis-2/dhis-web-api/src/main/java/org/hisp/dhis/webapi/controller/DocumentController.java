@@ -84,7 +84,8 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
     Document document = documentService.getDocument(uid);
 
     if (document == null) {
-      throw new WebMessageException(notFound("Document not found for uid: " + uid));
+      throw new WebMessageException(
+          notFound(String.format("Document not found or not accessible: '%s'", uid)));
     }
 
     if (document.isExternal()) {
@@ -115,8 +116,8 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
       try (InputStream in =
           locationManager.getInputStream(document.getUrl(), DocumentService.DIR)) {
         IOUtils.copy(in, response.getOutputStream());
-      } catch (IOException e) {
-        log.error("Could not retrieve file.", e);
+      } catch (IOException ex) {
+        log.error("Could not retrieve file", ex);
         throw new WebMessageException(
             error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
       }
