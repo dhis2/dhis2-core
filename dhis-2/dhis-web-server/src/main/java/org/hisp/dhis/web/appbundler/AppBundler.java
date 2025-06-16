@@ -47,7 +47,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
