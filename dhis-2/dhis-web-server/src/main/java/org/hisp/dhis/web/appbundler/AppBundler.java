@@ -165,7 +165,7 @@ public class AppBundler {
                                 }
                               })
                           .filter(Objects::nonNull)
-                          .collect(Collectors.toList()))
+                          .toList())
               .get();
 
       downloadedApps.forEach(bundleInfo::addApp);
