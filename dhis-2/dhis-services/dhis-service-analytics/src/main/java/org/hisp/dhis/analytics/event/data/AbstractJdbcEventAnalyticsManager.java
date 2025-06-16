@@ -1920,7 +1920,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
       topEnrollments.addColumn(
-          params.getOrgUnitField().getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType()));
+          params
+              .getOrgUnitField()
+              .withSqlBuilder(sqlBuilder)
+              .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType()));
     }
     // add the `ou` column
     topEnrollments.addColumn("ou", "ax");
