@@ -80,11 +80,6 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonIgnore
-  public boolean isExternal() {
-    return BooleanUtils.isTrue(external);
-  }
-
-  @JsonIgnore
   public boolean isAttachment() {
     return BooleanUtils.isTrue(attachment);
   }
@@ -102,7 +97,7 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean getExternal() {
+  public boolean isExternal() {
     return external;
   }
 
