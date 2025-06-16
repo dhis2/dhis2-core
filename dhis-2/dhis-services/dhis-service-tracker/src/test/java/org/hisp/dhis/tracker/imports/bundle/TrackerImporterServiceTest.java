@@ -39,7 +39,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -47,9 +46,9 @@ import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
@@ -92,24 +91,23 @@ class TrackerImporterServiceTest {
 
     injectSecurityContextNoSettings(user);
 
-    Event event = TrackerEvent.builder().event(UID.generate()).build();
-    final List<Event> events = List.of(event);
+    Enrollment enrollment = Enrollment.builder().enrollment(UID.generate()).build();
+    final List<Enrollment> enrollments = List.of(enrollment);
 
     params = TrackerImportParams.builder().build();
 
-    trackerObjects =
-        TrackerObjects.builder()
-            .events(events)
-            .enrollments(new ArrayList<>())
-            .relationships(new ArrayList<>())
-            .trackedEntities(new ArrayList<>())
-            .build();
+    trackerObjects = TrackerObjects.builder().enrollments(enrollments).build();
 
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
         .thenReturn(validationResult);
     when(trackerPreprocessService.preprocess(any(TrackerBundle.class)))
-        .thenReturn(ParamsConverter.convert(params, trackerObjects, user));
+        .thenReturn(
+            ParamsConverter.convert(
+                params,
+                TrackerObjects.builder().enrollments(enrollments).build(),
+                user,
+                new TrackerPreheat()));
   }
 
   @Test
@@ -117,15 +115,10 @@ class TrackerImporterServiceTest {
     TrackerImportParams parameters = TrackerImportParams.builder().skipSideEffects(true).build();
 
     TrackerObjects objects =
-        TrackerObjects.builder()
-            .events(trackerObjects.getEvents())
-            .enrollments(new ArrayList<>())
-            .relationships(new ArrayList<>())
-            .trackedEntities(new ArrayList<>())
-            .build();
+        TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
 
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(parameters, objects, user));
+        .thenReturn(ParamsConverter.convert(parameters, objects, user, new TrackerPreheat()));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenReturn(PersistenceReport.emptyReport());
 
@@ -136,9 +129,11 @@ class TrackerImporterServiceTest {
 
   @Test
   void testWithSideEffects() {
+    TrackerObjects objects =
+        TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
     doAnswer(invocationOnMock -> null).when(trackerBundleService).sendNotifications(anyList());
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, trackerObjects, user));
+        .thenReturn(ParamsConverter.convert(params, objects, user, new TrackerPreheat()));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenReturn(PersistenceReport.emptyReport());
 
@@ -149,8 +144,10 @@ class TrackerImporterServiceTest {
 
   @Test
   void shouldRaiseExceptionWhenExceptionWasThrownInsideAStage() {
+    TrackerObjects objects =
+        TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, trackerObjects, user));
+        .thenReturn(ParamsConverter.convert(params, objects, user, new TrackerPreheat()));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenThrow(new IllegalArgumentException("ERROR"));
 
