@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -105,8 +106,9 @@ public class TrackerBundle {
   /** Enrollments to import. */
   @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
-  /** Events to import. */
-  @Builder.Default private List<Event> events = new ArrayList<>();
+  @Builder.Default private List<TrackerEvent> trackerEvents = new ArrayList<>();
+
+  @Builder.Default private List<SingleEvent> singleEvents = new ArrayList<>();
 
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
@@ -151,8 +153,12 @@ public class TrackerBundle {
     return findById(this.enrollments, uid);
   }
 
+  public Optional<TrackerEvent> findTrackerEventByUid(@Nonnull UID uid) {
+    return findById(this.getTrackerEvents(), uid);
+  }
+
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
-    return findById(this.events, uid);
+    return findById(this.getEvents(), uid);
   }
 
   public Optional<Relationship> findRelationshipByUid(@Nonnull UID uid) {
@@ -167,22 +173,15 @@ public class TrackerBundle {
     return Set.copyOf(this.updatedTrackedEntities);
   }
 
-  public List<SingleEvent> getSingleEvents() {
-    return this.events.stream()
-        .filter(event -> preheat.getProgram(event.getProgram()) != null)
-        .filter(event -> preheat.getProgram(event.getProgram()).isWithoutRegistration())
-        .map(event -> new SingleEvent())
-        .toList();
+  public List<Event> getEvents() {
+    return Stream.concat(this.singleEvents.stream(), this.trackerEvents.stream()).toList();
   }
 
-  public List<TrackerEvent> getTrackerEvents() {
-    return this.events.stream()
-        .filter(
-            event ->
-                preheat.getProgram(event.getProgram()) == null
-                    || preheat.getProgram(event.getProgram()).isRegistration())
-        .map(event -> new TrackerEvent())
-        .toList();
+  public void setEvents(List<Event> events) {
+    this.setTrackerEvents(
+        events.stream().filter(TrackerEvent.class::isInstance).map(e -> (TrackerEvent) e).toList());
+    this.setSingleEvents(
+        events.stream().filter(SingleEvent.class::isInstance).map(e -> (SingleEvent) e).toList());
   }
 
   public void addUpdatedTrackedEntities(Set<UID> updatedTrackedEntities) {
