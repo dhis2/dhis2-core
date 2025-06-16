@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
+import java.util.function.Supplier;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -105,16 +106,15 @@ public class OrgUnitQueryBuilder {
       OrganisationUnitSelectionMode orgUnitMode,
       String programTableAlias,
       String orgUnitTableAlias,
-      String trackedEntityTableAlias) {
+      String trackedEntityTableAlias,
+      Supplier<String> clauseSupplier) {
     UserDetails userDetails = getCurrentUserDetails();
 
     if (orgUnitMode == ALL || userDetails.isSuper()) {
       return;
     }
 
-    SqlHelper sqlHelper = new SqlHelper(true);
-
-    sql.append(sqlHelper.andOr())
+    sql.append(clauseSupplier.get())
         .append("((")
         .append(programTableAlias)
         .append(".accesslevel in ('OPEN', 'AUDITED') and ")
@@ -129,8 +129,7 @@ public class OrgUnitQueryBuilder {
           "effectiveSearchScopeOrgUnits", userDetails.getUserEffectiveSearchOrgUnitIds());
     }
 
-    sql.append(sqlHelper.andOr())
-        .append("(")
+    sql.append(" or (")
         .append(programTableAlias)
         .append(".accesslevel in ('PROTECTED', 'CLOSED') and ")
         .append(orgUnitTableAlias)
@@ -138,9 +137,8 @@ public class OrgUnitQueryBuilder {
             ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
     sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
 
-    sql.append(sqlHelper.andOr())
-        .append(
-            "(p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
+    sql.append(
+            " or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
         .append(programTableAlias)
         .append(".programid and trackedentityid = ")
         .append(trackedEntityTableAlias)

@@ -30,12 +30,8 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -43,7 +39,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -59,8 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class EnrollmentOperationParamsMapper {
   private final TrackerProgramService trackerProgramService;
-
-  private final OrganisationUnitService organisationUnitService;
 
   private final OperationsParamsValidator paramsValidator;
 
@@ -92,31 +85,7 @@ class EnrollmentOperationParamsMapper {
     params.setEnrollments(operationParams.getEnrollments());
     params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
 
-    mergeOrgUnitModes(operationParams, params, user);
-
     return params;
-  }
-
-  /**
-   * Prepares the org unit modes to simplify the SQL query creation by merging similar behaviored
-   * org unit modes.
-   */
-  private void mergeOrgUnitModes(
-      EnrollmentOperationParams operationParams,
-      EnrollmentQueryParams queryParams,
-      UserDetails user) {
-    if (operationParams.getOrgUnitMode() == ACCESSIBLE) {
-      queryParams.addOrganisationUnits(
-          new HashSet<>(
-              organisationUnitService.getOrganisationUnitsByUid(
-                  user.getUserEffectiveSearchOrgUnitIds())));
-      queryParams.setOrganisationUnitMode(DESCENDANTS);
-    } else if (operationParams.getOrgUnitMode() == CAPTURE) {
-      queryParams.addOrganisationUnits(
-          new HashSet<>(
-              organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds())));
-      queryParams.setOrganisationUnitMode(DESCENDANTS);
-    }
   }
 
   private List<Program> getTrackerPrograms(Program program) {

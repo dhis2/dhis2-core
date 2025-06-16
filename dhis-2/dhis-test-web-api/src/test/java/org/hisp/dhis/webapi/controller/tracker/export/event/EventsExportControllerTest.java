@@ -86,6 +86,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -110,6 +111,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private FileResourceContentStore fileResourceContentStore;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private CategoryOptionCombo coc;
 
@@ -975,6 +978,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     result.setOccurredDate(new Date());
     result.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(result);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        te, program, te.getOrganisationUnit());
     return result;
   }
 

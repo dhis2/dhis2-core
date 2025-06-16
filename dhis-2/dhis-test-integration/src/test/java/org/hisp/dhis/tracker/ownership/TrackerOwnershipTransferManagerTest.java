@@ -75,6 +75,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.User;
@@ -96,6 +98,8 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
+  @Autowired EnrollmentService enrollmentService;
+
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private ProgramService programService;
@@ -113,6 +117,8 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   private TrackedEntity trackedEntityA1;
 
   private TrackedEntity trackedEntityB1;
+
+  private Enrollment trackedEntityA1Enrollment;
 
   private OrganisationUnit organisationUnitA;
 
@@ -188,8 +194,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
     userDetailsA = UserDetails.fromUser(userA);
     userDetailsB = UserDetails.fromUser(userB);
 
-    Enrollment trackedEntityA1Enrollment =
-        createEnrollment(programA, trackedEntityA1, organisationUnitA);
+    trackedEntityA1Enrollment = createEnrollment(programA, trackedEntityA1, organisationUnitA);
     manager.save(trackedEntityA1Enrollment);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntityA1, programA, organisationUnitA);
@@ -481,6 +486,23 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(
         List.of(trackedEntityA1.getUid(), trackedEntityB1.getUid()), trackedEntities);
+  }
+
+  @Test
+  void shouldFindEnrollmentWhenTransferredToAccessibleOrgUnit()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+    injectSecurityContext(userDetailsB);
+
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .trackedEntity(trackedEntityA1)
+            .program(programA)
+            .orgUnits(organisationUnitB)
+            .build();
+    List<Enrollment> enrollment = enrollmentService.findEnrollments(params);
+
+    assertContainsOnly(List.of(trackedEntityA1Enrollment), enrollment);
   }
 
   @Test
