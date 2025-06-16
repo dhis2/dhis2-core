@@ -82,6 +82,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -150,9 +151,7 @@ public class AuditController {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
     } catch (IOException e) {
       throw new WebMessageException(
-          error(
-              "Failed fetching the file from storage",
-              "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+          error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
     }
   }
 

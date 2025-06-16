@@ -33,8 +33,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
+
+import com.google.common.base.MoreObjects;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -67,11 +73,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import com.google.common.base.MoreObjects;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -136,8 +137,8 @@ public class FileResourceController
         fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
 
     if (!checkSharing(fileResource, currentUser)) {
-      throw new ForbiddenException(String.format(
-          "File resource not found or not accessible: '{}'", uid));
+      throw new ForbiddenException(
+          String.format("File resource not found or not accessible: '{}'", uid));
     }
 
     response.setContentType(fileResource.getContentType());

@@ -48,6 +48,7 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,9 +102,7 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
         fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
       } catch (IOException e) {
         throw new WebMessageException(
-            error(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+            error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
       }
     } else {
       contextUtils.configureResponse(
@@ -119,10 +118,7 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
       } catch (IOException e) {
         log.error("Could not retrieve file.", e);
         throw new WebMessageException(
-            error(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. "
-                    + "Depending on the provider the root cause could be network or file system related."));
+            error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
       }
     }
   }

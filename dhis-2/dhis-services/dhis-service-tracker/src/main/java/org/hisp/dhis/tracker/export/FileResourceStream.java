@@ -52,11 +52,10 @@ public record FileResourceStream(
     String uid, String name, String contentType, FileResourceSupplier<Content> contentSupplier) {
 
   private static final String EXCEPTION_PENDING =
-      "The content is being processed and is not available yet. Try again later.";
-  private static final String EXCEPTION_IO = "Failed fetching the file from storage";
-  private static final String EXCEPTION_IO_DEV =
-      "There was an exception when trying to fetch the file from the storage backend. "
-          + "Depending on the provider the root cause could be network or file system related.";
+      "Content is being processed and is not available yet, try again later";
+  public static final String EXCEPTION_IO = "Failed fetching file resource from storage";
+  public static final String EXCEPTION_IO_DEV =
+      "Exception occurred while fetching file resource from the storage backend";
 
   public record Content(long length, InputStream stream) {}
 
