@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
@@ -615,12 +616,13 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
-    org.hisp.dhis.tracker.imports.domain.Event ev = trackerObjects.getEvents().get(0);
-    ev.setEnrollment(null);
-    ev.setEvent(UID.generate());
-    // set event program and program stage
-    ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
-    ev.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, "BFcipDERJne", null));
+    org.hisp.dhis.tracker.imports.domain.Event ev =
+        TrackerEvent.builderFromEvent(trackerObjects.getEvents().get(0))
+            .enrollment(null)
+            .event(UID.generate())
+            .programStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null))
+            .program(MetadataIdentifier.of(TrackerIdScheme.UID, "BFcipDERJne", null))
+            .build();
 
     assertNoErrors(
         trackerImportService.importTracker(

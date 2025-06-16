@@ -980,6 +980,7 @@
       "user": {
         "id": "tTgjgobT1oS"
       },
+      "featureType": "POINT",
       "validationStrategy": "ON_UPDATE_AND_INSERT"
     },
     {

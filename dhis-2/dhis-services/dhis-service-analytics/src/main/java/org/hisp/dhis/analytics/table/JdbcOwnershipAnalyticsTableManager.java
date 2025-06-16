@@ -30,6 +30,8 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -52,6 +54,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -126,6 +129,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       JdbcConfiguration jdbcConfiguration,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -139,6 +143,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
+        columnMapper,
         sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
   }
@@ -249,6 +254,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
             \sfrom (\
             select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \

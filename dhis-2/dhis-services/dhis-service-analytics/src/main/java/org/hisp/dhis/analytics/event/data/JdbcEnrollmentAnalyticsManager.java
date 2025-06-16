@@ -73,6 +73,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInit
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
@@ -142,7 +143,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
-      OrganisationUnitResolver organisationUnitResolver) {
+      OrganisationUnitResolver organisationUnitResolver,
+      ColumnMapper columnMapper) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -153,7 +155,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        columnMapper);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -168,7 +171,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     } else {
       sql =
           useExperimentalAnalyticsQueryEngine()
-              ? buildEnrollmentQueryWithCte(params)
+              ? buildAnalyticsQuery(params)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
     if (params.analyzeOnly()) {
@@ -539,7 +542,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(),
+            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -1084,24 +1087,58 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   @Override
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
-
-    // Append standard columns or aggregated columns
     if (params.isAggregatedEnrollments()) {
-      sb.addColumn("count(eb.enrollment) as value");
+      addAggregatedColumns(sb);
     } else {
-      getStandardColumns()
-          .forEach(
-              column -> {
-                if (columnIsInFormula(column)) {
-                  sb.addColumn(column);
-                } else {
-                  sb.addColumn(column, "ax");
-                }
-              });
+      addStandardColumns(sb, params, cteContext);
     }
 
     // Append columns from CTE definitions
     getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
+  }
+
+  /** Adds aggregated enrollment count column. */
+  private void addAggregatedColumns(SelectBuilder sb) {
+    sb.addColumn("count(eb.enrollment) as value");
+  }
+
+  /** Adds standard columns based on whether shadow CTE is used. */
+  private void addStandardColumns(
+      SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
+    boolean useShadowCte = cteContext.containsCte("top_enrollments");
+
+    if (useShadowCte) {
+      addStandardColumnsWithShadowCte(sb, params);
+    } else {
+      addStandardColumnsWithoutShadowCte(sb, params);
+    }
+  }
+
+  /** Adds standard columns when using shadow CTE with formula aliases. */
+  private void addStandardColumnsWithShadowCte(SelectBuilder sb, EventQueryParams params) {
+    Map<String, String> formulaAliases = getFormulaColumnAliases();
+
+    for (String column : getStandardColumns(params)) {
+      if (columnIsInFormula(column)) {
+        String alias = formulaAliases.getOrDefault(column, createDefaultAlias(column));
+        sb.addColumn(alias, "ax");
+      } else {
+        sb.addColumn(column, "ax");
+      }
+    }
+  }
+
+  /** Adds standard columns without shadow CTE using original logic. */
+  private void addStandardColumnsWithoutShadowCte(SelectBuilder sb, EventQueryParams params) {
+    getStandardColumns(params)
+        .forEach(
+            column -> {
+              if (columnIsInFormula(column)) {
+                sb.addColumn(column);
+              } else {
+                sb.addColumn(column, "ax");
+              }
+            });
   }
 
   /**
@@ -1109,7 +1146,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    *
    * @return a list of names of standard columns.
    */
-  List<String> getStandardColumns() {
+  @Override
+  List<String> getStandardColumns(EventQueryParams params) {
     ListBuilder<String> columns = new ListBuilder<>();
 
     columns.add(

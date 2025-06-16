@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -352,7 +353,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Event getEventWithDataValueSet() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValues())
@@ -360,7 +361,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Event getEventWithDataValueSet(TrackerIdSchemeParams idSchemes) {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValues(idSchemes))
@@ -368,7 +369,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Event getEventWithDataValueSetSameValue() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getDataValuesSameValue())
@@ -376,7 +377,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Event getEventWithOptionSetDataValueWithValidValue() {
-    return Event.builder()
+    return TrackerEvent.builder()
         .event(EVENT_UID)
         .status(EventStatus.ACTIVE)
         .dataValues(getOptionSetDataValues())
@@ -384,7 +385,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   private Event getEventWithDataValueNOTSet() {
-    return Event.builder().event(SECOND_EVENT_UID).status(EventStatus.COMPLETED).build();
+    return TrackerEvent.builder().event(SECOND_EVENT_UID).status(EventStatus.COMPLETED).build();
   }
 
   private Set<DataValue> getDataValues(TrackerIdSchemeParams idSchemes) {

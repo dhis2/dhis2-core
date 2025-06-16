@@ -46,6 +46,8 @@ import org.springframework.stereotype.Component;
  * @author Enrico Colasante
  */
 @Component
+@Deprecated(
+    forRemoval = true) // It will be removed when the dummy enrollment will not be needed anymore
 public class EventWithoutRegistrationPreProcessor implements BundlePreProcessor {
   @Override
   public void process(TrackerBundle bundle) {

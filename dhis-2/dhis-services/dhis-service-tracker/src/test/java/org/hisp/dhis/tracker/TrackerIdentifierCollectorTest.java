@@ -64,6 +64,7 @@ import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,7 +131,7 @@ class TrackerIdentifierCollectorTest {
   @Test
   void collectEvents() {
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(uid())
             .enrollment(uid())
             .program(ofAttribute("NTVsGflP5Ix", "sunshine"))
@@ -161,7 +162,7 @@ class TrackerIdentifierCollectorTest {
   @Test
   void collectEventsSkipsNotesWithoutAValue() {
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).build()))
             .build();
