@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -78,6 +79,16 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
     this.contentType = contentType;
   }
 
+  @JsonIgnore
+  public boolean isExternal() {
+    return BooleanUtils.isTrue(external);
+  }
+
+  @JsonIgnore
+  public boolean isAttachment() {
+    return BooleanUtils.isTrue(attachment);
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   // @Property( PropertyType.URL )
@@ -91,7 +102,7 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isExternal() {
+  public boolean getExternal() {
     return external;
   }
 
