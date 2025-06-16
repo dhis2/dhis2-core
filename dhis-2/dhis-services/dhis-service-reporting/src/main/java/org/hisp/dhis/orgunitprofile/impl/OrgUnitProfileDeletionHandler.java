@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.orgunitprofile.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,6 +42,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -81,8 +81,8 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
       if (profile.getDataItems().remove(dataItem.getUid())) {
         orgUnitProfileService.saveOrgUnitProfile(profile);
       }
-    } catch (ForbiddenException e) {
-      throw new AccessDeniedException(e.getMessage());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
     }
   }
 
@@ -92,8 +92,8 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
       if (profile.getAttributes().remove(attribute.getUid())) {
         orgUnitProfileService.saveOrgUnitProfile(profile);
       }
-    } catch (ForbiddenException e) {
-      throw new AccessDeniedException(e.getMessage());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
     }
   }
 
@@ -103,8 +103,8 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
       if (profile.getGroupSets().remove(groupSet.getUid())) {
         orgUnitProfileService.saveOrgUnitProfile(profile);
       }
-    } catch (ForbiddenException e) {
-      throw new AccessDeniedException(e.getMessage());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
     }
   }
 }

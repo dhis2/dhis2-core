@@ -33,14 +33,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
-
-import com.google.common.base.MoreObjects;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -73,6 +67,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import com.google.common.base.MoreObjects;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -137,10 +136,8 @@ public class FileResourceController
         fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
 
     if (!checkSharing(fileResource, currentUser)) {
-      throw new ForbiddenException(
-          "You don't have access to fileResource '"
-              + uid
-              + "' or this fileResource is not available from this endpoint");
+      throw new ForbiddenException(String.format(
+          "File resource not found or not accessible: '{}'", uid));
     }
 
     response.setContentType(fileResource.getContentType());
@@ -155,13 +152,12 @@ public class FileResourceController
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
-    } catch (IOException e) {
-      log.error("Could not retrieve file.", e);
+    } catch (IOException ex) {
+      log.error("Could not retrieve file for file resource: '" + uid + "'", ex);
       throw new WebMessageException(
           error(
               "Failed fetching the file from storage",
-              "There was an exception when trying to fetch the file from the storage backend. "
-                  + "Depending on the provider the root cause could be network or file system related."));
+              "There was an exception when trying to fetch the file from the storage backend"));
     }
   }
 
