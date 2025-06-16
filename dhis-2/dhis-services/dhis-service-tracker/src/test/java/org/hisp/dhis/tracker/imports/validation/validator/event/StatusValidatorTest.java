@@ -29,41 +29,66 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1316;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-class StatusUpdateValidator implements Validator<Event> {
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    org.hisp.dhis.program.Event savedEvent = bundle.getPreheat().getEvent(event.getUid());
+/**
+ * @author Enrico Colasante
+ */
+@ExtendWith(MockitoExtension.class)
+class StatusValidatorTest {
 
-    if (event instanceof TrackerEvent
-        && checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
-      reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
-    }
+  private StatusValidator validator;
+
+  @Mock TrackerPreheat preheat;
+
+  private static final UID EVENT_UID = UID.generate();
+
+  @Mock private TrackerBundle bundle;
+
+  private Reporter reporter;
+
+  @BeforeEach
+  void setUp() {
+    validator = new StatusValidator();
+
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
   }
 
-  private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
-    return switch (fromStatus) {
-      // An event cannot transition from a STATUSES_WITH_DATA_VALUES to a
-      // STATUSES_WITHOUT_DATA_VALUES
-      case VISITED, ACTIVE, COMPLETED ->
-          EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
-      // An event can transition from a STATUSES_WITHOUT_DATA_VALUES to any status
-      case OVERDUE, SKIPPED, SCHEDULE -> false;
-    };
+  @ParameterizedTest
+  @CsvSource({"ACTIVE", "VISITED", "COMPLETED"})
+  void shouldPassValidationWhenGoingFromStatusToStatus(EventStatus status) {
+    Event event = SingleEvent.builder().event(EVENT_UID).status(status).build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
   }
 
-  @Override
-  public boolean needsToRun(TrackerImportStrategy strategy) {
-    return strategy == UPDATE;
+  @ParameterizedTest
+  @CsvSource({"SKIPPED", "OVERDUE", "SCHEDULE"})
+  void shouldFailValidationWhenGoingFromStatusToStatus(EventStatus status) {
+    Event event = SingleEvent.builder().event(EVENT_UID).status(status).build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1318);
   }
 }
