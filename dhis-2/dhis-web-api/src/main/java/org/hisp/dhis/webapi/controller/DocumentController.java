@@ -101,7 +101,7 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
 
       try {
         fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
-      } catch (IOException e) {
+      } catch (IOException ex) {
         throw new WebMessageException(
             error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
       }
