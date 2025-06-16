@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,12 +49,16 @@ import org.locationtech.jts.geom.Geometry;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SingleEvent implements TrackerDto, Serializable {
-  @Nonnull @JsonProperty private UID singleEvent;
+public class SingleEvent implements Event {
+  @Nonnull @JsonProperty private UID event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
   @JsonProperty private MetadataIdentifier program;
+
+  @JsonProperty private MetadataIdentifier programStage;
+
+  @JsonProperty private UID enrollment;
 
   @JsonProperty private MetadataIdentifier orgUnit;
 
@@ -84,11 +87,47 @@ public class SingleEvent implements TrackerDto, Serializable {
 
   @Override
   public UID getUid() {
-    return this.singleEvent;
+    return this.event;
   }
 
   @Override
   public TrackerType getTrackerType() {
     return TrackerType.EVENT;
+  }
+
+  @Override
+  public UID getEnrollment() {
+    return enrollment;
+  }
+
+  @Override
+  public Instant getScheduledAt() {
+    return null;
+  }
+
+  @Override
+  public void setEnrollment(UID enrollment) {
+    this.enrollment = enrollment;
+  }
+
+  public static SingleEvent.SingleEventBuilder builderFromEvent(Event event) {
+    return SingleEvent.builder()
+        .event(event.getEvent())
+        .enrollment(event.getEnrollment())
+        .status(event.getStatus())
+        .program(event.getProgram())
+        .programStage(event.getProgramStage())
+        .orgUnit(event.getOrgUnit())
+        .occurredAt(event.getOccurredAt())
+        .storedBy(event.getStoredBy())
+        .createdAtClient(event.getCreatedAtClient())
+        .updatedAtClient(event.getUpdatedAtClient())
+        .attributeOptionCombo(event.getAttributeOptionCombo())
+        .attributeCategoryOptions(event.getAttributeCategoryOptions())
+        .geometry(event.getGeometry())
+        .assignedUser(event.getAssignedUser())
+        .completedAt(event.getCompletedAt())
+        .dataValues(event.getDataValues())
+        .notes(event.getNotes());
   }
 }
