@@ -36,9 +36,9 @@ import org.junit.jupiter.api.Timeout;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+@Disabled("Disabled due to testing against a live service")
 class RouteServiceTest {
 
-  @Disabled("Disabled due to testing against a live service")
   @Timeout(value = 30)
   void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
     RouteService routeService = new RouteService(null, null);
