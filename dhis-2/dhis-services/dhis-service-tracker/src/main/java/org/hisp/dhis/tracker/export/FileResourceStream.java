@@ -53,7 +53,7 @@ public record FileResourceStream(
 
   private static final String EXCEPTION_PENDING =
       "Content is being processed and is not available yet, try again later";
-  public static final String EXCEPTION_IO = "Failed fetching file resource from storage";
+  public static final String EXCEPTION_IO = "Failed to fetch file resource from storage";
   public static final String EXCEPTION_IO_DEV =
       "Exception occurred while fetching file resource from the storage backend";
 
