@@ -91,7 +91,7 @@ public class EventUpdateTests extends TrackerApiTest {
         .postAndGetJobReport(object)
         .validateErrorReport()
         .body("", hasSize(Matchers.greaterThanOrEqualTo(1)))
-        .body("errorCode", hasItems("E1033"))
-        .body("message", Matchers.hasItem(Matchers.containsString("Enrollment")));
+        .body("errorCode", hasItems("E1123"))
+        .body("message", Matchers.hasItem(Matchers.containsString("enrollment")));
   }
 }
