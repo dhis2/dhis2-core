@@ -29,26 +29,38 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import java.util.List;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.springframework.stereotype.Component;
 
 /**
- * Interface for classes responsible of preprocessing the payload prior to validation.
+ * This preprocessor is responsible for initialize attribute option combo with the default one from
+ * the program if no attribute option combo is provided.
  *
- * <p>The validation stage is not supposed to change the payload. A pre-processor can modify the
- * payload content and add data to the preheat if needed. Note that the pre-processing stage takes
- * place after the preheat and before the validation.
- *
- * @author Luciano Fiandesio
+ * @author Enrico Colasante
  */
-public interface BundlePreProcessor {
-  void process(TrackerBundle bundle);
+@Component
+public class CategoryComboPreProcessor implements BundlePreProcessor {
+  @Override
+  public void process(TrackerBundle bundle) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<Event> events =
+        bundle.getEvents().stream()
+            .filter(
+                e ->
+                    e.getAttributeOptionCombo().isBlank()
+                        && !e.getAttributeCategoryOptions().isEmpty())
+            .filter(e -> preheat.getProgram(e.getProgram()) != null)
+            .toList();
 
-  default boolean needsToRun(TrackerImportStrategy strategy) {
-    return !strategy.isDelete();
-  }
-
-  default int getPriority() {
-    return 0;
+    for (Event e : events) {
+      Program program = preheat.getProgram(e.getProgram());
+      e.setAttributeOptionCombo(
+          preheat.getCategoryOptionComboIdentifier(
+              program.getCategoryCombo(), e.getAttributeCategoryOptions()));
+    }
   }
 }

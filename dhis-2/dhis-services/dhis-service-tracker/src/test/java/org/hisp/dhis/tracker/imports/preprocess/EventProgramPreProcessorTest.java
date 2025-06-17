@@ -29,13 +29,10 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import static org.hisp.dhis.test.TestBase.createCategoryCombo;
-import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,14 +40,10 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Collections;
-import java.util.Set;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -257,209 +250,6 @@ class EventProgramPreProcessorTest {
     assertEquals(
         MetadataIdentifier.ofUid(PROGRAM_STAGE_WITHOUT_REGISTRATION),
         bundle.getEvents().get(0).getProgramStage());
-  }
-
-  @Test
-  void testEventWithOnlyCOsIsEnhancedWithAOC() {
-
-    TrackerIdSchemeParams identifierParams =
-        TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-    when(preheat.getIdSchemes()).thenReturn(identifierParams);
-
-    Program program = createProgram('A');
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    program.setCategoryCombo(categoryCombo);
-    Set<MetadataIdentifier> categoryOptions =
-        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235"));
-    TrackerEvent event =
-        completeTrackerEvent()
-            .program(MetadataIdentifier.ofUid(program))
-            .attributeCategoryOptions(categoryOptions)
-            .build();
-    when(preheat.getProgram(event.getProgram())).thenReturn(program);
-    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo('A');
-    when(preheat.getCategoryOptionComboIdentifier(categoryCombo, categoryOptions))
-        .thenReturn(identifierParams.toMetadataIdentifier(categoryOptionCombo));
-
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackerEvents(Collections.singletonList(event))
-            .preheat(preheat)
-            .build();
-
-    preprocessor.process(bundle);
-
-    assertEquals(
-        MetadataIdentifier.ofCode(categoryOptionCombo),
-        bundle.getEvents().get(0).getAttributeOptionCombo());
-    assertEquals(categoryOptions, bundle.getEvents().get(0).getAttributeCategoryOptions());
-  }
-
-  @Test
-  void testEventWithOnlyCOsIsNotEnhancedWithAOCIfItCantBeFound() {
-
-    TrackerIdSchemeParams identifierParams =
-        TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-    when(preheat.getIdSchemes()).thenReturn(identifierParams);
-
-    Program program = createProgram('A');
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    program.setCategoryCombo(categoryCombo);
-    TrackerEvent event =
-        completeTrackerEvent()
-            .program(MetadataIdentifier.ofUid(program))
-            .attributeCategoryOptions(
-                Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")))
-            .build();
-    when(preheat.getProgram(event.getProgram())).thenReturn(program);
-    when(preheat.getCategoryOptionComboIdentifier(
-            categoryCombo, event.getAttributeCategoryOptions()))
-        .thenReturn(MetadataIdentifier.EMPTY_CODE);
-
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackerEvents(Collections.singletonList(event))
-            .preheat(preheat)
-            .build();
-
-    preprocessor.process(bundle);
-
-    assertEquals(
-        MetadataIdentifier.EMPTY_CODE, bundle.getEvents().get(0).getAttributeOptionCombo());
-    assertEquals(
-        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")),
-        bundle.getEvents().get(0).getAttributeCategoryOptions());
-  }
-
-  @Test
-  void testEventWithOnlyCOsIsNotEnhancedWithAOCIfProgramCantBeFound() {
-
-    TrackerIdSchemeParams identifierParams =
-        TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-    when(preheat.getIdSchemes()).thenReturn(identifierParams);
-
-    Program program = createProgram('A');
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    program.setCategoryCombo(categoryCombo);
-    TrackerEvent event =
-        completeTrackerEvent()
-            .program(MetadataIdentifier.ofUid(program))
-            .attributeCategoryOptions(
-                Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")))
-            .build();
-
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackerEvents(Collections.singletonList(event))
-            .preheat(preheat)
-            .build();
-
-    preprocessor.process(bundle);
-
-    assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getAttributeOptionCombo());
-    assertEquals(
-        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")),
-        bundle.getEvents().get(0).getAttributeCategoryOptions());
-  }
-
-  @Test
-  void testEventWithAOCAndCOsIsNotEnhancedWithAOC() {
-
-    TrackerIdSchemeParams identifierParams =
-        TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-    when(preheat.getIdSchemes()).thenReturn(identifierParams);
-
-    Program program = createProgram('A');
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    program.setCategoryCombo(categoryCombo);
-    TrackerEvent event =
-        completeTrackerEvent()
-            .program(MetadataIdentifier.ofUid(program))
-            .attributeOptionCombo(MetadataIdentifier.ofCode("9871"))
-            .attributeCategoryOptions(
-                Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")))
-            .build();
-    when(preheat.getProgram(event.getProgram())).thenReturn(program);
-
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackerEvents(Collections.singletonList(event))
-            .preheat(preheat)
-            .build();
-
-    preprocessor.process(bundle);
-
-    assertEquals(
-        MetadataIdentifier.ofCode("9871"), bundle.getEvents().get(0).getAttributeOptionCombo());
-    assertEquals(
-        Set.of(MetadataIdentifier.ofUid("123"), MetadataIdentifier.ofUid("235")),
-        bundle.getEvents().get(0).getAttributeCategoryOptions());
-  }
-
-  @Test
-  void testEventWithOnlyAOCIsLeftUnchanged() {
-
-    TrackerIdSchemeParams identifierParams =
-        TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-    when(preheat.getIdSchemes()).thenReturn(identifierParams);
-
-    Program program = createProgram('A');
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    program.setCategoryCombo(categoryCombo);
-    TrackerEvent event =
-        completeTrackerEvent()
-            .program(MetadataIdentifier.ofUid(program))
-            .attributeOptionCombo(MetadataIdentifier.ofCode("9871"))
-            .build();
-    when(preheat.getProgram(event.getProgram())).thenReturn(program);
-
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackerEvents(Collections.singletonList(event))
-            .preheat(preheat)
-            .build();
-
-    preprocessor.process(bundle);
-
-    assertEquals(
-        MetadataIdentifier.ofCode("9871"), bundle.getEvents().get(0).getAttributeOptionCombo());
-  }
-
-  @Test
-  void testEventWithNoAOCAndNoCOsIsNotEnhancedWithAOC() {
-
-    TrackerIdSchemeParams identifierParams =
-        TrackerIdSchemeParams.builder()
-            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
-            .build();
-    when(preheat.getIdSchemes()).thenReturn(identifierParams);
-
-    Program program = createProgram('A');
-    CategoryCombo categoryCombo = createCategoryCombo('A');
-    program.setCategoryCombo(categoryCombo);
-    TrackerEvent event = completeTrackerEvent().program(MetadataIdentifier.ofUid(program)).build();
-    when(preheat.getProgram(event.getProgram())).thenReturn(program);
-
-    TrackerBundle bundle =
-        TrackerBundle.builder()
-            .trackerEvents(Collections.singletonList(event))
-            .preheat(preheat)
-            .build();
-
-    preprocessor.process(bundle);
-
-    assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getAttributeOptionCombo());
-    assertTrue(bundle.getEvents().get(0).getAttributeCategoryOptions().isEmpty());
   }
 
   private ProgramStage programStageWithRegistration() {
