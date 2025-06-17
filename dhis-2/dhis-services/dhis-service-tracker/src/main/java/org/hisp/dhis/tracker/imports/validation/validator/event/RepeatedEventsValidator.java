@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -48,18 +49,17 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  *
  * @author Enrico Colasante
  */
-class RepeatedEventsValidator implements Validator<List<Event>> {
+class RepeatedEventsValidator implements Validator<List<TrackerEvent>> {
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, List<Event> events) {
-    List<Event> validNotRepeatableEvents =
+  public void validate(Reporter reporter, TrackerBundle bundle, List<TrackerEvent> events) {
+    List<TrackerEvent> validNotRepeatableEvents =
         events.stream()
             .filter(e -> !reporter.isInvalid(e))
             .filter(
                 e -> {
                   ProgramStage programStage =
                       bundle.getPreheat().getProgramStage(e.getProgramStage());
-                  return programStage.getProgram().isRegistration()
-                      && !programStage.getRepeatable();
+                  return !programStage.getRepeatable();
                 })
             .toList();
     Map<Pair<MetadataIdentifier, UID>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage =

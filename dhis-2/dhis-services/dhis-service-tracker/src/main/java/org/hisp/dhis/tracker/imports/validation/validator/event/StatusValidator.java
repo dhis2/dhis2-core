@@ -29,41 +29,28 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1316;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1318;
 
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
-class StatusUpdateValidator implements Validator<Event> {
+class StatusValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    org.hisp.dhis.program.Event savedEvent = bundle.getPreheat().getEvent(event.getUid());
-
-    if (event instanceof TrackerEvent
-        && checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
-      reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
+    if (event instanceof SingleEvent singleEvent
+        && !isSingleEventStatusValid(singleEvent.getStatus())) {
+      reporter.addError(event, E1318, singleEvent.getStatus());
     }
   }
 
-  private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
-    return switch (fromStatus) {
-      // An event cannot transition from a STATUSES_WITH_DATA_VALUES to a
-      // STATUSES_WITHOUT_DATA_VALUES
-      case VISITED, ACTIVE, COMPLETED ->
-          EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
-      // An event can transition from a STATUSES_WITHOUT_DATA_VALUES to any status
+  private boolean isSingleEventStatusValid(EventStatus status) {
+    return switch (status) {
+      case VISITED, ACTIVE, COMPLETED -> true;
       case OVERDUE, SKIPPED, SCHEDULE -> false;
     };
-  }
-
-  @Override
-  public boolean needsToRun(TrackerImportStrategy strategy) {
-    return strategy == UPDATE;
   }
 }
