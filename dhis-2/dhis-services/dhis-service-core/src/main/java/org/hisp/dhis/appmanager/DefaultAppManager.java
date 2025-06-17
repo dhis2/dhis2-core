@@ -392,7 +392,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public boolean handlingManifest(String resource, App application, String contextPath) {
-    if (!resource.contains("manifest.webapp")) {
+    if (!resource.endsWith("manifest.webapp")) {
       return false;
     }
     // If request was for manifest.webapp, check for * and replace with
