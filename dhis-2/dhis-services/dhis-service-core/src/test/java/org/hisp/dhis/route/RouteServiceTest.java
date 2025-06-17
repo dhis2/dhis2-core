@@ -31,12 +31,14 @@ import java.io.IOException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 class RouteServiceTest {
 
+  @Test
   @Timeout(value = 30)
   void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
     RouteService routeService = new RouteService(null, null);
