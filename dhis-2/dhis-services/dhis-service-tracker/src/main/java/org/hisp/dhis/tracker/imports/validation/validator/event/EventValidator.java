@@ -48,7 +48,8 @@ public class EventValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
   public EventValidator(
-      SecurityOwnershipValidator securityOwnershipValidator,
+      SecurityTrackerEventValidator securityTrackerEventValidator,
+      SecuritySingleEventValidator securitySingleEventValidator,
       CategoryOptValidator categoryOptValidator,
       OptionService optionService) {
     validator =
@@ -62,7 +63,10 @@ public class EventValidator implements Validator<TrackerBundle> {
                     new UpdatableFieldsValidator(),
                     new DataRelationsValidator(),
                     new CategoryOptionComboValidator(),
-                    securityOwnershipValidator,
+                    seq(
+                        new StatusValidator(),
+                        securityTrackerEventValidator,
+                        securitySingleEventValidator),
                     all(
                         categoryOptValidator,
                         new DateValidator(),
@@ -70,7 +74,6 @@ public class EventValidator implements Validator<TrackerBundle> {
                         new NoteValidator(),
                         new DataValuesValidator(optionService),
                         new StatusUpdateValidator(),
-                        new StatusValidator(),
                         new AssignedUserValidator()))),
             field(TrackerBundle::getTrackerEvents, new RepeatedEventsValidator()));
   }

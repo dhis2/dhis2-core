@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -126,7 +125,7 @@ public class OwnershipTests extends TrackerApiTest {
 
     JsonObject updatePayload =
         trackerImportExportActions
-            .getTrackedEntity(teId + "?fields=*")
+            .getTrackedEntity(teId + "?fields=*,!enrollments")
             .validateStatus(200)
             .getBodyAsJsonBuilder()
             .wrapIntoArray("trackedEntities");
@@ -159,9 +158,9 @@ public class OwnershipTests extends TrackerApiTest {
     trackerImportExportActions
         .postAndGetJobReport(updatePayload, new QueryParamsBuilder().addAll("atomicMode=OBJECT"))
         .validateErrorReport()
-        .body("errorCode", everyItem(equalTo("E1102")))
+        .body("errorCode", hasItems("E1102", "E1000"))
         .body("trackerType", hasItems("ENROLLMENT", "EVENT"))
-        .body("", hasSize(equalTo(2)));
+        .body("", hasSize(equalTo(3)));
   }
 
   @Test
@@ -173,7 +172,7 @@ public class OwnershipTests extends TrackerApiTest {
 
     JsonObject updatePayload =
         trackerImportExportActions
-            .getTrackedEntity(teId + "?fields=*")
+            .getTrackedEntity(teId + "?fields=*,!enrollments")
             .validateStatus(200)
             .getBodyAsJsonBuilder()
             .wrapIntoArray("trackedEntities");
