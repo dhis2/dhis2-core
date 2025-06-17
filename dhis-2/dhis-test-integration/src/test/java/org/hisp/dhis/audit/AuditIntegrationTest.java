@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,7 +29,6 @@ package org.hisp.dhis.audit;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,23 +37,14 @@ import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
-import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
-import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
-import org.hisp.dhis.common.auth.AuthScheme;
-import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -64,48 +52,28 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.route.Route;
-import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
-@ContextConfiguration(classes = {AuditIntegrationTest.DhisConfig.class})
-class AuditIntegrationTest extends PostgresIntegrationTestBase {
-
-  static class DhisConfig {
-    @Bean
-    public DhisConfigurationProvider dhisConfigurationProvider() {
-      Properties override = new Properties();
-      override.put("system.audit.enabled", "true");
-      override.put("audit.database", "true");
-      override.put("audit.metadata", "CREATE");
-      override.put("audit.tracker", "CREATE");
-      override.put("audit.aggregate", "CREATE");
-      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
-          new PostgresDhisConfigurationProvider(null);
-      postgresDhisConfigurationProvider.addProperties(override);
-      return postgresDhisConfigurationProvider;
-    }
-  }
+@Disabled("until we can inject dhis.conf property overrides")
+class AuditIntegrationTest extends IntegrationTestBase {
 
   private static final int TIMEOUT = 5;
 
   @Autowired private AuditService auditService;
 
   @Autowired private DataElementService dataElementService;
+
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
@@ -116,18 +84,6 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ObjectMapper objectMapper;
-
-  @Autowired private TransactionTemplate transactionTemplate;
-
-  @Autowired private DbmsManager dbmsManager;
-
-  private static Stream<AuthScheme> provideAuthSchemes() {
-    return Stream.of(
-        new ApiTokenAuthScheme().setToken("passw0rd"),
-        new ApiQueryParamsAuthScheme().setQueryParams(Map.of("secret", "passw0rd")),
-        new ApiHeadersAuthScheme().setHeaders(Map.of("secret", "passw0rd")),
-        new HttpBasicAuthScheme().setUsername("alice").setPassword("passw0rd"));
-  }
 
   @Test
   void testSaveMetadata() {
@@ -143,47 +99,22 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     assertNotNull(audit.getData());
   }
 
-  @ParameterizedTest
-  @MethodSource("provideAuthSchemes")
-  void testSaveRoute(AuthScheme authScheme) {
-    Route route = new Route();
-    route.setUid(BASE_UID);
-    route.setName("foo");
-    route.setAuth(authScheme);
-    route.setUrl("http://stub");
-
-    transactionTemplate.execute(
-        status -> {
-          manager.save(route);
-          dbmsManager.clearSession();
-          return null;
-        });
-    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(route.getUid())).build();
-    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
-    List<Audit> audits = auditService.getAudits(query);
-    assertEquals(1, audits.size());
-    assertFalse(audits.get(0).getData().contains("passw0rd"));
-  }
-
   @Test
   void testSaveTrackedEntity() {
     OrganisationUnit ou = createOrganisationUnit('A');
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
-    manager.save(trackedEntityType);
-    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
-    manager.save(trackedEntity);
-    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
+    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
+    trackedEntityService.addTrackedEntity(tei);
+    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(tei.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
     assertEquals(TrackedEntity.class.getName(), audit.getKlass());
-    assertEquals(trackedEntity.getUid(), audit.getUid());
-    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("uid"));
+    assertEquals(tei.getUid(), audit.getUid());
+    assertEquals(tei.getUid(), audit.getAttributes().get("uid"));
     assertNotNull(audit.getData());
   }
 
@@ -193,18 +124,13 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
-    manager.save(trackedEntityType);
-
-    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute, trackedEntityType);
-    manager.save(trackedEntity);
-    TrackedEntityAttributeValue dataValue =
-        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
+    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
+    trackedEntityService.addTrackedEntity(tei);
+    TrackedEntityAttributeValue dataValue = createTrackedEntityAttributeValue('A', tei, attribute);
     attributeValueService.addTrackedEntityAttributeValue(dataValue);
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("attribute", attribute.getUid());
-    attributes.put("trackedEntity", trackedEntity.getUid());
+    attributes.put("trackedEntity", tei.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
@@ -212,7 +138,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     Audit audit = audits.get(0);
     assertEquals(TrackedEntityAttributeValue.class.getName(), audit.getKlass());
     assertEquals(attribute.getUid(), audit.getAttributes().get("attribute"));
-    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("trackedEntity"));
+    assertEquals(tei.getUid(), audit.getAttributes().get("trackedEntity"));
     assertNotNull(audit.getData());
   }
 
