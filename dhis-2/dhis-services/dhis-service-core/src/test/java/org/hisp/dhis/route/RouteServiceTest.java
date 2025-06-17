@@ -4,16 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
+ * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
- * may be used to endorse or promote products derived from this software without
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,101 +27,32 @@
  */
 package org.hisp.dhis.route;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.util.Properties;
-import java.util.Random;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
-import org.junit.jupiter.api.BeforeEach;
+import java.io.IOException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.api.Timeout;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 class RouteServiceTest {
 
-  private String protocolUnderTest;
-
-  @BeforeEach
-  void beforeEach() {
-    String[] protocols = {"http", "https"};
-    protocolUnderTest = protocols[new Random().nextInt(protocols.length)];
-  }
-
   @Test
-  void testPostConstructThrowsExceptionWhenRouteRemoteServerAllowedEntryHasNonHttpProtocol() {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "ftp://foo.org/");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    assertThrows(IllegalStateException.class, routeService::postConstruct);
-  }
-
-  @Test
-  void testPostConstructThrowsExceptionWhenRouteRemoteServerAllowedEntryHasUrlPath() {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), protocolUnderTest + "://*.org/foo");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    assertThrows(IllegalStateException.class, routeService::postConstruct);
-  }
-
-  @Test
-  void testValidateRoutePassesWhenRouteUrlProtocolIsHttpsGivenDefaultRouteRemoteServerAllowedList()
-      throws ConflictException {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getDefaultValue());
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+  @Timeout(value = 30)
+  void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
+    RouteService routeService = new RouteService(null, null);
+    routeService.setRestTemplate(new RestTemplate());
     routeService.postConstruct();
 
-    Route route = new Route();
-    route.setUrl("https://stub");
-    routeService.validateRoute(route);
-  }
+    HttpClient httpClient =
+        ((HttpComponentsClientHttpRequestFactory)
+                routeService.getRestTemplate().getRequestFactory())
+            .getHttpClient();
+    HttpUriRequest httpUriRequest = RequestBuilder.get("https://dhis2.org/").build();
 
-  @ParameterizedTest
-  @CsvSource({
-    "172.17.0.1:8080,172.17.0.1:8080/foo/**,true",
-    "172.17.0.1:8080,172.17.0.1/foo/**,false",
-    "172.17.0.1,172.17.0.1:8080/foo/**,false",
-    "172.17.0.1,172.17.0.1/foo/**,true",
-    "192.168.*.*,192.169.0.1,false",
-    "*.org,stub.com,false",
-    "192.168.*.*,192.168.0.1,true",
-    "*.org,stub.org,true",
-    ",stub,false"
-  })
-  void testValidateRoute(String routeRemoteServersAllowed, String routeUrl, boolean isValid)
-      throws ConflictException {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
-        protocolUnderTest + "://" + routeRemoteServersAllowed);
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    routeService.postConstruct();
-
-    Route route = new Route();
-    route.setUrl(protocolUnderTest + "://" + routeUrl);
-    if (isValid) {
-      routeService.validateRoute(route);
-    } else {
-      assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
+    for (int i = 0; i < RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE; i++) {
+      httpClient.execute(httpUriRequest);
     }
   }
 }
