@@ -205,7 +205,7 @@ public class DefaultAppManager implements AppManager {
                   key, Pair.of(installBundledAppResource(resource, fileName, appInfo), appInfo));
 
               log.info(
-                  "A bundled app with a different Etag was installed and overwrote the existing one. App name: '{}'",
+                  "A bundled app with a different Etag was installed and replaced the existing one. App name: '{}'",
                   installedAppInfo.getName());
             }
           }
