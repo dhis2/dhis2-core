@@ -45,28 +45,29 @@ import org.hisp.dhis.fileresource.FileResource;
 @JacksonXmlRootElement(localName = "document", namespace = DxfNamespaces.DXF_2_0)
 public class Document extends BaseIdentifiableObject implements MetadataObject {
   /**
-   * Can be either a valid URL, or the path (filename) of a file. If the external property is true,
-   * this should be an URL. If the external property is false, this should be the filename
+   * Refers to a URL if the {@code external} property is true. Refers to the UID of the associated
+   * {@link FileResource} if the {@code external} property is false.
    */
   private String url;
 
   /**
-   * A reference to the file associated with the Document. If document represents an URL or a file
-   * uploaded before this property was added, this will be null.
+   * A reference to the {@link FileResource} associated with the document. Will be null if the
+   * document represents a URL.
    */
   private FileResource fileResource;
 
-  /** Determines if this document refers to a file (!external) or URL (external). */
+  /** Indicates whether the document refers to a file (false) or external URL (true). */
   private boolean external;
 
   /**
-   * The content type of the file referred to by the document, or null if document refers to an URL
+   * The content type of the file referred to by the document, or null if the document refers to a
+   * URL.
    */
   private String contentType;
 
   /**
-   * Flags whether the file should be displayed in-browser or downloaded. true should trigger a
-   * download of the file when accessing the document data
+   * Indicates whether the file should be displayed inline in the browser or be downloaded by the
+   * browser as an attachment.
    */
   private Boolean attachment = false;
 
@@ -86,7 +87,6 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  // @Property( PropertyType.URL )
   public String getUrl() {
     return url;
   }
