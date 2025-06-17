@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -77,6 +79,11 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
     this.contentType = contentType;
   }
 
+  @JsonIgnore
+  public boolean isAttachmentDefaultFalse() {
+    return BooleanUtils.isTrue(attachment);
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   // @Property( PropertyType.URL )
@@ -118,7 +125,8 @@ public class Document extends BaseIdentifiableObject implements MetadataObject {
     this.attachment = attachment;
   }
 
-  // Should not be exposed in the api
+  // Do not expose in API
+  @JsonIgnore
   public FileResource getFileResource() {
     return fileResource;
   }
