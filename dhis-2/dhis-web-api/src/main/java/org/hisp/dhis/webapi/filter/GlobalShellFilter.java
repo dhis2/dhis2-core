@@ -64,12 +64,11 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   public static final String REDIRECT_FALSE = "redirect=false";
   public static final String SHELL_FALSE = "shell=false";
 
-  private static final String BUNDLED_APP_PREFIX = "dhis-web-";
   private static final Pattern LEGACY_APP_PATH_PATTERN =
       compile(
           "^/"
               + "(?:"
-              + BUNDLED_APP_PREFIX
+              + AppManager.BUNDLED_APP_PREFIX
               + "|"
               + AppManager.INSTALLED_APP_PREFIX
               + ")(\\S+)/(.*)");

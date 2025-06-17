@@ -42,26 +42,26 @@ import lombok.Data;
 @Data
 public class AppBundleInfo {
   @JsonProperty private String buildDate;
-  @JsonProperty private List<AppInfo> apps = new ArrayList<>();
+  @JsonProperty private List<BundledAppInfo> apps = new ArrayList<>();
 
   public AppBundleInfo() {
     this.buildDate = new Date().toString();
   }
 
-  public void addApp(AppInfo app) {
+  public void addApp(BundledAppInfo app) {
     this.apps.add(app);
   }
 
   /** Class representing information about a single bundled app. */
   @Data
-  public static class AppInfo {
+  public static class BundledAppInfo {
     @JsonProperty private String name;
     @JsonProperty private String url;
     @JsonProperty private String branch;
     @JsonProperty private String etag;
     @JsonProperty private String downloadDate;
 
-    public AppInfo() {
+    public BundledAppInfo() {
       this.downloadDate = new Date().toString();
     }
   }

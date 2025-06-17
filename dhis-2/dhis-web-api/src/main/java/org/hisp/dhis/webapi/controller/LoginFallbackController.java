@@ -76,7 +76,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Controller
 public class LoginFallbackController {
 
-  //  @GetMapping({"/login.html", "/dhis-web-commons/security/login.action"})
   @GetMapping("/login.html")
   protected void getLoginFallback(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {

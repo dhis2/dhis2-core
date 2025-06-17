@@ -58,7 +58,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
@@ -84,12 +84,33 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.appmanager.JCloudsAppStorageService")
 public class JCloudsAppStorageService implements AppStorageService {
 
+  private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
+  public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
+
   private final JCloudsStore jCloudsStore;
   private final LocationManager locationManager;
   private final ObjectMapper jsonMapper;
   private final FileResourceContentStore fileResourceContentStore;
 
-  private void discoverInstalledApps(BiConsumer<App, AppInfo> handler) {
+  @Override
+  public Map<String, Pair<App, BundledAppInfo>> discoverInstalledApps() {
+    Map<String, Pair<App, BundledAppInfo>> apps = new HashMap<>();
+
+    discoverInstalledApps((app, appInfo) -> apps.put(app.getKey(), Pair.of(app, appInfo)));
+
+    if (apps.isEmpty()) {
+      log.info("No apps found during JClouds discovery.");
+    } else {
+      apps.values()
+          .forEach(
+              pair ->
+                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
+    }
+
+    return apps;
+  }
+
+  private void discoverInstalledApps(BiConsumer<App, BundledAppInfo> handler) {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -99,8 +120,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       log.debug("Found potential app: {}", resource.getName());
 
       // Found potential app
-      Blob manifest = jCloudsStore.getBlob(resource.getName() + "manifest.webapp");
-
+      Blob manifest = jCloudsStore.getBlob(resource.getName() + MANIFEST_WEBAPP_FILENAME);
       if (manifest == null) {
         log.warn("Could not find manifest file of {}", resource.getName());
         continue;
@@ -114,10 +134,10 @@ public class JCloudsAppStorageService implements AppStorageService {
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
-        Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + "bundled-app-info.json");
+        Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + BUNDLED_APP_INFO_FILENAME);
         if (bundledAppInfo != null) {
           InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream();
-          AppInfo appInfo = mapper.readValue(bundledAppInfoStream, AppInfo.class);
+          BundledAppInfo appInfo = mapper.readValue(bundledAppInfoStream, BundledAppInfo.class);
           handler.accept(app, appInfo);
         } else {
           handler.accept(app, null);
@@ -127,23 +147,6 @@ public class JCloudsAppStorageService implements AppStorageService {
         log.error("Could not read manifest file of " + resource.getName(), ex);
       }
     }
-  }
-
-  @Override
-  public Map<String, Pair<App, AppInfo>> discoverInstalledApps() {
-    Map<String, Pair<App, AppInfo>> apps = new HashMap<>();
-    discoverInstalledApps((app, appInfo) -> apps.put(app.getKey(), Pair.of(app, appInfo)));
-
-    if (apps.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
-    } else {
-      apps.values()
-          .forEach(
-              pair ->
-                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
-    }
-
-    return apps;
   }
 
   private boolean validateApp(App app, Cache<App> appCache) {
@@ -209,7 +212,8 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public App installApp(File file, String filename, Cache<App> appCache, AppInfo bundledAppInfo) {
+  public App installApp(
+      File file, String filename, Cache<App> appCache, BundledAppInfo bundledAppInfo) {
     App app = new App();
     log.debug("Installing new app: {}", filename);
 
@@ -277,17 +281,16 @@ public class JCloudsAppStorageService implements AppStorageService {
                     }
                   });
 
+      // Create the BundledAppInfo JSON file and write it to JClouds storage
       if (bundledAppInfo != null) {
-        // Write the bundledAppInfo as JSON and upload to JClouds storage
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
         byte[] bundledAppInfoBytes = baos.toByteArray();
         ByteArrayInputStream bais = new ByteArrayInputStream(bundledAppInfoBytes);
-        String name = dest + File.separator + "bundled-app-info.json";
         Blob bundledAppInfoBlob =
             jCloudsStore
                 .getBlobStore()
-                .blobBuilder(name)
+                .blobBuilder(dest + File.separator + BUNDLED_APP_INFO_FILENAME)
                 .payload(bais)
                 .contentLength(bundledAppInfoBytes.length)
                 .build();
@@ -296,7 +299,8 @@ public class JCloudsAppStorageService implements AppStorageService {
         baos.close();
       }
 
-      // TODO: Cant see this is needed anymore, apps are saved to same folder anyway, regardless of
+      // TODO: MAS: Cant see this is needed anymore, apps are saved to same folder anyway,
+      // regardless of
       // version
       //      // make sure any other version of same app is removed
       //      List<App> otherVersions = new ArrayList<>();
@@ -344,7 +348,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     // delete the manifest file first in case the system crashes during deletion
     // and the manifest file is not deleted, resulting in an app that can't be installed
-    jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
+    jCloudsStore.removeBlob(app.getFolderName() + MANIFEST_WEBAPP_FILENAME);
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):

@@ -45,6 +45,7 @@ import org.springframework.core.io.Resource;
 public interface AppManager {
   static final String ID = AppManager.class.getName();
 
+  static final String BUNDLED_APP_PREFIX = "dhis-web-";
   static final String INSTALLED_APP_PREFIX = "api/apps/";
 
   static final Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
@@ -82,8 +83,8 @@ public interface AppManager {
   List<App> getDashboardPlugins(String contextPath, int max);
 
   /**
-   * Returns a list of installed apps with plugins. Includes both {@link AppType} app types and
-   * {@link AppType} app types with a pluginLaunchPath.
+   * Returns a list of installed apps with plugins. Includes both {@link AppType.DASHBOARD_WIDGET}
+   * app types and {@link AppType.APP} app types with a pluginLaunchPath.
    *
    * @param contextPath the context path of this instance.
    * @param max the maximum number of apps to return, -1 to return all.

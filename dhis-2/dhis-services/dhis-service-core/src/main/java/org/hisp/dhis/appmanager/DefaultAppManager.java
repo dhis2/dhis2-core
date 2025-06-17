@@ -68,7 +68,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.apphub.AppHubService;
-import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
@@ -153,9 +153,7 @@ public class DefaultAppManager implements AppManager {
   @Override
   @PostConstruct
   public void reloadApps() {
-
-    Map<String, Pair<App, AppInfo>> installedApps = new HashMap<>();
-
+    Map<String, Pair<App, BundledAppInfo>> installedApps = new HashMap<>();
     // Read apps from jClouds (either local storage or a remote object store)
     jCloudsAppStorageService
         .discoverInstalledApps()
@@ -168,6 +166,24 @@ public class DefaultAppManager implements AppManager {
               installedApps.put(key, pair);
             });
 
+    installBundledApps(installedApps);
+
+    log.info("Loaded {} apps.", installedApps.size());
+
+    // Invalidate the previous app cache
+    appCache.invalidateAll();
+
+    // Cache all discovered apps
+    installedApps.values().forEach(app -> cacheApp(app.getLeft()));
+  }
+
+  /**
+   * Installs bundled apps, by looking in the classpath for app .zip files. If the bundled app is
+   * already installed, it can be overwritten with a newer one if the Etag is different.
+   *
+   * @param installedApps the Map to put the installed apps in
+   */
+  private void installBundledApps(Map<String, Pair<App, BundledAppInfo>> installedApps) {
     bundledAppManager.installBundledApps(
         (key, appInfo, resource) -> {
           String fileName = key + ".zip";
@@ -176,9 +192,10 @@ public class DefaultAppManager implements AppManager {
               key, x -> Pair.of(installBundledAppResource(resource, fileName, appInfo), appInfo));
 
           if (installedApps.containsKey(key)) {
-            AppInfo installedAppInfo = installedApps.get(key).getRight();
+            BundledAppInfo installedAppInfo = installedApps.get(key).getRight();
 
-            // If we already have a bundled app installed automatically (since we have the AppInfo),
+            // If we already have a bundled app installed automatically (since we have the
+            // BundledAppInfo),
             // and the Etag is different, overwrite the existing.
             if (installedAppInfo != null
                 && installedAppInfo.getEtag() != null
@@ -193,14 +210,6 @@ public class DefaultAppManager implements AppManager {
             }
           }
         });
-
-    log.info("Loaded {} apps.", installedApps.size());
-
-    // Invalidate the previous app cache
-    appCache.invalidateAll();
-
-    // Cache all discovered apps
-    installedApps.values().forEach(app -> cacheApp(app.getLeft()));
   }
 
   private void cacheApp(App app) {
@@ -413,7 +422,7 @@ public class DefaultAppManager implements AppManager {
     return installAppZipFile(file, fileName, null);
   }
 
-  private App installAppZipFile(File file, String fileName, AppInfo bundledAppInfo) {
+  private App installAppZipFile(File file, String fileName, BundledAppInfo bundledAppInfo) {
     App app = jCloudsAppStorageService.installApp(file, fileName, appCache, bundledAppInfo);
     log.debug(
         String.format(
@@ -423,7 +432,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Nonnull
-  public App installBundledAppResource(Resource resource, String fileName, AppInfo bundledAppInfo) {
+  public App installBundledAppResource(
+      Resource resource, String fileName, BundledAppInfo bundledAppInfo) {
     try {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", fileName);
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);

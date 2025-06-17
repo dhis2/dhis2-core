@@ -51,6 +51,7 @@ import javax.annotation.Nonnull;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.appmanager.AppBundleInfo;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,7 +150,7 @@ public class AppBundler {
       List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
     ForkJoinPool customThreadPool = new ForkJoinPool(DOWNLOAD_POOL_SIZE);
     try {
-      List<AppBundleInfo.AppInfo> downloadedApps =
+      List<BundledAppInfo> downloadedApps =
           customThreadPool
               .submit(
                   () ->
@@ -241,7 +242,7 @@ public class AppBundler {
     try {
       Files.createDirectories(targetArtifactDir);
 
-      for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
+      for (BundledAppInfo app : bundleInfo.getApps()) {
         Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
         Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
 
@@ -312,9 +313,9 @@ public class AppBundler {
    * @return the downloaded AppBundleInfo.AppInfo object containing ETag etc.
    * @throws IOException if there's an error downloading the app
    */
-  private AppBundleInfo.AppInfo downloadApp(
-      AppGithubRepo repoInfo, Path targetDir, Path checksumDir) throws IOException {
-    AppBundleInfo.AppInfo appBundleResultInfo = new AppBundleInfo.AppInfo();
+  private BundledAppInfo downloadApp(AppGithubRepo repoInfo, Path targetDir, Path checksumDir)
+      throws IOException {
+    BundledAppInfo appBundleResultInfo = new BundledAppInfo();
     appBundleResultInfo.setName(repoInfo.repo());
     appBundleResultInfo.setUrl(repoInfo.originalUrl());
     appBundleResultInfo.setBranch(repoInfo.ref());

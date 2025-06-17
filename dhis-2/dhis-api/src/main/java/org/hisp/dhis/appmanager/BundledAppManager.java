@@ -38,7 +38,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.function.TriConsumer;
-import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
@@ -51,20 +51,21 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class BundledAppManager {
-  private static final String APPS_PATH = "classpath:/static/dhis-web-apps/*.zip";
-  private static final String APPS_BUNDLE_INFO_PATH =
-      "classpath:/static/dhis-web-apps/apps-bundle.json";
+  private static final String CLASSPATH_DHIS_WEB_APPS = "classpath:/static/dhis-web-apps";
+  private static final String ZIPPED_APPS_PATH = CLASSPATH_DHIS_WEB_APPS + "/*.zip";
+  private static final String APPS_BUNDLE_INFO_PATH = CLASSPATH_DHIS_WEB_APPS + "/apps-bundle.json";
+
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public void installBundledApps(TriConsumer<String, AppInfo, Resource> consumer) {
+  public void installBundledApps(TriConsumer<String, BundledAppInfo, Resource> consumer) {
     AppBundleInfo appBundleInfo = getAppBundleInfo();
     if (appBundleInfo == null) {
       return;
     }
 
-    Map<String, AppInfo> bundledAppsInfo =
+    Map<String, BundledAppInfo> bundledAppsInfo =
         appBundleInfo.getApps().stream()
-            .collect(Collectors.toMap(AppInfo::getName, Function.identity()));
+            .collect(Collectors.toMap(BundledAppInfo::getName, Function.identity()));
 
     Map<String, Resource> bundledAppsResources = getBundledApps();
 
@@ -79,7 +80,7 @@ public class BundledAppManager {
   private Map<String, Resource> getBundledApps() {
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
     try {
-      Resource[] resources = resolver.getResources(APPS_PATH);
+      Resource[] resources = resolver.getResources(ZIPPED_APPS_PATH);
       return Arrays.stream(resources)
           .collect(Collectors.toMap(Resource::getFilename, Function.identity()));
     } catch (IOException e) {

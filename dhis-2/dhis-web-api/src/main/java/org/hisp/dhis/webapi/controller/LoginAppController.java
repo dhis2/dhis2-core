@@ -39,8 +39,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * Controller for handling the login app. This is a temporary solution until the login app is
- * bundled with the global shell.
+ * Controller for handling the login app.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -54,6 +53,8 @@ public class LoginAppController {
         request.getRequestURI().substring(request.getContextPath().length());
     String forwardPath =
         "/" + AppManager.INSTALLED_APP_PREFIX + contextRelativePath.replaceFirst("/", "");
+
+    // TODO: MAS: Here we can introduce a swappable login app configurable similar to the start page
     RequestDispatcher dispatcher = request.getServletContext().getRequestDispatcher(forwardPath);
     dispatcher.forward(request, response);
   }

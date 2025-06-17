@@ -58,8 +58,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class AppOverrideFilter extends OncePerRequestFilter {
 
-  private static final String BUNDLED_APP_PREFIX = "dhis-web-";
-
   /* To be removed in favor of dynamic ClassPath loading, see BundledAppStorageService */
   @Deprecated(forRemoval = true)
   private static final Set<String> BUNDLED_APPS =
@@ -96,7 +94,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
           "user-profile");
 
   public static final String APP_PATH_PATTERN_STRING =
-      "^/" + BUNDLED_APP_PREFIX + "(" + String.join("|", BUNDLED_APPS) + ")(/?.*)";
+      "^/" + AppManager.BUNDLED_APP_PREFIX + "(" + String.join("|", BUNDLED_APPS) + ")(/?.*)";
 
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
 

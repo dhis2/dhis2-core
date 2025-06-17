@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Future;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
@@ -56,7 +56,7 @@ public interface AppStorageService {
    *
    * @return A map of all app names and apps found
    */
-  Map<String, Pair<App, AppInfo>> discoverInstalledApps();
+  Map<String, Pair<App, BundledAppInfo>> discoverInstalledApps();
 
   /**
    * Installs an app using the AppServiceStore.
@@ -67,7 +67,7 @@ public interface AppStorageService {
    * @param bundledAppInfo bundled app info
    * @return The status of the installation
    */
-  App installApp(File file, String filename, Cache<App> appCache, AppInfo bundledAppInfo);
+  App installApp(File file, String filename, Cache<App> appCache, BundledAppInfo bundledAppInfo);
 
   /**
    * Deletes an app from the AppHubService.
