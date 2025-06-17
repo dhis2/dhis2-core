@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -96,15 +96,15 @@ class RouteServiceTest {
 
   @ParameterizedTest
   @CsvSource({
-      "172.17.0.1:8080,172.17.0.1:8080/foo/**,true",
-      "172.17.0.1:8080,172.17.0.1/foo/**,false",
-      "172.17.0.1,172.17.0.1:8080/foo/**,false",
-      "172.17.0.1,172.17.0.1/foo/**,true",
-      "192.168.*.*,192.169.0.1,false",
-      "*.org,stub.com,false",
-      "192.168.*.*,192.168.0.1,true",
-      "*.org,stub.org,true",
-      ",stub,false"
+    "172.17.0.1:8080,172.17.0.1:8080/foo/**,true",
+    "172.17.0.1:8080,172.17.0.1/foo/**,false",
+    "172.17.0.1,172.17.0.1:8080/foo/**,false",
+    "172.17.0.1,172.17.0.1/foo/**,true",
+    "192.168.*.*,192.169.0.1,false",
+    "*.org,stub.com,false",
+    "192.168.*.*,192.168.0.1,true",
+    "*.org,stub.org,true",
+    ",stub,false"
   })
   void testValidateRoute(String routeRemoteServersAllowed, String routeUrl, boolean isValid)
       throws ConflictException {
