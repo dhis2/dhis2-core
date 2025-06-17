@@ -53,30 +53,56 @@ summary_sql: >-
   from ougs_multiple_groups
   WHERE array_length(ougs_groups, 1) > 1;
 details_sql: >-
-  WITH ougs_multiple_groups as (
-  SELECT ou_uid,ou_name,ougs_name,
-  NULL As comment,
-  array_agg(oug_name || ':' || oug_uid) as ougs_groups
-  FROM (
-  SELECT  ougm.organisationunitid, 
-  ougm.orgunitgroupid,
-  ougsm.orgunitgroupsetid,
-  ou.uid as ou_uid,
-  ou.name as ou_name,
-  oug.name as oug_name,
-  oug.uid as oug_uid,
-  ougs.name as ougs_name
-  FROM orgunitgroupmembers ougm
-  INNER JOIN orgunitgroupsetmembers ougsm USING(orgunitgroupid)
-  INNER JOIN orgunitgroup oug USING(orgunitgroupid)
-  INNER JOIN orgunitgroupset ougs USING(orgunitgroupsetid)
-  INNER JOIN organisationunit ou USING(organisationunitid) ) a
-  GROUP BY ou_uid,ou_name, ougs_name )
-  SELECT ou_uid as uid, ou_name as name,
-  NULL as comment,
-  ougs_groups as refs
-  from ougs_multiple_groups
-  WHERE array_length(ougs_groups, 1) > 1;
+  WITH ougs_grouped AS (
+    SELECT 
+      ou.uid AS ou_uid,
+      ou.name AS ou_name,
+      ougs.uid AS ougs_id,
+      ougs.name AS ougs_name,
+      array_agg(
+        'oug_uid: ' || oug.uid || '; oug_name: ' || oug.name
+      ) AS group_refs
+    FROM orgunitgroupmembers ougm
+    INNER JOIN orgunitgroupsetmembers ougsm USING(orgunitgroupid)
+    INNER JOIN orgunitgroup oug USING(orgunitgroupid)
+    INNER JOIN orgunitgroupset ougs USING(orgunitgroupsetid)
+    INNER JOIN organisationunit ou USING(organisationunitid)
+    GROUP BY ou.uid, ou.name, ougs.uid, ougs.name
+  ),
+  violating_group_sets AS (
+    SELECT 
+      ou_uid,
+      ou_name,
+      ougs_id,
+      ougs_name,
+      group_refs
+    FROM ougs_grouped
+    WHERE array_length(group_refs, 1) > 1
+  ),
+  flat_refs AS (
+    SELECT
+      ou_uid,
+      ou_name,
+      'ougs_name: ' || ougs_name ||
+      '; ougs_id: ' || ougs_id ||
+      '; groups: [' || string_agg(group_ref, ', ') || ']' AS ref
+    FROM violating_group_sets, unnest(group_refs) AS group_ref
+    GROUP BY ou_uid, ou_name, ougs_id, ougs_name
+  ),
+  final_output AS (
+    SELECT
+      ou_uid,
+      ou_name,
+      array_agg(ref) AS refs
+    FROM flat_refs
+    GROUP BY ou_uid, ou_name
+  )
+  SELECT
+    ou_uid AS uid,
+    ou_name AS name,
+    NULL AS comment,
+    refs
+  FROM final_output;
 details_id_type: organisationUnits
 severity: SEVERE
 introduction: >
