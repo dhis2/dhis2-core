@@ -99,8 +99,9 @@
     <dhis-json-tree.version>1.8</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.4.2</spring-security.version>
+    <spring-security.version>6.5.0</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
+    <spring-authorization-server.version>1.5.0</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>10.3</nimbus.jose.jwt.version>
@@ -108,7 +109,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.2.3</spring.version>
+    <spring.version>6.2.8</spring.version>
     <spring-session-core.version>3.5.0</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
@@ -608,7 +609,7 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-authorization-server</artifactId>
-        <version>1.4.3</version>
+        <version>${spring-authorization-server.version}</version>
       </dependency>
 
       <!-- OAuth 2.0 -->

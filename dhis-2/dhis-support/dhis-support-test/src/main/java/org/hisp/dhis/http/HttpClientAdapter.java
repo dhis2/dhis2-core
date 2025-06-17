@@ -294,6 +294,9 @@ public interface HttpClientAdapter {
      */
     @CheckForNull
     String getHeader(String name);
+
+    @CheckForNull
+    String getContentType();
   }
 
   final class HttpResponse {
@@ -326,7 +329,7 @@ public interface HttpClientAdapter {
       if (contentType.equals("application/json")) {
         fail("Use one of the other content() methods for JSON");
       }
-      String actualContentType = header("Content-Type");
+      String actualContentType = getContentType();
       assertNotNull(actualContentType, "response content-type was not set");
       if (!actualContentType.startsWith(contentType)) assertEquals(contentType, actualContentType);
       return exceptionAsFail(response::getContent);
@@ -392,6 +395,11 @@ public interface HttpClientAdapter {
     @CheckForNull
     public String header(String name) {
       return response.getHeader(name);
+    }
+
+    @CheckForNull
+    public String getContentType() {
+      return response.getContentType();
     }
   }
 }
