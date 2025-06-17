@@ -186,18 +186,7 @@ public class AppController {
 
     log.debug(String.format("App resource name: '%s'", resource));
 
-    // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(resource)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if (application.getActivities() != null
-          && application.getActivities().getDhis() != null
-          && "*".equals(application.getActivities().getDhis().getHref())) {
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
-
-        application.getActivities().getDhis().setHref(contextPath);
-      }
-
+    if (appManager.handlingManifest(resource, application, contextPath)) {
       jsonMapper.writeValue(response.getOutputStream(), application);
     }
     // Any other resource

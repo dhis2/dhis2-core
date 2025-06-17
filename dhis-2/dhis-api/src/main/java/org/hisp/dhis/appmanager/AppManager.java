@@ -246,4 +246,15 @@ public interface AppManager {
   boolean markAppToDelete(App app);
 
   int getUriContentLength(Resource resource);
+
+  /**
+   * Handles the manifest.webapp file by checking if the href for the dhis activity is set to "*".
+   * If so, it replaces it with the context path.
+   *
+   * @param resource the resource being handled
+   * @param application the application containing activities
+   * @param contextPath the context path to set if needed
+   * @return true if the manifest was handled, false otherwise
+   */
+  boolean handlingManifest(String resource, App application, String contextPath);
 }
