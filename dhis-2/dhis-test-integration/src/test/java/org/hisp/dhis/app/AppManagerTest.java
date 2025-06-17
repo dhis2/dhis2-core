@@ -36,6 +36,8 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppActivities;
+import org.hisp.dhis.appmanager.AppDhis;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
@@ -171,5 +173,23 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
 
     // then
     assertEquals(-1, uriContentLength);
+  }
+
+  @Test
+  void handlingManifestTest() {
+    // given
+    AppDhis appDhis = new AppDhis();
+    appDhis.setHref("*");
+    AppActivities activities = new AppActivities();
+    activities.setDhis(appDhis);
+    App app = new App();
+    app.setName("test-app");
+    app.setVersion("1.0.0");
+    app.setActivities(activities);
+    String resource = "/manifest.webapp";
+    String contextPath = "test-context-path";
+
+    appManager.handlingManifest(resource, app, contextPath);
+    assertEquals("test-context-path", app.getActivities().getDhis().getHref());
   }
 }
