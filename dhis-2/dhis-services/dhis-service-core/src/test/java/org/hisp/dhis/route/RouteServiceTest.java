@@ -35,8 +35,16 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Timeout;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+import java.io.IOException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Timeout;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
-@Disabled("Disabled due to testing against a live service")
+
 class RouteServiceTest {
 
   @Timeout(value = 30)
