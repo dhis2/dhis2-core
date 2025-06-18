@@ -72,7 +72,7 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
     scheduledEvent.setScheduledAt(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     scheduledEvent.setStatus(EventStatus.SCHEDULE);
 
-    bundle.getEvents().add(scheduledEvent);
+    bundle.getTrackerEvents().add(scheduledEvent);
     bundle.setStrategy(scheduledEvent, TrackerImportStrategy.CREATE);
 
     return Optional.of(

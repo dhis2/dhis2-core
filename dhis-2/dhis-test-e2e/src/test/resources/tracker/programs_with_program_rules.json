@@ -446,6 +446,9 @@
         },
         {
           "id": "yKg8CY252Yk"
+        },
+        {
+          "id": "yKg8CY252GH"
         }
       ]
     },
@@ -714,6 +717,44 @@
 
         "attributeValues": []
       }],
+      "translations": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "userGroups":{
+          "OPVIvvXzNTw": {
+            "id": "OPVIvvXzNTw",
+            "access": "rwrw----"
+          }
+        }
+      },
+      "attributeValues": [],
+      "programStageSections": []
+    },
+    {
+      "lastUpdated": "2020-12-08T08:54:10.299",
+      "id": "yKg8CY252GH",
+      "created": "2020-12-08T08:54:10.299",
+      "name": "Stage 3",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 2,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 1,
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [],
       "translations": [],
       "sharing": {
         "public": "rw------",
@@ -1017,6 +1058,35 @@
       "programRuleActions": [
         {
           "id": "E4p8zQsczbS"
+        }
+      ]
+    },
+    {
+      "lastUpdated": "2021-01-18T13:36:20.994",
+      "href": "http://localhost:8080/api/programRules/lqESh9rF4LC",
+      "id": "lqESh9rF4QW",
+      "created": "2021-01-18T13:36:20.994",
+      "name": "TA tracker program rule - create event ",
+      "displayName": "TA tracker program rule - create event",
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {}
+      },
+      "condition": "d2:daysBetween(V{event_date},V{current_date}) < 5",
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "programStage": {
+        "id": "yKg8CY252GH"
+      },
+      "favorites": [],
+      "translations": [],
+
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "JFso0S8PMRR"
         }
       ]
     },
@@ -1330,6 +1400,32 @@
       "programRule": {
         "id": "R4bFX7Q5oQa"
       }
+    },
+    {
+      "id": "JFso0S8PMRR",
+      "programRuleActionType": "CREATEEVENT",
+      "evaluationTime": "ALWAYS",
+      "favorite": false,
+      "programRule": {
+        "id": "lqESh9rF4QW"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "data": "V{current_date}",
+
+
+      "programStage": {
+        "id": "yKg8CY252Yk"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "ANDROID",
+        "WEB"
+      ],
+      "translations": [],
+
+      "attributeValues": []
     }
   ]
 }
