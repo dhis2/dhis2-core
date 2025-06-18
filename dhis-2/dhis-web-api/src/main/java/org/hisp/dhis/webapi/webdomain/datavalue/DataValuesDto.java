@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.minmax.MinMaxValue;
+import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 
 /**
@@ -50,7 +50,7 @@ import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 public class DataValuesDto {
   @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
 
-  @JsonProperty private List<MinMaxValue> minMaxValues = new ArrayList<>();
+  @JsonProperty private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
 
   @JsonProperty private LockStatus lockStatus;
 
