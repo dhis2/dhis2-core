@@ -46,7 +46,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -769,6 +773,44 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .map(JsonIdentifiableObject::getId)
             .collect(Collectors.toSet()),
         "Returned cat combo IDs equal custom cat combos Ids only");
+  }
+
+  @Test
+  @DisplayName("Test import of CategoryCombo with list of CategoryOptionCombo ID")
+  void testImportCategoryCombo() {
+    Category category = createCategory('A');
+    String catId = category.getUid();
+    manager.save(category);
+
+    CategoryOption catOption = createCategoryOption('A');
+    manager.save(catOption);
+
+    CategoryOptionCombo catOptionCombo = createCategoryOptionCombo('B');
+    String catOptionComboId = catOptionCombo.getUid();
+    catOptionCombo.getCategoryOptions().add(catOption);
+    manager.save(catOptionCombo);
+
+    POST(
+            "/metadata",
+            TextUtils.replace(
+                """
+                {
+                  "categoryCombos":[
+                  {
+                    "id":"OBg0yF0zgBA",
+                    "name":"catcombo",
+                    "categories":[
+                      {
+                        "id":"${catId}"
+                       }]
+                    }],
+                    "categoryOptionCombos":[
+                      {
+                        "id":"${catOptionComboId}"
+                       }
+                   ]}""",
+                Map.of("catId", catId, "catOptionComboId", catOptionComboId)))
+        .content(HttpStatus.OK);
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {
