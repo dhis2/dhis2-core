@@ -18,11 +18,32 @@
             <!-- Set to error so CI test runs are quiet, we see failed tests easily but still see errors from libraries
             we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
             packages use a logger like shown below. -->
-            <AppenderRef ref="console" level="error"/>
+            <AppenderRef ref="console"/>
             <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher, so we have more
              information when debugging failed tests. -->
-            <AppenderRef ref="file" level="warn"/>
+            <AppenderRef ref="file"/>
         </Root>
+
+        <Logger name="com.mchange.v2.resourcepool.BasicResourcePool" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Logger>
+        <Logger name="com.zaxxer.hikari.pool" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Logger>
+        <Logger name="org.hisp.dhis.datasource.DatabasePoolUtils" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Logger>
+<!--        <Logger name="org.springframework.jdbc" level="debug" additivity="false">-->
+<!--            <AppenderRef ref="console"/>-->
+<!--            <AppenderRef ref="file"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="org.springframework.transaction" level="debug" additivity="false">-->
+<!--            <AppenderRef ref="console"/>-->
+<!--            <AppenderRef ref="file"/>-->
+<!--        </Logger>-->
 
         <Logger name="org.openapitools.codegen" level="off"/>
 

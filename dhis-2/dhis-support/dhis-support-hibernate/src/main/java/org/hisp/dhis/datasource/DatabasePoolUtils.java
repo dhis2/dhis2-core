@@ -227,6 +227,8 @@ public final class DatabasePoolUtils {
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
+    //    hc.setIdleTimeout(125000);
+    //    hc.setMinimumIdle(5);
     hc.setPassword(password);
     hc.addDataSourceProperty("cachePrepStmts", "true");
     hc.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -261,6 +263,9 @@ public final class DatabasePoolUtils {
     ds.setConnectionTimeout(connectionTimeout);
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
+    //    ds.setMinimumIdle(5);
+    ds.setLeakDetectionThreshold(20000);
+    //    ds.setIdleTimeout(125000);
 
     return ds;
   }
@@ -335,6 +340,8 @@ public final class DatabasePoolUtils {
     pooledDataSource.setIdleConnectionTestPeriod(idleConnectionTestPeriod);
     pooledDataSource.setPreferredTestQuery(preferredTestQuery);
     pooledDataSource.setNumHelperThreads(numHelperThreads);
+    //    pooledDataSource.setUnreturnedConnectionTimeout(120);
+    pooledDataSource.setDebugUnreturnedConnectionStackTraces(true);
 
     return pooledDataSource;
   }

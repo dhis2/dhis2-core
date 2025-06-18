@@ -44,10 +44,10 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
   private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestDhis.conf";
 
   /**
-   * Refers to the {@code postgis/postgis:13-3.4-alpine} image which contains PostgreSQL 16 and
+   * Refers to the {@code postgis/postgis:14-3.5-alpine} image which contains PostgreSQL 16 and
    * PostGIS 3.4.2.
    */
-  private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
+  private static final String POSTGRES_POSTGIS_VERSION = "14-3.5-alpine";
 
   private static final DockerImageName POSTGIS_IMAGE_NAME =
       DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
