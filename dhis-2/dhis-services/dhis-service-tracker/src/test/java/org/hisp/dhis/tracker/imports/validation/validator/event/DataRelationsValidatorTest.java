@@ -29,26 +29,15 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1313;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasNoError;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -107,35 +96,6 @@ class DataRelationsValidatorTest extends TestBase {
   }
 
   @Test
-  void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC() {
-    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
-    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
-    when(preheat.getProgramWithOrgUnitsMap())
-        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
-        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
-
-    setUpDefaultCategoryCombo(program);
-
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(program))
-            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .enrollment(ENROLLMENT_ID)
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
   void eventValidationFailsWhenEventAndProgramStageProgramDontMatch() {
     OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
@@ -147,8 +107,6 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(
             programStage(
                 PROGRAM_STAGE_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
-
-    setUpDefaultCategoryCombo(program);
 
     Event event =
         TrackerEvent.builder()
@@ -166,33 +124,6 @@ class DataRelationsValidatorTest extends TestBase {
   }
 
   @Test
-  void eventValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing() {
-    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
-    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
-    when(preheat.getProgramWithOrgUnitsMap())
-        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
-        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
-
-    setUpDefaultCategoryCombo(program);
-
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(program))
-            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1033);
-  }
-
-  @Test
   void eventValidationFailsWhenEventAndEnrollmentProgramDontMatch() {
     OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
@@ -206,8 +137,6 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(
             enrollment(
                 ENROLLMENT_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
-
-    setUpDefaultCategoryCombo(program);
 
     Event event =
         TrackerEvent.builder()
@@ -239,8 +168,6 @@ class DataRelationsValidatorTest extends TestBase {
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
 
-    setUpDefaultCategoryCombo(program);
-
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
@@ -257,497 +184,10 @@ class DataRelationsValidatorTest extends TestBase {
   }
 
   @Test
-  void eventValidationFailsWhenNoAOCAndNoCOsAreSetAndProgramHasNonDefaultCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    program.setCategoryCombo(categoryCombo());
-
-    Event event = eventBuilder().build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1055);
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyCOsAreSetAndExist() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOption co = cc.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-
-    Event event =
-        eventBuilder().attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co))).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1117
-                    && r.getMessage().contains(program.getCategoryCombo().getUid())
-                    && r.getMessage().contains(co.getUid())));
-  }
-
-  @Test
-  void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-
-    CategoryOption defaultCO = defaultCC.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(defaultCO))).thenReturn(defaultCO);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
-
-    Event event =
-        eventBuilder()
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(defaultCO)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    setUpDefaultCategoryCombo(program);
-
-    CategoryCombo cc = categoryCombo();
-    CategoryOption co = cc.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-
-    Event event =
-        eventBuilder().attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co))).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1117
-                    && r.getMessage().contains(program.getCategoryCombo().getUid())
-                    && r.getMessage().contains(co.getUid())));
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyCOsAreSetToCONotInProgramCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-
-    CategoryOption co = createCategoryOption('B');
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-
-    Event event =
-        eventBuilder().attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co))).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1117
-                    && r.getMessage().contains(program.getCategoryCombo().getUid())
-                    && r.getMessage().contains(co.getUid())));
-  }
-
-  @Test
-  void eventValidationSucceedsWhenOnlyAOCIsSet() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-
-    Event event = eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(aoc)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void eventValidationSucceedsWhenOnlyAOCIsSetAndEventProgramHasDefaultCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(defaultAOC)))
-        .thenReturn(defaultAOC);
-
-    Event event = eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(defaultAOC)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyAOCIsSetEventProgramHasDefaultCCAndAOCIsNotFound() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    program.setCategoryCombo(defaultCategoryCombo());
-
-    String unknownAocId = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
-
-    Event event =
-        eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1115);
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyAOCIsSetAndAOCIsNotFound() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    program.setCategoryCombo(categoryCombo());
-
-    String unknownAocId = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
-
-    Event event =
-        eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1115);
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    program.setCategoryCombo(categoryCombo('A'));
-
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo('B'));
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-
-    Event event = eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(aoc)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1054
-                    && r.getMessage().contains(aoc.getUid())
-                    && r.getMessage().contains(program.getCategoryCombo().getUid())));
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyAOCIsSetToDefaultAOCNotInProgramCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    program.setCategoryCombo(categoryCombo('A'));
-
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCategoryCombo());
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(defaultAOC)))
-        .thenReturn(defaultAOC);
-
-    Event event = eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(defaultAOC)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1055);
-  }
-
-  @Test
-  void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    program.setCategoryCombo(defaultCategoryCombo());
-
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo('B'));
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-
-    Event event = eventBuilder().attributeOptionCombo(MetadataIdentifier.ofUid(aoc)).build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1054
-                    && r.getMessage().contains(aoc.getUid())
-                    && r.getMessage().contains(program.getCategoryCombo().getUid())));
-  }
-
-  @Test
-  void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndProgramHasDefaultCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(defaultAOC)))
-        .thenReturn(defaultAOC);
-
-    CategoryOption defaultCO = defaultCC.getCategoryOptions().get(0);
-    program.setCategoryCombo(defaultCC);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(defaultCO))).thenReturn(defaultCO);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(defaultAOC))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(defaultCO)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndBothFound() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOption co = cc.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOption co = cc.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-
-    String unknownAocId = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1115);
-  }
-
-  @Test
-  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsSetToDefault() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOption co = cc.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCategoryCombo());
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(defaultAOC)))
-        .thenReturn(defaultAOC);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(defaultAOC))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1055);
-  }
-
-  @Test
-  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotFound() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-
-    String unknownCoId = CodeGenerator.generateUid();
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(unknownCoId))).thenReturn(null);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(unknownCoId)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1116);
-  }
-
-  @Test
-  void eventValidationFailsAccumulatingAOCAndCOsNotFoundErrors() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOption co = cc.getCategoryOptions().get(0);
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co))).thenReturn(co);
-
-    String unknownCoId1 = CodeGenerator.generateUid();
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(unknownCoId1))).thenReturn(null);
-    String unknownCoId2 = CodeGenerator.generateUid();
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(unknownCoId2))).thenReturn(null);
-
-    String unknownAocId = CodeGenerator.generateUid();
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(unknownAocId))).thenReturn(null);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(unknownAocId))
-            .attributeCategoryOptions(
-                Set.of(
-                    MetadataIdentifier.ofUid(unknownCoId1),
-                    MetadataIdentifier.ofUid(co),
-                    MetadataIdentifier.ofUid(unknownCoId2)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1115);
-    assertHasError(reporter, event, ValidationCode.E1116, unknownCoId1);
-    assertHasError(reporter, event, ValidationCode.E1116, unknownCoId2);
-  }
-
-  @Test
-  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotInProgramCC() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-
-    CategoryOption eventCO = createCategoryOption('C');
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(eventCO))).thenReturn(eventCO);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(eventCO)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1117
-                    && r.getMessage().contains(eventCO.getUid())
-                    && r.getMessage().contains(aoc.getUid())));
-  }
-
-  @Test
-  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    CategoryCombo cc = categoryCombo();
-    program.setCategoryCombo(cc);
-
-    CategoryOptionCombo aoc1 = cc.getSortedOptionCombos().get(0);
-    CategoryOption co1 = (CategoryOption) aoc1.getCategoryOptions().toArray()[0];
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co1))).thenReturn(co1);
-
-    CategoryOptionCombo aoc2 = cc.getSortedOptionCombos().get(1);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc2))).thenReturn(aoc2);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(aoc2))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co1)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1117
-                    && r.getMessage().contains(co1.getUid())
-                    && r.getMessage().contains(aoc2.getUid())));
-  }
-
-  @Test
-  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven() {
-    OrganisationUnit orgUnit = setupOrgUnit();
-    Program program = setupProgram(orgUnit);
-    CategoryCombo cc = categoryComboWithTwoCategories();
-    program.setCategoryCombo(cc);
-
-    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(aoc))).thenReturn(aoc);
-    CategoryOption co1 = (CategoryOption) aoc.getCategoryOptions().toArray()[0];
-    when(preheat.getCategoryOption(MetadataIdentifier.ofUid(co1))).thenReturn(co1);
-
-    Event event =
-        eventBuilder()
-            .attributeOptionCombo(MetadataIdentifier.ofUid(aoc))
-            .attributeCategoryOptions(Set.of(MetadataIdentifier.ofUid(co1)))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertEquals(1, reporter.getErrors().size());
-    assertTrue(
-        reporter.hasErrorReport(
-            r ->
-                r.getErrorCode() == ValidationCode.E1117
-                    && r.getMessage().contains(co1.getUid())
-                    && r.getMessage().contains(aoc.getUid())));
-  }
-
-  @Test
   void eventOfProgramWithRegistrationInEnrollmentWithoutTrackedEntity() {
     OrganisationUnit orgUnit = setupOrgUnit();
 
-    Program program = setupProgram(orgUnit);
-
-    setUpDefaultCategoryCombo(program);
+    setupProgram(orgUnit);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -764,9 +204,7 @@ class DataRelationsValidatorTest extends TestBase {
 
     Enrollment enrollment = enrollment(ENROLLMENT_ID, new TrackedEntity());
 
-    Program program = setupProgram(orgUnit, enrollment);
-
-    setUpDefaultCategoryCombo(program);
+    setupProgram(orgUnit, enrollment);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -787,9 +225,7 @@ class DataRelationsValidatorTest extends TestBase {
   void eventOfProgramWithRegistrationInEnrollmentWithTrackedEntityInPreheat() {
     OrganisationUnit orgUnit = setupOrgUnit();
 
-    Program program = setupProgram(orgUnit);
-
-    setUpDefaultCategoryCombo(program);
+    setupProgram(orgUnit);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -804,22 +240,13 @@ class DataRelationsValidatorTest extends TestBase {
 
     Enrollment enrollment = enrollment(ENROLLMENT_ID);
 
-    Program program = setupProgram(orgUnit, enrollment);
-
-    setUpDefaultCategoryCombo(program);
+    setupProgram(orgUnit, enrollment);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1313);
-  }
-
-  private void setUpDefaultCategoryCombo(Program program) {
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
   }
 
   private OrganisationUnit organisationUnit(String uid) {
@@ -909,58 +336,6 @@ class DataRelationsValidatorTest extends TestBase {
     OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
     return orgUnit;
-  }
-
-  private CategoryCombo defaultCategoryCombo() {
-    CategoryOption co = new CategoryOption(CategoryOption.DEFAULT_NAME);
-    co.setAutoFields();
-    assertTrue(co.isDefault(), "tests rely on this CO being the default one");
-    Category ca = createCategory('A', co);
-    CategoryCombo cc = createCategoryCombo('A', ca);
-    cc.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
-    assertTrue(cc.isDefault(), "tests rely on this CC being the default one");
-    cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
-    CategoryOptionCombo aoc = createCategoryOptionCombo(cc, co);
-    aoc.setName(CategoryOptionCombo.DEFAULT_NAME);
-    assertTrue(aoc.isDefault(), "tests rely on this AOC being the default one");
-    cc.setOptionCombos(Sets.newHashSet(aoc));
-    return cc;
-  }
-
-  private CategoryCombo categoryCombo() {
-    return categoryCombo('A');
-  }
-
-  private CategoryCombo categoryCombo(char uniqueIdentifier) {
-    CategoryOption co1 = createCategoryOption(uniqueIdentifier);
-    CategoryOption co2 = createCategoryOption(uniqueIdentifier);
-    Category ca = createCategory(uniqueIdentifier, co1, co2);
-    CategoryCombo cc = createCategoryCombo(uniqueIdentifier, ca);
-    cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
-    CategoryOptionCombo aoc1 = createCategoryOptionCombo(cc, co1);
-    CategoryOptionCombo aoc2 = createCategoryOptionCombo(cc, co2);
-    cc.setOptionCombos(Sets.newHashSet(aoc1, aoc2));
-    return cc;
-  }
-
-  private CategoryCombo categoryComboWithTwoCategories() {
-    char uniqueIdentifier = 'A';
-    CategoryOption co1 = createCategoryOption(uniqueIdentifier);
-    Category ca1 = createCategory(uniqueIdentifier, co1);
-    CategoryOption co2 = createCategoryOption(uniqueIdentifier);
-    Category ca2 = createCategory(uniqueIdentifier, co2);
-    CategoryCombo cc = createCategoryCombo(uniqueIdentifier, ca1, ca2);
-    cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
-    CategoryOptionCombo aoc1 = createCategoryOptionCombo(cc, co1, co2);
-    cc.setOptionCombos(Sets.newHashSet(aoc1));
-    return cc;
-  }
-
-  private CategoryOptionCombo firstCategoryOptionCombo(CategoryCombo categoryCombo) {
-    assertNotNull(categoryCombo.getOptionCombos());
-    assertFalse(categoryCombo.getOptionCombos().isEmpty());
-
-    return categoryCombo.getSortedOptionCombos().get(0);
   }
 
   private TrackerEvent.TrackerEventBuilder eventBuilder() {

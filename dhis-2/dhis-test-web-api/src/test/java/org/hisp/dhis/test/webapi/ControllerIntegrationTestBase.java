@@ -260,6 +260,11 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     public String getHeader(String name) {
       return response.getHeader(name);
     }
+
+    @Override
+    public String getContentType() {
+      return response.getContentType();
+    }
   }
 
   protected final MvcResult webRequestWithAsyncMvcResult(MockHttpServletRequestBuilder request) {
