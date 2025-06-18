@@ -75,6 +75,14 @@ public class AnalyticsDataSourceConfig {
     return createLoggingDataSource(config, actualDataSource);
   }
 
+  /**
+   * Creates a DataSource for the analytics database. If the analytics database is not configured,
+   * the actualDataSource is returned. If the analytics database is configured, a new DataSource is
+   * created based on the configuration.
+   *
+   * @param actualDataSource the actual DataSource
+   * @return a DataSource
+   */
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
@@ -121,6 +129,28 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate jdbcTemplate(@Qualifier("analyticsDataSource") DataSource dataSource) {
     return getJdbcTemplate(dataSource);
+  }
+
+  @Bean("analyticsPostgresJdbcTemplate")
+  public JdbcTemplate analyticsPostgresJdbcTemplate(
+      @Qualifier("actualDataSource") DataSource dataSource) {
+    return getJdbcTemplate(dataSource);
+  }
+
+  /**
+   * Creates a Postgres-specific read-only JdbcTemplate for the analytics database. This is required
+   * for analytics operations that can't be performed against the configured analytics database,
+   * such as ClickHouse or Doris.
+   *
+   * @param dataSource the actual data source
+   * @return a JdbcTemplate for the analytics database
+   */
+  @Bean("analyticsPostgresReadOnlyJdbcTemplate")
+  public JdbcTemplate readOnlyPostgresJdbcTemplate(
+      @Qualifier("actualDataSource") DataSource dataSource) {
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+    DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
+    return getJdbcTemplate(ds);
   }
 
   // -------------------------------------------------------------------------
@@ -173,7 +203,7 @@ public class AnalyticsDataSourceConfig {
 
   /**
    * If the driver class name is not explicitly specified, returns the driver class name based on
-   * the the specified analytics database.
+   * the specified analytics database.
    *
    * @return a driver class name.
    */

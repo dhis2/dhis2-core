@@ -57,7 +57,7 @@ public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
     if (!DateUtils.dateIsValid(scheduledAt)) {
-      return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1318, scheduledAt));
+      return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1319, scheduledAt));
     }
 
     LocalDate localDate = LocalDate.parse(scheduledAt);
@@ -77,6 +77,6 @@ public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
 
     return Optional.of(
         ProgramRuleIssue.warning(
-            programRule, ValidationCode.E1319, scheduledEvent.getEvent().getValue(), scheduledAt));
+            programRule, ValidationCode.E1320, scheduledEvent.getEvent().getValue(), scheduledAt));
   }
 }

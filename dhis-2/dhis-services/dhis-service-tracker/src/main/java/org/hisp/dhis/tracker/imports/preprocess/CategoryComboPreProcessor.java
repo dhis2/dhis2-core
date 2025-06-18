@@ -27,43 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.event;
+package org.hisp.dhis.tracker.imports.preprocess;
 
-import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1316;
-
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import java.util.List;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.springframework.stereotype.Component;
 
-class StatusUpdateValidator implements Validator<Event> {
+/**
+ * This preprocessor is responsible for initialize attribute option combo with the default one from
+ * the program if no attribute option combo is provided.
+ *
+ * @author Enrico Colasante
+ */
+@Component
+public class CategoryComboPreProcessor implements BundlePreProcessor {
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    org.hisp.dhis.program.Event savedEvent = bundle.getPreheat().getEvent(event.getUid());
+  public void process(TrackerBundle bundle) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<Event> events =
+        bundle.getEvents().stream()
+            .filter(
+                e ->
+                    e.getAttributeOptionCombo().isBlank()
+                        && !e.getAttributeCategoryOptions().isEmpty())
+            .filter(e -> preheat.getProgram(e.getProgram()) != null)
+            .toList();
 
-    if (event instanceof TrackerEvent
-        && checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
-      reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
+    for (Event e : events) {
+      Program program = preheat.getProgram(e.getProgram());
+      e.setAttributeOptionCombo(
+          preheat.getCategoryOptionComboIdentifier(
+              program.getCategoryCombo(), e.getAttributeCategoryOptions()));
     }
-  }
-
-  private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
-    return switch (fromStatus) {
-      // An event cannot transition from a STATUSES_WITH_DATA_VALUES to a
-      // STATUSES_WITHOUT_DATA_VALUES
-      case VISITED, ACTIVE, COMPLETED ->
-          EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
-      // An event can transition from a STATUSES_WITHOUT_DATA_VALUES to any status
-      case OVERDUE, SKIPPED, SCHEDULE -> false;
-    };
-  }
-
-  @Override
-  public boolean needsToRun(TrackerImportStrategy strategy) {
-    return strategy == UPDATE;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preprocess;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Interface for classes responsible of preprocessing the payload prior to validation.
- *
- * <p>The validation stage is not supposed to change the payload. A pre-processor can modify the
- * payload content and add data to the preheat if needed. Note that the pre-processing stage takes
- * place after the preheat and before the validation.
- *
- * @author Luciano Fiandesio
- */
-public interface BundlePreProcessor {
-  void process(TrackerBundle bundle);
+public interface JsonMinMaxValue extends JsonObject {
 
-  default boolean needsToRun(TrackerImportStrategy strategy) {
-    return !strategy.isDelete();
+  default String getDataElement() {
+    return getString("dataElement").string();
   }
 
-  default int getPriority() {
-    return 0;
+  default String getOrganisationUnit() {
+    return getString("orgUnit").string();
+  }
+
+  default String getCategoryOptionCombo() {
+    return getString("categoryOptionCombo").string();
+  }
+
+  default Integer getMinValue() {
+    return getNumber("minValue").intValue();
+  }
+
+  default Integer getMaxValue() {
+    return getNumber("maxValue").intValue();
   }
 }

@@ -74,6 +74,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
@@ -701,9 +702,7 @@ public class DataValueController {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
     } catch (IOException e) {
       throw new WebMessageException(
-          error(
-              "Failed fetching the file from storage",
-              "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+          error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
     }
   }
 }

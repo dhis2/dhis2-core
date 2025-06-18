@@ -46,6 +46,7 @@ import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -95,7 +96,7 @@ public class ExternalFileResourceController {
         && externalFileResource.getExpires().before(new Date())) {
       throw new WebMessageException(
           WebMessageUtils.createWebMessage(
-              "The key you requested has expired", Status.WARNING, HttpStatus.GONE));
+              "The requested key is expired", Status.WARNING, HttpStatus.GONE));
     }
 
     FileResource fileResource = externalFileResource.getFileResource();
@@ -112,9 +113,7 @@ public class ExternalFileResourceController {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
     } catch (IOException e) {
       throw new WebMessageException(
-          error(
-              "Failed fetching the file from storage",
-              "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+          error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
     }
   }
 }

@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1123;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -44,10 +45,14 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 class MandatoryFieldsValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    reporter.addErrorIf(
+        () -> event instanceof TrackerEvent && event.getEnrollment() == null,
+        event,
+        E1123,
+        "enrollment");
     reporter.addErrorIf(() -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit");
     reporter.addErrorIf(() -> event.getProgramStage().isBlank(), event, E1123, "programStage");
 
-    // TODO remove if once metadata import is fixed
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
     if (programStage != null) {
       // Program stages should always have a program! Due to how metadata
