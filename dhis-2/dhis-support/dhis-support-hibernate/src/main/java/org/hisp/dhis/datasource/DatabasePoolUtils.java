@@ -151,7 +151,7 @@ public final class DatabasePoolUtils {
     UNPOOLED
   }
 
-  public static DataSource createDbPool(DbPoolConfig config)
+  public static DataSource createDbPool(DbPoolConfig config, String type)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
@@ -177,7 +177,8 @@ public final class DatabasePoolUtils {
     final DataSource dataSource =
         switch (dbPoolType) {
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
-          case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+          case HIKARI ->
+              createHikariDbPool(username, password, driverClassName, jdbcUrl, config, type);
           case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
           default ->
               throw new IllegalArgumentException(
@@ -205,7 +206,8 @@ public final class DatabasePoolUtils {
       String password,
       String driverClassName,
       String jdbcUrl,
-      DbPoolConfig config) {
+      DbPoolConfig config,
+      String type) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -223,7 +225,7 @@ public final class DatabasePoolUtils {
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
 
     HikariConfig hc = new HikariConfig();
-    hc.setPoolName("HikariDataSource_" + CodeGenerator.generateCode(10));
+    hc.setPoolName("HikariDataSource_" + type + "_" + CodeGenerator.generateCode(10));
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
