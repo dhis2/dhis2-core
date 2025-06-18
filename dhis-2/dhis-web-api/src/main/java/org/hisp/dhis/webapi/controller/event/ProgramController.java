@@ -104,7 +104,7 @@ public class ProgramController
     Program program = programService.getProgram(pvUid);
 
     if (program == null) {
-      throw new WebMessageException(notFound("Program not found for uid: " + pvUid));
+      throw new WebMessageException(notFound("Program not found: " + pvUid));
     }
 
     MetadataExportParams exportParams =
@@ -149,7 +149,9 @@ public class ProgramController
     String exceptionMessage = "";
     if (null != dive.getRootCause()) {
       Throwable throwable = dive.getRootCause();
-      if (null != throwable) exceptionMessage = throwable.getMessage();
+      if (null != throwable) {
+        exceptionMessage = throwable.getMessage();
+      }
     } else {
       exceptionMessage = dive.getMessage();
     }

@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
+ * Set implementation with keys mapped to a set of values.
+ *
  * @author Lars Helge Overland
  */
 public class SetMap<T, V> extends HashMap<T, Set<V>> {
@@ -47,21 +49,40 @@ public class SetMap<T, V> extends HashMap<T, Set<V>> {
     super(setMap);
   }
 
+  /**
+   * Returns the set of values for the given key, or an empty set if no values are present.
+   *
+   * @param key the key to retrieve values for.
+   * @return a set of values.
+   */
   public void putValue(T key, V value) {
     computeIfAbsent(key, k -> new HashSet<>()).add(value);
   }
 
+  /**
+   * Adds all values from the given collection to the set of values for the specified key. If the
+   * key does not exist, it will be created with an empty set.
+   *
+   * @param key the key to which the values will be added.
+   * @param values the collection of values to add.
+   */
   public void putValues(T key, Collection<? extends V> values) {
     computeIfAbsent(key, k -> new HashSet<>()).addAll(values);
   }
 
+  /**
+   * Adds all values from the given SetMap to this {@link SetMap}. If a key already exists, the
+   * values will be added to the existing set of values for that key.
+   *
+   * @param setMap the SetMap containing keys and values to add.
+   */
   public void putValues(SetMap<T, V> setMap) {
     setMap.forEach(this::putValues);
   }
 
   /**
-   * Produces a SetMap based on the given set of values. The key for each entry is produced by
-   * applying the given keyMapper function.
+   * Produces a {@link SetMap} based on the given set of values. The key for each entry is produced
+   * by applying the given keyMapper function.
    *
    * @param values the values of the map.
    * @param keyMapper the function producing the key for each entry.
