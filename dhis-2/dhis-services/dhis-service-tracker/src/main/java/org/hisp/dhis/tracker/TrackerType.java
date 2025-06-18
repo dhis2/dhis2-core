@@ -59,6 +59,15 @@ public enum TrackerType {
   }
 
   public static Optional<TrackerType> fromName(String name) {
-    return Arrays.stream(values()).filter(type -> type.name.equalsIgnoreCase(name)).findFirst();
+    if (name == null) {
+      return Optional.empty();
+    }
+
+    try {
+      return Optional.of(TrackerType.valueOf(name.toUpperCase()));
+    } catch (IllegalArgumentException ex) {
+      // Not found in enum constants
+      return Optional.empty();
+    }
   }
 }
