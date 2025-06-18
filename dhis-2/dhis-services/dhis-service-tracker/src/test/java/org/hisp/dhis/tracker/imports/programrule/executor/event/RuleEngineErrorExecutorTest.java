@@ -39,6 +39,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,6 @@ class RuleEngineErrorExecutorTest extends TestBase {
   }
 
   private Event getEvent() {
-    return Event.builder().event(EVENT_UID).build();
+    return TrackerEvent.builder().event(EVENT_UID).build();
   }
 }

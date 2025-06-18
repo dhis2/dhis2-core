@@ -152,7 +152,7 @@ public class HtmlPushAnalyticsJob implements Job {
     return progress.runStage(
         Map.of(),
         receivers -> "Found %d receivers".formatted(receivers.size()),
-        () -> userService.getUserGroupUserEmailsByUsername(params.getReceivers()));
+        () -> userService.getActiveUserGroupUserEmailsByUsername(params.getReceivers()));
   }
 
   /**

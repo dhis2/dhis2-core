@@ -74,7 +74,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
@@ -323,12 +322,12 @@ public class DefaultDimensionService implements DimensionService {
   @Transactional(readOnly = true)
   public DimensionalObject getDimensionalObjectCopy(String uid, boolean filterCanRead)
       throws NotFoundException {
-    BaseDimensionalObject dimension =
+    DimensionalObject dimension =
         idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
     if (dimension == null) {
       throw new NotFoundException("Dimension does not exist: " + uid);
     }
-    BaseDimensionalObject copy = metadataMergeService.clone(dimension);
+    DimensionalObject copy = metadataMergeService.clone(dimension);
 
     if (filterCanRead) {
       UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();

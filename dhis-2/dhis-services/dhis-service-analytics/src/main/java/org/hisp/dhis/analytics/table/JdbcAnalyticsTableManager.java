@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
@@ -55,6 +57,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsStringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -221,6 +224,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             select dv.dataelementid \
             from ${datavalue} dv \
@@ -242,6 +246,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             delete from ${tableName} ax \
             where ax.id in ( \
@@ -254,7 +259,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
-                "tableName", qualify(getAnalyticsTableType().getTableName()),
+                "tableName", sqlBuilder.qualifyTable(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
                 "endDate", toLongDate(partition.getEndDate())));
 
@@ -346,13 +351,16 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
 
-    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(AnalyticsStringUtils.toCommaSeparated(columns, col -> quote(col.getName())));
     sql.append(") select ");
-    sql.append(toCommaSeparated(dimensions, AnalyticsTableColumn::getSelectExpression));
+    sql.append(
+        AnalyticsStringUtils.toCommaSeparated(
+            dimensions, AnalyticsTableColumn::getSelectExpression));
     sql.append(",");
 
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
         ${approvalSelectExpression} \
         as approvallevel, \
@@ -389,7 +397,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
-            and ${deletedClause} """,
+            and ${deletedClause}""",
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
@@ -657,6 +665,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     StringBuilder sql =
         new StringBuilder(
             replaceQualify(
+                sqlBuilder,
                 """
                 select distinct(year) \
                 from ${datavalue} dv \

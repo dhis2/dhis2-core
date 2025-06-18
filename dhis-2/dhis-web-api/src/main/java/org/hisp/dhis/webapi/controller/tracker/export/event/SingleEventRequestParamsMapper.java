@@ -50,9 +50,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.singleevent.EventOperationParams;
-import org.hisp.dhis.tracker.export.singleevent.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventFields;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams.SingleEventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
@@ -61,16 +61,16 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link EventsExportController} stored in {@link EventRequestParams} to
- * {@link EventOperationParams} which is used to fetch events from the DB.
+ * {@link SingleEventOperationParams} which is used to fetch events from the DB.
  */
 @Component
 @RequiredArgsConstructor
-class SingleEventRequestParamsMapper {
+public class SingleEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
   private final FieldFilterService fieldFilterService;
 
-  public EventOperationParams map(
+  public SingleEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     validateProgram(eventRequestParams);
@@ -88,8 +88,8 @@ class SingleEventRequestParamsMapper {
     validateUpdateDurationParams(eventRequestParams);
     validateOrderParams(eventRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element");
 
-    EventOperationParamsBuilder builder =
-        EventOperationParams.builder()
+    SingleEventOperationParamsBuilder builder =
+        SingleEventOperationParams.builder()
             .program(eventRequestParams.getProgram())
             .orgUnit(eventRequestParams.getOrgUnit())
             .orgUnitMode(orgUnitMode)
@@ -128,7 +128,8 @@ class SingleEventRequestParamsMapper {
     }
   }
 
-  private void mapOrderParam(EventOperationParamsBuilder builder, List<OrderCriteria> orders) {
+  private void mapOrderParam(
+      SingleEventOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
     }
@@ -143,7 +144,7 @@ class SingleEventRequestParamsMapper {
   }
 
   private void mapDataElementFilterParam(
-      EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
+      SingleEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
     if (dataElementFilters == null || dataElementFilters.isEmpty()) {
       return;
     }

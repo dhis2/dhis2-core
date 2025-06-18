@@ -115,8 +115,8 @@ class DefaultSingleEventService implements SingleEventService {
 
     Page<Event> events;
     try {
-      EventOperationParams operationParams =
-          EventOperationParams.builder()
+      SingleEventOperationParams operationParams =
+          SingleEventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .filterByDataElement(dataElementUid)
@@ -183,8 +183,8 @@ class DefaultSingleEventService implements SingleEventService {
       throws NotFoundException {
     Page<Event> events;
     try {
-      EventOperationParams operationParams =
-          EventOperationParams.builder()
+      SingleEventOperationParams operationParams =
+          SingleEventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .fields(fields)
@@ -233,7 +233,7 @@ class DefaultSingleEventService implements SingleEventService {
 
   @Nonnull
   @Override
-  public List<Event> findEvents(@Nonnull EventOperationParams operationParams)
+  public List<Event> findEvents(@Nonnull SingleEventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
@@ -253,7 +253,7 @@ class DefaultSingleEventService implements SingleEventService {
   @Nonnull
   @Override
   public Page<Event> findEvents(
-      @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
+      @Nonnull SingleEventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<Event> events = eventStore.getEvents(queryParams, pageParams);

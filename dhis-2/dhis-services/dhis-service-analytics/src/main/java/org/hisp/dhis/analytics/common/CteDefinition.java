@@ -30,11 +30,14 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_EVENT;
 
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import org.apache.commons.text.RandomStringGenerator;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * This class represents a CTE (Common Table Expression) definition generated during the analytics
@@ -45,23 +48,37 @@ import org.apache.commons.text.RandomStringGenerator;
 @Getter
 public class CteDefinition {
 
+  @Getter
   public enum CteType {
     /** CTE for standard program stage data/offsets. */
-    PROGRAM_STAGE,
+    PROGRAM_STAGE(10),
     /** CTE for the base aggregation query (e.g., enrollment_aggr_base). */
-    BASE_AGGREGATION,
+    BASE_AGGREGATION(10),
     /** CTE representing a full Program Indicator calculation. */
-    PROGRAM_INDICATOR,
+    PROGRAM_INDICATOR_EVENT(10),
+
+    PROGRAM_INDICATOR_ENROLLMENT(10),
+
     /** CTE representing a simple filter condition. */
-    FILTER,
+    FILTER(10),
     /** CTE replacing a V{...} variable subquery. */
-    VARIABLE,
+    VARIABLE(10),
     /** CTE replacing a #{...} programStage/dataElement subquery. */
-    PROGRAM_STAGE_DATE_ELEMENT,
+    PROGRAM_STAGE_DATE_ELEMENT(10),
     /** CTE replacing a d2:function(...) subquery (like d2:countIfValue). */
-    D2_FUNCTION,
+    D2_FUNCTION(10),
     /** CTE for checking existence (rowContext=true). */
-    EXISTS // Added based on setExists usage
+    EXISTS(10),
+    /** Special CTE for pre-aggregated enrollments. */
+    TOP_ENROLLMENTS(1),
+    SHADOW_ENROLLMENT_TABLE(2),
+    SHADOW_EVENT_TABLE(3);
+
+    private final int priority;
+
+    CteType(int priority) {
+      this.priority = priority;
+    }
   }
 
   /* Query item id */
@@ -176,7 +193,10 @@ public class CteDefinition {
 
   /** Creates a CTE definition for program indicators. */
   public static CteDefinition forProgramIndicator(
-      String programIndicatorUid, String cteDefinition, boolean requiresCoalesce) {
+      String programIndicatorUid,
+      AnalyticsType programIndicatorType,
+      String cteDefinition,
+      boolean requiresCoalesce) {
     // Calls private constructor, passing CteType.PROGRAM_INDICATOR
     return new CteDefinition(
         programIndicatorUid, // itemId
@@ -190,7 +210,9 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        CteType.PROGRAM_INDICATOR); // Set type
+        programIndicatorType == AnalyticsType.EVENT
+            ? PROGRAM_INDICATOR_EVENT
+            : PROGRAM_INDICATOR_ENROLLMENT); // Set type
   }
 
   /** Creates a CTE definition for filter CTEs (replacing filter subqueries). */
@@ -284,6 +306,21 @@ public class CteDefinition {
         CteType.D2_FUNCTION);
   }
 
+  public static CteDefinition forShadowTable(String tableName, String sql, CteType cteType) {
+    return new CteDefinition(
+        tableName, null, // programStageUid
+        null, // programIndicatorUid
+        sql, // cteDefinition
+        tableName, // alias (same as table name!)
+        false, // rowContext
+        false, // isExists
+        false, // requiresCoalesce
+        null, // aggregateWhereClause
+        null, // joinColumn
+        null, // targetRank
+        cteType);
+  }
+
   public CteDefinition setExists(boolean exists) {
     this.isExists = exists;
     return this;
@@ -318,7 +355,7 @@ public class CteDefinition {
   }
 
   public boolean isProgramIndicator() {
-    return this.cteType == CteType.PROGRAM_INDICATOR;
+    return this.cteType == PROGRAM_INDICATOR_EVENT || this.cteType == PROGRAM_INDICATOR_ENROLLMENT;
   }
 
   public boolean isVariable() {

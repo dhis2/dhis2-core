@@ -31,12 +31,17 @@ package org.hisp.dhis.tracker.imports.note;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
@@ -47,7 +52,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultNoteService implements NoteService {
   private final EnrollmentService enrollmentService;
 
-  private final EventService eventService;
+  private final TrackerEventService trackerEventService;
+
+  private final SingleEventService singleEventService;
+
+  private final IdentifiableObjectManager manager;
 
   private final JdbcNoteStore noteStore;
 
@@ -66,7 +75,12 @@ public class DefaultNoteService implements NoteService {
   @Override
   public void addNoteForEvent(Note note, UID event) throws NotFoundException, BadRequestException {
     // Check event existence and access
-    eventService.getEvent(event);
+    Program program = getProgramFromEvent(event);
+    if (program.isRegistration()) {
+      trackerEventService.getEvent(event);
+    } else {
+      singleEventService.getEvent(event);
+    }
     validateNote(note);
 
     noteStore.saveEventNote(event, note, CurrentUserUtil.getCurrentUserDetails());
@@ -80,5 +94,15 @@ public class DefaultNoteService implements NoteService {
     if (noteStore.exists(note.getNote())) {
       throw new BadRequestException(String.format("Note `%s` already exists.", note.getNote()));
     }
+  }
+
+  @Nonnull
+  private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
+    Event event = manager.get(Event.class, eventUID);
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUID);
+    }
+
+    return event.getProgramStage().getProgram();
   }
 }

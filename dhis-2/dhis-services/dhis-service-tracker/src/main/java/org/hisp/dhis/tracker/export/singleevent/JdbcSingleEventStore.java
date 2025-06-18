@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +69,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -77,7 +76,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -141,17 +139,12 @@ class JdbcSingleEventStore {
   private static final String COLUMN_PROGRAM_STAGE_NAME = "ps_name";
   private static final String COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES = "ps_attributevalues";
   private static final String COLUMN_ENROLLMENT_UID = "en_uid";
-  private static final String COLUMN_ENROLLMENT_STATUS = "en_status";
-  private static final String COLUMN_ENROLLMENT_DATE = "en_enrollmentdate";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
   private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
   private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
   private static final String COLUMN_ORG_UNIT_ATTRIBUTE_VALUES = "orgunit_attributevalues";
-  private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
   private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
-  private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
   private static final String COLUMN_EVENT_STATUS = "ev_status";
-  private static final String COLUMN_EVENT_SCHEDULED_DATE = "ev_scheduleddate";
   private static final String COLUMN_EVENT_DATAVALUES = "ev_eventdatavalues";
   private static final String COLUMN_EVENT_STORED_BY = "ev_storedby";
   private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
@@ -270,8 +263,6 @@ class JdbcSingleEventStore {
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
 
-              TrackedEntity te = new TrackedEntity();
-              te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
               event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
 
               ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
@@ -286,7 +277,6 @@ class JdbcSingleEventStore {
               Enrollment enrollment = new Enrollment();
               enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
               enrollment.setProgram(program);
-              enrollment.setTrackedEntity(te);
 
               OrganisationUnit orgUnit = new OrganisationUnit();
               orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
@@ -304,9 +294,6 @@ class JdbcSingleEventStore {
                   AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
-              enrollment.setStatus(
-                  EnrollmentStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
-              enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
               event.setEnrollment(enrollment);
               event.setProgramStage(ps);
 
@@ -336,7 +323,6 @@ class JdbcSingleEventStore {
               event.setAttributeOptionCombo(coc);
 
               event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
-              event.setScheduledDate(resultSet.getTimestamp(COLUMN_EVENT_SCHEDULED_DATE));
               event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
@@ -614,8 +600,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(COLUMN_EVENT_STATUS)
             .append(", ev.occurreddate as ")
             .append(COLUMN_EVENT_OCCURRED_DATE)
-            .append(", ev.scheduleddate as ")
-            .append(COLUMN_EVENT_SCHEDULED_DATE)
             .append(", ev.eventdatavalues as ")
             .append(COLUMN_EVENT_DATAVALUES)
             .append(", ev.completedby as ")
@@ -659,19 +643,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(getOrderFieldsForSelectClause(params.getOrder()));
 
     return selectBuilder
-        .append(
-            "en.uid as "
-                + COLUMN_ENROLLMENT_UID
-                + ", en.status as "
-                + COLUMN_ENROLLMENT_STATUS
-                + ", en.followup as "
-                + COLUMN_ENROLLMENT_FOLLOWUP
-                + ", en.enrollmentdate as "
-                + COLUMN_ENROLLMENT_DATE
-                + ", en.occurreddate as en_occurreddate, ")
-        .append("p.type as p_type, ")
-        .append("te.trackedentityid as te_id, te.uid as ")
-        .append(COLUMN_TRACKEDENTITY_UID)
+        .append("en.uid as " + COLUMN_ENROLLMENT_UID + ", ")
+        .append("p.type as p_type ")
         .append(getFromWhereClause(params, mapSqlParameterSource, user, hlp))
         .toString();
   }
@@ -768,6 +741,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
+
+    fromBuilder.append(hlp.whereAnd()).append(" p.type = 'WITHOUT_REGISTRATION' ");
 
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 

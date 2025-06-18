@@ -68,6 +68,7 @@ import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -272,7 +273,7 @@ class GridAdaptorTest extends TestBase {
 
   private DimensionIdentifier<DimensionParam> stubDimensionIdentifier(
       List<String> ous, String programUid, String programStageUid, String dimensionUid) {
-    BaseDimensionalObject tea =
+    DimensionalObject tea =
         new BaseDimensionalObject(
             dimensionUid,
             DATA_X,

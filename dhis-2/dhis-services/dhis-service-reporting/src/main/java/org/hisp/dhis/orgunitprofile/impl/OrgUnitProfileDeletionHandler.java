@@ -81,8 +81,8 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
       if (profile.getDataItems().remove(dataItem.getUid())) {
         orgUnitProfileService.saveOrgUnitProfile(profile);
       }
-    } catch (ForbiddenException e) {
-      throw new AccessDeniedException(e.getMessage());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
     }
   }
 
@@ -92,8 +92,8 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
       if (profile.getAttributes().remove(attribute.getUid())) {
         orgUnitProfileService.saveOrgUnitProfile(profile);
       }
-    } catch (ForbiddenException e) {
-      throw new AccessDeniedException(e.getMessage());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
     }
   }
 
@@ -103,8 +103,8 @@ public class OrgUnitProfileDeletionHandler extends DeletionHandler {
       if (profile.getGroupSets().remove(groupSet.getUid())) {
         orgUnitProfileService.saveOrgUnitProfile(profile);
       }
-    } catch (ForbiddenException e) {
-      throw new AccessDeniedException(e.getMessage());
+    } catch (ForbiddenException ex) {
+      throw new AccessDeniedException(ex.getMessage());
     }
   }
 }

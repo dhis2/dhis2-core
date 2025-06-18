@@ -57,8 +57,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EventOperationParams} to {@link SingleEventQueryParams} which is used to fetch events
- * from the DB.
+ * Maps {@link SingleEventOperationParams} to {@link SingleEventQueryParams} which is used to fetch
+ * events from the DB.
  */
 @Component
 @RequiredArgsConstructor
@@ -75,7 +75,7 @@ class SingleEventOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public SingleEventQueryParams map(
-      @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
+      @Nonnull SingleEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
 

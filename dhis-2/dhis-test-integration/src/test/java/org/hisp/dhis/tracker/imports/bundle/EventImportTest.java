@@ -43,7 +43,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -63,7 +63,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -86,7 +86,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    Event event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
@@ -102,7 +102,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    Event event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -121,7 +121,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    Event event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -141,7 +141,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    Event event = eventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    Event event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());

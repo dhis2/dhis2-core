@@ -46,7 +46,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
@@ -119,9 +118,6 @@ will take more time to return.**
   private StartDateTime enrolledAfter;
 
   private EndDateTime enrolledBefore;
-
-  @OpenApi.Property({UID.class, TrackedEntityType.class})
-  private UID trackedEntityType;
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
   private UID trackedEntity;

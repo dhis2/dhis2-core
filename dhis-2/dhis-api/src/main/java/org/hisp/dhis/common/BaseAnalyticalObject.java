@@ -32,6 +32,7 @@ package org.hisp.dhis.common;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -125,13 +126,13 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
 
-  private static final BaseDimensionalItemObject USER_OU_ITEM_OBJ =
+  private static final DimensionalItemObject USER_OU_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT, "User organisation unit");
 
-  private static final BaseDimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
+  private static final DimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
 
-  private static final BaseDimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
+  private static final DimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
       buildDimItemObj(KEY_USER_ORGUNIT_GRANDCHILDREN, "User organisation unit grand children");
 
   public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
@@ -342,7 +343,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * @param name the dimension name.
    * @return the DimensionalObject.
    */
-  private static BaseDimensionalItemObject buildDimItemObj(String uid, String name) {
+  private static DimensionalItemObject buildDimItemObj(String uid, String name) {
     BaseDimensionalItemObject itemObj = new BaseDimensionalItemObject(uid);
     itemObj.setName(name);
     return itemObj;
@@ -711,7 +712,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<Period> periodList = new ArrayList<>();
 
       // For backward compatibility, where periods are not in the "raw" list yet.
-      if (rawPeriods != null) {
+      if (isEmpty(rawPeriods)) {
+        rawPeriods = new ArrayList<>();
         rawPeriods.addAll(
             getPeriods().stream()
                 .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
@@ -725,11 +727,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
             Period relPeriod = new Period(relPeriodTypeEnum);
 
-            periodList.add(relPeriod);
+            if (!periodList.contains(relPeriod)) {
+              periodList.add(relPeriod);
+            }
           } else {
             Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+            boolean isIsoPeriod = isoPeriod != null;
+            boolean addPeriod = isIsoPeriod && !periodList.contains(isoPeriod);
 
-            if (isoPeriod != null) {
+            if (addPeriod) {
               periodList.add(isoPeriod);
             }
           }

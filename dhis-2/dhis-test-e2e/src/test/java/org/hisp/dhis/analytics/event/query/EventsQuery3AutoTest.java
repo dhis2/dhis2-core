@@ -157,7 +157,7 @@ public class EventsQuery3AutoTest extends AnalyticsApiTest {
         0,
         List.of(
             "Ngelehun CHC",
-            "1231.0",
+            "1231",
             "2022-07-02 02:00:00.0",
             "2021-07-23 12:46:11.472",
             "2022-07-08 02:00:00.0",

@@ -78,12 +78,13 @@ import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,7 +99,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
+  @Autowired private TrackerEventService eventService;
 
   @Autowired private RelationshipService relationshipService;
 
@@ -125,6 +126,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private AuditService auditService;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -193,6 +196,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityWithAssociations);
     manager.save(enrollmentWithTeAssociation);
     manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        enrollment.getTrackedEntity(), enrollment.getProgram(), organisationUnit);
     event = new Event(enrollment, stageA);
     event.setUid(UID.generate().getValue());
     event.setOrganisationUnit(organisationUnit);

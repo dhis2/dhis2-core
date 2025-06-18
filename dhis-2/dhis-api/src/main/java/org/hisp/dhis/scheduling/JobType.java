@@ -187,9 +187,10 @@ public enum JobType {
 
   /**
    * @return when true, the {@link JobConfiguration#getExecutedBy()} is set to the job creator on
-   *     creation unless it was set explicitly
+   *     creation unless it was set explicitly. This means that a valid User is required for a Job
+   *     (System User will not work).
    */
-  public boolean isDefaultExecutedByCreator() {
+  public boolean isValidUserRequiredForJob() {
     return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE;
   }
 

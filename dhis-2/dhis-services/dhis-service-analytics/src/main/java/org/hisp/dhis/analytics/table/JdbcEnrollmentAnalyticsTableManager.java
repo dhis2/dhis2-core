@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -80,6 +82,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
+      ColumnMapper columnMapper,
       SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
@@ -93,6 +96,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
+        columnMapper,
         sqlBuilder);
     fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
   }
@@ -142,6 +146,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
     String fromClause =
         replaceQualify(
+            sqlBuilder,
             """
             \sfrom ${enrollment} en \
             inner join ${program} pr on en.programid=pr.programid \

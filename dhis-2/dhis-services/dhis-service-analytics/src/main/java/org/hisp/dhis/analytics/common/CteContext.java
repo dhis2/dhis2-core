@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -52,8 +53,15 @@ public class CteContext {
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
+  /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
+  @Getter private final EndpointItem endpointItem;
+
   public CteDefinition getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
+  }
+
+  public CteContext(EndpointItem endpointItem) {
+    this.endpointItem = endpointItem;
   }
 
   /**
@@ -126,7 +134,10 @@ public class CteContext {
     cteDefinitions.put(
         programIndicator.getUid(),
         CteDefinition.forProgramIndicator(
-            programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+            programIndicator.getUid(),
+            programIndicator.getAnalyticsType(),
+            cteDefinition,
+            functionRequiresCoalesce));
   }
 
   /**
@@ -221,6 +232,12 @@ public class CteContext {
     }
   }
 
+  public void addShadowCte(String tableName, String sql, CteDefinition.CteType cteType) {
+    // Use a simple CteDefinition for shadow CTEs
+    CteDefinition shadowCte = CteDefinition.forShadowTable(tableName, sql, cteType);
+    cteDefinitions.put(tableName, shadowCte);
+  }
+
   public CteDefinition getBaseAggregatedCte() {
     return cteDefinitions.get(ENROLLMENT_AGGR_BASE);
   }
@@ -251,28 +268,25 @@ public class CteContext {
    * @return A map where key=short alias, value=cte definition Sql + cte type.
    */
   public Map<String, SqlWithCteType> getAliasAndDefinitionSqlMap() {
-    Map<String, SqlWithCteType> aliasMap = new LinkedHashMap<>();
-    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
-      CteDefinition definition = entry.getValue();
-      if (definition != null) {
-        String alias = useKeyAsAlias(definition) ? entry.getKey() : definition.getAlias();
-        String definitionSql = definition.getCteDefinition();
-        if (alias != null && definitionSql != null) {
-          if (aliasMap.containsKey(alias)) {
-            // This should be rare with random aliases, but log if it happens
-            log.warn(
-                "Duplicate CTE alias encountered: '{}'. Overwriting previous definition for key '{}' with definition for key '{}'.",
-                alias,
-                findKeyForAlias(alias),
-                entry.getKey());
-          }
-          aliasMap.put(alias, new SqlWithCteType(definitionSql, definition.getCteType()));
-        } else {
-          log.warn("Skipping CTE with null alias or definition for key: {}", entry.getKey());
-        }
-      }
-    }
-    return aliasMap;
+    // Sort by CTE type priority first, then by insertion order
+    return cteDefinitions.entrySet().stream()
+        .sorted(
+            (e1, e2) -> {
+              int priority1 = e1.getValue().getCteType().getPriority();
+              int priority2 = e2.getValue().getCteType().getPriority();
+              return Integer.compare(priority1, priority2);
+            })
+        .collect(
+            LinkedHashMap::new,
+            (map, entry) -> {
+              CteDefinition definition = entry.getValue();
+              String alias = useKeyAsAlias(definition) ? entry.getKey() : definition.getAlias();
+              String definitionSql = definition.getCteDefinition();
+              if (alias != null && definitionSql != null) {
+                map.put(alias, new SqlWithCteType(definitionSql, definition.getCteType()));
+              }
+            },
+            Map::putAll);
   }
 
   /**
@@ -287,15 +301,6 @@ public class CteContext {
     return definition.isProgramStage() || definition.isProgramIndicator() || definition.isFilter();
   }
 
-  private String findKeyForAlias(String alias) {
-    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
-      if (entry.getValue() != null && alias.equals(entry.getValue().getAlias())) {
-        return entry.getKey();
-      }
-    }
-    return null; // Should not happen if called after alias exists
-  }
-
   public Set<String> getCteKeys() {
     return cteDefinitions.keySet();
   }
@@ -308,6 +313,15 @@ public class CteContext {
   }
 
   /**
+   * Determines if there are any CTE (Common Table Expression) definitions present in the context.
+   *
+   * @return true if there are CTE definitions, false otherwise
+   */
+  public boolean hasCteDefinitions() {
+    return !cteDefinitions.isEmpty();
+  }
+
+  /**
    * Retrieves a CTE definition by its unique key.
    *
    * @param key the unique key of the CTE definition.
@@ -315,6 +329,15 @@ public class CteContext {
    */
   public CteDefinition getDefinitionByKey(String key) {
     return cteDefinitions.get(key);
+  }
+
+  /**
+   * Checks if the analytics query type is for events.
+   *
+   * @return true if the query type is EVENT, false otherwise.
+   */
+  public boolean isEventsAnalytics() {
+    return endpointItem == EndpointItem.EVENT;
   }
 
   public boolean containsCte(String cteName) {

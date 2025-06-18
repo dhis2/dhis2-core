@@ -77,8 +77,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.event.EventFields;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -100,6 +101,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired protected UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private final Date incidentDate = new Date();
 
@@ -192,13 +195,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.getSharing().setOwner(admin);
-    programA
-        .getSharing()
-        .setPublicAccess(
-            AccessStringHelper.newInstance()
-                .enable(AccessStringHelper.Permission.READ)
-                .enable(AccessStringHelper.Permission.DATA_READ)
-                .build());
+    programA.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
     manager.save(programA, false);
 
     Program programB = createProgram('B', new HashSet<>(), orgUnitB);
@@ -251,6 +248,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
     manager.save(enrollmentA, false);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA, programA, orgUnitA);
 
     relationshipA = new Relationship();
     relationshipA.setUid(CodeGenerator.generateUid());
@@ -276,13 +275,19 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);
     manager.save(enrollmentB);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, orgUnitB);
 
     enrollmentChildA = createEnrollment(programA, trackedEntityChildA, orgUnitChildA);
     manager.save(enrollmentChildA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityChildA, programA, orgUnitChildA);
 
     enrollmentGrandchildA =
         createEnrollment(programA, trackedEntityGrandchildA, orgUnitGrandchildA);
     manager.save(enrollmentGrandchildA);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityGrandchildA, programA, orgUnitGrandchildA);
 
     manager.flush();
     manager.clear();
@@ -293,7 +298,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldGetEnrollmentWhenUserHasWriteAccessToProgramAndAccessToOrgUnit()
       throws NotFoundException {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
+    programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.updateNoAcl(programA);
 
     Enrollment enrollment =
@@ -306,7 +311,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldGetEnrollmentWhenUserHasReadAccessToProgramAndAccessToOrgUnit()
       throws NotFoundException {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
     manager.updateNoAcl(programA);
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA));
@@ -317,7 +322,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent() throws NotFoundException {
-    EnrollmentFields fields = EnrollmentFields.builder().includeEvents(EventFields.all()).build();
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeEvents(TrackerEventFields.all()).build();
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
@@ -333,7 +339,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programStageA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programStageA);
 
-    EnrollmentFields fields = EnrollmentFields.builder().includeEvents(EventFields.all()).build();
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeEvents(TrackerEventFields.all()).build();
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
@@ -513,7 +520,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
       throws ForbiddenException, BadRequestException {
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
     manager.updateNoAcl(programA);
 
     EnrollmentOperationParams params =

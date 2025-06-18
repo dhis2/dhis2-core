@@ -156,7 +156,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
         .as(JsonWebMessage.class);
 
     JsonWebMessage enrollmentsForOrgUnit =
-        GET("/tracker/enrollments?orgUnit=%s".formatted(ORG_UNIT_UID))
+        GET("/tracker/enrollments?orgUnit=%s&program=%s".formatted(ORG_UNIT_UID, PROGRAM_UID))
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 

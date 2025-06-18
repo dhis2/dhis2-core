@@ -94,7 +94,7 @@ public interface SingleEventService {
    * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> findEvents(@Nonnull EventOperationParams params)
+  List<Event> findEvents(@Nonnull SingleEventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -102,15 +102,15 @@ public interface SingleEventService {
    * user.
    */
   @Nonnull
-  Page<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
+  Page<Event> findEvents(@Nonnull SingleEventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**
-   * Fields the {@link #findEvents(EventOperationParams)} and {@link
-   * #findEvents(EventOperationParams, PageParams)} can order events by. Ordering by fields other
-   * than these is considered a programmer error. Validation of user provided field names should
-   * occur before calling {@link #findEvents(EventOperationParams)} or {@link
-   * #findEvents(EventOperationParams, PageParams)}.
+   * Fields the {@link #findEvents(SingleEventOperationParams)} and {@link
+   * #findEvents(SingleEventOperationParams, PageParams)} can order events by. Ordering by fields
+   * other than these is considered a programmer error. Validation of user provided field names
+   * should occur before calling {@link #findEvents(SingleEventOperationParams)} or {@link
+   * #findEvents(SingleEventOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
 }

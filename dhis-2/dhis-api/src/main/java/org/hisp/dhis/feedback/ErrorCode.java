@@ -163,6 +163,7 @@ public enum ErrorCode {
   E2045("Case insensitive operators can only be used with constant values"),
   E2046("Error parsing CSV file: {0}"),
   E2047("Data value key combination does not exist: {0}"),
+  E2048("Error processing gzipped content: {0}"),
 
   /* Outlier detection */
   E2200("At least one data element must be specified"),
@@ -329,6 +330,7 @@ public enum ErrorCode {
       "Multiple Category Options `{0}` while disaggregating Program Indicator `{1}`-`{2}` Category Combo `{3}`-`{4}` Category `{5}`-`{6}`"),
   E4079(
       "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
+  E4080("Program `{0}` category mapping `{1}` has an invalid option mapping `{1}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
