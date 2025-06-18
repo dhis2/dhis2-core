@@ -255,13 +255,25 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   void testPostForMultiEventDates() {
     // Given
     String eventDateDimension = "eventDate";
-    String incidentDateDimension = "incidentDate";
     String eventDate = "2021-07-21_2021-08-01";
+    String incidentDateDimension = "incidentDate";
     String incidentDate = "2021-07-21_2021-08-01";
+    String createdDateDimension = "createdDate";
+    String createdDate = "2021-07-21_2021-08-01";
+    String completedDateDimension = "completedDate";
+    String completedDate = "2021-07-21_2021-08-01";
     String eventDateBody =
         "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
     String incidentDateBody =
         "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '" + incidentDate + "'}]}";
+    String createdDateBody =
+        "{'dimension': '" + createdDateDimension + "', 'items': [{'id': '" + createdDate + "'}]}";
+    String completedDateBody =
+        "{'dimension': '"
+            + completedDateDimension
+            + "', 'items': [{'id': '"
+            + completedDate
+            + "'}]}";
     String body =
         "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
             + mockProgram.getUid()
@@ -269,6 +281,10 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
             + eventDateBody
             + ","
             + incidentDateBody
+            + ","
+            + createdDateBody
+            + ","
+            + completedDateBody
             + "]}";
 
     // When
@@ -280,8 +296,12 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
     assertThat(response.get("simpleDimensions").toString(), containsString(eventDate));
     assertThat(response.get("simpleDimensions").toString(), containsString(incidentDate));
+    assertThat(response.get("simpleDimensions").toString(), containsString(createdDate));
+    assertThat(response.get("simpleDimensions").toString(), containsString(completedDate));
     assertThat(response.get("rows").toString(), containsString(eventDateDimension));
     assertThat(response.get("rows").toString(), containsString(incidentDateDimension));
+    assertThat(response.get("rows").toString(), containsString(createdDateDimension));
+    assertThat(response.get("rows").toString(), containsString(completedDateDimension));
     assertThat(response.get("columns").toString(), not(containsString(eventDateDimension)));
     assertThat(response.get("columns").toString(), not(containsString(incidentDateDimension)));
     assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
