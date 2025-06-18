@@ -34,6 +34,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -48,20 +50,14 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.appmanager.AppBundleInfo;
 import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Handles the bundling of DHIS2 apps by downloading them as ZIP files from GitHub. This replaces
  * the previous process that used Git to clone the apps.
  */
 public class AppBundler {
-  private static final Logger log = LoggerFactory.getLogger(AppBundler.class);
-
   // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
   private static final Pattern GITHUB_URL_PATTERN =
       Pattern.compile("^https://github\\.com/([^/]+)/([^/#]+)(?:#(.+))?$");
@@ -119,8 +115,6 @@ public class AppBundler {
    * @throws IOException if there's an error reading the app list or downloading the apps
    */
   public void execute() throws IOException {
-    log.info("Starting app bundling process");
-
     Path downloadDirPath = Paths.get(downloadDir);
     Files.createDirectories(downloadDirPath);
 
@@ -132,7 +126,7 @@ public class AppBundler {
 
     List<AppGithubRepo> appRepoInfos = parseAppListUrls(appListFilePath);
 
-    log.info("Found {} valid apps to bundle", appRepoInfos.size());
+    info("Found {} valid apps to bundle", appRepoInfos.size());
 
     // Download each app in parallel
     downloadApps(appRepoInfos, artifactDirPath, checksumDirPath);
@@ -142,8 +136,6 @@ public class AppBundler {
 
     // Write bundle info file
     writeBundleFile(targetArtifactDir);
-
-    log.info("App bundling process completed successfully");
   }
 
   private void downloadApps(
@@ -170,13 +162,12 @@ public class AppBundler {
 
       downloadedApps.forEach(bundleInfo::addApp);
     } catch (InterruptedException | ExecutionException e) {
-      log.error("Error during parallel app download", e);
+      error("Error during parallel app download", e);
       // Restore interrupt status
       Thread.currentThread().interrupt();
     } finally {
       customThreadPool.shutdown();
     }
-    log.debug("Finished downloading apps.");
   }
 
   /**
@@ -234,7 +225,7 @@ public class AppBundler {
   private void writeBundleFile(Path targetArtifactDir) throws IOException {
     Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
     objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
-    log.info("Wrote bundle info to: {}", bundleInfoPath);
+    info("Wrote bundle info to: {}", bundleInfoPath);
   }
 
   private @Nonnull Path copyAppsToBuildDir(Path downloadDirPath) throws IOException {
@@ -249,16 +240,16 @@ public class AppBundler {
         if (Files.exists(sourceZipPath)) {
           Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } else {
-          log.error(
+          error(
               "Source zip file not found, skipping copy for app {}: {}",
               app.getName(),
               sourceZipPath);
         }
       }
-      log.info("Finished copying app bundles to build directory.");
+      info("Finished copying app bundles to build directory.");
 
     } catch (IOException e) {
-      log.error("Error copying app bundles to build directory: {}", e.getMessage(), e);
+      error("Error copying app bundles to build directory: {}", e, e.getMessage());
       throw new IOException("Failed to copy app bundles to build directory", e);
     }
     return targetArtifactDir;
@@ -292,13 +283,13 @@ public class AppBundler {
         if (codeloadUrl != null) {
           appInfos.add(new AppGithubRepo(owner, repo, ref, rawUrl, codeloadUrl));
         } else {
-          log.error("Skipping app due to failed conversion from URL: {}", rawUrl);
+          error("Skipping app due to failed conversion from URL: {}", rawUrl);
         }
       } else {
-        log.error("Skipping app due to invalid GitHub URL format: {}", rawUrl);
+        error("Skipping app due to invalid GitHub URL format: {}", rawUrl);
       }
     }
-    log.debug("Successfully parsed {} app URLs out of {}", appInfos.size(), rawUrls.size());
+    info("Successfully parsed {} app URLs out of {}", appInfos.size(), rawUrls.size());
     return appInfos;
   }
 
@@ -329,21 +320,18 @@ public class AppBundler {
       if (etag == null) { // Not modified or download failed ETag retrieval
         if (Files.exists(etagFile)) {
           appBundleResultInfo.setEtag(Files.readString(etagFile, StandardCharsets.UTF_8));
-          log.info(
-              "App {} is already up to date (ETag: {})", zipName, appBundleResultInfo.getEtag());
-
+          info("App {} is already up to date (ETag: {})", zipName, appBundleResultInfo.getEtag());
         } else {
           // This case might happen if download failed before ETag was written,
           // or if ETag header was missing. Log a warning.
-          log.error("Could not determine ETag for app {}, checksum file missing.", zipName);
+          error("Could not determine ETag for app {}, checksum file missing.", zipName);
         }
       } else {
         appBundleResultInfo.setEtag(etag);
-        log.info("Downloaded app: {} (ETag: {})", zipName, etag);
+        info("Downloaded app: {} (ETag: {})", zipName, etag);
       }
     } catch (IOException e) {
-      log.error(
-          "Failed to download or process app {}: {}", repoInfo.originalUrl(), e.getMessage(), e);
+      error("Failed to download or process app {}: {}", e, repoInfo.originalUrl(), e.getMessage());
       throw e;
     }
 
@@ -380,10 +368,9 @@ public class AppBundler {
       if (ref == null) {
         ref = "refs/heads/" + defaultBranch;
       }
-
       return String.format("https://codeload.github.com/%s/%s/zip/%s", owner, repo, ref);
     } else {
-      log.error("Invalid GitHub URL format for conversion: {}", githubUrl);
+      error("Invalid GitHub URL format for conversion: {}", githubUrl);
       return null;
     }
   }
@@ -395,30 +382,68 @@ public class AppBundler {
    */
   public static void main(String[] args) {
     // Force INFO level, so we can see what's going on with Maven
-    Configurator.setRootLevel(Level.INFO);
-
+    //    Configurator.setRootLevel(Level.INFO);
     try {
       String downloadDir = System.getProperty("DOWNLOAD_DIR");
       String buildDir = System.getProperty("BUILD_DIR");
       String artifactId = System.getProperty("ARTIFACT_ID");
       String appListPath = System.getProperty("APP_LIST");
       String defaultBranch = System.getProperty("DEFAULT_BRANCH");
-      log.info("DOWNLOAD_DIR: {}", downloadDir);
-      log.info("BUILD_DIR: {}", buildDir);
-      log.info("ARTIFACT_ID: {}", artifactId);
-      log.info("APP_LIST: {}", appListPath);
-      log.info("DEFAULT_BRANCH: {}", defaultBranch);
+      info("DOWNLOAD_DIR: {}", downloadDir);
+      info("BUILD_DIR: {}", buildDir);
+      info("ARTIFACT_ID: {}", artifactId);
+      info("APP_LIST: {}", appListPath);
+      info("DEFAULT_BRANCH: {}", defaultBranch);
 
       if (downloadDir == null || buildDir == null || artifactId == null || appListPath == null) {
-        log.error("System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APPS must be set");
+        error("System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APPS must be set");
         System.exit(1);
       }
       AppBundler bundler =
           new AppBundler(downloadDir, buildDir, artifactId, appListPath, defaultBranch);
       bundler.execute();
     } catch (Exception e) {
-      log.error("Error executing app bundler: {}", e.getMessage(), e);
+      error("Error executing app bundler: {}", e, e.getMessage());
       System.exit(1);
     }
+  }
+
+  private static void error(String content) {
+    System.err.println(content);
+  }
+
+  private static void error(String content, Object... args) {
+    error(content, null, args);
+  }
+
+  private static void error(String content, Throwable error, Object... args) {
+    StringWriter sWriter = new StringWriter();
+    if (error != null) {
+      PrintWriter pWriter = new PrintWriter(sWriter);
+      error.printStackTrace(pWriter);
+    }
+    content = replaceArgs(content, args);
+
+    if (error != null) {
+      System.err.println(content + System.lineSeparator() + sWriter);
+    } else {
+      System.err.println(content);
+    }
+  }
+
+  private static void info(String content, Object... args) {
+    content = replaceArgs(content, args);
+    System.out.println(content);
+  }
+
+  private static String replaceArgs(String content, Object[] args) {
+    if (args == null) {
+      return content;
+    }
+    for (Object arg : args) {
+      String replacement = (arg == null) ? "null" : Matcher.quoteReplacement(arg.toString());
+      content = content.replaceFirst(Pattern.quote("{}"), replacement);
+    }
+    return content;
   }
 }

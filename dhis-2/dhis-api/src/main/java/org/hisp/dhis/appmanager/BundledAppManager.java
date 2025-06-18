@@ -93,8 +93,7 @@ public class BundledAppManager {
     if (appBundleInfoInputStream == null) {
       return null;
     }
-
-    try {
+    try (appBundleInfoInputStream) {
       return objectMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -105,13 +104,11 @@ public class BundledAppManager {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
-
       // Ignore if not exists, this is the case when running tests
       if (resources.length == 0 || resources[0] == null || !resources[0].exists()) {
         log.warn(String.format("Bundled apps info file not found at: '%s'", APPS_BUNDLE_INFO_PATH));
         return null;
       }
-
       return resources[0].getInputStream();
     } catch (IOException e) {
       throw new RuntimeException(e);

@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -191,16 +191,6 @@ public class AppController {
 
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
-
-    // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(resource)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if ("*".equals(application.getActivities().getDhis().getHref())) {
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
-        application.getActivities().getDhis().setHref(contextPath);
-      }
-    }
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 

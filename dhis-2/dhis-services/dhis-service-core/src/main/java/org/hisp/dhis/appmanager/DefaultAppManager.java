@@ -41,9 +41,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -437,7 +439,9 @@ public class DefaultAppManager implements AppManager {
     try {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", fileName);
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
-      App app = installAppZipFile(tempFile.toFile(), fileName, bundledAppInfo);
+      File file = tempFile.toFile();
+      file.deleteOnExit();
+      App app = installAppZipFile(file, fileName, bundledAppInfo);
       app.setBundled(true);
       return app;
     } catch (IOException e) {
@@ -585,10 +589,7 @@ public class DefaultAppManager implements AppManager {
 
     if (resource instanceof ResourceResult.ResourceFound resourceFound) {
       if (pageName.equals("/manifest.webapp")) {
-        // If request was for manifest.webapp, check for * and replace with host
-        if ("*".equals(app.getActivities().getDhis().getHref())) {
-          app.getActivities().getDhis().setHref(contextPath);
-        }
+        app.getActivities().getDhis().setHref(contextPath);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         jsonMapper.writeValue(bout, app);
         ByteArrayResource byteArrayResource =
@@ -598,13 +599,26 @@ public class DefaultAppManager implements AppManager {
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".html"))) {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
-
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         template.apply(resourceFound.resource().getInputStream(), bout);
-
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
+      } else if (pageName.endsWith(".js")
+          || (resourceFound.resource().getFilename() != null
+              && resourceFound.resource().getFilename().endsWith(".js"))) {
+        // Read the original JS content
+        String originalJsContent;
+        try (InputStream inputStream = resourceFound.resource().getInputStream()) {
+          originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        }
+        // TODO: MAS: Approval app requires this, why?
+        String modifiedJsContent =
+            originalJsContent.replace("url:\"..\"", "url:\"" + "../../.." + "\"");
+        ByteArrayResource byteArrayResource =
+            toByteArrayResource(
+                modifiedJsContent.getBytes(StandardCharsets.UTF_8), resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource, "application/javascript");
       }
     }
 
