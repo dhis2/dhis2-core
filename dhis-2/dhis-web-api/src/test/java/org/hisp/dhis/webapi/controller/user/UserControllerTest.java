@@ -108,6 +108,7 @@ class UserControllerTest {
     currentUser = new User();
     currentUser.setId(1000);
     currentUser.setUid("def1");
+    currentUser.setUsername("admin");
 
     user = new User();
     user.setId(1001);
