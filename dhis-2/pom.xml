@@ -608,7 +608,7 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-authorization-server</artifactId>
-        <version>1.4.3</version>
+        <version>1.5.1</version>
       </dependency>
 
       <!-- OAuth 2.0 -->
