@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -107,7 +108,7 @@ class AnalyticsControllerTest {
     when(dimensionalObjectProducer.getPeriodDimension(Mockito.any(), Mockito.any()))
         .thenAnswer(
             (invocation) -> {
-              BaseDimensionalObject period = mock(BaseDimensionalObject.class);
+              DimensionalObject period = mock(BaseDimensionalObject.class);
 
               when(period.getDimensionType()).thenReturn(DimensionType.PERIOD);
 

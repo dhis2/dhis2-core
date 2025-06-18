@@ -43,8 +43,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -85,7 +83,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.EntityType(BaseDimensionalObject.class)
+@OpenApi.EntityType(DimensionalObject.class)
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dimensions")
@@ -173,7 +171,7 @@ public class DimensionController
       status = OpenApi.Response.Status.OK,
       object = {
         @OpenApi.Property(name = "pager", value = Pager.class),
-        @OpenApi.Property(name = "items", value = BaseDimensionalItemObject[].class)
+        @OpenApi.Property(name = "items", value = DimensionalItemObject[].class)
       })
   @GetMapping("/{uid}/items")
   public @ResponseBody RootNode getItems(@PathVariable String uid, GetObjectListParams params)

@@ -69,9 +69,6 @@ class TrackerSideValidationEffectDataBundleTest {
 
   @Test
   void testNotificationDataBundleForEvent() {
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        new org.hisp.dhis.tracker.imports.domain.Event();
-    event.setEvent(UID.generate());
     Event expected = new Event();
     expected.setAutoFields();
     TrackerNotificationDataBundle bundle =

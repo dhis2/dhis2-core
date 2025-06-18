@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
@@ -141,7 +143,7 @@ class JdbcAnalyticsTableManagerTest {
       where de.valuetype in ('INTEGER','NUMERIC') \
       and de.aggregationtype in ('SUM','AVERAGE');""";
 
-    assertEquals(expected, subject.replaceQualify(template, variables));
+    assertEquals(expected, replaceQualify(sqlBuilder, template, variables));
   }
 
   @Test
@@ -158,7 +160,7 @@ class JdbcAnalyticsTableManagerTest {
       inner join "dataelement" de on dv.dataelementid = de.dataelementid \
       inner join "period" pe on dv.periodid = pe.periodid;""";
 
-    assertEquals(expected, subject.qualifyVariables(template));
+    assertEquals(expected, qualifyVariables(sqlBuilder, template));
   }
 
   @Test

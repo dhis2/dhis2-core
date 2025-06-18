@@ -60,6 +60,6 @@ interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.imports.
       target = "attributeCategoryOptions",
       source = "attributeCategoryOptions",
       qualifiedByName = "attributeCategoryOptionsToMetadataIdentifier")
-  org.hisp.dhis.tracker.imports.domain.Event from(
+  org.hisp.dhis.tracker.imports.domain.TrackerEvent from(
       Event event, @Context TrackerIdSchemeParams idSchemeParams);
 }
