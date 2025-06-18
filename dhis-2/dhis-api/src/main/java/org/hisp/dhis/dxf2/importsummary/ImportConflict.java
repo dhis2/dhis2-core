@@ -70,6 +70,11 @@ import org.hisp.dhis.i18n.I18n;
 public final class ImportConflict {
   private static final String KEY_DELIMITER = ":";
 
+  public static ImportConflict createUniqueConflict(int index, ErrorCode code, Object... args) {
+    String message = MessageFormat.format(code.getMessage(), args);
+    return new ImportConflict("" + index, null, args, message, code, null, null, index);
+  }
+
   public static ImportConflict createConflict(
       ImportConflictDescriptor descriptor, String... objects) {
     return createConflict(-1, descriptor, objects);

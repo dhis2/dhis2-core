@@ -565,12 +565,18 @@ public enum ErrorCode {
   E7503("Filter for created date period is not valid: `{0}`"),
 
   /* Data import validation */
-  // Data Set validation
+  // Data Set validation (in context of data value import)
   E7600("Data set not found or not accessible: `{0}`"),
   E7601("User does not have write access for DataSet: `{0}`"),
   E7602("A valid dataset is required"),
   E7603("Org unit not found or not accessible: `{0}`"),
   E7604("Attribute option combo not found or not accessible: `{0}`"),
+  E7605("Data elements not part of dataset {0}: `{1}`"),
+  E7606("Data elements belong to multiple data sets: `{0}`"),
+  E7607("ISO period(s) not recognized: `{0}`"),
+  E7608("ISO period(s) not valid for data set {0}: `{1}`"),
+  E7609("Org unit(s) not valid for data set {0}: `{1}`"),
+
   // Data Value validation
   E7610("Data element not found or not accessible: `{0}`"),
   E7611("Period not valid: `{0}`"),
@@ -585,6 +591,14 @@ public enum ErrorCode {
   E7620("Invalid comment: {0}"),
   E7621("Data value is not a valid option of the data element option set: `{0}`"),
   E7622("Current user `{0}` has no access to any organisation unit data"),
+  E7623("Attribute option combo(s) not valid for data set {0}: `{1}`"),
+  E7624("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),
+  E7625("Atomic mode requires all values to be valid but only {0}/{1} were."),
+  E7626(
+      "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
+  E7627("Category option(s) not accessible for writing data: `{0}`"),
+  E7628("Attribute option combo {0} not connected to Org unit(s): `{1}`"),
+
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),
   E7631("Attribute option combo is required but is not specified"),
