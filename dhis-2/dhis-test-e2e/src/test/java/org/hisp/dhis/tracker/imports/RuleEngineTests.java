@@ -43,7 +43,6 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.test.e2e.Constants;
@@ -173,42 +172,41 @@ public class RuleEngineTests extends TrackerApiTest {
         .body("message", hasItem(stringContainsInOrder("ERROR ON COMPLETE ")));
   }
 
-    @Test
-    public void shouldScheduleEvent() throws Exception {
-        String trackedEntity = importTrackedEntity();
-        JsonObject enrollment =
-                new EnrollmentDataBuilder()
-                        .setTrackedEntity(trackedEntity)
-                        .setEnrollmentDate(Instant.now().plus(7, ChronoUnit.DAYS).toString())
-                        .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]);
+  @Test
+  public void shouldScheduleEvent() throws Exception {
+    String trackedEntity = importTrackedEntity();
+    JsonObject enrollment =
+        new EnrollmentDataBuilder()
+            .setTrackedEntity(trackedEntity)
+            .setEnrollmentDate(Instant.now().plus(7, ChronoUnit.DAYS).toString())
+            .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]);
 
-        String enrollmentId =
-                trackerImportExportActions
-                        .postAndGetJobReport(enrollment)
-                        .validateSuccessfulImport()
-                        .extractImportedEnrollments()
-                        .get(0);
+    String enrollmentId =
+        trackerImportExportActions
+            .postAndGetJobReport(enrollment)
+            .validateSuccessfulImport()
+            .extractImportedEnrollments()
+            .get(0);
 
-        JsonObject payload =
-                new EventDataBuilder()
-                        .setEnrollment(enrollmentId)
-                        .setStatus("COMPLETED")
-                        .setEventDate(Instant.now().plus(3, ChronoUnit.DAYS).toString())
-                        .array(Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252GH");
+    JsonObject payload =
+        new EventDataBuilder()
+            .setEnrollment(enrollmentId)
+            .setStatus("COMPLETED")
+            .setEventDate(Instant.now().plus(3, ChronoUnit.DAYS).toString())
+            .array(Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252GH");
 
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            payload, new QueryParamsBuilder().add("async=false"));
 
-        TrackerApiResponse response =
-                trackerImportExportActions
-                        .postAndGetJobReport(payload, new QueryParamsBuilder().add("async=false"));
+    response
+        .validateSuccessfulImport()
+        .validate()
+        .body("status", Matchers.equalTo("OK"))
+        .body("stats.created", CoreMatchers.equalTo(2));
 
-        response
-                .validateSuccessfulImport()
-                .validate()
-                .body("status", Matchers.equalTo("OK"))
-                .body("stats.created", CoreMatchers.equalTo(2));
-
-        response.validateEvents().body("stats.created", Matchers.equalTo(2));
-    }
+    response.validateEvents().body("stats.created", Matchers.equalTo(2));
+  }
 
   @Test
   public void shouldSetMandatoryField() {
