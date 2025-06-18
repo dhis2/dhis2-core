@@ -170,7 +170,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                   params.getClasses().add((Class<? extends IdentifiableObject>) schema.getKlass()));
     }
 
-    log.info("(" + username + ") Export:Start");
+    log.info("({}) Export started", username);
 
     for (Class<? extends IdentifiableObject> klass : params.getClasses()) {
       Query<?> query;
@@ -197,18 +197,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
       if (!objects.isEmpty()) {
         log.info(
-            "("
-                + username
-                + ") Exported "
-                + objects.size()
-                + " objects of type "
-                + klass.getSimpleName());
-
+            "({}) Exported {} objects of type {}", username, objects.size(), klass.getSimpleName());
         metadata.put(klass, objects);
       }
     }
 
-    log.info("(" + username + ") Export:Done took " + timer.toString());
+    log.info("({}) Export completed: {}", username, timer.toString());
 
     return metadata;
   }
@@ -398,7 +392,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
             || user.isSuper()
             || user.isAuthorized(Authorities.F_METADATA_EXPORT.name()))) {
       throw new MetadataExportException(
-          "Unfiltered access to metadata export requires super user or 'F_METADATA_EXPORT' authority.");
+          "Full access to metadata export requires super user or 'F_METADATA_EXPORT' authority.");
     }
 
     if (params.getClasses().contains(User.class)
@@ -459,33 +453,38 @@ public class DefaultMetadataExportService implements MetadataExportService {
       Class<? extends IdentifiableObject> klass =
           (Class<? extends IdentifiableObject>) schema.getKlass();
 
-      // class is enabled if value = true, or fields/filter/order is
-      // present
+      // Class is enabled if value = true, or fields/filter/order is present
       if (isSelectedClass(parameters.get(parameterKey))
           || (parameter.length > 1
               && ("fields".equalsIgnoreCase(parameter[1])
                   || "filter".equalsIgnoreCase(parameter[1])
                   || "order".equalsIgnoreCase(parameter[1])))) {
-        if (!map.containsKey(klass)) map.put(klass, new HashMap<>());
+        if (!map.containsKey(klass)) {
+          map.put(klass, new HashMap<>());
+        }
       } else {
         continue;
       }
 
       if (parameter.length > 1) {
         if ("fields".equalsIgnoreCase(parameter[1])) {
-          if (!map.get(klass).containsKey("fields"))
+          if (!map.get(klass).containsKey("fields")) {
             map.get(klass).put("fields", new ArrayList<>());
+          }
           map.get(klass).get("fields").addAll(parameters.get(parameterKey));
         }
 
         if ("filter".equalsIgnoreCase(parameter[1])) {
-          if (!map.get(klass).containsKey("filter"))
+          if (!map.get(klass).containsKey("filter")) {
             map.get(klass).put("filter", new ArrayList<>());
+          }
           map.get(klass).get("filter").addAll(parameters.get(parameterKey));
         }
 
         if ("order".equalsIgnoreCase(parameter[1])) {
-          if (!map.get(klass).containsKey("order")) map.get(klass).put("order", new ArrayList<>());
+          if (!map.get(klass).containsKey("order")) {
+            map.get(klass).put("order", new ArrayList<>());
+          }
           map.get(klass).get("order").addAll(parameters.get(parameterKey));
         }
       }
@@ -497,7 +496,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
         map.entrySet()) {
       Map<String, List<String>> classMap = entry.getValue();
       Class<? extends IdentifiableObject> objectType = entry.getKey();
-      if (classMap.containsKey("fields")) params.addFields(objectType, classMap.get("fields"));
+      if (classMap.containsKey("fields")) {
+        params.addFields(objectType, classMap.get("fields"));
+      }
 
       List<String> filters = classMap.get("filter");
       List<String> orders = classMap.get("order");
@@ -587,7 +588,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataElementOperand(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       DataElementOperand dataElementOperand) {
-    if (dataElementOperand == null) return metadata;
+    if (dataElementOperand == null) {
+      return metadata;
+    }
     handleCategoryOptionCombo(metadata, dataElementOperand.getCategoryOptionCombo());
     handleLegendSet(metadata, dataElementOperand.getLegendSets());
     handleDataElement(metadata, dataElementOperand.getDataElement());
@@ -598,7 +601,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOptionCombo(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       CategoryOptionCombo categoryOptionCombo) {
-    if (categoryOptionCombo == null) return metadata;
+    if (categoryOptionCombo == null) {
+      return metadata;
+    }
     metadata.putValue(CategoryOptionCombo.class, categoryOptionCombo);
     handleAttributes(metadata, categoryOptionCombo);
 
@@ -612,7 +617,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryCombo(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       CategoryCombo categoryCombo) {
-    if (categoryCombo == null) return metadata;
+    if (categoryCombo == null) {
+      return metadata;
+    }
     metadata.putValue(CategoryCombo.class, categoryCombo);
     handleAttributes(metadata, categoryCombo);
 
@@ -626,7 +633,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategory(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Category category) {
-    if (category == null) return metadata;
+    if (category == null) {
+      return metadata;
+    }
     metadata.putValue(Category.class, category);
     handleAttributes(metadata, category);
 
@@ -640,7 +649,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOption(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       CategoryOption categoryOption) {
-    if (categoryOption == null) return metadata;
+    if (categoryOption == null) {
+      return metadata;
+    }
     metadata.putValue(CategoryOption.class, categoryOption);
     handleAttributes(metadata, categoryOption);
 
@@ -650,7 +661,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleLegendSet(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       List<LegendSet> legendSets) {
-    if (legendSets == null) return metadata;
+    if (legendSets == null) {
+      return metadata;
+    }
 
     for (LegendSet legendSet : legendSets) {
       metadata.putValue(LegendSet.class, legendSet);
@@ -663,7 +676,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleLegend(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Legend legend) {
-    if (legend == null) return metadata;
+    if (legend == null) {
+      return metadata;
+    }
     metadata.putValue(Legend.class, legend);
     handleAttributes(metadata, legend);
 
@@ -673,7 +688,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataEntryForm(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       DataEntryForm dataEntryForm) {
-    if (dataEntryForm == null) return metadata;
+    if (dataEntryForm == null) {
+      return metadata;
+    }
     metadata.putValue(DataEntryForm.class, dataEntryForm);
     handleAttributes(metadata, dataEntryForm);
 
@@ -683,7 +700,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSetElement(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       DataSetElement dataSetElement) {
-    if (dataSetElement == null) return metadata;
+    if (dataSetElement == null) {
+      return metadata;
+    }
 
     handleDataElement(metadata, dataSetElement.getDataElement());
     handleCategoryCombo(metadata, dataSetElement.getCategoryCombo());
@@ -694,7 +713,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataElement(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       DataElement dataElement) {
-    if (dataElement == null) return metadata;
+    if (dataElement == null) {
+      return metadata;
+    }
     metadata.putValue(DataElement.class, dataElement);
     handleAttributes(metadata, dataElement);
 
@@ -708,7 +729,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleOptionSet(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       OptionSet optionSet) {
-    if (optionSet == null) return metadata;
+    if (optionSet == null) {
+      return metadata;
+    }
     metadata.putValue(OptionSet.class, optionSet);
     handleAttributes(metadata, optionSet);
 
@@ -720,7 +743,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleOptionGroup(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       OptionGroup optionGroup) {
-    if (optionGroup == null) return metadata;
+    if (optionGroup == null) {
+      return metadata;
+    }
     metadata.putValue(OptionGroup.class, optionGroup);
     handleAttributes(metadata, optionGroup);
     handleOptionSet(metadata, optionGroup.getOptionSet());
@@ -732,7 +757,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleOption(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Option option) {
-    if (option == null) return metadata;
+    if (option == null) {
+      return metadata;
+    }
     metadata.putValue(Option.class, option);
     handleAttributes(metadata, option);
 
@@ -741,7 +768,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleSection(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Section section) {
-    if (section == null) return metadata;
+    if (section == null) {
+      return metadata;
+    }
     metadata.putValue(Section.class, section);
     handleAttributes(metadata, section);
 
@@ -757,7 +786,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleIndicator(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       Indicator indicator) {
-    if (indicator == null) return metadata;
+    if (indicator == null) {
+      return metadata;
+    }
     metadata.putValue(Indicator.class, indicator);
     handleAttributes(metadata, indicator);
 
@@ -769,7 +800,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleIndicatorType(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       IndicatorType indicatorType) {
-    if (indicatorType == null) return metadata;
+    if (indicatorType == null) {
+      return metadata;
+    }
     metadata.putValue(IndicatorType.class, indicatorType);
     handleAttributes(metadata, indicatorType);
 
@@ -778,7 +811,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgram(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Program program) {
-    if (program == null) return metadata;
+    if (program == null) {
+      return metadata;
+    }
     metadata.putValue(Program.class, program);
     handleAttributes(metadata, program);
 
@@ -833,7 +868,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramRuleVariable(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramRuleVariable programRuleVariable) {
-    if (programRuleVariable == null) return metadata;
+    if (programRuleVariable == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramRuleVariable.class, programRuleVariable);
     handleAttributes(metadata, programRuleVariable);
 
@@ -848,7 +885,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
       handleTrackedEntityAttribute(
           SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
           TrackedEntityAttribute trackedEntityAttribute) {
-    if (trackedEntityAttribute == null) return metadata;
+    if (trackedEntityAttribute == null) {
+      return metadata;
+    }
     metadata.putValue(TrackedEntityAttribute.class, trackedEntityAttribute);
     handleAttributes(metadata, trackedEntityAttribute);
 
@@ -860,7 +899,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramRule(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramRule programRule) {
-    if (programRule == null) return metadata;
+    if (programRule == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramRule.class, programRule);
     handleAttributes(metadata, programRule);
 
@@ -874,7 +915,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramRuleAction(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramRuleAction programRuleAction) {
-    if (programRuleAction == null) return metadata;
+    if (programRuleAction == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramRuleAction.class, programRuleAction);
     handleAttributes(metadata, programRuleAction);
 
@@ -892,7 +935,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
       handleProgramTrackedEntityAttribute(
           SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
           ProgramTrackedEntityAttribute programTrackedEntityAttribute) {
-    if (programTrackedEntityAttribute == null) return metadata;
+    if (programTrackedEntityAttribute == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramTrackedEntityAttribute.class, programTrackedEntityAttribute);
     handleAttributes(metadata, programTrackedEntityAttribute);
 
@@ -904,7 +949,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramStage(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramStage programStage) {
-    if (programStage == null) return metadata;
+    if (programStage == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramStage.class, programStage);
     handleAttributes(metadata, programStage);
 
@@ -928,7 +975,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramStageSection(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramStageSection programStageSection) {
-    if (programStageSection == null) return metadata;
+    if (programStageSection == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramStageSection.class, programStageSection);
     handleAttributes(metadata, programStageSection);
 
@@ -942,7 +991,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramIndicator(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramIndicator programIndicator) {
-    if (programIndicator == null) return metadata;
+    if (programIndicator == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramIndicator.class, programIndicator);
     handleAttributes(metadata, programIndicator);
 
@@ -953,7 +1004,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
       handleProgramStageDataElement(
           SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
           ProgramStageDataElement programStageDataElement) {
-    if (programStageDataElement == null) return metadata;
+    if (programStageDataElement == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramStageDataElement.class, programStageDataElement);
 
     handleAttributes(metadata, programStageDataElement);
@@ -965,7 +1018,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntityType(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       TrackedEntityType trackedEntityType) {
-    if (trackedEntityType == null) return metadata;
+    if (trackedEntityType == null) {
+      return metadata;
+    }
     metadata.putValue(TrackedEntityType.class, trackedEntityType);
     handleAttributes(metadata, trackedEntityType);
 
@@ -975,7 +1030,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventChart(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       EventChart eventChart) {
-    if (eventChart == null) return metadata;
+    if (eventChart == null) {
+      return metadata;
+    }
     metadata.putValue(EventChart.class, eventChart);
     handleAttributes(metadata, eventChart);
 
@@ -985,7 +1042,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventReport(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       EventReport eventReport) {
-    if (eventReport == null) return metadata;
+    if (eventReport == null) {
+      return metadata;
+    }
     metadata.putValue(EventReport.class, eventReport);
     handleAttributes(metadata, eventReport);
 
@@ -995,7 +1054,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleMap(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       org.hisp.dhis.mapping.Map map) {
-    if (map == null) return metadata;
+    if (map == null) {
+      return metadata;
+    }
     metadata.putValue(org.hisp.dhis.mapping.Map.class, map);
     handleAttributes(metadata, map);
 
@@ -1005,7 +1066,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleVisualization(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       Visualization visualization) {
-    if (visualization == null) return metadata;
+    if (visualization == null) {
+      return metadata;
+    }
     metadata.putValue(Visualization.class, visualization);
     handleAttributes(metadata, visualization);
 
@@ -1015,7 +1078,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventVisualization(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       EventVisualization eventVisualization) {
-    if (eventVisualization == null) return metadata;
+    if (eventVisualization == null) {
+      return metadata;
+    }
     metadata.putValue(EventVisualization.class, eventVisualization);
     handleAttributes(metadata, eventVisualization);
 
@@ -1024,7 +1089,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleReport(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Report report) {
-    if (report == null) return metadata;
+    if (report == null) {
+      return metadata;
+    }
     metadata.putValue(Report.class, report);
     handleAttributes(metadata, report);
 
@@ -1034,7 +1101,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleInterpretation(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       Interpretation interpretation) {
-    if (interpretation == null) return metadata;
+    if (interpretation == null) {
+      return metadata;
+    }
     metadata.putValue(Interpretation.class, interpretation);
     handleAttributes(metadata, interpretation);
 
@@ -1044,7 +1113,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEmbeddedItem(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       InterpretableObject embeddedItem) {
-    if (embeddedItem == null) return metadata;
+    if (embeddedItem == null) {
+      return metadata;
+    }
 
     if (embeddedItem.getInterpretations() != null) {
       embeddedItem
@@ -1057,7 +1128,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDocument(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Document document) {
-    if (document == null) return metadata;
+    if (document == null) {
+      return metadata;
+    }
     metadata.putValue(Document.class, document);
     handleAttributes(metadata, document);
 
@@ -1067,7 +1140,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDashboardItem(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       DashboardItem dashboardItem) {
-    if (dashboardItem == null) return metadata;
+    if (dashboardItem == null) {
+      return metadata;
+    }
     handleAttributes(metadata, dashboardItem);
 
     handleVisualization(metadata, dashboardItem.getVisualization());
@@ -1108,8 +1183,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleAttributes(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       IdentifiableObject identifiableObject) {
-    if (identifiableObject == null) return metadata;
-    if (identifiableObject.getAttributeValues().isEmpty()) return metadata;
+    if (identifiableObject == null) {
+      return metadata;
+    }
+    if (identifiableObject.getAttributeValues().isEmpty()) {
+      return metadata;
+    }
     List<Attribute> attributes =
         attributeService.getAttributesByIds(identifiableObject.getAttributeValues().keys());
     metadata.putValues(Attribute.class, attributes);
@@ -1119,7 +1198,9 @@ public class DefaultMetadataExportService implements MetadataExportService {
   private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramSection(
       SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
       ProgramSection programSection) {
-    if (programSection == null) return metadata;
+    if (programSection == null) {
+      return metadata;
+    }
     metadata.putValue(ProgramSection.class, programSection);
     programSection
         .getTrackedEntityAttributes()

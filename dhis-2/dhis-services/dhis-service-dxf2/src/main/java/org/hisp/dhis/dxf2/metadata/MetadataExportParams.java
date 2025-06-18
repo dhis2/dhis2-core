@@ -47,6 +47,8 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.user.UserDetails;
 
 /**
+ * Metadata export parameters.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class MetadataExportParams {
