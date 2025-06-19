@@ -108,7 +108,7 @@ public class H2TestConfig {
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 
-    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build(), "h2test");
+    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build());
     H2SqlFunction.registerH2Functions(dbPool);
 
     return dbPool;

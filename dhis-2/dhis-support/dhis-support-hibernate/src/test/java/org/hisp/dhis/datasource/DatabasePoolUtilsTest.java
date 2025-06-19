@@ -69,8 +69,7 @@ class DatabasePoolUtilsTest {
             .password("")
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource =
-        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), "dbutilstest");
+    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(DriverManagerDataSource.class, dataSource);
   }
 
@@ -107,8 +106,7 @@ class DatabasePoolUtilsTest {
             .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource =
-        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), "dbutilstest");
+    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(ComboPooledDataSource.class, dataSource);
   }
 
@@ -135,8 +133,7 @@ class DatabasePoolUtilsTest {
             .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource =
-        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), "dbutilstest");
+    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(HikariDataSource.class, dataSource);
   }
 }

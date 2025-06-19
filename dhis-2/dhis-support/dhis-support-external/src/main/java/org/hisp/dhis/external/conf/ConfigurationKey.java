@@ -205,16 +205,10 @@ public enum ConfigurationKey {
    */
   ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "7200", false),
 
-  /**
-   * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
-   * connections never expire (default: 7200).
-   */
+  /** Minimum number of idle connections to maintain (default: 10). */
   CONNECTION_POOL_MIN_IDLE("connection.pool.min_idle", "10", false),
 
-  /**
-   * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
-   * connections never expire (default: 7200).
-   */
+  /** Minimum number of idle connections to maintain (default: 10). */
   ANALYTICS_CONNECTION_POOL_MIN_IDLE("analytics.connection.pool.min_idle", "10", false),
 
   /**

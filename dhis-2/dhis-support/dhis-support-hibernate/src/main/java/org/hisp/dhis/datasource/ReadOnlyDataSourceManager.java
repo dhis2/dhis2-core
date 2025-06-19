@@ -136,7 +136,7 @@ public class ReadOnlyDataSourceManager {
       builder.maxIdleTime(String.valueOf(VAL_MAX_IDLE_TIME));
 
       try {
-        dataSources.add(DatabasePoolUtils.createDbPool(builder.build(), "readOnly"));
+        dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
         log.info("Created read-only data source with connection URL: '{}'", url);
       } catch (SQLException | PropertyVetoException e) {
         String message =

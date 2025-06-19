@@ -176,7 +176,7 @@ public class AnalyticsDataSourceConfig {
             .build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig, "analytics");
+      return DatabasePoolUtils.createDbPool(poolConfig);
     } catch (SQLException | PropertyVetoException ex) {
       String message =
           TextUtils.format(

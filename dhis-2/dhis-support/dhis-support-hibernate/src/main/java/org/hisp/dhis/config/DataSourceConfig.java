@@ -106,7 +106,7 @@ public class DataSourceConfig {
         DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig, "actual");
+      return DatabasePoolUtils.createDbPool(poolConfig);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(
@@ -139,7 +139,7 @@ public class DataSourceConfig {
     ProxyDataSourceBuilder builder =
         ProxyDataSourceBuilder.create(actualDataSource)
             .name(
-                "ProxyDS_DHIS2_actual_logging"
+                "ProxyDS_DHIS2_"
                     + dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE)
                     + "_"
                     + CodeGenerator.generateCode(5))
