@@ -381,8 +381,6 @@ public class AppBundler {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    // Force INFO level, so we can see what's going on with Maven
-    //    Configurator.setRootLevel(Level.INFO);
     try {
       String downloadDir = System.getProperty("DOWNLOAD_DIR");
       String buildDir = System.getProperty("BUILD_DIR");

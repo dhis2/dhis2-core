@@ -439,11 +439,13 @@ public class DefaultAppManager implements AppManager {
     try {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", fileName);
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
-      File file = tempFile.toFile();
-      file.deleteOnExit();
-      App app = installAppZipFile(file, fileName, bundledAppInfo);
-      app.setBundled(true);
-      return app;
+      try {
+        App app = installAppZipFile(tempFile.toFile(), fileName, bundledAppInfo);
+        app.setBundled(true);
+        return app;
+      } finally {
+        Files.deleteIfExists(tempFile);
+      }
     } catch (IOException e) {
       log.error("Failed to install bundled app: '{}'", fileName, e);
       throw new RuntimeException(e);
