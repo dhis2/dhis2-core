@@ -53,7 +53,7 @@ public class PostgresTestConfig {
 
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider(
-      @Nullable PostgresTestConfigOverride overrides) throws IOException {
+      @Nullable PostgresTestConfigOverride overrides) {
     if (useLocalDb()) {
       DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
       locationManager.init();
