@@ -24,27 +24,6 @@
             <AppenderRef ref="file"/>
         </Root>
 
-        <Logger name="com.mchange.v2.resourcepool.BasicResourcePool" level="debug" additivity="false">
-            <AppenderRef ref="console"/>
-            <AppenderRef ref="file"/>
-        </Logger>
-        <Logger name="com.zaxxer.hikari.pool" level="debug" additivity="false">
-            <AppenderRef ref="console"/>
-            <AppenderRef ref="file"/>
-        </Logger>
-        <Logger name="org.hisp.dhis.datasource.DatabasePoolUtils" level="debug" additivity="false">
-            <AppenderRef ref="console"/>
-            <AppenderRef ref="file"/>
-        </Logger>
-<!--        <Logger name="org.springframework.jdbc" level="debug" additivity="false">-->
-<!--            <AppenderRef ref="console"/>-->
-<!--            <AppenderRef ref="file"/>-->
-<!--        </Logger>-->
-<!--        <Logger name="org.springframework.transaction" level="debug" additivity="false">-->
-<!--            <AppenderRef ref="console"/>-->
-<!--            <AppenderRef ref="file"/>-->
-<!--        </Logger>-->
-
         <Logger name="org.openapitools.codegen" level="off"/>
 
         <!-- A few examples of loggers that might be useful to debug integration test issues.
@@ -71,5 +50,13 @@
         <!--<Logger name="org.springframework.beans.factory.support.DefaultListableBeanFactory" level="debug" additivity="false">
                 <AppenderRef ref="console"/>
         </Logger>-->
+
+        <!-- Uncomment to debug DB pool configuration -->
+        <!--        <Logger name="com.zaxxer.hikari.pool" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="console"/>-->
+        <!--        </Logger>-->
+        <!--        <Logger name="org.hisp.dhis.datasource.DatabasePoolUtils" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="console"/>-->
+        <!--        </Logger>-->
     </Loggers>
 </Configuration>
