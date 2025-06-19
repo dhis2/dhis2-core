@@ -86,6 +86,7 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
             .withUsername(POSTGRES_USERNAME)
             .withPassword(POSTGRES_PASSWORD)
             .withTmpFs(Map.of("/testtmpfs", "rw"))
+            .withCommand("postgres -c idle_session_timeout=30000")
             .withEnv("LC_COLLATE", "C");
 
     if (initDbScriptIsPresent()) {

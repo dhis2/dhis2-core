@@ -61,6 +61,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITI
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_IDLE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_NUM_THREADS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN;
@@ -223,14 +224,19 @@ public final class DatabasePoolUtils {
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
     final String connectionTestQuery =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
+    final int maxIdleTime =
+        parseInt(
+            firstNonNull(
+                config.getMaxIdleTime(),
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
+    final int minIdleConnections =
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
 
     HikariConfig hc = new HikariConfig();
     hc.setPoolName("HikariDataSource_" + type + "_" + CodeGenerator.generateCode(10));
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
-    //    hc.setIdleTimeout(125000);
-    //    hc.setMinimumIdle(5);
     hc.setPassword(password);
     hc.addDataSourceProperty("cachePrepStmts", "true");
     hc.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -265,9 +271,8 @@ public final class DatabasePoolUtils {
     ds.setConnectionTimeout(connectionTimeout);
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
-    //    ds.setMinimumIdle(5);
-    ds.setLeakDetectionThreshold(20000);
-    //    ds.setIdleTimeout(125000);
+    ds.setIdleTimeout(maxIdleTime);
+    ds.setMinimumIdle(minIdleConnections);
 
     return ds;
   }
@@ -342,8 +347,6 @@ public final class DatabasePoolUtils {
     pooledDataSource.setIdleConnectionTestPeriod(idleConnectionTestPeriod);
     pooledDataSource.setPreferredTestQuery(preferredTestQuery);
     pooledDataSource.setNumHelperThreads(numHelperThreads);
-    //    pooledDataSource.setUnreturnedConnectionTimeout(120);
-    pooledDataSource.setDebugUnreturnedConnectionStackTraces(true);
 
     return pooledDataSource;
   }
