@@ -142,7 +142,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
             .toList(JsonString::string));
   }
 
-  @Disabled("Changed format of the response, but getDataIntegrityReport() is effectively deprecated")
+  @Disabled(
+      "Changed format of the response, but getDataIntegrityReport() is effectively deprecated")
   void testOrganisationUnitsViolatingExclusiveGroupSets() {
     String ouIdA = addOrganisationUnit("A");
     String ouIdB = addOrganisationUnit("B");
