@@ -122,11 +122,10 @@ public class DefaultTrackerImportService implements TrackerImportService {
     }
 
     jobProgress.startingStage("Calculating Payload Size");
-    ValidationReport copiedValidationReport = validationReport;
+    final ValidationReport reportForSize = validationReport;
     Map<TrackerType, Integer> bundleSize =
         jobProgress.nonNullStagePostCondition(
-            jobProgress.runStage(
-                () -> calculatePayloadSize(trackerBundle, copiedValidationReport)));
+            jobProgress.runStage(() -> calculatePayloadSize(trackerBundle, reportForSize)));
 
     if (exitOnError(validationReport, params)) {
       return ImportReport.withValidationErrors(
