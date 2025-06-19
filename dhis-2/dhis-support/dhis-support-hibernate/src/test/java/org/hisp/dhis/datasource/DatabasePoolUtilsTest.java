@@ -117,6 +117,12 @@ class DatabasePoolUtilsTest {
         .willReturn("org.hisp.dhis.datasource.StubDriver");
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_TIMEOUT))
         .willReturn("250");
+
+    given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME))
+        .willReturn("120000");
+
+    given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_MIN_IDLE))
+        .willReturn("10");
     given(
             mockDhisConfigurationProvider.getProperty(
                 ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT))
@@ -130,7 +136,7 @@ class DatabasePoolUtilsTest {
             .password("")
             .maxPoolSize("1")
             .acquireIncrement("1")
-            .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
+            .maxIdleTime("120000")
             .dhisConfig(mockDhisConfigurationProvider);
 
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
