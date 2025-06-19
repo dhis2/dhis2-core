@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,22 +29,51 @@
  */
 package org.hisp.dhis.test.config;
 
+import java.io.IOException;
+import java.util.Properties;
 import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 /**
  * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
  *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Slf4j
 @Configuration
 public class PostgresTestConfig {
 
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider(
-      @Nullable PostgresTestConfigOverride overrides) {
+      @Nullable PostgresTestConfigOverride overrides) throws IOException {
+    if (useLocalDb()) {
+      DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+      locationManager.init();
+      return new DefaultDhisConfigurationProvider(locationManager);
+    }
     return new PostgresDhisConfigurationProvider(overrides);
+  }
+
+  private boolean useLocalDb() {
+    Properties props;
+    try {
+      props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("postgresTestDhis.conf"));
+    } catch (IOException ex) {
+      log.error("Could not load postgresTestDhis.conf from classpath, use test config overrides");
+      return false;
+    }
+    String useDhisConfDb = props.getProperty("use.local.dhis.conf");
+
+    if (StringUtils.isEmpty(useDhisConfDb)) {
+      return false;
+    } else return "yes".equalsIgnoreCase(useDhisConfDb) || "true".equalsIgnoreCase(useDhisConfDb);
   }
 }
