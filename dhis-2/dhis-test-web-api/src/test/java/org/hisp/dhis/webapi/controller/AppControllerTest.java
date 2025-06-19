@@ -100,6 +100,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   void cleanUp() {
     // make sure we reset the UI locale to default in case a test changes it
     DELETE("/systemSettings/keyUiLocale");
+    DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
   }
 
   @Test

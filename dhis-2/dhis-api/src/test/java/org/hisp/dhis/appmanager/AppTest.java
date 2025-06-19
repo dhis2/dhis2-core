@@ -29,10 +29,7 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -176,18 +173,18 @@ class AppTest {
   void testShortcutTranslations() throws IOException {
     String translationJSON =
         """
-                [
-                {
-                      "locale": "es",
-                      "translations": {
-                        "APP_TITLE": "El App",
-                        "APP_DESCRIPTION": "App descripcion",
-                        "SHORTCUT_help": "ayuda",
-                        "SHORTCUT_info": "informacion"
-                      }
-                    }
-                ]
-                """;
+                        [
+                        {
+                              "locale": "es",
+                              "title": "El App",
+                              "description": "App descripcion",
+                              "shortcuts": {
+                                "help": "ayuda",
+                                "info": "informacion"
+                              }
+                            }
+                        ]
+                        """;
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
@@ -200,32 +197,35 @@ class AppTest {
   @Test
   @DisplayName(
       "Should match with the most specific locale if possible (country + language, i.e. es_CO) and fallback to the language if none exists (i.e. es), and to the default otherwise ")
-  void testShortcutTranslationsUsingLanguageWithCountryCode() throws IOException {
+  void testManifestTranslationsFallbackLogic() throws IOException {
     String translationJSON =
         """
-                [
-                  {
-                      "locale": "es",
-                      "translations": {
-                        "APP_TITLE": "El App",
-                        "APP_DESCRIPTION": "App descripcion",
-                        "SHORTCUT_help": "ayuda",
-                        "SHORTCUT_info": "informacion"
-                      }
-                  },
-                  {
-                      "locale": "es_CO",
-                      "translations": {
-                        "SHORTCUT_help": "ayuda (Colombia)"
-                      }
-                  }
-                ]
-                """;
+                        [
+                          {
+                              "locale": "es",
+                              "title": "El App",
+                              "description": "descripcion en español",
+                              "shortcuts": {
+                                "help": "ayuda",
+                                "info": "informacion"
+                              }
+                          },
+                          {
+                              "locale": "es_CO",
+                              "shortcuts": {
+                                "help": "ayuda (Colombia)"
+                              }
+                          }
+                        ]
+                        """;
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
     var result = app.localise(new Locale("es", "CO"));
 
+    assertEquals("El App", result.getDisplayName());
+    assertNotEquals("El App", result.getName());
+    assertEquals("descripcion en español", result.getDisplayDescription());
     assertEquals("ayuda (Colombia)", result.getShortcuts().get(0).getDisplayName());
     assertEquals("informacion", result.getShortcuts().get(1).getDisplayName());
     assertEquals("exit", result.getShortcuts().get(2).getDisplayName());
@@ -235,18 +235,18 @@ class AppTest {
   void testShouldReturnDefaultIfNoMatch() throws IOException {
     String translationJSON =
         """
-                [
-                  {
-                      "locale": "es",
-                      "translations": {
-                        "APP_TITLE": "El App",
-                        "APP_DESCRIPTION": "App descripcion",
-                        "SHORTCUT_help": "ayuda",
-                        "SHORTCUT_info": "informacion"
-                      }
-                  }
-                ]
-                """;
+                        [
+                          {
+                              "locale": "es",
+                              "title": "El App",
+                              "description": "App descripcion",
+                              "shortcuts": {
+                                "help": "ayuda",
+                                "info": "informacion"
+                              }
+                          }
+                        ]
+                        """;
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
@@ -261,27 +261,27 @@ class AppTest {
   void testShouldRespectLanguageScript() throws IOException {
     String translationJSON =
         """
-                [
-                    {
-                      "locale": "uz_Latn",
-                      "translations": {
-                        "SHORTCUT_help": "help (Uzbek Latin)"
-                      }
-                    },
-                    {
-                      "locale": "uz_UZ_Cyrl",
-                       "translations": {
-                        "SHORTCUT_help": "help (Uzbek Cyrillic)"
-                      }
-                    },
-                    {
-                      "locale": "uz_UZ_Latn",
-                       "translations": {
-                        "SHORTCUT_help": "help (Uzbek-Uzbekistan Latin)"
-                      }
-                    }
-                ]
-                """;
+                        [
+                            {
+                              "locale": "uz_Latn",
+                              "shortcuts": {
+                                "help": "help (Uzbek Latin)"
+                              }
+                            },
+                            {
+                              "locale": "uz_UZ_Cyrl",
+                               "shortcuts": {
+                                "help": "help (Uzbek Cyrillic)"
+                              }
+                            },
+                            {
+                              "locale": "uz_UZ_Latn",
+                               "shortcuts": {
+                                "help": "help (Uzbek-Uzbekistan Latin)"
+                              }
+                            }
+                        ]
+                        """;
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);

@@ -31,14 +31,16 @@ package org.hisp.dhis.appmanager;
 
 import java.util.HashMap;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @NoArgsConstructor
 public class AppManifestTranslation {
-  private static final String REGEX = "[_=]";
   private String locale;
 
-  @Setter private HashMap<String, String> translations;
+  @Setter private String title;
+  @Setter private String description;
+  @Setter private HashMap<String, String> shortcuts = new HashMap<>();
 
   private String countryCode;
 
@@ -48,7 +50,7 @@ public class AppManifestTranslation {
 
   public void setLocale(String locale) {
     this.locale = locale;
-    String[] split = locale.split(REGEX);
+    String[] split = StringUtils.split(locale, "_-");
 
     if (split.length == 3) {
       this.scriptCode = split[2];
