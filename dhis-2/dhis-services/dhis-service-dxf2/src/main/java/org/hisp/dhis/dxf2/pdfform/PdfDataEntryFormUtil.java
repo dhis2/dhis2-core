@@ -207,7 +207,7 @@ public class PdfDataEntryFormUtil {
         // Loop Through the Fields and get data.
 
         @SuppressWarnings("unchecked")
-        Set<String> fldNames = form.getFields().keySet();
+        Set<String> fldNames = form.getAllFields().keySet();
 
         for (String fldName : fldNames) {
 
