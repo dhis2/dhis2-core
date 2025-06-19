@@ -32,6 +32,7 @@ package org.hisp.dhis.datasource;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
@@ -269,7 +270,7 @@ public final class DatabasePoolUtils {
     ds.setConnectionTimeout(connectionTimeout);
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
-    ds.setIdleTimeout(maxIdleTime);
+    ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
     ds.setMinimumIdle(minIdleConnections);
 
     return ds;
