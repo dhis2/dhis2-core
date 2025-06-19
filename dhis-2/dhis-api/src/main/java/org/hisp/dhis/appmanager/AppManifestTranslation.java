@@ -38,7 +38,9 @@ public class AppManifestTranslation {
   private static final String REGEX = "[_=]";
   private String locale;
 
-  @Setter private HashMap<String, String> translations;
+  @Setter private String title;
+  @Setter private String description;
+  @Setter private HashMap<String, String> shortcuts = new HashMap<>();
 
   private String countryCode;
 

@@ -210,11 +210,20 @@ public class DefaultAppManager implements AppManager {
       stream = stream.limit(max);
     }
 
+    Locale userLocale = localeManager.getCurrentLocale();
+
     return stream
         .map(
             app -> {
               app.init(contextPath);
-              return app;
+              try {
+                var localisedApp = app.localise(userLocale);
+                return localisedApp;
+              } catch (RuntimeException e) {
+                log.warn(
+                    String.format("Could not localise app information for app: {}", app.getName()));
+                return app;
+              }
             })
         .collect(toList());
   }
@@ -276,17 +285,18 @@ public class DefaultAppManager implements AppManager {
     modules.addAll(
         apps.stream()
             .filter(app -> !MENU_APP_EXCLUSIONS.contains(app.getKey()))
-            .map(
-                app -> {
-                  Locale userLocale = localeManager.getCurrentLocale();
-                  return app.localise(userLocale);
-                })
             .map(WebModule::getModule)
             .map(
                 module -> {
-                  String bundledAppNameTranslation =
-                      i18nManager.getI18n().getString(module.getName(), module.getDisplayName());
-                  module.setDisplayName(bundledAppNameTranslation);
+                  // bundled apps in 42+ have the ability to add their name translations in the
+                  // manifest
+                  // so only use the bundled translations if no manifest translation exists
+                  if (!module.isLocalised()) {
+                    String bundledAppNameTranslation =
+                        i18nManager.getI18n().getString(module.getName(), module.getDisplayName());
+                    module.setDisplayName(bundledAppNameTranslation);
+                    return module;
+                  }
                   return module;
                 })
             .toList());

@@ -41,9 +41,9 @@ import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
-import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * @author Saptarshi
@@ -61,6 +61,8 @@ public class App implements Serializable {
   private String name;
 
   private String displayName;
+
+  private String displayDescription;
 
   private AppType appType = AppType.APP;
 
@@ -113,6 +115,8 @@ public class App implements Serializable {
   private AppStatus appState = AppStatus.OK;
 
   private List<AppShortcut> shortcuts = new ArrayList<>();
+
+  private boolean isLocalised = false;
 
   // -------------------------------------------------------------------------
   // Logic
@@ -313,6 +317,19 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayDescription() {
+    if (displayDescription == null || displayDescription.isEmpty()) {
+      return description;
+    }
+    return displayDescription;
+  }
+
+  public void setDisplayDescription(String displayDescription) {
+    this.displayDescription = displayDescription;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AppDeveloper getDeveloper() {
     return developer;
   }
@@ -429,6 +446,14 @@ public class App implements Serializable {
 
   public void setShortcuts(List<AppShortcut> shortcuts) {
     this.shortcuts = shortcuts;
+  }
+
+  public boolean getIsLocalised() {
+    return this.isLocalised;
+  }
+
+  private void setIsLocalised(boolean localised) {
+    this.isLocalised = localised;
   }
 
   // -------------------------------------------------------------------------
@@ -561,55 +586,61 @@ public class App implements Serializable {
     manifestTranslations = translations;
   }
 
-  public App localise(Locale userLocale) {
+  private boolean hasManifestTranslations(List<AppManifestTranslation> manifestTranslations) {
+    return manifestTranslations.stream()
+        .anyMatch(
+            translation ->
+                !translation.getShortcuts().isEmpty()
+                    || !StringUtils.isEmpty(translation.getTitle()));
+  }
+
+  public App localise(Locale userLocale) throws RuntimeException {
     App localisedApp = SerializationUtils.clone(this);
-    if (!manifestTranslations.isEmpty()) {
+    var translationsToUse = getTranslationToUse(userLocale);
+    if (hasManifestTranslations(translationsToUse)) {
       for (AppShortcut shortcut : localisedApp.shortcuts) {
-        shortcut.setDisplayName(
-            getTranslations(userLocale, "SHORTCUT_" + shortcut.getName(), shortcut.getName()));
+        for (AppManifestTranslation t : translationsToUse) {
+          var shortcutTranslation = t.getShortcuts().get(shortcut.getName());
+          if (shortcutTranslation != null) {
+            shortcut.setDisplayName(shortcutTranslation);
+            break;
+          }
+        }
       }
 
-      String localisedAppTitle = getTranslations(userLocale, "APP_TITLE", null);
-      String localisedAppDescription = getTranslations(userLocale, "APP_DESCRIPTION", null);
+      String displayName = localisedApp.getDisplayName();
+      String displayDescription = localisedApp.getDisplayDescription();
 
-      if (localisedAppTitle != null) {
-        localisedApp.setName(localisedAppTitle);
+      for (AppManifestTranslation t : translationsToUse) {
+        if (!StringUtils.isEmpty(t.getTitle())) {
+          displayName = t.getTitle();
+        }
+        if (!StringUtils.isEmpty(t.getDescription())) {
+          displayDescription = t.getDescription();
+        }
       }
+      localisedApp.setDisplayName(displayName);
+      localisedApp.setDisplayDescription(displayDescription);
 
-      if (localisedAppDescription != null) {
-        localisedApp.setDescription(localisedAppDescription);
-      }
+      localisedApp.setIsLocalised(true);
     }
     return localisedApp;
   }
 
-  private String getTranslations(Locale locale, String shortcutName, String defaultValue) {
-
-    if (this.manifestTranslations == null) {
-      return ObjectUtils.firstNonNull(defaultValue, shortcutName);
-    }
-
+  private ArrayList<AppManifestTranslation> getTranslationToUse(Locale locale) {
     String language = locale.getLanguage();
     String country = locale.getCountry();
     String script = locale.getScript();
 
     Optional<AppManifestTranslation> matchingLocale = getMatchingLocale(language, country, script);
     Optional<AppManifestTranslation> matchingLanguage = getMatchingLanguage(language);
+    Optional<AppManifestTranslation> fallbackLocale = getMatchingLanguage("en");
 
-    if (matchingLocale.isEmpty() && matchingLanguage.isEmpty()) {
-      return defaultValue;
-    }
+    var list = new ArrayList<AppManifestTranslation>();
+    matchingLocale.ifPresent(list::add);
+    matchingLanguage.ifPresent(list::add);
 
-    String result = null;
-    if (matchingLocale.isPresent()) {
-      result = matchingLocale.get().getTranslations().get(shortcutName);
-    }
-
-    if (result == null && matchingLanguage.isPresent()) {
-      result = matchingLanguage.get().getTranslations().get(shortcutName);
-    }
-
-    return ObjectUtils.firstNonNull(result, defaultValue);
+    return list;
   }
 
   private @Nonnull Optional<AppManifestTranslation> getMatchingLanguage(String language) {
