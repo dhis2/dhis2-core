@@ -208,7 +208,7 @@ public class RuleEngineTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnErrorScheduleDateIsInValid() throws Exception {
+  public void shouldReturnWarningScheduleDateIsInValid() throws Exception {
     String trackedEntity = importTrackedEntity();
     JsonObject enrollment =
         new EnrollmentDataBuilder()
