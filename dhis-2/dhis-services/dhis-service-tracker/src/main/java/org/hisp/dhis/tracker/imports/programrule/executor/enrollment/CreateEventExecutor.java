@@ -31,6 +31,9 @@ package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -72,7 +75,9 @@ public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
     scheduledEvent.setScheduledAt(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     scheduledEvent.setStatus(EventStatus.SCHEDULE);
 
-    bundle.getTrackerEvents().add(scheduledEvent);
+    List<TrackerEvent> trackerEvents = new ArrayList<>(bundle.getTrackerEvents());
+    trackerEvents.add(scheduledEvent);
+    bundle.setTrackerEvents(Collections.unmodifiableList(trackerEvents));
     bundle.setStrategy(scheduledEvent, TrackerImportStrategy.CREATE);
 
     return Optional.of(

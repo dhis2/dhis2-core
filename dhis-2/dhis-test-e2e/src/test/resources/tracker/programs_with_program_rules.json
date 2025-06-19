@@ -1073,7 +1073,7 @@
         "users": {},
         "userGroups": {}
       },
-      "condition": "d2:daysBetween(V{event_date},V{current_date}) < 5",
+      "condition": "V{current_date}!=V{event_date}",
       "program": {
         "id": "U5HE4IRrZ7S"
       },
@@ -1087,6 +1087,35 @@
       "programRuleActions": [
         {
           "id": "JFso0S8PMRR"
+        }
+      ]
+    },
+    {
+      "lastUpdated": "2021-01-18T13:36:20.994",
+      "href": "http://localhost:8080/api/programRules/lqESh9rF4LC",
+      "id": "lqESh9rF4AA",
+      "created": "2021-01-18T13:36:20.994",
+      "name": "TA tracker program rule - create event wrong schedule date",
+      "displayName": "TA tracker program rule - create event wrong schedule date",
+      "sharing": {
+        "external": false,
+        "users": {},
+        "userGroups": {}
+      },
+      "condition": "V{current_date}==V{event_date}",
+      "program": {
+        "id": "U5HE4IRrZ7S"
+      },
+      "programStage": {
+        "id": "yKg8CY252GH"
+      },
+      "favorites": [],
+      "translations": [],
+
+      "attributeValues": [],
+      "programRuleActions": [
+        {
+          "id": "JFso0S8PMDD"
         }
       ]
     },
@@ -1413,6 +1442,32 @@
         "id": "inc5BJvr4W5"
       },
       "data": "V{current_date}",
+
+
+      "programStage": {
+        "id": "yKg8CY252Yk"
+      },
+      "favorites": [],
+      "evaluationEnvironments": [
+        "ANDROID",
+        "WEB"
+      ],
+      "translations": [],
+
+      "attributeValues": []
+    },
+    {
+      "id": "JFso0S8PMDD",
+      "programRuleActionType": "CREATEEVENT",
+      "evaluationTime": "ALWAYS",
+      "favorite": false,
+      "programRule": {
+        "id": "lqESh9rF4QW"
+      },
+      "dataElement": {
+        "id": "inc5BJvr4W5"
+      },
+      "data": "2025-22-22",
 
 
       "programStage": {

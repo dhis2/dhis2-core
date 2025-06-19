@@ -43,7 +43,6 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.test.e2e.Constants;
 import org.hisp.dhis.test.e2e.actions.MessageConversationsActions;
@@ -197,15 +196,51 @@ public class RuleEngineTests extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            payload, new QueryParamsBuilder().add("async=false"));
+            payload, new QueryParamsBuilder().add("async=false").add("reportMode=FULL"));
 
     response
         .validateSuccessfulImport()
-        .validate()
-        .body("status", Matchers.equalTo("OK"))
-        .body("stats.created", CoreMatchers.equalTo(2));
+        .validateWarningReport()
+        .body("warningCode", contains("E1320"))
+        .body("message", hasItem(stringContainsInOrder("Event", "was automatically scheduled")));
 
     response.validateEvents().body("stats.created", Matchers.equalTo(2));
+  }
+
+  @Test
+  public void shouldReturnErrorScheduleDateIsInValid() throws Exception {
+    String trackedEntity = importTrackedEntity();
+    JsonObject enrollment =
+        new EnrollmentDataBuilder()
+            .setTrackedEntity(trackedEntity)
+            .setEnrollmentDate(Instant.now().plus(7, ChronoUnit.DAYS).toString())
+            .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]);
+
+    String enrollmentId =
+        trackerImportExportActions
+            .postAndGetJobReport(enrollment)
+            .validateSuccessfulImport()
+            .extractImportedEnrollments()
+            .get(0);
+
+    JsonObject payload =
+        new EventDataBuilder()
+            .setEnrollment(enrollmentId)
+            .setStatus("COMPLETED")
+            .setEventDate(Instant.now().plus(0, ChronoUnit.DAYS).toString())
+            .array(Constants.ORG_UNIT_IDS[0], trackerProgramId, "yKg8CY252GH");
+
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            payload, new QueryParamsBuilder().add("async=false").add("reportMode=FULL"));
+
+    response
+        .validateSuccessfulImport()
+        .validateWarningReport()
+        .body("warningCode", contains("E1319"))
+        .body("message", hasItem(stringContainsInOrder("Date", "is not valid")));
+
+    response.validateEvents().body("stats.created", Matchers.equalTo(1));
   }
 
   @Test
