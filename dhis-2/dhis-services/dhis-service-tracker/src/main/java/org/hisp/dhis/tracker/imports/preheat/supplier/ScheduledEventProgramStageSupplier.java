@@ -47,6 +47,9 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageMapper;
 import org.springframework.stereotype.Component;
 
 /**
+ * Adds to the preheat cache all {@code ProgramStage}s that may be scheduled as a result of {@link
+ * ProgramRuleActionType#CREATEEVENT} program rule actions.
+ *
  * @author Zubair Asghar
  */
 @RequiredArgsConstructor
