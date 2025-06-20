@@ -99,7 +99,6 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
 
-  @Configuration
   public static class DhisConfigurationProviderTestConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
@@ -199,6 +198,11 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @AfterEach
     void afterEach() {
       upstreamMockServerClient.reset();
+    }
+
+    @AfterAll
+    static void afterAll() {
+      upstreamMockServerContainer.stop();
     }
 
     @Test

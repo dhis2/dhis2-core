@@ -82,5 +82,13 @@
         <!--<Logger name="org.springframework.beans.factory.support.DefaultListableBeanFactory" level="debug" additivity="false">
                 <AppenderRef ref="console"/>
         </Logger>-->
+
+        <!-- Uncomment to debug DB pool configuration -->
+<!--        <Logger name="com.zaxxer.hikari.pool" level="debug" additivity="false">-->
+<!--            <AppenderRef ref="console"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="org.hisp.dhis.datasource.DatabasePoolUtils" level="debug" additivity="false">-->
+<!--            <AppenderRef ref="console"/>-->
+<!--        </Logger>-->
     </Loggers>
 </Configuration>
