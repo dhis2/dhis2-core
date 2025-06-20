@@ -52,7 +52,7 @@ import org.hisp.dhis.util.DateUtils;
  * @author Zubair Asghar
  */
 @RequiredArgsConstructor
-public class CreateEventExecutor implements RuleActionExecutor<Enrollment> {
+public class ScheduleEventExecutor implements RuleActionExecutor<Enrollment> {
   private final UID programRule;
   private final UID programStage;
   private final String scheduledAt;

@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Adds to the preheat cache all {@code ProgramStage}s that may be scheduled as a result of {@link
- * ProgramRuleActionType#CREATEEVENT} program rule actions.
+ * ProgramRuleActionType#SCHEDULEEVENT} program rule actions.
  *
  * @author Zubair Asghar
  */
@@ -59,26 +59,18 @@ public class ScheduledEventProgramStageSupplier extends AbstractPreheatSupplier 
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<String> programStageUids = getProgramStageIds(preheat);
-    if (programStageUids.isEmpty()) {
+    List<ProgramStage> programStages = getProgramStages(preheat);
+    if (programStages.isEmpty()) {
       return;
     }
 
-    getProgramStages(programStageUids).stream()
+    programStages.stream()
         .map(ProgramStageMapper.INSTANCE::map)
         .filter(Objects::nonNull)
         .forEach(preheat::put);
   }
 
-  private List<ProgramStage> getProgramStages(List<String> programStageUids) {
-    TypedQuery<ProgramStage> query =
-        entityManager.createQuery(
-            "select ps from ProgramStage ps where ps.uid in :uids", ProgramStage.class);
-    query.setParameter("uids", programStageUids);
-    return query.getResultList();
-  }
-
-  private List<String> getProgramStageIds(TrackerPreheat preheat) {
+  private List<ProgramStage> getProgramStages(TrackerPreheat preheat) {
     List<Program> programs = preheat.getAll(Program.class);
     if (programs.isEmpty()) {
       return Collections.emptyList();
@@ -88,7 +80,7 @@ public class ScheduledEventProgramStageSupplier extends AbstractPreheatSupplier 
 
     String jpql =
         """
-            select distinct ps.uid
+            select distinct ps
             from ProgramRuleAction pra
             join pra.programStage ps
             join pra.programRule pr
@@ -97,9 +89,9 @@ public class ScheduledEventProgramStageSupplier extends AbstractPreheatSupplier 
             and p.uid in :programUids
         """;
 
-    TypedQuery<String> query = entityManager.createQuery(jpql, String.class);
+    TypedQuery<ProgramStage> query = entityManager.createQuery(jpql, ProgramStage.class);
     query.setParameter("programUids", programUids);
-    query.setParameter("actionType", ProgramRuleActionType.CREATEEVENT);
+    query.setParameter("actionType", ProgramRuleActionType.SCHEDULEEVENT);
 
     return query.getResultList();
   }

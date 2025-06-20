@@ -106,7 +106,7 @@ public class ServiceConfig {
             ProgramRuleActionType.HIDEFIELD,
             getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
         .put(
-            ProgramRuleActionType.CREATEEVENT,
+            ProgramRuleActionType.SCHEDULEEVENT,
             getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
         .put(
             ProgramRuleActionType.WARNINGONCOMPLETE,

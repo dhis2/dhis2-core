@@ -1432,7 +1432,7 @@
     },
     {
       "id": "JFso0S8PMRR",
-      "programRuleActionType": "CREATEEVENT",
+      "programRuleActionType": "SCHEDULEEVENT",
       "evaluationTime": "ALWAYS",
       "favorite": false,
       "programRule": {
@@ -1458,7 +1458,7 @@
     },
     {
       "id": "JFso0S8PMDD",
-      "programRuleActionType": "CREATEEVENT",
+      "programRuleActionType": "SCHEDULEEVENT",
       "evaluationTime": "ALWAYS",
       "favorite": false,
       "programRule": {
