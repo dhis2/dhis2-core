@@ -60,14 +60,13 @@ class DefaultAppManagerTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
   @Mock private AppHubService appHubService;
-  @Mock private AppStorageService localAppStorageService;
   @Mock private AppStorageService jCloudsAppStorageService;
-  @Mock private BundledAppStorageService bundledAppStorageService;
   @Mock private DatastoreService datastoreService;
   @Mock private Cache<App> appCache;
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
   @Mock private CacheBuilder cacheBuilder;
   @Mock private I18nManager i18nManager;
+  @Mock private BundledAppManager bundledAppInstaller;
 
   private AppManager appManager;
 
@@ -122,12 +121,11 @@ class DefaultAppManagerTest {
         new DefaultAppManager(
             dhisConfigurationProvider,
             appHubService,
-            localAppStorageService,
             jCloudsAppStorageService,
-            bundledAppStorageService,
             datastoreService,
             cacheBuilderProvider,
-            i18nManager);
+            i18nManager,
+            bundledAppInstaller);
   }
 
   /**

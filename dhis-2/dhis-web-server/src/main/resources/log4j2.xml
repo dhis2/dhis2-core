@@ -3,7 +3,7 @@
   <Appenders>
     <Console name="console_color" target="SYSTEM_OUT" follow="true">
       <PatternLayout
-        pattern="%d{HH:mm:ss.SSS} %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} [%15.15t] %style{%-40.40C{1.}}{cyan} : %m%n%throwable"/>
+        pattern="%d{HH:mm:ss.SSS} %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} [%15.15t] %style{%-40.40C{1.}:%L}{cyan} : %m%n%throwable"/>
     </Console>
     <Console name="console" target="SYSTEM_OUT">
       <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t]) %X{sessionId} %X{xRequestID}%n"/>

@@ -48,41 +48,6 @@ public interface AppManager {
   static final String BUNDLED_APP_PREFIX = "dhis-web-";
   static final String INSTALLED_APP_PREFIX = "api/apps/";
 
-  /* To be removed in favor of dynamic ClassPath loading, see BundledAppStorageService */
-  @Deprecated(forRemoval = true)
-  static final Set<String> BUNDLED_APPS =
-      Set.of(
-          "aggregate-data-entry",
-          "approval",
-          "app-management",
-          "cache-cleaner",
-          "capture",
-          "dashboard",
-          "data-administration",
-          "data-visualizer",
-          "data-quality",
-          "datastore",
-          "event-reports",
-          "event-visualizer",
-          "global-shell",
-          "import-export",
-          "interpretation",
-          "line-listing",
-          "login",
-          "maintenance",
-          "maps",
-          "menu-management",
-          "messaging",
-          "pivot",
-          "reports",
-          "scheduler",
-          "settings",
-          "sms-configuration",
-          "translations",
-          "usage-analytics",
-          "user",
-          "user-profile");
-
   static final Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
 
   static final Set<String> MENU_APP_EXCLUSIONS =
@@ -177,7 +142,7 @@ public interface AppManager {
    * @param appHubId A unqiue ID for a specific app version
    * @return outcome of the installation
    */
-  App installApp(UUID appHubId);
+  App installAppByHubId(UUID appHubId);
 
   /**
    * Indicates whether the app with the given name exist.
