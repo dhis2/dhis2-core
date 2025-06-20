@@ -179,7 +179,7 @@ public class PdfDataEntryFormUtil {
 
     List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValueList = new ArrayList<>();
 
-    try {
+    try (in) {
       reader = new PdfReader(in);
 
       AcroFields form = reader.getAcroFields();
