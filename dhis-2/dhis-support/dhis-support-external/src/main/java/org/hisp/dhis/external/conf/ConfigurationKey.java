@@ -211,6 +211,23 @@ public enum ConfigurationKey {
   /** Minimum number of idle connections to maintain (default: 10). */
   ANALYTICS_CONNECTION_POOL_MIN_IDLE("analytics.connection.pool.min_idle", "10", false),
 
+  /** Interval to keep idle connections alive. Does not reset idle timeout. (default: 2 minutes). */
+  CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS("connection.pool.keep_alive_time_seconds", "120", false),
+
+  /** Interval to keep idle connections alive. Does not reset idle timeout. (default: 2 minutes). */
+  ANALYTICS_CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS(
+      "analytics.connection.pool.keep_alive_time_seconds", "120", false),
+
+  /**
+   * Connection max lifetime. An in-use connection will never be retired, only when it is idle will
+   * it be removed. (default: 30 minutes).
+   */
+  CONNECTION_POOL_MAX_LIFETIME_SECONDS("connection.pool.max_lifetime_seconds", "1800", false),
+
+  /** Interval to keep idle connections alive (default: 30 minutes). */
+  ANALYTICS_CONNECTION_POOL_MAX_LIFETIME_SECONDS(
+      "analytics.connection.pool.max_lifetime_seconds", "1800", false),
+
   /**
    * Number of seconds that Connections in excess of minPoolSize should be permitted to remain idle
    * in the pool before being culled (default: 0).

@@ -59,8 +59,10 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUI
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_RETRY_DELAY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_LIFETIME_SECONDS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_IDLE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_SIZE;
@@ -228,6 +230,11 @@ public final class DatabasePoolUtils {
             firstNonNull(
                 config.getMaxIdleTime(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
+    final int keepAliveTimeSeconds =
+        parseInt(
+            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS)));
+    final int maxLifeTimeSeconds =
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_LIFETIME_SECONDS)));
     final int minIdleConnections =
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
 
@@ -270,8 +277,10 @@ public final class DatabasePoolUtils {
     ds.setConnectionTimeout(connectionTimeout);
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
-    ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
     ds.setMinimumIdle(minIdleConnections);
+    ds.setKeepaliveTime(keepAliveTimeSeconds);
+    ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
+    ds.setMaxLifetime(maxLifeTimeSeconds);
 
     return ds;
   }
