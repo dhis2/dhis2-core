@@ -38,7 +38,8 @@ public enum ValidationAction {
   SHOW_WARNING("SHOWWARNING"),
   SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
   SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
-  RAISE_ERROR("ERROR");
+  RAISE_ERROR("ERROR"),
+  SCHEDULE_EVENT("SCHEDULEEVENT");
 
   public static boolean contains(String ruleEngineName) {
     return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
