@@ -29,44 +29,38 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.HashMap;
+import lombok.*;
 
-@JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
-public class AppShortcut implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8865601558938806456L;
+@Getter
+@NoArgsConstructor
+public class AppManifestTranslation {
+  private static final String REGEX = "[_=]";
+  private String locale;
 
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String name;
+  @Setter private String title;
+  @Setter private String description;
+  @Setter private HashMap<String, String> shortcuts = new HashMap<>();
 
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String url;
+  private String countryCode;
 
-  @Setter private String displayName;
+  private String languageCode;
 
-  public AppShortcut() {}
+  private String scriptCode;
 
-  public AppShortcut(String name, String url) {
-    this.name = name;
-    this.url = url;
-  }
+  public void setLocale(String locale) {
+    this.locale = locale;
+    String[] split = locale.split(REGEX);
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getDisplayName() {
-    if (displayName == null) {
-      return name;
+    if (split.length == 3) {
+      this.scriptCode = split[2];
+      this.countryCode = split[1];
     }
-    return displayName;
+
+    if (split.length == 2) {
+      this.countryCode = split[1];
+    }
+
+    this.languageCode = split[0];
   }
 }
