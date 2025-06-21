@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
 import lombok.AccessLevel;
@@ -78,8 +77,7 @@ public class Each<T, R> implements Validator<T> {
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, T input) {
-    Collection<R> items = new ArrayList<>(map.apply(input)); // defensive copy
-    for (R in : items) {
+    for (R in : map.apply(input)) {
       if ((in instanceof TrackerDto trackerDto
               && !validator.needsToRun(bundle.getStrategy(trackerDto)))
           || (!(in instanceof TrackerDto) && !validator.needsToRun(bundle.getImportStrategy()))) {

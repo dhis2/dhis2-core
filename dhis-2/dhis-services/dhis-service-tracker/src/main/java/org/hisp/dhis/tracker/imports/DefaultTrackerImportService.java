@@ -158,6 +158,13 @@ public class DefaultTrackerImportService implements TrackerImportService {
     return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
   }
 
+  /**
+   * Calculates the payload size for each {@link TrackerType}, combining data from both the {@link
+   * TrackerBundle} and the {@link ValidationReport}.
+   *
+   * <p>This ensures that even if validation excludes certain tracker types from the bundle, their
+   * presence is still accounted for via validation errors.
+   */
   private Map<TrackerType, Integer> calculatePayloadSize(
       TrackerBundle bundle, ValidationReport validationReport) {
     final Map<TrackerType, Integer> bundleSize = new EnumMap<>(TrackerType.class);
