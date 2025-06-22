@@ -45,4 +45,6 @@ public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramR
   List<ProgramRuleAction> getMalFormedRuleActionsByType(ProgramRuleActionType type);
 
   List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements);
+
+  List<String> getProgramStagesPresentInProRuleActions(ProgramRuleActionType type);
 }

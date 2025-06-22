@@ -103,4 +103,16 @@ public class HibernateProgramRuleActionStore
         .setParameter("dataElements", dataElements)
         .list();
   }
+
+  @Override
+  public List<String> getProgramStagesPresentInProRuleActions(ProgramRuleActionType type) {
+    String sql =
+        """
+            select distinct ps.uid
+            from ProgramRuleAction pra
+            join pra.programStage ps
+            where pra.programRuleActionType = :actionType and pra.programStage is not null
+                """;
+    return getQuery(sql, String.class).setParameter("actionType", type).getResultList();
+  }
 }

@@ -72,4 +72,6 @@ public interface ProgramRuleActionService {
   List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
 
   List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
+
+  List<String> getProgramStagesPresentInProRuleActions();
 }
