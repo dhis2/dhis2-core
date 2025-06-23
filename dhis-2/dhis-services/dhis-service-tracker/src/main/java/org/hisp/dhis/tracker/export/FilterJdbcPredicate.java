@@ -183,6 +183,9 @@ public class FilterJdbcPredicate {
 
   private static String generateSql(
       DataElement de, QueryFilter filter, Parameter parameter, String ev) {
+    if (isMultiTextType(de)) {
+      return multiTextClause(getColumn(de, ev), filter.getOperator(), parameter);
+    }
     String leftOperand = leftOperandSql(de, filter.getOperator(), ev);
     String rightOperand = rightOperandSql(filter.getOperator(), parameter);
     return leftOperand + " " + filter.getSqlOperator() + rightOperand;
@@ -208,7 +211,7 @@ public class FilterJdbcPredicate {
 
   @Nonnull
   private static String leftOperandSql(DataElement de, QueryOperator operator, String table) {
-    String column = table + ".eventdatavalues #>> '{" + de.getUid() + ", value}'";
+    String column = getColumn(de, table);
 
     String leftOperand;
     if (operator.isUnary()) {
@@ -227,6 +230,11 @@ public class FilterJdbcPredicate {
   }
 
   @Nonnull
+  private static String getColumn(DataElement de, String table) {
+    return table + ".eventdatavalues #>> '{" + de.getUid() + ", value}'";
+  }
+
+  @Nonnull
   private static String rightOperandSql(QueryOperator operator, Parameter parameter) {
     if (parameter == null) {
       return "";
@@ -238,6 +246,56 @@ public class FilterJdbcPredicate {
     }
 
     return " :" + name;
+  }
+
+  @Nonnull
+  private static String multiTextClause(
+      String column, QueryOperator operator, Parameter parameter) {
+    String unnestSql = "unnest(string_to_array(lower(" + column + "), ',')) AS val";
+    String trimmed = "trim(val)";
+    String param = parameter.name();
+
+    switch (operator) {
+      case IN:
+      case EQ:
+      case IEQ:
+        return "EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " IN (:" + param + "))";
+
+      case NE:
+      case NEQ:
+      case NIEQ:
+        return "NOT EXISTS (SELECT 1 FROM "
+            + unnestSql
+            + " WHERE "
+            + trimmed
+            + " IN (:"
+            + param
+            + "))";
+
+      case LIKE:
+      case SW:
+      case EW:
+      case ILIKE:
+        return "EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " LIKE :" + param + ")";
+
+      case NLIKE:
+      case NILIKE:
+        return "NOT EXISTS (SELECT 1 FROM "
+            + unnestSql
+            + " WHERE "
+            + trimmed
+            + " LIKE :"
+            + param
+            + ")";
+
+      default:
+        throw new UnsupportedOperationException(
+            "Operator not supported for multi-text: " + operator);
+    }
+  }
+
+  private static boolean isMultiTextType(DataElement de) {
+    return ValueType.MULTI_TEXT == de.getValueType();
   }
 
   /**
