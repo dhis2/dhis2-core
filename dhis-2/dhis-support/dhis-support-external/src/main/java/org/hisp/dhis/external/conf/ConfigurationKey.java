@@ -224,7 +224,10 @@ public enum ConfigurationKey {
    */
   CONNECTION_POOL_MAX_LIFETIME_SECONDS("connection.pool.max_lifetime_seconds", "1800", false),
 
-  /** Interval to keep idle connections alive (default: 30 minutes). */
+  /**
+   * Connection max lifetime. An in-use connection will never be retired, only when it is idle will
+   * it be removed. (default: 30 minutes).
+   */
   ANALYTICS_CONNECTION_POOL_MAX_LIFETIME_SECONDS(
       "analytics.connection.pool.max_lifetime_seconds", "1800", false),
 
