@@ -38,7 +38,7 @@ import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Lists;
+import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -83,9 +83,9 @@ class StrategyPreProcessorTest extends TestBase {
 
   private Relationship relationship;
 
-  private org.hisp.dhis.tracker.imports.domain.Event event;
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent event;
 
-  private org.hisp.dhis.tracker.imports.domain.Event newEvent;
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent newEvent;
 
   private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
 
@@ -119,10 +119,9 @@ class StrategyPreProcessorTest extends TestBase {
     newEnrollment.setEnrollment(NEW_ENROLLMENT_UID);
     dbEvent = new Event();
     dbEvent.setUid(EVENT_UID.getValue());
-    event = new org.hisp.dhis.tracker.imports.domain.Event();
-    event.setEvent(EVENT_UID);
-    newEvent = new org.hisp.dhis.tracker.imports.domain.Event();
-    newEvent.setEvent(NEW_EVENT_UID);
+    event = org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(EVENT_UID).build();
+    newEvent =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(NEW_EVENT_UID).build();
     relationship = new Relationship();
     relationship.setUid(RELATIONSHIP_UID.getValue());
     payloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
@@ -139,10 +138,10 @@ class StrategyPreProcessorTest extends TestBase {
   void testStrategyPreprocessForCreateAndUpdate() {
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .trackedEntities(Lists.newArrayList(trackedEntity, newTrackedEntity))
-            .enrollments(Lists.newArrayList(enrollment, newEnrollment))
-            .events(Lists.newArrayList(event, newEvent))
-            .relationships(Lists.newArrayList(payloadRelationship, newPayloadRelationship))
+            .trackedEntities(List.of(trackedEntity, newTrackedEntity))
+            .enrollments(List.of(enrollment, newEnrollment))
+            .trackerEvents(List.of(event, newEvent))
+            .relationships(List.of(payloadRelationship, newPayloadRelationship))
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .preheat(preheat)
             .build();
@@ -162,10 +161,10 @@ class StrategyPreProcessorTest extends TestBase {
   void testStrategyPreprocessForDelete() {
     TrackerBundle bundle =
         TrackerBundle.builder()
-            .trackedEntities(Lists.newArrayList(trackedEntity, newTrackedEntity))
-            .enrollments(Lists.newArrayList(enrollment, newEnrollment))
-            .events(Lists.newArrayList(event, newEvent))
-            .relationships(Lists.newArrayList(payloadRelationship, newPayloadRelationship))
+            .trackedEntities(List.of(trackedEntity, newTrackedEntity))
+            .enrollments(List.of(enrollment, newEnrollment))
+            .trackerEvents(List.of(event, newEvent))
+            .relationships(List.of(payloadRelationship, newPayloadRelationship))
             .importStrategy(DELETE)
             .preheat(preheat)
             .build();

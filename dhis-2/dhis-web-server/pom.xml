@@ -15,14 +15,14 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.6</tomcat.version>
+    <tomcat.version>11.0.8</tomcat.version>
     <jib.version>3.4.5</jib.version>
     <jib.from.image>tomcat:${tomcat.version}-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
-    <spring-boot-maven-plugin.version>3.5.0</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>3.5.3</spring-boot-maven-plugin.version>
   </properties>
 
   <dependencies>

@@ -276,9 +276,10 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
         testSetup.fromJson("tracker/validations/events-scheduled-with-registration.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
-    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
     User user = userService.getUser(USER_5);
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    user.setTeiSearchOrganisationUnits(
+        Set.of(organisationUnitService.getOrganisationUnit("QfUVllTs6cS")));
+    user.setOrganisationUnits(Set.of(organisationUnitService.getOrganisationUnit("QfUVllTs6cZ")));
     manager.update(user);
     injectSecurityContextUser(user);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);

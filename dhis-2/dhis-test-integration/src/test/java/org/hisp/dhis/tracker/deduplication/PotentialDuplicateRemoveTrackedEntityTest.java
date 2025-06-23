@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -79,6 +80,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private RelationshipService relationshipService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private TrackedEntityType trackedEntityType;
 
@@ -195,7 +198,15 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.update(duplicate);
     manager.update(control1);
     manager.update(control2);
-    assertTrue(trackedEntityService.findTrackedEntity(UID.of(original)).isPresent());
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        original, program, organisationUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        duplicate, program, organisationUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        control1, program, organisationUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        control2, program, organisationUnit);
+
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control1)).isPresent());
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control2)).isPresent());

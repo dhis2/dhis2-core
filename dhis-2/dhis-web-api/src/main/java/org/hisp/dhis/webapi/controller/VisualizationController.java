@@ -41,9 +41,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
@@ -205,7 +205,7 @@ public class VisualizationController
         .filter(ddi -> ddi.getExpressionDimensionItem() != null)
         .forEach(
             ddi -> {
-              List<BaseDimensionalItemObject> expressionItems =
+              List<DimensionalItemObject> expressionItems =
                   expressionDimensionItemService.getExpressionItems(ddi);
 
               expressionItems.forEach(

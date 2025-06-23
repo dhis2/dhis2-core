@@ -48,26 +48,37 @@ import org.hisp.dhis.program.AnalyticsType;
 @Getter
 public class CteDefinition {
 
+  @Getter
   public enum CteType {
     /** CTE for standard program stage data/offsets. */
-    PROGRAM_STAGE,
+    PROGRAM_STAGE(10),
     /** CTE for the base aggregation query (e.g., enrollment_aggr_base). */
-    BASE_AGGREGATION,
+    BASE_AGGREGATION(10),
     /** CTE representing a full Program Indicator calculation. */
-    PROGRAM_INDICATOR_EVENT,
+    PROGRAM_INDICATOR_EVENT(10),
 
-    PROGRAM_INDICATOR_ENROLLMENT,
+    PROGRAM_INDICATOR_ENROLLMENT(10),
 
     /** CTE representing a simple filter condition. */
-    FILTER,
+    FILTER(10),
     /** CTE replacing a V{...} variable subquery. */
-    VARIABLE,
+    VARIABLE(10),
     /** CTE replacing a #{...} programStage/dataElement subquery. */
-    PROGRAM_STAGE_DATE_ELEMENT,
+    PROGRAM_STAGE_DATE_ELEMENT(10),
     /** CTE replacing a d2:function(...) subquery (like d2:countIfValue). */
-    D2_FUNCTION,
+    D2_FUNCTION(10),
     /** CTE for checking existence (rowContext=true). */
-    EXISTS // Added based on setExists usage
+    EXISTS(10),
+    /** Special CTE for pre-aggregated enrollments. */
+    TOP_ENROLLMENTS(1),
+    SHADOW_ENROLLMENT_TABLE(2),
+    SHADOW_EVENT_TABLE(3);
+
+    private final int priority;
+
+    CteType(int priority) {
+      this.priority = priority;
+    }
   }
 
   /* Query item id */
@@ -293,6 +304,21 @@ public class CteDefinition {
         joinColumn,
         null, // targetRank
         CteType.D2_FUNCTION);
+  }
+
+  public static CteDefinition forShadowTable(String tableName, String sql, CteType cteType) {
+    return new CteDefinition(
+        tableName, null, // programStageUid
+        null, // programIndicatorUid
+        sql, // cteDefinition
+        tableName, // alias (same as table name!)
+        false, // rowContext
+        false, // isExists
+        false, // requiresCoalesce
+        null, // aggregateWhereClause
+        null, // joinColumn
+        null, // targetRank
+        cteType);
   }
 
   public CteDefinition setExists(boolean exists) {

@@ -181,7 +181,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
       @Nonnull String url,
       @Nonnull List<Header> headers,
       String contentType,
-      String content) {
+      Body content) {
     return perform(buildMockRequest(method, url, headers, contentType, content));
   }
 
@@ -204,7 +204,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
   }
 
   protected MockHttpServletRequestBuilder buildMockRequest(
-      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
+      HttpMethod method, String url, List<Header> headers, String contentType, Body content) {
 
     MockHttpServletRequestBuilder request =
         MockMvcRequestBuilders.request(
@@ -217,7 +217,13 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
       request.contentType(contentType);
     }
     if (content != null) {
-      request.content(content);
+      String text = content.text();
+      if (text != null) {
+        request.content(text);
+      } else {
+        byte[] binary = content.binary();
+        request.content(binary);
+      }
     }
 
     return request;
@@ -253,6 +259,11 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     @Override
     public String getHeader(String name) {
       return response.getHeader(name);
+    }
+
+    @Override
+    public String getContentType() {
+      return response.getContentType();
     }
   }
 

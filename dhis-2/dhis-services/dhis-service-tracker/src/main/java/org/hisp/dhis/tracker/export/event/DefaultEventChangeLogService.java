@@ -45,13 +45,17 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +64,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {
 
-  private final EventService eventService;
+  private final TrackerEventService trackerEventService;
+  private final SingleEventService singleEventService;
+  private final IdentifiableObjectManager manager;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
@@ -71,9 +77,24 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     // check existence and access
-    eventService.getEvent(event);
+    Program program = getProgramFromEvent(event);
+    if (program.isRegistration()) {
+      trackerEventService.getEvent(event);
+    } else {
+      singleEventService.getEvent(event);
+    }
 
     return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
+  }
+
+  @Nonnull
+  private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
+    Event event = manager.get(Event.class, eventUID);
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUID);
+    }
+
+    return event.getProgramStage().getProgram();
   }
 
   @Transactional

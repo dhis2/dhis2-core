@@ -119,16 +119,20 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
   // Logic
   // -------------------------------------------------------------------------
 
+  /** Returns a transient name based on the program and attribute. */
   @Override
   public String getName() {
-    return (program != null ? program.getDisplayName() + " " : "")
-        + (attribute != null ? attribute.getDisplayName() : "");
+    String pr = program != null ? program.getDisplayName() + " " : "";
+    String at = attribute != null ? attribute.getDisplayName() : "";
+    return String.format("%s%s", pr, at);
   }
 
+  /** Returns a transient short name based on the program and attribute. */
   @JsonProperty
   public String getDisplayShortName() {
-    return (program != null ? program.getDisplayShortName() + " " : "")
-        + (attribute != null ? attribute.getDisplayShortName() : "");
+    String pr = program != null ? program.getDisplayShortName() + " " : "";
+    String at = attribute != null ? attribute.getDisplayShortName() : "";
+    return String.format("%s%s", pr, at);
   }
 
   @JsonProperty
@@ -139,37 +143,38 @@ public class ProgramTrackedEntityAttribute extends BaseIdentifiableObject
 
   @Override
   public String toString() {
-    return "ProgramTrackedEntityAttribute{"
-        + "class="
-        + getClass()
-        + ", program="
-        + program
-        + ", attribute="
-        + attribute
-        + ", displayInList="
-        + displayInList
-        + ", sortOrder="
-        + sortOrder
-        + ", mandatory="
-        + mandatory
-        + ", allowFutureDate="
-        + allowFutureDate
-        + ", renderOptionsAsRadio="
-        + renderOptionsAsRadio
-        + ", renderType="
-        + renderType
-        + ", searchable="
-        + searchable
-        + ", id="
-        + id
-        + ", uid='"
-        + uid
-        + '\''
-        + ", created="
-        + created
-        + ", lastUpdated="
-        + lastUpdated
-        + '}';
+    return String.format(
+        """
+        ProgramTrackedEntityAttribute{
+          class=%s,
+          program=%s,
+          attribute=%s,
+          displayInList=%s,
+          sortOrder=%s,
+          mandatory=%s,
+          allowFutureDate=%s,
+          renderOptionsAsRadio=%s,
+          renderType=%s,
+          searchable=%s,
+          id=%s,
+          uid='%s',
+          created=%s,
+          lastUpdated=%s
+        }""",
+        getClass(),
+        program,
+        attribute,
+        displayInList,
+        sortOrder,
+        mandatory,
+        allowFutureDate,
+        renderOptionsAsRadio,
+        renderType,
+        searchable,
+        id,
+        uid,
+        created,
+        lastUpdated);
   }
 
   // -------------------------------------------------------------------------

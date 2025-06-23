@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
@@ -821,8 +822,8 @@ class RelativePeriodsTest {
     Period relPeriod = new Period(relPeriodTypeEnum);
     Period relPeriodSame = new Period(relPeriodTypeEnum);
 
-    assertTrue(aug2022.equals(aug2022Same));
-    assertTrue(relPeriod.equals(relPeriodSame));
-    assertFalse(aug2022.equals(relPeriod));
+    assertEquals(aug2022, aug2022Same);
+    assertEquals(relPeriod, relPeriodSame);
+    assertNotEquals(aug2022, relPeriod);
   }
 }

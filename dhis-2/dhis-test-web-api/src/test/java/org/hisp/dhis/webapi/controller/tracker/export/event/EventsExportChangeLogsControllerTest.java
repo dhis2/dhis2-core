@@ -65,6 +65,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -88,6 +89,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
   @Autowired private CategoryService categoryService;
 
   @Autowired private DhisConfigurationProvider config;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private CategoryOptionCombo coc;
 
@@ -429,6 +432,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        te, program, te.getOrganisationUnit());
     return enrollment;
   }
 

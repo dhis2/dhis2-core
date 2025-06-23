@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.tracker.export.Order;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1318;
 
-@Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class SingleEventChangeLogOperationParams {
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
 
-  private Order order;
-  private Pair<String, QueryFilter> filter;
-
-  public static class SingleEventChangeLogOperationParamsBuilder {
-
-    // Do not remove these unused methods. They hide the order and filter fields from the builder
-    // which Lombok
-    // does not support.
-    // They should be added via their respective orderBy and filterBy builder methods.
-    private SingleEventChangeLogOperationParamsBuilder order(Order order) {
-      return this;
+class StatusValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    if (event instanceof SingleEvent singleEvent
+        && !isSingleEventStatusValid(singleEvent.getStatus())) {
+      reporter.addError(event, E1318, singleEvent.getStatus());
     }
+  }
 
-    private SingleEventChangeLogOperationParamsBuilder filter(Pair<String, QueryFilter> filter) {
-      return this;
-    }
-
-    public SingleEventChangeLogOperationParamsBuilder orderBy(
-        String field, SortDirection direction) {
-      this.order = new Order(field, direction);
-      return this;
-    }
-
-    public SingleEventChangeLogOperationParamsBuilder filterBy(String field, QueryFilter filter) {
-      this.filter = Pair.of(field, filter);
-      return this;
-    }
+  private boolean isSingleEventStatusValid(EventStatus status) {
+    return switch (status) {
+      case VISITED, ACTIVE, COMPLETED -> true;
+      case OVERDUE, SKIPPED, SCHEDULE -> false;
+    };
   }
 }

@@ -37,8 +37,8 @@ import java.util.Collections;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -54,7 +54,7 @@ class TrackerBundleTest {
             .validationMode(ValidationMode.SKIP)
             .trackedEntities(Collections.singletonList(new TrackedEntity()))
             .enrollments(Collections.singletonList(new Enrollment()))
-            .events(Collections.singletonList(new Event()))
+            .trackerEvents(Collections.singletonList(new TrackerEvent()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
     assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());
@@ -71,7 +71,7 @@ class TrackerBundleTest {
             .validationMode(ValidationMode.SKIP)
             .trackedEntities(Arrays.asList(new TrackedEntity(), new TrackedEntity()))
             .enrollments(Arrays.asList(new Enrollment(), new Enrollment()))
-            .events(Arrays.asList(new Event(), new Event()))
+            .trackerEvents(Arrays.asList(new TrackerEvent(), new TrackerEvent()))
             .build();
     assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
     assertEquals(ValidationMode.SKIP, trackerBundle.getValidationMode());

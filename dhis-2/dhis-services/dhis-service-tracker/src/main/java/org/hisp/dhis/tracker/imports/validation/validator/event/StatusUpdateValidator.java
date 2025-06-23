@@ -36,6 +36,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -44,7 +45,8 @@ class StatusUpdateValidator implements Validator<Event> {
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     org.hisp.dhis.program.Event savedEvent = bundle.getPreheat().getEvent(event.getUid());
 
-    if (checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
+    if (event instanceof TrackerEvent
+        && checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
       reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
     }
   }

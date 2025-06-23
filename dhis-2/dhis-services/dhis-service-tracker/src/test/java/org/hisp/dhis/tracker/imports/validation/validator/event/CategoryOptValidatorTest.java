@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -128,10 +129,12 @@ class CategoryOptValidatorTest extends TestBase {
     program = createProgram('A');
     program.setCategoryCombo(catCombo);
 
-    event = new Event();
-    event.setEvent(UID.generate());
-    event.setProgram(MetadataIdentifier.ofUid(program));
-    event.setOccurredAt(EVENT_INSTANT);
+    event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(program))
+            .occurredAt(EVENT_INSTANT)
+            .build();
 
     bundle = TrackerBundle.builder().preheat(preheat).build();
 

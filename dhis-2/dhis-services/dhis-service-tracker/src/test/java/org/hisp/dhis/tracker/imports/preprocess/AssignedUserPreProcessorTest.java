@@ -39,9 +39,10 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.hamcrest.MatcherAssert;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class AssignedUserPreProcessorTest extends TestBase {
-  private static final String UID = "User uid";
+  private static final String USER_UID = "User uid";
 
   private static final String USERNAME = "Username";
 
@@ -63,12 +64,15 @@ class AssignedUserPreProcessorTest extends TestBase {
 
   @Test
   void testPreprocessorWhenUserHasOnlyUidSet() {
-    Event event = new Event();
-    event.setAssignedUser(userWithOnlyUid());
+    TrackerEvent event =
+        TrackerEvent.builder().event(UID.generate()).assignedUser(userWithOnlyUid()).build();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+        TrackerBundle.builder()
+            .trackerEvents(Collections.singletonList(event))
+            .preheat(preheat)
+            .build();
 
-    when(preheat.getUserByUid(UID)).thenReturn(Optional.of(completeUser()));
+    when(preheat.getUserByUid(USER_UID)).thenReturn(Optional.of(completeUser()));
 
     preProcessorToTest.process(bundle);
 
@@ -76,15 +80,18 @@ class AssignedUserPreProcessorTest extends TestBase {
     verify(preheat, times(1)).getUserByUid(anyString());
 
     MatcherAssert.assertThat(event.getAssignedUser().getUsername(), equalTo(USERNAME));
-    MatcherAssert.assertThat(event.getAssignedUser().getUid(), equalTo(UID));
+    MatcherAssert.assertThat(event.getAssignedUser().getUid(), equalTo(USER_UID));
   }
 
   @Test
   void testPreprocessorWhenUserHasOnlyUsernameSet() {
-    Event event = new Event();
-    event.setAssignedUser(userWithOnlyUsername());
+    TrackerEvent event =
+        TrackerEvent.builder().event(UID.generate()).assignedUser(userWithOnlyUsername()).build();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+        TrackerBundle.builder()
+            .trackerEvents(Collections.singletonList(event))
+            .preheat(preheat)
+            .build();
 
     when(preheat.getUserByUsername(USERNAME)).thenReturn(Optional.of(completeUser()));
 
@@ -94,16 +101,18 @@ class AssignedUserPreProcessorTest extends TestBase {
     verify(preheat, times(0)).getUserByUid(anyString());
 
     MatcherAssert.assertThat(event.getAssignedUser().getUsername(), equalTo(USERNAME));
-    MatcherAssert.assertThat(event.getAssignedUser().getUid(), equalTo(UID));
+    MatcherAssert.assertThat(event.getAssignedUser().getUid(), equalTo(USER_UID));
   }
 
   @ParameterizedTest
   @MethodSource("userInfoProvider")
   void testPreprocessorDoNothing(User user) {
-    Event event = new Event();
-    event.setAssignedUser(user);
+    TrackerEvent event = TrackerEvent.builder().event(UID.generate()).assignedUser(user).build();
     TrackerBundle bundle =
-        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+        TrackerBundle.builder()
+            .trackerEvents(Collections.singletonList(event))
+            .preheat(preheat)
+            .build();
 
     preProcessorToTest.process(bundle);
 
@@ -117,7 +126,7 @@ class AssignedUserPreProcessorTest extends TestBase {
 
   private static User userWithOnlyUid() {
 
-    return User.builder().uid(UID).build();
+    return User.builder().uid(USER_UID).build();
   }
 
   private static User userWithOnlyUsername() {
@@ -125,12 +134,12 @@ class AssignedUserPreProcessorTest extends TestBase {
   }
 
   private static User userWithUidAndUsername() {
-    return User.builder().uid(UID).username(USERNAME).build();
+    return User.builder().uid(USER_UID).username(USERNAME).build();
   }
 
   private static org.hisp.dhis.user.User completeUser() {
     org.hisp.dhis.user.User user = new org.hisp.dhis.user.User();
-    user.setUid(UID);
+    user.setUid(USER_UID);
     user.setUsername(USERNAME);
     return user;
   }

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
@@ -675,15 +676,23 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
   @Test
   void shouldGetNoEventRelationshipsWhenEventsHasNoRelationshipsAndFieldsIncludeAll() {
+    String program = "shPjYNifvMK";
     TrackedEntity te = get(TrackedEntity.class, "mHWCacsGYYn");
-    assertHasSize(1, te.getEnrollments(), "test expects a tracked entity with one enrollment");
-    Enrollment enrollment = te.getEnrollments().iterator().next();
+    assertHasSize(2, te.getEnrollments(), "test expects a tracked entity with one enrollment");
+    assertContains(
+        program,
+        te.getEnrollments().stream().map(e -> e.getProgram().getUid()).collect(joining(",")));
+    Enrollment enrollment =
+        te.getEnrollments().stream()
+            .filter(e -> e.getProgram().getUid().equals(program))
+            .findFirst()
+            .get();
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
     Event event = enrollment.getEvents().iterator().next();
     assertIsEmpty(event.getRelationshipItems(), "test expects an event with no relationships");
 
     JsonList<JsonEnrollment> json =
-        GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
+        GET("/tracker/trackedEntities/{id}?program={id}&fields=enrollments", te.getUid(), program)
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
