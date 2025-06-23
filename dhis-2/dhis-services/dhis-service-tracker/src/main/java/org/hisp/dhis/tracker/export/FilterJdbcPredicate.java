@@ -255,42 +255,19 @@ public class FilterJdbcPredicate {
     String trimmed = "trim(val)";
     String param = parameter.name();
 
-    switch (operator) {
-      case IN:
-      case EQ:
-      case IEQ:
-        return "EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " IN (:" + param + "))";
-
-      case NE:
-      case NEQ:
-        return "NOT EXISTS (SELECT 1 FROM "
-            + unnestSql
-            + " WHERE "
-            + trimmed
-            + " IN (:"
-            + param
-            + "))";
-
-      case LIKE:
-      case SW:
-      case EW:
-      case ILIKE:
-        return "EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " LIKE :" + param + ")";
-
-      case NLIKE:
-      case NILIKE:
-        return "NOT EXISTS (SELECT 1 FROM "
-            + unnestSql
-            + " WHERE "
-            + trimmed
-            + " LIKE :"
-            + param
-            + ")";
-
-      default:
-        throw new UnsupportedOperationException(
-            "Operator not supported for multi-text: " + operator);
-    }
+    return switch (operator) {
+      case IEQ, EQ, IN ->
+          "EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " IN (:" + param + "))";
+      case NE, NEQ ->
+          "NOT EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " IN (:" + param + "))";
+      case LIKE, SW, EW, ILIKE ->
+          "EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " LIKE :" + param + ")";
+      case NLIKE, NILIKE ->
+          "NOT EXISTS (SELECT 1 FROM " + unnestSql + " WHERE " + trimmed + " LIKE :" + param + ")";
+      default ->
+          throw new UnsupportedOperationException(
+              "Operator not supported for multi-text: " + operator);
+    };
   }
 
   private static boolean isMultiTextType(DataElement de) {
