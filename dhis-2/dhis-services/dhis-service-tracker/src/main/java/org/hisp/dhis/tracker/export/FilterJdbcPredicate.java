@@ -263,7 +263,6 @@ public class FilterJdbcPredicate {
 
       case NE:
       case NEQ:
-      case NIEQ:
         return "NOT EXISTS (SELECT 1 FROM "
             + unnestSql
             + " WHERE "
