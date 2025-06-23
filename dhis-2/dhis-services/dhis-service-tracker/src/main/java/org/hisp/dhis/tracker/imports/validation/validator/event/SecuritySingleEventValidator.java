@@ -62,38 +62,42 @@ class SecuritySingleEventValidator
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    if (event instanceof SingleEvent singleEvent) {
-      TrackerImportStrategy strategy = bundle.getStrategy(singleEvent);
-      Event preheatEvent = bundle.getPreheat().getEvent(singleEvent.getEvent());
+    if (!(event instanceof SingleEvent)) {
+      return;
+    }
 
-      OrganisationUnit organisationUnit =
-          strategy.isUpdateOrDelete()
-              ? preheatEvent.getOrganisationUnit()
-              : bundle.getPreheat().getOrganisationUnit(singleEvent.getOrgUnit());
-      ProgramStage programStage =
-          strategy.isUpdateOrDelete()
-              ? preheatEvent.getProgramStage()
-              : bundle.getPreheat().getProgramStage(singleEvent.getProgramStage());
-      CategoryOptionCombo categoryOptionCombo =
-          bundle.getPreheat().getCategoryOptionCombo(singleEvent.getAttributeOptionCombo());
+    TrackerImportStrategy strategy = bundle.getStrategy(event);
+    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
 
-      checkOrgUnitInCaptureScope(reporter, singleEvent, organisationUnit, bundle.getUser());
-      checkProgramWriteAccess(reporter, singleEvent, programStage.getProgram(), bundle.getUser());
-      checkWriteCategoryOptionComboAccess(
-          reporter, singleEvent, categoryOptionCombo, bundle.getUser());
+    OrganisationUnit organisationUnit =
+        strategy.isUpdateOrDelete()
+            ? preheatEvent.getOrganisationUnit()
+            : bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+    ProgramStage programStage =
+        strategy.isUpdateOrDelete()
+            ? preheatEvent.getProgramStage()
+            : bundle.getPreheat().getProgramStage(event.getProgramStage());
+    CategoryOptionCombo categoryOptionCombo =
+        bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
 
-      if (strategy.isUpdate()) {
-        checkCompletablePermission(reporter, singleEvent, preheatEvent, bundle.getUser());
-      }
+    checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
+    checkProgramWriteAccess(reporter, event, programStage.getProgram(), bundle.getUser());
+    checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
+
+    if (strategy.isUpdate()) {
+      checkCompletablePermission(reporter, event, preheatEvent, bundle.getUser());
     }
   }
 
   private void checkCompletablePermission(
-      Reporter reporter, SingleEvent singleEvent, Event preheatEvent, UserDetails user) {
+      Reporter reporter,
+      org.hisp.dhis.tracker.imports.domain.Event event,
+      Event preheatEvent,
+      UserDetails user) {
     if (EventStatus.COMPLETED == preheatEvent.getStatus()
-        && singleEvent.getStatus() != preheatEvent.getStatus()
+        && event.getStatus() != preheatEvent.getStatus()
         && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
-      reporter.addError(singleEvent, E1083, user);
+      reporter.addError(event, E1083, user);
     }
   }
 

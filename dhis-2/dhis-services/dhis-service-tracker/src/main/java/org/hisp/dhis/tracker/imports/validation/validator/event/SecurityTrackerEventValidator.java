@@ -73,40 +73,41 @@ class SecurityTrackerEventValidator
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    if (event instanceof TrackerEvent) {
-      TrackerImportStrategy strategy = bundle.getStrategy(event);
-      Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
+    if (!(event instanceof TrackerEvent)) {
+      return;
+    }
+    TrackerImportStrategy strategy = bundle.getStrategy(event);
+    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
 
-      ProgramStage programStage =
-          strategy.isUpdateOrDelete()
-              ? preheatEvent.getProgramStage()
-              : bundle.getPreheat().getProgramStage(event.getProgramStage());
-      OrganisationUnit organisationUnit =
-          strategy.isUpdateOrDelete()
-              ? preheatEvent.getOrganisationUnit()
-              : bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
-      UID teUid = getTeUidFromEvent(bundle, event);
-      CategoryOptionCombo categoryOptionCombo =
-          bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
-      OrganisationUnit ownerOrgUnit =
-          getOwnerOrganisationUnit(bundle.getPreheat(), teUid, programStage.getProgram());
-      boolean isCreatableInSearchScope =
-          strategy.isCreate()
-              ? event.isCreatableInSearchScope()
-              : preheatEvent.isCreatableInSearchScope();
+    ProgramStage programStage =
+        strategy.isUpdateOrDelete()
+            ? preheatEvent.getProgramStage()
+            : bundle.getPreheat().getProgramStage(event.getProgramStage());
+    OrganisationUnit organisationUnit =
+        strategy.isUpdateOrDelete()
+            ? preheatEvent.getOrganisationUnit()
+            : bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+    UID teUid = getTeUidFromEvent(bundle, event);
+    CategoryOptionCombo categoryOptionCombo =
+        bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
+    OrganisationUnit ownerOrgUnit =
+        getOwnerOrganisationUnit(bundle.getPreheat(), teUid, programStage.getProgram());
+    boolean isCreatableInSearchScope =
+        strategy.isCreate()
+            ? event.isCreatableInSearchScope()
+            : preheatEvent.isCreatableInSearchScope();
 
-      checkEventOrgUnitWriteAccess(
-          reporter, event, organisationUnit, isCreatableInSearchScope, bundle.getUser());
-      checkProgramStageWriteAccess(reporter, event, programStage, bundle.getUser());
-      checkProgramReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
-      checkTeTypeReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
-      checkOwnership(
-          reporter, event, teUid, ownerOrgUnit, programStage.getProgram(), bundle.getUser());
-      checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
+    checkEventOrgUnitWriteAccess(
+        reporter, event, organisationUnit, isCreatableInSearchScope, bundle.getUser());
+    checkProgramStageWriteAccess(reporter, event, programStage, bundle.getUser());
+    checkProgramReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
+    checkTeTypeReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
+    checkOwnership(
+        reporter, event, teUid, ownerOrgUnit, programStage.getProgram(), bundle.getUser());
+    checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
 
-      if (strategy.isUpdate()) {
-        checkCompletablePermission(reporter, event, preheatEvent, bundle.getUser());
-      }
+    if (strategy.isUpdate()) {
+      checkCompletablePermission(reporter, event, preheatEvent, bundle.getUser());
     }
   }
 
