@@ -186,6 +186,8 @@ public class EventAggregateService {
 
     queryValidator.validate(params);
 
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
+
     if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
       EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
       return analyticsCache.getOrFetch(params, p -> getAggregatedDataGrid(immutableParams));
@@ -386,13 +388,7 @@ public class EventAggregateService {
     }
   }
 
-  /**
-   * Adds the given legends into the list of dimensionalItems.
-   *
-   * @param dimensionalItems
-   * @param parentUid
-   * @param legends
-   */
+  /** Adds the given legends into the list of dimensionalItems. */
   private static void addLegends(
       List<EventAnalyticsDimensionalItem> dimensionalItems,
       String parentUid,
@@ -406,14 +402,7 @@ public class EventAggregateService {
     }
   }
 
-  /**
-   * Adds the given legendOptions into the list of dimensionalItems.
-   *
-   * @param dimensionalItems
-   * @param grid
-   * @param parentUid
-   * @param legendOptions
-   */
+  /** Adds the given legendOptions into the list of dimensionalItems. */
   @SuppressWarnings("unchecked")
   private static void addLegendOptions(
       List<EventAnalyticsDimensionalItem> dimensionalItems,
@@ -522,7 +511,7 @@ public class EventAggregateService {
               });
 
           String display =
-              builder.length() > 0
+              !builder.isEmpty()
                   ? builder.substring(0, builder.lastIndexOf(DASH_PRETTY_SEPARATOR))
                   : TOTAL_COLUMN_PRETTY_NAME;
 
