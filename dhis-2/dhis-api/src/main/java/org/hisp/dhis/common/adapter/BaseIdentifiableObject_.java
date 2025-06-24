@@ -38,7 +38,17 @@ package org.hisp.dhis.common.adapter;
 public class BaseIdentifiableObject_ {
   public static final String CREATED_BY = "createdBy";
   public static final String LAST_UPDATED_BY = "lastUpdatedBy";
+
+  /**
+   * This is the legacy property name for translations. Should be removed once the ORM mapping
+   * migration from xml to annotation is done.
+   */
   public static final String TRANSLATIONS = "translations";
+  
+  /**
+   * This is the embedded property {@link org.hisp.dhis.common.TranslationProperty} for mapping
+   * jsonb translations column in database.
+   */
   public static final String TRANSLATION_PROPERTY = "translationProperty";
   public static final String SHARING = "sharing";
   public static final String ATTRIBUTE_VALUES = "attributeValues";
