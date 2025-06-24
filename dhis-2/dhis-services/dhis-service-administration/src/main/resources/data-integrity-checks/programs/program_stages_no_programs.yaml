@@ -1,0 +1,74 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: program_stages_no_programs
+description: Program stages with no associated program
+section: Programs
+section_order: 2
+summary_sql: >-
+  WITH rs as (
+  SELECT a.uid,a.name, b.name as comment
+  from programstage a
+    INNER JOIN program b ON a.programid = b.programid
+  WHERE a.programid IS NULL
+  )
+  select count(*) as value,
+  100.0 * count(*) / NULLIF( (select count(*) from programstage),0) as percent
+  from rs;
+details_sql: >-
+  SELECT a.uid,a.name, b.name as comment
+  from programstage a
+    INNER JOIN program b ON a.programid = b.programid
+  WHERE a.programid IS NULL;
+severity: SEVERE
+introduction: >
+  All program stages should be associated with a program. This check identifies
+  program stages that are not linked to any program. Certain version of DHIS2
+  do now allow program stages to exist without being linked to a program and may
+  result in the system not being able to start.
+details_id_type: programStages
+recommendation: >
+  You will need to either delete the program stage or link it to a program.
+  Currently, the only feasible way to link a program stage to a program is
+  to alter the `programid` field in the `programstage` table in the database.
+  Choose a program that is suitable for the program stage and run the following SQL command:
+  ```sql
+    UPDATE programstage SET programid = '<program_id>' WHERE uid = '<program_stage_uid>';
+  ```
+  
+  Obviously, as is always the case with direct database manipulation, you should
+  ensure that you have a backup of your database before running this command, perform
+  the change in a test environment first, and ensure that the system functions as expected after the change.
+  
+  Alternatively, if the program stage is not needed, you can delete it using the following SQL command:
+  ```sql
+    DELETE FROM programstage WHERE uid = '<program_stage_uid>';
+  ```
+  
+  Note that any data or enrollments associated with the program stage will also be deleted.
+  Ensure that you have a backup of your database before running this command,
+  and perform the change in a test environment first.
