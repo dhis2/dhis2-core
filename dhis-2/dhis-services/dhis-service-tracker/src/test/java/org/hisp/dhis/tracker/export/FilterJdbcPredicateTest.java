@@ -389,9 +389,9 @@ lower("%s".value) like :"""
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
 
     assertStartsWith(
-        "EXISTS (SELECT 1 FROM unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+        "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
             + deMultiText.getUid()
-            + ", value}'), ',')) AS val WHERE trim(val) IN",
+            + ", value}'), ',')) AS val where trim(val) in",
         filter.getSql());
     assertParameter(deMultiText, filter, Types.VARCHAR, "blue", "green", "red");
   }
@@ -403,9 +403,9 @@ lower("%s".value) like :"""
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
 
     assertStartsWith(
-        "EXISTS (SELECT 1 FROM unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+        "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
             + deMultiText.getUid()
-            + ", value}'), ',')) AS val WHERE trim(val) LIKE",
+            + ", value}'), ',')) AS val where trim(val) like",
         filter.getSql());
     assertParameter(deMultiText, filter, Types.VARCHAR, "%blue%");
   }
