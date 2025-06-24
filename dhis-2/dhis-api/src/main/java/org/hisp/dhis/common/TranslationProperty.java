@@ -32,6 +32,7 @@ package org.hisp.dhis.common;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -49,7 +50,7 @@ import org.hisp.dhis.translation.Translation;
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
-public class TranslationProperty {
+public class TranslationProperty implements Serializable {
 
   @Column
   @Type(
