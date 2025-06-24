@@ -411,6 +411,21 @@ lower("%s".value) like :"""
   }
 
   @Test
+  void shouldCreateFilterGivenMultiTextWithNNULLOperator() {
+    QueryFilter filter = new QueryFilter(QueryOperator.NULL);
+    FilterJdbcPredicate predicate = FilterJdbcPredicate.of(deMultiText, filter, "ev");
+
+    assertEquals(
+        String.format(
+            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>>"
+                + " '{"
+                + deMultiText.getUid()
+                + ", value}'), ',')) AS val where trim(val) is not null and trim(val) <> '')"),
+        predicate.getSql());
+    assertNoParameter(predicate);
+  }
+
+  @Test
   void shouldFailForFiltersNotSupportedByMultiSelection() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.LE, "blue;green;red");
 

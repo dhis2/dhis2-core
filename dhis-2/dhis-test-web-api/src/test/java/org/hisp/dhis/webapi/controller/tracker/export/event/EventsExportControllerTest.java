@@ -288,7 +288,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void getEventsWithMultiTextDataValue() {
+  void getEventsWithMultiTextDataValueUsingINOperator() {
     Event event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dvMultiText);
     event.setProgramStage(programStage);
@@ -310,6 +310,43 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
     assertEquals(deMultiText.getUid(), dataValue.getDataElement());
     assertEquals(dvMultiText.getValue(), dataValue.getValue());
+  }
+
+  @Test
+  void getEventsWithMultiTextDataValueUsingNNULLOperator() {
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dvMultiText);
+    event.setProgramStage(programStage);
+    manager.update(event);
+    switchContextToUser(user);
+
+    JsonEvent jsonEvent =
+        GET(
+                "/tracker/events?filter={de}:!null&program={program}&programStage={programStage}&fields=dataValues",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid(),
+                event.getOrganisationUnit().getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0);
+
+    assertHasOnlyMembers(jsonEvent, "dataValues");
+    JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
+    assertEquals(deMultiText.getUid(), dataValue.getDataElement());
+    assertEquals(dvMultiText.getValue(), dataValue.getValue());
+
+    JsonList<JsonEvent> list =
+        GET(
+                "/tracker/events?filter={de}:null&program={program}&programStage={programStage}&fields=dataValues",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid(),
+                event.getOrganisationUnit().getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    assertIsEmpty(list.stream().toList());
   }
 
   @Test

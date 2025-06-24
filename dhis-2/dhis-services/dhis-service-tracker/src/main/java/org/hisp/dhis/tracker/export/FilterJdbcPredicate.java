@@ -253,17 +253,27 @@ public class FilterJdbcPredicate {
       String column, QueryOperator operator, Parameter parameter) {
     String unnestSql = "unnest(string_to_array(lower(" + column + "), ',')) AS val";
     String trimmed = "trim(val)";
-    String param = parameter.name();
+    String param = parameter != null ? parameter.name() : null;
 
     return switch (operator) {
       case IEQ, EQ, IN ->
-          "exists (select 1 from " + unnestSql + " where " + trimmed + " in (:" + param + "))";
+          String.format("exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
       case NE, NEQ ->
-          "not exists (select 1 from " + unnestSql + " where " + trimmed + " in (:" + param + "))";
+          String.format(
+              "not exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
       case LIKE, SW, EW, ILIKE ->
-          "exists (select 1 from " + unnestSql + " where " + trimmed + " like :" + param + ")";
+          String.format("exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
       case NLIKE, NILIKE ->
-          "not exists (select 1 from " + unnestSql + " where " + trimmed + " like :" + param + ")";
+          String.format(
+              "not exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
+      case NULL ->
+          String.format(
+              "not exists (select 1 from %s where %s is not null and %s <> '')",
+              unnestSql, trimmed, trimmed);
+      case NNULL ->
+          String.format(
+              "exists (select 1 from %s where %s is not null and %s <> '')",
+              unnestSql, trimmed, trimmed);
       default ->
           throw new UnsupportedOperationException(
               "Operator not supported for multi-text: " + operator);
