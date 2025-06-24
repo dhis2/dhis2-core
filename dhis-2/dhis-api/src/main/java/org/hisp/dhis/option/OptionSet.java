@@ -111,7 +111,8 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "optionset")
-public class OptionSet extends BaseMetadataObject implements IdentifiableObject, VersionedObject, MetadataObject {
+public class OptionSet extends BaseMetadataObject
+    implements IdentifiableObject, VersionedObject, MetadataObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
