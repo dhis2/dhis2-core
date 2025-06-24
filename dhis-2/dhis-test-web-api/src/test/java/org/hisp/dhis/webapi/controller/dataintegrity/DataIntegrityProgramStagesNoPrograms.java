@@ -54,7 +54,23 @@ class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrat
   void testProgramStagesWithProgram() {
     setUpTest();
 
+    dbmsManager.clearSession();
+
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, true);
+  }
+
+  @Test
+  void testProgramStagesNoPrograms() {
+    setUpTest();
+    ProgramStage programStageB = new ProgramStage();
+    programStageB.setAutoFields();
+    programStageB.setName("programStageB");
+    programStageB.setProgram(null); // No program associated
+    programStageService.saveProgramStage(programStageB);
+    dbmsManager.clearSession();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, CHECK, 50, programStageB.getUid(), "programStageB", null, true);
   }
 
   public void setUpTest() {
@@ -72,7 +88,5 @@ class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrat
     programStageA.setName("programStageA");
     programStageA.setProgram(programA);
     programStageService.saveProgramStage(programStageA);
-
-    dbmsManager.clearSession();
   }
 }

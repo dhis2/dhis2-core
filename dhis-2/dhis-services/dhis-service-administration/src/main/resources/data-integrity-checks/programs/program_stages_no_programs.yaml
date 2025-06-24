@@ -31,18 +31,16 @@ section: Programs
 section_order: 2
 summary_sql: >-
   WITH rs as (
-  SELECT a.uid,a.name, b.name as comment
+  SELECT a.uid,a.name
   from programstage a
-    INNER JOIN program b ON a.programid = b.programid
   WHERE a.programid IS NULL
   )
   select count(*) as value,
   100.0 * count(*) / NULLIF( (select count(*) from programstage),0) as percent
   from rs;
 details_sql: >-
-  SELECT a.uid,a.name, b.name as comment
+  SELECT a.uid,a.name
   from programstage a
-    INNER JOIN program b ON a.programid = b.programid
   WHERE a.programid IS NULL;
 severity: SEVERE
 introduction: >
@@ -69,6 +67,7 @@ recommendation: >
     DELETE FROM programstage WHERE uid = '<program_stage_uid>';
   ```
   
-  Note that any data or enrollments associated with the program stage will also be deleted.
+  Note that any data or enrollments associated with the program stage will also need to be deleted
+  prior to deleting the program stage itself. 
   Ensure that you have a backup of your database before running this command,
   and perform the change in a test environment first.
