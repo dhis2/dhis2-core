@@ -523,10 +523,10 @@ public enum ConfigurationKey {
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
   /** AppHub base URL. (default: https://apps.dhis2.org). */
-  APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
+  APPHUB_BASE_URL("apphub.base.url", "https://staging.apps.dhis2.org", false),
 
   /** AppHub api URL. (default: https://apps.dhis2.org/api). */
-  APPHUB_API_URL("apphub.api.url", "https://apps.dhis2.org/api", false),
+  APPHUB_API_URL("apphub.api.url", "https://staging.apps.dhis2.org/api", false),
 
   /**
    * Enable/disable changelog/history log of aggregate data values. <br>
