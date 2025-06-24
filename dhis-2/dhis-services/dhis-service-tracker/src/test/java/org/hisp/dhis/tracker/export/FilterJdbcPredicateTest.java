@@ -57,6 +57,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 class FilterJdbcPredicateTest {
   private TrackedEntityAttribute tea;
   private DataElement de;
+  private DataElement de_Multi_Selection;
 
   @BeforeEach
   void setUp() {
@@ -65,6 +66,10 @@ class FilterJdbcPredicateTest {
     de = new DataElement();
     de.setValueType(ValueType.TEXT);
     de.setUid(UID.generate().getValue());
+
+    de_Multi_Selection = new DataElement();
+    de_Multi_Selection.setValueType(ValueType.MULTI_TEXT);
+    de_Multi_Selection.setUid(UID.generate().getValue());
   }
 
   @Test
@@ -375,6 +380,34 @@ lower("%s".value) like :"""
     addPredicates(sql, params, Map.of(tea, List.of(), tea2, List.of()));
 
     assertEquals("", sql.toString());
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithInOperator() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "blue;green;red");
+
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(de_Multi_Selection, queryFilter, "ev");
+
+    assertStartsWith(
+        "EXISTS (SELECT 1 FROM unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+            + de_Multi_Selection.getUid(),
+        filter.getSql());
+
+    assertParameter(de_Multi_Selection, filter, Types.VARCHAR, "blue", "green", "red");
+  }
+
+  @Test
+  void shouldFailForFiltersNotSupportedByMultiSelection() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.LE, "blue;green;red");
+
+    UnsupportedOperationException exception =
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> FilterJdbcPredicate.of(de_Multi_Selection, queryFilter, "ev"));
+
+    assertContains(
+        "Operator not supported for multi-text: " + queryFilter.getOperator(),
+        exception.getMessage());
   }
 
   @Test
