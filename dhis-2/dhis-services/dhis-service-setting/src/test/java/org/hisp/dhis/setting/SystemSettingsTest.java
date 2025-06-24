@@ -73,6 +73,14 @@ class SystemSettingsTest {
           "loginPopup");
 
   @Test
+  void testKeyByProperty() {
+    // test one that has the key-prefix
+    assertEquals("keyAnalysisDigitGroupSeparator", Settings.getKey("analysisDigitGroupSeparator"));
+    // and one that does not
+    assertEquals("startModule", Settings.getKey("startModule"));
+  }
+
+  @Test
   void testIsConfidential() {
     CONFIDENTIAL_KEYS.forEach(
         key ->
