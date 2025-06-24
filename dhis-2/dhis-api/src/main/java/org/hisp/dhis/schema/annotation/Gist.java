@@ -35,6 +35,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -163,5 +164,7 @@ public @interface Gist {
       }
       return AUTO;
     }
+
+    public static final Set<Transform> TRIVIAL = Set.of(AUTO, NONE, IS_EMPTY, IS_NOT_EMPTY);
   }
 }

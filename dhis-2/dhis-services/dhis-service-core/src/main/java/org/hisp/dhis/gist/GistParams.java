@@ -59,6 +59,11 @@ public final class GistParams {
 
   @OpenApi.Description(
       """
+      Opt-out of paging. Only permitted for organisation units with simple `fields` list.""")
+  boolean paging = true;
+
+  @OpenApi.Description(
+      """
       The viewed page in paged list starting with 1 for the first page
       See [Gist page parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_page).""")
   int page = 1;

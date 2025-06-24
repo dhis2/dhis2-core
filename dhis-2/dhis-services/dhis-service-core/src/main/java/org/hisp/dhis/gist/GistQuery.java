@@ -100,6 +100,8 @@ public final class GistQuery {
 
   private final Class<? extends PrimaryKeyObject> elementType;
 
+  private final boolean paging;
+
   @JsonProperty private final int pageOffset;
 
   @JsonProperty private final int pageSize;
@@ -179,6 +181,7 @@ public final class GistQuery {
     int page = abs(params.getPage());
     int size = Math.min(1000, abs(params.getPageSize()));
     return toBuilder()
+        .paging(params.isPaging())
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
         .translate(params.isTranslate())

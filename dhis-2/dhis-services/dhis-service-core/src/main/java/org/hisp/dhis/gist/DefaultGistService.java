@@ -47,9 +47,11 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
@@ -86,7 +88,23 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
 
   @Override
   public GistQuery plan(GistQuery query) {
-    return new GistPlanner(query, createPropertyContext(query), createGistAccessControl()).plan();
+    GistQuery planned =
+        new GistPlanner(query, createPropertyContext(query), createGistAccessControl()).plan();
+    if (!planned.isPaging()) {
+      if (isPagingRequired(planned)) planned = planned.toBuilder().paging(true).build();
+    }
+    return planned;
+  }
+
+  private static boolean isPagingRequired(GistQuery query) {
+    if (query.getElementType() != OrganisationUnit.class) return true;
+    if (query.getFields().stream().anyMatch(DefaultGistService::isNonTrivial)) return true;
+    return false;
+  }
+
+  private static boolean isNonTrivial(GistQuery.Field f) {
+    return f.getPropertyPath().contains(".")
+        || !Gist.Transform.TRIVIAL.contains(f.getTransformation());
   }
 
   @Override
@@ -206,8 +224,10 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   private <T> List<T> fetchWithParameters(
       GistQuery gistQuery, GistBuilder builder, Query<T> query) {
     builder.addFetchParameters(query::setParameter, this::parseFilterArgument);
-    query.setMaxResults(Math.max(1, gistQuery.getPageSize()));
-    query.setFirstResult(gistQuery.getPageOffset());
+    if (gistQuery.isPaging()) {
+      query.setMaxResults(Math.max(1, gistQuery.getPageSize()));
+      query.setFirstResult(gistQuery.getPageOffset());
+    }
     query.setCacheable(false);
     return query.list();
   }
