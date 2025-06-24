@@ -417,11 +417,10 @@ lower("%s".value) like :"""
 
     assertEquals(
         String.format(
-            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>>"
-                + " '{"
-                + deMultiText.getUid()
-                + ", value}'), ',')) AS val where trim(val) is not null and trim(val) <> '')"),
+            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{%s, value}'), ',')) AS val where trim(val) is not null and trim(val) <> '')",
+            deMultiText.getUid()),
         predicate.getSql());
+
     assertNoParameter(predicate);
   }
 
