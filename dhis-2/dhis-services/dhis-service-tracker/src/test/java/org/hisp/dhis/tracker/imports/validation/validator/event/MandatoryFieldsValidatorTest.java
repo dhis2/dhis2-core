@@ -29,17 +29,11 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1008;
-import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
@@ -132,26 +126,6 @@ class MandatoryFieldsValidatorTest {
     validator.validate(reporter, bundle, event);
 
     assertMissingProperty(reporter, event, "program");
-  }
-
-  @Test
-  void shouldFailValidationWhenEventIsMissingProgramStageReferenceToProgram() {
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
-            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
-            .enrollment(UID.generate())
-            .build();
-    ProgramStage programStage = new ProgramStage();
-    programStage.setUid(event.getProgramStage().getIdentifier());
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-
-    validator.validate(reporter, bundle, event);
-
-    assertTrue(reporter.hasErrors());
-    assertThat(reporter.getErrors(), hasSize(1));
-    assertHasError(reporter, event, E1008);
   }
 
   @Test

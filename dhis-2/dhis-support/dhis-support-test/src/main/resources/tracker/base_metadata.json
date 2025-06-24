@@ -1337,6 +1337,9 @@
       "lastUpdatedBy": {
         "id": "FIgVWzUCkpw"
       },
+      "program": {
+        "id": "sLngICFQjvH"
+      },
       "minDaysFromStart": 0,
       "name": "test-program-stage-low-level-org-unit",
       "notificationTemplates": [

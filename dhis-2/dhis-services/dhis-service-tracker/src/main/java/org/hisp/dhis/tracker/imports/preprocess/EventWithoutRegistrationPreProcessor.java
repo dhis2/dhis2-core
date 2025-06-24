@@ -56,25 +56,6 @@ public class EventWithoutRegistrationPreProcessor implements BundlePreProcessor 
         ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
         if (programStage != null) {
-          // TODO remove if once metadata import is fixed
-          if (programStage.getProgram() == null) {
-            // Program stages should always have a program! Due to
-            // how metadata
-            // import is currently implemented
-            // it's possible that users run into the edge case that
-            // a program
-            // stage does not have an associated
-            // program. Tell the user it's an issue with the
-            // metadata and not
-            // the event itself. This should be
-            // fixed in the metadata import. For more see
-            // https://jira.dhis2.org/browse/DHIS2-12123
-            //
-            // PreCheckMandatoryFieldsValidationHook.validateEvent
-            // will create
-            // a validation error for this edge case
-            return;
-          }
           setEnrollment(bundle, programStage.getProgram().getUid(), event);
         }
       } else if (event.getProgram().isNotBlank()) {
