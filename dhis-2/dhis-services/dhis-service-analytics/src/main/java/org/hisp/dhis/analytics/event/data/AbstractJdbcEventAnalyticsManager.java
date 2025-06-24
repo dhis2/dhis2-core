@@ -1085,8 +1085,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             + " group by "
             + columns;
 
-    System.out.println(sql);
-
     return sql;
   }
 
