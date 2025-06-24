@@ -38,7 +38,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private ProgramService programService;
 
