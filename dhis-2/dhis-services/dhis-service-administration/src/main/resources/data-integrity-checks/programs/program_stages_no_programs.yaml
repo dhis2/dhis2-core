@@ -45,29 +45,34 @@ details_sql: >-
 severity: SEVERE
 introduction: >
   All program stages should be associated with a program. This check identifies
-  program stages that are not linked to any program. Certain version of DHIS2
-  do now allow program stages to exist without being linked to a program and may
+  program stages that are not linked to any program. Versions of DHIS2 after and including 
+  2.43 do not allow program stages to exist without being linked to a program and may
   result in the system not being able to start.
 details_id_type: programStages
 recommendation: >
   You will need to either delete the program stage or link it to a program.
   Currently, the only feasible way to link a program stage to a program is
   to alter the `programid` field in the `programstage` table in the database.
-  Choose a program that is suitable for the program stage and run the following SQL command:
+  
+  If you want to link the program stage to a program, you will need to
+  choose a program that is suitable for the program stage and run the following SQL command:
+  
   ```sql
     UPDATE programstage SET programid = '<program_id>' WHERE uid = '<program_stage_uid>';
   ```
   
+  Be sure to replace `<program_id>` with the native ID of the program you want to link the program stage to,
+    and `<program_stage_uid>` with the UID of the program stage you want to link.
+  
   Obviously, as is always the case with direct database manipulation, you should
-  ensure that you have a backup of your database before running this command, perform
-  the change in a test environment first, and ensure that the system functions as expected after the change.
+  ensure that you have a backup of your database before running this command, ensure that DHIS2 is not running,
+  perform the change in a test environment first, and ensure that the system functions as expected after the change.
   
   Alternatively, if the program stage is not needed, you can delete it using the following SQL command:
   ```sql
     DELETE FROM programstage WHERE uid = '<program_stage_uid>';
   ```
   
-  Note that any data or enrollments associated with the program stage will also need to be deleted
-  prior to deleting the program stage itself. 
-  Ensure that you have a backup of your database before running this command,
-  and perform the change in a test environment first.
+  Note that any data associated with the program stage will also need to be deleted
+  prior to deleting the program stage itself. Ensure that you have a backup of your database
+  before running this command, and perform the change in a test environment first.
