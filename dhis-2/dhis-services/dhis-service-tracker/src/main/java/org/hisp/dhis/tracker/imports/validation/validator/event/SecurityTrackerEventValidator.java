@@ -97,8 +97,10 @@ class SecurityTrackerEventValidator
             ? event.isCreatableInSearchScope()
             : preheatEvent.isCreatableInSearchScope();
 
-    checkEventOrgUnitWriteAccess(
-        reporter, event, organisationUnit, isCreatableInSearchScope, bundle.getUser());
+    if (strategy.isCreate() || strategy.isDelete()) {
+      checkEventOrgUnitWriteAccess(
+          reporter, event, organisationUnit, isCreatableInSearchScope, bundle.getUser());
+    }
     checkProgramStageWriteAccess(reporter, event, programStage, bundle.getUser());
     checkProgramReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
     checkTeTypeReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());

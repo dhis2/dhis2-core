@@ -214,8 +214,40 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   @EnumSource(
       value = TrackerImportStrategy.class,
       mode = EnumSource.Mode.INCLUDE,
-      names = {"UPDATE", "DELETE"})
-  void shouldFailValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForUpdateAndDeleteStrategy(
+      names = {"UPDATE"})
+  void shouldPassValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForUpdateStrategy(
+      TrackerImportStrategy strategy) {
+    UID enrollmentUid = UID.generate();
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(UID.generate())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EventStatus.COMPLETED)
+            .build();
+
+    when(bundle.getStrategy(event)).thenReturn(strategy);
+    Enrollment enrollment = getEnrollment(enrollmentUid);
+    Event preheatEvent = getEvent();
+    preheatEvent.setEnrollment(enrollment);
+    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+
+    validator.validate(reporter, bundle, event);
+
+    assertNoErrors(reporter);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = TrackerImportStrategy.class,
+      mode = EnumSource.Mode.INCLUDE,
+      names = {"DELETE"})
+  void shouldFailValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForDeleteStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
@@ -686,7 +718,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
   @Test
   void
-      shouldFailValidationWhenUpdateEventAndUserWithAuthorityToCompleteDoNotHaveOrgUnitInCaptureScope() {
+      shouldPassValidationWhenUpdateEventAndUserWithAuthorityToCompleteDoNotHaveOrgUnitInCaptureScope() {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
@@ -712,7 +744,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, E1000);
+    assertNoErrors(reporter);
   }
 
   @Test
@@ -781,9 +813,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   @EnumSource(
       value = TrackerImportStrategy.class,
       mode = EnumSource.Mode.INCLUDE,
-      names = {"UPDATE", "DELETE"})
+      names = {"UPDATE"})
   void
-      shouldFailWhenUpdatingOrDeletingEventThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy(
+      shouldPassValidationWhenUpdatingEventThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy(
           TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
@@ -798,13 +830,48 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(strategy);
+    UserDetails userDetails = changeCompletedEventAuthorisedUser();
     Enrollment enrollment = getEnrollment(enrollmentUid);
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
+
+    validator.validate(reporter, bundle, event);
+
+    assertNoErrors(reporter);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = TrackerImportStrategy.class,
+      mode = EnumSource.Mode.INCLUDE,
+      names = {"DELETE"})
+  void shouldFailWhenDeletingEventThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy(
+      TrackerImportStrategy strategy) {
+    UID enrollmentUid = UID.generate();
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(UID.generate())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EventStatus.SCHEDULE)
+            .build();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(strategy);
+    UserDetails userDetails = changeCompletedEventAuthorisedUser();
+    Enrollment enrollment = getEnrollment(enrollmentUid);
+    Event preheatEvent = getEvent();
+    preheatEvent.setEnrollment(enrollment);
+    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
