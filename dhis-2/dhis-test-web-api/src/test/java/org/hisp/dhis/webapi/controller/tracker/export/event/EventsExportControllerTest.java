@@ -103,6 +103,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value";
+  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE = "red,blue";
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -131,8 +132,11 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private TrackedEntityType trackedEntityType;
 
   private EventDataValue dv;
+  private EventDataValue dvMultiText;
 
   private DataElement de;
+
+  private DataElement deMultiText;
 
   @BeforeEach
   void setUp() {
@@ -165,18 +169,32 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     de.getSharing().setOwner(owner);
     manager.save(de, false);
 
+    deMultiText = createDataElement('D', ValueType.MULTI_TEXT, AggregationType.NONE);
+    deMultiText.getSharing().setOwner(owner);
+    manager.save(deMultiText, false);
+
     programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
+
     ProgramStageDataElement programStageDataElement =
         createProgramStageDataElement(programStage, de, 1, false);
-    programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
+    ProgramStageDataElement programStageDataElementMultiText =
+        createProgramStageDataElement(programStage, deMultiText, 1, false);
+
+    programStage.setProgramStageDataElements(
+        Sets.newHashSet(programStageDataElement, programStageDataElementMultiText));
     manager.save(programStage, false);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
     dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
+
+    dvMultiText = new EventDataValue();
+    dvMultiText.setDataElement(deMultiText.getUid());
+    dvMultiText.setStoredBy("user");
+    dvMultiText.setValue(MULTI_TEXT_DATA_ELEMENT_VALUE);
   }
 
   @Test
@@ -267,6 +285,31 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
     assertHasMember(dataValue, "storedBy");
+  }
+
+  @Test
+  void getEventsWithMultiTextDataValue() {
+    Event event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dvMultiText);
+    event.setProgramStage(programStage);
+    manager.update(event);
+    switchContextToUser(user);
+
+    JsonEvent jsonEvent =
+        GET(
+                "/tracker/events?filter={de}:in:red&program={program}&programStage={programStage}&fields=dataValues",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid(),
+                event.getOrganisationUnit().getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0);
+
+    assertHasOnlyMembers(jsonEvent, "dataValues");
+    JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
+    assertEquals(deMultiText.getUid(), dataValue.getDataElement());
+    assertEquals(dvMultiText.getValue(), dataValue.getValue());
   }
 
   @Test

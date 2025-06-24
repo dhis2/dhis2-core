@@ -57,7 +57,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 class FilterJdbcPredicateTest {
   private TrackedEntityAttribute tea;
   private DataElement de;
-  private DataElement de_Multi_Selection;
+  private DataElement deMultiText;
 
   @BeforeEach
   void setUp() {
@@ -67,9 +67,9 @@ class FilterJdbcPredicateTest {
     de.setValueType(ValueType.TEXT);
     de.setUid(UID.generate().getValue());
 
-    de_Multi_Selection = new DataElement();
-    de_Multi_Selection.setValueType(ValueType.MULTI_TEXT);
-    de_Multi_Selection.setUid(UID.generate().getValue());
+    deMultiText = new DataElement();
+    deMultiText.setValueType(ValueType.MULTI_TEXT);
+    deMultiText.setUid(UID.generate().getValue());
   }
 
   @Test
@@ -386,14 +386,28 @@ lower("%s".value) like :"""
   void shouldCreateFilterGivenMultiTextWithInOperator() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "blue;green;red");
 
-    FilterJdbcPredicate filter = FilterJdbcPredicate.of(de_Multi_Selection, queryFilter, "ev");
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
 
     assertStartsWith(
         "EXISTS (SELECT 1 FROM unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
-            + de_Multi_Selection.getUid(),
+            + deMultiText.getUid()
+            + ", value}'), ',')) AS val WHERE trim(val) IN",
         filter.getSql());
+    assertParameter(deMultiText, filter, Types.VARCHAR, "blue", "green", "red");
+  }
 
-    assertParameter(de_Multi_Selection, filter, Types.VARCHAR, "blue", "green", "red");
+  @Test
+  void shouldCreateFilterGivenMultiTextWithLikeOperator() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.LIKE, "blue");
+
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
+
+    assertStartsWith(
+        "EXISTS (SELECT 1 FROM unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+            + deMultiText.getUid()
+            + ", value}'), ',')) AS val WHERE trim(val) LIKE",
+        filter.getSql());
+    assertParameter(deMultiText, filter, Types.VARCHAR, "%blue%");
   }
 
   @Test
@@ -403,7 +417,7 @@ lower("%s".value) like :"""
     UnsupportedOperationException exception =
         assertThrows(
             UnsupportedOperationException.class,
-            () -> FilterJdbcPredicate.of(de_Multi_Selection, queryFilter, "ev"));
+            () -> FilterJdbcPredicate.of(deMultiText, queryFilter, "ev"));
 
     assertContains(
         "Operator not supported for multi-text: " + queryFilter.getOperator(),
