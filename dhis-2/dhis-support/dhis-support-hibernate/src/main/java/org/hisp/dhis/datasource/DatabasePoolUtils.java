@@ -278,9 +278,9 @@ public final class DatabasePoolUtils {
     ds.setValidationTimeout(validationTimeout);
     ds.setMaximumPoolSize(maxPoolSize);
     ds.setMinimumIdle(minIdleConnections);
-    ds.setKeepaliveTime(keepAliveTimeSeconds);
+    ds.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
     ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
-    ds.setMaxLifetime(maxLifeTimeSeconds);
+    ds.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
 
     return ds;
   }
