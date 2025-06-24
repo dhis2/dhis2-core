@@ -97,6 +97,11 @@ class SecurityTrackerEventValidator
             ? event.isCreatableInSearchScope()
             : preheatEvent.isCreatableInSearchScope();
 
+    // TODO: Discuss with product how this should be fixed.
+    // At the moment we are checking capture scope for event org unit
+    // only when we are creating or deleting an event.
+    // When updating, ownership is enough.
+    // We need to understand what to do when updating the org unit.
     if (strategy.isCreate() || strategy.isDelete()) {
       checkEventOrgUnitWriteAccess(
           reporter, event, organisationUnit, isCreatableInSearchScope, bundle.getUser());
