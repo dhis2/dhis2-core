@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -116,6 +117,9 @@ public class DefaultDviService implements DviService {
        * without risk of misinterpretation of the request.
        */
       List<String> dsForDe = store.getDataSets(values.stream().map(DviValue::dataElement));
+      if (dsForDe.isEmpty())
+        throw new ConflictException(
+            ErrorCode.E7605, "", values.stream().map(DviValue::dataElement).distinct().toList());
       if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7606, dsForDe);
       ds = UID.of(dsForDe.get(0));
     }
@@ -144,16 +148,12 @@ public class DefaultDviService implements DviService {
     boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
     if (!dsNoAccess) throw new ConflictException(ErrorCode.E7601, ds);
 
-    // - require: AOCs => COs : ACL canDataWrite
+    // - require: AOCs + COCs => COs : ACL canDataWrite
     List<String> coNoAccess =
         store.getCategoryOptionsCanNotDataWrite(
-            values.stream().map(DviValue::attributeOptionCombo));
-    if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
-
-    // TODO combine with above?
-    // - require: COC => COs : ACL canDataWrite
-    coNoAccess =
-        store.getCategoryOptionsCanNotDataWrite(values.stream().map(DviValue::categoryOptionCombo));
+            Stream.concat(
+                values.stream().map(DviValue::attributeOptionCombo),
+                values.stream().map(DviValue::categoryOptionCombo)));
     if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
   }
 
@@ -194,7 +194,7 @@ public class DefaultDviService implements DviService {
       if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
     }
 
-    // - require: OU must be within the hierarchy declared by AOC => COs => OUs
+    // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     List<String> aocOuRestricted =
         store.getAocWithOrgUnitHierarchy(values.stream().map(DviValue::attributeOptionCombo));
     if (!aocOuRestricted.isEmpty()) {
@@ -230,6 +230,8 @@ public class DefaultDviService implements DviService {
       String val = normalizeValue(e, type);
       // - require: value not null/empty (not for delete or deleted value)
       if ((val == null || val.isEmpty()) && e.deleted() != Boolean.TRUE) {
+        // TODO add condition that if DS is noValueRequiresComment=true then a comment is considered
+        // a "filled" value
         errors.add(error(index, ErrorCode.E7618, e));
       } else {
         // - require: value valid for the DE value type?
