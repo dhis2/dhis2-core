@@ -258,6 +258,40 @@ class AppTest {
   }
 
   @Test
+  void testShouldUseMostSpecificLocaleForTitleAndDescription() throws IOException {
+    String translationJSON =
+        """
+                            [
+                              {
+                                  "locale": "es",
+                                  "title": "El App (ES)",
+                                  "description": "App descripcion (ES)",
+                                  "shortcuts": {
+                                    "help": "ayuda",
+                                    "info": "informacion"
+                                  }
+                              },
+                              {
+                                  "locale": "es_CO",
+                                  "title": "El App (CO)",
+                                  "description": "App descripcion (CO)",
+                                  "shortcuts": {
+                                    "help": "ayuda",
+                                    "info": "informacion"
+                                  }
+                              }
+                            ]
+                            """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    var result = app.localise(new Locale("es", "CO"));
+
+    assertEquals("El App (CO)", result.getDisplayName());
+    assertEquals("App descripcion (CO)", result.getDisplayDescription());
+  }
+
+  @Test
   void testShouldRespectLanguageScript() throws IOException {
     String translationJSON =
         """

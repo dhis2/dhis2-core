@@ -586,18 +586,15 @@ public class App implements Serializable {
     manifestTranslations = translations;
   }
 
-  private boolean hasManifestTranslations(List<AppManifestTranslation> manifestTranslations) {
-    return manifestTranslations.stream()
-        .anyMatch(
-            translation ->
-                !translation.getShortcuts().isEmpty()
-                    || !StringUtils.isEmpty(translation.getTitle()));
+  private boolean hasManifestTranslations(AppManifestTranslation manifestTranslations) {
+    return !manifestTranslations.getShortcuts().isEmpty()
+        || !StringUtils.isEmpty(manifestTranslations.getTitle());
   }
 
   public App localise(Locale userLocale) {
+    App localisedApp = SerializationUtils.clone(this);
     var translationsToUse = getTranslationToUse(userLocale);
     if (hasManifestTranslations(translationsToUse)) {
-      App localisedApp = SerializationUtils.clone(this);
       translateShortcuts(localisedApp, translationsToUse);
 
       translateAppInfo(localisedApp, translationsToUse);
@@ -605,68 +602,56 @@ public class App implements Serializable {
       localisedApp.setIsLocalised(true);
       return localisedApp;
     }
-    return this;
+    return localisedApp;
   }
 
   private static void translateShortcuts(
-      App localisedApp, ArrayList<AppManifestTranslation> translationsToUse) {
+      App localisedApp, AppManifestTranslation translationsToUse) {
     for (AppShortcut shortcut : localisedApp.shortcuts) {
-      for (AppManifestTranslation t : translationsToUse) {
-        var shortcutTranslation = t.getShortcuts().get(shortcut.getName());
-        if (shortcutTranslation != null) {
-          shortcut.setDisplayName(shortcutTranslation);
-          break;
-        }
+      var shortcutTranslation = translationsToUse.getShortcuts().get(shortcut.getName());
+      if (shortcutTranslation != null) {
+        shortcut.setDisplayName(shortcutTranslation);
       }
     }
   }
 
-  private static void translateAppInfo(
-      App localisedApp, ArrayList<AppManifestTranslation> translationsToUse) {
-    String nameToUse = localisedApp.getDisplayName();
-    String descriptionToUse = localisedApp.getDisplayDescription();
-
-    for (AppManifestTranslation t : translationsToUse) {
-      if (!StringUtils.isEmpty(t.getTitle())) {
-        nameToUse = t.getTitle();
-      }
-      if (!StringUtils.isEmpty(t.getDescription())) {
-        descriptionToUse = t.getDescription();
-      }
+  private static void translateAppInfo(App localisedApp, AppManifestTranslation translationsToUse) {
+    if (!StringUtils.isEmpty(translationsToUse.getTitle())) {
+      localisedApp.setDisplayName(translationsToUse.getTitle());
     }
-    localisedApp.setDisplayName(nameToUse);
-    localisedApp.setDisplayDescription(descriptionToUse);
+    if (!StringUtils.isEmpty(translationsToUse.getDescription())) {
+      localisedApp.setDisplayDescription(translationsToUse.getDescription());
+    }
   }
 
-  private ArrayList<AppManifestTranslation> getTranslationToUse(Locale locale) {
+  private AppManifestTranslation getTranslationToUse(Locale locale) {
     String language = locale.getLanguage();
     String country = locale.getCountry();
     String script = locale.getScript();
 
-    Optional<AppManifestTranslation> matchingLocale = getMatchingLocale(language, country, script);
-    Optional<AppManifestTranslation> matchingLanguage = getMatchingLanguage(language);
+    AppManifestTranslation matchingLocale = getMatchingLocale(language, country, script);
+    AppManifestTranslation matchingLanguage = getMatchingLanguage(language);
 
-    var list = new ArrayList<AppManifestTranslation>();
-    matchingLocale.ifPresent(list::add);
-    matchingLanguage.ifPresent(list::add);
+    matchingLocale.merge(matchingLanguage);
 
-    return list;
+    return matchingLocale;
   }
 
-  private @Nonnull Optional<AppManifestTranslation> getMatchingLanguage(String language) {
+  private AppManifestTranslation getMatchingLanguage(String language) {
     return manifestTranslations.stream()
         .filter(tf -> language.equals(tf.getLanguageCode()))
-        .findFirst();
+        .findFirst()
+        .orElse(new AppManifestTranslation());
   }
 
-  private @Nonnull Optional<AppManifestTranslation> getMatchingLocale(
-      String language, String country, String script) {
+  private AppManifestTranslation getMatchingLocale(String language, String country, String script) {
     return manifestTranslations.stream()
         .filter(
             translation ->
                 language.equals(translation.getLanguageCode())
                     && country.equals(translation.getCountryCode())
                     && (script.isEmpty() || script.equals(translation.getScriptCode())))
-        .findFirst();
+        .findFirst()
+        .orElse(new AppManifestTranslation());
   }
 }
