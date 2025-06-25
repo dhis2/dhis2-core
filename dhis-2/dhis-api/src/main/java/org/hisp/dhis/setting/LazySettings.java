@@ -55,6 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
@@ -91,6 +92,8 @@ final class LazySettings implements SystemSettings, UserSettings {
   private static final Set<String> CONFIDENTIAL_KEYS = new HashSet<>();
   private static final Set<String> TRANSLATABLE_KEYS = new HashSet<>();
 
+  private static final Map<String, String> KEY_BY_PROPERTY = new ConcurrentHashMap<>();
+
   private static final Map<String, Serializable> DEFAULTS_SYSTEM_SETTINGS =
       extractDefaults(SystemSettings.class);
   private static final Map<String, Serializable> DEFAULTS_USER_SETTINGS =
@@ -105,6 +108,10 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (type == SystemSettings.class) return Set.copyOf(DEFAULTS_SYSTEM_SETTINGS.keySet());
     if (type == UserSettings.class) return Set.copyOf(DEFAULTS_USER_SETTINGS.keySet());
     return Set.of();
+  }
+
+  static String keyOf(String property) {
+    return KEY_BY_PROPERTY.get(property);
   }
 
   static boolean isConfidential(@Nonnull String key) {
@@ -370,6 +377,9 @@ final class LazySettings implements SystemSettings, UserSettings {
               if (args == null) return null;
               if (args.length == 2) {
                 String key = (String) args[0];
+                String name = lastDefault[0].getName();
+                String property = Character.toLowerCase(name.charAt(3)) + name.substring(4);
+                KEY_BY_PROPERTY.putIfAbsent(property, key);
                 Serializable defaultValue = (Serializable) args[1];
                 defaults.put(key, defaultValue);
                 if (lastDefault[0].isAnnotationPresent(Confidential.class))
