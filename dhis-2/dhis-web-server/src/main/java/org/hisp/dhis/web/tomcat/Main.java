@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -67,6 +67,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 
 /**
  * This code is a modified version of the original code from Spring Boot project. It serves as the
@@ -96,6 +97,13 @@ public class Main {
         "");
   }
 
+  private static String getSameSite() {
+    return ObjectUtils.firstNonNull(
+            System.getProperty("same.site.cookies"),
+            System.getenv("SAME_SITE_COOKIES"),
+            "Strict");
+  }
+
   public static void main(String[] args) throws Exception {
     Tomcat tomcat = new Tomcat();
     tomcat.setBaseDir(createTempDir());
@@ -121,6 +129,11 @@ public class Main {
     context.setDisplayName("/");
     context.setPath(getContextPath());
     context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
+
+    Rfc6265CookieProcessor cookieProcessor = new Rfc6265CookieProcessor();
+    //cookieProcessor.setSameSiteCookies(getSameSite());
+    cookieProcessor.setSameSiteCookies("None");
+    context.setCookieProcessor(cookieProcessor);
 
     context.setResources(new LoaderHidingResourceRoot(context));
     context.addLifecycleListener(new FixContextListener());

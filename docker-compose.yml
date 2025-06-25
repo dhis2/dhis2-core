@@ -11,6 +11,7 @@ x-web-base: &web-base
       -Dcom.sun.management.jmxremote.local.only=false \
       -Dcom.sun.management.jmxremote.authenticate=false \
       -Dcom.sun.management.jmxremote.ssl=false"
+    SAME_SITE_COOKIES: None
 
 x-db-base: &db-base
   image: ghcr.io/baosystems/postgis:12-3.3
