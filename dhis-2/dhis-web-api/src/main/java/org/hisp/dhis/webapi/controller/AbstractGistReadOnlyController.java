@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -268,7 +267,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     List<?> elements = matches;
     if (params.isOrgUnitsTree() && query.getElementType() == OrganisationUnit.class) {
       fieldNames = new ArrayList<>(fieldNames);
-      fieldNames.add("match");
+      fieldNames.add(0, "match");
       elements = gistToJsonOrgUnitTreeResponse(query, matches);
     }
     JsonNode body = responseBuilder.skipNullOrEmpty().toArray(fieldNames, elements);
@@ -290,7 +289,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     // - add match true to all matches
     List<Object[]> elements = matches.stream().map(e -> appendMatchElement(e, true)).toList();
     // - isolate path column as list
-    int pathIndex = query.getFieldNames().indexOf("path");
+    int pathIndex = query.getFieldNames().indexOf("path") + 1;
     List<String> paths = elements.stream().map(e -> (String) ((Object[]) e)[pathIndex]).toList();
     // - make a list of all matching IDs
     List<String> matchesIds =
@@ -309,6 +308,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .gist(
                 GistQuery.builder()
                     .elementType(query.getElementType())
+                    .translate(query.isTranslate())
                     .translationLocale(query.getTranslationLocale())
                     .paging(false)
                     .filters(List.of(new Filter("id", Comparison.IN, ids.toArray(String[]::new))))
@@ -325,8 +325,9 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
   private Object[] appendMatchElement(Object arr, boolean match) {
     Object[] from = (Object[]) arr;
-    Object[] to = Arrays.copyOf(from, from.length + 1);
-    to[from.length] = match;
+    Object[] to = new Object[from.length + 1];
+    System.arraycopy(from, 0, to, 1, from.length);
+    to[0] = match;
     return to;
   }
 
