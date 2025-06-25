@@ -136,12 +136,12 @@ public final class GistParams {
   @OpenApi.Since(43)
   @OpenApi.Description(
       """
-      When true, the list is adjusted for efficient listing of organisation units in a paging tree search.
+      When true, the list is adjusted for efficient paged listing of organisation units displaying search results as tree.
       Overrides `order` with the equivalent of `order=path`.
       Overrides `references` with `references=false`.
       Always adds `path` to the `fields` list, if not already contained.
-      For organisation units `/api/organisationUnits/gist` lists all parents up to the root (ancestors) of any match are included in the list result.
-      In that case a boolean property `match` will be added to each entry indicating if the entry was added as ancestor (`false`) or query match (`true`)""")
+      For organisation units `/api/organisationUnits/gist` lists all parents up to the root (ancestors) of any match are included in the result list.
+      In that case a boolean property `match` is added to each entry indicating if the entry was added as ancestor (`false`) or as query match (`true`)""")
   boolean orgUnitsTree = false;
 
   @OpenApi.Description(

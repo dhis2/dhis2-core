@@ -182,13 +182,16 @@ public final class GistQuery {
     int size = Math.min(1000, abs(params.getPageSize()));
     boolean tree = params.isOrgUnitsTree();
     boolean offline = params.isOrgUnitsOffline();
-    String order = tree ? "path" : params.getOrder();
+    String order = tree || offline ? "path" : params.getOrder();
     String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
     // ensure tree always includes path in fields
-    if (tree && (fields == null || fields.isEmpty())) fields = "path";
-    if (tree && !(fields.contains(",path,"))
-        || fields.startsWith("path,")
-        || fields.endsWith(",path")) fields += ",path";
+    if (tree) {
+      if (fields == null || fields.isEmpty()) {
+        fields = "path";
+      } else if (!(fields.contains(",path,"))
+          || fields.startsWith("path,")
+          || fields.endsWith(",path")) fields += ",path";
+    }
     return toBuilder()
         .paging(!offline)
         .pageSize(size)
