@@ -75,24 +75,15 @@ public class BundledAppStorageService implements AppStorageService {
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
         if (app != null) {
-          String path =
-              CLASSPATH_PREFIX
-                  + STATIC_DIR
-                  + BUNDLED_APP_PREFIX
-                  + app.getKey()
-                  + "/"
-                  + MANIFEST_FILENAME;
-
-          String regex = "/" + MANIFEST_FILENAME + "$";
+          String path = CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + app.getKey();
           String shortName =
-              path.replaceAll(regex, "")
-                  .replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
+              path.replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
           app.setBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
-          app.setFolderName(path.replaceAll(regex, ""));
+          app.setFolderName(path);
 
-          checkManifestTranslations(app);
+          setManifestTranslationsIfExists(app);
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
@@ -105,7 +96,7 @@ public class BundledAppStorageService implements AppStorageService {
     return apps;
   }
 
-  private void checkManifestTranslations(App app) {
+  private void setManifestTranslationsIfExists(App app) {
     try {
       // Read translations for possible manifest translations
       String resourceName =

@@ -83,10 +83,6 @@ public class AppManifestTranslation {
       this.setDescription(otherTranslation.getDescription());
     }
 
-    // update the hashmap of otherTranslation with the current object hashmap values
-    // giving precedence to the current object
-    otherTranslation.getShortcuts().putAll(this.getShortcuts());
-
-    this.setShortcuts(otherTranslation.getShortcuts());
+    otherTranslation.getShortcuts().forEach(this.shortcuts::putIfAbsent);
   }
 }
