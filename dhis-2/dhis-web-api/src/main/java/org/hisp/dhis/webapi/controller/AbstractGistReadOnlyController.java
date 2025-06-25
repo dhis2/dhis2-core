@@ -287,7 +287,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
   private List<?> gistToJsonOrgUnitTreeResponse(GistQuery query, List<?> matches) {
     // - add match true to all matches
-    List<Object[]> elements = matches.stream().map(e -> prepandMatchElement(e, true)).toList();
+    List<Object[]> elements = matches.stream().map(e -> prependMatchElement(e, true)).toList();
     // - isolate path column as list
     int pathIndex =
         query.getFieldNames().indexOf("path") + 1; // +1 as match column is inserted at 0
@@ -316,7 +316,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
                     .fields(query.getFields())
                     .build())
             .stream()
-            .map(e -> prepandMatchElement(e, false))
+            .map(e -> prependMatchElement(e, false))
             .toList();
     // - inject ancestors into elements list (ordered by path)
     return Stream.concat(elements.stream(), ancestors.stream())
@@ -324,7 +324,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         .toList();
   }
 
-  private Object[] prepandMatchElement(Object row, boolean match) {
+  private Object[] prependMatchElement(Object row, boolean match) {
     Object[] from = row instanceof Object[] arr ? arr : new Object[] {row};
     Object[] to = new Object[from.length + 1];
     System.arraycopy(from, 0, to, 1, from.length);
