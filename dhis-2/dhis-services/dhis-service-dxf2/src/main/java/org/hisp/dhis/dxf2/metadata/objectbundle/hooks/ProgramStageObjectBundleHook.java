@@ -83,8 +83,7 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
 
     validateProgramStageDataElementsAcl(programStage, bundle, addReports);
 
-    if (programStage.getProgram() == null
-        && !checkProgramReference(programStage.getUid(), bundle)) {
+    if (programStage.getProgram() == null && !checkProgramReference(programStage, bundle)) {
       addReports.accept(
           new ErrorReport(ProgramStage.class, ErrorCode.E4053, programStage.getUid()));
     }
@@ -159,9 +158,11 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
   }
 
   /** Check if current ProgramStage has reference from a Program in same payload. */
-  private boolean checkProgramReference(String programStageId, ObjectBundle objectBundle) {
+  private boolean checkProgramReference(ProgramStage programStage, ObjectBundle objectBundle) {
     for (Program program : objectBundle.getObjects(Program.class)) {
-      if (program.getProgramStages().stream().anyMatch(ps -> ps.getUid().equals(programStageId))) {
+      if (program.getProgramStages().stream()
+          .anyMatch(ps -> ps.getUid().equals(programStage.getUid()))) {
+        programStage.setProgram(program);
         return true;
       }
     }

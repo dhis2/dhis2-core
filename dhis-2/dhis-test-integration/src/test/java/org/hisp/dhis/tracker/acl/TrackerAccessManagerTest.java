@@ -129,11 +129,6 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     dataElementB.setValueType(ValueType.INTEGER);
     manager.save(dataElementA);
     manager.save(dataElementB);
-    programStageA = createProgramStage('A', 0);
-    programStageB = createProgramStage('B', 0);
-    programStageB.setRepeatable(true);
-    manager.save(programStageA);
-    manager.save(programStageB);
     programA = createProgram('A', new HashSet<>(), orgUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setAccessLevel(AccessLevel.PROTECTED);
@@ -141,6 +136,11 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     programA.addOrganisationUnit(orgUnitB);
     programA.setTrackedEntityType(trackedEntityType);
     manager.save(programA);
+    programStageA = createProgramStage('A', programA);
+    programStageB = createProgramStage('B', programA);
+    programStageB.setRepeatable(true);
+    manager.save(programStageA);
+    manager.save(programStageB);
     ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
     programStageDataElement.setDataElement(dataElementA);
     programStageDataElement.setProgramStage(programStageA);

@@ -1237,7 +1237,7 @@
         }
       ],
       "program": {
-        "id": "shPjYNifvMK"
+        "id": "pcxIanBWlSY"
       },
       "repeatable": true,
       "sortOrder": 1,
@@ -1336,9 +1336,6 @@
       "lastUpdated": "2020-05-31T11:41:22.426",
       "lastUpdatedBy": {
         "id": "FIgVWzUCkpw"
-      },
-      "program": {
-        "id": "sLngICFQjvH"
       },
       "minDaysFromStart": 0,
       "name": "test-program-stage-low-level-org-unit",

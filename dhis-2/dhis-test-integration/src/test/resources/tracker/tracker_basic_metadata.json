@@ -172,9 +172,6 @@
       "notificationTemplates": [],
       "generatedByEnrollmentDate": false,
       "displayGenerateEventBox": true,
-      "program": {
-        "id": "E8o1E9tAppy"
-      },
       "name": "Stage2",
       "remindCompleted": false,
       "lastUpdated": "2019-03-29T12:41:33.027",
