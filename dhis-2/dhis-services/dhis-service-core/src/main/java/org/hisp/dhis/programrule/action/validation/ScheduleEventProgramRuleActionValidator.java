@@ -80,11 +80,7 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
           rule.getName());
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
-          .errorReport(
-              new ErrorReport(
-                  Program.class,
-                  ErrorCode.E4081, // you may need to define or reuse a suitable error code
-                  rule.getName()))
+          .errorReport(new ErrorReport(Program.class, ErrorCode.E4081, rule.getName()))
           .build();
     }
 
