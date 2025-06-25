@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
@@ -109,7 +108,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       throws NotFoundException, BadRequestException {
     return gistToJsonObjectResponse(
         uid,
-        params,
         createGistQuery(params, getEntityClass(), GistAutoType.L)
             .withFilter(new Filter("id", Comparison.EQ, uid)));
   }
@@ -179,7 +177,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         || !PrimaryKeyObject.class.isAssignableFrom(objProperty.getItemKlass())) {
       return gistToJsonObjectResponse(
           uid,
-          params,
           createGistQuery(params, getEntityClass(), GistAutoType.L)
               .withFilter(new Filter("id", Comparison.EQ, uid))
               .withField(property));
@@ -244,8 +241,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         .with(params);
   }
 
-  private ResponseEntity<JsonNode> gistToJsonObjectResponse(
-      String uid, GistParams params, GistQuery query) throws NotFoundException {
+  private ResponseEntity<JsonNode> gistToJsonObjectResponse(String uid, GistQuery query)
+      throws NotFoundException {
     if (query.isDescribe()) {
       return gistDescribeToJsonObjectResponse(query);
     }
@@ -279,10 +276,12 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       String property =
           params.getPageListName() == null ? schema.getPlural() : params.getPageListName();
       body =
-          responseBuilder.toObject(
-              asList("pager", property),
-              gistService.pager(query, matches, request.getParameterMap()),
-              body);
+          query.isPaging()
+              ? responseBuilder.toObject(
+                  List.of("pager", property),
+                  gistService.pager(query, matches, request.getParameterMap()),
+                  body)
+              : responseBuilder.toObject(List.of(property), body);
     }
     return ResponseEntity.ok().cacheControl(noCache().cachePrivate()).body(body);
   }
