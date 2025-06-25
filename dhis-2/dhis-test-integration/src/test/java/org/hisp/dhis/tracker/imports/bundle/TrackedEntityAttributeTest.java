@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
@@ -64,17 +65,17 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  private User importUser;
 
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata("tracker/te_with_tea_metadata.json");
 
-    importUser = userService.getUser("tTgjgobT1oS");
+    User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
   }
 
@@ -102,5 +103,30 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttributeValue> attributeValues =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(3, attributeValues.size());
+  }
+
+  @Test
+  void shouldSetMinCharactersToSearchFromImportOrDefaultToZero() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertMinCharactersToSearch(trackedEntityAttributes, "sTGqP5JNy6E", 2);
+    assertMinCharactersToSearch(trackedEntityAttributes, "sYn3tkL3XKa", 0);
+    assertMinCharactersToSearch(trackedEntityAttributes, "TsfP85GKsU5", 0);
+  }
+
+  private void assertMinCharactersToSearch(
+      List<TrackedEntityAttribute> teas, String uid, int expected) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.getMinCharactersToSearch(),
+        "Expected minCharactersToSearch for UID " + uid + " to be " + expected);
   }
 }
