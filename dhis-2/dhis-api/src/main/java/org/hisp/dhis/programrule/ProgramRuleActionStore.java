@@ -31,6 +31,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
@@ -46,5 +47,10 @@ public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramR
 
   List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements);
 
-  List<String> getProgramStagesPresentInProRuleActions(ProgramRuleActionType type);
+  List<String> getProgramStagesPresentInProgramRuleActions(ProgramRuleActionType type);
+
+  List<String> getDataElementsPresentInProgramRuleActions(Set<ProgramRuleActionType> actionTypes);
+
+  List<String> getTrackedEntityAttributesPresentInProgramRuleActions(
+      Set<ProgramRuleActionType> actionTypes);
 }

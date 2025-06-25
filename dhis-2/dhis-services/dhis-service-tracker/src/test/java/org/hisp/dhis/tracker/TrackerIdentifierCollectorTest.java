@@ -52,7 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -77,9 +76,8 @@ class TrackerIdentifierCollectorTest {
   @BeforeEach
   void setUp() {
 
-    ProgramRuleService programRuleService = mock(ProgramRuleService.class);
     ProgramRuleActionService programRuleActionService = mock(ProgramRuleActionService.class);
-    collector = new TrackerIdentifierCollector(programRuleService, programRuleActionService);
+    collector = new TrackerIdentifierCollector(programRuleActionService);
   }
 
   @Test
