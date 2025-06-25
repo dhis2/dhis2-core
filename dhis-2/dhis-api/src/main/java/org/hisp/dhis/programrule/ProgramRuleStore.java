@@ -78,4 +78,6 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
       ProgramRuleActionEvaluationEnvironment environment);
 
   List<ProgramRule> getProgramRulesWithNoAction();
+
+  List<ProgramRule> getProgramRulesForEnrollment(Program program, Set<ProgramRuleActionType> types);
 }

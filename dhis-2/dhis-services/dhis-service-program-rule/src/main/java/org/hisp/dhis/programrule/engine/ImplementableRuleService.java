@@ -45,4 +45,9 @@ abstract class ImplementableRuleService {
       Program program, Set<ProgramRuleActionType> types) {
     return programRuleService.getProgramRulesByActionTypes(program, types);
   }
+
+  protected List<ProgramRule> getProgramRulesForEnrollment(Program program) {
+    return programRuleService.getProgramRulesForEnrollment(
+        program, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
+  }
 }
