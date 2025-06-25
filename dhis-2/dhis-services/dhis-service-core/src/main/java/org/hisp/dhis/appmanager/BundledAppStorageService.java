@@ -71,7 +71,7 @@ public class BundledAppStorageService implements AppStorageService {
     try {
       Resource[] resources =
           resourcePatternResolver.getResources(
-              CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/manifest.webapp");
+              CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/" + MANIFEST_FILENAME);
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
         if (app != null) {
@@ -80,15 +80,17 @@ public class BundledAppStorageService implements AppStorageService {
                   + STATIC_DIR
                   + BUNDLED_APP_PREFIX
                   + app.getKey()
-                  + "/manifest.webapp";
+                  + "/"
+                  + MANIFEST_FILENAME;
 
+          String regex = "/" + MANIFEST_FILENAME + "$";
           String shortName =
-              path.replaceAll("/manifest.webapp$", "")
+              path.replaceAll(regex, "")
                   .replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
           app.setBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
-          app.setFolderName(path.replaceAll("/manifest.webapp$", ""));
+          app.setFolderName(path.replaceAll(regex, ""));
 
           checkManifestTranslations(app);
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
@@ -106,7 +108,8 @@ public class BundledAppStorageService implements AppStorageService {
   private void checkManifestTranslations(App app) {
     try {
       // Read translations for possible manifest translations
-      String resourceName = app.getFolderName() + "/manifest.webapp.translations.json";
+      String resourceName =
+          app.getFolderName() + "/" + AppStorageService.MANIFEST_TRANSLATION_FILENAME;
       Resource appManifestTranslation = resourceLoader.getResource(resourceName);
 
       if (appManifestTranslation.exists()) {

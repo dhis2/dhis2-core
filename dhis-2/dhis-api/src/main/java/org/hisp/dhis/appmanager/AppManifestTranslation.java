@@ -63,4 +63,30 @@ public class AppManifestTranslation {
 
     this.languageCode = split[0];
   }
+
+  /**
+   * merges two manifest translations giving precedence to the current object used to fill the empty
+   * values of a more specific locale (i.e. es_CO) with a less specific one (i.e. es)
+   *
+   * @param otherTranslation the translation to merge with the current object
+   */
+  public void merge(AppManifestTranslation otherTranslation) {
+    if (otherTranslation == null) {
+      return;
+    }
+
+    if (StringUtils.isEmpty(this.getTitle()) && !StringUtils.isEmpty(otherTranslation.getTitle())) {
+      this.setTitle(otherTranslation.getTitle());
+    }
+    if (StringUtils.isEmpty(this.getDescription())
+        && !StringUtils.isEmpty(otherTranslation.getDescription())) {
+      this.setDescription(otherTranslation.getDescription());
+    }
+
+    // update the hashmap of otherTranslation with the current object hashmap values
+    // giving precedence to the current object
+    otherTranslation.getShortcuts().putAll(this.getShortcuts());
+
+    this.setShortcuts(otherTranslation.getShortcuts());
+  }
 }
