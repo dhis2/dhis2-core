@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
@@ -56,11 +57,6 @@ public final class GistParams {
       The extent of fields to include when no specific list of fields is provided using `fields` so that  that listed fields are automatically determined.
       See [Gist auto parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#the-auto-parameter).""")
   GistAutoType auto;
-
-  @OpenApi.Description(
-      """
-      Opt-out of paging. Only permitted for organisation units with simple `fields` list.""")
-  boolean paging = true;
 
   @OpenApi.Description(
       """
@@ -124,6 +120,28 @@ public final class GistParams {
       """
       By default, the Gist API includes links to referenced objects. This can be disabled by using `references=false`.""")
   boolean references = true;
+
+  @Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description(
+      """
+      When true, the list is adjusted for efficient listing of organisation units for offline caching.
+      Most importantly the list will not have paging (not possible otherwise).
+      Overrides `fields` with the equivalent of `fields=path,displayName,children::isNotEmpty`.
+      Overrides `references` with `references=false`.
+      """)
+  boolean orgUnitsOffline = false;
+
+  @Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description(
+      """
+      When true, the list is adjusted for efficient listing of organisation units in a paging tree search.
+      Overrides `order` with the equivalent of `order=path`.
+      Overrides `references` with `references=false`.
+      For organisation units `/api/organisationUnits/gist` lists all parents up to the root (ancestors) of any match are included in the list result.
+      In that case a boolean property `match` will be added to each entry indicating if the entry was added as ancestor (`false`) or query match (`true`)""")
+  boolean orgUnitsTree = false;
 
   @OpenApi.Description(
       """

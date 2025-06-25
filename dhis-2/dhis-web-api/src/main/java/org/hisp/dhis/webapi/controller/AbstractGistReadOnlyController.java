@@ -30,6 +30,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
+import static java.util.Comparator.comparing;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -41,8 +44,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Stream;
 import lombok.Value;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
@@ -61,6 +68,7 @@ import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.gist.GistService;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -101,6 +109,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       throws NotFoundException, BadRequestException {
     return gistToJsonObjectResponse(
         uid,
+        params,
         createGistQuery(params, getEntityClass(), GistAutoType.L)
             .withFilter(new Filter("id", Comparison.EQ, uid)));
   }
@@ -170,6 +179,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         || !PrimaryKeyObject.class.isAssignableFrom(objProperty.getItemKlass())) {
       return gistToJsonObjectResponse(
           uid,
+          params,
           createGistQuery(params, getEntityClass(), GistAutoType.L)
               .withFilter(new Filter("id", Comparison.EQ, uid))
               .withField(property));
@@ -234,8 +244,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         .with(params);
   }
 
-  private ResponseEntity<JsonNode> gistToJsonObjectResponse(String uid, GistQuery query)
-      throws NotFoundException {
+  private ResponseEntity<JsonNode> gistToJsonObjectResponse(
+      String uid, GistParams params, GistQuery query) throws NotFoundException {
     if (query.isDescribe()) {
       return gistDescribeToJsonObjectResponse(query);
     }
@@ -255,19 +265,70 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       return gistDescribeToJsonObjectResponse(query);
     }
     query = gistService.plan(query);
-    List<?> elements = gistService.gist(query);
     JsonBuilder responseBuilder = new JsonBuilder(jsonMapper);
-    JsonNode body = responseBuilder.skipNullOrEmpty().toArray(query.getFieldNames(), elements);
+    List<String> fieldNames = query.getFieldNames();
+    List<?> matches = gistService.gist(query);
+    List<?> elements = matches;
+    if (params.isOrgUnitsTree() && query.getElementType() == OrganisationUnit.class) {
+      fieldNames = new ArrayList<>(fieldNames);
+      fieldNames.add("match");
+      elements = gistToJsonOrgUnitTreeResponse(query, matches);
+    }
+    JsonNode body = responseBuilder.skipNullOrEmpty().toArray(fieldNames, elements);
     if (!query.isHeadless()) {
       String property =
           params.getPageListName() == null ? schema.getPlural() : params.getPageListName();
       body =
           responseBuilder.toObject(
               asList("pager", property),
-              gistService.pager(query, elements, request.getParameterMap()),
+              gistService.pager(query, matches, request.getParameterMap()),
               body);
     }
     return ResponseEntity.ok().cacheControl(noCache().cachePrivate()).body(body);
+  }
+
+  private List<?> gistToJsonOrgUnitTreeResponse(GistQuery query, List<?> matches) {
+    // - add match true to all matches
+    List<Object[]> elements = matches.stream().map(e -> appendMatchElement(e, true)).toList();
+    // - isolate path column as list
+    int pathIndex = query.getFieldNames().indexOf("path");
+    List<String> paths = elements.stream().map(e -> (String) ((Object[]) e)[pathIndex]).toList();
+    // - make a list of all matching IDs
+    List<String> matchesIds =
+        paths.stream().map(path -> path.substring(path.lastIndexOf('/') + 1)).toList();
+    // - make a set of all IDs in any of the paths
+    Set<String> ids =
+        paths.stream()
+            .flatMap(path -> Stream.of(path.split("/")).filter(not(String::isEmpty)))
+            .collect(toSet());
+    matchesIds.forEach(
+        ids::remove); // we already have those, what is left are the ancestors not yet fetched
+    // if ancestors are missing fetch them
+    if (ids.isEmpty()) return elements;
+    List<Object[]> ancestors =
+        gistService
+            .gist(
+                GistQuery.builder()
+                    .elementType(query.getElementType())
+                    .translationLocale(query.getTranslationLocale())
+                    .paging(false)
+                    .filters(List.of(new Filter("id", Comparison.IN, ids.toArray(String[]::new))))
+                    .fields(query.getFields())
+                    .build())
+            .stream()
+            .map(e -> appendMatchElement(e, false))
+            .toList();
+    // - inject ancestors into elements list (ordered by path)
+    return Stream.concat(elements.stream(), ancestors.stream())
+        .sorted(comparing(e -> ((String) e[pathIndex])))
+        .toList();
+  }
+
+  private Object[] appendMatchElement(Object arr, boolean match) {
+    Object[] from = (Object[]) arr;
+    Object[] to = Arrays.copyOf(from, from.length + 1);
+    to[from.length] = match;
+    return to;
   }
 
   private ResponseEntity<JsonNode> gistDescribeToJsonObjectResponse(GistQuery query) {
