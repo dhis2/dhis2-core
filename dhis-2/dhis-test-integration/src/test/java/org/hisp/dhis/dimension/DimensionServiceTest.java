@@ -244,7 +244,7 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
     dataSetService.addDataSet(dsA);
     prA = createProgram('A');
     idObjectManager.save(prA);
-    psA = createProgramStage('A', 1);
+    psA = createProgramStage('A', prA);
     idObjectManager.save(psA);
     teaA = createTrackedEntityAttribute('A');
     idObjectManager.save(teaA);

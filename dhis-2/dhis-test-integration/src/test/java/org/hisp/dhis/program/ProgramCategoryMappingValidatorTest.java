@@ -156,7 +156,11 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
     dataElement = createDataElement('A', NUMBER, SUM, TRACKER);
     manager.save(dataElement);
 
+    Program program = createProgram('A');
+    manager.save(program);
+
     ProgramStage programStage = createProgramStage('A', Set.of(dataElement));
+    programStage.setProgram(program);
     manager.save(programStage);
 
     String de = "#{" + programStage.getUid() + "." + dataElement.getUid() + "}";

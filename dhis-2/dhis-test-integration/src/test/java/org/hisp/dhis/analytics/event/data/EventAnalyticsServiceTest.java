@@ -408,19 +408,37 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     deU.setUid("deOrgUnit0U");
     dataElementService.addDataElement(deU);
 
+    // Programs
+    programA = createProgram('A');
+
+    programA.getOrganisationUnits().addAll(level3Ous);
+    programA.setUid("programA123");
+    manager.save(programA);
+
+    programB = createProgram('B');
+    programB.getOrganisationUnits().addAll(level3Ous);
+    programB.setUid("programB123");
+    programB.setCategoryCombo(ccA);
+    manager.save(programB);
+
     // Program Stages
-    psA = createProgramStage('A', 0);
+    psA = createProgramStage('A', programA);
     psA.setUid("progrStageA");
     psA.addDataElement(deA, 1);
     psA.addDataElement(deU, 2);
     manager.save(psA);
 
-    ProgramStage psB = createProgramStage('B', 0);
+    ProgramStage psB = createProgramStage('B', programB);
     psB.setUid("progrStageB");
     psB.addDataElement(deA, 1);
     psB.addDataElement(deB, 2);
     psB.addDataElement(deM, 3);
     manager.save(psB);
+
+    programA.getProgramStages().add(psA);
+    programB.getProgramStages().add(psB);
+    manager.update(programA);
+    manager.update(programB);
 
     // Program Category Option Mappings
     ProgramCategoryOptionMapping omA =
@@ -460,18 +478,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .optionMappings(List.of(omC, omD))
             .build();
 
-    // Programs
-    programA = createProgram('A');
-    programA.getProgramStages().add(psA);
-    programA.getOrganisationUnits().addAll(level3Ous);
-    programA.setUid("programA123");
-    manager.save(programA);
-
-    programB = createProgram('B');
-    programB.getProgramStages().add(psB);
-    programB.getOrganisationUnits().addAll(level3Ous);
-    programB.setUid("programB123");
-    programB.setCategoryCombo(ccA);
     programB.setCategoryMappings(Set.of(cmA, cmB));
     manager.save(programB);
 
