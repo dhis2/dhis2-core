@@ -79,7 +79,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.3.10</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.7.0-0.6.x-compat</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
