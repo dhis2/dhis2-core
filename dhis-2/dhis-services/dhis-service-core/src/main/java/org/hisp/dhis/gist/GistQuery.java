@@ -201,12 +201,12 @@ public final class GistQuery {
         .describe(params.isDescribe())
         .references(!tree && !offline && params.isReferences())
         .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).collect(toList()))
+        .fields(getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList())
         .filters(
             getStrings(params.getFilter(), FIELD_SPLIT).stream()
                 .map(Filter::parse)
                 .collect(toList()))
-        .orders(getStrings(order, ",").stream().map(Order::parse).collect(toList()))
+        .orders(getStrings(order, ",").stream().map(Order::parse).toList())
         .build();
   }
 

@@ -291,7 +291,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     // - isolate path column as list
     int pathIndex =
         query.getFieldNames().indexOf("path") + 1; // +1 as match column is inserted at 0
-    List<String> paths = elements.stream().map(e -> (String) ((Object[]) e)[pathIndex]).toList();
+    List<String> paths = elements.stream().map(e -> (String) e[pathIndex]).toList();
     // - make a list of all matching IDs
     List<String> matchesIds =
         paths.stream().map(path -> path.substring(path.lastIndexOf('/') + 1)).toList();
