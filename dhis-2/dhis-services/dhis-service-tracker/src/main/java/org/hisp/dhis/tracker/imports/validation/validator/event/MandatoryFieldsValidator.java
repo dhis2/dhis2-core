@@ -53,6 +53,7 @@ class MandatoryFieldsValidator implements Validator<Event> {
     reporter.addErrorIf(() -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit");
     reporter.addErrorIf(() -> event.getProgramStage().isBlank(), event, E1123, "programStage");
 
+    // TODO remove if once metadata import is fixed
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
     if (programStage != null) {
       // Program stages should always have a program! Due to how metadata
