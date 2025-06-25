@@ -139,6 +139,7 @@ public final class GistParams {
       When true, the list is adjusted for efficient listing of organisation units in a paging tree search.
       Overrides `order` with the equivalent of `order=path`.
       Overrides `references` with `references=false`.
+      Always adds `path` to the `fields` list, if not already contained.
       For organisation units `/api/organisationUnits/gist` lists all parents up to the root (ancestors) of any match are included in the list result.
       In that case a boolean property `match` will be added to each entry indicating if the entry was added as ancestor (`false`) or query match (`true`)""")
   boolean orgUnitsTree = false;
