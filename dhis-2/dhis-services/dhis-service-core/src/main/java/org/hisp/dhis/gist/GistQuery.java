@@ -185,7 +185,7 @@ public final class GistQuery {
     String order = tree ? "path" : params.getOrder();
     String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
     // ensure tree always includes path in fields
-    if (tree && fields == null || fields.isEmpty()) fields = "path";
+    if (tree && (fields == null || fields.isEmpty())) fields = "path";
     if (tree && !(fields.contains(",path,"))
         || fields.startsWith("path,")
         || fields.endsWith(",path")) fields += ",path";
