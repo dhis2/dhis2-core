@@ -39,8 +39,20 @@ summary_sql: >-
   100.0 * count(*) / NULLIF( (select count(*) from programstage),0) as percent
   from rs;
 details_sql: >-
-  SELECT a.uid,a.name
-  from programstage a
+  SELECT 
+    a.uid,
+    a.name,
+    CASE 
+      WHEN EXISTS (
+        SELECT 1 
+        FROM event e 
+        WHERE e.programstageid = a.programstageid
+        LIMIT 1
+      )
+      THEN 'HAS_DATA: true'
+      ELSE 'HAS_DATA: false'
+    END AS comment
+  FROM programstage a
   WHERE a.programid IS NULL;
 severity: SEVERE
 introduction: >
@@ -64,15 +76,30 @@ recommendation: >
   Be sure to replace `<program_id>` with the native ID of the program you want to link the program stage to,
     and `<program_stage_uid>` with the UID of the program stage you want to link.
   
-  Obviously, as is always the case with direct database manipulation, you should
+  As is always the case with direct database manipulation, you should
   ensure that you have a backup of your database before running this command, ensure that DHIS2 is not running,
   perform the change in a test environment first, and ensure that the system functions as expected after the change.
   
-  Alternatively, if the program stage is not needed, you can delete it using the following SQL command:
+  Alternatively, if the program stage is not needed, you will need to delete it.
+  
+  The integrity check details will indicate whether the program stage has any associated data. If there is
+    associated data, you will need to delete that data first before deleting the program stage. You can 
+  delete the associated program stage data using the following SQL command:
+  
+  ```sql
+    DELETE FROM event WHERE programstageid = '<program_stage_id>';
+    ```
+  
+    Replace `<program_stage_id>` with the ID of the program stage you want to delete data for.
+  
+  After ensuring that all associated data has been deleted,
+  you can delete the program stage itself using the following SQL command:
+  
   ```sql
     DELETE FROM programstage WHERE uid = '<program_stage_uid>';
   ```
   
+  The integrity check details will indicate whether the program stage has any associated data.
   Note that any data associated with the program stage will also need to be deleted
   prior to deleting the program stage itself. Ensure that you have a backup of your database
   before running this command, and perform the change in a test environment first.

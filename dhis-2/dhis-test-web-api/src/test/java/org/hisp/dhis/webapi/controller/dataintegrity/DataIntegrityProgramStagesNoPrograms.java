@@ -70,7 +70,13 @@ class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrat
     dbmsManager.clearSession();
 
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK, 50, programStageB.getUid(), "programStageB", null, true);
+        DETAILS_ID_TYPE,
+        CHECK,
+        50,
+        programStageB.getUid(),
+        "programStageB",
+        "HAS_DATA: false",
+        true);
   }
 
   public void setUpTest() {
