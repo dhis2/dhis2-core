@@ -112,7 +112,7 @@ public class HibernateProgramRuleActionStore
             select distinct ps.uid
             from ProgramRuleAction pra
             join pra.programStage ps
-            where pra.programRuleActionType = :actionType and pra.programStage is not null
+            where pra.programRuleActionType = :actionType
                 """;
     return getQuery(sql, String.class).setParameter("actionType", type).getResultList();
   }
