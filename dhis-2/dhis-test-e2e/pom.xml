@@ -19,7 +19,7 @@
     <rest-assured.version>5.5.5</rest-assured.version>
     <jackson.version>2.19.1</jackson.version>
     <guava.version>33.4.8-jre</guava.version>
-    <json-tree.version>1.8</json-tree.version>
+    <json-tree.version>1.8.1</json-tree.version>
     <epam-reportportal.version>5.3.0</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.11.2</opencsv.version>
