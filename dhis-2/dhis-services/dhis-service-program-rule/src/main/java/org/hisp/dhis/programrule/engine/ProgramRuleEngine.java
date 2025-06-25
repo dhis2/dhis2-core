@@ -103,6 +103,10 @@ public class ProgramRuleEngine {
         null, null, program, List.of(), getRuleEvents(Set.of(event), null), rules);
   }
 
+  public List<ProgramRule> getProgramRulesForEnrollment(Program program) {
+    return implementableRuleService.getProgramRulesForEnrollment(program);
+  }
+
   public List<RuleEffect> evaluate(
       ProgramInstance enrollment,
       ProgramStageInstance programStageInstance,

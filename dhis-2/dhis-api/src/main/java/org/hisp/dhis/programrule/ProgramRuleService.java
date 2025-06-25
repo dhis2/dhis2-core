@@ -116,6 +116,17 @@ public interface ProgramRuleService {
   List<ProgramRule> getProgramRules(Program program, String key);
 
   /**
+   * Returns the list of program rules associated with the given program that are not linked to any
+   * specific program stage. Only includes rules with action types supported by the backend rule
+   * engine.
+   *
+   * @param program the program to retrieve rules for
+   * @param types the set of supported {@link ProgramRuleActionType}s
+   * @return a list of applicable {@link ProgramRule}s for enrollment
+   */
+  List<ProgramRule> getProgramRulesForEnrollment(Program program, Set<ProgramRuleActionType> types);
+
+  /**
    * @return all {@link ProgramRule} with no priority
    */
   List<ProgramRule> getProgramRulesWithNoPriority();
