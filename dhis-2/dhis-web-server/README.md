@@ -25,4 +25,4 @@ The following shows the mapping of app repos to the DHIS2 versions that use the 
 |git@github.com:dhis2/translations-app.git|v29|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|
 |git@github.com:dhis2/usage-analytics-app.git|2.29|2.30|2.31|master|master|master|master|master|master|master|master|master|master|master|
 |git@github.com:dhis2/user-app.git|n/a|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|
-|git@github.com:dhis2/user-profile-app.git|v29|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|mastermaster|
+|git@github.com:dhis2/user-profile-app.git|v29|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|
