@@ -183,7 +183,7 @@ public final class GistQuery {
     boolean tree = params.isOrgUnitsTree();
     boolean offline = params.isOrgUnitsOffline();
     String order = tree ? "path" : params.getOrder();
-    if (offline && order == null || order.isEmpty()) order = "level,name";
+    if (offline && (order == null || order.isEmpty())) order = "level,name";
     String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
     // ensure tree always includes path in fields
     if (tree) {
