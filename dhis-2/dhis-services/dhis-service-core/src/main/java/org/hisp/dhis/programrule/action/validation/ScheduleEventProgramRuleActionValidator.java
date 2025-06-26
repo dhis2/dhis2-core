@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -84,7 +85,7 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
           .build();
     }
 
-    if (!programStage.getProgram().getUid().equals(program.getUid())) {
+    if (!Objects.equals(programStage.getProgram().getUid(), program.getUid())) {
       log.debug(
           "ProgramStage is not part of the same program as the rule. Rule: {}", rule.getName());
       return ProgramRuleActionValidationResult.builder()
