@@ -32,7 +32,6 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +62,7 @@ import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.hisp.dhis.util.ZipSlipException;
 import org.jclouds.blobstore.domain.Blob;
@@ -205,7 +205,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     String topLevelFolder;
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
-      app = ZipFileUtils.readManifest(file, this.jsonMapper, topLevelFolder);
+      app = readAppManifest(file, this.jsonMapper, topLevelFolder);
       app.setFolderName(installationFolder);
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
@@ -214,8 +214,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       app.setAppState(AppStatus.MISSING_MANIFEST);
       return app;
     }
-
-    extractManifestTranslations(zip, prefix, app);
 
     if (!validateApp(app, appCache)) {
       log.error("Failed to install app: App validation failed");
@@ -287,6 +285,26 @@ public class JCloudsAppStorageService implements AppStorageService {
             otherVersions.add(other);
         });
     otherVersions.forEach(this::deleteAppAsync);
+  }
+
+  private static App readAppManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
+      throws IOException {
+    App app = new App();
+    try (ZipFile zip = new ZipFile(file)) {
+      // Parse manifest.webapp file from ZIP archive.
+      ZipEntry manifestEntry = zip.getEntry(topLevelFolder + MANIFEST_FILENAME);
+      if (manifestEntry == null) {
+        log.error("Failed to install app: Missing manifest.webapp in zip");
+        app.setAppState(AppStatus.MISSING_MANIFEST);
+        return app;
+      }
+
+      InputStream inputStream = zip.getInputStream(manifestEntry);
+      app = jsonMapper.readValue(inputStream, App.class);
+
+      extractManifestTranslations(zip, topLevelFolder, app);
+    }
+    return app;
   }
 
   private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {

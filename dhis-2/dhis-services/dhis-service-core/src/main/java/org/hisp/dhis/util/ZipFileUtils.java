@@ -29,12 +29,8 @@
  */
 package org.hisp.dhis.util;
 
-import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_FILENAME;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Spliterator;
@@ -49,8 +45,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppStatus;
 
 /**
  * @author Austin McGee
@@ -216,24 +210,6 @@ public class ZipFileUtils {
       // Determine top-level directory name, if the zip file contains one
       return ZipFileUtils.getTopLevelDirectory(zip.entries().asIterator());
     }
-  }
-
-  public static App readManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
-      throws IOException {
-    App app = new App();
-    try (ZipFile zip = new ZipFile(file)) {
-      // Parse manifest.webapp file from ZIP archive.
-      ZipEntry manifestEntry = zip.getEntry(topLevelFolder + MANIFEST_FILENAME);
-      if (manifestEntry == null) {
-        log.error("Failed to install app: Missing manifest.webapp in zip");
-        app.setAppState(AppStatus.MISSING_MANIFEST);
-        return app;
-      }
-
-      InputStream inputStream = zip.getInputStream(manifestEntry);
-      app = jsonMapper.readValue(inputStream, App.class);
-    }
-    return app;
   }
 
   public static void validateZip(File file, String appFolder, String topLevelFolder)

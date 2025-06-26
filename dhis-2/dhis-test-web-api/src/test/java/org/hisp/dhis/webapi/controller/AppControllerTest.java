@@ -280,7 +280,6 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Iraqi Arabic نوع", secondShortcut.getDisplayName());
   }
 
-
   @Test
   void testInstalledEvilZipSlipApp() throws IOException {
     App app =
