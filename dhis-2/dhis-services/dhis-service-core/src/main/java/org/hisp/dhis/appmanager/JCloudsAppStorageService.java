@@ -32,7 +32,6 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -93,9 +92,6 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final FileResourceContentStore fileResourceContentStore;
 
   private void discoverInstalledApps(Consumer<App> handler) {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     log.info("Starting JClouds discovery");
     for (StorageMetadata resource :
         jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"))) {
@@ -109,17 +105,15 @@ public class JCloudsAppStorageService implements AppStorageService {
         continue;
       }
 
-      try {
-        InputStream inputStream = manifest.getPayload().openStream();
-        App app = mapper.readValue(inputStream, App.class);
-        inputStream.close();
+      try (InputStream inputStream = manifest.getPayload().openStream()) {
+        App app = App.MAPPER.readValue(inputStream, App.class);
 
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
         handler.accept(app);
       } catch (IOException ex) {
-        log.error("Could not read manifest file of " + resource.getName(), ex);
+        log.error("Could not read manifest file of {}", resource.getName(), ex);
       }
     }
   }
@@ -249,6 +243,8 @@ public class JCloudsAppStorageService implements AppStorageService {
         }
       }
 
+      extractManifestTranslations(zip, prefix, app);
+
       app.setAppState(AppStatus.OK);
 
     } catch (IOException e) {
@@ -291,6 +287,23 @@ public class JCloudsAppStorageService implements AppStorageService {
             otherVersions.add(other);
         });
     otherVersions.forEach(this::deleteAppAsync);
+  }
+
+  private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
+    try {
+      ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
+
+      try (InputStream inputStream = zip.getInputStream(translationFiles)) {
+        List<AppManifestTranslation> appManifestTranslations =
+            App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+        app.setManifestTranslations(appManifestTranslations);
+      }
+    } catch (Exception e) {
+      log.debug(
+          "Failed to read manifest translations from file for {} {}",
+          app.getName(),
+          e.getMessage());
+    }
   }
 
   @Override
