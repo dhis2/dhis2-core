@@ -60,6 +60,13 @@ public class DefaultProgramRuleService implements ProgramRuleService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRule> getProgramRulesForEnrollment(
+      Program program, Set<ProgramRuleActionType> actionTypes) {
+    return programRuleStore.getProgramRulesForEnrollment(program, actionTypes);
+  }
+
+  @Override
   @Transactional
   public void updateProgramRule(ProgramRule programRule) {
     programRuleStore.update(programRule);

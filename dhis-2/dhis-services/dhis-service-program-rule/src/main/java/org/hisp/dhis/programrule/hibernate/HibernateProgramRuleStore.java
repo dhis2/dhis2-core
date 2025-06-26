@@ -85,6 +85,19 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
+  public List<ProgramRule> getProgramRulesForEnrollment(
+      Program program, Set<ProgramRuleActionType> actionTypes) {
+    final String hql =
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
+            + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) AND pr.programStage IS NULL";
+
+    return getQuery(hql)
+        .setParameter("program", program)
+        .setParameter("actionTypes", actionTypes)
+        .getResultList();
+  }
+
+  @Override
   public List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes) {
     List<String> serverSupportedTypes = actionTypes.stream().map(Enum::name).toList();
 
