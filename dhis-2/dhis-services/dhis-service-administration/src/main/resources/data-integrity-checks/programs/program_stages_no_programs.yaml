@@ -32,11 +32,11 @@ section_order: 2
 summary_sql: >-
   WITH rs as (
   SELECT a.uid,a.name
-  from programstage a
+  FROM programstage a
   WHERE a.programid IS NULL
   )
-  select count(*) as value,
-  100.0 * count(*) / NULLIF( (select count(*) from programstage),0) as percent
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) from programstage),0) as percent
   from rs;
 details_sql: >-
   SELECT 
@@ -87,10 +87,12 @@ recommendation: >
   delete the associated program stage data using the following SQL command:
   
   ```sql
-    DELETE FROM event WHERE programstageid = '<program_stage_id>';
+    UPDATE event SET deleted = true WHERE programstageid = <program_stage_id>;
     ```
   
-    Replace `<program_stage_id>` with the ID of the program stage you want to delete data for.
+    Replace `<program_stage_id>` with the ID of the program stage you want to delete data for. Once you have run this command,
+  return to the Data Administration app and choose "Maintenance" and then tick "Permanently remove soft deleted events". Click
+  "Perform maintenance" to permanently delete the soft-deleted events associated with the program stage.
   
   After ensuring that all associated data has been deleted,
   you can delete the program stage itself using the following SQL command:
