@@ -156,6 +156,12 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
     }
 
+    // TODO: Discuss with product how this should be fixed.
+    // At the moment we are checking capture scope for enrollment org unit
+    // only when we are creating or deleting an enrollment.
+    // When updating, ownership is enough.
+    // We need to understand what to do when updating the org unit.
+
     // If enrollment is newly created, or going to be deleted, capture scope
     // has to be checked
     if (strategy.isCreate() || strategy.isDelete()) {
