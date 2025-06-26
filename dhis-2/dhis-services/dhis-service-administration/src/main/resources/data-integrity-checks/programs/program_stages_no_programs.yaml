@@ -61,47 +61,57 @@ introduction: >
   2.43 do not allow program stages to exist without being linked to a program and may
   result in the system not being able to start.
 details_id_type: programStages
-recommendation: >
-  You will need to either delete the program stage or link it to a program.
-  Currently, the only feasible way to link a program stage to a program is
+recommendation: >-
+  You will need to either delete the program stage flagged by this check
+  or link it to a program.You will need to either delete the program stage flagged by this check
+  or link it to a program.
+  
+  If you wish to keep the program stage, you will need to link it to a program.
+  Currently, the only way to link a program stage to a program is
   to alter the `programid` field in the `programstage` table in the database.
   
   If you want to link the program stage to a program, you will need to
-  choose a program that is suitable for the program stage and run the following SQL command:
+  choose a program that is suitable for the program stage or create a new program 
+  and run the following SQL command:
   
-  ```sql
-    UPDATE programstage SET programid = '<program_id>' WHERE uid = '<program_stage_uid>';
-  ```
-  
-  Be sure to replace `<program_id>` with the native ID of the program you want to link the program stage to,
-    and `<program_stage_uid>` with the UID of the program stage you want to link.
-  
+  UPDATE programstage SET programid = (SELECT programid from program where uid = '<program_uid>')
+  WHERE uid = '<program_stage_uid>';
+     
+  Be sure to replace `<program_uid>` with the UID of the 
+  program you want to link the program stage to,
+  and `<program_stage_uid>` with the UID of the program stage you want to link.
   As is always the case with direct database manipulation, you should
-  ensure that you have a backup of your database before running this command, ensure that DHIS2 is not running,
-  perform the change in a test environment first, and ensure that the system functions as expected after the change.
+  ensure that you have a backup of your database before running this command, 
+  ensure that DHIS2 is not running, perform the change in a test environment first. 
+  
+  After linking the program stage to a program, 
+  restart DHIS2 and re-run the integrity check to ensure that the program 
+  stage is now linked to a program and the integrity check no longer flags it.
   
   Alternatively, if the program stage is not needed, you will need to delete it.
+  The integrity check details will indicate whether the program stage has any associated data. 
+  If there is associated data, you will need to delete that data first before 
+  deleting the program stage. You can delete the associated program stage data 
+  using the following SQL command:
   
-  The integrity check details will indicate whether the program stage has any associated data. If there is
-    associated data, you will need to delete that data first before deleting the program stage. You can 
-  delete the associated program stage data using the following SQL command:
-  
-  ```sql
-    UPDATE event SET deleted = true WHERE programstageid = <program_stage_id>;
-    ```
-  
-    Replace `<program_stage_id>` with the ID of the program stage you want to delete data for. Once you have run this command,
-  return to the Data Administration app and choose "Maintenance" and then tick "Permanently remove soft deleted events". Click
-  "Perform maintenance" to permanently delete the soft-deleted events associated with the program stage.
+  UPDATE event SET deleted = true WHERE programstageid = 
+  (SELECT programstageid FROM programstage WHERE uid = '<program_stage_uid>');
+    
+  Replace `<program_stage_uid>` with the UID of the program stage you want to delete data for. 
+  Once you have run this command return to the Data Administration app and choose "Maintenance" 
+  and then tick "Permanently remove soft deleted events". Click "Perform maintenance" to 
+  permanently delete the soft-deleted events associated with the program stage.
   
   After ensuring that all associated data has been deleted,
-  you can delete the program stage itself using the following SQL command:
+  you can delete the program stage itself using the API. 
   
-  ```sql
-    DELETE FROM programstage WHERE uid = '<program_stage_uid>';
-  ```
+  Using Postman, curl or similar tool, send a DELETE request to the following URL:
   
-  The integrity check details will indicate whether the program stage has any associated data.
-  Note that any data associated with the program stage will also need to be deleted
-  prior to deleting the program stage itself. Ensure that you have a backup of your database
-  before running this command, and perform the change in a test environment first.
+  https://<dhis2-instance>/api/programStages/<program_stage_uid>
+  
+  Be sure to replace `<dhis2-instance>` with the URL of your DHIS2 instance and `<program_stage_uid>` 
+  with the UID of the program stage you want to delete.
+  
+  If you are unsure how to proceed or encounter issues when either trying to link 
+  the program stage to a program or delete it, please feel free to reach out
+  on the DHIS2 Community of Practice forum at https://community.dhis2.org.
