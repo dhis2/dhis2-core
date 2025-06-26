@@ -29,9 +29,7 @@
  */
 package org.hisp.dhis.appmanager;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -115,19 +113,16 @@ public class BundledAppStorageService implements AppStorageService {
   }
 
   private App readAppManifest(Resource resource) {
-    try {
-      InputStream inputStream = resource.getInputStream();
-
+    try (InputStream inputStream = resource.getInputStream()) {
       return App.MAPPER.readValue(inputStream, App.class);
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);
+      return null;
     }
-    return null;
   }
 
   private List<AppManifestTranslation> readAppManifestTranslation(Resource resource) {
-    try {
-      InputStream inputStream = resource.getInputStream();
+    try (InputStream inputStream = resource.getInputStream()) {
       return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);

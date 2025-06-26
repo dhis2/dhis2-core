@@ -103,17 +103,15 @@ public class JCloudsAppStorageService implements AppStorageService {
         continue;
       }
 
-      try {
-        InputStream inputStream = manifest.getPayload().openStream();
+      try (InputStream inputStream = manifest.getPayload().openStream()) {
         App app = App.MAPPER.readValue(inputStream, App.class);
-        inputStream.close();
 
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
         handler.accept(app);
       } catch (IOException ex) {
-        log.error("Could not read manifest file of " + resource.getName(), ex);
+        log.error("Could not read manifest file of {}", resource.getName(), ex);
       }
     }
   }
@@ -221,9 +219,10 @@ public class JCloudsAppStorageService implements AppStorageService {
         return app;
       }
 
-      InputStream inputStream = zip.getInputStream(entry);
+      try (InputStream inputStream = zip.getInputStream(entry)) {
+        app = jsonMapper.readValue(inputStream, App.class);
+      }
 
-      app = jsonMapper.readValue(inputStream, App.class);
       app.setFolderName(
           APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
@@ -309,11 +308,11 @@ public class JCloudsAppStorageService implements AppStorageService {
     try {
       ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
 
-      List<AppManifestTranslation> appManifestTranslations =
-          App.MAPPER
-              .readerForListOf(AppManifestTranslation.class)
-              .readValue(zip.getInputStream(translationFiles));
-      app.setManifestTranslations(appManifestTranslations);
+      try (InputStream inputStream = zip.getInputStream(translationFiles)) {
+        List<AppManifestTranslation> appManifestTranslations =
+            App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+        app.setManifestTranslations(appManifestTranslations);
+      }
     } catch (Exception e) {
       log.debug(
           "Failed to read manifest translations from file for {} {}",
