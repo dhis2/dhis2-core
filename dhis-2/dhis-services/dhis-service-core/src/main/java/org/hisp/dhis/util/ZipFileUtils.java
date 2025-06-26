@@ -30,15 +30,13 @@
 package org.hisp.dhis.util;
 
 import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_FILENAME;
+import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_TRANSLATION_FILENAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -50,6 +48,7 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManifestTranslation;
 import org.hisp.dhis.appmanager.AppStatus;
 
 /**
@@ -232,8 +231,26 @@ public class ZipFileUtils {
 
       InputStream inputStream = zip.getInputStream(manifestEntry);
       app = jsonMapper.readValue(inputStream, App.class);
+      extractManifestTranslations(zip, topLevelFolder, app);
     }
     return app;
+  }
+
+  private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
+    try {
+      ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
+
+      try (InputStream inputStream = zip.getInputStream(translationFiles)) {
+        List<AppManifestTranslation> appManifestTranslations =
+            App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+        app.setManifestTranslations(appManifestTranslations);
+      }
+    } catch (Exception e) {
+      log.debug(
+          "Failed to read manifest translations from file for {} {}",
+          app.getName(),
+          e.getMessage());
+    }
   }
 
   public static void validateZip(File file, String appFolder, String topLevelFolder)

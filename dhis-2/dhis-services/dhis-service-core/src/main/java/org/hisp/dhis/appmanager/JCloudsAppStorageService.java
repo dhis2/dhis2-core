@@ -32,7 +32,6 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -93,9 +92,6 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final FileResourceContentStore fileResourceContentStore;
 
   private void discoverInstalledApps(Consumer<App> handler) {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     log.info("Starting JClouds discovery");
     for (StorageMetadata resource :
         jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"))) {
@@ -109,17 +105,15 @@ public class JCloudsAppStorageService implements AppStorageService {
         continue;
       }
 
-      try {
-        InputStream inputStream = manifest.getPayload().openStream();
-        App app = mapper.readValue(inputStream, App.class);
-        inputStream.close();
+      try (InputStream inputStream = manifest.getPayload().openStream()) {
+        App app = App.MAPPER.readValue(inputStream, App.class);
 
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
         handler.accept(app);
       } catch (IOException ex) {
-        log.error("Could not read manifest file of " + resource.getName(), ex);
+        log.error("Could not read manifest file of {}", resource.getName(), ex);
       }
     }
   }
