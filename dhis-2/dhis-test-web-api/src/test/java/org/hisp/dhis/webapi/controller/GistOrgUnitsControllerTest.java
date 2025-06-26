@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,10 +41,11 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class GistOrgUnitsControllerTest extends AbstractGistControllerTest {
+class GistOrgUnitsControllerTest extends AbstractGistControllerPostgresTest {
 
   private String ou1, ou2, ou3a, ou3b, ou4a, ou4b;
 
+  @Override
   @BeforeEach
   void setUp() {
     ou1 = addOrganisationUnit("nameL1");
@@ -57,12 +59,16 @@ class GistOrgUnitsControllerTest extends AbstractGistControllerTest {
   @Test
   void testOrgUnitsOffline() {
     assertEquals(
-        List.of("nameL1", "nameL2", "nameL3a", "nameL4a", "nameL3b", "nameL4b"),
-        toOrganisationUnitNames(GET("/api/organisationUnits/gist?orgUnitsOffline=true").content()));
+        Set.of("nameL1", "nameL2", "nameL3a", "nameL4a", "nameL3b", "nameL4b"),
+        Set.copyOf(
+            toOrganisationUnitNames(
+                GET("/api/organisationUnits/gist?orgUnitsOffline=true").content())));
     assertEquals(
-        List.of("nameL1", "nameL2", "nameL3a", "nameL3b"),
-        toOrganisationUnitNames(
-            GET("/api/organisationUnits/gist?orgUnitsOffline=true&filter=level:le:3").content()));
+        Set.of("nameL1", "nameL2", "nameL3a", "nameL3b"),
+        Set.copyOf(
+            toOrganisationUnitNames(
+                GET("/api/organisationUnits/gist?orgUnitsOffline=true&filter=level:le:3")
+                    .content())));
   }
 
   @Test

@@ -36,10 +36,8 @@ import static org.hisp.dhis.http.HttpStatus.CREATED;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.IntegrationH2Test;
 import org.hisp.dhis.test.config.H2TestConfig;
-import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -85,44 +83,5 @@ public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrat
         "{'name': '%s', 'dataDimensionType': '%s', 'categories': [%s]}"
             .formatted(name, type, catObjects);
     return POST("/categoryCombos", body);
-  }
-
-  protected final List<String> toOrganisationUnitNames(JsonObject response) {
-    return response
-        .getList("organisationUnits", JsonIdentifiableObject.class)
-        .toList(JsonIdentifiableObject::getDisplayName);
-  }
-
-  protected final String addOrganisationUnit(String name) {
-    return assertStatus(
-        CREATED,
-        POST(
-            "/organisationUnits",
-            """
-              {
-                'name':'%s',
-                'shortName':'%s',
-                'openingDate':'2021',
-                'description':'Org desc',
-                'code':'Org code'
-              }
-            """
-                .formatted(name, name)));
-  }
-
-  protected final String addOrganisationUnit(String name, String parentId) {
-    return assertStatus(
-        CREATED,
-        POST(
-            "/organisationUnits",
-            "{'name':'"
-                + name
-                + "', 'shortName':'"
-                + name
-                + "', 'openingDate':'2021', 'parent': "
-                + "{'id':'"
-                + parentId
-                + "'}"
-                + " }"));
   }
 }
