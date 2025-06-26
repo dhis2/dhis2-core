@@ -106,7 +106,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetMinCharactersToSearchFromImportOrDefaultToZero() {
+  void shouldSetMinCharactersToSearchFromImportOrDefaultToZeroIfNotSpecified() {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
