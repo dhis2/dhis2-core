@@ -68,6 +68,8 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
 
   List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
 
+  List<ProgramRule> getProgramRulesForEnrollment(Program program, Set<ProgramRuleActionType> types);
+
   List<ProgramRule> getProgramRulesWithNoCondition();
 
   List<ProgramRule> getProgramRulesWithNoPriority();

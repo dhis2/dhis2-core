@@ -178,6 +178,10 @@ public class ProgramRuleEngine {
     return implementableRuleService.getProgramRules(program);
   }
 
+  public List<ProgramRule> getProgramRulesForEnrollment(Program program) {
+    return implementableRuleService.getProgramRulesForEnrollment(program);
+  }
+
   /**
    * To getDescription rule condition in order to fetch its description
    *
