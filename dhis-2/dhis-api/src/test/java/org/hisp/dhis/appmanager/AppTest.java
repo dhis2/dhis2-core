@@ -29,20 +29,18 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,10 +55,15 @@ class AppTest {
         FileUtils.readFileToString(
             new File(this.getClass().getResource("/manifest.webapp").getFile()),
             StandardCharsets.UTF_8);
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    this.app = mapper.readValue(appJson, App.class);
+    this.app = App.MAPPER.readValue(appJson, App.class);
     this.app.init("https://example.com");
+
+    List<AppShortcut> shortcuts =
+        List.of(
+            new AppShortcut("help", "#/help"),
+            new AppShortcut("info", "#/info"),
+            new AppShortcut("exit", "#/exit"));
+    this.app.setShortcuts(shortcuts);
   }
 
   @AfterEach
@@ -160,5 +163,172 @@ class AppTest {
     assertEquals(
         "https://example.com/api/apps/Test-App/index.html", appWithoutPlugin.getLaunchUrl());
     assertNull(appWithoutPlugin.getPluginLaunchUrl());
+  }
+
+  List<AppManifestTranslation> getTranslation(String translationJSON) throws IOException {
+    return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(translationJSON);
+  }
+
+  @Test
+  void testShortcutTranslations() throws IOException {
+    String translationJSON =
+        """
+                        [
+                        {
+                              "locale": "es",
+                              "title": "El App",
+                              "description": "App descripcion",
+                              "shortcuts": {
+                                "help": "ayuda",
+                                "info": "informacion"
+                              }
+                            }
+                        ]
+                        """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    var result = app.localise(new Locale("es"));
+
+    assertEquals("ayuda", result.getShortcuts().get(0).getDisplayName());
+    assertEquals("informacion", result.getShortcuts().get(1).getDisplayName());
+  }
+
+  @Test
+  @DisplayName(
+      "Should match with the most specific locale if possible (country + language, i.e. es_CO) and fallback to the language if none exists (i.e. es), and to the default otherwise ")
+  void testManifestTranslationsFallbackLogic() throws IOException {
+    String translationJSON =
+        """
+                        [
+                          {
+                              "locale": "es",
+                              "title": "El App",
+                              "description": "descripcion en español",
+                              "shortcuts": {
+                                "help": "ayuda",
+                                "info": "informacion"
+                              }
+                          },
+                          {
+                              "locale": "es_CO",
+                              "shortcuts": {
+                                "help": "ayuda (Colombia)"
+                              }
+                          }
+                        ]
+                        """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    var result = app.localise(new Locale("es", "CO"));
+
+    assertEquals("El App", result.getDisplayName());
+    assertNotEquals("El App", result.getName());
+    assertEquals("descripcion en español", result.getDisplayDescription());
+    assertEquals("ayuda (Colombia)", result.getShortcuts().get(0).getDisplayName());
+    assertEquals("informacion", result.getShortcuts().get(1).getDisplayName());
+    assertEquals("exit", result.getShortcuts().get(2).getDisplayName());
+  }
+
+  @Test
+  void testShouldReturnDefaultIfNoMatch() throws IOException {
+    String translationJSON =
+        """
+                        [
+                          {
+                              "locale": "es",
+                              "title": "El App",
+                              "description": "App descripcion",
+                              "shortcuts": {
+                                "help": "ayuda",
+                                "info": "informacion"
+                              }
+                          }
+                        ]
+                        """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    var result = app.localise(new Locale("de"));
+
+    assertEquals("help", result.getShortcuts().get(0).getDisplayName());
+    assertEquals("info", result.getShortcuts().get(1).getDisplayName());
+    assertEquals("exit", result.getShortcuts().get(2).getDisplayName());
+  }
+
+  @Test
+  void testShouldUseMostSpecificLocaleForTitleAndDescription() throws IOException {
+    String translationJSON =
+        """
+                            [
+                              {
+                                  "locale": "es",
+                                  "title": "El App (ES)",
+                                  "description": "App descripcion (ES)",
+                                  "shortcuts": {
+                                    "help": "ayuda",
+                                    "info": "informacion"
+                                  }
+                              },
+                              {
+                                  "locale": "es_CO",
+                                  "title": "El App (CO)",
+                                  "description": "App descripcion (CO)",
+                                  "shortcuts": {
+                                    "help": "ayuda",
+                                    "info": "informacion"
+                                  }
+                              }
+                            ]
+                            """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    var result = app.localise(new Locale("es", "CO"));
+
+    assertEquals("El App (CO)", result.getDisplayName());
+    assertEquals("App descripcion (CO)", result.getDisplayDescription());
+  }
+
+  @Test
+  void testShouldRespectLanguageScript() throws IOException {
+    String translationJSON =
+        """
+                        [
+                            {
+                              "locale": "uz_Latn",
+                              "shortcuts": {
+                                "help": "help (Uzbek Latin)"
+                              }
+                            },
+                            {
+                              "locale": "uz_UZ_Cyrl",
+                               "shortcuts": {
+                                "help": "help (Uzbek Cyrillic)"
+                              }
+                            },
+                            {
+                              "locale": "uz_UZ_Latn",
+                               "shortcuts": {
+                                "help": "help (Uzbek-Uzbekistan Latin)"
+                              }
+                            }
+                        ]
+                        """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+
+    Locale locale =
+        new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Cyrl").build();
+
+    var result = app.localise(locale);
+    assertEquals("help (Uzbek Cyrillic)", result.getShortcuts().get(0).getDisplayName());
+
+    locale = new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Latn").build();
+
+    result = app.localise(locale);
+    assertEquals("help (Uzbek-Uzbekistan Latin)", result.getShortcuts().get(0).getDisplayName());
   }
 }

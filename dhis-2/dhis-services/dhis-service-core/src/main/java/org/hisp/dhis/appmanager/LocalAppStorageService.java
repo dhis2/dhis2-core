@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -75,8 +73,6 @@ public class LocalAppStorageService implements AppStorageService {
   public Map<String, App> discoverInstalledApps() {
     Map<String, App> appMap = new HashMap<>();
     List<App> appList = new ArrayList<>();
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     String path = getAppFolderPath();
 
     apps.clear();
@@ -128,7 +124,7 @@ public class LocalAppStorageService implements AppStorageService {
                       + "': Missing 'manifest.webapp' in app directory");
             } else {
               try {
-                App app = mapper.readValue(appManifest, App.class);
+                App app = App.MAPPER.readValue(appManifest, App.class);
                 app.setFolderName(folder.getName());
                 app.setAppStorageSource(AppStorageSource.LOCAL);
                 appList.add(app);
