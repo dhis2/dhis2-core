@@ -29,44 +29,60 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.HashMap;
+import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 
-@JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
-public class AppShortcut implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8865601558938806456L;
+@Getter
+@NoArgsConstructor
+public class AppManifestTranslation {
+  private String locale;
 
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String name;
+  @Setter private String title;
+  @Setter private String description;
+  @Setter private HashMap<String, String> shortcuts = new HashMap<>();
 
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String url;
+  private String countryCode;
 
-  @Setter private String displayName;
+  private String languageCode;
 
-  public AppShortcut() {}
+  private String scriptCode;
 
-  public AppShortcut(String name, String url) {
-    this.name = name;
-    this.url = url;
+  public void setLocale(String locale) {
+    this.locale = locale;
+    String[] split = StringUtils.split(locale, "_-");
+
+    if (split.length == 3) {
+      this.scriptCode = split[2];
+      this.countryCode = split[1];
+    }
+
+    if (split.length == 2) {
+      this.countryCode = split[1];
+    }
+
+    this.languageCode = split[0];
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getDisplayName() {
-    if (displayName == null) {
-      return name;
+  /**
+   * merges two manifest translations giving precedence to the current object used to fill the empty
+   * values of a more specific locale (i.e. es_CO) with a less specific one (i.e. es)
+   *
+   * @param otherTranslation the translation to merge with the current object
+   */
+  public void merge(AppManifestTranslation otherTranslation) {
+    if (otherTranslation == null) {
+      return;
     }
-    return displayName;
+
+    if (StringUtils.isEmpty(this.getTitle()) && !StringUtils.isEmpty(otherTranslation.getTitle())) {
+      this.setTitle(otherTranslation.getTitle());
+    }
+    if (StringUtils.isEmpty(this.getDescription())
+        && !StringUtils.isEmpty(otherTranslation.getDescription())) {
+      this.setDescription(otherTranslation.getDescription());
+    }
+
+    otherTranslation.getShortcuts().forEach(this.shortcuts::putIfAbsent);
   }
 }

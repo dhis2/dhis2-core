@@ -34,8 +34,6 @@ import static org.hisp.dhis.util.ZipFileUtils.MAX_ENTRIES;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -45,6 +43,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.hisp.dhis.appmanager.App;
@@ -59,6 +59,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.AppControllerTest.DhisConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,6 @@ import org.springframework.transaction.annotation.Transactional;
     })
 @Transactional
 class AppControllerTest extends H2ControllerIntegrationTestBase {
-
   static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
@@ -102,6 +102,13 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @AfterEach
+  void cleanUp() {
+    // make sure we reset the UI locale to default in case a test changes it
+    DELETE("/systemSettings/keyUiLocale");
+    DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
   }
 
   @Test
@@ -183,15 +190,9 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     List<App> modules =
-        mapper.readValue(
-            response.content().get("modules").toJson(), new TypeReference<List<App>>() {});
-
-    // TODO
-    // assertEquals(BUNDLED_APPS.size() + 1, modules.size());
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
 
     App installedApp = modules.get(modules.size() - 1);
     AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
@@ -199,11 +200,86 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(2, installedApp.getShortcuts().size());
     assertEquals("Category section", firstShortcut.getName());
+    assertEquals("Category section", firstShortcut.getDisplayName());
     assertEquals("#/overview/categories", firstShortcut.getUrl());
 
     assertEquals("Category", secondShortcut.getName());
+    assertEquals("Category section", firstShortcut.getDisplayName());
     assertEquals("#/categories", secondShortcut.getUrl());
   }
+
+  @Test
+  void testInstalledAppReturnsTranslatedShortcuts() throws IOException {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=es");
+
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
+        "test-app-with-translated-manifest.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+
+    List<App> modules =
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+
+    App installedApp = modules.get(modules.size() - 1);
+    AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.getShortcuts().get(1);
+
+    assertEquals("Seccion de categorías", firstShortcut.getDisplayName());
+    assertEquals("Categoría", secondShortcut.getDisplayName());
+  }
+
+  @Test
+  @DisplayName(
+      "Should fallback to the language if the language + country combination does not match")
+  void testInstalledAppReturnsTranslatedShortcuts_WithFallbackToRootLanguage() throws IOException {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=es_CO");
+
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
+        "test-app-with-translated-manifest.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+
+    List<App> modules =
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+
+    Optional<App> installedApp =
+        modules.stream().filter(a -> Objects.equals(a.getName(), "test")).findFirst();
+    AppShortcut firstShortcut = installedApp.get().getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.get().getShortcuts().get(1);
+
+    assertEquals("Seccion de categorías", firstShortcut.getDisplayName());
+    assertEquals("Categoría", secondShortcut.getDisplayName());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return the most specific language match, i.e. if the user has ar_IQ as locale, we should retrieve ar_IQ first, then ar then default (english) in this order")
+  void testInstalledAppReturnsTranslatedShortcuts_WithLanguageFallback() throws IOException {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=ar_IQ");
+
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
+        "test-app-with-translated-manifest.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+
+    List<App> modules =
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+
+    Optional<App> installedApp =
+        modules.stream().filter(a -> Objects.equals(a.getName(), "test")).findFirst();
+    AppShortcut firstShortcut = installedApp.get().getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.get().getShortcuts().get(1);
+
+    assertEquals("فسم اﻷنواع", firstShortcut.getDisplayName());
+    assertEquals("Iraqi Arabic نوع", secondShortcut.getDisplayName());
+  }
+
 
   @Test
   void testInstalledEvilZipSlipApp() throws IOException {
