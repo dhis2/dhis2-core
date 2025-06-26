@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,16 +58,12 @@ class GistOrgUnitsControllerTest extends AbstractGistControllerPostgresTest {
   @Test
   void testOrgUnitsOffline() {
     assertEquals(
-        Set.of("nameL1", "nameL2", "nameL3a", "nameL4a", "nameL3b", "nameL4b"),
-        Set.copyOf(
-            toOrganisationUnitNames(
-                GET("/api/organisationUnits/gist?orgUnitsOffline=true").content())));
+        List.of("nameL1", "nameL2", "nameL3a", "nameL3b", "nameL4a", "nameL4b"),
+        toOrganisationUnitNames(GET("/api/organisationUnits/gist?orgUnitsOffline=true").content()));
     assertEquals(
-        Set.of("nameL1", "nameL2", "nameL3a", "nameL3b"),
-        Set.copyOf(
-            toOrganisationUnitNames(
-                GET("/api/organisationUnits/gist?orgUnitsOffline=true&filter=level:le:3")
-                    .content())));
+        List.of("nameL1", "nameL2", "nameL3a", "nameL3b"),
+        toOrganisationUnitNames(
+            GET("/api/organisationUnits/gist?orgUnitsOffline=true&filter=level:le:3").content()));
   }
 
   @Test
