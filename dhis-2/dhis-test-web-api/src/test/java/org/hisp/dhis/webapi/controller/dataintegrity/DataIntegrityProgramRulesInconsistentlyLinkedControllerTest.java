@@ -50,19 +50,13 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
 
   @Autowired private ProgramStageService programStageService;
 
-  private ProgramRule programRuleA;
-
-  private ProgramRule programRuleB;
-
-  private ProgramStage programStageB;
-
   private ProgramStage programStageA;
 
   private Program programA;
 
   private Program programB;
 
-  private static final String detailsIdType = "programRules";
+  private static final String DETAILS_ID_TYPE = "programRules";
 
   private static final String CHECK = "program_rules_inconsistent_program_program_stage";
 
@@ -71,19 +65,19 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
 
     setUpTest();
     dbmsManager.clearSession();
-    assertHasNoDataIntegrityIssues(detailsIdType, CHECK, true);
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, true);
   }
 
   @Test
   void testProgramRuleInconsistentlyLinked() {
     setUpTest();
 
-    programStageB = new ProgramStage();
+    ProgramStage programStageB = new ProgramStage();
     programStageB.setAutoFields();
     programStageB.setName("programStageB");
     programStageA.setProgram(programB);
 
-    programRuleB = new ProgramRule();
+    ProgramRule programRuleB = new ProgramRule();
     programRuleB.setAutoFields();
     programRuleB.setName("ProgramRuleB");
     programRuleB.setProgram(programA); // Purposefully set to program A
@@ -122,7 +116,7 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
     programStageA.setName("programStageA");
     programStageA.setProgram(programA);
 
-    programRuleA = new ProgramRule();
+    ProgramRule programRuleA = new ProgramRule();
     programRuleA.setAutoFields();
     programRuleA.setName("ProgramRuleA");
     programRuleA.setProgram(programA);
