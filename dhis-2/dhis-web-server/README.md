@@ -13,7 +13,7 @@ The following shows the mapping of app repos to the DHIS2 versions that use the 
 |git@github.com:dhis2/dashboard-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|2.36|2.37|2.38|2.39|master|master|master|
 |git@github.com:dhis2/data-administration-app.git|v29|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|
 |git@github.com:dhis2/data-visualizer-app.git|n/a|n/a|v31|32.x|33.x|34.x|35.x|36.x|37.x|38.x|39.x|master|master|master|
-|git@github.com:dhis2/global-shell-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|master|
+|git@github.com:dhis2/global-shell-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|main|
 |git@github.com:dhis2/import-export-app.git|n/a|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|
 |git@github.com:dhis2/login-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|master|master|
 |git@github.com:dhis2/maps-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|2.36|2.37|2.38|2.39|master|master|master|
