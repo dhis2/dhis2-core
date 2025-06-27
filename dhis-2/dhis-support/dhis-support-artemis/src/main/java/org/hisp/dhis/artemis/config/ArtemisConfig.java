@@ -161,8 +161,10 @@ public class ArtemisConfig {
     config.addAcceptorConfiguration(
         "in-vm",
         String.format(
-            "vm://0?jms.useAsyncSend=%s&nioRemotingThreads=%d",
-            artemisConfigData.isSendAsync(), embeddedConfig.getNioRemotingThreads()));
+            "vm://%d?jms.useAsyncSend=%s&nioRemotingThreads=%d",
+            ArtemisConfigData.EMBEDDED_ACCEPTOR_ID,
+            artemisConfigData.isSendAsync(),
+            embeddedConfig.getNioRemotingThreads()));
 
     config.setSecurityEnabled(embeddedConfig.isSecurity());
     config.setPersistenceEnabled(embeddedConfig.isPersistence());

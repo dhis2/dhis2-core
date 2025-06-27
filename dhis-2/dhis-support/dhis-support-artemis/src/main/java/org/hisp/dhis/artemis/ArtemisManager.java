@@ -57,13 +57,17 @@ public class ArtemisManager {
   @PostConstruct
   public void startArtemis() throws Exception {
     if (ArtemisMode.EMBEDDED == artemisConfigData.getMode()) {
-      Acceptor existingAcceptor = InVMRegistry.instance.getAcceptor(0);
+      Acceptor existingAcceptor =
+          InVMRegistry.instance.getAcceptor(ArtemisConfigData.EMBEDDED_ACCEPTOR_ID);
       if (existingAcceptor == null) {
-        log.info("Starting embedded Artemis ActiveMQ server with Acceptor ID 0");
+        log.info(
+            "Starting embedded Artemis ActiveMQ server with Acceptor ID {}",
+            ArtemisConfigData.EMBEDDED_ACCEPTOR_ID);
         embeddedActiveMQ.start();
       } else {
         log.warn(
-            "Acceptor with ID 0 already exists, skip starting embedded Artemis ActiveMQ server.");
+            "Acceptor with ID {} already exists, skip starting embedded Artemis ActiveMQ server.",
+            ArtemisConfigData.EMBEDDED_ACCEPTOR_ID);
       }
     }
   }
