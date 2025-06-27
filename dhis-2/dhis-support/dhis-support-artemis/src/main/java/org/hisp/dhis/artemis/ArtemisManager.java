@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -32,7 +32,9 @@ package org.hisp.dhis.artemis;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.activemq.artemis.core.remoting.impl.invm.InVMRegistry;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
 import org.hisp.dhis.artemis.config.ArtemisConfigData;
 import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.springframework.stereotype.Service;
@@ -55,8 +57,14 @@ public class ArtemisManager {
   @PostConstruct
   public void startArtemis() throws Exception {
     if (ArtemisMode.EMBEDDED == artemisConfigData.getMode()) {
-      log.info("Starting embedded Artemis ActiveMQ server.");
-      embeddedActiveMQ.start();
+      Acceptor existingAcceptor = InVMRegistry.instance.getAcceptor(0);
+      if (existingAcceptor == null) {
+        log.info("Starting embedded Artemis ActiveMQ server with Acceptor ID 0");
+        embeddedActiveMQ.start();
+      } else {
+        log.warn(
+            "Acceptor with ID 0 already exists, skip starting embedded Artemis ActiveMQ server.");
+      }
     }
   }
 
