@@ -101,8 +101,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -816,7 +814,7 @@ public class JdbcEventStore implements EventStore {
 
     StringBuilder sqlBuilder = new StringBuilder();
 
-    String ouTableName = getOuTableName(params);
+    String ouTableName = " psiou";
 
     sqlBuilder.append(
         getIdSqlBasedOnIdScheme(
@@ -1153,19 +1151,6 @@ public class JdbcEventStore implements EventStore {
         .toString();
   }
 
-  private boolean checkForOwnership(EventQueryParams params) {
-    return Optional.ofNullable(params.getProgram())
-        .filter(
-            p ->
-                Objects.nonNull(p.getProgramType())
-                    && p.getProgramType() == ProgramType.WITH_REGISTRATION)
-        .isPresent();
-  }
-
-  private String getOuTableName(EventQueryParams params) {
-    return checkForOwnership(params) ? " psiou" : " ou";
-  }
-
   private StringBuilder getFromWhereClause(
       EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
@@ -1178,18 +1163,13 @@ public class JdbcEventStore implements EventStore {
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
-    if (checkForOwnership(params)) {
-      fromBuilder
-          .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
-          .append(
-              "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
-          .append(
-              "inner join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) ");
-    } else {
-      fromBuilder.append(
-          "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
-    }
+    fromBuilder
+        .append(
+            "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
+        .append(
+            "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
+        .append(
+            "inner join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) ");
 
     fromBuilder
         .append(
@@ -1694,18 +1674,12 @@ public class JdbcEventStore implements EventStore {
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
                     + "left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
 
-    if (checkForOwnership(params)) {
-      sqlBuilder
-          .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) ")
-          .append(
-              "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
-          .append(
-              "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) ");
-    } else {
-      sqlBuilder.append(
-          "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
-    }
+    sqlBuilder
+        .append(
+            "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
+        .append(
+            "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
+        .append("left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) ");
 
     sqlBuilder.append(dataElementAndFiltersSql);
 

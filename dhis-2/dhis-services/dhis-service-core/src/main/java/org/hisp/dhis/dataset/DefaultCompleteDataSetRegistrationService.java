@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -46,6 +47,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -76,6 +78,8 @@ public class DefaultCompleteDataSetRegistrationService
 
   private final MessageService messageService;
 
+  private final PeriodStore periodStore;
+
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService
   // -------------------------------------------------------------------------
@@ -83,6 +87,9 @@ public class DefaultCompleteDataSetRegistrationService
   @Override
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
+    checkCompulsoryDeOperands(registration);
+
     Date date = new Date();
 
     if (!registration.hasDate()) {
@@ -117,6 +124,8 @@ public class DefaultCompleteDataSetRegistrationService
   @Override
   @Transactional
   public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    checkCompulsoryDeOperands(registration);
+
     registration.setLastUpdated(new Date());
 
     registration.setLastUpdatedBy(currentUserService.getCurrentUsername());
@@ -224,5 +233,35 @@ public class DefaultCompleteDataSetRegistrationService
   @Transactional(readOnly = true)
   public int getCompleteDataSetCountLastUpdatedAfter(Date lastUpdated) {
     return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter(lastUpdated);
+  }
+
+  /**
+   * Check if a data set is missing data from its compulsory data element operands. DataSet has the
+   * flag compulsoryFieldsCompleteOnly, which when false, actually renders the compulsory elements
+   * not compulsory. That flag is checked first to see if the missing data element operands should
+   * be retrieved. <br>
+   * If there are compulsory elements missing data (and they are compulsory) then an exception is
+   * thrown advising that compulsory elements are required to be filled.
+   *
+   * @param registration registration to check
+   */
+  private void checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
+    // only get missing compulsory elements if they are actually compulsory
+    if (registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
+      List<DataElementOperand> missingDataElementOperands =
+          getMissingCompulsoryFields(
+              registration.getDataSet(),
+              registration.getPeriod(),
+              registration.getSource(),
+              registration.getAttributeOptionCombo());
+      if (!missingDataElementOperands.isEmpty()) {
+        String deos =
+            missingDataElementOperands.stream()
+                .map(DataElementOperand::getDisplayName)
+                .collect(Collectors.joining(","));
+        throw new IllegalStateException(
+            String.format("All compulsory data element operands need to be filled: [%s]", deos));
+      }
+    }
   }
 }

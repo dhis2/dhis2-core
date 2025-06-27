@@ -75,7 +75,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,9 +88,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
       (iwt) ->
           Objects.nonNull(iwt.getProgramNotificationInstance())
-              && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger())
-              && iwt.getProgramNotificationInstance().getScheduledAt() != null
-              && DateUtils.isToday(iwt.getProgramNotificationInstance().getScheduledAt());
+              && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger());
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -106,6 +103,8 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   @Nonnull private final ProgramStageInstanceStore programStageInstanceStore;
 
   @Nonnull private final IdentifiableObjectManager identifiableObjectManager;
+
+  @Nonnull private final ProgramNotificationInstanceService notificationInstanceService;
 
   @Nonnull private final NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
 
@@ -148,11 +147,15 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   public void sendScheduledNotifications(JobProgress progress) {
     progress.startingStage(
         "Fetching and filtering ProgramStageNotification messages scheduled by program rules");
+
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder().scheduledAt(new Date()).build();
+
     List<NotificationInstanceWithTemplate> instancesWithTemplates =
         progress.runStage(
             List.of(),
             () ->
-                identifiableObjectManager.getAll(ProgramNotificationInstance.class).stream()
+                notificationInstanceService.getProgramNotificationInstances(param).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
                     .filter(IS_SCHEDULED_BY_PROGRAM_RULE)

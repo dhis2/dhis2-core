@@ -28,7 +28,6 @@
 package org.hisp.dhis.actions;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 
 import java.util.List;
@@ -72,7 +71,7 @@ public class SystemActions extends RestApiActions {
     Callable<Boolean> taskIsCompleted =
         () -> getTask(taskType, taskId).validateStatus(200).extractList("completed").contains(true);
 
-    with().atMost(timeout, SECONDS).await().until(() -> taskIsCompleted.call());
+    with().atMost(timeout, SECONDS).await().until(taskIsCompleted);
 
     return getTask(taskType, taskId);
   }
@@ -91,8 +90,11 @@ public class SystemActions extends RestApiActions {
   public ApiResponse waitForTaskSummaries(String taskType, String taskId) {
     String url = String.format("/taskSummaries/%s/%s", taskType, taskId);
 
-    await().ignoreExceptions().until(() -> !get(url).validateStatus(200).getBody().equals(null));
-
+    with()
+        .atMost(25, SECONDS)
+        .await()
+        .ignoreExceptions()
+        .until(() -> !get(url).validateStatus(200).getBody().equals(null));
     return get(url);
   }
 }

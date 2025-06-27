@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.route;
 
-import java.util.Set;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.io.IOException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class OrganisationUnitSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+class RouteServiceTest {
 
-  private String description;
+  @Test
+  @Timeout(value = 30)
+  void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
+    RouteService routeService = new RouteService(null, null);
+    routeService.setRestTemplate(new RestTemplate());
+    routeService.postConstruct();
 
-  private String shortName;
+    HttpClient httpClient =
+        ((HttpComponentsClientHttpRequestFactory)
+                routeService.getRestTemplate().getRequestFactory())
+            .getHttpClient();
+    HttpUriRequest httpUriRequest = RequestBuilder.get("https://dhis2.org/").build();
 
-  private OrganisationUnitSnapshot parent;
-
-  private Set<UserSnapshot> users;
+    for (int i = 0; i < RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE; i++) {
+      httpClient.execute(httpUriRequest);
+    }
+  }
 }

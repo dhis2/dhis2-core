@@ -31,7 +31,10 @@ import static java.lang.String.format;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -42,7 +45,11 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,14 +57,15 @@ import org.springframework.stereotype.Component;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AggregateDataExchangeJob implements Job {
   private final AggregateDataExchangeService dataExchangeService;
-
   private final Notifier notifier;
-
+  private final SessionFactory sessionFactory;
   private final CurrentUserService currentUserService;
+  private final UserService userService;
 
   @Override
   public JobType getJobType() {
@@ -66,34 +74,59 @@ public class AggregateDataExchangeJob implements Job {
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    notifier.clear(config);
-    AggregateDataExchangeJobParameters params =
-        (AggregateDataExchangeJobParameters) config.getJobParameters();
+    try {
+      DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
+      notifier.clear(config);
+      AggregateDataExchangeJobParameters params =
+          (AggregateDataExchangeJobParameters) config.getJobParameters();
 
-    List<String> dataExchangeIds = params.getDataExchangeIds();
-    progress.startingProcess(
-        format("Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size()));
-    ImportSummaries allSummaries = new ImportSummaries();
-    for (String dataExchangeId : dataExchangeIds) {
-      AggregateDataExchange exchange;
-      try {
-        exchange = dataExchangeService.loadByUid(dataExchangeId);
-      } catch (IllegalQueryException ex) {
-        progress.startingStage("exchange aggregate data for exchange with ID " + dataExchangeId);
-        progress.failedStage(ex);
-        allSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, ex.getMessage()));
-        continue;
+      User currentUser = currentUserService.getCurrentUser();
+
+      if (currentUser == null) {
+        String errorMessage = "A valid user is required to run the aggregate data exchange job.";
+        if (config.getLastUpdatedBy() == null) {
+          progress.failedProcess(errorMessage);
+          notifier.notify(config, NotificationLevel.ERROR, errorMessage, true);
+          return;
+        }
+        User user = userService.getUser(config.getLastUpdatedBy().getUid());
+        if (user == null) {
+          progress.failedProcess(errorMessage);
+          notifier.notify(config, NotificationLevel.ERROR, errorMessage, true);
+          return;
+        }
+        CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
+        CurrentUserUtil.injectUserInSecurityContext(currentUserDetails);
       }
-      allSummaries.addImportSummaries(
-          dataExchangeService.exchangeData(
-              currentUserService.getCurrentUser(), exchange, progress));
-    }
-    notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
-    ImportStatus status = allSummaries.getStatus();
-    if (status == ImportStatus.ERROR) {
-      progress.failedProcess("Aggregate data exchange completed with errors");
-    } else {
-      progress.completedProcess("Aggregate data exchange completed with status " + status);
+
+      List<String> dataExchangeIds = params.getDataExchangeIds();
+      progress.startingProcess(
+          format("Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size()));
+      ImportSummaries allSummaries = new ImportSummaries();
+      for (String dataExchangeId : dataExchangeIds) {
+        AggregateDataExchange exchange;
+        try {
+          exchange = dataExchangeService.loadByUid(dataExchangeId);
+        } catch (IllegalQueryException ex) {
+          progress.startingStage("exchange aggregate data for exchange with ID " + dataExchangeId);
+          progress.failedStage(ex);
+          allSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, ex.getMessage()));
+          continue;
+        }
+        allSummaries.addImportSummaries(
+            dataExchangeService.exchangeData(
+                currentUserService.getCurrentUser(), exchange, progress));
+      }
+      notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
+      ImportStatus status = allSummaries.getStatus();
+      if (status == ImportStatus.ERROR) {
+        progress.failedProcess("Aggregate data exchange completed with errors");
+      } else {
+        progress.completedProcess("Aggregate data exchange completed with status " + status);
+      }
+    } finally {
+      CurrentUserUtil.clearSecurityContext();
+      DbmsUtils.unbindSessionFromThread(sessionFactory);
     }
   }
 }
