@@ -90,7 +90,7 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
     dbmsManager.clearSession();
 
     assertHasDataIntegrityIssues(
-        detailsIdType, CHECK, 50, programRuleB.getUid(), programRuleB.getName(), null, true);
+        DETAILS_ID_TYPE, CHECK, 50, programRuleB.getUid(), programRuleB.getName(), null, true);
   }
 
   public void setUpTest() {
