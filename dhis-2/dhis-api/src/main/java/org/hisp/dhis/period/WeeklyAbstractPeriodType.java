@@ -101,8 +101,9 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType {
 
   @Override
   public Period createPeriod(DateTimeUnit dateTimeUnit, Calendar calendar) {
-    DateTimeUnit start = adjustToStartOfWeek(new DateTimeUnit(dateTimeUnit), calendar);
-    DateTimeUnit end = new DateTimeUnit(start);
+    DateTimeUnit start = adjustToStartOfWeek(dateTimeUnit, calendar);
+    DateTimeUnit end =
+        new DateTimeUnit(start.getYear(), start.getMonth(), start.getDay(), start.isIso8601());
     end = calendar.plusDays(end, calendar.daysInWeek() - 1);
 
     return toIsoPeriod(start, end, calendar);
