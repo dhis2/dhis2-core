@@ -242,6 +242,14 @@ public class NepaliCalendar extends AbstractCalendar {
 
   @Override
   public DateTimeUnit minusMonths(DateTimeUnit dateTimeUnit, int months) {
+    if (dateTimeUnit.isIso8601()) {
+      LocalDate date =
+          LocalDate.of(dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay());
+      date = date.minusMonths(months);
+
+      return new DateTimeUnit(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), true);
+    }
+
     DateTimeUnit result = new DateTimeUnit(dateTimeUnit);
 
     while (months != 0) {
@@ -267,6 +275,14 @@ public class NepaliCalendar extends AbstractCalendar {
 
   @Override
   public DateTimeUnit minusDays(DateTimeUnit dateTimeUnit, int days) {
+    if (dateTimeUnit.isIso8601()) {
+      LocalDate date =
+          LocalDate.of(dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay());
+      date = date.minusDays(days);
+
+      return new DateTimeUnit(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), true);
+    }
+
     int curYear = dateTimeUnit.getYear();
     int curMonth = dateTimeUnit.getMonth();
     int curDay = dateTimeUnit.getDay();
@@ -313,6 +329,14 @@ public class NepaliCalendar extends AbstractCalendar {
 
   @Override
   public DateTimeUnit plusMonths(DateTimeUnit dateTimeUnit, int months) {
+    if (dateTimeUnit.isIso8601()) {
+      LocalDate date =
+          LocalDate.of(dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay());
+      date = date.plusMonths(months);
+
+      return new DateTimeUnit(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), true);
+    }
+
     if (months < 0) {
       return minusMonths(dateTimeUnit, Math.abs(months));
     }
@@ -342,6 +366,13 @@ public class NepaliCalendar extends AbstractCalendar {
 
   @Override
   public DateTimeUnit plusDays(DateTimeUnit dateTimeUnit, int days) {
+    if (dateTimeUnit.isIso8601()) {
+      LocalDate date =
+          LocalDate.of(dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay());
+      date = date.plusDays(days);
+
+      return new DateTimeUnit(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), true);
+    }
     if (days < 0) {
       return minusDays(dateTimeUnit, Math.abs(days));
     }
@@ -626,8 +657,8 @@ public class NepaliCalendar extends AbstractCalendar {
 
     CONVERSION_MAP.put(2080, new int[] {365, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
     CONVERSION_MAP.put(2081, new int[] {366, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31});
-    CONVERSION_MAP.put(2082, new int[] {365, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
-    CONVERSION_MAP.put(2083, new int[] {365, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2082, new int[] {365, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
+    CONVERSION_MAP.put(2083, new int[] {365, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
     CONVERSION_MAP.put(2084, new int[] {365, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
     CONVERSION_MAP.put(2085, new int[] {366, 31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 30, 30});
     CONVERSION_MAP.put(2086, new int[] {365, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
