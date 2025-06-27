@@ -29,24 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import static org.hisp.dhis.tracker.imports.programrule.executor.ScheduleEventHelper.validateAndScheduleEvent;
+
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Zubair Asghar
@@ -57,31 +51,21 @@ public class ScheduleEventExecutor implements RuleActionExecutor<Event> {
   private final UID programStage;
   private final String scheduledAt;
 
+  @Nonnull private final AclService aclService;
+
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    if (!DateUtils.dateIsValid(scheduledAt)) {
-      return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1319, scheduledAt));
-    }
+    ProgramStage ps = bundle.getPreheat().getProgramStage(programStage.getValue());
 
-    LocalDate localDate = LocalDate.parse(scheduledAt);
-    TrackerEvent scheduledEvent = new TrackerEvent();
-    scheduledEvent.setEvent(UID.generate());
-    scheduledEvent.setEnrollment(event.getEnrollment());
-    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
-    scheduledEvent.setAttributeOptionCombo(event.getAttributeOptionCombo());
-    scheduledEvent.setProgram(event.getProgram());
-    scheduledEvent.setOrgUnit(event.getOrgUnit());
-    scheduledEvent.setOccurredAt(null);
-    scheduledEvent.setScheduledAt(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    scheduledEvent.setStatus(EventStatus.SCHEDULE);
-    List<TrackerEvent> trackerEvents = new ArrayList<>(bundle.getTrackerEvents());
-    trackerEvents.add(scheduledEvent);
-    bundle.setTrackerEvents(Collections.unmodifiableList(trackerEvents));
-
-    bundle.setStrategy(scheduledEvent, TrackerImportStrategy.CREATE);
-
-    return Optional.of(
-        ProgramRuleIssue.warning(
-            programRule, ValidationCode.E1320, scheduledEvent.getEvent().getValue(), scheduledAt));
+    return validateAndScheduleEvent(
+        programRule,
+        programStage,
+        scheduledAt,
+        aclService.canWrite(bundle.getUser(), ps),
+        bundle,
+        event.getEnrollment(),
+        event.getAttributeOptionCombo(),
+        event.getProgram(),
+        event.getOrgUnit());
   }
 }

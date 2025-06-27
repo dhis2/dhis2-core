@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -59,6 +60,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class RuleActionEventMapper {
   private final SystemSettingsProvider settingsProvider;
+  private final AclService aclService;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
@@ -102,7 +104,10 @@ class RuleActionEventMapper {
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
       case SCHEDULE_EVENT ->
           new ScheduleEventExecutor(
-              validationEffect.rule(), validationEffect.field(), validationEffect.data());
+              validationEffect.rule(),
+              validationEffect.field(),
+              validationEffect.data(),
+              aclService);
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };
