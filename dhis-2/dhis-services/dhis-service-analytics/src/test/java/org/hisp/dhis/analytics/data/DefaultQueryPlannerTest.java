@@ -53,11 +53,6 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-/**
- * Comprehensive test for DefaultQueryPlanner covering all methods, happy paths and edge cases.
- * 
- * @author Generated Test
- */
 @ExtendWith(MockitoExtension.class)
 class DefaultQueryPlannerTest extends TestBase {
 
@@ -189,7 +184,7 @@ class DefaultQueryPlannerTest extends TestBase {
     }
 
     // -------------------------------------------------------------------------
-    // Tests for withTableNameAndPartitions method
+    // Tests for withTableNameAndPartitions
     // -------------------------------------------------------------------------
 
     @Test
@@ -244,7 +239,7 @@ class DefaultQueryPlannerTest extends TestBase {
             .build();
 
         doAnswer(invocation -> {
-            // PartitionManager.filterNonExistingPartitions returns void, so we just return null
+            // handle PartitionManager.filterNonExistingPartitions being void
             return null;
         }).when(partitionManager).filterNonExistingPartitions(any(Partitions.class), eq("existing_table"));
 
@@ -267,7 +262,7 @@ class DefaultQueryPlannerTest extends TestBase {
     }
 
     // -------------------------------------------------------------------------
-    // Tests for groupByPeriodType method
+    // Tests for groupByPeriodType
     // -------------------------------------------------------------------------
 
     @Test
@@ -409,10 +404,6 @@ class DefaultQueryPlannerTest extends TestBase {
             queryPlanner.groupByStartEndDateRestriction(params)
         );
     }
-
-    // -------------------------------------------------------------------------
-    // Edge Cases and Corner Cases
-    // -------------------------------------------------------------------------
 
     @Test
     void testPlanQuery_emptyParams() {
