@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
@@ -119,6 +120,29 @@ public final class GistParams {
       """
       By default, the Gist API includes links to referenced objects. This can be disabled by using `references=false`.""")
   boolean references = true;
+
+  @Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description(
+      """
+      When true, the list is adjusted for efficient listing of organisation units for offline caching.
+      Most importantly the list will not have paging (not possible otherwise).
+      Overrides `fields` with the equivalent of `fields=path,displayName,children::isNotEmpty`.
+      Overrides `references` with `references=false`.
+      """)
+  boolean orgUnitsOffline = false;
+
+  @Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description(
+      """
+      When true, the list is adjusted for efficient paged listing of organisation units displaying search results as tree.
+      Overrides `order` with the equivalent of `order=path`.
+      Overrides `references` with `references=false`.
+      Always adds `path` to the `fields` list, if not already contained.
+      For organisation units `/api/organisationUnits/gist` lists all parents up to the root (ancestors) of any match are included in the result list.
+      In that case a boolean property `match` is added to each entry indicating if the entry was added as ancestor (`false`) or as query match (`true`)""")
+  boolean orgUnitsTree = false;
 
   @OpenApi.Description(
       """
