@@ -52,4 +52,16 @@ introduction: >
   program that the program stage belongs to. This check identifies program rules that are linked to a program stage
     but not to the program that the program stage belongs to.
 details_id_type: programRules
-recommendation: >
+recommendation: >-
+  The simplest way to fix this issue is to relink the program rule to the correct program. After shutting down your
+  DHIS2 instance, you can do this by running the following SQL query:
+  
+    UPDATE programrule pr
+    SET programid = (SELECT ps.programid FROM programstage ps WHERE ps.programstageid = pr.programstageid)
+    WHERE pr.programid != (SELECT ps.programid FROM programstage ps WHERE ps.programstageid = pr.programstageid);
+
+  Restart your DHIS2 instance after running the query and check the data integrity checks again. You should 
+  see that the issue has been resolved.
+  
+  As is always the case when performing database updates, it is recommended to take a backup of your database before running the query
+  and perform the update in a test environment first to ensure that it works as expected.
