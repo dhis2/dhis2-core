@@ -34,12 +34,12 @@ import static org.hisp.dhis.tracker.imports.programrule.executor.ScheduleEventHe
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 
 /**
@@ -47,20 +47,16 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
  */
 @RequiredArgsConstructor
 public class ScheduleEventExecutor implements RuleActionExecutor<Event> {
-  private final UID programRule;
-  private final UID programStage;
-  private final String scheduledAt;
+  private final ValidationEffect validationEffect;
 
   @Nonnull private final AclService aclService;
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    ProgramStage ps = bundle.getPreheat().getProgramStage(programStage.getValue());
+    ProgramStage ps = bundle.getPreheat().getProgramStage(validationEffect.field().getValue());
 
     return validateAndScheduleEvent(
-        programRule,
-        programStage,
-        scheduledAt,
+        validationEffect,
         aclService.canWrite(bundle.getUser(), ps),
         bundle,
         event.getEnrollment(),

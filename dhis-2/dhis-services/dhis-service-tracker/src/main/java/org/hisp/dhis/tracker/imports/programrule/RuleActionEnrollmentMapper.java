@@ -104,12 +104,7 @@ class RuleActionEnrollmentMapper {
       case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
-      case SCHEDULE_EVENT ->
-          new ScheduleEventExecutor(
-              validationEffect.rule(),
-              validationEffect.field(),
-              validationEffect.data(),
-              aclService);
+      case SCHEDULE_EVENT -> new ScheduleEventExecutor(validationEffect, aclService);
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };

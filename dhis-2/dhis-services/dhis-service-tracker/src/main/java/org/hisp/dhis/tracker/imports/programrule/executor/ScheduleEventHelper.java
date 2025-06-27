@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.util.DateUtils;
 
@@ -54,15 +55,17 @@ public class ScheduleEventHelper {
   }
 
   public static Optional<ProgramRuleIssue> validateAndScheduleEvent(
-      UID programRule,
-      UID programStageUid,
-      String scheduledAt,
+      ValidationEffect validationEffect,
       boolean canWriteToProgramStage,
       TrackerBundle bundle,
       UID enrollment,
       MetadataIdentifier attributeOptionCombo,
       MetadataIdentifier program,
       MetadataIdentifier orgUnit) {
+
+    final String scheduledAt = validationEffect.data();
+    final UID programRule = validationEffect.rule();
+    final UID programStage = validationEffect.field();
 
     if (!DateUtils.dateIsValid(scheduledAt)) {
       return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1319, scheduledAt));
@@ -74,14 +77,14 @@ public class ScheduleEventHelper {
               programRule,
               ValidationCode.E1095,
               bundle.getUser().getUsername(),
-              programStageUid.getValue()));
+              programStage.getValue()));
     }
 
     LocalDate localDate = LocalDate.parse(scheduledAt);
     TrackerEvent scheduledEvent = new TrackerEvent();
     scheduledEvent.setEvent(UID.generate());
     scheduledEvent.setEnrollment(enrollment);
-    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStageUid.getValue()));
+    scheduledEvent.setProgramStage(MetadataIdentifier.ofUid(programStage.getValue()));
     scheduledEvent.setAttributeOptionCombo(attributeOptionCombo);
     scheduledEvent.setProgram(program);
     scheduledEvent.setOrgUnit(orgUnit);
