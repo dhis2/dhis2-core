@@ -587,9 +587,9 @@ final class GistBuilder {
       case SIZE:
         return createSizeTransformerHQL(index, field, property, "");
       case IS_EMPTY:
-        return createSizeTransformerHQL(index, field, property, "=0");
+        return createIsEmptyTransformerHQL(field);
       case IS_NOT_EMPTY:
-        return createSizeTransformerHQL(index, field, property, ">0");
+        return createIsNotEmptyTransformerHQL(field);
       case NOT_MEMBER:
         return createHasMemberTransformerHQL(index, field, property, "=0");
       case MEMBER:
@@ -618,6 +618,14 @@ final class GistBuilder {
     return String.format(
         "(select count(*) %5$s from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
         tableName, property.getItemKlass().getSimpleName(), memberPath, accessFilter, compare);
+  }
+
+  private String createIsNotEmptyTransformerHQL(Field field) {
+    return "e.%s is not empty".formatted(getMemberPath(field.getPropertyPath()));
+  }
+
+  private String createIsEmptyTransformerHQL(Field field) {
+    return "e.%s is empty".formatted(getMemberPath(field.getPropertyPath()));
   }
 
   private String createIdsTransformerHQL(int index, Field field, Property property) {
