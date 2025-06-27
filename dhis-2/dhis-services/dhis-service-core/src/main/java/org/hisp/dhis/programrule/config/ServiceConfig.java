@@ -44,6 +44,7 @@ import org.hisp.dhis.programrule.action.validation.HideProgramStageProgramRuleAc
 import org.hisp.dhis.programrule.action.validation.HideSectionProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.NotificationProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.ScheduleEventProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowHideOptionGroupProgramRuleActionValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -107,7 +108,7 @@ public class ServiceConfig {
             getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
         .put(
             ProgramRuleActionType.SCHEDULEEVENT,
-            getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
+            getProgramRuleActionValidatorByClass(ScheduleEventProgramRuleActionValidator.class))
         .put(
             ProgramRuleActionType.WARNINGONCOMPLETE,
             getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
