@@ -394,7 +394,7 @@ public class AppBundler {
       info("DEFAULT_BRANCH: {}", defaultBranch);
 
       if (downloadDir == null || buildDir == null || artifactId == null || appListPath == null) {
-        error("System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APPS must be set");
+        error("System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APP_LIST must be set");
         System.exit(1);
       }
       AppBundler bundler =

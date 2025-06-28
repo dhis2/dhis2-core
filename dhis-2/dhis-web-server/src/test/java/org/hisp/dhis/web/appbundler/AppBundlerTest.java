@@ -77,7 +77,6 @@ class AppBundlerTest {
         new AppBundler(downloadDir, buildDir, artifactId, appListFile.getAbsolutePath(), "master");
     bundler.execute();
 
-    // Verify the directory structure
     Path buildDirPath = Path.of(buildDir).resolve(artifactId);
     assertTrue(Files.exists(buildDirPath), "Build directory should exist");
 
@@ -87,23 +86,18 @@ class AppBundlerTest {
     Path checksumDir = downloadArtifactDir.resolve("checksums");
     assertTrue(Files.exists(checksumDir), "Checksums directory should exist");
 
-    // Settings app should be downloaded
     Path importExportAppZip = downloadArtifactDir.resolve("import-export-app.zip");
     assertTrue(Files.exists(importExportAppZip), "Import export app ZIP should exist");
 
-    // Settings app should be downloaded
     Path settingsAppZip = downloadArtifactDir.resolve("data-quality-app.zip");
     assertTrue(Files.exists(settingsAppZip), "Settings app ZIP should exist");
 
-    // Dashboard app should be downloaded
     Path dashboardAppZip = downloadArtifactDir.resolve("aggregate-data-entry-app.zip");
     assertTrue(Files.exists(dashboardAppZip), "Dashboard app ZIP should exist");
 
-    // Check apps are copied to the build dir.
     Path dashboardAppZipInBuild = buildDirPath.resolve("dashboard-app.zip");
     assertTrue(Files.exists(dashboardAppZipInBuild), "Copied dashboard app ZIP should exist");
 
-    // Check bundle file is made
     Path bundleInfoFile = buildDirPath.resolve("apps-bundle.json");
     assertTrue(Files.exists(bundleInfoFile), "Bundle info file should exist");
   }
