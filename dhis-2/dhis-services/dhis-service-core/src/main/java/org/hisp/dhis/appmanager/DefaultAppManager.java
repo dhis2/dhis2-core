@@ -128,13 +128,15 @@ public class DefaultAppManager implements AppManager {
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
       LocaleManager localeManager,
-    BundledAppManager bundledAppManager) {
+      BundledAppManager bundledAppManager) {
+
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(jCloudsAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
     checkNotNull(i18nManager);
     checkNotNull(bundledAppManager);
+    checkNotNull(localeManager);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -145,7 +147,6 @@ public class DefaultAppManager implements AppManager {
     this.localeManager = localeManager;
     this.bundledAppManager = bundledAppManager;
   }
-
 
   /**
    * Reloads apps by triggering the process to discover apps from local filesystem and remote cloud
