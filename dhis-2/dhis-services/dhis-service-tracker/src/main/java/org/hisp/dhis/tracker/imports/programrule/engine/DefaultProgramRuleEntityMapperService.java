@@ -182,7 +182,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
           new RuleAction(
               pra.getData(),
               SCHEDULEEVENT.name(),
-              createValues(CONTENT, pra.getContent(), FIELD, pra.getProgramStage().getUid()));
+              createValues(FIELD, pra.getProgramStage().getUid()));
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
