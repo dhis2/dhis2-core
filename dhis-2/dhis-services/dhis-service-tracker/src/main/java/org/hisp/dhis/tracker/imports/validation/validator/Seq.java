@@ -116,6 +116,33 @@ public class Seq<T> implements Validator<T> {
     return new Seq<>(List.of(v1, v2, v3, v4, v5, v6, v7, v8));
   }
 
+  public static <T> Seq<T> seq(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6,
+      Validator<T> v7,
+      Validator<T> v8,
+      Validator<T> v9) {
+    return new Seq<>(List.of(v1, v2, v3, v4, v5, v6, v7, v8, v9));
+  }
+
+  public static <T> Seq<T> seq(
+      Validator<T> v1,
+      Validator<T> v2,
+      Validator<T> v3,
+      Validator<T> v4,
+      Validator<T> v5,
+      Validator<T> v6,
+      Validator<T> v7,
+      Validator<T> v8,
+      Validator<T> v9,
+      Validator<T> v10) {
+    return new Seq<>(List.of(v1, v2, v3, v4, v5, v6, v7, v8, v9, v10));
+  }
+
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, T input) {
     WrappingReporter wrappedReporter = new WrappingReporter(reporter);

@@ -35,6 +35,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
@@ -43,6 +44,7 @@ import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +69,7 @@ class DefaultAppManagerTest {
   @Mock private CacheBuilder cacheBuilder;
   @Mock private I18nManager i18nManager;
   @Mock private BundledAppManager bundledAppInstaller;
+  @Mock private LocaleManager localeManager;
 
   private AppManager appManager;
 
@@ -116,6 +119,7 @@ class DefaultAppManagerTest {
     doReturn(cacheBuilder).when(cacheBuilderProvider).newCacheBuilder();
     doReturn(cacheBuilder).when(cacheBuilder).forRegion("appCache");
     doReturn(appCache).when(cacheBuilder).build();
+    doReturn(new Locale("en")).when(localeManager).getCurrentLocale();
 
     appManager =
         new DefaultAppManager(
@@ -125,7 +129,8 @@ class DefaultAppManagerTest {
             datastoreService,
             cacheBuilderProvider,
             i18nManager,
-            bundledAppInstaller);
+            bundledAppInstaller,
+            localeManager);
   }
 
   /**

@@ -602,11 +602,11 @@ final class GistBuilder {
       case NONE:
         return HQL_NULL;
       case SIZE:
-        return createSizeTransformerHQL(index, field, property, "");
+        return createSizeTransformerHQL(index, field, property);
       case IS_EMPTY:
-        return createSizeTransformerHQL(index, field, property, "=0");
+        return createIsEmptyTransformerHQL(field);
       case IS_NOT_EMPTY:
-        return createSizeTransformerHQL(index, field, property, ">0");
+        return createIsNotEmptyTransformerHQL(field);
       case NOT_MEMBER:
         return createHasMemberTransformerHQL(index, field, property, "=0");
       case MEMBER:
@@ -621,20 +621,16 @@ final class GistBuilder {
     }
   }
 
-  private String createSizeTransformerHQL(
-      int index, Field field, Property property, String compare) {
+  private String createSizeTransformerHQL(int index, Field field, Property property) {
     Class<?> table = property.getItemKlass();
     String alias = alias(table, index);
     RelativePropertyContext fieldContext = context.switchedTo(table);
 
     Map<String, String> variables =
-        Map.ofEntries(
-            entry("alias", alias),
-            entry("path", getMemberPath(field.getPropertyPath())),
-            entry("compare", compare));
+        Map.ofEntries(entry("alias", alias), entry("path", getMemberPath(field.getPropertyPath())));
     if (!isFilterBySharing(fieldContext)) {
       // generates better SQL in case no access control is needed
-      return replace("size(e.${path}) ${compare}", variables);
+      return replace("size(e.${path})", variables);
     }
     variables =
         merge(
@@ -643,8 +639,17 @@ final class GistBuilder {
                 entry("table", table.getSimpleName()),
                 entry("access", createAccessFilterHQL(fieldContext, alias))));
     return replace(
-        "(select count(*) ${compare} from ${table} ${alias} where ${alias} in elements(e.${path}) and ${access})",
+        "(select count(*) from ${table} ${alias} where ${alias} in elements(e.${path}) and ${access})",
         variables);
+  }
+
+  private String createIsNotEmptyTransformerHQL(Field field) {
+    return replace(
+        "e.${path} is not empty", Map.of("path", getMemberPath(field.getPropertyPath())));
+  }
+
+  private String createIsEmptyTransformerHQL(Field field) {
+    return replace("e.${path} is empty", Map.of("path", getMemberPath(field.getPropertyPath())));
   }
 
   private String createIdsTransformerHQL(int index, Field field, Property property) {
@@ -668,7 +673,7 @@ final class GistBuilder {
     String propertyName = determineReferenceProperty(field, itemContext, true);
     if (propertyName == null || table == Period.class) {
       // give up
-      return createSizeTransformerHQL(index, field, property, "");
+      return createSizeTransformerHQL(index, field, property);
     }
     String alias = alias(table, index);
     Map<String, String> variables =

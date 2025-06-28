@@ -47,6 +47,7 @@ import org.springframework.scheduling.annotation.Async;
 public interface AppStorageService {
 
   String MANIFEST_FILENAME = "manifest.webapp";
+  String MANIFEST_TRANSLATION_FILENAME = "manifest.webapp.translations.json";
 
   String APPS_DIR = "apps";
 

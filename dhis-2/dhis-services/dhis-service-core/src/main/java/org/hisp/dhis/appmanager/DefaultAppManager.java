@@ -36,11 +36,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -49,15 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
@@ -81,6 +69,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
@@ -93,6 +82,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -116,6 +107,12 @@ public class DefaultAppManager implements AppManager {
   @Autowired private UserService userService;
   @Autowired private ObjectMapper jsonMapper;
 
+  @Autowired private LocaleManager localeManager;
+
+  @Autowired private ResourcePatternResolver resourcePatternResolver;
+
+  @Autowired private ResourceLoader resourceLoader;
+
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
    * runtime.
@@ -130,8 +127,8 @@ public class DefaultAppManager implements AppManager {
       DatastoreService datastoreService,
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
-      BundledAppManager bundledAppManager) {
-
+      LocaleManager localeManager,
+    BundledAppManager bundledAppManager) {
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(jCloudsAppStorageService);
     checkNotNull(datastoreService);
@@ -145,8 +142,10 @@ public class DefaultAppManager implements AppManager {
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
     this.i18nManager = i18nManager;
+    this.localeManager = localeManager;
     this.bundledAppManager = bundledAppManager;
   }
+
 
   /**
    * Reloads apps by triggering the process to discover apps from local filesystem and remote cloud
@@ -283,11 +282,19 @@ public class DefaultAppManager implements AppManager {
       stream = stream.limit(max);
     }
 
+    Locale userLocale = localeManager.getCurrentLocale();
+
     return stream
         .map(
             app -> {
               app.init(contextPath);
-              return app;
+              try {
+                return app.localise(userLocale);
+              } catch (RuntimeException e) {
+                log.warn(
+                    String.format("Could not localise app information for app: %s", app.getName()));
+                return app;
+              }
             })
         .collect(toList());
   }
@@ -352,9 +359,15 @@ public class DefaultAppManager implements AppManager {
             .map(WebModule::getModule)
             .map(
                 module -> {
-                  String bundledAppNameTranslation =
-                      i18nManager.getI18n().getString(module.getName(), module.getDisplayName());
-                  module.setDisplayName(bundledAppNameTranslation);
+                  // bundled apps in 42+ have the ability to add their name translations in the
+                  // manifest
+                  // so only use the bundled translations if no manifest translation exists
+                  if (!module.isLocalised()) {
+                    String bundledAppNameTranslation =
+                        i18nManager.getI18n().getString(module.getName(), module.getDisplayName());
+                    module.setDisplayName(bundledAppNameTranslation);
+                    return module;
+                  }
                   return module;
                 })
             .toList());
