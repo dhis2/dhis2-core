@@ -173,7 +173,7 @@ class ProgramRuleActionServiceTest extends PostgresIntegrationTestBase {
         new ProgramRuleAction(
             "ActionE",
             programRuleA,
-            ProgramRuleActionType.CREATEEVENT,
+            ProgramRuleActionType.SCHEDULEEVENT,
             null,
             null,
             null,
