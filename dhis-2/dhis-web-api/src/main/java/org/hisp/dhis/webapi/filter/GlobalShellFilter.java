@@ -154,13 +154,6 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return false;
     }
 
-    String appName = m.group(1);
-
-    if (appName.equals("login")) {
-      log.debug("Skipping global shell redirect for login app");
-      return false;
-    }
-
     // Only redirect index.html or directory root requests
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
 
@@ -179,6 +172,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         referer);
 
     if (isIndexPath && !isServiceWorkerRequest && !hasRedirectFalse) {
+      String appName = m.group(1);
       String targetPath = baseUrl + GLOBAL_SHELL_PATH_PREFIX + appName;
       targetPath = withQueryString(targetPath, queryString);
       response.sendRedirect(targetPath);

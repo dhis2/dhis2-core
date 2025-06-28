@@ -98,7 +98,7 @@ public class AuthorizationServerConfig {
         .exceptionHandling(
             exceptions ->
                 exceptions.defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/dhis-web-login/"),
+                    new LoginUrlAuthenticationEntryPoint("/login/"),
                     new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
     return http.build();

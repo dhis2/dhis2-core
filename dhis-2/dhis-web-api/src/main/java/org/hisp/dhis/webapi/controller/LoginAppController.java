@@ -27,47 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.base.Strings;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
-import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@RequiredArgsConstructor
-public class AppHtmlTemplate {
+/**
+ * Controller for handling the login app.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Controller
+public class LoginAppController {
 
-  private final String contextPath;
-  private final App app;
+  @GetMapping("/login/**")
+  public void getLoginApp(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    String contextRelativePath =
+        request.getRequestURI().substring(request.getContextPath().length());
+    String forwardPath =
+        "/" + AppManager.INSTALLED_APP_PREFIX + contextRelativePath.replaceFirst("/", "");
 
-  public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
-    PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
-
-    try (LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
-      while (iterator.hasNext()) {
-        String line = iterator.next();
-        if (line.contains("__DHIS2_BASE_URL__") || line.contains("__DHIS2_APP_ROOT_URL__")) {
-          line = replaceLine(line);
-        }
-        if (line.contains("<head>")) {
-          line =
-              line.replace(
-                  "<head>",
-                  "<head><meta name=\"dhis2-base-url\" content=\"" + this.contextPath + "\" />");
-        }
-        output.println(line);
-      }
-    }
-  }
-
-  private String replaceLine(String line) {
-    return line.replace("__DHIS2_BASE_URL__", this.contextPath)
-        .replace("__DHIS2_APP_ROOT_URL__", Strings.nullToEmpty(this.app.getBaseUrl()));
+    // TODO: MAS: Here we can introduce a swappable login app configurable similar to the start page
+    RequestDispatcher dispatcher = request.getServletContext().getRequestDispatcher(forwardPath);
+    dispatcher.forward(request, response);
   }
 }
