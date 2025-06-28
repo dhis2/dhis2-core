@@ -154,7 +154,7 @@ public class CategoryCombo extends BaseMetadataObject
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
 
-  @Embedded private TranslationProperty translationProperty = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   // -------------------------------------------------------------------------
   // Transient fields
@@ -455,7 +455,7 @@ public class CategoryCombo extends BaseMetadataObject
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return translationProperty.getTranslation("NAME", name);
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
@@ -547,7 +547,7 @@ public class CategoryCombo extends BaseMetadataObject
   }
 
   public void setTranslations(Set<Translation> translations) {
-    this.translationProperty.setTranslations(translations);
+    this.translations.setTranslations(translations);
   }
 
   @Gist(included = Gist.Include.FALSE)
@@ -555,7 +555,7 @@ public class CategoryCombo extends BaseMetadataObject
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    return translationProperty.getTranslations();
+    return translations.getTranslations();
   }
 
   @Override
