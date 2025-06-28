@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.common.annotation;
 
-/**
- * This class defines metadata model property's names of {@link
- * org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help supporting type-safe
- * queries with JPA Criteria API. TODO: This should be replaced with JPAMetaModelEntityProcessor's
- * auto generated class
- */
-public class BaseIdentifiableObject_ {
-  public static final String CREATED_BY = "createdBy";
-  public static final String LAST_UPDATED_BY = "lastUpdatedBy";
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-  /**
-   * This is the legacy property name for translations. Should be removed once the ORM mapping
-   * migration from xml to annotation is done.
-   */
-  public static final String TRANSLATIONS = "translations";
-
-  /**
-   * This is the embedded property {@link org.hisp.dhis.common.TranslationProperty} for mapping
-   * jsonb translations column in database.
-   */
-  public static final String TRANSLATION_PROPERTY = "translationProperty";
-
-  public static final String SHARING = "sharing";
-  public static final String ATTRIBUTE_VALUES = "attributeValues";
-}
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.SOURCE)
+public @interface EnableTranslation {}

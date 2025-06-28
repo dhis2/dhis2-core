@@ -67,6 +67,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
@@ -135,6 +136,17 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
       initFromEnumConstants(property);
 
       properties.put(property.key(), property);
+    }
+
+    /**
+     * If the class has embedded property {@link org.hisp.dhis.common.TranslationProperty} then it
+     * should have a persisted translations property. This is needed by {@link
+     * TranslatablePropertyIntrospector} We can remove this once orm mapping migration from xml to
+     * annotations is complete.
+     */
+    if (persistedProperties.containsKey(BaseIdentifiableObject_.TRANSLATION_PROPERTY)
+        && properties.containsKey(BaseIdentifiableObject_.TRANSLATIONS)) {
+      properties.get("translations").setPersisted(true);
     }
   }
 
