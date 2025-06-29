@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,23 @@ public class RouteService {
 
   private static final Pattern HTTP_OR_HTTPS_PATTERN = Pattern.compile("^(https?:).*");
 
+  private static final Pattern VALID_HEADER_NAME_PATTERN =
+      Pattern.compile("^[a-zA-Z0-9!#$&'*+.^_`|~-]+$");
+
+  private static final Set<String> DANGEROUS_RESPONSE_HEADERS =
+      Set.of(
+          "authorization",
+          "www-authenticate",
+          "proxy-authenticate",
+          "proxy-authorization",
+          "set-cookie",
+          "cookie",
+          "x-forwarded-user",
+          "x-auth-token",
+          "x-api-key",
+          "server",
+          "x-powered-by");
+
   private final ApplicationContext applicationContext;
 
   private final RouteStore routeStore;
@@ -143,6 +161,7 @@ public class RouteService {
           "etag");
 
   private final List<String> allowedRouteRegexRemoteServers = new ArrayList<>();
+  private final Set<String> allowedResponseHeaders = new HashSet<>();
 
   @PostConstruct
   public void postConstruct() {
@@ -153,6 +172,31 @@ public class RouteService {
         validateHost(host);
         allowedRouteRegexRemoteServers.add(TextUtils.createRegexFromGlob(host));
       }
+    }
+
+    allowedResponseHeaders.addAll(ALLOWED_RESPONSE_HEADERS);
+
+    String routeResponseHeadersAllowed =
+        configuration.getProperty(ConfigurationKey.ROUTE_RESPONSE_HEADERS_ALLOWED).strip();
+    Set<String> additionalHeaders =
+        TextUtils.splitToSet(routeResponseHeadersAllowed, TextUtils.COMMA);
+
+    if (additionalHeaders != null) {
+      additionalHeaders.stream()
+          .map(String::trim)
+          .filter(header -> !header.isEmpty())
+          .forEach(
+              header -> {
+                try {
+                  validateResponseHeader(header);
+                  allowedResponseHeaders.add(header.toLowerCase());
+                } catch (IllegalArgumentException e) {
+                  log.error(
+                      "Invalid response header configuration ignored: '{}'. Reason: {}",
+                      header,
+                      e.getMessage());
+                }
+              });
     }
 
     webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
@@ -483,7 +527,7 @@ public class RouteService {
    * @return an {@link HttpHeaders}.
    */
   private HttpHeaders filterResponseHeaders(HttpHeaders responseHeaders) {
-    return filterHeaders(responseHeaders.keySet(), ALLOWED_RESPONSE_HEADERS, responseHeaders::get);
+    return filterHeaders(responseHeaders.keySet(), allowedResponseHeaders, responseHeaders::get);
   }
 
   /**
@@ -510,5 +554,34 @@ public class RouteService {
           headers.addAll(name, values);
         });
     return headers;
+  }
+
+  /**
+   * Validates a response header name for security concerns.
+   *
+   * @param headerName the header name to validate
+   * @throws IllegalArgumentException if the header is invalid or dangerous
+   */
+  protected void validateResponseHeader(String headerName) {
+    if (headerName == null || headerName.trim().isEmpty()) {
+      throw new IllegalArgumentException("Header name cannot be null or empty");
+    }
+
+    String normalizedHeader = headerName.trim().toLowerCase();
+
+    if (!VALID_HEADER_NAME_PATTERN.matcher(headerName.trim()).matches()) {
+      throw new IllegalArgumentException("Header name contains invalid characters: " + headerName);
+    }
+
+    if (DANGEROUS_RESPONSE_HEADERS.contains(normalizedHeader)) {
+      throw new IllegalArgumentException(
+          "Header is blacklisted for security reasons: " + headerName);
+    }
+
+    if (normalizedHeader.startsWith("x-auth") || normalizedHeader.startsWith("x-token")) {
+      log.warn(
+          "Potentially sensitive header being allowed: '{}'. Ensure this is intentional.",
+          headerName);
+    }
   }
 }
