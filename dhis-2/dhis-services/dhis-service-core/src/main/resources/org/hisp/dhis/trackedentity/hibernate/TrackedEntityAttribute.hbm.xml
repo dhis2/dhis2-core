@@ -90,6 +90,8 @@
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>
 
+    <property name="minCharactersToSearch" column="mincharacterstosearch" />
+
   </class>
 
 </hibernate-mapping>

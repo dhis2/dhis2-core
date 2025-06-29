@@ -99,6 +99,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Boolean skipSynchronization = false;
 
+  private int minCharactersToSearch;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -367,6 +369,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setSkipSynchronization(Boolean skipSynchronization) {
     this.skipSynchronization = skipSynchronization;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getMinCharactersToSearch() {
+    return minCharactersToSearch;
+  }
+
+  public void setMinCharactersToSearch(int minCharactersToSearch) {
+    this.minCharactersToSearch = minCharactersToSearch;
   }
 
   @JsonProperty
