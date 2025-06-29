@@ -57,6 +57,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 class FilterJdbcPredicateTest {
   private TrackedEntityAttribute tea;
   private DataElement de;
+  private DataElement deMultiText;
 
   @BeforeEach
   void setUp() {
@@ -65,6 +66,10 @@ class FilterJdbcPredicateTest {
     de = new DataElement();
     de.setValueType(ValueType.TEXT);
     de.setUid(UID.generate().getValue());
+
+    deMultiText = new DataElement();
+    deMultiText.setValueType(ValueType.MULTI_TEXT);
+    deMultiText.setUid(UID.generate().getValue());
   }
 
   @Test
@@ -375,6 +380,62 @@ lower("%s".value) like :"""
     addPredicates(sql, params, Map.of(tea, List.of(), tea2, List.of()));
 
     assertEquals("", sql.toString());
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithInOperator() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "blue;green;red");
+
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
+
+    assertStartsWith(
+        "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+            + deMultiText.getUid()
+            + ", value}'), ',')) AS val where trim(val) in",
+        filter.getSql());
+    assertParameter(deMultiText, filter, Types.VARCHAR, "blue", "green", "red");
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithLikeOperator() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.LIKE, "blue");
+
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
+
+    assertStartsWith(
+        "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+            + deMultiText.getUid()
+            + ", value}'), ',')) AS val where trim(val) like",
+        filter.getSql());
+    assertParameter(deMultiText, filter, Types.VARCHAR, "%blue%");
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithNNULLOperator() {
+    QueryFilter filter = new QueryFilter(QueryOperator.NULL);
+    FilterJdbcPredicate predicate = FilterJdbcPredicate.of(deMultiText, filter, "ev");
+
+    assertEquals(
+        String.format(
+            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{%s, value}'), ',')) AS val where trim(val) is not null and trim(val) <> '')",
+            deMultiText.getUid()),
+        predicate.getSql());
+
+    assertNoParameter(predicate);
+  }
+
+  @Test
+  void shouldFailForFiltersNotSupportedByMultiSelection() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.LE, "blue;green;red");
+
+    UnsupportedOperationException exception =
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> FilterJdbcPredicate.of(deMultiText, queryFilter, "ev"));
+
+    assertContains(
+        "Operator not supported for multi-text: " + queryFilter.getOperator(),
+        exception.getMessage());
   }
 
   @Test

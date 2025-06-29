@@ -183,6 +183,9 @@ public class FilterJdbcPredicate {
 
   private static String generateSql(
       DataElement de, QueryFilter filter, Parameter parameter, String ev) {
+    if (isMultiTextType(de)) {
+      return multiTextClause(getColumn(de, ev), filter.getOperator(), parameter);
+    }
     String leftOperand = leftOperandSql(de, filter.getOperator(), ev);
     String rightOperand = rightOperandSql(filter.getOperator(), parameter);
     return leftOperand + " " + filter.getSqlOperator() + rightOperand;
@@ -208,7 +211,7 @@ public class FilterJdbcPredicate {
 
   @Nonnull
   private static String leftOperandSql(DataElement de, QueryOperator operator, String table) {
-    String column = table + ".eventdatavalues #>> '{" + de.getUid() + ", value}'";
+    String column = getColumn(de, table);
 
     String leftOperand;
     if (operator.isUnary()) {
@@ -227,6 +230,11 @@ public class FilterJdbcPredicate {
   }
 
   @Nonnull
+  private static String getColumn(DataElement de, String table) {
+    return table + ".eventdatavalues #>> '{" + de.getUid() + ", value}'";
+  }
+
+  @Nonnull
   private static String rightOperandSql(QueryOperator operator, Parameter parameter) {
     if (parameter == null) {
       return "";
@@ -238,6 +246,42 @@ public class FilterJdbcPredicate {
     }
 
     return " :" + name;
+  }
+
+  @Nonnull
+  private static String multiTextClause(
+      String column, QueryOperator operator, Parameter parameter) {
+    String unnestSql = "unnest(string_to_array(lower(" + column + "), ',')) AS val";
+    String trimmed = "trim(val)";
+    String param = parameter != null ? parameter.name() : null;
+
+    return switch (operator) {
+      case IEQ, EQ, IN ->
+          String.format("exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
+      case NE, NEQ ->
+          String.format(
+              "not exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
+      case LIKE, SW, EW, ILIKE ->
+          String.format("exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
+      case NLIKE, NILIKE ->
+          String.format(
+              "not exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
+      case NULL ->
+          String.format(
+              "not exists (select 1 from %s where %s is not null and %s <> '')",
+              unnestSql, trimmed, trimmed);
+      case NNULL ->
+          String.format(
+              "exists (select 1 from %s where %s is not null and %s <> '')",
+              unnestSql, trimmed, trimmed);
+      default ->
+          throw new UnsupportedOperationException(
+              "Operator not supported for multi-text: " + operator);
+    };
+  }
+
+  private static boolean isMultiTextType(DataElement de) {
+    return ValueType.MULTI_TEXT == de.getValueType();
   }
 
   /**
