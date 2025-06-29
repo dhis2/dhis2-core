@@ -41,6 +41,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class ArtemisConfigData {
   private ArtemisMode mode = ArtemisMode.EMBEDDED;
 
+  public static final int EMBEDDED_ACCEPTOR_ID = 0;
+
   private String host = "127.0.0.1";
 
   // AMQP port should be 5672/5673 but we don't want to cause issues with
