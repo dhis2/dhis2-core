@@ -50,7 +50,7 @@ public class ProgramStageSchemaDescriptor implements SchemaDescriptor {
   public Schema getSchema() {
     Schema schema = new Schema(ProgramStage.class, SINGULAR, PLURAL);
     schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1509);
+    schema.setOrder(1521);
     schema.setDataShareable(true);
 
     schema.add(new Authority(AuthorityType.CREATE, List.of("F_PROGRAMSTAGE_ADD")));

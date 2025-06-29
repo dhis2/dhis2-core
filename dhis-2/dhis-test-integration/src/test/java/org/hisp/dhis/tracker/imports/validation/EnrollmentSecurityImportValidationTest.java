@@ -143,8 +143,6 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
     programStageA = createProgramStage('A', 0);
     programStageB = createProgramStage('B', 0);
     programStageB.setRepeatable(true);
-    manager.save(programStageA);
-    manager.save(programStageB);
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     trackedEntityType = createTrackedEntityType('A');
@@ -170,8 +168,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
     programStageB.setMinDaysFromStart(2);
     programA.getProgramStages().add(programStageA);
     programA.getProgramStages().add(programStageB);
-    manager.update(programStageA);
-    manager.update(programStageB);
+    manager.save(programStageA);
+    manager.save(programStageB);
     manager.update(programA);
     maleA = createTrackedEntity('A', organisationUnitA, trackedEntityType);
     maleB = createTrackedEntity(organisationUnitB, trackedEntityType);

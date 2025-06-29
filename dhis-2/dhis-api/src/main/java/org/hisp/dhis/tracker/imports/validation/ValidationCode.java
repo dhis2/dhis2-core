@@ -47,7 +47,6 @@ public enum ValidationCode {
   E1005("Could not find TrackedEntityType: `{0}`."),
   E1006("Attribute: `{0}` does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),
-  E1008("ProgramStage `{0}` has no reference to a Program, check ProgramStage configuration."),
   E1009("File resource: `{0}` has already been assigned to another object."),
   E1010("Could not find Program: `{0}`, linked to Event."),
   E1011("Could not find OrganisationUnit: `{0}`, linked to Event."),

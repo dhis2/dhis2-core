@@ -154,11 +154,6 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     dataElementB.setValueType(ValueType.INTEGER);
     manager.save(dataElementA);
     manager.save(dataElementB);
-    programStageA = createProgramStage('A', 0);
-    programStageB = createProgramStage('B', 0);
-    programStageB.setRepeatable(true);
-    manager.save(programStageA);
-    manager.save(programStageB);
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     trackedEntityType = createTrackedEntityType('A');
@@ -166,6 +161,11 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType('C');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeFromProgram);
     manager.save(programA);
+    programStageA = createProgramStage('A', programA);
+    programStageB = createProgramStage('B', programA);
+    programStageB.setRepeatable(true);
+    manager.save(programStageA);
+    manager.save(programStageB);
     ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
     programStageDataElement.setDataElement(dataElementA);
     programStageDataElement.setProgramStage(programStageA);
