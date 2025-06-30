@@ -246,7 +246,7 @@ class TrackerEventOperationParamsMapper {
 
   private void validateMultiTextDataElementFilters(
       Entry<UID, List<QueryFilter>> deFilter, DataElement de) throws BadRequestException {
-    if (de.getValueType() != ValueType.MULTI_TEXT) {
+    if (ValueType.MULTI_TEXT != de.getValueType()) {
       return;
     }
 
