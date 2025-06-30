@@ -27,46 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.DxfNamespaces;
-
-@JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
-public class AppShortcut implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8865601558938806456L;
-
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String name;
-
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String url;
-
-  @Setter private String displayName;
-
-  public AppShortcut() {}
-
-  public AppShortcut(String name, String url) {
-    this.name = name;
-    this.url = url;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getDisplayName() {
-    if (displayName == null) {
-      return name;
-    }
-    return displayName;
+public class ZipSlipException extends Exception {
+  public ZipSlipException(String s) {
+    super(s);
   }
 }
