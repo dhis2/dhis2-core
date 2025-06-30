@@ -33,11 +33,15 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 
@@ -55,6 +59,10 @@ public class App implements Serializable {
   private String version;
 
   private String name;
+
+  private String displayName;
+
+  private String displayDescription;
 
   private AppType appType = AppType.APP;
 
@@ -108,6 +116,8 @@ public class App implements Serializable {
 
   private List<AppShortcut> shortcuts = new ArrayList<>();
 
+  private boolean isLocalised = false;
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -130,6 +140,17 @@ public class App implements Serializable {
     if (contextPath != null && name != null && pluginLaunchPath != null) {
       this.pluginLaunchUrl = String.join("/", baseUrl, pluginLaunchPath.replaceFirst("^/+", ""));
     }
+  }
+
+  /**
+   * A mapper used for App serialisation and de-serialisation A mapper is often created and
+   * configured when reading from the app manifests during app install and discovery. This provides
+   * one such mapper for convenience and consistency.
+   */
+  public static final ObjectMapper MAPPER = new ObjectMapper();
+
+  static {
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   /** Unique identifier for the app. Is based on app-name */
@@ -213,6 +234,19 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayName() {
+    if (displayName == null || displayName.isEmpty()) {
+      return name;
+    }
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AppType getAppType() {
     return appType;
   }
@@ -279,6 +313,19 @@ public class App implements Serializable {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayDescription() {
+    if (displayDescription == null || displayDescription.isEmpty()) {
+      return description;
+    }
+    return displayDescription;
+  }
+
+  public void setDisplayDescription(String displayDescription) {
+    this.displayDescription = displayDescription;
   }
 
   @JsonProperty
@@ -401,6 +448,14 @@ public class App implements Serializable {
     this.shortcuts = shortcuts;
   }
 
+  public boolean getIsLocalised() {
+    return this.isLocalised;
+  }
+
+  private void setIsLocalised(boolean localised) {
+    this.isLocalised = localised;
+  }
+
   // -------------------------------------------------------------------------
   // hashCode, equals, toString
   // -------------------------------------------------------------------------
@@ -519,5 +574,84 @@ public class App implements Serializable {
     return additionalNamespaces.stream()
         .flatMap(ns -> ns.getAllAuthorities().stream())
         .collect(toUnmodifiableSet());
+  }
+
+  private transient List<AppManifestTranslation> manifestTranslations = new ArrayList<>();
+
+  public void setManifestTranslations(List<AppManifestTranslation> translations) {
+    if (translations == null) {
+      return;
+    }
+
+    manifestTranslations = translations;
+  }
+
+  private boolean hasManifestTranslations(AppManifestTranslation manifestTranslations) {
+    return !manifestTranslations.getShortcuts().isEmpty()
+        || !StringUtils.isEmpty(manifestTranslations.getTitle());
+  }
+
+  public App localise(Locale userLocale) {
+    App localisedApp = SerializationUtils.clone(this);
+    var translationsToUse = getTranslationToUse(userLocale);
+    if (hasManifestTranslations(translationsToUse)) {
+      translateShortcuts(localisedApp, translationsToUse);
+
+      translateAppInfo(localisedApp, translationsToUse);
+
+      localisedApp.setIsLocalised(true);
+      return localisedApp;
+    }
+    return localisedApp;
+  }
+
+  private static void translateShortcuts(
+      App localisedApp, AppManifestTranslation translationsToUse) {
+    for (AppShortcut shortcut : localisedApp.shortcuts) {
+      var shortcutTranslation = translationsToUse.getShortcuts().get(shortcut.getName());
+      if (shortcutTranslation != null) {
+        shortcut.setDisplayName(shortcutTranslation);
+      }
+    }
+  }
+
+  private static void translateAppInfo(App localisedApp, AppManifestTranslation translationsToUse) {
+    if (!StringUtils.isEmpty(translationsToUse.getTitle())) {
+      localisedApp.setDisplayName(translationsToUse.getTitle());
+    }
+    if (!StringUtils.isEmpty(translationsToUse.getDescription())) {
+      localisedApp.setDisplayDescription(translationsToUse.getDescription());
+    }
+  }
+
+  private AppManifestTranslation getTranslationToUse(Locale locale) {
+    String language = locale.getLanguage();
+    String country = locale.getCountry();
+    String script = locale.getScript();
+
+    AppManifestTranslation matchingLocale = getMatchingLocale(language, country, script);
+    AppManifestTranslation matchingLanguage = getMatchingLanguage(language);
+
+    matchingLocale.merge(matchingLanguage);
+
+    return matchingLocale;
+  }
+
+  private AppManifestTranslation getMatchingLanguage(String language) {
+    return manifestTranslations.stream()
+        .filter(tf -> language.equals(tf.getLanguageCode()))
+        .findFirst()
+        .orElse(new AppManifestTranslation());
+  }
+
+  private AppManifestTranslation getMatchingLocale(String language, String country, String script) {
+    return manifestTranslations.stream()
+        .filter(
+            translation ->
+                language.equals(translation.getLanguageCode())
+                    && country.equals(translation.getCountryCode())
+                    && (script.isEmpty() || script.equals(translation.getScriptCode())))
+        .findFirst()
+        .orElse(new AppManifestTranslation());
   }
 }

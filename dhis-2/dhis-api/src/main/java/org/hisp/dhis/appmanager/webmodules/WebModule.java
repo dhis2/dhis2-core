@@ -49,6 +49,8 @@ public class WebModule {
 
   @JsonProperty private String displayName;
 
+  @JsonProperty private String displayDescription;
+
   @JsonProperty private String icon;
 
   @JsonProperty private String description;
@@ -56,6 +58,8 @@ public class WebModule {
   @JsonProperty private String version;
 
   @JsonProperty private List<AppShortcut> shortcuts;
+
+  private boolean isLocalised;
 
   public WebModule() {}
 
@@ -81,14 +85,17 @@ public class WebModule {
     String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
 
     String description = subString(app.getDescription(), 0, 80);
+    String displayDescription = subString(app.getDisplayDescription(), 0, 80);
 
     String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
 
     WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);
     module.setDescription(description);
-    module.setDisplayName(app.getName());
+    module.setDisplayDescription(displayDescription);
+    module.setDisplayName(app.getDisplayName());
     module.setVersion(app.getVersion());
+    module.setLocalised(app.getIsLocalised());
 
     List<AppShortcut> shortcuts = app.getShortcuts();
     module.setShortcuts(shortcuts);
