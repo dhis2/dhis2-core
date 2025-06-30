@@ -628,11 +628,11 @@ final class GistBuilder {
   }
 
   private String createIsNotEmptyTransformerHQL(Field field) {
-    return "e.%s is not empty".formatted(getMemberPath(field.getPropertyPath()));
+    return String.format("e.%s is not empty", getMemberPath(field.getPropertyPath()));
   }
 
   private String createIsEmptyTransformerHQL(Field field) {
-    return "e.%s is empty".formatted(getMemberPath(field.getPropertyPath()));
+    return String.format("e.%s is empty", getMemberPath(field.getPropertyPath()));
   }
 
   private String createIdsTransformerHQL(int index, Field field, Property property) {
