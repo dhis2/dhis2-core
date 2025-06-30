@@ -261,11 +261,19 @@ public class FilterJdbcPredicate {
       case NE, NEQ ->
           String.format(
               "not exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
-      case LIKE, SW, EW, ILIKE ->
+      case LIKE, ILIKE ->
           String.format("exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
       case NLIKE, NILIKE ->
           String.format(
               "not exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
+      case SW ->
+          String.format(
+              "exists (select 1 from %s where %s like CONCAT(:%s, '%%'))",
+              unnestSql, trimmed, param);
+      case EW ->
+          String.format(
+              "exists (select 1 from %s where %s like CONCAT('%%', :%s))",
+              unnestSql, trimmed, param);
       case NULL ->
           String.format(
               "not exists (select 1 from %s where %s is not null and %s <> '')",
@@ -275,8 +283,8 @@ public class FilterJdbcPredicate {
               "exists (select 1 from %s where %s is not null and %s <> '')",
               unnestSql, trimmed, trimmed);
       default ->
-          throw new UnsupportedOperationException(
-              "Operator not supported for multi-text: " + operator);
+          throw new IllegalArgumentException(
+              String.format("Operator `%s` is not supported for multi-text", operator));
     };
   }
 

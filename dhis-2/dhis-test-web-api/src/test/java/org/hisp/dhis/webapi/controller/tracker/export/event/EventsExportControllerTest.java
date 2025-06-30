@@ -97,13 +97,15 @@ import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value";
-  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE = "red,blue";
+  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE = "red,blue,green";
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -137,6 +139,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private DataElement de;
 
   private DataElement deMultiText;
+
+  private Event event;
 
   @BeforeEach
   void setUp() {
@@ -195,6 +199,11 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     dvMultiText.setDataElement(deMultiText.getUid());
     dvMultiText.setStoredBy("user");
     dvMultiText.setValue(MULTI_TEXT_DATA_ELEMENT_VALUE);
+
+    event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dvMultiText);
+    event.setProgramStage(programStage);
+    manager.update(event);
   }
 
   @Test
@@ -287,18 +296,16 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(dataValue, "storedBy");
   }
 
-  @Test
-  void getEventsWithMultiTextDataValueUsingINOperator() {
-    Event event = event(enrollment(trackedEntity()));
-    event.getEventDataValues().add(dvMultiText);
-    event.setProgramStage(programStage);
-    manager.update(event);
+  @ParameterizedTest
+  @ValueSource(strings = {"in:red", "SW:bl", "like:green"})
+  void getEventsWithMultiTextDataValueUsingINOperator(String operator) {
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
         GET(
-                "/tracker/events?filter={de}:in:red&program={program}&programStage={programStage}&fields=dataValues",
+                "/tracker/events?filter={de}:{op}&program={program}&programStage={programStage}&fields=dataValues",
                 deMultiText.getUid(),
+                operator,
                 program.getUid(),
                 programStage.getUid(),
                 event.getOrganisationUnit().getUid())
@@ -313,11 +320,42 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void getEventsWithMultiTextDataValueUsingEWOperator() {
+    switchContextToUser(user);
+
+    JsonList<JsonEvent> list =
+        GET(
+                "/tracker/events?filter={de}:EW:bl&program={program}&programStage={programStage}&fields=dataValues",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid(),
+                event.getOrganisationUnit().getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    assertIsEmpty(list.stream().toList());
+  }
+
+  @Test
+  void getEventsWithMultiTextDataValueUsingGTOperator() {
+    switchContextToUser(user);
+
+    assertEquals(
+        String.format(
+            "Invalid filter: Operator 'GT' is not supported for multi-text data element '%s'.",
+            deMultiText.getUid()),
+        GET(
+                "/tracker/events?filter={de}:GT:bl&program={program}&programStage={programStage}&fields=dataValues",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid(),
+                event.getOrganisationUnit().getUid())
+            .error(BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
   void getEventsWithMultiTextDataValueUsingNNULLOperator() {
-    Event event = event(enrollment(trackedEntity()));
-    event.getEventDataValues().add(dvMultiText);
-    event.setProgramStage(programStage);
-    manager.update(event);
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
