@@ -255,7 +255,7 @@ public class GridUtils {
   }
 
   /**
-   * Generates an Excel file that contains a descriptive error message.
+   * Adds the descriptive error message into the given {@link OutputStream}.
    *
    * @param error the {@link ErrorCode}.
    * @param out the current {@link OutputStream}.
