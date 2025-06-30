@@ -30,6 +30,8 @@
 package org.hisp.dhis.tracker.imports;
 
 import java.util.List;
+import java.util.Objects;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -64,14 +66,30 @@ public class ParamsConverter {
         .validationMode(params.getValidationMode())
         .trackedEntities(trackerObjects.getTrackedEntities())
         .enrollments(trackerObjects.getEnrollments())
-        .trackerEvents(buildTrackerEvents(trackerObjects.getEvents(), preheat))
-        .singleEvents(buildSingleEvents(trackerObjects.getEvents(), preheat))
+        .trackerEvents(
+            buildTrackerEvents(trackerObjects.getEvents(), preheat, params.getImportStrategy()))
+        .singleEvents(
+            buildSingleEvents(trackerObjects.getEvents(), preheat, params.getImportStrategy()))
         .relationships(trackerObjects.getRelationships())
         .user(user)
         .build();
   }
 
-  private static List<TrackerEvent> buildTrackerEvents(List<Event> events, TrackerPreheat preheat) {
+  private static List<TrackerEvent> buildTrackerEvents(
+      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+    if (importStrategy == TrackerImportStrategy.DELETE) {
+      return events.stream()
+          .filter(
+              e ->
+                  preheat.getEvent(e.getUid()) == null
+                      || preheat
+                          .getEvent(e.getUid())
+                          .getProgramStage()
+                          .getProgram()
+                          .isRegistration())
+          .map(e -> TrackerEvent.builder().event(e.getUid()).build())
+          .toList();
+    }
     return events.stream()
         .filter(
             e -> {
@@ -85,7 +103,16 @@ public class ParamsConverter {
         .toList();
   }
 
-  private static List<SingleEvent> buildSingleEvents(List<Event> events, TrackerPreheat preheat) {
+  private static List<SingleEvent> buildSingleEvents(
+      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+    if (importStrategy == TrackerImportStrategy.DELETE) {
+      return events.stream()
+          .map(e -> preheat.getEvent(e.getUid()))
+          .filter(Objects::nonNull)
+          .filter(e -> e.getProgramStage().getProgram().isWithoutRegistration())
+          .map(e -> SingleEvent.builder().event(UID.of(e)).build())
+          .toList();
+    }
     return events.stream()
         .filter(
             e -> {
