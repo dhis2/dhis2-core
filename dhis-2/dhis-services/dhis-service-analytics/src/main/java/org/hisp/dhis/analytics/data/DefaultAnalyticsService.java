@@ -43,7 +43,6 @@ import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -297,61 +296,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     if (combinationGenerator.countCombinations() > combinationLimit) {
       throwIllegalQueryEx(E7151);
-    }
-  }
-
-  /**
-   * Combines a List of elements, and creates permutations of with all possible combinations of
-   * objects living in the parent List. It keeps the same order of objects from the original Lists.
-   *
-   * <p>ie:
-   *
-   * <p>Original list = { {a,b}, {1,2,3} }
-   *
-   * <p>Permuted list = { {a,1}, {a,2}, {a,3}, {b,1}, {b,2}, {b,3} }
-   *
-   * @return a List with lists of all permutations of the original List.
-   */
-  public <T> List<List<T>> combinations(List<List<T>> items) {
-    if (items == null || items.isEmpty()) {
-      return List.of();
-    } else {
-      final int beginning = 0;
-
-      List<List<T>> permutations = new LinkedList<>();
-      permutations(items, permutations, beginning, new LinkedList<>());
-
-      return permutations;
-    }
-  }
-
-  /**
-   * Adds the permutations from the original List, respecting the original depth and the current
-   * List.
-   *
-   * @param original the List containing all Lists to be permuted.
-   * @param permutations the List where all permutations will be kept.
-   * @param index the index of List to use during the permutation.
-   * @param current the current List to be added to the permutation List.
-   */
-  private <T> void permutations(
-      List<List<T>> original, List<List<T>> permutations, int index, List<T> current) {
-    // When depth is equals to the size of the original List, we reached the end. So, add and
-    // return.
-    if (index == original.size()) {
-      permutations.add(current);
-      return;
-    }
-
-    // Iterate through the current List and copy each element "N" times, one for each element.
-    List<T> currentList = original.get(index);
-
-    for (T item : currentList) {
-      List<T> newCurrent = new LinkedList<>(current);
-      newCurrent.add(item);
-
-      // Go to the next element of the original List.
-      permutations(original, permutations, index + 1, newCurrent);
     }
   }
 
