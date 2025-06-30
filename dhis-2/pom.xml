@@ -218,6 +218,7 @@
     <!-- Test -->
     <junit.version>5.12.2</junit.version>
     <mockito.version>5.2.0</mockito.version>
+    <mockserver-client-java.version>5.15.0</mockserver-client-java.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
@@ -1670,6 +1671,12 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-junit-jupiter</artifactId>
         <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mock-server</groupId>
+        <artifactId>mockserver-client-java</artifactId>
+        <version>${mockserver-client-java.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
