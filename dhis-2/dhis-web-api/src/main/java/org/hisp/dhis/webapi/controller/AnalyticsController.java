@@ -32,11 +32,16 @@ package org.hisp.dhis.webapi.controller;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
+import static org.hisp.dhis.system.grid.GridUtils.error;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_CONTENT_DISPOSITION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -48,6 +53,7 @@ import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
@@ -118,9 +124,12 @@ public class AnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
-    GridUtils.toXml(
-        getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_XML, response),
-        response.getOutputStream());
+    try {
+      GridUtils.toXml(
+          getGrid(criteria, ContextUtils.CONTENT_TYPE_XML, response), response.getOutputStream());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html")
@@ -129,9 +138,11 @@ public class AnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
-    GridUtils.toHtml(
-        getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_HTML, response),
-        response.getWriter());
+    try {
+      GridUtils.toHtml(getGrid(criteria, CONTENT_TYPE_HTML, response), response.getWriter());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html+css")
@@ -140,9 +151,11 @@ public class AnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
-    GridUtils.toHtmlCss(
-        getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_HTML, response),
-        response.getWriter());
+    try {
+      GridUtils.toHtmlCss(getGrid(criteria, CONTENT_TYPE_HTML, response), response.getWriter());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
   }
 
   @GetMapping(value = RESOURCE_PATH + ".csv")
@@ -151,10 +164,13 @@ public class AnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
-    GridUtils.toCsv(
-        getGridWithAttachment(
-            criteria, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response),
-        response.getWriter());
+    try {
+      GridUtils.toCsv(
+          getGridWithAttachment(criteria, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response),
+          response.getWriter());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xls")
@@ -163,10 +179,20 @@ public class AnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
-    GridUtils.toXls(
-        getGridWithAttachment(
-            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response),
-        response.getOutputStream());
+    try {
+      GridUtils.toXls(
+          getGridWithAttachment(criteria, CONTENT_TYPE_EXCEL, "data.xls", response),
+          response.getOutputStream());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
+  }
+
+  private static void sendErrorResponse(HttpServletResponse response, IllegalQueryException e)
+      throws IOException {
+    response.setHeader(
+        HEADER_CONTENT_DISPOSITION, "inline" + "; filename=\"" + "error.html" + "\"");
+    error(e.getErrorCode(), response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xlsx")
@@ -175,10 +201,13 @@ public class AnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
-    GridUtils.toXlsx(
-        getGridWithAttachment(
-            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xlsx", response),
-        response.getOutputStream());
+    try {
+      GridUtils.toXlsx(
+          getGridWithAttachment(criteria, CONTENT_TYPE_EXCEL, "data.xlsx", response),
+          response.getOutputStream());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
   }
 
   @GetMapping(value = RESOURCE_PATH + ".jrxml")
@@ -196,16 +225,20 @@ public class AnalyticsController {
 
     DataQueryParams params = dataQueryService.getFromRequest(request);
 
-    contextUtils.configureAnalyticsResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_XML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "data.jrxml",
-        false,
-        params.getLatestEndDate());
-    Grid grid = analyticsService.getAggregatedDataValues(params);
+    try {
+      contextUtils.configureAnalyticsResponse(
+          response,
+          ContextUtils.CONTENT_TYPE_XML,
+          CacheStrategy.RESPECT_SYSTEM_SETTING,
+          "data.jrxml",
+          false,
+          params.getLatestEndDate());
+      Grid grid = analyticsService.getAggregatedDataValues(params);
 
-    GridUtils.toJrxml(grid, null, response.getWriter());
+      GridUtils.toJrxml(grid, null, response.getWriter());
+    } catch (IllegalQueryException e) {
+      sendErrorResponse(response, e);
+    }
   }
 
   @GetMapping(
