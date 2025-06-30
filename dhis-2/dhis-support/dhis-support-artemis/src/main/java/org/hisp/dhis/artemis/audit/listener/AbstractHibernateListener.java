@@ -249,13 +249,12 @@ public abstract class AbstractHibernateListener {
   private void putValueToMap(Property property, Map<String, Object> objectMap, Object value) {
     if (value == null) return;
 
-    if (property.isCollection()) {
-      Collection collection = (Collection) value;
+    if (property.isCollection() && value instanceof Collection collectionValue) {
 
-      if (collection.isEmpty()) return;
+      if (collectionValue.isEmpty()) return;
 
       if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
-        List<String> uids = IdentifiableObjectUtils.getUids(collection);
+        List<String> uids = IdentifiableObjectUtils.getUids(collectionValue);
 
         if (uids != null && !uids.isEmpty()) {
           objectMap.put(property.getFieldName(), uids);
