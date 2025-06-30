@@ -428,13 +428,13 @@ lower("%s".value) like :"""
   void shouldFailForFiltersNotSupportedByMultiSelection() {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.LE, "blue;green;red");
 
-    UnsupportedOperationException exception =
+    IllegalArgumentException exception =
         assertThrows(
-            UnsupportedOperationException.class,
+            IllegalArgumentException.class,
             () -> FilterJdbcPredicate.of(deMultiText, queryFilter, "ev"));
 
-    assertContains(
-        "Operator not supported for multi-text: " + queryFilter.getOperator(),
+    assertEquals(
+        String.format("Operator `%s` is not supported for multi-text", queryFilter.getOperator()),
         exception.getMessage());
   }
 
