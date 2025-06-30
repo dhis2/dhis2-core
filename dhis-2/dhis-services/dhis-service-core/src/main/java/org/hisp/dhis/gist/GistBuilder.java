@@ -593,11 +593,11 @@ final class GistBuilder {
       case NONE:
         return HQL_NULL;
       case SIZE:
-        return createSizeTransformerHQL(index, field, property, "");
+        return createSizeTransformerHQL(index, field, property);
       case IS_EMPTY:
-        return createSizeTransformerHQL(index, field, property, "=0");
+        return createIsEmptyTransformerHQL(field);
       case IS_NOT_EMPTY:
-        return createSizeTransformerHQL(index, field, property, ">0");
+        return createIsNotEmptyTransformerHQL(field);
       case NOT_MEMBER:
         return createHasMemberTransformerHQL(index, field, property, "=0");
       case MEMBER:
@@ -612,20 +612,27 @@ final class GistBuilder {
     }
   }
 
-  private String createSizeTransformerHQL(
-      int index, Field field, Property property, String compare) {
+  private String createSizeTransformerHQL(int index, Field field, Property property) {
     String tableName = "t_" + index;
     RelativePropertyContext fieldContext = context.switchedTo(property.getItemKlass());
     String memberPath = getMemberPath(field.getPropertyPath());
 
     if (!isFilterBySharing(fieldContext)) {
       // generates better SQL in case no access control is needed
-      return String.format("size(e.%s) %s", memberPath, compare);
+      return String.format("size(e.%s) %s", memberPath, "");
     }
     String accessFilter = createAccessFilterHQL(fieldContext, tableName);
     return String.format(
         "(select count(*) %5$s from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
-        tableName, property.getItemKlass().getSimpleName(), memberPath, accessFilter, compare);
+        tableName, property.getItemKlass().getSimpleName(), memberPath, accessFilter, "");
+  }
+
+  private String createIsNotEmptyTransformerHQL(Field field) {
+    return "e.%s is not empty".formatted(getMemberPath(field.getPropertyPath()));
+  }
+
+  private String createIsEmptyTransformerHQL(Field field) {
+    return "e.%s is empty".formatted(getMemberPath(field.getPropertyPath()));
   }
 
   private String createIdsTransformerHQL(int index, Field field, Property property) {
@@ -648,7 +655,7 @@ final class GistBuilder {
     String propertyName = determineReferenceProperty(field, itemContext, true);
     if (propertyName == null || property.getItemKlass() == Period.class) {
       // give up
-      return createSizeTransformerHQL(index, field, property, "");
+      return createSizeTransformerHQL(index, field, property);
     }
     String tableName = "t_" + index;
     String accessFilter = createAccessFilterHQL(itemContext, tableName);

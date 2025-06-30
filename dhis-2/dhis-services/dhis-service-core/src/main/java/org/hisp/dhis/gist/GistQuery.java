@@ -97,6 +97,8 @@ public final class GistQuery {
 
   private final Class<? extends PrimaryKeyObject> elementType;
 
+  private final boolean paging;
+
   @JsonProperty private final int pageOffset;
 
   @JsonProperty private final int pageSize;
@@ -174,7 +176,12 @@ public final class GistQuery {
   public GistQuery with(GistParams params) {
     int page = abs(params.getPage());
     int size = Math.min(1000, abs(params.getPageSize()));
+    boolean offline = params.isOrgUnitsOffline();
+    String order = params.getOrder();
+    if (offline && (order == null || order.isEmpty())) order = "level,name";
+    String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
     return toBuilder()
+        .paging(!offline)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
         .translate(params.isTranslate())
@@ -183,17 +190,14 @@ public final class GistQuery {
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
         .describe(params.isDescribe())
-        .references(params.isReferences())
+        .references(!offline && params.isReferences())
         .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(
-            getStrings(params.getFields(), FIELD_SPLIT).stream()
-                .map(Field::parse)
-                .collect(toList()))
+        .fields(getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList())
         .filters(
             getStrings(params.getFilter(), FIELD_SPLIT).stream()
                 .map(Filter::parse)
                 .collect(toList()))
-        .orders(getStrings(params.getOrder(), ",").stream().map(Order::parse).collect(toList()))
+        .orders(getStrings(order, ",").stream().map(Order::parse).toList())
         .build();
   }
 

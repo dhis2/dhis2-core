@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Arrays.asList;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -258,10 +257,12 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       String property =
           params.getPageListName() == null ? schema.getPlural() : params.getPageListName();
       body =
-          responseBuilder.toObject(
-              asList("pager", property),
-              gistService.pager(query, elements, request.getParameterMap()),
-              body);
+          query.isPaging()
+              ? responseBuilder.toObject(
+                  List.of("pager", property),
+                  gistService.pager(query, elements, request.getParameterMap()),
+                  body)
+              : responseBuilder.toObject(List.of(property), body);
     }
     return ResponseEntity.ok().cacheControl(noCache().cachePrivate()).body(body);
   }
