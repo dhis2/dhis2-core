@@ -63,6 +63,7 @@ import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.feedback.ErrorCode.E7128;
 
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.analytics.OrgUnitFieldType;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -181,12 +183,27 @@ public class EventAggregateService {
    * @return aggregated event data as a {@link Grid} object.
    */
   public Grid getAggregatedData(EventQueryParams params) {
+
     securityManager.decideAccessEventQuery(params);
     params = securityManager.withUserConstraints(params);
 
     queryValidator.validate(params);
 
-    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
+    // retain original period dimensions
+    List<DimensionalObject> periods = getPeriods(params);
+
+    if (!queryRequiresOwnership(params) && periods.isEmpty()) {
+      params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
+    }
+
+    if ((!params.isSkipData() || params.analyzeOnly())
+        && !periods.isEmpty()
+        && !queryRequiresOwnership(params)) {
+      params =
+          new EventQueryParams.Builder(params)
+              .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+              .build();
+    }
 
     if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
       EventQueryParams immutableParams = new EventQueryParams.Builder(params).build();
@@ -581,5 +598,20 @@ public class EventAggregateService {
               grid.addValue(
                   displayObjects.get(dimension).getDisplayProperty(params.getDisplayProperty())));
     }
+  }
+
+  private List<DimensionalObject> getPeriods(EventQueryParams params) {
+    return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
+  }
+
+  /**
+   * Checks if the query requires ownership. This is determined by checking if the {@link
+   * OrgUnitFieldType} of the organization unit field is an ownership type.
+   *
+   * @param params the {@link EventQueryParams} to check.
+   * @return true if the query requires ownership, false otherwise.
+   */
+  private boolean queryRequiresOwnership(EventQueryParams params) {
+    return params.getOrgUnitField().getType().isOwnership();
   }
 }
