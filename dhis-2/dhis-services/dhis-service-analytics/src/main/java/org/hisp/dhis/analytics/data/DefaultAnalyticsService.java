@@ -34,20 +34,20 @@ import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
 import static org.hisp.dhis.feedback.ErrorCode.E7147;
+import static org.hisp.dhis.feedback.ErrorCode.E7151;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -63,6 +63,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,8 @@ public class DefaultAnalyticsService implements AnalyticsService {
   private final AnalyticsCache analyticsCache;
 
   private final DataAggregator dataAggregator;
+
+  private final SystemSettingsProvider settingsProvider;
 
   // -------------------------------------------------------------------------
   // AnalyticsService implementation
@@ -231,8 +234,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
     List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
-    Map<String, List<DimensionalItemObject>> columnsDimensionItemsByDimension = new HashMap<>();
-    Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension = new HashMap<>();
 
     if (columns != null) {
       for (String dimension : columns) {
@@ -240,10 +241,7 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getColumnDimensions().add(dimension);
-        List<DimensionalItemObject> dimensionItemsExplodeCoc =
-            params.getDimensionItemsExplodeCoc(dimension);
-        columnsDimensionItemsByDimension.put(dimension, dimensionItemsExplodeCoc);
-        tableColumns.add(dimensionItemsExplodeCoc);
+        tableColumns.add(params.getDimensionItemsExplodeCoc(dimension));
       }
     }
 
@@ -253,30 +251,22 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getRowDimensions().add(dimension);
-
-        List<DimensionalItemObject> dimensionItemsExplodeCoc =
-            params.getDimensionItemsExplodeCoc(dimension);
-        rowsDimensionItemsByDimension.put(dimension, dimensionItemsExplodeCoc);
-        tableRows.add(dimensionItemsExplodeCoc);
+        tableRows.add(params.getDimensionItemsExplodeCoc(dimension));
       }
     }
 
-    List<List<DimensionalItemObject>> gridColumns =
-        Optional.ofNullable(columns)
-            .map(cols -> getGridItems(grid, columnsDimensionItemsByDimension, cols))
-            .filter(CollectionUtils::isNotEmpty)
-            .orElseGet(() -> CombinationGenerator.newInstance(tableColumns).getCombinations());
+    CombinationGenerator<DimensionalItemObject> columnsCombination =
+        CombinationGenerator.newInstance(tableColumns);
+    checkCombinationLimit(columnsCombination);
 
-    List<List<DimensionalItemObject>> gridRows =
-        Optional.ofNullable(rows)
-            .map(rws -> getGridItems(grid, rowsDimensionItemsByDimension, rws))
-            .filter(CollectionUtils::isNotEmpty)
-            .orElseGet(() -> CombinationGenerator.newInstance(tableRows).getCombinations());
+    CombinationGenerator<DimensionalItemObject> rowsCombination =
+        CombinationGenerator.newInstance(tableRows);
+    checkCombinationLimit(rowsCombination);
 
     visualization
         .setGridTitle(IdentifiableObjectUtils.join(params.getFilterItems()))
-        .setGridColumns(gridColumns)
-        .setGridRows(gridRows);
+        .setGridColumns(columnsCombination.getCombinations())
+        .setGridRows(rowsCombination.getCombinations());
 
     addListIfEmpty(visualization.getGridColumns());
     addListIfEmpty(visualization.getGridRows());
@@ -292,6 +282,77 @@ public class DefaultAnalyticsService implements AnalyticsService {
         valueMap,
         params.getDisplayProperty(),
         false);
+  }
+
+  /**
+   * Simply checks the limit of combination allowed for the given combination object.
+   *
+   * @param combinationGenerator the combination object.
+   * @throws IllegalQueryException if the limit allowance is not respected.
+   */
+  private void checkCombinationLimit(
+      CombinationGenerator<DimensionalItemObject> combinationGenerator) {
+    final int combinationLimit =
+        settingsProvider.getCurrentSettings().getAnalyticsDownloadCombinationLimit();
+
+    if (combinationGenerator.countCombinations() > combinationLimit) {
+      throwIllegalQueryEx(E7151);
+    }
+  }
+
+  /**
+   * Combines a List of elements, and creates permutations of with all possible combinations of
+   * objects living in the parent List. It keeps the same order of objects from the original Lists.
+   *
+   * <p>ie:
+   *
+   * <p>Original list = { {a,b}, {1,2,3} }
+   *
+   * <p>Permuted list = { {a,1}, {a,2}, {a,3}, {b,1}, {b,2}, {b,3} }
+   *
+   * @return a List with lists of all permutations of the original List.
+   */
+  public <T> List<List<T>> combinations(List<List<T>> items) {
+    if (items == null || items.isEmpty()) {
+      return List.of();
+    } else {
+      final int beginning = 0;
+
+      List<List<T>> permutations = new LinkedList<>();
+      permutations(items, permutations, beginning, new LinkedList<>());
+
+      return permutations;
+    }
+  }
+
+  /**
+   * Adds the permutations from the original List, respecting the original depth and the current
+   * List.
+   *
+   * @param original the List containing all Lists to be permuted.
+   * @param permutations the List where all permutations will be kept.
+   * @param index the index of List to use during the permutation.
+   * @param current the current List to be added to the permutation List.
+   */
+  private <T> void permutations(
+      List<List<T>> original, List<List<T>> permutations, int index, List<T> current) {
+    // When depth is equals to the size of the original List, we reached the end. So, add and
+    // return.
+    if (index == original.size()) {
+      permutations.add(current);
+      return;
+    }
+
+    // Iterate through the current List and copy each element "N" times, one for each element.
+    List<T> currentList = original.get(index);
+
+    for (T item : currentList) {
+      List<T> newCurrent = new LinkedList<>(current);
+      newCurrent.add(item);
+
+      // Go to the next element of the original List.
+      permutations(original, permutations, index + 1, newCurrent);
+    }
   }
 
   /**
