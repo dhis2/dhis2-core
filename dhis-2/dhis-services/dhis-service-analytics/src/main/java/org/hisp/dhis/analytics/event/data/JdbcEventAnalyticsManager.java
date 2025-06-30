@@ -42,7 +42,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -78,6 +78,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInit
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -139,7 +140,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
-      OrganisationUnitResolver organisationUnitResolver) {
+      OrganisationUnitResolver organisationUnitResolver,
+      ColumnMapper columnMapper) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -150,7 +152,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver);
+        organisationUnitResolver,
+        columnMapper);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -158,7 +161,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
     String sql =
         useExperimentalAnalyticsQueryEngine()
-            ? buildEnrollmentQueryWithCte(params)
+            ? buildAnalyticsQuery(params)
             : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
@@ -408,7 +411,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    * @param params the {@link EventQueryParams}.
    * @return a list of names of standard columns.
    */
-  private List<String> getStandardColumns(EventQueryParams params) {
+  @Override
+  List<String> getStandardColumns(EventQueryParams params) {
     ListBuilder<String> columns = new ListBuilder<>();
 
     columns.add(

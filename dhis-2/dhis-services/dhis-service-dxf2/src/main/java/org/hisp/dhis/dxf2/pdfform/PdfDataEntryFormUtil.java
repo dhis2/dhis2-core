@@ -179,7 +179,7 @@ public class PdfDataEntryFormUtil {
 
     List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValueList = new ArrayList<>();
 
-    try {
+    try (in) {
       reader = new PdfReader(in);
 
       AcroFields form = reader.getAcroFields();
@@ -207,7 +207,7 @@ public class PdfDataEntryFormUtil {
         // Loop Through the Fields and get data.
 
         @SuppressWarnings("unchecked")
-        Set<String> fldNames = form.getFields().keySet();
+        Set<String> fldNames = form.getAllFields().keySet();
 
         for (String fldName : fldNames) {
 

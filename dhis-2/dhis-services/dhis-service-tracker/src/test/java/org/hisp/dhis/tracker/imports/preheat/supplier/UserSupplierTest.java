@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -127,7 +128,7 @@ class UserSupplierTest extends TestBase {
   }
 
   private Event event(User user) {
-    return Event.builder().event(UID.generate()).assignedUser(user).build();
+    return TrackerEvent.builder().event(UID.generate()).assignedUser(user).build();
   }
 
   private User user() {

@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -57,11 +56,12 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,6 +82,10 @@ class DefaultEnrollmentService implements EnrollmentService {
   private final TrackerAccessManager trackerAccessManager;
 
   private final EnrollmentOperationParamsMapper paramsMapper;
+
+  private final TrackedEntityAuditService trackedEntityAuditService;
+
+  private final TrackerProgramService trackerProgramService;
 
   @Nonnull
   @Override
@@ -141,11 +145,15 @@ class DefaultEnrollmentService implements EnrollmentService {
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
-    return findEnrollments(
-        new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        params.getFields(),
-        params.isIncludeDeleted(),
-        queryParams.getOrganisationUnitMode());
+    List<Enrollment> enrollments =
+        mapEnrollment(
+            new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
+            params.getFields(),
+            params.isIncludeDeleted());
+
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+
+    return enrollments;
   }
 
   @Nonnull
@@ -157,12 +165,18 @@ class DefaultEnrollmentService implements EnrollmentService {
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
-        findEnrollments(
-            enrollmentsPage.getItems(),
-            params.getFields(),
-            params.isIncludeDeleted(),
-            queryParams.getOrganisationUnitMode());
+        mapEnrollment(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
+
+    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+
     return enrollmentsPage.withFilteredItems(enrollments);
+  }
+
+  private void addTrackedEntityAudit(UID trackedEntity, List<Enrollment> enrollments) {
+    if (trackedEntity != null && !enrollments.isEmpty()) {
+      trackedEntityAuditService.addTrackedEntityAudit(
+          READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
+    }
   }
 
   private Set<Event> getEvents(
@@ -195,6 +209,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     if (enrollment.getTrackedEntity() != null) {
       TrackedEntity trackedEntity = new TrackedEntity();
       trackedEntity.setUid(enrollment.getTrackedEntity().getUid());
+      trackedEntity.setTrackedEntityType(enrollment.getTrackedEntity().getTrackedEntityType());
       result.setTrackedEntity(trackedEntity);
     }
     OrganisationUnit organisationUnit = new OrganisationUnit();
@@ -256,25 +271,9 @@ class DefaultEnrollmentService implements EnrollmentService {
     return attributeValues;
   }
 
-  private List<Enrollment> findEnrollments(
-      Iterable<Enrollment> enrollments,
-      EnrollmentFields fields,
-      boolean includeDeleted,
-      OrganisationUnitSelectionMode orgUnitMode) {
-    List<Enrollment> enrollmentList = new ArrayList<>();
-    UserDetails currentUser = getCurrentUserDetails();
-
-    for (Enrollment enrollment : enrollments) {
-      if (enrollment != null
-          && (orgUnitMode == ALL
-              || trackerOwnershipManager.hasAccess(
-                  currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
-          && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
-        enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
-      }
-    }
-
-    return enrollmentList;
+  private List<Enrollment> mapEnrollment(
+      List<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
+    return enrollments.stream().map(e -> getEnrollment(e, fields, includeDeleted)).toList();
   }
 
   @Override

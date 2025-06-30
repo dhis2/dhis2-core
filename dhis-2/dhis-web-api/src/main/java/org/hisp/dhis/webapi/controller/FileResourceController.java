@@ -58,6 +58,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -138,9 +139,7 @@ public class FileResourceController
 
     if (!checkSharing(fileResource, currentUser)) {
       throw new ForbiddenException(
-          "You don't have access to fileResource '"
-              + uid
-              + "' or this fileResource is not available from this endpoint");
+          String.format("File resource not found or not accessible: %s}'", uid));
     }
 
     response.setContentType(fileResource.getContentType());
@@ -155,13 +154,10 @@ public class FileResourceController
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
-    } catch (IOException e) {
-      log.error("Could not retrieve file.", e);
+    } catch (IOException ex) {
+      log.error(String.format("Could not retrieve file for file resource: '%s'", uid), ex);
       throw new WebMessageException(
-          error(
-              "Failed fetching the file from storage",
-              "There was an exception when trying to fetch the file from the storage backend. "
-                  + "Depending on the provider the root cause could be network or file system related."));
+          error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
     }
   }
 

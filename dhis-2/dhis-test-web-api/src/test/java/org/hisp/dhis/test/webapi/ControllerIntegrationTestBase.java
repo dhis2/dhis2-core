@@ -32,6 +32,7 @@ package org.hisp.dhis.test.webapi;
 import static java.lang.String.format;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpAssertions.exceptionAsFail;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 import java.io.UnsupportedEncodingException;
@@ -45,8 +46,10 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.filter.ApiVersionFilter;
 import org.junit.jupiter.api.BeforeEach;
@@ -260,6 +263,11 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     public String getHeader(String name) {
       return response.getHeader(name);
     }
+
+    @Override
+    public String getContentType() {
+      return response.getContentType();
+    }
   }
 
   protected final MvcResult webRequestWithAsyncMvcResult(MockHttpServletRequestBuilder request) {
@@ -295,5 +303,44 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
             valueType,
             categoryCombo,
             optionSet == null ? "null" : "{'id':'" + optionSet + "'}"));
+  }
+
+  protected final List<String> toOrganisationUnitNames(JsonObject response) {
+    return response
+        .getList("organisationUnits", JsonIdentifiableObject.class)
+        .toList(JsonIdentifiableObject::getDisplayName);
+  }
+
+  protected final String addOrganisationUnit(String name) {
+    return assertStatus(
+        CREATED,
+        POST(
+            "/organisationUnits",
+            """
+              {
+                'name':'%s',
+                'shortName':'%s',
+                'openingDate':'2021',
+                'description':'Org desc',
+                'code':'Org code'
+              }
+            """
+                .formatted(name, name)));
+  }
+
+  protected final String addOrganisationUnit(String name, String parentId) {
+    return assertStatus(
+        CREATED,
+        POST(
+            "/organisationUnits",
+            "{'name':'"
+                + name
+                + "', 'shortName':'"
+                + name
+                + "', 'openingDate':'2021', 'parent': "
+                + "{'id':'"
+                + parentId
+                + "'}"
+                + " }"));
   }
 }

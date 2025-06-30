@@ -29,11 +29,9 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -63,8 +61,6 @@ public class BundledAppStorageService implements AppStorageService {
   private final ResourceLoader resourceLoader;
   private final ResourcePatternResolver resourcePatternResolver;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
   private final Map<String, App> apps = new ConcurrentHashMap<>();
 
   @Override
@@ -73,25 +69,19 @@ public class BundledAppStorageService implements AppStorageService {
     try {
       Resource[] resources =
           resourcePatternResolver.getResources(
-              CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/manifest.webapp");
+              CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/" + MANIFEST_FILENAME);
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
         if (app != null) {
-          String path =
-              CLASSPATH_PREFIX
-                  + STATIC_DIR
-                  + BUNDLED_APP_PREFIX
-                  + app.getKey()
-                  + "/manifest.webapp";
-
+          String path = CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + app.getKey();
           String shortName =
-              path.replaceAll("/manifest.webapp$", "")
-                  .replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
+              path.replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
           app.setBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
-          app.setFolderName(path.replaceAll("/manifest.webapp$", ""));
+          app.setFolderName(path);
 
+          setManifestTranslationsIfExists(app);
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
@@ -104,15 +94,40 @@ public class BundledAppStorageService implements AppStorageService {
     return apps;
   }
 
-  private App readAppManifest(Resource resource) {
+  private void setManifestTranslationsIfExists(App app) {
     try {
-      InputStream inputStream = resource.getInputStream();
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-      return objectMapper.readValue(inputStream, App.class);
+      // Read translations for possible manifest translations
+      String resourceName =
+          app.getFolderName() + "/" + AppStorageService.MANIFEST_TRANSLATION_FILENAME;
+      Resource appManifestTranslation = resourceLoader.getResource(resourceName);
+
+      if (appManifestTranslation.exists()) {
+        List<AppManifestTranslation> manifestTranslations =
+            readAppManifestTranslation(appManifestTranslation);
+
+        app.setManifestTranslations(manifestTranslations);
+      }
+    } catch (Exception ex) {
+      log.debug("Error reading manifest translation file for {}", app.getKey());
+    }
+  }
+
+  private App readAppManifest(Resource resource) {
+    try (InputStream inputStream = resource.getInputStream()) {
+      return App.MAPPER.readValue(inputStream, App.class);
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);
+      return null;
     }
-    return null;
+  }
+
+  private List<AppManifestTranslation> readAppManifestTranslation(Resource resource) {
+    try (InputStream inputStream = resource.getInputStream()) {
+      return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+    } catch (IOException e) {
+      log.error(e.getLocalizedMessage(), e);
+      return Collections.emptyList();
+    }
   }
 
   @Override

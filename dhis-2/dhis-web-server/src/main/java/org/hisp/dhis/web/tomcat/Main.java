@@ -293,6 +293,16 @@ public class Main {
     }
 
     @Override
+    public void setAllowLinking(boolean b) {
+      // no
+    }
+
+    @Override
+    public boolean getAllowLinking() {
+      return false;
+    }
+
+    @Override
     protected void initInternal() throws LifecycleException {
       if (this.delegate instanceof LifecycleBase) {
         try {

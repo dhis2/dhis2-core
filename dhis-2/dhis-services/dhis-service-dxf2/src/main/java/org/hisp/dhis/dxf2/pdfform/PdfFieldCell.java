@@ -184,7 +184,7 @@ public class PdfFieldCell implements PdfPCellEvent {
             rf.setBackgroundColor(GrayColor.GRAYWHITE);
             rf.setCheckType(RadioCheckField.TYPE_CIRCLE);
 
-            parent.addKid(rf.getRadioField());
+            parent.addKid(rf.getFullField());
 
             leftLoc = rightLoc;
             rightLoc += width;

@@ -47,4 +47,8 @@ public interface BundlePreProcessor {
   default boolean needsToRun(TrackerImportStrategy strategy) {
     return !strategy.isDelete();
   }
+
+  default int getPriority() {
+    return 0;
+  }
 }

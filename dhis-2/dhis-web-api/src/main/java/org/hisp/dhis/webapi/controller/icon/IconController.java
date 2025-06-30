@@ -61,6 +61,7 @@ import org.hisp.dhis.icon.IconQueryParams;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.icon.UpdateIconRequest;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -144,7 +145,9 @@ public class IconController {
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
       throws IOException, NotFoundException {
-    if (!iconService.iconExists(key)) throw new NotFoundException(Icon.class, key);
+    if (!iconService.iconExists(key)) {
+      throw new NotFoundException(Icon.class, key);
+    }
 
     String location = response.encodeRedirectURL("/api/icons/" + key + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
@@ -199,10 +202,8 @@ public class IconController {
       fileResourceService.copyFileResourceContent(image, response.getOutputStream());
     } catch (IOException e) {
       log.error("Could not retrieve file.", e);
-      throw new ConflictException("Failed fetching the file from storage")
-          .setDevMessage(
-              "There was an exception when trying to fetch the file from the storage backend. "
-                  + "Depending on the provider the root cause could be network or file system related.");
+      throw new ConflictException(FileResourceStream.EXCEPTION_IO)
+          .setDevMessage(FileResourceStream.EXCEPTION_IO_DEV);
     }
   }
 

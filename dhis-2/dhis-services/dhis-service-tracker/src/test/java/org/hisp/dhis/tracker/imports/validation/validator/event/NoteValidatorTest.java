@@ -39,11 +39,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.test.random.BeanRandomizer;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Note;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,8 +63,6 @@ class NoteValidatorTest {
 
   private Event event;
 
-  private final BeanRandomizer rnd = BeanRandomizer.create();
-
   private TrackerBundle bundle;
 
   private TrackerPreheat preheat;
@@ -71,9 +70,9 @@ class NoteValidatorTest {
   private Reporter reporter;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     this.validator = new NoteValidator();
-    event = rnd.nextObject(Event.class);
+    event = TrackerEvent.builder().event(UID.generate()).build();
 
     bundle = mock(TrackerBundle.class);
     preheat = mock(TrackerPreheat.class);
@@ -86,7 +85,7 @@ class NoteValidatorTest {
   @Test
   void testNoteWithExistingUidWarnings() {
     // Given
-    final Note note = rnd.nextObject(Note.class);
+    final Note note = note();
     when(preheat.hasNote(note.getNote())).thenReturn(true);
 
     event.setNotes(Collections.singletonList(note));
@@ -102,7 +101,7 @@ class NoteValidatorTest {
   @Test
   void testNoteWithExistingUidAndNoTextIsIgnored() {
     // Given
-    final Note note = rnd.nextObject(Note.class);
+    final Note note = note();
     note.setValue(null);
 
     event.setNotes(Collections.singletonList(note));
@@ -118,7 +117,9 @@ class NoteValidatorTest {
   @Test
   void testNotesAreValidWhenUidDoesNotExist() {
     // Given
-    final List<Note> notes = rnd.objects(Note.class, 5).toList();
+    Note note = note();
+    Note note2 = note();
+    final List<Note> notes = List.of(note, note2);
 
     event.setNotes(notes);
 
@@ -127,6 +128,10 @@ class NoteValidatorTest {
 
     // Then
     assertIsEmpty(reporter.getErrors());
-    assertThat(event.getNotes(), hasSize(5));
+    assertThat(event.getNotes(), hasSize(2));
+  }
+
+  private Note note() {
+    return Note.builder().note(UID.generate()).value(UID.generate().getValue()).build();
   }
 }

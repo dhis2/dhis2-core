@@ -779,7 +779,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder
         .append(
-            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+            "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
         .append(
             "inner join organisationunit evou on (coalesce(po.organisationunitid,"
                 + " ev.organisationunitid)=evou.organisationunitid) ")
@@ -992,7 +992,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp.whereAnd());
     }
 
-    buildOwnershipClause(orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te");
+    buildOwnershipClause(
+        orgUnitBuilder,
+        sqlParameters,
+        params.getOrgUnitMode(),
+        "p",
+        "ou",
+        "te",
+        () -> hlp.whereAnd());
 
     return orgUnitBuilder.toString();
   }
