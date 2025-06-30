@@ -54,7 +54,6 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
@@ -64,7 +63,6 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,13 +100,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
     dataElementA = createDataElement('A', new CategoryCombo());
     DataElement dataElementB = createDataElement('B', new CategoryCombo());
 
-    TrackedEntityAttribute attributeA = createTrackedEntityAttribute('A', ValueType.TEXT);
-
     programIndicator = createProgramIndicator('I', program, "expression", "filter");
     programIndicator.setAggregationType(AggregationType.COUNT);
 
     orgUnitA = createOrganisationUnit('A');
-    OrganisationUnit orgUnitB = createOrganisationUnit('B');
 
     periodA = new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate());
     periodB = new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate());
