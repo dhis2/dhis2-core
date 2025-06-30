@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,7 +52,6 @@ import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +66,9 @@ import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
+import org.hisp.dhis.util.ZipSlipException;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
@@ -210,74 +212,51 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public App installApp(
       File file, String filename, Cache<App> appCache, BundledAppInfo bundledAppInfo) {
-    App app = new App();
     log.debug("Installing new app: {}", filename);
+    String installationFolder =
+        APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
 
-    try (ZipFile zip = new ZipFile(file)) {
-      // -----------------------------------------------------------------
-      // Determine top-level directory name, if the zip file contains one
-      // -----------------------------------------------------------------
-
-      String prefix = ZipFileUtils.getTopLevelDirectory(zip.entries().asIterator());
-      log.debug("Detected top-level directory '{}' in zip", prefix);
-
-      // -----------------------------------------------------------------
-      // Parse manifest.webapp file from ZIP archive.
-      // -----------------------------------------------------------------
-
-      ZipEntry entry = zip.getEntry(prefix + MANIFEST_FILENAME);
-
-      if (entry == null) {
-        log.error("Failed to install app: Missing manifest.webapp in zip");
-
-        app.setAppState(AppStatus.MISSING_MANIFEST);
-        return app;
-      }
-
-      try (InputStream inputStream = zip.getInputStream(entry)) {
-        app = jsonMapper.readValue(inputStream, App.class);
-      }
-
-      app.setFolderName(
-          APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
+    App app;
+    String topLevelFolder;
+    try {
+      topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
+      app = readAppManifest(file, this.jsonMapper, topLevelFolder);
+      app.setFolderName(installationFolder);
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
+    } catch (IOException e) {
+      log.error("Failed to install app: Missing manifest.webapp in zip");
+      app = new App();
+      app.setAppState(AppStatus.MISSING_MANIFEST);
+      return app;
+    }
 
-      extractManifestTranslations(zip, prefix, app);
+    if (!validateApp(app, appCache)) {
+      log.error("Failed to install app: App validation failed");
+      return app;
+    }
 
-      if (!this.validateApp(app, appCache)) {
-        return app;
+    try {
+      ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
+
+      try (ZipFile zipFile = new ZipFile(file)) {
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        while (entries.hasMoreElements()) {
+          ZipEntry zipEntry = entries.nextElement();
+          String filePath = getFilePath(topLevelFolder, installationFolder, zipEntry);
+          // If it's the root folder, skip
+          if (filePath == null) continue;
+          try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+            Blob blob =
+                jCloudsStore
+                    .getBlobStore()
+                    .blobBuilder(filePath)
+                    .payload(zipInputStream)
+                    .contentLength(zipEntry.getSize())
+                    .build();
+            jCloudsStore.putBlob(blob);
+          }
+        }
       }
-
-      // -----------------------------------------------------------------
-      // Unzip the app
-      // -----------------------------------------------------------------
-
-      String dest = APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
-
-      zip.stream()
-          .forEach(
-              (Consumer<ZipEntry>)
-                  zipEntry -> {
-                    log.debug("Uploading zipEntry: {}", zipEntry);
-                    String name = zipEntry.getName().substring(prefix.length());
-
-                    try {
-                      InputStream input = zip.getInputStream(zipEntry);
-
-                      Blob blob =
-                          jCloudsStore
-                              .getBlobStore()
-                              .blobBuilder(dest + File.separator + name)
-                              .payload(input)
-                              .contentLength(zipEntry.getSize())
-                              .build();
-                      jCloudsStore.putBlob(blob);
-
-                      input.close();
-                    } catch (IOException e) {
-                      log.error("Unable to store app file '" + name + "'", e);
-                    }
-                  });
 
       // Create the BundledAppInfo JSON file and write it to JClouds storage
       if (bundledAppInfo != null) {
@@ -297,46 +276,67 @@ public class JCloudsAppStorageService implements AppStorageService {
         baos.close();
       }
 
-      // TODO: MAS: Cant see this is needed anymore, apps are saved to same folder anyway,
-      // regardless of
-      // version
-      //      // make sure any other version of same app is removed
-      //      List<App> otherVersions = new ArrayList<>();
-      //      String key = app.getKey();
-      //      String version = app.getVersion();
-      //      discoverInstalledApps(
-      //          other -> {
-      //            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
-      //              otherVersions.add(other);
-      //          });
-      //      otherVersions.forEach(this::deleteAppAsync);
-
-      String namespace = app.getActivities().getDhis().getNamespace();
-
-      log.info(
-          "New app {} installed, Install path: {}, Namespace reserved: {}",
-          app.getName(),
-          dest,
-          (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
-
-      // -----------------------------------------------------------------
-      // Installation complete.
-      // -----------------------------------------------------------------
-
       app.setAppState(AppStatus.OK);
 
-      return app;
-    } catch (ZipException e) {
-      log.error("Failed to install app: Invalid ZIP format", e);
-      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
-    } catch (JsonParseException e) {
-      log.error("Failed to install app: Invalid manifest.webapp", e);
-      app.setAppState(AppStatus.INVALID_MANIFEST_JSON);
     } catch (IOException e) {
-      log.error("Failed to install app: Could not save app", e);
-      app.setAppState(AppStatus.INSTALLATION_FAILED);
+      log.error("Failed to install app: IO Failure during unzipping", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipBombException e) {
+      log.error("Failed to install app: Possible ZipBomb detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipSlipException e) {
+      log.error("Failed to install app: Possible ZipSlip detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
     }
 
+    if (!app.getAppState().ok()) {
+      deleteAppAsync(app);
+      return app;
+    }
+
+    removePreviousVersions(app);
+    logSuccess(app, installationFolder);
+    return app;
+  }
+
+  private static void logSuccess(App app, String appFolder) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    log.info(
+        "New app {} installed, Install path: {}, Namespace reserved: {}",
+        app.getName(),
+        appFolder,
+        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
+  }
+
+  private void removePreviousVersions(App app) {
+    List<App> otherVersions = new ArrayList<>();
+    String key = app.getKey();
+    String version = app.getVersion();
+    discoverInstalledApps(
+        other -> {
+          if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
+            otherVersions.add(other);
+        });
+    otherVersions.forEach(this::deleteAppAsync);
+  }
+
+  private static App readAppManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
+      throws IOException {
+    App app = new App();
+    try (ZipFile zip = new ZipFile(file)) {
+      // Parse manifest.webapp file from ZIP archive.
+      ZipEntry manifestEntry = zip.getEntry(topLevelFolder + MANIFEST_FILENAME);
+      if (manifestEntry == null) {
+        log.error("Failed to install app: Missing manifest.webapp in zip");
+        app.setAppState(AppStatus.MISSING_MANIFEST);
+        return app;
+      }
+
+      InputStream inputStream = zip.getInputStream(manifestEntry);
+      app = jsonMapper.readValue(inputStream, App.class);
+
+      extractManifestTranslations(zip, topLevelFolder, app);
+    }
     return app;
   }
 
