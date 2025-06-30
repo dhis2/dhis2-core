@@ -72,6 +72,8 @@ public final class GistParams {
 
   boolean references = true;
 
+  boolean orgUnitsOffline = false;
+
   Junction.Type rootJunction = Junction.Type.AND;
 
   String fields;
