@@ -105,7 +105,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value";
-  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE = "red,blue,green";
+  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE = "red,blue,Green";
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -297,8 +297,18 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"in:red", "SW:bl", "like:green"})
-  void getEventsWithMultiTextDataValueUsingINOperator(String operator) {
+  @ValueSource(
+      strings = {
+        "in:red",
+        "sw:bl",
+        "ew:een",
+        "like:red",
+        "ilike:green",
+        "nilike:yellow",
+        "!null",
+        "ne:yellow"
+      })
+  void shouldReturnEventsForMultiTextDataValuesUsingSupportedOperators(String operator) {
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
@@ -319,14 +329,16 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(dvMultiText.getValue(), dataValue.getValue());
   }
 
-  @Test
-  void getEventsWithMultiTextDataValueUsingEWOperator() {
+  @ParameterizedTest
+  @ValueSource(strings = {"EW:bl", "null"})
+  void shouldReturnNoEventsForMultiTextDataValuesUsingSupportedOperators(String operator) {
     switchContextToUser(user);
 
     JsonList<JsonEvent> list =
         GET(
-                "/tracker/events?filter={de}:EW:bl&program={program}&programStage={programStage}&fields=dataValues",
+                "/tracker/events?filter={de}:{op}&program={program}&programStage={programStage}&fields=dataValues",
                 deMultiText.getUid(),
+                operator,
                 program.getUid(),
                 programStage.getUid(),
                 event.getOrganisationUnit().getUid())
@@ -337,7 +349,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void getEventsWithMultiTextDataValueUsingGTOperator() {
+  void shouldReturnErrorWhenFetchingEventsUsingUnsupportedOperators() {
     switchContextToUser(user);
 
     assertEquals(
@@ -352,39 +364,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
                 event.getOrganisationUnit().getUid())
             .error(BAD_REQUEST)
             .getMessage());
-  }
-
-  @Test
-  void getEventsWithMultiTextDataValueUsingNNULLOperator() {
-    switchContextToUser(user);
-
-    JsonEvent jsonEvent =
-        GET(
-                "/tracker/events?filter={de}:!null&program={program}&programStage={programStage}&fields=dataValues",
-                deMultiText.getUid(),
-                program.getUid(),
-                programStage.getUid(),
-                event.getOrganisationUnit().getUid())
-            .content(HttpStatus.OK)
-            .getList("events", JsonEvent.class)
-            .get(0);
-
-    assertHasOnlyMembers(jsonEvent, "dataValues");
-    JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
-    assertEquals(deMultiText.getUid(), dataValue.getDataElement());
-    assertEquals(dvMultiText.getValue(), dataValue.getValue());
-
-    JsonList<JsonEvent> list =
-        GET(
-                "/tracker/events?filter={de}:null&program={program}&programStage={programStage}&fields=dataValues",
-                deMultiText.getUid(),
-                program.getUid(),
-                programStage.getUid(),
-                event.getOrganisationUnit().getUid())
-            .content(HttpStatus.OK)
-            .getList("events", JsonEvent.class);
-
-    assertIsEmpty(list.stream().toList());
   }
 
   @Test
