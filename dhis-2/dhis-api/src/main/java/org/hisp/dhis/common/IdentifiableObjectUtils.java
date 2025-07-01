@@ -106,7 +106,7 @@ public class IdentifiableObjectUtils {
    * @param objects the list of IdentifiableObjects.
    * @return a list of UIDs.
    */
-  public static <T extends IdentifiableObject> List<String> getUids(Collection<T> objects) {
+  public static <T extends IdentifiableObject> List<String> getUids(Collection<? extends IdentifiableObject> objects) {
     return objects != null
         ? objects.stream()
             .filter(Objects::nonNull)

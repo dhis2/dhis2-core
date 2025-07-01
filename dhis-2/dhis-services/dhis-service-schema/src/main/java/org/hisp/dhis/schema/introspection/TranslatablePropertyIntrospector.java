@@ -81,9 +81,6 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector {
       return true;
     }
     property = properties.get(BaseIdentifiableObject_.TRANSLATION_PROPERTY);
-    if (property != null && property.isPersisted()) {
-      return true;
-    }
-    return false;
+    return property != null && property.isPersisted();
   }
 }

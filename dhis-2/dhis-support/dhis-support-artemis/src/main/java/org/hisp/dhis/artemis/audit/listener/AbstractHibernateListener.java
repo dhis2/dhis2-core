@@ -76,7 +76,7 @@ public abstract class AbstractHibernateListener {
 
   private final SchemaService schemaService;
 
-  public AbstractHibernateListener(
+  protected AbstractHibernateListener(
       AuditManager auditManager,
       AuditObjectFactory objectFactory,
       UsernameSupplier usernameSupplier,
@@ -249,12 +249,14 @@ public abstract class AbstractHibernateListener {
   private void putValueToMap(Property property, Map<String, Object> objectMap, Object value) {
     if (value == null) return;
 
-    if (property.isCollection() && value instanceof Collection collectionValue) {
+    if (property.isCollection() && (value instanceof Collection<?> collectionValue)) {
 
       if (collectionValue.isEmpty()) return;
 
+      Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) collectionValue;
+
       if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
-        List<String> uids = IdentifiableObjectUtils.getUids(collectionValue);
+        List<String> uids = IdentifiableObjectUtils.getUids(collection);
 
         if (uids != null && !uids.isEmpty()) {
           objectMap.put(property.getFieldName(), uids);
