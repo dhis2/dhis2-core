@@ -1729,7 +1729,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
       System.out.println("❌ HEADER MISMATCH:");
       System.out.println("   Expected headers: " + headers);
       System.out.println("   Available headers: " + headerMap.keySet());
-      assertTrue(headerMap.keySet().containsAll(headers), "Expected headers " + headers + " in grid");
+      assertTrue(
+          headerMap.keySet().containsAll(headers), "Expected headers " + headers + " in grid");
     }
 
     // Make colA:row1value/colB:row1value, colA:row2value/colB:row2value...
@@ -1751,25 +1752,26 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     }
   }
 
-  private void printGridComparison(List<String> headers, List<List<Object>> expectedRows, Grid actualGrid) {
+  private void printGridComparison(
+      List<String> headers, List<List<Object>> expectedRows, Grid actualGrid) {
     System.out.println("\n📊 GRID COMPARISON:");
     System.out.println("=".repeat(80));
-    
+
     // Print headers
     System.out.println("HEADERS: " + headers);
     System.out.println();
-    
+
     // Print expected data
     System.out.println("✅ EXPECTED (" + expectedRows.size() + " rows):");
     System.out.println("-".repeat(40));
     printFormattedRows(headers, expectedRows);
-    
+
     System.out.println();
-    
+
     // Print actual data
     System.out.println("❌ ACTUAL (" + actualGrid.getHeight() + " rows):");
     System.out.println("-".repeat(40));
-    
+
     if (actualGrid.getHeight() == 0) {
       System.out.println("   (no rows)");
     } else {
@@ -1778,16 +1780,23 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
           range(0, actualGrid.getHeaders().size())
               .boxed()
               .collect(Collectors.toMap(i -> actualGrid.getHeaders().get(i).getName(), identity()));
-      
-      List<List<Object>> actualRows = actualGrid.getRows().stream()
-          .map(row -> headers.stream()
-              .map(header -> headerMap.containsKey(header) ? row.get(headerMap.get(header)) : "N/A")
-              .collect(toList()))
-          .collect(toList());
-      
+
+      List<List<Object>> actualRows =
+          actualGrid.getRows().stream()
+              .map(
+                  row ->
+                      headers.stream()
+                          .map(
+                              header ->
+                                  headerMap.containsKey(header)
+                                      ? row.get(headerMap.get(header))
+                                      : "N/A")
+                          .collect(toList()))
+              .collect(toList());
+
       printFormattedRows(headers, actualRows);
     }
-    
+
     System.out.println();
     System.out.println("=".repeat(80));
   }
@@ -1797,7 +1806,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
       System.out.println("   (no rows)");
       return;
     }
-    
+
     // Calculate column widths
     int[] widths = new int[headers.size()];
     for (int i = 0; i < headers.size(); i++) {
@@ -1808,7 +1817,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         }
       }
     }
-    
+
     // Print header row
     System.out.print("   ");
     for (int i = 0; i < headers.size(); i++) {
@@ -1816,7 +1825,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
       if (i < headers.size() - 1) System.out.print(" | ");
     }
     System.out.println();
-    
+
     // Print separator
     System.out.print("   ");
     for (int i = 0; i < headers.size(); i++) {
@@ -1824,7 +1833,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
       if (i < headers.size() - 1) System.out.print("-+-");
     }
     System.out.println();
-    
+
     // Print data rows
     for (List<Object> row : rows) {
       System.out.print("   ");
