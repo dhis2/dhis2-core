@@ -53,6 +53,8 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
    */
   ProgramRule getByName(String name, Program program);
 
+  List<ProgramRule> getProgramRulesForEnrollment(Program program, Set<ProgramRuleActionType> types);
+
   /**
    * Get validation by {@link Program}
    *

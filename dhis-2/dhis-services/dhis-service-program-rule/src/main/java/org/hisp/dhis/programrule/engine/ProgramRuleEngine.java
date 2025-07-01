@@ -176,6 +176,10 @@ public class ProgramRuleEngine {
             programRuleVariableService.getProgramRuleVariable(program)));
   }
 
+  public List<ProgramRule> getProgramRulesForEnrollment(Program program) {
+    return implementableRuleService.getProgramRulesForEnrollment(program);
+  }
+
   /**
    * To get description for program rule action data field.
    *
