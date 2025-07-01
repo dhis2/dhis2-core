@@ -1852,9 +1852,9 @@
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
       </snapshots>
-      <id>ossrh</id>
-      <name>Sonatype OSS</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>centralSnapshots</id>
+      <name>Central Portal Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
     </repository>
     <repository>
       <id>jitpack.io</id>
