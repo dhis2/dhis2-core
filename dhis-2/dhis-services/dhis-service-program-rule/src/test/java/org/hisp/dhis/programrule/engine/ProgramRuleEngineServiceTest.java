@@ -170,6 +170,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
     when(programRuleEngine.evaluateEvent(any(), any(), any())).thenReturn(effects);
     when(programRuleEngine.getProgramRules(any())).thenReturn(List.of(programRuleA));
+    when(programRuleEngine.getProgramRulesForEnrollment(any())).thenReturn(List.of(programRuleA));
 
     setProgramRuleActionType_SendMessage();
 
