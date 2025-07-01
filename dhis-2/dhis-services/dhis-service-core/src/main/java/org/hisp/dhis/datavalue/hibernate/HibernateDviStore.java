@@ -30,8 +30,8 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.Math.min;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -40,7 +40,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +61,6 @@ import org.hisp.dhis.datavalue.DviRow;
 import org.hisp.dhis.datavalue.DviStore;
 import org.hisp.dhis.datavalue.DviValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserDetails;
@@ -477,12 +475,23 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
 
   @Nonnull
   private Map<String, Long> getPeriodsIdMap(List<DviValue> values) {
-    List<String> periods = values.stream().map(DviValue::period).distinct().toList();
-    Map<String, Period> periodsByISO = new HashMap<>(periods.size());
-    periods.forEach(p -> periodsByISO.put(p, PeriodType.getPeriodFromIsoString(p)));
-    Map<String, Long> pes = new HashMap<>(periodsByISO.size());
-    periodsByISO.forEach((iso, period) -> pes.put(iso, periodStore.getPeriodId(period)));
-    return pes;
+    List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
+    Map<String, Long> res = new HashMap<>(isoPeriods.size());
+    String sql =
+        """
+      SELECT iso, periodid FROM period where iso IN (:iso)""";
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows =
+        getSession().createNativeQuery(sql).setParameterList("iso", isoPeriods).stream();
+    rows.forEach(row -> res.put((String) row[0], ((Number) row[1]).longValue()));
+    if (res.size() < isoPeriods.size()) {
+      // create and add the periods that do not yet exist...
+      isoPeriods.stream()
+          .filter(not(res::containsKey))
+          .forEach(
+              iso -> res.put(iso, periodStore.getPeriodId(PeriodType.getPeriodFromIsoString(iso))));
+    }
+    return res;
   }
 
   @Override
@@ -529,10 +538,9 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   @Override
   public Map<String, Set<String>> getApprovedIsoPeriodsByOrgUnit(
       UID dataSet, UID attrOptionCombo, Stream<UID> orgUnits) {
-    PeriodType pt = PeriodType.getPeriodTypeByName(getDataSetPeriodType(dataSet));
     String sql =
         """
-      SELECT ou.uid, array_agg(pe.startdate)
+      SELECT ou.uid, array_agg(pe.iso)
       FROM dataset ds
       JOIN dataapproval da ON ds.workflowid = da.workflowid
       JOIN organisationunit ou ON da.organisationunitid = ou.organisationunitid
@@ -542,22 +550,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
       GROUP BY ou.uid""";
     String ds = dataSet.getValue();
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> res =
-        getSession()
-            .createNativeQuery(sql)
-            .setParameter("ds", ds)
-            .setParameterList("ou", ou)
-            .stream();
-    return res.collect(
-        toMap(
-            row -> (String) row[0],
-            row -> {
-              Date[] dates = (Date[]) row[1];
-              return Stream.of(dates)
-                  .map(date -> pt.createPeriod(date).getIsoDate())
-                  .collect(toSet());
-            }));
+    return listAsStringsMapOfSet(sql, q -> q.setParameter("ds", ds).setParameterList("ou", ou));
   }
 
   @Nonnull
