@@ -549,8 +549,6 @@ public class CategoryCombo extends BaseMetadataObject
     return translations.getTranslations();
   }
 
-  
-
   @JsonIgnore
   @Override
   public long getId() {
