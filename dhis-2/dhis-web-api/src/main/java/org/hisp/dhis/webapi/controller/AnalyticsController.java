@@ -126,7 +126,8 @@ public class AnalyticsController {
       throws Exception {
     try {
       GridUtils.toXml(
-          getGrid(criteria, ContextUtils.CONTENT_TYPE_XML, response), response.getOutputStream());
+          getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_XML, response),
+          response.getOutputStream());
     } catch (IllegalQueryException e) {
       sendErrorResponse(response, e);
     }
@@ -139,7 +140,8 @@ public class AnalyticsController {
       HttpServletResponse response)
       throws Exception {
     try {
-      GridUtils.toHtml(getGrid(criteria, CONTENT_TYPE_HTML, response), response.getWriter());
+      GridUtils.toHtml(
+          getGrid(criteria, apiVersion, CONTENT_TYPE_HTML, response), response.getWriter());
     } catch (IllegalQueryException e) {
       sendErrorResponse(response, e);
     }
@@ -152,7 +154,8 @@ public class AnalyticsController {
       HttpServletResponse response)
       throws Exception {
     try {
-      GridUtils.toHtmlCss(getGrid(criteria, CONTENT_TYPE_HTML, response), response.getWriter());
+      GridUtils.toHtmlCss(
+          getGrid(criteria, apiVersion, CONTENT_TYPE_HTML, response), response.getWriter());
     } catch (IllegalQueryException e) {
       sendErrorResponse(response, e);
     }
@@ -166,7 +169,8 @@ public class AnalyticsController {
       throws Exception {
     try {
       GridUtils.toCsv(
-          getGridWithAttachment(criteria, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response),
+          getGridWithAttachment(
+              criteria, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response),
           response.getWriter());
     } catch (IllegalQueryException e) {
       sendErrorResponse(response, e);
@@ -181,7 +185,7 @@ public class AnalyticsController {
       throws Exception {
     try {
       GridUtils.toXls(
-          getGridWithAttachment(criteria, CONTENT_TYPE_EXCEL, "data.xls", response),
+          getGridWithAttachment(criteria, apiVersion, CONTENT_TYPE_EXCEL, "data.xls", response),
           response.getOutputStream());
     } catch (IllegalQueryException e) {
       sendErrorResponse(response, e);
@@ -203,7 +207,7 @@ public class AnalyticsController {
       throws Exception {
     try {
       GridUtils.toXlsx(
-          getGridWithAttachment(criteria, CONTENT_TYPE_EXCEL, "data.xlsx", response),
+          getGridWithAttachment(criteria, apiVersion, CONTENT_TYPE_EXCEL, "data.xlsx", response),
           response.getOutputStream());
     } catch (IllegalQueryException e) {
       sendErrorResponse(response, e);
