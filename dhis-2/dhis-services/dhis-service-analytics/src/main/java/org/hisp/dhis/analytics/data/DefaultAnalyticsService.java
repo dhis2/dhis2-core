@@ -41,7 +41,6 @@ import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -233,8 +232,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
     List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
-    Map<String, List<DimensionalItemObject>> columnsDimensionItemsByDimension = new HashMap<>();
-    Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension = new HashMap<>();
 
     if (columns != null) {
       for (String dimension : columns) {
