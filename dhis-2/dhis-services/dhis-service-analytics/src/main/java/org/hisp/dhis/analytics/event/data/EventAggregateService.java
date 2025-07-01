@@ -191,8 +191,7 @@ public class EventAggregateService {
     queryValidator.validate(params);
 
     // retain original period dimensions
-    List<DimensionalObject> periods =
-        queryRequiresOwnership(params) ? getPeriods(params) : List.of();
+    List<DimensionalObject> periods = getPeriods(params);
 
     if (!queryRequiresOwnership(params)) {
       params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
