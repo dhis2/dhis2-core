@@ -77,7 +77,7 @@ public class ParamsConverter {
 
   private static List<TrackerEvent> buildTrackerEvents(
       List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
-    if (importStrategy == TrackerImportStrategy.DELETE) {
+    if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
           .filter(
               e ->
@@ -105,7 +105,7 @@ public class ParamsConverter {
 
   private static List<SingleEvent> buildSingleEvents(
       List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
-    if (importStrategy == TrackerImportStrategy.DELETE) {
+    if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
           .map(e -> preheat.getEvent(e.getUid()))
           .filter(Objects::nonNull)

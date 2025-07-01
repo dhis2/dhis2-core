@@ -55,6 +55,8 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -89,14 +91,9 @@ class ParamsConverterTest extends TestBase {
   }
 
   @Test
-  void shouldSuccessToConvert() {
+  void shouldSuccessToConvertWhenNoTrackerObjectsArePresent() {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity(UID.generate()).build()))
-            .enrollments(List.of(Enrollment.builder().enrollment(UID.generate()).build()))
-            .relationships(List.of(Relationship.builder().relationship(UID.generate()).build()))
-            .build();
+    TrackerObjects trackerObjects = TrackerObjects.builder().build();
     TrackerBundle trackerBundle =
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
@@ -108,21 +105,70 @@ class ParamsConverterTest extends TestBase {
     assertEquals(params.isSkipRuleEngine(), trackerBundle.isSkipRuleEngine());
     assertEquals(params.getFlushMode(), trackerBundle.getFlushMode());
     assertEquals(params.getValidationMode(), trackerBundle.getValidationMode());
-    assertEquals(trackerObjects.getTrackedEntities(), trackerBundle.getTrackedEntities());
-    assertEquals(trackerObjects.getEnrollments(), trackerBundle.getEnrollments());
-    assertEquals(trackerObjects.getEvents(), trackerBundle.getEvents());
-    assertEquals(trackerObjects.getRelationships(), trackerBundle.getRelationships());
+    assertIsEmpty(trackerBundle.getTrackedEntities());
+    assertIsEmpty(trackerBundle.getEnrollments());
+    assertIsEmpty(trackerBundle.getEvents());
+    assertIsEmpty(trackerBundle.getRelationships());
     assertEquals(user, trackerBundle.getUser());
   }
 
   @Test
-  void shouldSuccessToConvertEventsBasedOnProgram() {
+  void shouldSuccessToConvertTrackedEntities() {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .trackedEntities(List.of(TrackedEntity.builder().trackedEntity(UID.generate()).build()))
+            .build();
+    TrackerBundle trackerBundle =
+        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
+
+    assertEquals(trackerObjects.getTrackedEntities(), trackerBundle.getTrackedEntities());
+    assertIsEmpty(trackerBundle.getEnrollments());
+    assertIsEmpty(trackerBundle.getEvents());
+    assertIsEmpty(trackerBundle.getRelationships());
+  }
+
+  @Test
+  void shouldSuccessToConvertEnrollments() {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .enrollments(List.of(Enrollment.builder().enrollment(UID.generate()).build()))
+            .build();
+    TrackerBundle trackerBundle =
+        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
+
+    assertIsEmpty(trackerBundle.getTrackedEntities());
+    assertEquals(trackerObjects.getEnrollments(), trackerBundle.getEnrollments());
+    assertIsEmpty(trackerBundle.getEvents());
+    assertIsEmpty(trackerBundle.getRelationships());
+  }
+
+  @Test
+  void shouldSuccessToConvertRelationships() {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .relationships(List.of(Relationship.builder().relationship(UID.generate()).build()))
+            .build();
+    TrackerBundle trackerBundle =
+        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
+
+    assertIsEmpty(trackerBundle.getTrackedEntities());
+    assertIsEmpty(trackerBundle.getEnrollments());
+    assertIsEmpty(trackerBundle.getEvents());
+    assertEquals(trackerObjects.getRelationships(), trackerBundle.getRelationships());
+  }
+
+  @Test
+  void shouldSuccessToConvertEventsBasedOnProgramWhenStrategyIsCreate() {
     when(trackerPreheat.getProgram(MetadataIdentifier.ofUid(programWithRegistration)))
         .thenReturn(programWithRegistration);
     when(trackerPreheat.getProgram(MetadataIdentifier.ofUid(programWithoutRegistration)))
         .thenReturn(programWithoutRegistration);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
 
     TrackerObjects trackerObjects =
         TrackerObjects.builder()
@@ -140,49 +186,14 @@ class ParamsConverterTest extends TestBase {
   }
 
   @Test
-  void shouldSuccessToConvertEventsBasedOnProgramStage() {
+  void shouldSuccessToConvertEventsBasedOnProgramStageWhenStrategyIsCreate() {
     when(trackerPreheat.getProgramStage(MetadataIdentifier.ofUid(programStageWithRegistration)))
         .thenReturn(programStageWithRegistration);
     when(trackerPreheat.getProgramStage(MetadataIdentifier.ofUid(programStageWithoutRegistration)))
         .thenReturn(programStageWithoutRegistration);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .events(List.of(trackerEventWithProgramStage(), singleEventWithProgramStage()))
-            .build();
-    TrackerBundle trackerBundle =
-        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
-
-    assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(TRACKER_EVENT_UID));
-    assertContainsOnly(
-        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(SINGLE_EVENT_UID));
-  }
-
-  @Test
-  void shouldSuccessToConvertToTrackerEventsWhenNoProgramOrProgramStageIsPresent() {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder().events(List.of(trackerEvent(), singleEvent())).build();
-    TrackerBundle trackerBundle =
-        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
-
-    assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(TRACKER_EVENT_UID, SINGLE_EVENT_UID));
-    assertIsEmpty(trackerBundle.getSingleEvents());
-  }
-
-  @Test
-  void shouldSuccessToConvertEventsWithDeleteStrategyWhenEventsArePresentInPreheat() {
-    when(trackerPreheat.getEvent(TRACKER_EVENT_UID)).thenReturn(trackerEventFromDB());
-    when(trackerPreheat.getEvent(SINGLE_EVENT_UID)).thenReturn(singleEventFromDB());
-
     TrackerImportParams params =
-        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
     TrackerObjects trackerObjects =
         TrackerObjects.builder()
             .events(List.of(trackerEventWithProgramStage(), singleEventWithProgramStage()))
@@ -200,9 +211,55 @@ class ParamsConverterTest extends TestBase {
 
   @Test
   void
-      shouldSuccessToConvertEventsToTrackerEventsWithDeleteStrategyWhenEventsAreNotPresentInPreheat() {
+      shouldSuccessToConvertToTrackerEventsWhenNoProgramOrProgramStageIsPresentWhenStrategyIsCreate() {
     TrackerImportParams params =
-        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder().events(List.of(trackerEvent(), singleEvent())).build();
+    TrackerBundle trackerBundle =
+        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
+
+    assertContainsOnly(
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
+        List.of(TRACKER_EVENT_UID, SINGLE_EVENT_UID));
+    assertIsEmpty(trackerBundle.getSingleEvents());
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = TrackerImportStrategy.class,
+      names = {"UPDATE", "DELETE"})
+  void shouldSuccessToConvertEventsWithDeleteOrUpdateStrategyWhenEventsArePresentInPreheat(
+      TrackerImportStrategy importStrategy) {
+    when(trackerPreheat.getEvent(TRACKER_EVENT_UID)).thenReturn(trackerEventFromDB());
+    when(trackerPreheat.getEvent(SINGLE_EVENT_UID)).thenReturn(singleEventFromDB());
+
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(importStrategy).build();
+    TrackerObjects trackerObjects =
+        TrackerObjects.builder()
+            .events(List.of(trackerEventWithProgramStage(), singleEventWithProgramStage()))
+            .build();
+    TrackerBundle trackerBundle =
+        ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
+
+    assertContainsOnly(
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
+        List.of(TRACKER_EVENT_UID));
+    assertContainsOnly(
+        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList(),
+        List.of(SINGLE_EVENT_UID));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = TrackerImportStrategy.class,
+      names = {"UPDATE", "DELETE"})
+  void
+      shouldSuccessToConvertEventsToTrackerEventsWithDeleteOrUpdateStrategyWhenEventsAreNotPresentInPreheat(
+          TrackerImportStrategy importStrategy) {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(importStrategy).build();
     TrackerObjects trackerObjects =
         TrackerObjects.builder()
             .events(List.of(trackerEventWithProgramStage(), singleEventWithProgramStage()))
