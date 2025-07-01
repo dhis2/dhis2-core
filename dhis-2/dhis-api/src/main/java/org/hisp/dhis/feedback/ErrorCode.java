@@ -451,6 +451,8 @@ public enum ErrorCode {
   E7147("Query failed because of a missing column: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
   E7150("No periods found for subexpression query"),
+  E7151("Too many combinations of columns or rows."),
+
   /* Analytics outliers */
 
   E7180(

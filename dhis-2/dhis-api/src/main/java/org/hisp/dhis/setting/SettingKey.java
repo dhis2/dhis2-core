@@ -273,6 +273,9 @@ public enum SettingKey {
   /** The offset of years used during period generation during the analytics export process. */
   ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", -1, Integer.class),
 
+  ANALYTICS_DOWNLOAD_COMBINATION_LIMIT(
+      "keyAnalyticsDownloadCombinationLimit", 20000, Integer.class),
+
   /**
    * @deprecated use {@link #TRACKED_ENTITY_MAX_LIMIT} instead
    */
