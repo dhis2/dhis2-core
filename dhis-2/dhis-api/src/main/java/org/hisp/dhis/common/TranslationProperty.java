@@ -49,9 +49,12 @@ import org.hisp.dhis.translation.Translation;
 
 /**
  * Embedded property to be mapped to {@code translations} jsonb column in database. This class can
- * be declared in an Entity class as below
+ * be declared in an Entity class as below. Note that the property name must be {@code translations}
+ * so that it can be picked up by the {@code PropertyIntrospector}
  *
  * <p>{@code @Embedded} private TranslationProperty translations = new TranslationProperty();
+ *
+ * @author viet
  */
 @Embeddable
 @NoArgsConstructor
