@@ -204,8 +204,10 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   private <T> List<T> fetchWithParameters(
       GistQuery gistQuery, GistBuilder builder, Query<T> query) {
     builder.addFetchParameters(query::setParameter, this::parseFilterArgument);
-    query.setMaxResults(Math.max(1, gistQuery.getPageSize()));
-    query.setFirstResult(gistQuery.getPageOffset());
+    if (gistQuery.isPaging()) {
+      query.setMaxResults(Math.max(1, gistQuery.getPageSize()));
+      query.setFirstResult(gistQuery.getPageOffset());
+    }
     query.setCacheable(false);
     return query.list();
   }

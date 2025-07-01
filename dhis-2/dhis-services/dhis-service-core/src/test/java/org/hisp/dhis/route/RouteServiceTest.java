@@ -27,20 +27,37 @@
  */
 package org.hisp.dhis.route;
 
+import static org.mockserver.model.HttpRequest.request;
+
 import java.io.IOException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.mockserver.client.MockServerClient;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 class RouteServiceTest {
 
-  @Disabled("Disabled due to timeout issues in CI")
+  @Test
   @Timeout(value = 30)
   void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
+    GenericContainer<?> routeTargetMockServerContainer =
+        new GenericContainer<>("mockserver/mockserver")
+            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+            .withExposedPorts(1080);
+    routeTargetMockServerContainer.start();
+
+    MockServerClient routeTargetMockServerClient =
+        new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+    routeTargetMockServerClient
+        .when(request().withPath("/"))
+        .respond(org.mockserver.model.HttpResponse.response("{}"));
+
     RouteService routeService = new RouteService(null, null);
     routeService.setRestTemplate(new RestTemplate());
     routeService.postConstruct();
@@ -49,7 +66,10 @@ class RouteServiceTest {
         ((HttpComponentsClientHttpRequestFactory)
                 routeService.getRestTemplate().getRequestFactory())
             .getHttpClient();
-    HttpUriRequest httpUriRequest = RequestBuilder.get("https://dhis2.org/").build();
+    HttpUriRequest httpUriRequest =
+        RequestBuilder.get(
+                "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort())
+            .build();
 
     for (int i = 0; i < RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE; i++) {
       httpClient.execute(httpUriRequest);
