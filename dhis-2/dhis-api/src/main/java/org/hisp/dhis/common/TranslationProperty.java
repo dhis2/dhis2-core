@@ -47,6 +47,12 @@ import org.hibernate.annotations.Type;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 
+/**
+ * Embedded property to be mapped to {@code translations} jsonb column in database. This class can
+ * be declared in an Entity class as below
+ *
+ * <p>{@code @Embedded} private TranslationProperty translations = new TranslationProperty();
+ */
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
@@ -124,5 +130,29 @@ public class TranslationProperty implements Serializable {
     return translationCache.computeIfAbsent(
         Translation.getCacheKey(locale.toString(), translationKey),
         key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+  }
+
+  /**
+   * Util method for casting translations from Object to TranslationProperty or Set depending on the
+   * current call is serializing or deserializing.
+   *
+   * @param translations the translations object which can be either a TranslationProperty or a Set
+   *     of Translation.
+   * @return Set of Translation.
+   */
+  public static Set<Translation> fromObject(Object translations) {
+    if (translations == null) {
+      return Set.of();
+    }
+    Set<Translation> list;
+    if (translations instanceof TranslationProperty translationProperty) {
+      list = translationProperty.getTranslations();
+    } else if (translations instanceof Set) {
+      list = (Set<Translation>) translations;
+    } else {
+      throw new IllegalArgumentException("Object translations is invalid");
+    }
+
+    return list;
   }
 }

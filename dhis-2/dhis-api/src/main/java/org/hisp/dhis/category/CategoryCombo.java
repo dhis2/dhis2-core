@@ -560,7 +560,13 @@ public class CategoryCombo extends BaseMetadataObject
 
   @Override
   public int compareTo(@Nonnull IdentifiableObject o) {
-    return 0;
+    if (o.getDisplayName() == null) {
+      return o.getDisplayName() == null ? 0 : 1;
+    }
+
+    return o.getDisplayName() == null
+        ? -1
+        : this.getDisplayName().compareToIgnoreCase(o.getDisplayName());
   }
 
   @JsonIgnore

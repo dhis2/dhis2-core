@@ -41,6 +41,10 @@ import java.util.Date;
 import lombok.Setter;
 import org.hisp.dhis.user.User;
 
+/**
+ * Base Object for metadata entities. All declared properties must be mapped to corresponding
+ * database columns.
+ */
 @Setter
 @MappedSuperclass
 public class BaseMetadataObject implements MetadataObject {
