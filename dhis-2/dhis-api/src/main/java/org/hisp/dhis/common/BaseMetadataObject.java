@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
@@ -61,10 +60,10 @@ public class BaseMetadataObject implements MetadataObject {
   protected Date lastUpdated;
 
   @ManyToOne
-  @JoinColumn(name = "lastupdatedby", foreignKey = @ForeignKey(name = "fk_lastupdateby_userid"))
+  @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "userid", foreignKey = @ForeignKey(name = "fk_categorycombo_userid"))
+  @JoinColumn(name = "userid")
   protected User createdBy;
 }

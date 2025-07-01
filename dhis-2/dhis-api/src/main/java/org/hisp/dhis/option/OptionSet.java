@@ -64,7 +64,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -82,7 +81,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.ValueType;
@@ -111,8 +109,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "optionset")
-public class OptionSet extends BaseMetadataObject
-    implements IdentifiableObject, VersionedObject, MetadataObject {
+public class OptionSet extends BaseMetadataObject implements IdentifiableObject, VersionedObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -439,11 +436,6 @@ public class OptionSet extends BaseMetadataObject
   @Override
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);
-  }
-
-  @Override
-  public int compareTo(@Nonnull IdentifiableObject o) {
-    return 0;
   }
 
   @Gist(included = Include.FALSE)
