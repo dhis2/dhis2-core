@@ -39,10 +39,6 @@ public class BaseIdentifiableObject_ {
   public static final String CREATED_BY = "createdBy";
   public static final String LAST_UPDATED_BY = "lastUpdatedBy";
 
-  /**
-   * This is the legacy property name for translations. Should be removed once the ORM mapping
-   * migration from xml to annotation is done.
-   */
   public static final String TRANSLATIONS = "translations";
 
   public static final String SHARING = "sharing";
