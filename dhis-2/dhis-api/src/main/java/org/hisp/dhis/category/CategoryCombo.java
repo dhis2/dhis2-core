@@ -61,10 +61,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Setter;
@@ -167,13 +165,6 @@ public class CategoryCombo extends BaseMetadataObject
    * identifiable object (will be used on the web layer for navigating the REST API)
    */
   @Transient private transient String href;
-
-  /**
-   * Cache for object translations, where the cache key is a combination of locale and translation
-   * property, and value is the translated value.
-   */
-  @Transient
-  protected final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -560,7 +551,7 @@ public class CategoryCombo extends BaseMetadataObject
 
   @Override
   public int compareTo(@Nonnull IdentifiableObject o) {
-    if (o.getDisplayName() == null) {
+    if (this.getDisplayName() == null) {
       return o.getDisplayName() == null ? 0 : 1;
     }
 
