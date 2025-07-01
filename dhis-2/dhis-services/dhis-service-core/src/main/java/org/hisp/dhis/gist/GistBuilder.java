@@ -314,7 +314,6 @@ final class GistBuilder {
 
   private Object translate(Object value, String property, Object translations) {
     @SuppressWarnings("unchecked")
-    
     Set<Translation> list = TranslationProperty.fromObject(translations);
 
     if (list == null || list.isEmpty()) {

@@ -44,7 +44,7 @@ public class BaseIdentifiableObject_ {
    * migration from xml to annotation is done.
    */
   public static final String TRANSLATIONS = "translations";
-  
+
   public static final String SHARING = "sharing";
   public static final String ATTRIBUTE_VALUES = "attributeValues";
 }
