@@ -44,13 +44,7 @@ public class BaseIdentifiableObject_ {
    * migration from xml to annotation is done.
    */
   public static final String TRANSLATIONS = "translations";
-
-  /**
-   * This is the embedded property {@link org.hisp.dhis.common.TranslationProperty} for mapping
-   * jsonb translations column in database.
-   */
-  public static final String TRANSLATION_PROPERTY = "translationProperty";
-
+  
   public static final String SHARING = "sharing";
   public static final String ATTRIBUTE_VALUES = "attributeValues";
 }

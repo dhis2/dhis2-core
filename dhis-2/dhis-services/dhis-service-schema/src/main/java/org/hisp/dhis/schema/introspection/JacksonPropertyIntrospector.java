@@ -144,8 +144,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector {
      * TranslatablePropertyIntrospector} We can remove this once orm mapping migration from xml to
      * annotations is complete.
      */
-    if (persistedProperties.containsKey(BaseIdentifiableObject_.TRANSLATION_PROPERTY)
-        && properties.containsKey(BaseIdentifiableObject_.TRANSLATIONS)) {
+    if (properties.containsKey(BaseIdentifiableObject_.TRANSLATIONS)) {
       properties.get("translations").setPersisted(true);
     }
   }
