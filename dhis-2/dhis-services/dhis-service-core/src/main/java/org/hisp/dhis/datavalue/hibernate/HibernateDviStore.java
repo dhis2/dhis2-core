@@ -322,6 +322,11 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
+  public boolean getDataSetCommentAllowsEmptyValue(UID dataSet) {
+    return false;
+  }
+
+  @Override
   public List<String> getCategoryOptionsCanNotDataWrite(Stream<UID> optionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();

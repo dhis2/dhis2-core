@@ -31,6 +31,8 @@ package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.stream.Collectors.groupingBy;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.feedback.ImportResult.error;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -74,7 +76,7 @@ public class DefaultDviService implements DviService {
   public void importValue(@CheckForNull UID dataSet, @Nonnull DviValue value)
       throws ConflictException, BadRequestException {
     List<ImportError> errors = new ArrayList<>(1);
-    List<DviValue> validValues = validate(dataSet, List.of(value), errors);
+    List<DviValue> validValues = validate(false, dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -86,7 +88,7 @@ public class DefaultDviService implements DviService {
       throws BadRequestException, ConflictException {
     List<ImportError> errors = new ArrayList<>();
     List<DviValue> values = completedValues(request);
-    List<DviValue> validValues = validate(request.dataSet(), values, errors);
+    List<DviValue> validValues = validate(options.outOfTime(), request.dataSet(), values, errors);
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
     int imported = options.dryRun() ? validValues.size() : store.upsertValues(validValues);
@@ -109,7 +111,8 @@ public class DefaultDviService implements DviService {
   // 1. mark all as assigned that are used
   // 2. mark all as not assigned that are not used by any
 
-  private List<DviValue> validate(UID ds, List<DviValue> values, List<ImportError> errors)
+  private List<DviValue> validate(
+      boolean outOfTime, UID ds, List<DviValue> values, List<ImportError> errors)
       throws ConflictException, BadRequestException {
     if (ds == null) {
       /*
@@ -126,11 +129,10 @@ public class DefaultDviService implements DviService {
 
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
-    // TODO add option to skip all timeliness checks for entry that isn't "original"?
-    // TODO also a super-user might want to bypass these (opt-in or opt-out?)
-    validateEntryTimeliness(ds, values);
+    boolean skipTimeliness = getCurrentUserDetails().isSuper() && outOfTime;
+    if (!skipTimeliness) validateEntryTimeliness(ds, values);
 
-    return validateValues(values, errors);
+    return validateValues(ds, values, errors);
   }
 
   /** Is the user allowed to write (capture) the data values? */
@@ -215,7 +217,8 @@ public class DefaultDviService implements DviService {
    * context. Non-conforming values will be removed from the result, and an error is added to the
    * errors list.
    */
-  private List<DviValue> validateValues(List<DviValue> values, List<ImportError> errors) {
+  private List<DviValue> validateValues(UID ds, List<DviValue> values, List<ImportError> errors) {
+    boolean commentAllowsEmptyValue = store.getDataSetCommentAllowsEmptyValue(ds);
     List<UID> dataElements = values.stream().map(DviValue::dataElement).distinct().toList();
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());
     Map<String, Set<String>> commentOptionsByDe =
@@ -228,19 +231,20 @@ public class DefaultDviService implements DviService {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
       String val = normalizeValue(e, type);
+      boolean allowEmptyValue =
+          e.deleted() == Boolean.TRUE || commentAllowsEmptyValue && !isNotEmpty(e.comment());
       // - require: value not null/empty (not for delete or deleted value)
-      if ((val == null || val.isEmpty()) && e.deleted() != Boolean.TRUE) {
-        // TODO add condition that if DS is noValueRequiresComment=true then a comment is considered
-        // a "filled" value
+      boolean emptyValue = isEmpty(val);
+      if (emptyValue && !allowEmptyValue) {
         errors.add(error(index, ErrorCode.E7618, e));
       } else {
         // - require: value valid for the DE value type?
-        String error = ValidationUtils.valueIsValid(val, type);
+        String error = emptyValue ? null : ValidationUtils.valueIsValid(val, type);
         if (error != null) {
           errors.add(error(index, ErrorCode.E7619, type, e));
         } else {
           // - require: if DE uses OptionSet - is value a valid option?
-          Set<String> options = optionsByDe.get(de);
+          Set<String> options = emptyValue ? null : optionsByDe.get(de);
           if (options != null && !options.contains(val)) {
             errors.add(error(index, ErrorCode.E7621, e));
           } else {

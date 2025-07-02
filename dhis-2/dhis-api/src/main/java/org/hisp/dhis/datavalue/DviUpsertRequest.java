@@ -49,6 +49,9 @@ public record DviUpsertRequest(
    * @param dryRun not actually do the upsert
    * @param atomic then true, any validation error (including value validation) aborts the entire
    *     import
+   * @param outOfTime when true, any timeliness validation is skipped (only possible for admins) to
+   *     allow out-of-time (early/late) entry of data e.g. as part of a data synchronisation or
+   *     repair
    */
-  public record Options(boolean dryRun, boolean atomic) {}
+  public record Options(boolean dryRun, boolean atomic, boolean outOfTime) {}
 }

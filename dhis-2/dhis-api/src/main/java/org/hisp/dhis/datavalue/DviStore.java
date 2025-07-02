@@ -61,6 +61,15 @@ public interface DviStore {
   boolean getDataSetCanDataWrite(UID dataSet);
 
   /**
+   * Check is adding a comment for a value is a valid substitute for not providing a value (use an
+   * empty value).
+   *
+   * @param dataSet the DS to check
+   * @return true, if the DS allows empty values in case a comment is provided instead
+   */
+  boolean getDataSetCommentAllowsEmptyValue(UID dataSet);
+
+  /**
    * Checks if the current user has data write access to the provided AOC/COCs.
    *
    * <p>This sharing checked is those of all CO connected to the AOC/COC. The AOC/COC is only usable
