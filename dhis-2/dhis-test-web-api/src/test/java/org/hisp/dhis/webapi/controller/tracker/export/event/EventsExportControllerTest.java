@@ -308,14 +308,14 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
         "!null",
         "ne:yellow"
       })
-  void shouldReturnEventsForMultiTextDataValuesUsingSupportedOperators(String operator) {
+  void shouldReturnEventsForMultiTextDataValuesUsingSupportedOperators(String filter) {
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
         GET(
-                "/tracker/events?filter={de}:{op}&program={program}&programStage={programStage}&fields=dataValues",
+                "/tracker/events?filter={de}:{filter}&program={program}&programStage={programStage}&fields=dataValues",
                 deMultiText.getUid(),
-                operator,
+                filter,
                 program.getUid(),
                 programStage.getUid(),
                 event.getOrganisationUnit().getUid())
@@ -331,14 +331,14 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @ParameterizedTest
   @ValueSource(strings = {"EW:bl", "null"})
-  void shouldReturnNoEventsForMultiTextDataValuesUsingSupportedOperators(String operator) {
+  void shouldReturnNoEventsForMultiTextDataValuesUsingSupportedOperators(String filter) {
     switchContextToUser(user);
 
     JsonList<JsonEvent> list =
         GET(
-                "/tracker/events?filter={de}:{op}&program={program}&programStage={programStage}&fields=dataValues",
+                "/tracker/events?filter={de}:{filter}&program={program}&programStage={programStage}&fields=dataValues",
                 deMultiText.getUid(),
-                operator,
+                filter,
                 program.getUid(),
                 programStage.getUid(),
                 event.getOrganisationUnit().getUid())
