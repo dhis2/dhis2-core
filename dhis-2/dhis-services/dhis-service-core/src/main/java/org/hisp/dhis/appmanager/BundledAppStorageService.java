@@ -81,7 +81,13 @@ public class BundledAppStorageService implements AppStorageService {
           app.setAppStorageSource(AppStorageSource.BUNDLED);
           app.setFolderName(path);
 
-          setManifestTranslationsIfExists(app);
+          String resourceName =
+              app.getFolderName() + "/" + AppStorageService.MANIFEST_TRANSLATION_FILENAME;
+          Resource appManifestTranslation = resourceLoader.getResource(resourceName);
+
+          List<AppManifestTranslation> manifestTranslations =
+              readAppManifestTranslations(appManifestTranslation);
+          app.setManifestTranslations(manifestTranslations);
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
@@ -94,24 +100,6 @@ public class BundledAppStorageService implements AppStorageService {
     return apps;
   }
 
-  private void setManifestTranslationsIfExists(App app) {
-    try {
-      // Read translations for possible manifest translations
-      String resourceName =
-          app.getFolderName() + "/" + AppStorageService.MANIFEST_TRANSLATION_FILENAME;
-      Resource appManifestTranslation = resourceLoader.getResource(resourceName);
-
-      if (appManifestTranslation.exists()) {
-        List<AppManifestTranslation> manifestTranslations =
-            readAppManifestTranslation(appManifestTranslation);
-
-        app.setManifestTranslations(manifestTranslations);
-      }
-    } catch (Exception ex) {
-      log.debug("Error reading manifest translation file for {}", app.getKey());
-    }
-  }
-
   private App readAppManifest(Resource resource) {
     try (InputStream inputStream = resource.getInputStream()) {
       return App.MAPPER.readValue(inputStream, App.class);
@@ -121,11 +109,18 @@ public class BundledAppStorageService implements AppStorageService {
     }
   }
 
-  private List<AppManifestTranslation> readAppManifestTranslation(Resource resource) {
-    try (InputStream inputStream = resource.getInputStream()) {
+  private List<AppManifestTranslation> readAppManifestTranslations(
+      Resource appManifestTranslation) {
+    if (!appManifestTranslation.exists()) {
+      return Collections.emptyList();
+    }
+
+    try (InputStream inputStream = appManifestTranslation.getInputStream()) {
       return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
     } catch (IOException e) {
-      log.error(e.getLocalizedMessage(), e);
+      log.warn(
+          "An error occurred trying to read the app manifest translations {}",
+          e.getLocalizedMessage());
       return Collections.emptyList();
     }
   }

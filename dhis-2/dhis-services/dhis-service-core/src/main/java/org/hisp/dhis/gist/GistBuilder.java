@@ -78,6 +78,7 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -313,7 +314,8 @@ final class GistBuilder {
 
   private Object translate(Object value, String property, Object translations) {
     @SuppressWarnings("unchecked")
-    Set<Translation> list = (Set<Translation>) translations;
+    Set<Translation> list = TranslationProperty.fromObject(translations);
+
     if (list == null || list.isEmpty()) {
       return value;
     }

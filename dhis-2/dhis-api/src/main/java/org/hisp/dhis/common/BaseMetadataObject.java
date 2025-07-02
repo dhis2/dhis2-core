@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.common;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import java.util.Date;
+import lombok.Setter;
+import org.hisp.dhis.user.User;
 
 /**
- * This class defines metadata model property's names of {@link
- * org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help supporting type-safe
- * queries with JPA Criteria API. TODO: This should be replaced with JPAMetaModelEntityProcessor's
- * auto generated class
+ * Base Object for metadata entities. All declared properties must be mapped to corresponding
+ * database columns.
  */
-public class BaseIdentifiableObject_ {
-  public static final String CREATED_BY = "createdBy";
-  public static final String LAST_UPDATED_BY = "lastUpdatedBy";
+@Setter
+@MappedSuperclass
+public class BaseMetadataObject implements MetadataObject {
 
-  public static final String TRANSLATIONS = "translations";
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  protected String uid;
 
-  public static final String SHARING = "sharing";
-  public static final String ATTRIBUTE_VALUES = "attributeValues";
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
+  protected User lastUpdatedBy;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "userid")
+  protected User createdBy;
 }
