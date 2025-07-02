@@ -30,12 +30,17 @@ package org.hisp.dhis.analytics.aggregate;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -188,5 +193,443 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of("202209", "September 2022", "202209", "", "109.52", "99.9", "74.92", "20433"));
+  }
+
+  @Test
+  public void tableLayoutDownloadPivotTable() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("tableLayout=true")
+            .add("columns=pe")
+            .add("completedOnly=false")
+            .add("rows=dx;ou")
+            .add(
+                "dimension=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112;202201;202202;202203;202204;202205;202206;202207;202208;202209;202210;202211;202212;202001;202002;202003;202004;202005;202006;202007;202008;202009;202010;202011;202012,dx:FQ2o8UBlcrS;GSae40Fyppf;dSBYyCUjCXd;RUv0hqER0zV;IpHINAT79UW.cejWyOfXge6;IpHINAT79UW.wQLfBvPrXqq,ou:ImspTQPwCqd")
+            .add("skipRounding=false");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        6,
+        47,
+        44); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202206\":{\"name\":\"June 2022\"},\"202008\":{\"name\":\"August 2020\"},\"202207\":{\"name\":\"July 2022\"},\"202009\":{\"name\":\"September 2020\"},\"202204\":{\"name\":\"April 2022\"},\"202006\":{\"name\":\"June 2020\"},\"202205\":{\"name\":\"May 2022\"},\"202007\":{\"name\":\"July 2020\"},\"202202\":{\"name\":\"February 2022\"},\"202004\":{\"name\":\"April 2020\"},\"202203\":{\"name\":\"March 2022\"},\"202005\":{\"name\":\"May 2020\"},\"202211\":{\"name\":\"November 2022\"},\"202212\":{\"name\":\"December 2022\"},\"202011\":{\"name\":\"November 2020\"},\"202210\":{\"name\":\"October 2022\"},\"202012\":{\"name\":\"December 2020\"},\"dx\":{\"name\":\"Data\"},\"202010\":{\"name\":\"October 2020\"},\"FQ2o8UBlcrS\":{\"name\":\"Acute Flaccid Paralysis (AFP) new\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"GSae40Fyppf\":{\"name\":\"Age at visit\"},\"202109\":{\"name\":\"September 2021\"},\"SdOUI2yT46H\":{\"name\":\"5-14y\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"RUv0hqER0zV\":{\"name\":\"All other follow-ups\"},\"202105\":{\"name\":\"May 2021\"},\"jOkIbJVhECg\":{\"name\":\"15y+\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dSBYyCUjCXd\":{\"name\":\"Age at visit - calc from days\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"S34ULMcHMca\":{\"name\":\"0-11m\"},\"ou\":{\"name\":\"Organisation unit\"},\"IpHINAT79UW.cejWyOfXge6\":{\"name\":\"Child Programme Gender\"},\"wHBMVthqIX4\":{\"name\":\"12-59m\"},\"IpHINAT79UW.wQLfBvPrXqq\":{\"name\":\"Child Programme MCH ARV at birth\"},\"202002\":{\"name\":\"February 2020\"},\"202201\":{\"name\":\"January 2022\"},\"202003\":{\"name\":\"March 2020\"},\"202001\":{\"name\":\"January 2020\"},\"pe\":{\"name\":\"Period\"}},\"dimensions\":{\"dx\":[\"FQ2o8UBlcrS\",\"GSae40Fyppf\",\"dSBYyCUjCXd\",\"RUv0hqER0zV\",\"IpHINAT79UW.cejWyOfXge6\",\"IpHINAT79UW.wQLfBvPrXqq\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\",\"202201\",\"202202\",\"202203\",\"202204\",\"202205\",\"202206\",\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202001\",\"202002\",\"202003\",\"202004\",\"202005\",\"202006\",\"202007\",\"202008\",\"202009\",\"202010\",\"202011\",\"202012\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"S34ULMcHMca\",\"SdOUI2yT46H\",\"wHBMVthqIX4\",\"jOkIbJVhECg\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "Data ID", "dataid", "TEXT", "java.lang.String", true, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "Data", "dataname", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "Data code", "datacode", "TEXT", "java.lang.String", true, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "Data description",
+        "datadescription",
+        "TEXT",
+        "java.lang.String",
+        true,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "Organisation unit ID",
+        "organisationunitid",
+        "TEXT",
+        "java.lang.String",
+        true,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "Organisation unit",
+        "organisationunitname",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "Organisation unit code",
+        "organisationunitcode",
+        "TEXT",
+        "java.lang.String",
+        true,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "Organisation unit description",
+        "organisationunitdescription",
+        "TEXT",
+        "java.lang.String",
+        true,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "january 2021",
+        "January 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "february 2021",
+        "February 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "march 2021",
+        "March 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "april 2021",
+        "April 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "may 2021",
+        "May 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "june 2021",
+        "June 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "july 2021",
+        "July 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "august 2021",
+        "August 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "september 2021",
+        "September 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "october 2021",
+        "October 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "november 2021",
+        "November 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "december 2021",
+        "December 2021",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "january 2022",
+        "January 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "february 2022",
+        "February 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "march 2022",
+        "March 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "april 2022",
+        "April 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "may 2022",
+        "May 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "june 2022",
+        "June 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "july 2022",
+        "July 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "august 2022",
+        "August 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "september 2022",
+        "September 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "october 2022",
+        "October 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "november 2022",
+        "November 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "december 2022",
+        "December 2022",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "january 2020",
+        "January 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "february 2020",
+        "February 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "march 2020",
+        "March 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "april 2020",
+        "April 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "may 2020",
+        "May 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "june 2020",
+        "June 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "july 2020",
+        "July 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "august 2020",
+        "August 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "september 2020",
+        "September 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "october 2020",
+        "October 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "november 2020",
+        "November 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "december 2020",
+        "December 2020",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+
+    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
+    if (!expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name (sample validation: first/last row, key columns).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "Data ID", "FQ2o8UBlcrS");
+    validateRowValueByName(response, actualHeaders, 0, "december 2020", "");
+
+    // Validate selected values for row index 6
+    validateRowValueByName(response, actualHeaders, 5, "Data ID", "IpHINAT79UW.wQLfBvPrXqq");
+    validateRowValueByName(response, actualHeaders, 5, "december 2020", "");
   }
 }

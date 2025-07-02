@@ -418,6 +418,7 @@ public enum ErrorCode {
   E7145("Query failed because of a syntax error"),
   E7147("Query failed because of a missing column: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
+  E7151("Too many combinations of columns or rows."),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
