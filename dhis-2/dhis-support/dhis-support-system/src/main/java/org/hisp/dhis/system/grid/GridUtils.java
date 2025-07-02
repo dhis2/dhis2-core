@@ -86,6 +86,7 @@ import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -248,6 +249,19 @@ public class GridUtils {
     table.addCell(getEmptyCell(1, (paddingTop ? 30 : 0)));
     table.addCell(getTextCell(locale, getGeneratedString()));
     addTableToDocument(document, table);
+  }
+
+  /**
+   * Adds the descriptive error message into the given {@link OutputStream}.
+   *
+   * @param error the {@link ErrorCode}.
+   * @param out the current {@link OutputStream}.
+   * @throws IOException
+   */
+  public static void error(ErrorCode error, OutputStream out) throws IOException {
+    String message = error.name() + ": " + error.getMessage();
+    byte[] bytes = message.getBytes();
+    out.write(bytes);
   }
 
   /**
