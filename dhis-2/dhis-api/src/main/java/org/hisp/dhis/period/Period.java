@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -210,8 +211,19 @@ public class Period extends BaseDimensionalItemObject {
    *
    * @return the period string
    */
+  @Nonnull
   public String getIsoDate() {
     return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
+  }
+
+  /**
+   * Only to be used by hibernate to effectively make the property write only. When moving to
+   * annotations the column can simply be mapped as write-only instead.
+   */
+  @Deprecated
+  public void setIsoPeriod(String isoPeriod) {
+    // NOOP - ISO value is a transient computed property that is only written to DB
+    // to allow matching it but should not be read back
   }
 
   /**
@@ -219,6 +231,7 @@ public class Period extends BaseDimensionalItemObject {
    *
    * @return the ISO date.
    */
+  @Nonnull
   private String getPeriodTypeIsoDate() {
     if (periodType != null) {
       return periodType.getIsoDate(this);
