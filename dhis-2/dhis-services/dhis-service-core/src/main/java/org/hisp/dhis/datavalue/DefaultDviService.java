@@ -322,7 +322,7 @@ public class DefaultDviService implements DviService {
     Map<String, List<DateRange>> entryPeriodsByIso = store.getEntryPeriodsByIsoPeriod(ds);
     // only if no explicit ranges are defined use expiry and future periods
     if (entryPeriodsByIso.isEmpty()) {
-      // - require: DS entry for period still allowed
+      // - require: DS entry for period still allowed?
       // (how much later can data be entered relative to current period)
       if (!getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
         int expiryDays = store.getDataSetExpiryDays(ds);
@@ -356,7 +356,7 @@ public class DefaultDviService implements DviService {
             throw new ConflictException(ErrorCode.E7629, ds, isoNoLongerOpen);
         }
 
-        // - require: DS entry for period already allowed
+        // - require: DS entry for period already allowed?
         // (how much earlier can data be entered relative to the current period)
         int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
         List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
@@ -371,9 +371,9 @@ public class DefaultDviService implements DviService {
         if (!isoNotYetOpen.isEmpty())
           throw new ConflictException(ErrorCode.E7629, ds, isoNotYetOpen);
       }
-
-      // - require: DS input period is open (no entering in the past)
-    } else { // empty = no limit
+    } else {
+      // - require: DS input period is open explicitly
+      // entry time-frame(s) are explicitly defined...
       Date now = new Date();
       List<String> isoNotOpen =
           values.stream()
