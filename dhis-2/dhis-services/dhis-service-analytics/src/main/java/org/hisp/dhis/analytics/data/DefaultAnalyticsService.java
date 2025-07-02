@@ -238,6 +238,7 @@ public class DefaultAnalyticsService implements AnalyticsService {
         visualization.addDimensionDescriptor(
             dimension, params.getDimension(dimension).getDimensionType());
 
+        visualization.getColumnDimensions().add(dimension);
         tableColumns.add(params.getDimensionItemsExplodeCoc(dimension));
       }
     }
@@ -248,7 +249,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getRowDimensions().add(dimension);
-
         tableRows.add(params.getDimensionItemsExplodeCoc(dimension));
       }
     }
