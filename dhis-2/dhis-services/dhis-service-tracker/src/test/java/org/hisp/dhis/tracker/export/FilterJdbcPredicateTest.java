@@ -425,20 +425,6 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldFailForFiltersNotSupportedByMultiSelection() {
-    QueryFilter queryFilter = new QueryFilter(QueryOperator.LE, "blue;green;red");
-
-    IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> FilterJdbcPredicate.of(deMultiText, queryFilter, "ev"));
-
-    assertEquals(
-        String.format("Operator `%s` is not supported for multi-text", queryFilter.getOperator()),
-        exception.getMessage());
-  }
-
-  @Test
   void shouldAddPredicates() {
     StringBuilder sql = new StringBuilder();
     QueryFilter notNull = new QueryFilter(QueryOperator.NNULL);

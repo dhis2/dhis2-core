@@ -274,8 +274,7 @@ public class FilterJdbcPredicate {
           String.format(
               "exists (select 1 from %s where %s is not null and %s <> '')",
               unnestSql, trimmed, trimmed);
-      default ->
-          "";
+      default -> "";
     };
   }
 
