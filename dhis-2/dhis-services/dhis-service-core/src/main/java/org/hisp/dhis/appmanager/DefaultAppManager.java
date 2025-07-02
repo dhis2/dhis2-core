@@ -82,8 +82,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -94,8 +92,11 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.appmanager.AppManager")
 public class DefaultAppManager implements AppManager {
   public static final String INVALID_FILTER_MSG = "Invalid filter: ";
-
   private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
+
+  @Autowired private UserService userService;
+  @Autowired private ObjectMapper jsonMapper;
+  @Autowired private LocaleManager localeManager;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
   private final AppHubService appHubService;
@@ -103,15 +104,6 @@ public class DefaultAppManager implements AppManager {
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
-
-  @Autowired private UserService userService;
-  @Autowired private ObjectMapper jsonMapper;
-
-  @Autowired private LocaleManager localeManager;
-
-  @Autowired private ResourcePatternResolver resourcePatternResolver;
-
-  @Autowired private ResourceLoader resourceLoader;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -733,6 +725,7 @@ public class DefaultAppManager implements AppManager {
         try (InputStream inputStream = resourceFound.resource().getInputStream()) {
           originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
+
         // TODO: MAS: Approval app requires this, why?
         String modifiedJsContent =
             originalJsContent.replace("url:\"..\"", "url:\"" + "../../.." + "\"");
@@ -767,7 +760,6 @@ public class DefaultAppManager implements AppManager {
       }
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
-      e.printStackTrace();
       return -1;
     }
   }
