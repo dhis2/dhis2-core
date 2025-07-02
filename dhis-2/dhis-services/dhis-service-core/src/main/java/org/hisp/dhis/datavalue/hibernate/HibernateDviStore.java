@@ -588,9 +588,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
       SELECT p.iso, ip.openingdate, ip.closingdate
       FROM datainputperiod ip
       JOIN period p ON ip.periodid = p.periodid
-      WHERE ip.datasetid = (SELECT ds.datasetid FROM dataset ds WHERE ds.uid = :ds)
-      AND p.iso IN (:iso)
-      """;
+      WHERE ip.datasetid = (SELECT ds.datasetid FROM dataset ds WHERE ds.uid = :ds)""";
     String ds = dataSet.getValue();
     @SuppressWarnings("unchecked")
     Stream<Object[]> rows = getSession().createNativeQuery(sql).setParameter("ds", ds).stream();

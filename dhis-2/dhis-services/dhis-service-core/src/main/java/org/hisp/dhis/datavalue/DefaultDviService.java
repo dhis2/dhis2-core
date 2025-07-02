@@ -94,7 +94,7 @@ public class DefaultDviService implements DviService {
       throws BadRequestException, ConflictException {
     List<ImportError> errors = new ArrayList<>();
     List<DviValue> values = completedValues(request);
-    List<DviValue> validValues = validate(options.outOfTime(), request.dataSet(), values, errors);
+    List<DviValue> validValues = validate(options.force(), request.dataSet(), values, errors);
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
     int imported = options.dryRun() ? validValues.size() : store.upsertValues(validValues);
@@ -118,7 +118,7 @@ public class DefaultDviService implements DviService {
   // 2. mark all as not assigned that are not used by any
 
   private List<DviValue> validate(
-      boolean outOfTime, UID ds, List<DviValue> values, List<ImportError> errors)
+      boolean force, UID ds, List<DviValue> values, List<ImportError> errors)
       throws ConflictException, BadRequestException {
     if (ds == null) {
       /*
@@ -135,7 +135,7 @@ public class DefaultDviService implements DviService {
 
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
-    boolean skipTimeliness = getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED) && outOfTime;
+    boolean skipTimeliness = force && getCurrentUserDetails().isSuper();
     if (!skipTimeliness) validateEntryTimeliness(ds, values);
 
     return validateValues(ds, values, errors);
