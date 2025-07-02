@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -378,6 +379,38 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(2, cocs.size());
+  }
+
+  @Test
+  void noDuplicateCocTest() {
+    // setup data
+    TestCategoryMetadata catData = setupCategoryMetadata("a");
+
+    assertEquals(4, catData.cc1().getOptionCombos().size());
+    assertEquals(5, categoryService.getAllCategoryOptionCombos().size());
+
+    // create new cat with exiting co
+    Category catNew = createCategory('s');
+    catNew.addCategoryOption(catData.co1());
+    entityManager.persist(catNew);
+
+    // create new cc with new cat + existing cat
+    CategoryCombo ccNew = createCategoryCombo('y');
+    ccNew.addCategory(catNew);
+    ccNew.addCategory(catData.c1());
+    entityManager.persist(ccNew);
+
+    // add more existing co to new c
+    catNew.addCategoryOption(catData.co2());
+    //    catNew.addCategoryOption(catData.co3());
+    entityManager.merge(catNew);
+
+    // update cocs
+    categoryService.addAndPruneAllOptionCombos();
+
+    // check expected count
+    assertEquals(4, catData.cc1().getOptionCombos().size());
+    assertEquals(8, categoryService.getAllCategoryOptionCombos().size());
   }
 
   @Test
