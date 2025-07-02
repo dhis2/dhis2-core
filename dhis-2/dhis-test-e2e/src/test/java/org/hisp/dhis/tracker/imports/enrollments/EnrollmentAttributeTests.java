@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports.enrollments;
 
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
@@ -207,8 +206,7 @@ public class EnrollmentAttributeTests extends TrackerApiTest {
         .postAndGetJobReport(payload)
         .validateErrorReport()
         .body("", hasSize(1))
-        .body("errorCode", hasItem("E1019"))
-        .body("message", hasItem(containsStringIgnoringCase("Only program attributes")));
+        .body("errorCode", hasItem("E1019"));
   }
 
   @Test

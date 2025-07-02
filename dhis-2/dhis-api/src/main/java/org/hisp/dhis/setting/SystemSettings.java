@@ -118,7 +118,8 @@ public non-sealed interface SystemSettings extends Settings {
     return LazySettings.isTranslatable(key);
   }
 
-  /** Settings used in core */
+  /* Settings used in core - all names have to start with "get" */
+
   default Locale getUiLocale() {
     return asLocale("keyUiLocale", LocaleManager.DEFAULT_LOCALE);
   }
@@ -678,6 +679,13 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
+   * @return The limit of combinations of columns and rows allowed in downloads.
+   */
+  default int getAnalyticsDownloadCombinationLimit() {
+    return asInt("keyAnalyticsDownloadCombinationLimit", 20000);
+  }
+
+  /**
    * @return Max tracked entity records that can be retrieved from database.
    */
   default int getTrackedEntityMaxLimit() {
@@ -730,16 +738,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("enforceVerifiedEmail", false);
   }
 
-  /** Combinators based on several settings. */
-  default boolean isEmailConfigured() {
-    return !getEmailHostName().isBlank() && !getEmailUsername().isBlank();
-  }
-
-  default boolean isHideUnapprovedDataInAnalytics() {
-    // -1 means approval is disabled
-    return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
-  }
-
   /**
    * @since 2.42
    * @return the minimum level required to include a notification in the list for notifications
@@ -780,7 +778,7 @@ public non-sealed interface SystemSettings extends Settings {
    * @return when true, only the first and last message are included in the message stack when
    *     listing multiple jobs in the single or all job types overview.
    */
-  default boolean isNotifierGistOverview() {
+  default boolean getNotifierGistOverview() {
     return asBoolean("notifierGistOverview", true);
   }
 
@@ -801,5 +799,16 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default boolean getAutoVerifyInvitedUserEmail() {
     return asBoolean("autoVerifyInvitedUserEmail", true);
+  }
+
+  /* Combinators based on several settings. */
+
+  default boolean isEmailConfigured() {
+    return !getEmailHostName().isBlank() && !getEmailUsername().isBlank();
+  }
+
+  default boolean isHideUnapprovedDataInAnalytics() {
+    // -1 means approval is disabled
+    return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
   }
 }

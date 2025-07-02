@@ -45,9 +45,12 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -85,6 +88,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
+  @Mock private DataElementService dataElementService;
+
   @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
@@ -113,7 +118,12 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+        new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService,
+            systemSettingsService,
+            new PostgreSqlBuilder(),
+            dataElementService);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -127,7 +137,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
-            organisationUnitResolver);
+            organisationUnitResolver,
+            columnMapper);
   }
 
   @Test

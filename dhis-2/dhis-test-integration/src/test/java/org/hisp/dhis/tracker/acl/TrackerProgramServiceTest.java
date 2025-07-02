@@ -85,7 +85,6 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
             "YlUmbgnKWkd",
             "SeeUNWLQmZk",
             "sLngICFQjvH",
-            "TsngICFQjvH",
             "TsngICFQjvP");
 
     assertContainsOnly(

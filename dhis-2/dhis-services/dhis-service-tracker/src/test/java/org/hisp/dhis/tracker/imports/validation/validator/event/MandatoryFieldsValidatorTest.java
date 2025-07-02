@@ -46,7 +46,9 @@ import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -87,9 +89,9 @@ class MandatoryFieldsValidatorTest {
   }
 
   @Test
-  void verifyEventValidationSuccess() {
+  void shouldPassValidationWhenSingleEventHasAllMandatoryFields() {
     Event event =
-        Event.builder()
+        SingleEvent.builder()
             .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
@@ -102,9 +104,25 @@ class MandatoryFieldsValidatorTest {
   }
 
   @Test
+  void shouldPassValidationWhenTrackerEventHasAllMandatoryFields() {
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .enrollment(UID.generate())
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
   void verifyEventValidationFailsOnMissingProgram() {
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
@@ -117,12 +135,13 @@ class MandatoryFieldsValidatorTest {
   }
 
   @Test
-  void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram() {
+  void shouldFailValidationWhenEventIsMissingProgramStageReferenceToProgram() {
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .enrollment(UID.generate())
             .build();
     ProgramStage programStage = new ProgramStage();
     programStage.setUid(event.getProgramStage().getIdentifier());
@@ -138,7 +157,7 @@ class MandatoryFieldsValidatorTest {
   @Test
   void verifyEventValidationFailsOnMissingProgramStage() {
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .programStage(MetadataIdentifier.EMPTY_UID)
@@ -151,9 +170,25 @@ class MandatoryFieldsValidatorTest {
   }
 
   @Test
+  void shouldFailValidatiWhenTrackerEventIsMissingEnrollment() {
+    Event event =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .enrollment(null)
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertMissingProperty(reporter, event, "enrollment");
+  }
+
+  @Test
   void verifyEventValidationFailsOnMissingOrgUnit() {
     Event event =
-        Event.builder()
+        TrackerEvent.builder()
             .event(UID.generate())
             .orgUnit(MetadataIdentifier.EMPTY_UID)
             .programStage(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))

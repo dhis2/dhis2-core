@@ -97,9 +97,8 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
   public List<SMSCode> getCodesByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-            from SMSCode s
-            where s.dataElement in :dataElements
-            """,
+        from SMSCode s \
+        where s.dataElement in :dataElements""",
             SMSCode.class)
         .setParameter("dataElements", dataElements)
         .list();
@@ -110,10 +109,9 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
     if (uids.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct sms from SMSCode sms
-            join sms.optionId coc
-            where coc.uid in :uids
-            """,
+        select distinct sms from SMSCode sms \
+        join sms.optionId coc \
+        where coc.uid in :uids""",
             SMSCode.class)
         .setParameter("uids", UID.toValueList(uids))
         .list();

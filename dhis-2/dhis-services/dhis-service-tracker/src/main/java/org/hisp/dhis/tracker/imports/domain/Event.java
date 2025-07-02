@@ -30,82 +30,78 @@
 package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Event implements TrackerDto, Serializable {
-  @Nonnull @JsonProperty private UID event;
-
-  @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
-
-  @JsonProperty private MetadataIdentifier program;
-
-  @JsonProperty private MetadataIdentifier programStage;
-
-  @JsonProperty private UID enrollment;
-
-  @JsonProperty private MetadataIdentifier orgUnit;
-
-  @JsonProperty private Instant occurredAt;
-
-  @JsonProperty private Instant scheduledAt;
-
-  @JsonProperty private String storedBy;
-
-  @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAtClient;
-
-  @JsonProperty private MetadataIdentifier attributeOptionCombo;
-
-  @JsonProperty @Builder.Default
-  private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
-
-  @JsonProperty private Instant completedAt;
-
-  @JsonProperty private Geometry geometry;
-
-  @JsonProperty private User assignedUser;
-
-  @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
-
-  @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
-
-  @JsonIgnore
-  public boolean isCreatableInSearchScope() {
-    return this.getStatus() == EventStatus.SCHEDULE
-        && this.getDataValues().isEmpty()
-        && this.occurredAt == null;
-  }
+@JsonDeserialize(as = TrackerEvent.class)
+@JsonSerialize(as = TrackerEvent.class)
+public interface Event extends TrackerDto, Serializable {
 
   @Override
-  public UID getUid() {
-    return this.event;
-  }
-
-  @Override
-  public TrackerType getTrackerType() {
+  default TrackerType getTrackerType() {
     return TrackerType.EVENT;
   }
+
+  UID getEvent();
+
+  EventStatus getStatus();
+
+  MetadataIdentifier getProgram();
+
+  MetadataIdentifier getProgramStage();
+
+  UID getEnrollment();
+
+  MetadataIdentifier getOrgUnit();
+
+  Instant getOccurredAt();
+
+  Instant getScheduledAt();
+
+  String getStoredBy();
+
+  Instant getCreatedAtClient();
+
+  Instant getUpdatedAtClient();
+
+  MetadataIdentifier getAttributeOptionCombo();
+
+  Set<MetadataIdentifier> getAttributeCategoryOptions();
+
+  Instant getCompletedAt();
+
+  Geometry getGeometry();
+
+  User getAssignedUser();
+
+  Set<DataValue> getDataValues();
+
+  List<Note> getNotes();
+
+  @JsonIgnore
+  default boolean isCreatableInSearchScope() {
+    return this.getStatus() == EventStatus.SCHEDULE
+        && this.getDataValues().isEmpty()
+        && this.getOccurredAt() == null;
+  }
+
+  void setEnrollment(UID of);
+
+  void setStatus(EventStatus eventStatus);
+
+  void setProgram(MetadataIdentifier metadataIdentifier);
+
+  void setProgramStage(MetadataIdentifier metadataIdentifier);
+
+  void setAttributeOptionCombo(MetadataIdentifier categoryOptionComboIdentifier);
+
+  void setNotes(List<Note> notes);
 }

@@ -46,6 +46,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -56,6 +58,7 @@ import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,18 +85,19 @@ public class UserSettingsController {
   private final UserService userService;
 
   @GetMapping
-  public @ResponseBody UserSettings getAllUserSettings(
+  @OpenApi.Response(UserSettings.class)
+  public @ResponseBody ResponseEntity<JsonMap<JsonMixed>> getAllUserSettings(
+      @RequestParam(required = false) Set<String> key,
       @RequestParam(required = false, defaultValue = "true") boolean useFallback,
       @RequestParam(value = "user", required = false) String username,
       @OpenApi.Param({UID.class, User.class}) @RequestParam(value = "userId", required = false)
-          String userId,
-      HttpServletResponse response)
+          String userId)
       throws ForbiddenException, NotFoundException {
 
-    response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
-
-    return getUserSettings(userId, username, useFallback);
+    UserSettings settings = getUserSettings(userId, username, useFallback);
+    JsonMap<JsonMixed> res =
+        key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
+    return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
   }
 
   @GetMapping(value = "/{key}")

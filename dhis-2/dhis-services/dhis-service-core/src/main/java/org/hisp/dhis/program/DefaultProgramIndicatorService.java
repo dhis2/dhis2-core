@@ -68,7 +68,7 @@ import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
-import org.hisp.dhis.system.util.SqlUtils;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,6 +96,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
   private final SqlBuilder sqlBuilder;
 
+  private final SystemSettingsService settingsService;
+
   @Getter private final ImmutableMap<Integer, ExpressionItem> programIndicatorItems;
 
   public DefaultProgramIndicatorService(
@@ -108,7 +110,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       DimensionService dimensionService,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      SystemSettingsService settingsService) {
     checkNotNull(programIndicatorStore);
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
@@ -118,6 +121,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
     checkNotNull(sqlBuilder);
+    checkNotNull(settingsService);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;
@@ -128,6 +132,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.i18nManager = i18nManager;
     this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
     this.sqlBuilder = sqlBuilder;
+    this.settingsService = settingsService;
 
     this.programIndicatorItems = new ExpressionMapBuilder().getExpressionItemMap();
   }
@@ -385,7 +390,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       String sql = StringUtils.EMPTY;
 
       for (String uid : uids) {
-        sql += SqlUtils.quote(uid) + " is not null or ";
+
+        sql += sqlBuilder.quote(uid) + " is not null or ";
       }
 
       return TextUtils.removeLastOr(sql).trim();
@@ -456,6 +462,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .params(params)
         .progParams(progParams)
         .sqlBuilder(sqlBuilder)
+        .useExperimentalSqlEngine(
+            this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine())
         .state(ExpressionState.builder().replaceNulls(replaceNulls).build())
         .build();
   }

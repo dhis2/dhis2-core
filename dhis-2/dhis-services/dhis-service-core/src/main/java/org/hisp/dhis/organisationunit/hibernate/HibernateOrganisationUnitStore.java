@@ -100,12 +100,11 @@ public class HibernateOrganisationUnitStore
 
   private static String getOrgUnitTablesUids(String username, String orgUnitTableName) {
     return """
-        SELECT ou.uid
-        FROM organisationunit ou
-                 JOIN %s um ON ou.organisationunitid = um.organisationunitid
-                 JOIN userinfo ui ON um.userinfoid = ui.userinfoid
-        WHERE ui.username = '%s';
-        """
+        select ou.uid
+        from organisationunit ou
+        join %s um ON ou.organisationunitid = um.organisationunitid
+        join userinfo ui ON um.userinfoid = ui.userinfoid
+        where ui.username = '%s';"""
         .formatted(orgUnitTableName, username);
   }
 
@@ -336,10 +335,9 @@ public class HibernateOrganisationUnitStore
     if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct ou from OrganisationUnit ou
-            join ou.categoryOptions co
-            where co.uid in :categoryOptions
-            """,
+            select distinct ou from OrganisationUnit ou \
+            join ou.categoryOptions co \
+            where co.uid in :categoryOptions""",
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();

@@ -137,8 +137,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     String sql =
         """
         update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
-        where eventdatavalues::jsonb ?| array[%s];
-        """
+        where eventdatavalues::jsonb ?| array[%s];"""
             .formatted(sourceUidsString, sourceUidsInSingleQuotesString);
     log.debug("Event data values deleting SQL query to be used: \n{}", sql);
     jdbcTemplate.update(sql);
@@ -151,8 +150,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
         """
         update event
         set attributeoptioncomboid = %s
-        where attributeoptioncomboid in (%s)
-        """
+        where attributeoptioncomboid in (%s)"""
             .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
     entityManager.createNativeQuery(sql).executeUpdate();

@@ -49,6 +49,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -56,11 +57,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestBase {
+  @Autowired TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
   private User importUser;
 
   private Event event;
@@ -86,6 +89,10 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType);
+    trackedEntityType
+        .getSharing()
+        .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
+    manager.update(trackedEntityType);
 
     ProgramStage programStage = createProgramStage('A', program);
     programStage
@@ -101,6 +108,8 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     event = event(enrollment, programStage, coc);
     enrollment.setEvents(Set.of(event));
     manager.update(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, program, orgUnit);
   }
 
   @BeforeEach
@@ -170,7 +179,6 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         POST(
                 "/tracker/enrollments/" + enrollment.getUid() + "/note",
                 """
-
                         {
                            "creator": "I am the creator"
                         }
@@ -187,7 +195,6 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         POST(
                 "/tracker/enrollments/" + enrollment.getUid() + "/note",
                 """
-
                         {
                            "value": "This is a note"
                         }
@@ -206,7 +213,6 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         POST(
                 "/tracker/enrollments/" + enrollment.getUid() + "/note",
                 """
-
                         {
                            "note": "%s",
                            "value": "This is a note"

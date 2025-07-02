@@ -105,23 +105,24 @@ public class HibernateEventChangeLogStore {
 
     String hql =
         """
-          select ecl.event,
-                 ecl.dataElement,
-                 ecl.eventField,
-                 ecl.previousValue,
-                 ecl.currentValue,
-                 ecl.changeLogType,
-                 ecl.created,
-                 ecl.createdByUsername,
-                 u.firstName,
-                 u.surname,
-                 u.uid
-          from EventChangeLog ecl
-          join ecl.event e
-          left join ecl.dataElement d
-          left join ecl.createdBy u
-          where e.uid = :eventUid
-      """;
+        select \
+            ecl.event, \
+            ecl.dataElement, \
+            ecl.eventField, \
+            ecl.previousValue, \
+            ecl.currentValue, \
+            ecl.changeLogType, \
+            ecl.created, \
+            ecl.createdByUsername, \
+            u.firstName, \
+            u.surname, \
+            u.uid \
+        from EventChangeLog ecl \
+        join ecl.event e \
+        left join ecl.dataElement d \
+        left join ecl.createdBy u \
+        where e.uid = :eventUid
+        """;
 
     if (filter != null) {
       String filterField =

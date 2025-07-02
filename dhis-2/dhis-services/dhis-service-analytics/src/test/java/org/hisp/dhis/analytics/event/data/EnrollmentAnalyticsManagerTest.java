@@ -66,6 +66,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -73,7 +74,9 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -122,6 +125,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private SystemSettingsService systemSettingsService;
 
+  @Mock private DataElementService dataElementService;
+
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
   @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
@@ -153,8 +158,13 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+        new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService,
+            systemSettingsService,
+            new PostgreSqlBuilder(),
+            dataElementService);
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -168,7 +178,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
-            organisationUnitResolver);
+            organisationUnitResolver,
+            columnMapper);
   }
 
   @Test

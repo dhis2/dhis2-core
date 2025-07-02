@@ -34,20 +34,19 @@ import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
 import static org.hisp.dhis.feedback.ErrorCode.E7147;
+import static org.hisp.dhis.feedback.ErrorCode.E7151;
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -63,6 +62,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
@@ -84,6 +84,8 @@ public class DefaultAnalyticsService implements AnalyticsService {
   private final AnalyticsCache analyticsCache;
 
   private final DataAggregator dataAggregator;
+
+  private final SystemSettingsProvider settingsProvider;
 
   // -------------------------------------------------------------------------
   // AnalyticsService implementation
@@ -231,8 +233,6 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
     List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
     List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
-    Map<String, List<DimensionalItemObject>> columnsDimensionItemsByDimension = new HashMap<>();
-    Map<String, List<DimensionalItemObject>> rowsDimensionItemsByDimension = new HashMap<>();
 
     if (columns != null) {
       for (String dimension : columns) {
@@ -240,10 +240,7 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getColumnDimensions().add(dimension);
-        List<DimensionalItemObject> dimensionItemsExplodeCoc =
-            params.getDimensionItemsExplodeCoc(dimension);
-        columnsDimensionItemsByDimension.put(dimension, dimensionItemsExplodeCoc);
-        tableColumns.add(dimensionItemsExplodeCoc);
+        tableColumns.add(params.getDimensionItemsExplodeCoc(dimension));
       }
     }
 
@@ -253,32 +250,22 @@ public class DefaultAnalyticsService implements AnalyticsService {
             dimension, params.getDimension(dimension).getDimensionType());
 
         visualization.getRowDimensions().add(dimension);
-
-        List<DimensionalItemObject> dimensionItemsExplodeCoc =
-            params.getDimensionItemsExplodeCoc(dimension);
-        rowsDimensionItemsByDimension.put(dimension, dimensionItemsExplodeCoc);
-        tableRows.add(dimensionItemsExplodeCoc);
+        tableRows.add(params.getDimensionItemsExplodeCoc(dimension));
       }
     }
 
-    List<List<DimensionalItemObject>> gridColumns =
-        Optional.ofNullable(columns)
-            .map(cols -> getGridItems(grid, columnsDimensionItemsByDimension, cols))
-            .filter(CollectionUtils::isNotEmpty)
-            .map(this::reorderItems)
-            .orElseGet(() -> CombinationGenerator.newInstance(tableColumns).getCombinations());
+    CombinationGenerator<DimensionalItemObject> columnsCombination =
+        CombinationGenerator.newInstance(tableColumns);
+    checkCombinationLimit(columnsCombination);
 
-    List<List<DimensionalItemObject>> gridRows =
-        Optional.ofNullable(rows)
-            .map(rws -> getGridItems(grid, rowsDimensionItemsByDimension, rws))
-            .filter(CollectionUtils::isNotEmpty)
-            .map(this::reorderItems)
-            .orElseGet(() -> CombinationGenerator.newInstance(tableRows).getCombinations());
+    CombinationGenerator<DimensionalItemObject> rowsCombination =
+        CombinationGenerator.newInstance(tableRows);
+    checkCombinationLimit(rowsCombination);
 
     visualization
         .setGridTitle(IdentifiableObjectUtils.join(params.getFilterItems()))
-        .setGridColumns(gridColumns)
-        .setGridRows(gridRows);
+        .setGridColumns(columnsCombination.getCombinations())
+        .setGridRows(rowsCombination.getCombinations());
 
     addListIfEmpty(visualization.getGridColumns());
     addListIfEmpty(visualization.getGridRows());
@@ -296,13 +283,20 @@ public class DefaultAnalyticsService implements AnalyticsService {
         false);
   }
 
-  private List<List<DimensionalItemObject>> reorderItems(
-      List<List<DimensionalItemObject>> alternateItems) {
-    return alternateItems.stream().sorted(this::compareItems).toList();
-  }
+  /**
+   * Simply checks the limit of combination allowed for the given combination object.
+   *
+   * @param combinationGenerator the combination object.
+   * @throws IllegalQueryException if the limit allowance is not respected.
+   */
+  private void checkCombinationLimit(
+      CombinationGenerator<DimensionalItemObject> combinationGenerator) {
+    final int combinationLimit =
+        settingsProvider.getCurrentSettings().getAnalyticsDownloadCombinationLimit();
 
-  private int compareItems(List<DimensionalItemObject> dio, List<DimensionalItemObject> other) {
-    return dio.get(0).getDisplayName().compareTo(other.get(0).getDisplayName());
+    if (combinationGenerator.countCombinations() > combinationLimit) {
+      throwIllegalQueryEx(E7151);
+    }
   }
 
   /**

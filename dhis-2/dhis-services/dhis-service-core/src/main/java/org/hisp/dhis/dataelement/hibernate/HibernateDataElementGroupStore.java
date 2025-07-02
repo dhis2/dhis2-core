@@ -56,11 +56,10 @@ public class HibernateDataElementGroupStore
   public List<DataElementGroup> getByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-              select deg from DataElementGroup deg
-              join deg.members m
-              where m in :dataElements
-              group by deg.id
-            """)
+            select deg from DataElementGroup deg \
+            join deg.members m \
+            where m in :dataElements \
+            group by deg.id""")
         .setParameter("dataElements", dataElements)
         .getResultList();
   }

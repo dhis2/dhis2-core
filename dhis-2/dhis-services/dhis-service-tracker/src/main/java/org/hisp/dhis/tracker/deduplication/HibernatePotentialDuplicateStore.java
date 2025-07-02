@@ -66,9 +66,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -86,6 +88,8 @@ class HibernatePotentialDuplicateStore
 
   private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
 
+  private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
+
   private final DhisConfigurationProvider config;
 
   public HibernatePotentialDuplicateStore(
@@ -95,10 +99,12 @@ class HibernatePotentialDuplicateStore
       AclService aclService,
       AuditManager auditManager,
       HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore,
+      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore,
       DhisConfigurationProvider config) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
     this.auditManager = auditManager;
     this.hibernateTrackedEntityChangeLogStore = hibernateTrackedEntityChangeLogStore;
+    this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
     this.config = config;
   }
 
@@ -174,9 +180,9 @@ class HibernatePotentialDuplicateStore
     NativeQuery<BigInteger> query =
         nativeSynchronizedQuery(
             """
-            select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
-             :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
-             pd.duplicate = :original)""");
+            select count(potentialduplicateid) from potentialduplicate pd where (pd.original = \
+            :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and \
+            pd.duplicate = :original)""");
 
     query.setParameter("original", potentialDuplicate.getOriginal().getValue());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());
@@ -290,6 +296,11 @@ class HibernatePotentialDuplicateStore
               UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails()));
           e.setLastUpdated(new Date());
           getSession().update(e);
+          TrackedEntityProgramOwner trackedEntityProgramOwner =
+              trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
+                  duplicate, e.getProgram());
+          trackedEntityProgramOwner.setTrackedEntity(original);
+          trackedEntityProgramOwnerStore.update(trackedEntityProgramOwner);
         });
 
     // Flush to update records before we delete duplicate, or else it might

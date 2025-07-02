@@ -57,6 +57,7 @@ public class ProgramStageDataElement extends BaseIdentifiableObject implements E
 
   private Boolean allowProvidedElsewhere = false;
 
+  /** Sort order of data element within program stage. */
   private Integer sortOrder;
 
   private Boolean displayInReports = false;
@@ -242,24 +243,26 @@ public class ProgramStageDataElement extends BaseIdentifiableObject implements E
 
   @Override
   public String toString() {
-    return "ProgramStageDataElement{"
-        + "programStage="
-        + programStage
-        + ", dataElement="
-        + dataElement
-        + ", compulsory="
-        + compulsory
-        + ", allowProvidedElsewhere="
-        + allowProvidedElsewhere
-        + ", sortOrder="
-        + sortOrder
-        + ", displayInReports="
-        + displayInReports
-        + ", allowFutureDate="
-        + allowFutureDate
-        + ", renderOptionsAsRadio="
-        + renderOptionsAsRadio
-        + '}';
+    return String.format(
+        """
+        ProgramStageDataElement{
+          programStage=%s,
+          dataElement=%s,
+          compulsory=%s,
+          allowProvidedElsewhere=%s,
+          sortOrder=%s,
+          displayInReports=%s,
+          allowFutureDate=%s,
+          renderOptionsAsRadio=%s
+        }""",
+        programStage,
+        dataElement,
+        compulsory,
+        allowProvidedElsewhere,
+        sortOrder,
+        displayInReports,
+        allowFutureDate,
+        renderOptionsAsRadio);
   }
 
   public static final BiFunction<ProgramStageDataElement, ProgramStage, ProgramStageDataElement>

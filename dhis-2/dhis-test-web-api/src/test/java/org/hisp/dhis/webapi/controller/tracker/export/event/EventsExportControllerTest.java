@@ -86,6 +86,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -110,6 +111,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private FileResourceContentStore fileResourceContentStore;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private CategoryOptionCombo coc;
 
@@ -190,7 +193,10 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .content(HttpStatus.OK)
             .as(JsonEvent.class);
     JsonList<JsonEvent> queryEvents =
-        GET("/tracker/events?fields=*&events={id}", event.getUid())
+        GET(
+                "/tracker/events?fields=*&events={id}&program={programUid}",
+                event.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class);
 
@@ -272,7 +278,10 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=false", from.getUid())
+        GET(
+                "/tracker/events/?events={id}&program={programUid}&fields=relationships&includeDeleted=false",
+                from.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class)
             .get(0)
@@ -290,7 +299,10 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=true", from.getUid())
+        GET(
+                "/tracker/events/?events={id}&fields=relationships&includeDeleted=true&program={programUid}",
+                from.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class)
             .get(0)
@@ -329,7 +341,10 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/?events={id}&fields=relationships", to.getUid())
+        GET(
+                "/tracker/events/?events={id}&program={programUid}&fields=relationships",
+                to.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class)
             .get(0)
@@ -441,8 +456,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     JsonList<JsonEvent> events =
         GET(
-                "/tracker/events?trackedEntity={te}&includeDeleted=true&fields=deleted,trackedEntity",
-                te.getUid())
+                "/tracker/events?trackedEntity={te}&program={programUid}&includeDeleted=true&fields=deleted,trackedEntity",
+                te.getUid(),
+                program.getUid())
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class);
 
@@ -962,6 +978,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     result.setOccurredDate(new Date());
     result.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(result);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        te, program, te.getOrganisationUnit());
     return result;
   }
 

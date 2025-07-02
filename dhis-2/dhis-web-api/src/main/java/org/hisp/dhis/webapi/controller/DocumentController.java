@@ -48,6 +48,7 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,8 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
     Document document = documentService.getDocument(uid);
 
     if (document == null) {
-      throw new WebMessageException(notFound("Document not found for uid: " + uid));
+      throw new WebMessageException(
+          notFound(String.format("Document not found or not accessible: '%s'", uid)));
     }
 
     if (document.isExternal()) {
@@ -99,11 +101,9 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
 
       try {
         fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
-      } catch (IOException e) {
+      } catch (IOException ex) {
         throw new WebMessageException(
-            error(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+            error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
       }
     } else {
       contextUtils.configureResponse(
@@ -111,18 +111,15 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
           document.getContentType(),
           CacheStrategy.CACHE_TWO_WEEKS,
           document.getUrl(),
-          document.getAttachment() == null ? false : document.getAttachment());
+          document.isAttachmentDefaultFalse());
 
       try (InputStream in =
           locationManager.getInputStream(document.getUrl(), DocumentService.DIR)) {
         IOUtils.copy(in, response.getOutputStream());
-      } catch (IOException e) {
-        log.error("Could not retrieve file.", e);
+      } catch (IOException ex) {
+        log.error("Could not retrieve file", ex);
         throw new WebMessageException(
-            error(
-                "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. "
-                    + "Depending on the provider the root cause could be network or file system related."));
+            error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
       }
     }
   }

@@ -1,0 +1,15 @@
+{
+  "type": "program_indicator",
+  "code": "PI_EVENT_STATUS",
+  "aggregationType":"COUNT",
+  "expression":"(#{A03MvHHogjR.UXz7xuGCEhU}/100)",
+  "filter":"V{event_status} == 'ACTIVE'",
+  "name":"ENROLLMENT_EVENT_STATUS_FILTER",
+  "analyticsType":"ENROLLMENT",
+  "shortName":"ENROLLMENT_EVENT_STATUS_FILTER",
+  "program":{
+    "id":"IpHINAT79UW"
+  },
+  "analyticsPeriodBoundaries": [],
+  "legendSets": []
+}

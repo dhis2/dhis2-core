@@ -81,6 +81,8 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
 
   private SqlBuilder sqlBuilder;
 
+  private boolean useExperimentalSqlEngine;
+
   /**
    * A {@link Supplier} object that can return a {@link I18n} instance when needed. This is done
    * because retrieving a {@link I18n} instance can be expensive and is not needed for most parsing
@@ -130,6 +132,7 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
       ProgramStageService programStageService,
       TrackedEntityAttributeService attributeService,
       SqlBuilder sqlBuilder,
+      boolean useExperimentalSqlEngine,
       Supplier<I18n> i18nSupplier,
       Map<String, Constant> constantMap,
       Map<Integer, ExpressionItem> itemMap,
@@ -149,6 +152,7 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
     this.programStageService = programStageService;
     this.attributeService = attributeService;
     this.sqlBuilder = sqlBuilder;
+    this.useExperimentalSqlEngine = useExperimentalSqlEngine;
     this.i18nSupplier = i18nSupplier;
     this.constantMap = constantMap != null ? constantMap : new HashMap<>();
     this.itemMap = itemMap;

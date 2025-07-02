@@ -73,7 +73,7 @@ import org.springframework.security.access.AccessDeniedException;
  * @author bobj
  */
 @Slf4j
-public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
+public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     extends SharingHibernateGenericStoreImpl<T> implements GenericDimensionalObjectStore<T> {
   private static final Set<String> EXISTS_BY_USER_PROPERTIES = Set.of("createdBy", "lastUpdatedBy");
 

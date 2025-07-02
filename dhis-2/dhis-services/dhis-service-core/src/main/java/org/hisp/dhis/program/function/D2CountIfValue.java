@@ -41,6 +41,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  * @author Jim Grace
  */
 public class D2CountIfValue extends ProgramCountFunction {
+
+  static final String FUNCTION_NAME = "countIfValue";
+
   @Override
   public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
     Object programStageElement = getProgramStageElementDescription(ctx, visitor);
@@ -58,5 +61,10 @@ public class D2CountIfValue extends ProgramCountFunction {
   public String getConditionSql(
       ExprContext ctx, CommonExpressionVisitor visitor, String baseColumn) {
     return baseColumn + " = " + visitor.visit(ctx.expr(0));
+  }
+
+  @Override
+  protected String getFunctionName() {
+    return FUNCTION_NAME;
   }
 }

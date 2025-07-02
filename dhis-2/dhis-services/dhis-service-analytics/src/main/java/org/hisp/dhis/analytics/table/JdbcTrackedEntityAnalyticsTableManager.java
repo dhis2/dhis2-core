@@ -33,6 +33,8 @@ import static java.lang.String.join;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -64,6 +66,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -104,12 +107,13 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsPostgresJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      ColumnMapper columnMapper,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -122,6 +126,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
+        columnMapper,
         sqlBuilder);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -196,6 +201,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                       .dataType(BOOLEAN)
                       .selectExpression(
                           replaceQualify(
+                              sqlBuilder,
                               enrolledInProgramExpression,
                               Map.of("programId", String.valueOf(program.getId()))))
                       .build()));
@@ -217,7 +223,8 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                         .name(tea.getUid())
                         .dataType(getColumnType(tea.getValueType(), isGeospatialSupport()))
                         .selectExpression(
-                            getColumnExpression(tea.getValueType(), quote(tea.getUid()) + ".value"))
+                            columnMapper.getColumnExpression(
+                                tea.getValueType(), quote(tea.getUid()) + ".value"))
                         .build())
             .toList());
 
@@ -306,6 +313,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
             \sfrom ${trackedentity} te \
             left join analytics_rs_orgunitstructure ous on te.organisationunitid=ous.organisationunitid \
@@ -321,6 +329,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
           tea ->
               sql.append(
                   replaceQualify(
+                      sqlBuilder,
                       """
                       \s left join trackedentityattributevalue ${teaUid} on ${teaUid}.trackedentityid=te.trackedentityid \
                       and ${teaUid}.trackedentityattributeid = ${teaId}""",
@@ -331,6 +340,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     sql.append(
         replaceQualify(
+            sqlBuilder,
             """
             \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \

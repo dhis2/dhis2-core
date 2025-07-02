@@ -176,6 +176,20 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "tableLayoutKeepOrderOfColumnsHeaders",
+      "query": "/api/analytics.json?dimension=dx:Uvn6LCg7dVU;OdiHJayrsKo;sB79w2hiLp8;cYeuwXTCPkU&dimension=pe:LAST_12_MONTHS&tableLayout=true&columns=dx&rows=pe&skipRounding=false&completedOnly=false&filter=ou:USER_ORGUNIT&relativePeriodDate=2023-01-01",
+      "version": {
+        "min": 39
+      }
+    },
+    {
+      "name": "tableLayoutDownloadPivotTable",
+      "query": "/api/analytics.json?dimension=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112;202201;202202;202203;202204;202205;202206;202207;202208;202209;202210;202211;202212;202001;202002;202003;202004;202005;202006;202007;202008;202009;202010;202011;202012&dimension=dx:FQ2o8UBlcrS;GSae40Fyppf;dSBYyCUjCXd;RUv0hqER0zV;IpHINAT79UW.cejWyOfXge6;IpHINAT79UW.wQLfBvPrXqq&dimension=ou:ImspTQPwCqd;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN&tableLayout=true&columns=pe&rows=dx;ou&skipRounding=false&completedOnly=false",
+      "version": {
+        "min": 39
+      }
     }
   ]
 }

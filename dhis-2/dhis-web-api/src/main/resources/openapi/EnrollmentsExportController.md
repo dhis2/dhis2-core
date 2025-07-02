@@ -25,13 +25,13 @@ for how to use it.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledAfter`
 
-Get enrollments with an enrollment date after the given date and time. This parameter is inclusive, 
-so results with the exact date and time specified will be included in the response.
+Get enrollments enrolled after the given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
-Get enrollments with an enrollment date before the given date and time. This parameter is inclusive, 
-so results with the exact date and time specified will be included in the response.
+Get enrollments enrolled before the given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrollments`
 
@@ -42,9 +42,7 @@ with commas.
 
 ### `*.parameter.EnrollmentRequestParams.followUp`
 
-Get enrollments with the given follow-up status. When set to true, only enrollments marked for 
-follow-up will be returned. When set to false, only enrollments not marked for follow-up will be 
-returned.
+Get enrollments with the given follow-up status.
 
 ### `*.parameter.EnrollmentRequestParams.includeDeleted`
 
@@ -92,15 +90,11 @@ Get enrollments with the specified status.
 
 ### `*.parameter.EnrollmentRequestParams.programStatus`
 
-Get enrollments with the given status.
+Get enrollments with the specified status.
 
 **DEPRECATED as of 2.42:** Use parameter `status` instead.
 
 See `status` for details on valid statuses.
-
-### `*.parameter.EnrollmentRequestParams.trackedEntityType`
-
-Get enrollments of tracked entities of the specified tracked entity type. 
 
 ### `*.parameter.EnrollmentRequestParams.trackedEntity`
 
@@ -109,8 +103,9 @@ Get enrollments of the tracked entity with the specified UID.
 ### `*.parameter.EnrollmentRequestParams.updatedAfter`
 
 Get enrollments updated after the given date and time. An enrollment is considered updated if 
-any of its attributes, events or relationships have been modified. This parameter is inclusive, so 
-results with the exact date and time specified will be included in the response.
+any of its attributes, events or relationships have been modified.
+This parameter is inclusive, so results with the exact date and time specified will be included
+in the response.
 
 ### `*.parameter.EnrollmentRequestParams.updatedWithin`
 

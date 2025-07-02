@@ -117,7 +117,7 @@ public class MetadataImportJob implements Job {
       }
 
       notifier.addJobSummary(config, report, ImportReport.class);
-      Stats count = report.getAccumulatedStats();
+      Stats count = report.getStats();
       Consumer<String> endProcess =
           report.getStatus() == Status.ERROR ? progress::failedProcess : progress::completedProcess;
       endProcess.accept(

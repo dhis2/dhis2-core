@@ -49,6 +49,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Error;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -105,7 +107,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     assertIsEmpty(reporter.getErrors());
   }
@@ -128,7 +130,7 @@ class RepeatedEventsValidatorTest extends TestBase {
         .thenReturn(true);
     bundle.setEvents(List.of(event));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     // then
     assertHasError(
@@ -137,7 +139,7 @@ class RepeatedEventsValidatorTest extends TestBase {
         E1039,
         "ProgramStage: `"
             + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
-            + "`, is not repeatable and an event already exists.");
+            + "` is not repeatable and an Event already exists.");
   }
 
   @Test
@@ -149,7 +151,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     assertAll(
         () ->
@@ -159,7 +161,7 @@ class RepeatedEventsValidatorTest extends TestBase {
                 E1039,
                 "ProgramStage: `"
                     + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
-                    + "`, is not repeatable and an event already exists."),
+                    + "` is not repeatable and an Event already exists."),
         () ->
             assertHasError(
                 reporter,
@@ -167,7 +169,7 @@ class RepeatedEventsValidatorTest extends TestBase {
                 E1039,
                 "ProgramStage: `"
                     + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
-                    + "`, is not repeatable and an event already exists."));
+                    + "` is not repeatable and an Event already exists."));
   }
 
   @Test
@@ -179,7 +181,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     assertIsEmpty(reporter.getErrors());
   }
@@ -196,7 +198,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     reporter.addError(
         new Error("", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid(), List.of()));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     assertFalse(reporter.hasErrorReport(e -> E1039 == e.getErrorCode()));
   }
@@ -213,23 +215,20 @@ class RepeatedEventsValidatorTest extends TestBase {
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void testTwoProgramEventsInSameProgramStageArePassingValidation() {
-    when(preheat.getProgramStage(
-            MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION)))
-        .thenReturn(notRepeatebleProgramStageWithoutRegistration());
-    Event eventProgramA = programEvent();
-    Event eventProgramB = programEvent();
+  void testTwoSingleEventsInSameProgramStageArePassingValidation() {
+    Event eventProgramA = singleEvent();
+    Event eventProgramB = singleEvent();
     List<Event> events = List.of(eventProgramA, eventProgramB);
     bundle.setEvents(events);
     events.forEach(e -> bundle.setStrategy(e, TrackerImportStrategy.CREATE_AND_UPDATE));
 
-    validator.validate(reporter, bundle, bundle.getEvents());
+    validator.validate(reporter, bundle, bundle.getTrackerEvents());
 
     assertIsEmpty(reporter.getErrors());
   }
@@ -248,47 +247,33 @@ class RepeatedEventsValidatorTest extends TestBase {
     return programStage;
   }
 
-  private ProgramStage notRepeatebleProgramStageWithoutRegistration() {
-    ProgramStage programStage = createProgramStage('A', 1, false);
-    programStage.setUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION);
-    programStage.setProgram(programWithoutRegistration());
-    return programStage;
-  }
-
   private Program programWithRegistration() {
     Program program = createProgram('A');
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     return program;
   }
 
-  private Program programWithoutRegistration() {
-    Program program = createProgram('B');
-    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    return program;
-  }
-
-  private Event programEvent() {
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setEnrollment(ENROLLMENT_B);
-    event.setProgramStage(
-        MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION));
-    return event;
+  private SingleEvent singleEvent() {
+    return SingleEvent.builder()
+        .event(UID.generate())
+        .enrollment(ENROLLMENT_B)
+        .programStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION))
+        .build();
   }
 
   private Event notRepeatableEvent() {
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setEnrollment(ENROLLMENT_A);
-    event.setProgramStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION));
-    return event;
+    return TrackerEvent.builder()
+        .event(UID.generate())
+        .enrollment(ENROLLMENT_A)
+        .programStage(MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION))
+        .build();
   }
 
   private Event repeatableEvent() {
-    Event event = new Event();
-    event.setEvent(UID.generate());
-    event.setEnrollment(ENROLLMENT_A);
-    event.setProgramStage(MetadataIdentifier.ofUid(REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION));
-    return event;
+    return TrackerEvent.builder()
+        .event(UID.generate())
+        .enrollment(ENROLLMENT_A)
+        .programStage(MetadataIdentifier.ofUid(REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION))
+        .build();
   }
 }

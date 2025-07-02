@@ -160,7 +160,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
    *     incremented by one day if the boundary is one of the end-type boundaries.
    */
   public Date getBoundaryDate(Date reportingStartDate, Date reportingEndDate) {
-    Date returnDate = null;
+    Date returnDate;
 
     if (analyticsPeriodBoundaryType.equals(
             AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD)

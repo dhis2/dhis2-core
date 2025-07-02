@@ -67,7 +67,7 @@ public class ImportReportWebMessageResponse implements WebMessageResponse {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Stats getStats() {
-    return importReport.getAccumulatedStats();
+    return importReport.getStats();
   }
 
   @JsonProperty

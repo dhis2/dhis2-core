@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.program.notification.template.snapshot;
 
-import static java.util.Collections.singleton;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,7 +40,6 @@ import java.util.function.Supplier;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
@@ -125,7 +122,7 @@ public class NotificationTemplateMapper {
     return toIdentifiableObjectSnapshot(
         userGroup,
         UserGroupSnapshot::new,
-        List.of(ug -> ug.setMembers(toUserSnapshot(userGroup.getMembers(), 0))));
+        List.of(ug -> ug.setMembers(toUserSnapshot(userGroup.getMembers()))));
   }
 
   private Set<User> toUsers(Set<UserSnapshot> userSnapshots) {
@@ -140,15 +137,12 @@ public class NotificationTemplateMapper {
                   u -> u.setName(userSnapshot.getName()),
                   u -> u.setUsername(userSnapshot.getUsername()),
                   u -> u.setEmail(userSnapshot.getEmail()),
-                  u -> u.setPhoneNumber(userSnapshot.getPhoneNumber()),
-                  u ->
-                      u.setOrganisationUnits(
-                          singleton(toOrganisationUnit(userSnapshot.getOrganisationUnit()))))));
+                  u -> u.setPhoneNumber(userSnapshot.getPhoneNumber()))));
     }
     return users;
   }
 
-  private Set<UserSnapshot> toUserSnapshot(Set<User> users, int ouLevel) {
+  private Set<UserSnapshot> toUserSnapshot(Set<User> users) {
     Set<UserSnapshot> userSnapshots = new HashSet<>();
 
     for (User user : users) {
@@ -160,48 +154,9 @@ public class NotificationTemplateMapper {
                   u -> u.setName(user.getName()),
                   u -> u.setUsername(user.getUsername()),
                   u -> u.setEmail(user.getEmail()),
-                  u -> u.setPhoneNumber(user.getPhoneNumber()),
-                  u ->
-                      u.setOrganisationUnit(
-                          toOrganisationUnitSnapshot(user.getOrganisationUnit(), ouLevel)))));
+                  u -> u.setPhoneNumber(user.getPhoneNumber()))));
     }
     return userSnapshots;
-  }
-
-  private OrganisationUnit toOrganisationUnit(OrganisationUnitSnapshot organisationUnitSnapshot) {
-    return toBaseIdentifiableObject(
-        organisationUnitSnapshot,
-        OrganisationUnit::new,
-        List.of(
-            ou -> ou.setName(organisationUnitSnapshot.getName()),
-            ou -> ou.setDescription(organisationUnitSnapshot.getDescription()),
-            ou -> ou.setShortName(organisationUnitSnapshot.getShortName()),
-            ou ->
-                ou.setParent(
-                    organisationUnitSnapshot.getParent() != null
-                        ? toOrganisationUnit(organisationUnitSnapshot.getParent())
-                        : null),
-            ou -> ou.setUsers(toUsers(organisationUnitSnapshot.getUsers()))));
-  }
-
-  private OrganisationUnitSnapshot toOrganisationUnitSnapshot(
-      OrganisationUnit organisationUnit, int level) {
-    if (level < 2) {
-      return toIdentifiableObjectSnapshot(
-          organisationUnit,
-          OrganisationUnitSnapshot::new,
-          List.of(
-              ou -> ou.setName(organisationUnit.getName()),
-              ou -> ou.setDescription(organisationUnit.getDescription()),
-              ou -> ou.setShortName(organisationUnit.getShortName()),
-              ou ->
-                  ou.setParent(
-                      organisationUnit.getParent() != null
-                          ? toOrganisationUnitSnapshot(organisationUnit.getParent(), level + 1)
-                          : null),
-              ou -> ou.setUsers(toUserSnapshot(organisationUnit.getUsers(), level + 1))));
-    }
-    return null;
   }
 
   private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot(

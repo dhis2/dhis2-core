@@ -78,6 +78,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -108,7 +109,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -140,7 +140,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @InjectMocks private JdbcEventAnalyticsTableManager subject;
+  private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
 
@@ -153,7 +153,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
-  private List<AnalyticsTableColumn> periodColumns =
+  private final List<AnalyticsTableColumn> periodColumns =
       PeriodType.getAvailablePeriodTypes().stream()
           .map(
               pt -> {
@@ -170,6 +170,21 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
+    subject =
+        new JdbcEventAnalyticsTableManager(
+            idObjectManager,
+            organisationUnitService,
+            categoryService,
+            settingsProvider,
+            null,
+            resourceTableService,
+            null,
+            null,
+            jdbcTemplate,
+            analyticsTableSettings,
+            periodDataProvider,
+            new ColumnMapper(sqlBuilder),
+            sqlBuilder);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
@@ -386,7 +401,7 @@ class JdbcEventAnalyticsTableManagerTest {
         when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
     String aliasD4 =
         """
-        case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$' \
         then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) end as "deabcdefghW\"""";
     String aliasD5 =
         "eventdatavalues #>> '{" + d5.getUid() + ", value}' as \"" + d5.getUid() + "\"";

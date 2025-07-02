@@ -83,8 +83,7 @@ public class HibernateProgramStageDataElementStore
     return getQuery(
             """
             from ProgramStageDataElement psde
-            where psde.dataElement in :dataElements
-            """)
+            where psde.dataElement in :dataElements""")
         .setParameter("dataElements", dataElements)
         .list();
   }

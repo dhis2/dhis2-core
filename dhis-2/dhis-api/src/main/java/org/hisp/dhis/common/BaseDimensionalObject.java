@@ -150,7 +150,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
    *     value like "programUid.stageUid.dimUid".
    */
   private void with(String qualifiedDimension) {
-    Triple<Program, ProgramStage, BaseDimensionalObject> tripe = asBaseObjects(qualifiedDimension);
+    Triple<Program, ProgramStage, DimensionalObject> tripe = asBaseObjects(qualifiedDimension);
 
     this.program = tripe.getLeft() != null ? tripe.getLeft() : null;
     this.programStage = tripe.getMiddle() != null ? tripe.getMiddle() : null;
@@ -267,25 +267,6 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   // Logic
   // -------------------------------------------------------------------------
 
-  public DimensionalObject instance() {
-    BaseDimensionalObject object =
-        new BaseDimensionalObject(
-            this.uid,
-            this.dimensionType,
-            this.dimensionName,
-            this.dimensionDisplayName,
-            this.items,
-            this.allItems);
-
-    object.legendSet = this.legendSet;
-    object.aggregationType = this.aggregationType;
-    object.filter = this.filter;
-    object.dataDimension = this.dataDimension;
-    object.fixed = this.fixed;
-    object.dimensionalKeywords = this.dimensionalKeywords;
-    return object;
-  }
-
   private void setProgram() {
     if (programStage != null) {
       program = programStage.getProgram();
@@ -320,6 +301,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
    * filter has the IN operator and that at least one item is specified in the filter, returns null
    * if not.
    */
+  @Override
   public List<String> getFilterItemsAsList() {
     final String inOp = QueryOperator.IN.getValue().toLowerCase();
     final int opLen = inOp.length() + 1;
@@ -384,6 +366,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     this.dataDimensionType = dataDimensionType;
   }
 
+  @Override
   public void setDimensionName(String dimensionName) {
     this.dimensionName = dimensionName;
   }
@@ -427,6 +410,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return items;
   }
 
+  @Override
   public void setItems(List<DimensionalItemObject> items) {
     this.items = items;
   }
@@ -507,6 +491,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return eventRepetition;
   }
 
+  @Override
   public void setEventRepetition(EventRepetition eventRepetition) {
     this.eventRepetition = eventRepetition;
   }
@@ -517,6 +502,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return fixed;
   }
 
+  @Override
   public void setFixed(boolean fixed) {
     this.fixed = fixed;
   }

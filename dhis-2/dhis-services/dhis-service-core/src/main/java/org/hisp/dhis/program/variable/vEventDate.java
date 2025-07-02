@@ -39,8 +39,29 @@ import org.hisp.dhis.program.AnalyticsType;
  * @author Jim Grace
  */
 public class vEventDate extends ProgramDateVariable {
+
+  private static final String PLACEHOLDER_FORMAT =
+      "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='%s', psUid='null', offset='0')";
+
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+      return getSqlLegacy(visitor);
+    }
+    ProgramExpressionParams params = visitor.getProgParams();
+
+    if (params != null
+        && params.getProgramIndicator() != null
+        && AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
+      String piUid = params.getProgramIndicator().getUid();
+      return String.format(PLACEHOLDER_FORMAT, piUid);
+    } else {
+      // For Event analytics or other contexts, return the direct column name
+      return "occurreddate";
+    }
+  }
+
+  public Object getSqlLegacy(CommonExpressionVisitor visitor) {
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {

@@ -39,6 +39,8 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class RouteServiceTest {
 
@@ -92,62 +94,24 @@ class RouteServiceTest {
     routeService.validateRoute(route);
   }
 
-  @Test
-  void testValidateRouteFailsWhenRouteUrlProtocolIsHttpsGivenEmptyRouteRemoteServerAllowedList() {
-    Properties properties = new Properties();
-    properties.setProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    routeService.postConstruct();
-
-    Route route = new Route();
-    route.setUrl("https://stub");
-    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
-  }
-
-  @Test
-  void testValidateRouteFailsWhenRouteUrlProtocolIsHttpGivenEmptyRouteRemoteServerAllowedList() {
-    Properties properties = new Properties();
-    properties.setProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    routeService.postConstruct();
-
-    Route route = new Route();
-    route.setUrl("http://stub");
-    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
-  }
-
-  @Test
-  void
-      testValidateRoutePassesWhenRouteUrlMatchesGivenRouteRemoteServerAllowedWildcardDomainNameEntry()
-          throws ConflictException {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), protocolUnderTest + "://*.org");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    routeService.postConstruct();
-
-    Route route = new Route();
-    route.setUrl(protocolUnderTest + "://stub.org");
-    routeService.validateRoute(route);
-  }
-
-  @Test
-  void
-      testValidateRoutePassesWhenRouteUrlMatchesGivenRouteRemoteServerAllowedWildcardIpAddressEntry()
-          throws ConflictException {
+  @ParameterizedTest
+  @CsvSource({
+    "172.17.0.1:8080,172.17.0.1:8080/foo/**,true",
+    "172.17.0.1:8080,172.17.0.1/foo/**,false",
+    "172.17.0.1,172.17.0.1:8080/foo/**,false",
+    "172.17.0.1,172.17.0.1/foo/**,true",
+    "192.168.*.*,192.169.0.1,false",
+    "*.org,stub.com,false",
+    "192.168.*.*,192.168.0.1,true",
+    "*.org,stub.org,true",
+    ",stub,false"
+  })
+  void testValidateRoute(String routeRemoteServersAllowed, String routeUrl, boolean isValid)
+      throws ConflictException {
     Properties properties = new Properties();
     properties.setProperty(
         ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
-        protocolUnderTest + "://192.168.*.*");
+        protocolUnderTest + "://" + routeRemoteServersAllowed);
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
@@ -155,42 +119,11 @@ class RouteServiceTest {
     routeService.postConstruct();
 
     Route route = new Route();
-    route.setUrl(protocolUnderTest + "://192.168.0.1");
-    routeService.validateRoute(route);
-  }
-
-  @Test
-  void
-      testValidateRouteFailsWhenRouteUrlDoesNotMatchGivenRouteRemoteServerAllowedWildcardDomainNameEntry() {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), protocolUnderTest + "://*.org");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    routeService.postConstruct();
-
-    Route route = new Route();
-    route.setUrl(protocolUnderTest + "://stub.com");
-    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
-  }
-
-  @Test
-  void
-      testValidateRouteFailsWhenRouteUrlDoesNotMatchGivenRouteRemoteServerAllowedWildcardIpAddressEntry() {
-    Properties properties = new Properties();
-    properties.setProperty(
-        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
-        protocolUnderTest + "://192.168.*.*");
-    DhisConfigurationProvider dhisConfigurationProvider =
-        new TestDhisConfigurationProvider(properties);
-
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    routeService.postConstruct();
-
-    Route route = new Route();
-    route.setUrl(protocolUnderTest + "://192.169.0.1");
-    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
+    route.setUrl(protocolUnderTest + "://" + routeUrl);
+    if (isValid) {
+      routeService.validateRoute(route);
+    } else {
+      assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
+    }
   }
 }

@@ -207,7 +207,7 @@ public class DataQueryParams {
 
   public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
 
-  public static final Set<Class<? extends BaseDimensionalObject>> DYNAMIC_DIM_CLASSES =
+  public static final Set<Class<? extends DimensionalObject>> DYNAMIC_DIM_CLASSES =
       Set.of(
           OrganisationUnitGroupSet.class,
           DataElementGroupSet.class,
@@ -1625,7 +1625,7 @@ public class DataQueryParams {
   /** Sets the items for the given dimension, if the dimension exists. */
   private DataQueryParams setDimensionOptions(
       String dimension, List<DimensionalItemObject> options) {
-    BaseDimensionalObject dim = (BaseDimensionalObject) getDimension(dimension);
+    DimensionalObject dim = getDimension(dimension);
 
     if (dim != null) {
       dim.setItems(options);

@@ -75,12 +75,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class LoginFallbackServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    Object springSecurityContext = session().getAttribute("SPRING_SECURITY_CONTEXT");
-
-    if (springSecurityContext != null) {
+    if (session() != null && session().getAttribute("SPRING_SECURITY_CONTEXT") != null) {
       String referer = (String) req.getAttribute("origin");
       req.setAttribute("origin", referer);
-      resp.sendRedirect("/dhis-web-dashboard");
+      resp.sendRedirect("/");
     } else {
       String content = getResourceFileAsString(this.getClass(), "login.html");
       resp.setContentType("text/html");
@@ -92,6 +90,6 @@ public class LoginFallbackServlet extends HttpServlet {
   public static HttpSession session() {
     ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    return attr.getRequest().getSession(false); // true == allow create
+    return attr.getRequest().getSession(false);
   }
 }

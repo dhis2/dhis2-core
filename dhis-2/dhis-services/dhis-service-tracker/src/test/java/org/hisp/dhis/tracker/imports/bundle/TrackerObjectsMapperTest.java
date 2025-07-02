@@ -331,7 +331,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(event(EventStatus.ACTIVE).getEnrollment()));
 
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
             .status(EventStatus.COMPLETED)
@@ -355,7 +355,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEvents(List.of(dbEvent));
 
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
@@ -380,7 +380,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEvents(List.of(dbEvent));
 
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
             .status(EventStatus.COMPLETED)
@@ -412,7 +412,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .build();
 
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
@@ -443,7 +443,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .build();
 
     org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
             .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))

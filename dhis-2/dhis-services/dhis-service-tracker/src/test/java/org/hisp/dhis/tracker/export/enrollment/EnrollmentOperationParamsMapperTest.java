@@ -30,9 +30,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,19 +39,17 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -85,8 +81,6 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private UserService userService;
 
-  @Mock private OrganisationUnitService organisationUnitService;
-
   @Mock private ProgramService programService;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
@@ -95,11 +89,11 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private OperationsParamsValidator paramsValidator;
 
+  @Mock private TrackerProgramService trackerProgramService;
+
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 
   private OrganisationUnit orgUnit1;
-
-  private OrganisationUnit orgUnit2;
 
   private UserDetails user;
 
@@ -110,20 +104,10 @@ class EnrollmentOperationParamsMapperTest {
 
     orgUnit1 = createOrganisationUnit('A');
     orgUnit1.setUid(ORG_UNIT_1_UID.getValue());
-    when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
-    orgUnit2 = createOrganisationUnit('B');
+    OrganisationUnit orgUnit2 = createOrganisationUnit('B');
     orgUnit2.setUid(ORG_UNIT_2_UID.getValue());
     orgUnit2.setParent(orgUnit1);
     orgUnit1.setChildren(Set.of(orgUnit2));
-    when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
-    when(organisationUnitService.getOrganisationUnitsByUid(
-            Set.of(orgUnit2.getUid(), orgUnit1.getUid())))
-        .thenReturn(List.of(orgUnit1, orgUnit2));
-    when(organisationUnitService.getOrganisationUnitsByUid(Set.of(orgUnit2.getUid())))
-        .thenReturn(List.of(orgUnit2));
-    when(organisationUnitService.getOrganisationUnitsByUid(Set.of(orgUnit1.getUid())))
-        .thenReturn(List.of(orgUnit1));
-    when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
 
     testUser.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     testUser.setOrganisationUnits(Set.of(orgUnit2));
@@ -192,38 +176,6 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertIsEmpty(params.getOrder());
-  }
-
-  @Test
-  void shouldMapDescendantsOrgUnitModeWhenAccessibleProvided()
-      throws ForbiddenException, BadRequestException {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
-
-    EnrollmentQueryParams params = mapper.map(operationParams, user);
-
-    assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
-    assertEquals(
-        user.getUserEffectiveSearchOrgUnitIds(),
-        params.getOrganisationUnits().stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet()));
-  }
-
-  @Test
-  void shouldMapDescendantsOrgUnitModeWhenCaptureProvided()
-      throws ForbiddenException, BadRequestException {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
-
-    EnrollmentQueryParams params = mapper.map(operationParams, user);
-
-    assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
-    assertEquals(
-        user.getUserOrgUnitIds(),
-        params.getOrganisationUnits().stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet()));
   }
 
   @Test

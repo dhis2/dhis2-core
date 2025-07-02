@@ -120,6 +120,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
@@ -176,6 +177,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -2550,7 +2552,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
+    ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
     Event e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -2606,7 +2609,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
+    ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
     Event e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);

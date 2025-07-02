@@ -126,6 +126,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Mock private ApplicationEventPublisher applicationEventPublisher;
 
+  @Mock private ProgramNotificationInstanceService programNotificationInstanceService;
+
   private final NotificationTemplateMapper notificationTemplateMapper =
       new NotificationTemplateMapper();
 
@@ -190,7 +192,8 @@ class ProgramNotificationServiceTest extends TestBase {
             notificationTemplateMapper,
             entityManager,
             jdbcTemplate,
-            applicationEventPublisher);
+            applicationEventPublisher,
+            programNotificationInstanceService);
 
     setUpInstances();
   }
@@ -274,7 +277,7 @@ class ProgramNotificationServiceTest extends TestBase {
   }
 
   @Test
-  void testUserGroupRecipient() {
+  void testUserGroupRecipientWithDisabledUser() {
     when(manager.get(eq(Enrollment.class), any(Long.class)))
         .thenReturn(enrollments.iterator().next());
 
@@ -297,7 +300,6 @@ class ProgramNotificationServiceTest extends TestBase {
 
     MockMessage mockMessage = sentInternalMessages.iterator().next();
 
-    assertTrue(mockMessage.users.contains(userA));
     assertTrue(mockMessage.users.contains(userB));
   }
 
@@ -460,7 +462,7 @@ class ProgramNotificationServiceTest extends TestBase {
   }
 
   @Test
-  void testDataElementRecipientWithInternalRecipients() {
+  void testDataElementRecipientWithInternalRecipientsWithOneDisabledUser() {
     when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
@@ -490,7 +492,6 @@ class ProgramNotificationServiceTest extends TestBase {
 
     assertEquals(1, sentInternalMessages.size());
 
-    assertTrue(sentInternalMessages.iterator().next().users.contains(userA));
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
   }
 
@@ -609,7 +610,7 @@ class ProgramNotificationServiceTest extends TestBase {
               return new BatchResponseStatus(Collections.emptyList());
             });
 
-    when(manager.getAll(ProgramNotificationInstance.class))
+    when(programNotificationInstanceService.getProgramNotificationInstances(any()))
         .thenReturn(Collections.singletonList(programNotificationInstaceForToday));
 
     when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
@@ -677,6 +678,7 @@ class ProgramNotificationServiceTest extends TestBase {
     userA = makeUser("U");
     userA.setPhoneNumber(USERA_PHONE_NUMBER);
     userA.getOrganisationUnits().add(lvlTwoLeftLeft);
+    userA.setDisabled(true);
 
     userB = makeUser("V");
     userB.setPhoneNumber(USERB_PHONE_NUMBER);

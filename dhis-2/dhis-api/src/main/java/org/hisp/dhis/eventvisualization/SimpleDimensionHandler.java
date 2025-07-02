@@ -132,9 +132,9 @@ public class SimpleDimensionHandler {
    * @param parent the parent {@link Attribute} of the association.
    * @return the list of {@link BaseDimensionalItemObject}.
    */
-  private List<BaseDimensionalItemObject> getSimpleDimensionalItems(
+  private List<DimensionalItemObject> getSimpleDimensionalItems(
       String qualifiedDimension, Attribute parent) {
-    List<BaseDimensionalItemObject> items = new ArrayList<>();
+    List<DimensionalItemObject> items = new ArrayList<>();
 
     for (SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
       boolean hasSameDimension = simpleDimension.asQualifiedDimension().equals(qualifiedDimension);
@@ -143,7 +143,7 @@ public class SimpleDimensionHandler {
       if (simpleDimension.belongsTo(parent) && hasSameDimension) {
         for (String dim : simpleDimension.getValues()) {
           if (isOrgUnit) {
-            BaseDimensionalItemObject itemObject = new BaseDimensionalItemObject(dim, null);
+            DimensionalItemObject itemObject = new BaseDimensionalItemObject(dim, null);
             items.add(itemObject);
           } else {
             items.add(new BaseDimensionalItemObject(dim));

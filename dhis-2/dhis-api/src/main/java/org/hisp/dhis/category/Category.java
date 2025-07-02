@@ -40,13 +40,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 
 /**
@@ -146,7 +146,7 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
 
   @Override
   @JsonProperty
-  @JsonSerialize(contentAs = BaseDimensionalItemObject.class)
+  @JsonSerialize(contentAs = DimensionalItemObject.class)
   @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalItemObject> getItems() {
@@ -175,7 +175,7 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryCombo> getCategoryCombos() {

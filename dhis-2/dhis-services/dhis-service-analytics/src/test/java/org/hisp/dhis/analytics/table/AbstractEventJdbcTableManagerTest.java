@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -53,7 +55,7 @@ class AbstractEventJdbcTableManagerTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  @InjectMocks private JdbcEventAnalyticsTableManager manager;
+  @InjectMocks private ColumnMapper manager;
 
   @Test
   void testToCommaSeparated() {
@@ -67,7 +69,7 @@ class AbstractEventJdbcTableManagerTest {
         """
         "dx","pe","value\"""";
 
-    assertEquals(expected, manager.toCommaSeparated(columns, col -> manager.quote(col.getName())));
+    assertEquals(expected, toCommaSeparated(columns, col -> manager.quote(col.getName())));
   }
 
   @Test
@@ -120,7 +122,7 @@ class AbstractEventJdbcTableManagerTest {
   void testGetSelectExpressionDate() {
     String expected =
         """
-        case when eventdatavalues #>> '{AL04Wbutskk, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        case when eventdatavalues #>> '{AL04Wbutskk, value}' ~* '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$' \
         then cast(eventdatavalues #>> '{AL04Wbutskk, value}' as timestamp) \
         end""";
 

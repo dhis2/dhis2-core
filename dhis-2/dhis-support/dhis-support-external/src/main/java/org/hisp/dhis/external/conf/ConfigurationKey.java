@@ -205,6 +205,32 @@ public enum ConfigurationKey {
    */
   ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "7200", false),
 
+  /** Minimum number of idle connections to maintain (default: 10). */
+  CONNECTION_POOL_MIN_IDLE("connection.pool.min_idle", "10", false),
+
+  /** Minimum number of idle connections to maintain (default: 10). */
+  ANALYTICS_CONNECTION_POOL_MIN_IDLE("analytics.connection.pool.min_idle", "10", false),
+
+  /** Interval to keep idle connections alive. Does not reset idle timeout. (default: 2 minutes). */
+  CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS("connection.pool.keep_alive_time_seconds", "120", false),
+
+  /** Interval to keep idle connections alive. Does not reset idle timeout. (default: 2 minutes). */
+  ANALYTICS_CONNECTION_POOL_KEEP_ALIVE_TIME_SECONDS(
+      "analytics.connection.pool.keep_alive_time_seconds", "120", false),
+
+  /**
+   * Connection max lifetime. An in-use connection will never be retired, only when it is idle will
+   * it be removed. (default: 30 minutes).
+   */
+  CONNECTION_POOL_MAX_LIFETIME_SECONDS("connection.pool.max_lifetime_seconds", "1800", false),
+
+  /**
+   * Connection max lifetime. An in-use connection will never be retired, only when it is idle will
+   * it be removed. (default: 30 minutes).
+   */
+  ANALYTICS_CONNECTION_POOL_MAX_LIFETIME_SECONDS(
+      "analytics.connection.pool.max_lifetime_seconds", "1800", false),
+
   /**
    * Number of seconds that Connections in excess of minPoolSize should be permitted to remain idle
    * in the pool before being culled (default: 0).
@@ -263,6 +289,12 @@ public enum ConfigurationKey {
    */
   CONNECTION_POOL_TIMEOUT("connection.pool.timeout", String.valueOf(SECONDS.toMillis(30)), false),
 
+  /**
+   * Hikari DB pool feature. Connection leak detection threshold: Set the maximum number of
+   * milliseconds that a connection can be out of the pool before a message is logged. (default: 0 -
+   * no leak detection)
+   */
+  CONNECTION_POOL_WARN_MAX_AGE("connection.pool.warn_max_age", "0", false),
   /**
    * Analytics Hikari DB pool feature. Connection pool timeout: Set the maximum number of
    * milliseconds that a client will wait for a connection from the pool. (default: 30s)
@@ -700,7 +732,8 @@ public enum ConfigurationKey {
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
   /** The maximum number of category options in a single category */
-  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "50", false),
+
   /** The maximum number of categories per category combo */
   METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
   /**

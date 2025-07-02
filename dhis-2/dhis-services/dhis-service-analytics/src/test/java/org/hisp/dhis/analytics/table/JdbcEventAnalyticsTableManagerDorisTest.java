@@ -61,6 +61,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -86,7 +87,6 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -117,7 +117,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
 
-  @InjectMocks private JdbcEventAnalyticsTableManager subject;
+  private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
 
@@ -146,6 +146,21 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @BeforeEach
   void setUp() {
+    subject =
+        new JdbcEventAnalyticsTableManager(
+            idObjectManager,
+            organisationUnitService,
+            categoryService,
+            settingsProvider,
+            null,
+            resourceTableService,
+            null,
+            null,
+            jdbcTemplate,
+            analyticsTableSettings,
+            periodDataProvider,
+            new ColumnMapper(sqlBuilder),
+            sqlBuilder);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
@@ -185,7 +200,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     String aliasC =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'true' then 1 when json_unquote(json_extract(eventdatavalues, '$.%s.value')) = 'false' then 0 else null end as `%s`";
     String aliasD =
-        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime(3)) end as `%s`";
+        "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime(3)) end as `%s`";
     String aliasE = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
     String aliasF =
         "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value'))) as `%s`";

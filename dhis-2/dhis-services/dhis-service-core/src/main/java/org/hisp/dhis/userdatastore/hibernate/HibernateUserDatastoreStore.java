@@ -180,22 +180,21 @@ public class HibernateUserDatastoreStore
       @Nonnull Integer roll) {
     String sql =
         """
-          update userkeyjsonvalue
-          set jbvalue = case jsonb_typeof(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])))
-            when 'array' then case
-              when :size < 0 or jsonb_array_length(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[]))) >= :size
-                then jsonb_set(jbvalue, cast(:path as text[]), (jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) - 0) || to_jsonb(ARRAY[cast(:value as jsonb)]), false)
-              else jsonb_set(jbvalue, cast(:path as text[]), jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) || to_jsonb(ARRAY[cast(:value as jsonb)]), false)
-              end
-            when 'string'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
-            when 'number'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
-            when 'object'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
-            when 'boolean' then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb))
-            when 'null'    then jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
-            -- undefined => same as null, start an array
-            else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
-            end
-          where namespace = :ns and userkey = :key""";
+        update userkeyjsonvalue \
+        set jbvalue = case jsonb_typeof(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[]))) \
+          when 'array' then case \
+            when :size < 0 or jsonb_array_length(jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[]))) >= :size \
+              then jsonb_set(jbvalue, cast(:path as text[]), (jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) - 0) || to_jsonb(ARRAY[cast(:value as jsonb)]), false) \
+            else jsonb_set(jbvalue, cast(:path as text[]), jsonb_extract_path(jbvalue, VARIADIC cast(:path as text[])) || to_jsonb(ARRAY[cast(:value as jsonb)]), false) \
+            end \
+          when 'string'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb)) \
+          when 'number'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb)) \
+          when 'object'  then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb)) \
+          when 'boolean' then jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb)) \
+          when 'null'    then jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)])) \
+          else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)])) \
+          end \
+        where namespace = :ns and userkey = :key""";
     return nativeSynchronizedQuery(sql)
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -210,17 +209,17 @@ public class HibernateUserDatastoreStore
       @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull Integer roll) {
     String sql =
         """
-      update userkeyjsonvalue
-      set jbvalue = case jsonb_typeof(jbvalue)
-        when 'null' then to_jsonb(ARRAY[cast(:value as jsonb)])
-        when 'array' then case
-          when :size < 0 or jsonb_array_length(jbvalue) >= :size
-            then (jbvalue - 0) || to_jsonb(ARRAY[cast(:value as jsonb)])
-          else jbvalue || to_jsonb(ARRAY[cast(:value as jsonb)])
-          end
-        else cast(:value as jsonb)
-        end
-      where namespace = :ns and userkey = :key""";
+        update userkeyjsonvalue \
+        set jbvalue = case jsonb_typeof(jbvalue) \
+          when 'null' then to_jsonb(ARRAY[cast(:value as jsonb)]) \
+          when 'array' then case \
+            when :size < 0 or jsonb_array_length(jbvalue) >= :size \
+              then (jbvalue - 0) || to_jsonb(ARRAY[cast(:value as jsonb)]) \
+            else jbvalue || to_jsonb(ARRAY[cast(:value as jsonb)]) \
+            end \
+          else cast(:value as jsonb) \
+          end \
+        where namespace = :ns and userkey = :key""";
     return nativeSynchronizedQuery(sql)
             .setParameter("ns", ns)
             .setParameter("key", key)

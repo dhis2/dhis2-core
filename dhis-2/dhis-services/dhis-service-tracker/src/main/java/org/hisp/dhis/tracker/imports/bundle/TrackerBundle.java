@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,8 +54,10 @@ import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
@@ -103,8 +106,9 @@ public class TrackerBundle {
   /** Enrollments to import. */
   @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
-  /** Events to import. */
-  @Builder.Default private List<Event> events = new ArrayList<>();
+  @Builder.Default private List<TrackerEvent> trackerEvents = new ArrayList<>();
+
+  @Builder.Default private List<SingleEvent> singleEvents = new ArrayList<>();
 
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
@@ -149,8 +153,12 @@ public class TrackerBundle {
     return findById(this.enrollments, uid);
   }
 
+  public Optional<TrackerEvent> findTrackerEventByUid(@Nonnull UID uid) {
+    return findById(this.getTrackerEvents(), uid);
+  }
+
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
-    return findById(this.events, uid);
+    return findById(this.getEvents(), uid);
   }
 
   public Optional<Relationship> findRelationshipByUid(@Nonnull UID uid) {
@@ -163,6 +171,17 @@ public class TrackerBundle {
 
   public Set<UID> getUpdatedTrackedEntities() {
     return Set.copyOf(this.updatedTrackedEntities);
+  }
+
+  public List<Event> getEvents() {
+    return Stream.concat(this.singleEvents.stream(), this.trackerEvents.stream()).toList();
+  }
+
+  public void setEvents(List<Event> events) {
+    this.setTrackerEvents(
+        events.stream().filter(TrackerEvent.class::isInstance).map(e -> (TrackerEvent) e).toList());
+    this.setSingleEvents(
+        events.stream().filter(SingleEvent.class::isInstance).map(e -> (SingleEvent) e).toList());
   }
 
   public void addUpdatedTrackedEntities(Set<UID> updatedTrackedEntities) {

@@ -40,11 +40,9 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,12 +64,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Collation;
@@ -87,7 +83,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -113,12 +108,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * </ul>
    */
   protected static final String DATE_REGEXP =
-      "'^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$'";
-
-  protected static final String NUMERIC_REGEXP = "'" + MathUtils.NUMERIC_LENIENT_REGEXP + "'";
-
-  protected static final Set<ValueType> NO_INDEX_VAL_TYPES =
-      Set.of(ValueType.TEXT, ValueType.LONG_TEXT);
+      "'^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$'";
 
   protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
@@ -708,19 +698,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Converts the given list of items to a comma-separated string, using the given mapping function
-   * to map the object to string.
-   *
-   * @param <T> the type.
-   * @param list the list.
-   * @param mapper the mapping function.
-   * @return a comma-separated string.
-   */
-  protected <T> String toCommaSeparated(List<T> list, Function<T, String> mapper) {
-    return list.stream().map(mapper).collect(Collectors.joining(","));
-  }
-
-  /**
    * Quotes the given relation.
    *
    * @param relation the relation to quote, e.g. a table or column name.
@@ -738,48 +715,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String quotedCommaDelimitedString(Collection<String> items) {
     return sqlBuilder.singleQuotedCommaDelimited(items);
-  }
-
-  /**
-   * Qualifies the given table name.
-   *
-   * @param name the table name.
-   * @return a fully qualified and quoted table reference which specifies the catalog, database and
-   *     table.
-   */
-  protected String qualify(String name) {
-    return sqlBuilder.qualifyTable(name);
-  }
-
-  /**
-   * Qualifies variables in the given template string using the variable name as table name.
-   *
-   * @param template the template string.
-   * @return a string with qualified table names.
-   */
-  protected String qualifyVariables(String template) {
-    return replaceQualify(template, Map.of());
-  }
-
-  /**
-   * Replaces variables in the given template string.
-   *
-   * <p>Variables which are present in the given template and in the given map of variables are
-   * replaced with the corresponding map value.
-   *
-   * <p>Variables which are present in the given template but not present in the given map of
-   * variables will be qualified using <code>qualify(String)</code>.
-   *
-   * @param template the template string.
-   * @param variables the map of variable names and values.
-   * @return a string with replaced variables.
-   */
-  protected String replaceQualify(String template, Map<String, String> variables) {
-    Map<String, String> map = new HashMap<>(variables);
-    Set<String> variableNames = TextUtils.getVariableNames(template);
-    variableNames.forEach(name -> map.putIfAbsent(name, qualify(name)));
-
-    return TextUtils.replace(template, map);
   }
 
   // -------------------------------------------------------------------------

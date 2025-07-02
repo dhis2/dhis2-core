@@ -62,6 +62,7 @@ import org.hisp.dhis.common.OpenApi.Access;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.setting.Settings;
 
 /**
  * Extracts the properties of "record" like objects.
@@ -123,6 +124,7 @@ class Property {
 
   private static List<Property> propertiesIn(Class<?> object) {
     if (JsonObject.class.isAssignableFrom(object)) return propertiesInJson(object);
+    if (JsonValue.class.isAssignableFrom(object)) return List.of();
     // map for order by name and avoiding duplicates
     Map<String, Property> properties = new TreeMap<>();
     Consumer<Property> add = property -> properties.putIfAbsent(property.name, property);
@@ -257,15 +259,19 @@ class Property {
   }
 
   private static <T extends Member & AnnotatedElement> String getPropertyName(T member) {
-    String name = getJavaPropertyName(member);
     OpenApi.Property oap = member.getAnnotation(OpenApi.Property.class);
     String nameOverride = oap == null ? "" : oap.name();
-    if (!nameOverride.isEmpty()) {
-      return nameOverride;
-    }
+    if (!nameOverride.isEmpty()) return nameOverride;
     JsonProperty property = member.getAnnotation(JsonProperty.class);
     nameOverride = property == null ? "" : property.value();
-    return nameOverride.isEmpty() ? name : nameOverride;
+    if (!nameOverride.isEmpty()) return nameOverride;
+    String name = getJavaPropertyName(member);
+    if (Settings.class.isAssignableFrom(member.getDeclaringClass())) {
+      // for now, we do this extra resolve step hard coded as it is complicated to add as a general
+      // feature
+      name = Settings.getKey(name);
+    }
+    return name;
   }
 
   private static <T extends Member & AnnotatedElement> String getJavaPropertyName(T member) {

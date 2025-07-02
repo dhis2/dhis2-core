@@ -261,7 +261,7 @@ public class DefaultNotifier implements Notifier {
 
   @Override
   public Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType, Boolean gist) {
-    if (gist == null) gist = settingsService.getCurrentSettings().isNotifierGistOverview();
+    if (gist == null) gist = settingsService.getCurrentSettings().getNotifierGistOverview();
     BiFunction<JobType, UID, Deque<Notification>> read =
         gist ? this::getGistNotificationsByJobId : this::getAllNotificationsByJobId;
     Map<String, Deque<Notification>> res = new LinkedHashMap<>();

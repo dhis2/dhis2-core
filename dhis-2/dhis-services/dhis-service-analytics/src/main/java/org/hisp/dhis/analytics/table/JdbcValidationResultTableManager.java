@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.hisp.dhis.analytics.AnalyticsStringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -168,9 +170,10 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     String sql = "insert into " + tableName + " (";
-    sql += toCommaSeparated(columns, col -> quote(col.getName()));
+    sql += AnalyticsStringUtils.toCommaSeparated(columns, col -> quote(col.getName()));
     sql += ") select ";
-    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
+    sql +=
+        AnalyticsStringUtils.toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
     sql += " ";
 
     // Database legacy fix
@@ -179,6 +182,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
     sql +=
         replaceQualify(
+            sqlBuilder,
             """
             from ${validationresult} vrs \
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid \
@@ -207,6 +211,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
     String sql =
         replaceQualify(
+            sqlBuilder,
             """
             select distinct(extract(year from ps.startdate)) \
             from ${validationresult} vrs \

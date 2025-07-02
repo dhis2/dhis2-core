@@ -73,6 +73,14 @@ class SystemSettingsTest {
           "loginPopup");
 
   @Test
+  void testKeyByProperty() {
+    // test one that has the key-prefix
+    assertEquals("keyAnalysisDigitGroupSeparator", Settings.getKey("analysisDigitGroupSeparator"));
+    // and one that does not
+    assertEquals("startModule", Settings.getKey("startModule"));
+  }
+
+  @Test
   void testIsConfidential() {
     CONFIDENTIAL_KEYS.forEach(
         key ->
@@ -95,11 +103,12 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(144, keys.size());
+    assertEquals(146, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
+    assertTrue(keys.contains("notifierGistOverview"));
   }
 
   @Test
