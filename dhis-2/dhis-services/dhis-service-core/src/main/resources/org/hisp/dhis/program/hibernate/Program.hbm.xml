@@ -45,8 +45,8 @@
 
         <property name="eventLabel" column="eventlabel" type="text"/>
 
-        <set name="programStages" order-by="sortOrder">
-            <key column="programid"/>
+        <set name="programStages" order-by="sortOrder" inverse="true">
+            <key column="programid" not-null="true"/>
             <one-to-many class="org.hisp.dhis.program.ProgramStage"/>
         </set>
 
