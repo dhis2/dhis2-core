@@ -324,8 +324,8 @@ public class DefaultDviService implements DviService {
     if (entryPeriodsByIso.isEmpty()) {
       // - require: DS entry for period still allowed?
       // (how much later can data be entered relative to current period)
+      int expiryDays = store.getDataSetExpiryDays(ds);
       if (!getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
-        int expiryDays = store.getDataSetExpiryDays(ds);
         if (expiryDays > 0) { // 0 = no expiry, always open
           Date now = new Date();
           Map<String, Set<String>> exemptedIsoByOu =
@@ -356,20 +356,22 @@ public class DefaultDviService implements DviService {
             throw new ConflictException(ErrorCode.E7629, ds, isoNoLongerOpen);
         }
 
-        // - require: DS entry for period already allowed?
-        // (how much earlier can data be entered relative to the current period)
-        int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-        List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
-        PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
-        Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
-        List<String> isoNotYetOpen =
-            values.stream()
-                .map(DviValue::period)
-                .distinct()
-                .filter(iso -> PeriodType.getPeriodFromIsoString(iso).isAfter(latestOpen))
-                .toList();
-        if (!isoNotYetOpen.isEmpty())
-          throw new ConflictException(ErrorCode.E7629, ds, isoNotYetOpen);
+        if (expiryDays >= 0) {
+          // - require: DS entry for period already allowed?
+          // (how much earlier can data be entered relative to the current period)
+          int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
+          List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
+          PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
+          Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
+          List<String> isoNotYetOpen =
+              values.stream()
+                  .map(DviValue::period)
+                  .distinct()
+                  .filter(iso -> PeriodType.getPeriodFromIsoString(iso).isAfter(latestOpen))
+                  .toList();
+          if (!isoNotYetOpen.isEmpty())
+            throw new ConflictException(ErrorCode.E7629, ds, isoNotYetOpen);
+        }
       }
     } else {
       // - require: DS input period is open explicitly

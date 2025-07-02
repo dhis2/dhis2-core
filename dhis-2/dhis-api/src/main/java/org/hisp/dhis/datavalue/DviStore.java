@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
  * DB support for the bulk Data Value Import.
@@ -48,6 +49,36 @@ public interface DviStore {
   int deleteByKeys(List<DviKey> keys);
 
   int upsertValues(List<DviValue> values);
+
+  /*
+  Job (cleanup) support
+   */
+
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code false} for any data value related file resource
+   * where no data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being true to becoming
+   *     false
+   */
+  int unsetAssignedUnusedDataValueFileResources();
+
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code true} for any data value related file resource
+   * where at least one data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being false to becoming
+   *     true
+   */
+  int setAssignedUsedDataValueFileResources();
+
+  /**
+   * Set any row to deleted {@code true} that has an empty value and a DE that does not consider
+   * zero being significant.
+   *
+   * @return the number of data values that got changed from deleted being false to becoming true
+   */
+  int setDeletedIfNotZeroIsSignificant();
 
   /*
   Validation support
@@ -229,11 +260,22 @@ public interface DviStore {
       UID dataSet, UID attrOptionCombo, Stream<UID> orgUnits);
 
   /**
+   * A.K.A "lock exceptions".
+   *
    * @param dataSet DS for scope
    * @return for each OU (key) all the ISO periods that are exempt from having to be entered within
    *     the timeframe of the period + DS expiry days duration.
    */
   Map<String, Set<String>> getExpiryDaysExemptedIsoPeriodsByOrgUnit(UID dataSet);
 
+  /**
+   * Fetches the explicitly defined data input periods for the dataset organised by period's ISO
+   * value. It is likely that each period just has a single range but the model does allow for
+   * multiple and occasionally this is used to add another "extra entry" period after the initial
+   * one has been closed and checked.
+   *
+   * @param dataSet DS for scope
+   * @return for each period ISO (key) the map contains all valid input periods for that period
+   */
   Map<String, List<DateRange>> getEntryPeriodsByIsoPeriod(UID dataSet);
 }
