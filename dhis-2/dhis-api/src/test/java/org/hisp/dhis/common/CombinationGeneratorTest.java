@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -203,7 +204,7 @@ class CombinationGeneratorTest {
     // Given 3 Lists with 50 elements each...
     List<List<Integer>> input = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
-      input.add(IntStream.range(0, 50).boxed().toList());
+      input.add(IntStream.range(0, 50).boxed().collect(toList()));
     }
 
     List<List<Integer>> permutations = CombinationGenerator.newInstance(input).getCombinations();
@@ -216,7 +217,7 @@ class CombinationGeneratorTest {
     // Given 3 Lists with 50 elements each...
     List<List<Integer>> input = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
-      input.add(IntStream.range(0, 50).boxed().toList());
+      boolean add = input.add(IntStream.range(0, 50).boxed().collect(toList()));
     }
 
     int combinations = CombinationGenerator.newInstance(input).countCombinations();
