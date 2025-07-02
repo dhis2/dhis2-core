@@ -881,7 +881,7 @@ public class DefaultCategoryService implements CategoryService {
   @CheckForNull
   private ImportSummaries addAndPruneOptionCombo(
       @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
-    List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
     Set<CategoryOptionCombo> persistedCocs =
         Sets.newHashSet(categoryComboStore.getByUid(categoryCombo.getUid()).getOptionCombos());
 
@@ -902,18 +902,19 @@ public class DefaultCategoryService implements CategoryService {
             "Generated category option combo %S has 0 options, skip adding for category combo `%s` as this is an invalid category option combo. Consider cleaning up the metadata model."
                 .formatted(generatedCoc.getName(), categoryCombo.getName()));
       } else if (!persistedCocs.contains(generatedCoc)) {
-        categoryCombo.getOptionCombos().add(generatedCoc);
-        addCategoryOptionCombo(generatedCoc);
+        if (categoryCombo.getOptionCombos().add(generatedCoc)) {
+          addCategoryOptionCombo(generatedCoc);
 
-        String msg =
-            "Added missing category option combo: `%s` for category combo: `%s`"
-                .formatted(generatedCoc.getName(), categoryCombo.getName());
-        log.info(msg);
-        if (importSummaries != null) {
-          ImportSummary importSummary = new ImportSummary();
-          importSummary.setDescription(msg);
-          importSummary.incrementImported();
-          importSummaries.addImportSummary(importSummary);
+          String msg =
+              "Added missing category option combo: `%s` for category combo: `%s`"
+                  .formatted(generatedCoc.getName(), categoryCombo.getName());
+          log.info(msg);
+          if (importSummaries != null) {
+            ImportSummary importSummary = new ImportSummary();
+            importSummary.setDescription(msg);
+            importSummary.incrementImported();
+            importSummaries.addImportSummary(importSummary);
+          }
         }
       }
     }

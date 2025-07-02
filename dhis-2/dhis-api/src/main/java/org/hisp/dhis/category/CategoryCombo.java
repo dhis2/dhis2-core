@@ -307,17 +307,18 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   }
 
   /**
-   * Generates a list of all possible combinations of category option combos for this category
-   * combo. This is done by generating all possible combinations of the category options in the
-   * categories of this category combo.
+   * Generates a set of all possible combinations of category option combos for this category combo.
+   * This is done by generating all possible combinations of the category options in the categories
+   * of this category combo. This used to return a list but that had the potential to return
+   * duplicates under specific conditions.
    *
-   * @return a list of all possible combinations of category option combos for this category combo.
+   * @return a set of all possible combinations of category option combos for this category combo.
    */
-  public List<CategoryOptionCombo> generateOptionCombosList() {
+  public Set<CategoryOptionCombo> generateOptionCombosList() {
     // return default option combos if default
-    if (this.isDefault()) return this.optionCombos.stream().toList();
+    if (this.isDefault()) return new HashSet<>(this.optionCombos);
 
-    List<CategoryOptionCombo> list = new ArrayList<>();
+    Set<CategoryOptionCombo> set = new HashSet<>();
     CombinationGenerator<CategoryOption> generator =
         CombinationGenerator.newInstance(getCategoryOptionsAsLists());
 
@@ -325,14 +326,14 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
       CategoryOptionCombo optionCombo = new CategoryOptionCombo();
       optionCombo.setCategoryOptions(new HashSet<>(generator.getNext()));
       optionCombo.setCategoryCombo(this);
-      list.add(optionCombo);
+      set.add(optionCombo);
 
       for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
         categoryOption.addCategoryOptionCombo(optionCombo);
       }
     }
 
-    return list;
+    return set;
   }
 
   public List<CategoryOptionCombo> getSortedOptionCombos() {
