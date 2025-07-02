@@ -275,8 +275,7 @@ public class FilterJdbcPredicate {
               "exists (select 1 from %s where %s is not null and %s <> '')",
               unnestSql, trimmed, trimmed);
       default ->
-          throw new IllegalArgumentException(
-              String.format("Operator `%s` is not supported for multi-text", operator));
+          "";
     };
   }
 
