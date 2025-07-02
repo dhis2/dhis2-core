@@ -217,7 +217,7 @@ class CombinationGeneratorTest {
     // Given 3 Lists with 50 elements each...
     List<List<Integer>> input = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
-      boolean add = input.add(IntStream.range(0, 50).boxed().collect(toList()));
+      input.add(IntStream.range(0, 50).boxed().collect(toList()));
     }
 
     int combinations = CombinationGenerator.newInstance(input).countCombinations();
