@@ -34,17 +34,21 @@ import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.feedback.ImportResult.error;
+import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DviUpsertRequest.Options;
@@ -54,6 +58,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.feedback.ImportResult.ImportError;
 import org.hisp.dhis.log.TimeExecution;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -129,7 +135,7 @@ public class DefaultDviService implements DviService {
 
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
-    boolean skipTimeliness = getCurrentUserDetails().isSuper() && outOfTime;
+    boolean skipTimeliness = getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED) && outOfTime;
     if (!skipTimeliness) validateEntryTimeliness(ds, values);
 
     return validateValues(ds, values, errors);
@@ -342,16 +348,56 @@ public class DefaultDviService implements DviService {
       }
     }
 
-    // - require: DS input period is open (no entering in the past)
-    //   TODO load all input periods for DS (but only consider open ones), then check each value
-
     // - require: DS not locked (expiryDays + lock exceptions)
-    // TODO if user has F_EDIT_EXPIRED we can skip this check
-    // expiryDays=0 => no expiry => skip
-    // otherwise a period is open until end + expiryDays
-    // since lock-exceptions are OU bound it makes most sense to fetch exceptions in scope
-    // as matching in DB would require building complicated match conditions
-    // for the DS-PE-OU combinations found in values
+    //   (skip when user has F_EDIT_EXPIRED authority)
+    if (!getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
+      int expiryDays = store.getDataSetExpiryDays(ds);
+      if (expiryDays > 0) { // 0 = no expiry
+        Date now = new Date();
+        Map<String, Set<String>> exemptedIsoByOu =
+            store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
+        List<String> isoLate =
+            values.stream()
+                // only check values not exempt
+                .filter(
+                    dv -> {
+                      Set<String> isoPeriods = exemptedIsoByOu.get(dv.orgUnit().getValue());
+                      return isoPeriods == null || !isoPeriods.contains(dv.period());
+                    })
+                // find the values entered outside their input period
+                .filter(
+                    dv -> {
+                      Period p = PeriodType.getPeriodFromIsoString(dv.period());
+                      // +1 because the period end date is start of day but should include that day
+                      Date endOfEntryPeriod =
+                          new Date(
+                              p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1));
+                      return now.after(endOfEntryPeriod);
+                    })
+                .map(DviValue::period)
+                .distinct()
+                .toList();
+        if (!isoLate.isEmpty()) throw new ConflictException(ErrorCode.E7626, ds, isoLate);
+      }
+    }
+
+    // - require: DS input period is open (no entering in the past)
+    Map<String, List<DateRange>> openRangeByPeriod = store.getInputPeriodsByPeriod(ds);
+    if (!openRangeByPeriod.isEmpty()) { // empty = no limit
+      Date now = new Date();
+      List<String> isoNotOpen =
+          values.stream()
+              .filter(
+                  dv -> {
+                    List<DateRange> open = openRangeByPeriod.get(dv.period());
+                    if (open == null) return true;
+                    return open.stream().anyMatch(range -> range.includes(now));
+                  })
+              .map(DviValue::period)
+              .distinct()
+              .toList();
+      if (!isoNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E7626, ds, isoNotOpen);
+    }
 
     // - require: PE must be within AOC "date range" (range super complicated to find)
   }

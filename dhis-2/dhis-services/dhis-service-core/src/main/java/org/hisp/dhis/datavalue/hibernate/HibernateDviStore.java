@@ -40,6 +40,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -327,6 +329,13 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
+  public int getDataSetExpiryDays(UID dataSet) {
+    String sql = "SELECT ds.expirydays FROM dataset ds WHERE ds.uid = :ds";
+    Object res = getSession().createNativeQuery(sql).getSingleResult();
+    return res instanceof Number n ? n.intValue() : 0;
+  }
+
+  @Override
   public List<String> getCategoryOptionsCanNotDataWrite(Stream<UID> optionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
@@ -556,6 +565,41 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     String ds = dataSet.getValue();
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStringsMapOfSet(sql, q -> q.setParameter("ds", ds).setParameterList("ou", ou));
+  }
+
+  @Override
+  public Map<String, Set<String>> getExpiryDaysExemptedIsoPeriodsByOrgUnit(UID dataSet) {
+    String sql =
+        """
+      SELECT ou.uid, array_agg(p.iso)
+      FROM lockexception ex
+      JOIN organisationunit ou ON ex.organisationunitid = ou.organisationunitid
+      JOIN period p ON ex.periodid = p.periodid
+      WHERE ex.datasetid = (SELECT ds.datasetid FROM dataset ds WHERE ds.uid = :ds)
+      GROUP BY ou.uid""";
+    String ds = dataSet.getValue();
+    return listAsStringsMapOfSet(sql, q -> q.setParameter("ds", ds));
+  }
+
+  @Override
+  public Map<String, List<DateRange>> getInputPeriodsByPeriod(UID dataSet) {
+    String sql =
+        """
+      SELECT p.iso, ip.openingdate, ip.closingdate
+      FROM datainputperiod ip
+      JOIN period p ON ip.periodid = p.periodid
+      WHERE ip.datasetid = (SELECT ds.datasetid FROM dataset ds WHERE ds.uid = :ds)
+      AND p.iso IN (:iso)
+      """;
+    String ds = dataSet.getValue();
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows = getSession().createNativeQuery(sql).setParameter("ds", ds).stream();
+    Map<String, List<DateRange>> res = new HashMap<>();
+    rows.forEach(
+        row ->
+            res.computeIfAbsent((String) row[0], key -> new ArrayList<>())
+                .add(new DateRange((Date) row[1], (Date) row[2])));
+    return res;
   }
 
   @Nonnull

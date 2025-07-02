@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
@@ -68,6 +69,8 @@ public interface DviStore {
    * @return true, if the DS allows empty values in case a comment is provided instead
    */
   boolean getDataSetCommentAllowsEmptyValue(UID dataSet);
+
+  int getDataSetExpiryDays(UID dataSet);
 
   /**
    * Checks if the current user has data write access to the provided AOC/COCs.
@@ -222,4 +225,13 @@ public interface DviStore {
    */
   Map<String, Set<String>> getApprovedIsoPeriodsByOrgUnit(
       UID dataSet, UID attrOptionCombo, Stream<UID> orgUnits);
+
+  /**
+   * @param dataSet DS for scope
+   * @return for each OU (key) all the ISO periods that are exempt from having to be entered within
+   *     the timeframe of the period + DS expiry days duration.
+   */
+  Map<String, Set<String>> getExpiryDaysExemptedIsoPeriodsByOrgUnit(UID dataSet);
+
+  Map<String, List<DateRange>> getInputPeriodsByPeriod(UID dataSet);
 }
