@@ -336,6 +336,13 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
+  public int getDataSetOpenPeriodsOffset(UID dataSet) {
+    String sql = "SELECT ds.openfutureperiods FROM dataset ds WHERE ds.uid = :ds";
+    Object res = getSession().createNativeQuery(sql).getSingleResult();
+    return res instanceof Number n ? n.intValue() : 0;
+  }
+
+  @Override
   public List<String> getCategoryOptionsCanNotDataWrite(Stream<UID> optionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
@@ -582,7 +589,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public Map<String, List<DateRange>> getInputPeriodsByPeriod(UID dataSet) {
+  public Map<String, List<DateRange>> getEntryPeriodsByIsoPeriod(UID dataSet) {
     String sql =
         """
       SELECT p.iso, ip.openingdate, ip.closingdate

@@ -598,7 +598,7 @@ public enum ErrorCode {
       "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
   E7627("Category option(s) not accessible for writing data: `{0}`"),
   E7628("Attribute option combo {0} not connected to Org unit(s): `{1}`"),
-  E7629("Period(s) are no longer open for data entry in data set {0}: `{1}`"),
+  E7629("Period(s) are not open for data entry in data set {0}: `{1}`"),
 
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),

@@ -72,6 +72,8 @@ public interface DviStore {
 
   int getDataSetExpiryDays(UID dataSet);
 
+  int getDataSetOpenPeriodsOffset(UID dataSet);
+
   /**
    * Checks if the current user has data write access to the provided AOC/COCs.
    *
@@ -233,5 +235,5 @@ public interface DviStore {
    */
   Map<String, Set<String>> getExpiryDaysExemptedIsoPeriodsByOrgUnit(UID dataSet);
 
-  Map<String, List<DateRange>> getInputPeriodsByPeriod(UID dataSet);
+  Map<String, List<DateRange>> getEntryPeriodsByIsoPeriod(UID dataSet);
 }
