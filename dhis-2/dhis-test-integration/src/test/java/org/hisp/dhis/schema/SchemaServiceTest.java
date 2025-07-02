@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -157,5 +158,12 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Schema schema = schemaService.getDynamicSchema(DashboardItem.class);
     Property text = schema.getProperty("text");
     assertTrue(text.isTranslatable());
+  }
+
+  @Test
+  void testCategoryComboTranslatable() {
+    Schema schema = schemaService.getDynamicSchema(CategoryCombo.class);
+    Property categoryCombo = schema.getProperty("name");
+    assertTrue(categoryCombo.isTranslatable());
   }
 }
