@@ -140,7 +140,7 @@ public class AppController {
     File tempFile = File.createTempFile("IMPORT_", "_ZIP");
     file.transferTo(tempFile);
 
-    App installedApp = appManager.installApp(tempFile, file.getOriginalFilename());
+    App installedApp = appManager.installApp(tempFile);
     AppStatus appStatus = installedApp.getAppState();
 
     if (!appStatus.ok()) {

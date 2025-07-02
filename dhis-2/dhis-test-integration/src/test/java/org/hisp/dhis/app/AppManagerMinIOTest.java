@@ -76,8 +76,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
   void canUpdateAppUsingMinIOStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     App installedApp =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+        appManager.installApp(new ClassPathResource("app/test-app-minio-v1.zip").getFile());
 
     AppStatus appStatus = installedApp.getAppState();
 
@@ -89,8 +88,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
         assertDoesNotThrow(
             () ->
                 appManager.installApp(
-                    new ClassPathResource("app/test-app-minio-v2.zip").getFile(),
-                    "test-app-minio-v2.zip"));
+                    new ClassPathResource("app/test-app-minio-v2.zip").getFile()));
 
     assertTrue(updatedApp.getAppState().ok());
     assertEquals("ok", appStatus.getMessage());
@@ -124,8 +122,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
   void appPathResolveTest(String path, String expectedPath) throws IOException {
     // given an app is installed in object storage
     App installedApp =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+        appManager.installApp(new ClassPathResource("app/test-app-minio-v1.zip").getFile());
 
     AppStatus appStatus = installedApp.getAppState();
 
@@ -151,8 +148,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
   void appPathRedirectTest(String path, String expectedPath) throws IOException {
     // given an app is installed in object storage
     App installedApp =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+        appManager.installApp(new ClassPathResource("app/test-app-minio-v1.zip").getFile());
 
     AppStatus appStatus = installedApp.getAppState();
 
@@ -173,8 +169,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
   void appPathNotFoundTest(String path) throws IOException {
     // given an app is installed in object storage
     App installedApp =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+        appManager.installApp(new ClassPathResource("app/test-app-minio-v1.zip").getFile());
 
     AppStatus appStatus = installedApp.getAppState();
 

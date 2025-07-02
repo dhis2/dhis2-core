@@ -131,10 +131,9 @@ public interface AppManager {
    * Installs the app.
    *
    * @param file the app file.
-   * @param fileName the name of the app file.
    * @return the installed app instance
    */
-  App installApp(File file, String fileName);
+  App installApp(File file);
 
   /**
    * Installs an app from the AppHub with the given ID.

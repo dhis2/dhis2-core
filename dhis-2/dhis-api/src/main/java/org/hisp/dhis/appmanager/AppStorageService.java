@@ -63,12 +63,11 @@ public interface AppStorageService {
    * Installs an app using the AppServiceStore.
    *
    * @param file the zip file containing the app
-   * @param filename The name of the file
    * @param appCache The app cache
    * @param bundledAppInfo bundled app info
    * @return The status of the installation
    */
-  App installApp(File file, String filename, Cache<App> appCache, BundledAppInfo bundledAppInfo);
+  App installApp(File file, Cache<App> appCache, BundledAppInfo bundledAppInfo);
 
   /**
    * Deletes an app from the AppHubService.

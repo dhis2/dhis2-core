@@ -53,7 +53,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -62,6 +61,7 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
@@ -162,21 +162,130 @@ public class DefaultAppManager implements AppManager {
         .values()
         .forEach(
             pair -> {
-              // We need the app name as it's on the filesystem (folder name)
-              // App name in the UI comes from the manifest.
               String key = pair.getLeft().getFolderName().replace("apps/", "").replace("/", "");
               installedApps.put(key, pair);
             });
 
     installBundledApps(installedApps);
-
-    log.info("Loaded {} apps.", installedApps.size());
+    filterOutDuplicateApps(installedApps);
 
     // Invalidate the previous app cache
     appCache.invalidateAll();
-
     // Cache all discovered apps
     installedApps.values().forEach(app -> cacheApp(app.getLeft()));
+
+    log.info("Loaded {} apps.", installedApps.size());
+  }
+
+  /**
+   * Filters out duplicate apps that can happen from IO side-effects during install and deletion. We
+   * will keep only the newest version of each app if multiple versions of the same app exist. For
+   * apps with the same version but different Etags (dev versions), we remove all but one (will be
+   * random).
+   *
+   * <p>If user actually wants an older app, but something went wrong and we ended up with
+   * duplicates and this now chooses the newer version instead, a reinstall of the older app will
+   * fix this.
+   *
+   * @param installedApps the Map containing installed apps
+   */
+  private void filterOutDuplicateApps(Map<String, Pair<App, BundledAppInfo>> installedApps) {
+    Map<String, List<String>> appKeyToFolderNames = new HashMap<>();
+
+    // Group apps by their key (shortName)
+    installedApps.forEach(
+        (folderName, appPair) -> {
+          String appKey = appPair.getLeft().getKey();
+          appKeyToFolderNames.computeIfAbsent(appKey, k -> new ArrayList<>()).add(folderName);
+        });
+
+    // For each app key, keep only the latest version
+    appKeyToFolderNames.forEach(
+        (appKey, folderNames) -> {
+          if (folderNames.size() > 1) {
+            log.warn(
+                "Found {} versions of app '{}', filtering to keep only the latest",
+                folderNames.size(),
+                appKey);
+
+            // Sort folder names by version, keeping the latest
+            List<Pair<String, App>> appVersions =
+                folderNames.stream()
+                    .map(folderName -> Pair.of(folderName, installedApps.get(folderName).getLeft()))
+                    .sorted((p1, p2) -> compareAppVersions(p2.getRight(), p1.getRight()))
+                    .toList();
+
+            // Keep the first (latest) version, remove the rest
+            for (int i = 1; i < appVersions.size(); i++) {
+              String folderToRemove = appVersions.get(i).getLeft();
+              App removedApp = installedApps.remove(folderToRemove).getLeft();
+              log.info(
+                  "Removed duplicate app version: '{}' v{} (kept v{})",
+                  removedApp.getName(),
+                  removedApp.getVersion(),
+                  appVersions.get(0).getRight().getVersion());
+
+              // Clean up the app folder from storage
+              try {
+                jCloudsAppStorageService.deleteAppAsync(removedApp);
+              } catch (Exception e) {
+                log.error(
+                    "Failed to delete duplicate app folder for '{}'", removedApp.getName(), e);
+              }
+            }
+          }
+        });
+  }
+
+  /**
+   * Compares two apps by version, handling semantic versioning. Returns positive if app1 > app2,
+   * negative if app1 < app2, zero if equal.
+   */
+  private int compareAppVersions(App app1, App app2) {
+    String version1 = app1.getVersion();
+    String version2 = app2.getVersion();
+
+    if (version1 == null && version2 == null) return 0;
+    if (version1 == null) return -1;
+    if (version2 == null) return 1;
+
+    // Handle semantic versioning (e.g., "1.2.3" vs "1.2.10")
+    String[] parts1 = version1.split("\\.");
+    String[] parts2 = version2.split("\\.");
+
+    int maxLength = Math.max(parts1.length, parts2.length);
+
+    for (int i = 0; i < maxLength; i++) {
+      int num1 = i < parts1.length ? parseVersionPart(parts1[i]) : 0;
+      int num2 = i < parts2.length ? parseVersionPart(parts2[i]) : 0;
+
+      if (num1 != num2) {
+        return Integer.compare(num1, num2);
+      }
+    }
+
+    return 0;
+  }
+
+  /** Parses a version part, extracting numeric value and handling non-numeric suffixes. */
+  private int parseVersionPart(String part) {
+    if (part == null || part.isEmpty()) return 0;
+
+    // Extract numeric part (e.g., "3" from "3-SNAPSHOT")
+    StringBuilder numericPart = new StringBuilder();
+    for (char c : part.toCharArray()) {
+      if (Character.isDigit(c)) {
+        numericPart.append(c);
+      } else {
+        break;
+      }
+    }
+
+    try {
+      return numericPart.isEmpty() ? 0 : Integer.parseInt(numericPart.toString());
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   /**
@@ -188,10 +297,9 @@ public class DefaultAppManager implements AppManager {
   private void installBundledApps(Map<String, Pair<App, BundledAppInfo>> installedApps) {
     bundledAppManager.installBundledApps(
         (key, appInfo, resource) -> {
-          String fileName = key + ".zip";
           // Install bundled apps if not already installed manually or automatically during startup
           installedApps.computeIfAbsent(
-              key, x -> Pair.of(installBundledAppResource(resource, fileName, appInfo), appInfo));
+              key, x -> Pair.of(installBundledAppResource(resource, appInfo), appInfo));
 
           if (installedApps.containsKey(key)) {
             BundledAppInfo installedAppInfo = installedApps.get(key).getRight();
@@ -204,7 +312,7 @@ public class DefaultAppManager implements AppManager {
                 && !installedAppInfo.getEtag().equals(appInfo.getEtag())) {
 
               installedApps.put(
-                  key, Pair.of(installBundledAppResource(resource, fileName, appInfo), appInfo));
+                  key, Pair.of(installBundledAppResource(resource, appInfo), appInfo));
 
               log.info(
                   "A bundled app with a different Etag was installed and replaced the existing one. App name: '{}'",
@@ -434,12 +542,12 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App installApp(File file, String fileName) {
-    return installAppZipFile(file, fileName, null);
+  public App installApp(File file) {
+    return installAppZipFile(file, null);
   }
 
-  private App installAppZipFile(File file, String fileName, BundledAppInfo bundledAppInfo) {
-    App app = jCloudsAppStorageService.installApp(file, fileName, appCache, bundledAppInfo);
+  private App installAppZipFile(File file, BundledAppInfo bundledAppInfo) {
+    App app = jCloudsAppStorageService.installApp(file, appCache, bundledAppInfo);
     log.debug(
         String.format(
             "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
@@ -448,20 +556,19 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Nonnull
-  public App installBundledAppResource(
-      Resource resource, String fileName, BundledAppInfo bundledAppInfo) {
+  public App installBundledAppResource(Resource resource, BundledAppInfo bundledAppInfo) {
     try {
-      Path tempFile = Files.createTempFile("tmp-bundled-app-", fileName);
+      Path tempFile = Files.createTempFile("tmp-bundled-app-", CodeGenerator.generateUid());
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
       try {
-        App app = installAppZipFile(tempFile.toFile(), fileName, bundledAppInfo);
+        App app = installAppZipFile(tempFile.toFile(), bundledAppInfo);
         app.setBundled(true);
         return app;
       } finally {
         Files.deleteIfExists(tempFile);
       }
     } catch (IOException e) {
-      log.error("Failed to install bundled app: '{}'", fileName, e);
+      log.error("Failed to install bundled app: '{}'", bundledAppInfo.getName(), e);
       throw new RuntimeException(e);
     }
   }
@@ -493,9 +600,7 @@ public class DefaultAppManager implements AppManager {
       String downloadUrl = downloadUrlNode.string();
       URL url = new URL(downloadUrl);
 
-      String filename = FilenameUtils.getName(downloadUrl);
-
-      return installApp(getFile(url), filename);
+      return installApp(getFile(url));
 
     } catch (IOException ex) {
       log.info(String.format("No version found for id %s", appHubId));

@@ -70,10 +70,9 @@ public class BundledAppManager {
     Map<String, Resource> bundledAppsResources = getBundledApps();
 
     bundledAppsInfo.forEach(
-        (k, appInfo) -> {
-          String filename = k + ".zip";
-          Resource resource = bundledAppsResources.get(filename);
-          consumer.accept(k, appInfo, resource);
+        (appName, appInfo) -> {
+          Resource resource = bundledAppsResources.get(appName + ".zip");
+          consumer.accept(appName, appInfo, resource);
         });
   }
 
@@ -84,10 +83,14 @@ public class BundledAppManager {
       return Arrays.stream(resources)
           .collect(Collectors.toMap(Resource::getFilename, Function.identity()));
     } catch (IOException e) {
+      log.error("Failed to read bundled apps zip files from disk", e);
       throw new RuntimeException(e);
     }
   }
 
+  /*
+   Get the AppBundleInfo which contains a list of all the bundled apps
+  */
   public static AppBundleInfo getAppBundleInfo() {
     InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
     if (appBundleInfoInputStream == null) {
@@ -96,6 +99,7 @@ public class BundledAppManager {
     try (appBundleInfoInputStream) {
       return objectMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
     } catch (IOException e) {
+      log.error("Failed to read bundled apps info file from disk", e);
       throw new RuntimeException(e);
     }
   }
@@ -106,7 +110,7 @@ public class BundledAppManager {
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
       // Ignore if not exists, this is the case when running tests
       if (resources.length == 0 || resources[0] == null || !resources[0].exists()) {
-        log.warn(String.format("Bundled apps info file not found at: '%s'", APPS_BUNDLE_INFO_PATH));
+        log.warn("Bundled apps info file not found at: {}", APPS_BUNDLE_INFO_PATH);
         return null;
       }
       return resources[0].getInputStream();

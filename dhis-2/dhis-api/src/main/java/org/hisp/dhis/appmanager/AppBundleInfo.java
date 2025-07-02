@@ -36,8 +36,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
- * Class representing information about the bundled apps. This is serialized to JSON and stored in
- * the apps-bundle.json file.
+ * Class representing information about all the bundled apps. This is serialized to JSON and stored
+ * in the apps-bundle.json file.
  */
 @Data
 public class AppBundleInfo {
