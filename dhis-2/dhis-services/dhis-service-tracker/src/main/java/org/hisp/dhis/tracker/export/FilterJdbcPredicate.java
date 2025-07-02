@@ -261,19 +261,11 @@ public class FilterJdbcPredicate {
       case NE, NEQ ->
           String.format(
               "not exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
-      case LIKE, ILIKE ->
+      case LIKE, ILIKE, EW, SW ->
           String.format("exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
       case NLIKE, NILIKE ->
           String.format(
               "not exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
-      case SW ->
-          String.format(
-              "exists (select 1 from %s where %s like CONCAT(:%s, '%%'))",
-              unnestSql, trimmed, param);
-      case EW ->
-          String.format(
-              "exists (select 1 from %s where %s like CONCAT('%%', :%s))",
-              unnestSql, trimmed, param);
       case NULL ->
           String.format(
               "not exists (select 1 from %s where %s is not null and %s <> '')",
