@@ -906,9 +906,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
           SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
           ProgramTrackedEntityAttribute programTrackedEntityAttribute) {
     if (programTrackedEntityAttribute == null) return metadata;
-    metadata.putValue(ProgramTrackedEntityAttribute.class, programTrackedEntityAttribute);
     handleAttributes(metadata, programTrackedEntityAttribute);
-
     handleTrackedEntityAttribute(metadata, programTrackedEntityAttribute.getAttribute());
 
     return metadata;
@@ -967,7 +965,6 @@ public class DefaultMetadataExportService implements MetadataExportService {
           SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
           ProgramStageDataElement programStageDataElement) {
     if (programStageDataElement == null) return metadata;
-    metadata.putValue(ProgramStageDataElement.class, programStageDataElement);
 
     handleAttributes(metadata, programStageDataElement);
     handleDataElement(metadata, programStageDataElement.getDataElement());
