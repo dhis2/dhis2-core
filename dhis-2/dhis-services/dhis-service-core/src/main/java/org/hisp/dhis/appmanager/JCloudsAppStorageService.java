@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +51,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
@@ -213,6 +213,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   public App installApp(
       File file, String filename, Cache<App> appCache, BundledAppInfo bundledAppInfo) {
     log.debug("Installing new app: {}", filename);
+
     String installationFolder =
         APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
 
@@ -258,25 +259,14 @@ public class JCloudsAppStorageService implements AppStorageService {
         }
       }
 
-      // Create the BundledAppInfo JSON file and write it to JClouds storage
       if (bundledAppInfo != null) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
-        byte[] bundledAppInfoBytes = baos.toByteArray();
-        ByteArrayInputStream bais = new ByteArrayInputStream(bundledAppInfoBytes);
-        Blob bundledAppInfoBlob =
-            jCloudsStore
-                .getBlobStore()
-                .blobBuilder(dest + File.separator + BUNDLED_APP_INFO_FILENAME)
-                .payload(bais)
-                .contentLength(bundledAppInfoBytes.length)
-                .build();
-        jCloudsStore.putBlob(bundledAppInfoBlob);
-        bais.close();
-        baos.close();
+        writeBundledAppInfo(bundledAppInfo, installationFolder);
       }
-
+      removePreviousVersions(app, bundledAppInfo);
       app.setAppState(AppStatus.OK);
+
+      logSuccess(app, installationFolder);
+      return app;
 
     } catch (IOException e) {
       log.error("Failed to install app: IO Failure during unzipping", e);
@@ -291,33 +281,51 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     if (!app.getAppState().ok()) {
       deleteAppAsync(app);
-      return app;
     }
 
-    removePreviousVersions(app);
-    logSuccess(app, installationFolder);
     return app;
   }
 
-  private static void logSuccess(App app, String appFolder) {
-    String namespace = app.getActivities().getDhis().getNamespace();
-    log.info(
-        "New app {} installed, Install path: {}, Namespace reserved: {}",
-        app.getName(),
-        appFolder,
-        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
+  private void writeBundledAppInfo(BundledAppInfo bundledAppInfo, String installationFolder)
+      throws IOException {
+    // Create the BundledAppInfo JSON file and write it to JClouds storage
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
+    byte[] bundledAppInfoBytes = baos.toByteArray();
+    ByteArrayInputStream bais = new ByteArrayInputStream(bundledAppInfoBytes);
+    Blob bundledAppInfoBlob =
+        jCloudsStore
+            .getBlobStore()
+            .blobBuilder(installationFolder + File.separator + BUNDLED_APP_INFO_FILENAME)
+            .payload(bais)
+            .contentLength(bundledAppInfoBytes.length)
+            .build();
+    jCloudsStore.putBlob(bundledAppInfoBlob);
+    bais.close();
+    baos.close();
   }
 
-  private void removePreviousVersions(App app) {
-    List<App> otherVersions = new ArrayList<>();
-    String key = app.getKey();
-    String version = app.getVersion();
+  private void removePreviousVersions(App newApp, BundledAppInfo bundledAppInfo) {
+    List<App> appsToRemove = new ArrayList<>();
+    String key = newApp.getKey();
+    String version = newApp.getVersion();
     discoverInstalledApps(
-        other -> {
-          if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
-            otherVersions.add(other);
+        (otherApp, otherAppInfo) -> {
+          if (key.equals(otherApp.getKey()) && !version.equals(otherApp.getVersion()))
+            appsToRemove.add(otherApp);
+
+          // Remove bundled apps that have same version, but are development versions,
+          // differentiated by Etag
+          if (bundledAppInfo != null
+              && otherAppInfo != null
+              && key.equals(otherApp.getKey())
+              && version.equals(otherApp.getVersion())
+              && otherAppInfo.getEtag().equals(bundledAppInfo.getEtag())) {
+            appsToRemove.add(otherApp);
+          }
         });
-    otherVersions.forEach(this::deleteAppAsync);
+
+    appsToRemove.forEach(this::deleteAppAsync);
   }
 
   private static App readAppManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
@@ -445,5 +453,14 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
     // any other resource, no special handling required, return as is
     return resource;
+  }
+
+  private static void logSuccess(App app, String appFolder) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    log.info(
+        "New app {} installed, Install path: {}, Namespace reserved: {}",
+        app.getName(),
+        appFolder,
+        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
   }
 }
