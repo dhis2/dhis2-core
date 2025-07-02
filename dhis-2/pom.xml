@@ -224,7 +224,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.21.2</testcontainers.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
     <swagger.version>2.1.27</swagger.version>
@@ -1845,9 +1845,9 @@
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
       </snapshots>
-      <id>ossrh</id>
-      <name>Sonatype OSS</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>centralSnapshots</id>
+      <name>Central Portal Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
     </repository>
     <repository>
       <id>jitpack.io</id>
