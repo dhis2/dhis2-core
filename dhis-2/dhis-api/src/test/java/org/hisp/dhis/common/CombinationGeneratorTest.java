@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.junit.jupiter.api.Test;
 
@@ -195,6 +196,32 @@ class CombinationGeneratorTest {
     List<List<IdentifiableObject>> objects = generator.getCombinations();
     assertEquals(0, objects.size());
     assertNull(generator.getNext());
+  }
+
+  @Test
+  void testCombinations() {
+    // Given 3 Lists with 50 elements each...
+    List<List<Integer>> input = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      input.add(IntStream.range(0, 50).boxed().toList());
+    }
+
+    List<List<Integer>> permutations = CombinationGenerator.newInstance(input).getCombinations();
+
+    assertEquals(125000, permutations.size());
+  }
+
+  @Test
+  void testCountCombinations() {
+    // Given 3 Lists with 50 elements each...
+    List<List<Integer>> input = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      input.add(IntStream.range(0, 50).boxed().toList());
+    }
+
+    int combinations = CombinationGenerator.newInstance(input).countCombinations();
+
+    assertEquals(125000, combinations);
   }
 
   private static boolean equals(List<IdentifiableObject> objects, IdentifiableObject... integers) {

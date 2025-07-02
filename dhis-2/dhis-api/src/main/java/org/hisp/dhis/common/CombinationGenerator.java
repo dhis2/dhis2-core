@@ -64,6 +64,24 @@ public class CombinationGenerator<T> {
     return new CombinationGenerator<>(objects);
   }
 
+  /**
+   * Counts the total of possible combinations of non-empty lists within the current list of
+   * "objects".
+   *
+   * @return the total.
+   */
+  public int countCombinations() {
+    int total = 1;
+    for (List<T> list : objects) {
+      // Skip empty lists.
+      if (!list.isEmpty()) {
+        total *= list.size();
+      }
+    }
+
+    return total;
+  }
+
   /** Returns a List of Lists with combinations of objects. */
   public List<List<T>> getCombinations() {
     final List<List<T>> combinations = new ArrayList<>();
