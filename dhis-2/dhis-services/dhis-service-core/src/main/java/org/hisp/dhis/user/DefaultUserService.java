@@ -90,6 +90,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -1045,11 +1046,11 @@ public class DefaultUserService implements UserService {
   public boolean sendRestoreOrInviteMessage(
       User user, String rootPath, RestoreOptions restoreOptions) {
     User persistedUser = getUser(user.getUid());
-
+    UserSettings userSettings =
+        userSettingsService.getUserSettings(persistedUser.getUsername(), true);
+    I18n i18n = i18nManager.getI18n(userSettings.getUserUiLocale());
     String encodedTokens = generateAndPersistTokens(persistedUser, restoreOptions);
-
     RestoreType restoreType = restoreOptions.getRestoreType();
-
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
 
     if (isEmpty(applicationTitle)) {
@@ -1062,15 +1063,7 @@ public class DefaultUserService implements UserService {
     vars.put("token", encodedTokens);
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
-
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
-
-    I18n i18n =
-        i18nManager.getI18n(
-            userSettingsService
-                .getUserSettings(persistedUser.getUsername(), true)
-                .getUserUiLocale());
-
     vars.put("i18n", i18n);
 
     rootPath = rootPath.replace("http://", "").replace("https://", "");
