@@ -41,6 +41,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
@@ -69,12 +70,21 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
   private User importUser;
 
+  @Autowired private ProgramService programService;
+
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
+  }
+
+  @Test
+  void shouldDeleteProgram() {
+    programService.deleteProgram(programService.getProgram("BFcipDERJne"));
+
+    assertNull(programService.getProgram("BFcipDERJne"));
   }
 
   @Test

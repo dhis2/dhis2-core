@@ -59,9 +59,10 @@ public class ProgramStageDeletionHandler extends IdObjectDeletionHandler<Program
 
     while (iterator.hasNext()) {
       ProgramStage programStage = iterator.next();
-      iterator.remove();
-      programStageService.deleteProgramStage(programStage);
+      idObjectManager.delete(programStage);
+      idObjectManager.flush();
     }
+    program.getProgramStages().clear();
   }
 
   private void deleteDataEntryForm(DataEntryForm dataEntryForm) {

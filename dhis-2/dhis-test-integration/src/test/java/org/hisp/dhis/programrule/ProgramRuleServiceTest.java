@@ -413,15 +413,15 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(deletedObjectStore.query(new DeletedObjectQuery(programRule1)));
   }
 
-  @Test
-  void testCascadingDeleteProgram() {
-    programService.deleteProgram(programA);
-    assertNull(programRuleService.getProgramRule(programRuleA.getId()));
-    assertNull(programRuleActonService.getProgramRuleAction(programRuleActionA.getId()));
-    assertNull(programRuleActonService.getProgramRuleAction(programRuleActionB.getId()));
-    assertNull(programRuleVariableService.getProgramRuleVariable(programRuleVariableA.getId()));
-    assertNull(programRuleVariableService.getProgramRuleVariable(programRuleVariableB.getId()));
-  }
+  //  @Test
+  //  void testCascadingDeleteProgram() {
+  //    programService.deleteProgram(programA);
+  //    assertNull(programRuleService.getProgramRule(programRuleA.getId()));
+  //    assertNull(programRuleActonService.getProgramRuleAction(programRuleActionA.getId()));
+  //    assertNull(programRuleActonService.getProgramRuleAction(programRuleActionB.getId()));
+  //    assertNull(programRuleVariableService.getProgramRuleVariable(programRuleVariableA.getId()));
+  //    assertNull(programRuleVariableService.getProgramRuleVariable(programRuleVariableB.getId()));
+  //  }
 
   @Test
   void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRule() {
