@@ -147,137 +147,15 @@ public class DefaultAppManager implements AppManager {
   @Override
   @PostConstruct
   public void reloadApps() {
-    Map<String, Pair<App, BundledAppInfo>> installedApps = new HashMap<>();
-    // Read apps from jClouds (either local storage or a remote object store)
-    jCloudsAppStorageService
-        .discoverInstalledApps()
-        .values()
-        .forEach(
-            pair -> {
-              String key = pair.getLeft().getFolderName().replace("apps/", "").replace("/", "");
-              installedApps.put(key, pair);
-            });
+    Map<String, Pair<App, BundledAppInfo>> installedApps =
+        jCloudsAppStorageService.discoverInstalledApps();
 
     installBundledApps(installedApps);
-    filterOutDuplicateApps(installedApps);
-
     // Invalidate the previous app cache
     appCache.invalidateAll();
     // Cache all discovered apps
     installedApps.values().forEach(app -> cacheApp(app.getLeft()));
-
     log.info("Loaded {} apps.", installedApps.size());
-  }
-
-  /**
-   * Filters out duplicate apps that can happen from IO side-effects during install and deletion. We
-   * will keep only the newest version of each app if multiple versions of the same app exist. For
-   * apps with the same version but different Etags (dev versions), we remove all but one (will be
-   * random).
-   *
-   * <p>If user actually wants an older app, but something went wrong and we ended up with
-   * duplicates and this now chooses the newer version instead, a reinstall of the older app will
-   * fix this.
-   *
-   * @param installedApps the Map containing installed apps
-   */
-  private void filterOutDuplicateApps(Map<String, Pair<App, BundledAppInfo>> installedApps) {
-    Map<String, List<String>> appKeyToFolderNames = new HashMap<>();
-
-    // Group apps by their key (shortName)
-    installedApps.forEach(
-        (folderName, appPair) -> {
-          String appKey = appPair.getLeft().getKey();
-          appKeyToFolderNames.computeIfAbsent(appKey, k -> new ArrayList<>()).add(folderName);
-        });
-
-    // For each app key, keep only the latest version
-    appKeyToFolderNames.forEach(
-        (appKey, folderNames) -> {
-          if (folderNames.size() > 1) {
-            log.warn(
-                "Found {} versions of app '{}', filtering to keep only the latest",
-                folderNames.size(),
-                appKey);
-
-            // Sort folder names by version, keeping the latest
-            List<Pair<String, App>> appVersions =
-                folderNames.stream()
-                    .map(folderName -> Pair.of(folderName, installedApps.get(folderName).getLeft()))
-                    .sorted((p1, p2) -> compareAppVersions(p2.getRight(), p1.getRight()))
-                    .toList();
-
-            // Keep the first (latest) version, remove the rest
-            for (int i = 1; i < appVersions.size(); i++) {
-              String folderToRemove = appVersions.get(i).getLeft();
-              App removedApp = installedApps.remove(folderToRemove).getLeft();
-              log.info(
-                  "Removed duplicate app version: '{}' v{} (kept v{})",
-                  removedApp.getName(),
-                  removedApp.getVersion(),
-                  appVersions.get(0).getRight().getVersion());
-
-              // Clean up the app folder from storage
-              try {
-                jCloudsAppStorageService.deleteAppAsync(removedApp);
-              } catch (Exception e) {
-                log.error(
-                    "Failed to delete duplicate app folder for '{}'", removedApp.getName(), e);
-              }
-            }
-          }
-        });
-  }
-
-  /**
-   * Compares two apps by version, handling semantic versioning. Returns positive if app1 > app2,
-   * negative if app1 < app2, zero if equal.
-   */
-  private int compareAppVersions(App app1, App app2) {
-    String version1 = app1.getVersion();
-    String version2 = app2.getVersion();
-
-    if (version1 == null && version2 == null) return 0;
-    if (version1 == null) return -1;
-    if (version2 == null) return 1;
-
-    // Handle semantic versioning (e.g., "1.2.3" vs "1.2.10")
-    String[] parts1 = version1.split("\\.");
-    String[] parts2 = version2.split("\\.");
-
-    int maxLength = Math.max(parts1.length, parts2.length);
-
-    for (int i = 0; i < maxLength; i++) {
-      int num1 = i < parts1.length ? parseVersionPart(parts1[i]) : 0;
-      int num2 = i < parts2.length ? parseVersionPart(parts2[i]) : 0;
-
-      if (num1 != num2) {
-        return Integer.compare(num1, num2);
-      }
-    }
-
-    return 0;
-  }
-
-  /** Parses a version part, extracting numeric value and handling non-numeric suffixes. */
-  private int parseVersionPart(String part) {
-    if (part == null || part.isEmpty()) return 0;
-
-    // Extract numeric part (e.g., "3" from "3-SNAPSHOT")
-    StringBuilder numericPart = new StringBuilder();
-    for (char c : part.toCharArray()) {
-      if (Character.isDigit(c)) {
-        numericPart.append(c);
-      } else {
-        break;
-      }
-    }
-
-    try {
-      return numericPart.isEmpty() ? 0 : Integer.parseInt(numericPart.toString());
-    } catch (NumberFormatException e) {
-      return 0;
-    }
   }
 
   /**
@@ -288,23 +166,25 @@ public class DefaultAppManager implements AppManager {
    */
   private void installBundledApps(Map<String, Pair<App, BundledAppInfo>> installedApps) {
     bundledAppManager.installBundledApps(
-        (key, appInfo, resource) -> {
-          // Install bundled apps if not already installed manually or automatically during startup
+        (app, bundledAppInfo, zipFileResource) -> {
+          String appKey = app.getKey();
           installedApps.computeIfAbsent(
-              key, x -> Pair.of(installBundledAppResource(resource, appInfo), appInfo));
+              appKey,
+              x ->
+                  Pair.of(
+                      installBundledAppResource(zipFileResource, bundledAppInfo), bundledAppInfo));
 
-          if (installedApps.containsKey(key)) {
-            BundledAppInfo installedAppInfo = installedApps.get(key).getRight();
-
-            // If we already have a bundled app installed automatically (since we have the
-            // BundledAppInfo),
-            // and the Etag is different, overwrite the existing.
+          // If the bundled app is already installed and the Etag is different, overwrite the
+          // existing.
+          if (installedApps.containsKey(appKey)) {
+            BundledAppInfo installedAppInfo = installedApps.get(appKey).getRight();
             if (installedAppInfo != null
                 && installedAppInfo.getEtag() != null
-                && !installedAppInfo.getEtag().equals(appInfo.getEtag())) {
-
+                && !installedAppInfo.getEtag().equals(bundledAppInfo.getEtag())) {
               installedApps.put(
-                  key, Pair.of(installBundledAppResource(resource, appInfo), appInfo));
+                  appKey,
+                  Pair.of(
+                      installBundledAppResource(zipFileResource, bundledAppInfo), bundledAppInfo));
 
               log.info(
                   "A bundled app with a different Etag was installed and replaced the existing one. App name: '{}'",

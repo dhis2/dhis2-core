@@ -109,10 +109,10 @@ public class JCloudsAppStorageService implements AppStorageService {
         jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"));
 
     for (StorageMetadata resource : allAppFolders) {
-      log.debug("Found potential app folder: {}", resource.getName());
       Blob manifest = jCloudsStore.getBlob(resource.getName() + MANIFEST_WEBAPP_FILENAME);
       if (manifest == null) {
-        log.error("Could not find manifest file of app folder '{}'", resource.getName());
+        log.error(
+            "Could not find manifest file of app folder '{}', skipping app.", resource.getName());
         continue;
       }
 
@@ -228,7 +228,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     String topLevelFolder;
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
-      app = readAppManifest(file, this.jsonMapper, topLevelFolder);
+      app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
       app.setFolderName(installationFolder);
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
@@ -250,7 +250,7 @@ public class JCloudsAppStorageService implements AppStorageService {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
           ZipEntry zipEntry = entries.nextElement();
-          String filePath = getFilePath(topLevelFolder, installationFolder, zipEntry);
+          String filePath = getFilePath(installationFolder, topLevelFolder, zipEntry);
           // If it's the root folder, skip
           if (filePath == null) continue;
           try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
@@ -273,7 +273,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       removePreviousVersions(app, bundledAppInfo);
       app.setAppState(AppStatus.OK);
 
-      logSuccess(app, installationFolder);
+      logInstallSuccess(app, installationFolder);
       return app;
 
     } catch (IOException e) {
@@ -317,6 +317,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     List<App> appsToRemove = new ArrayList<>();
     String key = newApp.getKey();
     String version = newApp.getVersion();
+
     discoverInstalledApps(
         (a, bai) -> {
           if (key.equals(a.getKey()) && !version.equals(a.getVersion())) appsToRemove.add(a);
@@ -325,47 +326,13 @@ public class JCloudsAppStorageService implements AppStorageService {
           if (bundledAppInfo != null
               && bai != null
               && key.equals(a.getKey())
-              && version.equals(a.getVersion())
-              && bai.getEtag().equals(bundledAppInfo.getEtag())) {
+              && !version.equals(a.getVersion())
+              && !bai.getEtag().equals(bundledAppInfo.getEtag())) {
             appsToRemove.add(a);
           }
         });
 
     appsToRemove.forEach(this::deleteAppAsync);
-  }
-
-  private static App readAppManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
-      throws IOException {
-    App app = new App();
-    try (ZipFile zip = new ZipFile(file)) {
-      // Parse manifest.webapp file from ZIP archive.
-      ZipEntry manifestEntry = zip.getEntry(topLevelFolder + MANIFEST_FILENAME);
-      if (manifestEntry == null) {
-        log.error("Failed to read zip app file: Missing manifest.webapp in zip");
-        app.setAppState(AppStatus.MISSING_MANIFEST);
-        return app;
-      }
-
-      InputStream inputStream = zip.getInputStream(manifestEntry);
-      app = jsonMapper.readValue(inputStream, App.class);
-
-      extractManifestTranslations(zip, topLevelFolder, app);
-    }
-    return app;
-  }
-
-  private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
-    ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
-    if (translationFiles == null) {
-      return;
-    }
-    try (InputStream inputStream = zip.getInputStream(translationFiles)) {
-      List<AppManifestTranslation> appManifestTranslations =
-          App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
-      app.setManifestTranslations(appManifestTranslations);
-    } catch (IOException e) {
-      log.error("Failed to read manifest translations from file for {}", app.getName(), e);
-    }
   }
 
   @Override
@@ -458,7 +425,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     return resource;
   }
 
-  private static void logSuccess(App app, String appFolder) {
+  private static void logInstallSuccess(App app, String appFolder) {
     String namespace = app.getActivities().getDhis().getNamespace();
     log.info(
         "New app {} installed, Install path: {}, Namespace reserved: {}",

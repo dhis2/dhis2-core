@@ -29,31 +29,40 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_FILENAME;
+import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_TRANSLATION_FILENAME;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
 /**
  * @author Saptarshi Purkayastha
  */
 public interface AppManager {
-  static final String ID = AppManager.class.getName();
+  Logger LOGGER = LoggerFactory.getLogger(AppManager.class);
 
-  static final String BUNDLED_APP_PREFIX = "dhis-web-";
-  static final String INSTALLED_APP_PREFIX = "api/apps/";
+  String BUNDLED_APP_PREFIX = "dhis-web-";
+  String INSTALLED_APP_PREFIX = "api/apps/";
 
-  static final Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
+  Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
 
-  static final Set<String> MENU_APP_EXCLUSIONS =
+  Set<String> MENU_APP_EXCLUSIONS =
       Set.of("login", "global-shell"); // TODO: instead filter by app type
 
-  static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
+  String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
   /**
    * Returns a list of all installed apps.
@@ -210,7 +219,7 @@ public interface AppManager {
    *
    * @return list of installed apps with given AppType
    */
-  public static List<App> filterAppsByType(AppType appType, Collection<App> apps) {
+  static List<App> filterAppsByType(AppType appType, Collection<App> apps) {
     return apps.stream().filter(app -> app.getAppType() == appType).collect(Collectors.toList());
   }
 
@@ -227,7 +236,7 @@ public interface AppManager {
    *
    * @return list of installed apps with given name
    */
-  public static List<App> filterAppsByName(
+  static List<App> filterAppsByName(
       final String name, Collection<App> apps, final String operator) {
     return apps.stream()
         .filter(app -> checkAppStringProperty(app.getName(), name, operator))
@@ -240,7 +249,7 @@ public interface AppManager {
    *
    * @return list of installed apps with given name
    */
-  public static List<App> filterAppsByShortName(
+  static List<App> filterAppsByShortName(
       final String name, Collection<App> apps, final String operator) {
     return apps.stream()
         .filter(app -> checkAppStringProperty(app.getShortName(), name, operator))
@@ -253,7 +262,7 @@ public interface AppManager {
    *
    * @return list of installed apps with given isBundled property
    */
-  public static List<App> filterAppsByIsBundled(final boolean isBundled, Collection<App> apps) {
+  static List<App> filterAppsByIsBundled(final boolean isBundled, Collection<App> apps) {
     return apps.stream().filter(app -> app.isBundled() == isBundled).collect(Collectors.toList());
   }
 
@@ -267,5 +276,40 @@ public interface AppManager {
         .filter(app -> app.getPluginType() != null)
         .filter(app -> app.getPluginType().equals(pluginType))
         .toList();
+  }
+
+  static App readAppManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
+      throws IOException {
+    App app = new App();
+    try (ZipFile zip = new ZipFile(file)) {
+      // Parse manifest.webapp file from ZIP archive.
+      ZipEntry manifestEntry = zip.getEntry(topLevelFolder + MANIFEST_FILENAME);
+      if (manifestEntry == null) {
+        LOGGER.error(
+            "Could not find manifest.webapp file in the app zip file '{}'", file.getName());
+        app.setAppState(AppStatus.MISSING_MANIFEST);
+        return app;
+      }
+
+      InputStream inputStream = zip.getInputStream(manifestEntry);
+      app = jsonMapper.readValue(inputStream, App.class);
+
+      extractManifestTranslations(zip, topLevelFolder, app);
+    }
+    return app;
+  }
+
+  static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
+    ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
+    if (translationFiles == null) {
+      return;
+    }
+    try (InputStream inputStream = zip.getInputStream(translationFiles)) {
+      List<AppManifestTranslation> appManifestTranslations =
+          App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+      app.setManifestTranslations(appManifestTranslations);
+    } catch (IOException e) {
+      LOGGER.error("Failed to read manifest translations from file for {}", app.getName(), e);
+    }
   }
 }

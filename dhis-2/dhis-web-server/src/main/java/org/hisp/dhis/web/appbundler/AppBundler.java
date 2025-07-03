@@ -59,14 +59,13 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
  */
 public class AppBundler {
   // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
+  private static final String DEFAULT_BRANCH = "master";
   private static final Pattern GITHUB_URL_PATTERN =
       Pattern.compile("^https://github\\.com/([^/]+)/([^/#]+)(?:#(.+))?$");
   private static final int DOWNLOAD_POOL_SIZE = 30; // Number of concurrent downloads
-  private static final String DEFAULT_BRANCH = "master";
-
-  private static final String CHECKSUM_DIR = "checksums";
+  private static final String ETAGS_DIR_NAME = "etags";
   private static final String BUNDLE_INFO_FILE = "apps-bundle.json";
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final String downloadDir;
   private final String artifactId;
@@ -121,15 +120,15 @@ public class AppBundler {
     Path artifactDirPath = downloadDirPath.resolve(artifactId);
     Files.createDirectories(artifactDirPath);
 
-    Path checksumDirPath = artifactDirPath.resolve(CHECKSUM_DIR);
-    Files.createDirectories(checksumDirPath);
+    Path etagsDirPath = artifactDirPath.resolve(ETAGS_DIR_NAME);
+    Files.createDirectories(etagsDirPath);
 
     List<AppGithubRepo> appRepoInfos = parseAppListUrls(appListFilePath);
 
     info("Found {} valid apps to bundle", appRepoInfos.size());
 
     // Download each app in parallel
-    downloadApps(appRepoInfos, artifactDirPath, checksumDirPath);
+    downloadApps(appRepoInfos, artifactDirPath, etagsDirPath);
 
     // Copy downloaded apps to build directory
     Path targetArtifactDir = copyAppsToBuildDir(downloadDirPath);
@@ -139,7 +138,7 @@ public class AppBundler {
   }
 
   private void downloadApps(
-      List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
+      List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path etagDirPath) {
     ForkJoinPool customThreadPool = new ForkJoinPool(DOWNLOAD_POOL_SIZE);
     try {
       List<BundledAppInfo> downloadedApps =
@@ -150,7 +149,7 @@ public class AppBundler {
                           .map(
                               repoInfo -> {
                                 try {
-                                  return downloadApp(repoInfo, artifactDirPath, checksumDirPath);
+                                  return downloadApp(repoInfo, artifactDirPath, etagDirPath);
                                 } catch (IOException e) {
                                   // error is logged in downloadApp()
                                   return null;
@@ -175,17 +174,17 @@ public class AppBundler {
    *
    * @param fileUrl the URL of the file to download
    * @param outputPath the path where the file will be saved
-   * @param checksumPath the path to the checksum file
+   * @param etagPath the path to the etag file
    * @return the ETag of the downloaded file, or the previous ETag if the file hasn't changed
    * @throws IOException if there's an error downloading the file
    */
-  private String downloadIfChanged(String fileUrl, Path outputPath, Path checksumPath)
+  private String downloadIfChanged(String fileUrl, Path outputPath, Path etagPath)
       throws IOException {
     HttpURLConnection connection = getHttpURLConnection(fileUrl);
 
     // Check if we have a previous ETag
-    if (Files.exists(checksumPath)) {
-      String previousEtag = Files.readString(checksumPath);
+    if (Files.exists(etagPath)) {
+      String previousEtag = Files.readString(etagPath);
       connection.setRequestProperty("If-None-Match", "\"" + previousEtag + "\"");
     }
 
@@ -217,14 +216,14 @@ public class AppBundler {
 
     // Save the ETag for future comparisons
     if (etag != null) {
-      Files.writeString(checksumPath, etag);
+      Files.writeString(etagPath, etag);
     }
     return etag;
   }
 
   private void writeBundleFile(Path targetArtifactDir) throws IOException {
     Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
-    objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
+    OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
     info("Wrote bundle info to: {}", bundleInfoPath);
   }
 
@@ -266,9 +265,9 @@ public class AppBundler {
    */
   private List<AppGithubRepo> parseAppListUrls(String appListPath) throws IOException {
     List<String> rawUrls =
-        objectMapper.readValue(
+        OBJECT_MAPPER.readValue(
             new File(appListPath),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+            OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, String.class));
 
     List<AppGithubRepo> appInfos = new ArrayList<>();
 
@@ -300,11 +299,11 @@ public class AppBundler {
    *
    * @param repoInfo the parsed repository information including the codeload URL
    * @param targetDir the directory where the app ZIP file will be stored
-   * @param checksumDir the directory where the checksum files will be stored
+   * @param etagsDir the directory where the etags files will be stored
    * @return the downloaded AppBundleInfo.AppInfo object containing ETag etc.
    * @throws IOException if there's an error downloading the app
    */
-  private BundledAppInfo downloadApp(AppGithubRepo repoInfo, Path targetDir, Path checksumDir)
+  private BundledAppInfo downloadApp(AppGithubRepo repoInfo, Path targetDir, Path etagsDir)
       throws IOException {
     BundledAppInfo appBundleResultInfo = new BundledAppInfo();
     appBundleResultInfo.setName(repoInfo.repo());
@@ -314,7 +313,7 @@ public class AppBundler {
     try {
       String zipName = repoInfo.repo() + ".zip";
       Path zipFilePath = targetDir.resolve(zipName);
-      Path etagFile = checksumDir.resolve(repoInfo.repo() + ".checksum");
+      Path etagFile = etagsDir.resolve(repoInfo.repo() + ".etag");
 
       String etag = downloadIfChanged(repoInfo.codeloadUrl(), zipFilePath, etagFile);
       if (etag == null) { // Not modified or download failed ETag retrieval
@@ -324,7 +323,7 @@ public class AppBundler {
         } else {
           // This case might happen if download failed before ETag was written,
           // or if ETag header was missing. Log a warning.
-          error("Could not determine ETag for app {}, checksum file missing.", zipName);
+          error("Could not determine ETag for app {}, etag file missing.", zipName);
         }
       } else {
         appBundleResultInfo.setEtag(etag);

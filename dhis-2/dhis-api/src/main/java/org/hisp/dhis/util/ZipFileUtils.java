@@ -100,7 +100,7 @@ public class ZipFileUtils {
     return "";
   }
 
-  private static void validateAllFiles(ZipFile zipFile, String topLevelFolder, String appFolder)
+  private static void validateAllFiles(ZipFile zipFile, String appFolder, String topLevelFolder)
       throws ZipBombException, ZipSlipException, IOException {
     int entryCount = 0;
     long totalUncompressedSize = 0;
@@ -114,7 +114,7 @@ public class ZipFileUtils {
             "Maximum number of entries (%s) exceeded.".formatted(MAX_ENTRIES));
       }
 
-      String filePath = getFilePath(topLevelFolder, appFolder, zipEntry);
+      String filePath = getFilePath(appFolder, topLevelFolder, zipEntry);
       // If it's the root folder, skip
       if (filePath == null) continue;
 
@@ -127,7 +127,7 @@ public class ZipFileUtils {
   }
 
   public static @CheckForNull String getFilePath(
-      String topLevelFolder, String appFolder, ZipEntry zipEntry)
+      String appFolder, String topLevelFolder, ZipEntry zipEntry)
       throws IOException, ZipSlipException {
     String normalizedName = validateFilePaths(topLevelFolder, zipEntry.getName());
     if (normalizedName.isBlank()) {
@@ -215,7 +215,7 @@ public class ZipFileUtils {
   public static void validateZip(File file, String appFolder, String topLevelFolder)
       throws IOException, ZipBombException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
-      validateAllFiles(zipFile, topLevelFolder, appFolder);
+      validateAllFiles(zipFile, appFolder, topLevelFolder);
     }
   }
 }

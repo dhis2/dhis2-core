@@ -134,9 +134,11 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     ResourceFound resource =
         (ResourceFound) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
+    String folderName = app.getFolderName();
+
     // then the resource path returned is the full resource path which ends with `/index.html`
     assertEquals(
-        expectedPath,
+        String.format(expectedPath, folderName),
         resource.resource().getURI().getPath(),
         "resource path should match expected format");
   }
@@ -187,14 +189,12 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   private static Stream<Arguments> validPathParams() {
     return Stream.of(
-        Arguments.of("index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
-        Arguments.of("/index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
-        Arguments.of("subDir/", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
-        Arguments.of("subDir/index.html", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
-        Arguments.of(
-            "subDir/test-page.html", "/dhis2/apps/test-app-minio-v1/subDir/test-page.html"),
-        Arguments.of(
-            "subDir/subSubDir/", "/dhis2/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
+        Arguments.of("index.html", "/dhis2/%s/index.html"),
+        Arguments.of("/index.html", "/dhis2/%s/index.html"),
+        Arguments.of("subDir/", "/dhis2/%s/subDir/index.html"),
+        Arguments.of("subDir/index.html", "/dhis2/%s/subDir/index.html"),
+        Arguments.of("subDir/test-page.html", "/dhis2/%s/subDir/test-page.html"),
+        Arguments.of("subDir/subSubDir/", "/dhis2/%s/subDir/subSubDir/index.html"));
   }
 
   private static Stream<Arguments> redirectPathParams() {

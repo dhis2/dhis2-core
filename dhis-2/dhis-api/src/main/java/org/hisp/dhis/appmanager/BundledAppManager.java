@@ -30,15 +30,18 @@
 package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
+import org.hisp.dhis.util.ZipFileUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
@@ -49,30 +52,38 @@ import org.springframework.stereotype.Component;
  * <p>It detects .zip files in the bundled apps directory and installs them using the AppManager.
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class BundledAppManager {
   private static final String CLASSPATH_DHIS_WEB_APPS = "classpath:/static/dhis-web-apps";
   private static final String ZIPPED_APPS_PATH = CLASSPATH_DHIS_WEB_APPS + "/*.zip";
   private static final String APPS_BUNDLE_INFO_PATH = CLASSPATH_DHIS_WEB_APPS + "/apps-bundle.json";
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper jsonMapper;
 
-  public void installBundledApps(TriConsumer<String, BundledAppInfo, Resource> consumer) {
+  public void installBundledApps(TriConsumer<App, BundledAppInfo, Resource> consumer) {
     AppBundleInfo appBundleInfo = getAppBundleInfo();
     if (appBundleInfo == null) {
       return;
     }
 
+    Map<String, Resource> bundledAppsResources = getBundledApps();
+
     Map<String, BundledAppInfo> bundledAppsInfo =
         appBundleInfo.getApps().stream()
             .collect(Collectors.toMap(BundledAppInfo::getName, Function.identity()));
-
-    Map<String, Resource> bundledAppsResources = getBundledApps();
-
     bundledAppsInfo.forEach(
         (appName, appInfo) -> {
-          Resource resource = bundledAppsResources.get(appName + ".zip");
-          consumer.accept(appName, appInfo, resource);
+          Resource zipFileResource = bundledAppsResources.get(appName + ".zip");
+          try {
+            File zipFile = zipFileResource.getFile();
+            String topLevelFolder = ZipFileUtils.getTopLevelFolder(zipFile);
+            App app = AppManager.readAppManifest(zipFile, jsonMapper, topLevelFolder);
+            consumer.accept(app, appInfo, zipFileResource);
+          } catch (IOException e) {
+            log.error("");
+            throw new RuntimeException(e);
+          }
         });
   }
 
@@ -91,13 +102,13 @@ public class BundledAppManager {
   /*
    Get the AppBundleInfo which contains a list of all the bundled apps
   */
-  public static AppBundleInfo getAppBundleInfo() {
+  private AppBundleInfo getAppBundleInfo() {
     InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
     if (appBundleInfoInputStream == null) {
       return null;
     }
     try (appBundleInfoInputStream) {
-      return objectMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
+      return jsonMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
     } catch (IOException e) {
       log.error("Failed to read bundled apps info file from disk", e);
       throw new RuntimeException(e);
