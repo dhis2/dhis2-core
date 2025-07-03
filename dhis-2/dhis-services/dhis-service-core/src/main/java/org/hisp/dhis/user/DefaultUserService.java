@@ -147,7 +147,6 @@ public class DefaultUserService implements UserService {
       AclService aclService,
       OrganisationUnitService organisationUnitService,
       SessionRegistry sessionRegistry) {
-
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -172,7 +171,6 @@ public class DefaultUserService implements UserService {
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
     this.sessionRegistry = sessionRegistry;
-
     this.userSettingsService = userSettingsService;
     this.restTemplate = restTemplate;
     this.emailMessageSender = emailMessageSender;
