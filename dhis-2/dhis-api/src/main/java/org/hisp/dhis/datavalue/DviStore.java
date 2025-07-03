@@ -36,7 +36,6 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.fileresource.FileResource;
 
 /**
  * DB support for the bulk Data Value Import.
@@ -49,36 +48,6 @@ public interface DviStore {
   int deleteByKeys(List<DviKey> keys);
 
   int upsertValues(List<DviValue> values);
-
-  /*
-  Job (cleanup) support
-   */
-
-  /**
-   * Set {@link FileResource#isAssigned()} to {@code false} for any data value related file resource
-   * where no data value exists that actually refers to it (has its UID as value).
-   *
-   * @return the number of file resources that got changed from assigned being true to becoming
-   *     false
-   */
-  int unsetAssignedUnusedDataValueFileResources();
-
-  /**
-   * Set {@link FileResource#isAssigned()} to {@code true} for any data value related file resource
-   * where at least one data value exists that actually refers to it (has its UID as value).
-   *
-   * @return the number of file resources that got changed from assigned being false to becoming
-   *     true
-   */
-  int setAssignedUsedDataValueFileResources();
-
-  /**
-   * Set any row to deleted {@code true} that has an empty value and a DE that does not consider
-   * zero being significant.
-   *
-   * @return the number of data values that got changed from deleted being false to becoming true
-   */
-  int setDeletedIfNotZeroIsSignificant();
 
   /*
   Validation support

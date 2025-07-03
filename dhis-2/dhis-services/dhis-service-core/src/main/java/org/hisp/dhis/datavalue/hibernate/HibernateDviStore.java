@@ -607,62 +607,6 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     return res;
   }
 
-  @Override
-  public int unsetAssignedUnusedDataValueFileResources() {
-    // using candidates ensures we can do this with a
-    // single pass on the datavalue table
-    String sql =
-        """
-      WITH candidates AS (
-          SELECT uid
-          FROM fileresource
-          WHERE domain = 'DATA_VALUE' AND isassigned = true
-      )
-      UPDATE fileresource fr
-      SET isassigned = false
-      FROM candidates c
-      LEFT JOIN datavalue dv ON dv.value = c.uid
-      WHERE fr.uid = c.uid
-        AND dv.value IS NULL""";
-    return getSession().createNativeQuery(sql).executeUpdate();
-  }
-
-  @Override
-  public int setAssignedUsedDataValueFileResources() {
-    // using candidates and used ensures a single pass
-    // on both tables will do the job
-    String sql =
-        """
-        WITH candidates AS (
-            SELECT uid
-            FROM fileresource
-            WHERE domain = 'DATA_VALUE' AND isassigned = false
-        ),
-        used AS (
-            SELECT DISTINCT dv.value AS uid
-            FROM datavalue dv
-            JOIN candidates c ON dv.value = c.uid
-        )
-        UPDATE fileresource fr
-        SET isassigned = true
-        FROM used u
-        WHERE fr.uid = u.uid""";
-    return getSession().createNativeQuery(sql).executeUpdate();
-  }
-
-  @Override
-  public int setDeletedIfNotZeroIsSignificant() {
-    String sql =
-        """
-        UPDATE datavalue dv
-        SET deleted = true
-        FROM dataelement de
-        WHERE dv.dataelementid = de.dataelementid
-          AND de.zeroissignificant = false
-          AND (dv.value IS NULL OR dv.value = '')""";
-    return getSession().createNativeQuery(sql).executeUpdate();
-  }
-
   @Nonnull
   private Map<String, Set<String>> listAsStringsMapOfSet(
       @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
