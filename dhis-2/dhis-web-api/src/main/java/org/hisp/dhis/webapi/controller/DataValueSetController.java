@@ -287,7 +287,7 @@ public class DataValueSetController {
 
     try {
       ImportResult result =
-          dviService.importAll(new DviUpsertRequest.Options(false, false), request);
+          dviService.importAll(new DviUpsertRequest.Options(false, false, false), request);
       ImportSummary summary = new ImportSummary();
       summary.setImportCount(
           new ImportCount(result.succeeded(), 0, result.attempted() - result.succeeded(), 0));
