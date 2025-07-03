@@ -129,7 +129,7 @@ class ScheduleEventExecutorTest {
     Optional<ProgramRuleIssue> result = executor.executeRuleAction(bundle, inputEvent);
 
     assertTrue(result.isPresent());
-    verifyIssueCodeAndRule(ValidationCode.E1095, result.get());
+    verifyIssueCodeAndRule(ValidationCode.E1321, result.get());
   }
 
   private void verifyIssueCodeAndRule(ValidationCode code, ProgramRuleIssue issue) {
