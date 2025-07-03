@@ -70,23 +70,23 @@ class DefaultSchemaValidatorTest {
   @Setter
   public static class SimpleFields {
 
-    String optional;
+    private String optional;
 
-    String string;
+    private String string;
 
-    String email;
+    private String email;
 
-    String url;
+    private String url;
 
-    String password;
+    private String password;
 
-    String color;
+    private String color;
 
-    Integer integer;
+    private Integer integer;
 
-    Float aFloat;
+    private Float aFloat;
 
-    Double aDouble;
+    private Double aDouble;
 
     List<Integer> list;
 
