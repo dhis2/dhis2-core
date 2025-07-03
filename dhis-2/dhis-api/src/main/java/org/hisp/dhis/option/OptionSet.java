@@ -51,12 +51,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,7 +64,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -80,11 +76,11 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.ValueType;
@@ -113,30 +109,15 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Entity
 @Table(name = "optionset")
-public class OptionSet implements IdentifiableObject, VersionedObject, MetadataObject {
+public class OptionSet extends BaseMetadataObject implements IdentifiableObject, VersionedObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "optionsetid")
   private long id;
 
-  @Column(name = "uid", unique = true, nullable = false, length = 11)
-  private String uid;
-
   @Column(name = "code", unique = true, nullable = true, length = 50)
   private String code;
-
-  @Column(name = "created", nullable = false, updatable = false)
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date created;
-
-  @Column(name = "lastUpdated", nullable = false)
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date lastUpdated;
-
-  @ManyToOne
-  @JoinColumn(name = "lastupdatedby", foreignKey = @ForeignKey(name = "fk_lastupdateby_userid"))
-  private User lastUpdatedBy;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "valueType", length = 50, nullable = false)
@@ -163,10 +144,6 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   @Type(type = "jsbAttributeValues")
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "userid", foreignKey = @ForeignKey(name = "fk_optionset_userid"))
-  private User createdBy;
 
   @Type(type = "jsbObjectSharing")
   @Column(name = "sharing")
@@ -459,11 +436,6 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   @Override
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);
-  }
-
-  @Override
-  public int compareTo(@Nonnull IdentifiableObject o) {
-    return 0;
   }
 
   @Gist(included = Include.FALSE)

@@ -29,18 +29,15 @@
  */
 package org.hisp.dhis.user;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum UserOrgUnitProperty {
   ORG_UNITS("organisationUnits"),
   DATA_VIEW_ORG_UNITS("dataViewOrganisationUnits"),
   TEI_SEARCH_ORG_UNITS("teiSearchOrganisationUnits");
 
   private final String value;
-
-  UserOrgUnitProperty(String value) {
-    this.value = value;
-  }
-
-  public String getValue() {
-    return value;
-  }
 }

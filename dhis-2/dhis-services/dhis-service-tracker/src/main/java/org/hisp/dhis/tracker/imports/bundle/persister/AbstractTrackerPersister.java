@@ -105,7 +105,7 @@ public abstract class AbstractTrackerPersister<
     //
     // Extract the entities to persist from the Bundle
     //
-    List<T> dtos = getByType(getType(), bundle);
+    List<T> dtos = getByType(bundle);
 
     for (T trackerDto : dtos) {
 
@@ -267,20 +267,7 @@ public abstract class AbstractTrackerPersister<
   }
 
   @SuppressWarnings("unchecked")
-  private List<T> getByType(TrackerType type, TrackerBundle bundle) {
-
-    if (TrackerType.TRACKED_ENTITY.equals(type)) {
-      return (List<T>) bundle.getTrackedEntities();
-    } else if (TrackerType.ENROLLMENT.equals(type)) {
-      return (List<T>) bundle.getEnrollments();
-    } else if (TrackerType.EVENT.equals(type)) {
-      return (List<T>) bundle.getEvents();
-    } else if (TrackerType.RELATIONSHIP.equals(type)) {
-      return (List<T>) bundle.getRelationships();
-    } else {
-      return new ArrayList<>();
-    }
-  }
+  protected abstract List<T> getByType(TrackerBundle bundle);
 
   // // // // // // // //
   // // // // // // // //
