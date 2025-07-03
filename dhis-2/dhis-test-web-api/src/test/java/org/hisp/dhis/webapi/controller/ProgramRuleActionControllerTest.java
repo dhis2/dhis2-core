@@ -39,9 +39,11 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +55,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
+  private Program trackerProgramA;
+  private ProgramStage trackerProgramStageA, trackerProgramStageB, eventProgramStage;
+  private DataElement dataElement;
+  private ProgramRule programRuleA, programRuleB;
+
+  @BeforeEach
+  public void testSetup() {
+    createProgramRuleActions();
+  }
 
   @Test
   void testGetDataExpressionDescription() {
@@ -93,33 +104,22 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Expression is not valid",
-        POST("/programRuleActions/data/expression/description?programId=" + pId, "1 + ")
+        POST("/programRuleActions/data/expression/description?programId=" + pId, "1 +")
             .content(HttpStatus.CONFLICT));
   }
 
   @Test
   void testSaveActionWithIrrelevantReferenceObjects() {
-    Program program = createProgram('A');
-    manager.save(program);
-    DataElement dataElement = createDataElement('A');
-    manager.save(dataElement);
-    ProgramStage programStage = createProgramStage('A', program);
-    programStage.addDataElement(dataElement, 0);
-    programStage.setProgram(program);
-    manager.save(programStage);
-    ProgramRule programRule = createProgramRule('A', program);
-    manager.save(programRule);
-
     String programRuleAction =
         "{ 'programRule':{'id':'"
-            + programRule.getUid()
+            + programRuleA.getUid()
             + "'}, "
             + "'programRuleActionType': 'HIDEPROGRAMSTAGE', "
             + "'dataElement':{'id':'"
             + dataElement.getUid()
             + "'}, "
             + "'programStage': {'id':'"
-            + programStage.getUid()
+            + trackerProgramStageA.getUid()
             + "'} }";
 
     JsonErrorReport error =
@@ -130,5 +130,131 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Program Rule `ProgramRuleA` with Action Type `HIDEPROGRAMSTAGE` has irrelevant reference objects",
         error.getMessage());
+  }
+
+  @Test
+  void testSaveScheduleEventRuleActionWithEventProgram() {
+    String programRuleAction =
+        "{ 'programRule':{'id':'"
+            + programRuleB.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'SCHEDULEEVENT', "
+            + "'dataElement':{'id':'"
+            + dataElement.getUid()
+            + "'}, "
+            + "'programStage': {'id':'"
+            + eventProgramStage.getUid()
+            + "'} }";
+
+    JsonErrorReport error =
+        POST("/programRuleActions", programRuleAction)
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4081);
+    assertNotNull(error);
+    assertEquals(
+        "ProgramRule `%s` must be associated with a Tracker Program (a program with registration)"
+            .formatted(programRuleB.getUid()),
+        error.getMessage());
+  }
+
+  @Test
+  void testSaveScheduleEventRuleActionWithProgramStageNotPartOfProgram() {
+    String programRuleAction =
+        "{ 'programRule':{'id':'"
+            + programRuleA.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'SCHEDULEEVENT', "
+            + "'dataElement':{'id':'"
+            + dataElement.getUid()
+            + "'}, "
+            + "'programStage': {'id':'"
+            + trackerProgramStageB.getUid()
+            + "'} }";
+
+    JsonErrorReport error =
+        POST("/programRuleActions", programRuleAction)
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4082);
+    assertNotNull(error);
+    assertEquals(
+        "ProgramStage `%s` is not part of Program `%s`"
+            .formatted(trackerProgramStageB.getUid(), trackerProgramA.getUid()),
+        error.getMessage());
+  }
+
+  @Test
+  void testSaveScheduleEventRuleActionWithNoProgramStage() {
+    String programRuleAction =
+        "{ 'programRule':{'id':'"
+            + programRuleA.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'SCHEDULEEVENT', "
+            + "'dataElement':{'id':'"
+            + dataElement.getUid()
+            + "'}, "
+            + "'programStage': {'id':'"
+            + ""
+            + "'} }";
+
+    JsonErrorReport error =
+        POST("/programRuleActions", programRuleAction)
+            .content(HttpStatus.CONFLICT)
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4038);
+    assertNotNull(error);
+    assertEquals(
+        "ProgramStage cannot be null for program rule `%s`".formatted(programRuleA.getUid()),
+        error.getMessage());
+  }
+
+  @Test
+  void testSaveScheduleEventRuleActionAllRelevantParameters() {
+    String programRuleAction =
+        "{ 'programRule':{'id':'"
+            + programRuleA.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'SCHEDULEEVENT', "
+            + "'dataElement':{'id':'"
+            + dataElement.getUid()
+            + "'}, "
+            + "'programStage': {'id':'"
+            + trackerProgramStageA.getUid()
+            + "'} }";
+
+    assertStatus(HttpStatus.CREATED, POST("/programRuleActions", programRuleAction));
+  }
+
+  private void createProgramRuleActions() {
+    trackerProgramA = createProgram('A');
+    manager.save(trackerProgramA);
+    Program trackerProgramB = createProgram('B');
+    manager.save(trackerProgramB);
+
+    Program eventProgram = createProgram('C');
+    eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    manager.save(eventProgram);
+
+    dataElement = createDataElement('A');
+    manager.save(dataElement);
+
+    trackerProgramStageA = createProgramStage('A', trackerProgramA);
+    trackerProgramStageA.addDataElement(dataElement, 0);
+    trackerProgramStageA.setProgram(trackerProgramA);
+    manager.save(trackerProgramStageA);
+
+    trackerProgramStageB = createProgramStage('B', trackerProgramB);
+    trackerProgramStageB.addDataElement(dataElement, 0);
+    trackerProgramStageB.setProgram(trackerProgramB);
+    manager.save(trackerProgramStageB);
+
+    eventProgramStage = createProgramStage('C', eventProgram);
+    eventProgramStage.addDataElement(dataElement, 0);
+    eventProgramStage.setProgram(trackerProgramB);
+    manager.save(eventProgramStage);
+
+    programRuleA = createProgramRule('A', trackerProgramA);
+    manager.save(programRuleA);
+
+    programRuleB = createProgramRule('B', eventProgram);
+    manager.save(programRuleB);
   }
 }

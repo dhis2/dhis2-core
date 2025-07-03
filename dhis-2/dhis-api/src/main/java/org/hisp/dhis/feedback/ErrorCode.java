@@ -333,7 +333,7 @@ public enum ErrorCode {
   E4080("Program `{0}` category mapping `{1}` has an invalid option mapping `{1}`"),
 
   E4081(
-      "ProgramStage `{0}` must be associated with a Tracker Program (a program with registration)"),
+      "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
   E4082("ProgramStage `{0}` is not part of Program `{1}`"),
 
   /* SQL views */

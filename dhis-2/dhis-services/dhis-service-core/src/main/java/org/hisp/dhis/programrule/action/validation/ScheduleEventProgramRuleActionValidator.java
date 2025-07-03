@@ -65,19 +65,14 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
     if (programStage == null) {
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
-          .errorReport(
-              new ErrorReport(
-                  ProgramStage.class,
-                  ErrorCode.E4038,
-                  programRuleAction.getProgramStage().getUid(),
-                  rule.getName()))
+          .errorReport(new ErrorReport(ProgramStage.class, ErrorCode.E4038, rule.getUid()))
           .build();
     }
 
     if (!program.isRegistration()) {
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
-          .errorReport(new ErrorReport(Program.class, ErrorCode.E4081, rule.getName()))
+          .errorReport(new ErrorReport(Program.class, ErrorCode.E4081, rule.getUid()))
           .build();
     }
 

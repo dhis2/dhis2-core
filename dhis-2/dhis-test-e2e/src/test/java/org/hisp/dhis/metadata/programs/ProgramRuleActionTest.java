@@ -29,11 +29,9 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.google.gson.JsonObject;
-import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -42,9 +40,7 @@ import org.hisp.dhis.test.e2e.actions.metadata.ProgramNotificationTemplateAction
 import org.hisp.dhis.test.e2e.actions.metadata.ProgramRuleActionHandler;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
-import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -112,56 +108,5 @@ class ProgramRuleActionTest extends ApiTest {
         .statusCode(200)
         .body("programRuleActionType", equalTo(programRuleActionType))
         .body("templateUid", equalTo(templateUid));
-  }
-
-  @Test
-  void shouldPassValidationWhenProgramStageIsPartOfProgram() {
-    JsonObject programRuleAction =
-        new JsonObjectBuilder()
-            .addProperty("name", "scheduleEventAction1")
-            .addProperty("code", "action123" + "SCHEDULEEVENT")
-            .addObject("programRule", new JsonObjectBuilder().addProperty("id", programRuleId))
-            .addObject("programStage", new JsonObjectBuilder().addProperty("id", programStageId))
-            .addProperty("programRuleActionType", "SCHEDULEEVENT")
-            .build();
-
-    ApiResponse response = programRuleActionHandler.post(programRuleAction);
-    ResponseValidationHelper.validateObjectCreation(response);
-    programRuleActionId = response.extractUid();
-
-    response = programRuleActionHandler.get(programRuleActionId);
-    response
-        .validate()
-        .statusCode(200)
-        .body("programRuleActionType", equalTo("SCHEDULEEVENT"))
-        .body("programStage.id", equalTo(programStageId));
-  }
-
-  @Test
-  void shouldFailValidationWhenProgramStageIsNotPartOfProgram() {
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.addAll("async=false", "importStrategy=CREATE_AND_UPDATE");
-
-    JsonObject programRuleAction =
-        new JsonObjectBuilder()
-            .addProperty("name", "scheduleEventAction2")
-            .addProperty("code", "action1234" + "SCHEDULEEVENT")
-            .addObject("programRule", new JsonObjectBuilder().addProperty("id", programRuleId))
-            .addObject("programStage", new JsonObjectBuilder().addProperty("id", programStageId2))
-            .addProperty("programRuleActionType", "SCHEDULEEVENT")
-            .build();
-
-    ApiResponse response = programRuleActionHandler.post(programRuleAction, queryParamsBuilder);
-
-    response
-        .validate()
-        .statusCode(409)
-        .rootPath("response.errorReports[0]")
-        .body("errorCode", CoreMatchers.equalTo("E4082"))
-        .body(
-            "message",
-            containsStringIgnoringCase(
-                String.format(
-                    "ProgramStage `%s` is not part of Program `%s`", programStageId2, programId)));
   }
 }
