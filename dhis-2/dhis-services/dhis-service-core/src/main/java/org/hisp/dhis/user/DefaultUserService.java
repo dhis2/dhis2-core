@@ -1072,9 +1072,7 @@ public class DefaultUserService implements UserService {
     // Render emails
     // -------------------------------------------------------------------------
 
-    VelocityManager vm = new VelocityManager();
-
-    String messageBody = vm.render(vars, restoreType.getEmailTemplate() + "1");
+    String messageBody = new VelocityManager().render(vars, restoreType.getEmailTemplate() + "1");
     String messageSubject = i18n.getString(restoreType.getEmailSubject()) + " " + rootPath;
 
     // -------------------------------------------------------------------------

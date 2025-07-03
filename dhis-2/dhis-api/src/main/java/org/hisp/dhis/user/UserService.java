@@ -92,6 +92,12 @@ public interface UserService {
    */
   void updateUser(User user);
 
+  /**
+   * Updates a User.
+   *
+   * @param user the User to update.
+   * @param actingUser the user performing the update.
+   */
   void updateUser(User user, UserDetails actingUser);
 
   /**
@@ -156,6 +162,12 @@ public interface UserService {
    */
   User getUserByEmail(String email);
 
+  /**
+   * Retrieves the User with the given verified email.
+   *
+   * @param email the verified email of the User to retrieve.
+   * @return the User, or null if not found.
+   */
   User getUserByVerifiedEmail(String email);
 
   /**
@@ -251,7 +263,12 @@ public interface UserService {
    */
   int getUserCount();
 
-  @Nonnull
+  /**
+   * Returns a list of users based on the given phone number.
+   *
+   * @param phoneNumber the phone number to search for.
+   * @return a List of users.
+   */
   List<User> getUsersByPhoneNumber(String phoneNumber);
 
   /**
@@ -265,6 +282,16 @@ public interface UserService {
    */
   boolean canAddOrUpdateUser(Collection<String> userGroups);
 
+  /**
+   * Tests whether the current user is allowed to create or update a user associated with the given
+   * user group identifiers. Returns true if current user has the F_USER_ADD authority. Returns true
+   * if the current user has the F_USER_ADD_WITHIN_MANAGED_GROUP authority and can manage any of the
+   * given user groups. Returns false otherwise.
+   *
+   * @param userGroups the user group identifiers.
+   * @param currentUser the current user.
+   * @return true if the current user can create or update user, false if not.
+   */
   boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser);
 
   /**
@@ -312,8 +339,20 @@ public interface UserService {
    */
   void setLastLogin(String username);
 
+  /**
+   * Updates the last login date of User with the given username with the given date.
+   *
+   * @param username the username of the User.
+   * @param lastLogin the date to set as last login.
+   */
   int getActiveUsersCount(int days);
 
+  /**
+   * Returns the number of active users since the given date.
+   *
+   * @param since the date to check for active users.
+   * @return the number of active users since the given date.
+   */
   int getActiveUsersCount(Date since);
 
   /**
@@ -331,7 +370,14 @@ public interface UserService {
    */
   long addUserRole(UserRole userRole);
 
-  long addUserRole(UserRole userRole, UserDetails actingUser);
+  /**
+   * Adds a UserRole.
+   *
+   * @param userRole the UserRole.
+   * @param currentUser the current active user.
+   * @return the generated identifier.
+   */
+  long addUserRole(UserRole userRole, UserDetails currentUser);
 
   /**
    * Updates a UserRole.
@@ -416,12 +462,20 @@ public interface UserService {
   /**
    * Validate that the current user are allowed to create or modify properties of the given user.
    *
-   * @param user
-   * @param currentUser
-   * @return
+   * @param user the User.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport.
    */
   List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser);
 
+  /**
+   * Validate that the current user are allowed to create or modify properties of the given user
+   * role.
+   *
+   * @param user the User.
+   * @param currentUser the current User.
+   * @return a list of ErrorReport.
+   */
   List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
 
   /**
@@ -513,7 +567,7 @@ public interface UserService {
   /**
    * Register a failed 2FA disable attempt for the given user account.
    *
-   * @param username
+   * @param username the username.
    */
   void registerFailed2FADisableAttempt(String username);
 
@@ -521,8 +575,8 @@ public interface UserService {
    * If the user has a failed 2FA disable attempt more than 4 times in the last 15 minutes, return
    * true.
    *
-   * @param username
-   * @return
+   * @param username the username.
+   * @return true if the user has too many failed 2FA disable attempts.
    */
   boolean is2FADisableEndpointLocked(String username);
 
@@ -530,32 +584,31 @@ public interface UserService {
    * Register a successful 2FA disable attempt for the given user account, this will reset the
    * attempt cache.
    *
-   * @param username
+   * @param username the username.
    */
   void registerSuccess2FADisable(String username);
 
   /**
-   * Get linked user accounts for the given user
+   * Get linked user accounts for the given user.
    *
-   * @param actingUser the acting/current user
-   * @return list of linked user accounts
+   * @param actingUser the acting/current user.
+   * @return list of linked user accounts.
    */
-  @Nonnull
   List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser);
 
   /**
-   * List all user's sessions
+   * List all sessions of the user.
    *
-   * @param userUID
-   * @return
+   * @param userUid the user UID.
+   * @return a list of SessionInformation.
    */
-  List<SessionInformation> listSessions(String userUID);
+  List<SessionInformation> listSessions(String userUid);
 
   /**
-   * List all user's sessions
+   * List all sessions of the user.
    *
-   * @param principal
-   * @return
+   * @param principal the UserDetails.
+   * @return a list of SessionInformation.
    */
   List<SessionInformation> listSessions(UserDetails principal);
 
@@ -733,7 +786,7 @@ public interface UserService {
    * Checks whether current user can create public instances of the object.
    *
    * @param identifiableObject Object to check for write access.
-   * @return true of false depending on outcome of write check
+   * @return true of false depending on outcome of write check.
    */
   boolean canCreatePublic(IdentifiableObject identifiableObject);
 
@@ -741,7 +794,7 @@ public interface UserService {
    * Checks whether current user can create public instances of the object.
    *
    * @param type Type to check for write access.
-   * @return true of false depending on outcome of write check
+   * @return true of false depending on outcome of write check.
    */
   boolean canCreatePublic(String type);
 
@@ -749,7 +802,7 @@ public interface UserService {
    * Checks whether current user can create private instances of the object.
    *
    * @param identifiableObject Object to check for write access.
-   * @return true of false depending on outcome of write check
+   * @return true of false depending on outcome of write check.
    */
   boolean canCreatePrivate(IdentifiableObject identifiableObject);
 
@@ -757,7 +810,7 @@ public interface UserService {
    * Checks whether current user can create private instances of the object.
    *
    * @param type Type to check for write access.
-   * @return true of false depending on outcome of write check
+   * @return true of false depending on outcome of write check.
    */
   boolean canCreatePrivate(String type);
 
@@ -766,7 +819,7 @@ public interface UserService {
    * require add to view objects.
    *
    * @param type Type to check for view access.
-   * @return true of false depending on outcome of check
+   * @return true of false depending on outcome of check.
    */
   boolean canView(String type);
 
@@ -774,7 +827,7 @@ public interface UserService {
    * Checks whether current user has update access to object.
    *
    * @param identifiableObject Object to check for update access.
-   * @return true of false depending on outcome of update check
+   * @return true of false depending on outcome of update check.
    */
   boolean canUpdate(IdentifiableObject identifiableObject);
 
@@ -782,7 +835,7 @@ public interface UserService {
    * Checks whether current user has delete access to object.
    *
    * @param identifiableObject Object to check for delete access.
-   * @return true of false depending on outcome of delete check
+   * @return true of false depending on outcome of delete check.
    */
   boolean canDelete(IdentifiableObject identifiableObject);
 
@@ -790,14 +843,14 @@ public interface UserService {
    * Checks whether current user has manage access to object.
    *
    * @param identifiableObject Object to check for manage access.
-   * @return true of false depending on outcome of manage check
+   * @return true of false depending on outcome of manage check.
    */
   boolean canManage(IdentifiableObject identifiableObject);
 
   /**
    * Verify reCaptcha V2 key against Google API.
    *
-   * @param key the key to check
+   * @param key the key to check.
    * @return the response from Google reCaptcha API.
    */
   RecaptchaResponse verifyRecaptcha(String key, String remoteIp) throws IOException;
@@ -806,7 +859,7 @@ public interface UserService {
    * Check if current user has DATA_WRITE access for given object.
    *
    * @param identifiableObject Object to check for data write access.
-   * @return true of false depending on outcome of DATA_WRITE check
+   * @return true of false depending on outcome of DATA_WRITE check.
    */
   boolean canDataWrite(IdentifiableObject identifiableObject);
 
@@ -814,7 +867,7 @@ public interface UserService {
    * Check if current user has DATA_READ for given object.
    *
    * @param identifiableObject Object to check for data read access.
-   * @return true of false depending on outcome of DATA_READ check
+   * @return true of false depending on outcome of DATA_READ check.
    */
   boolean canDataRead(IdentifiableObject identifiableObject);
 
@@ -823,34 +876,52 @@ public interface UserService {
   /**
    * Generate a new email verification token for the user and set it on the user object.
    *
-   * @param user the user
-   * @return the generated token
+   * @param user the user.
+   * @return the generated token.
    */
   String generateAndSetNewEmailVerificationToken(User user);
 
   /**
    * Send email verification token to the user's email address.
    *
-   * @param user the user
-   * @param token the verification token
-   * @param requestUrl the request URL
-   * @return true if the email was sent successfully, false otherwise
+   * @param user the user.
+   * @param token the verification token.
+   * @param requestUrl the request URL.
+   * @return true if the email was sent successfully, false otherwise.
    */
   boolean sendEmailVerificationToken(User user, String token, String requestUrl);
 
+  /**
+   * Verify the email address using the provided token.
+   *
+   * @param token the verification token.
+   * @return true if the email was verified successfully, false otherwise.
+   */
   boolean verifyEmail(String token);
 
+  /**
+   * Check if the current user has verified their email address.
+   *
+   * @param currentUser the current user.
+   * @return true if the email is verified, false otherwise.
+   */
   boolean isEmailVerified(User currentUser);
 
+  /**
+   * Retrieves the user associated with the given email verification token.
+   *
+   * @param token the email verification token.
+   * @return the user associated with the token, or null if not found.
+   */
   User getUserByEmailVerificationToken(String token);
 
   /**
    * Method that retrieves all {@link User}s that have an entry for the {@link OrganisationUnit}s in
-   * the given table
+   * the given table.
    *
    * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
-   * @param uids {@link OrganisationUnit}s {@link UID}s to match on
-   * @return matching {@link User}s
+   * @param uids {@link OrganisationUnit}s {@link UID}s to match on.
+   * @return list of matching {@link User}.
    */
   List<User> getUsersWithOrgUnits(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);

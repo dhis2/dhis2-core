@@ -34,7 +34,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 public interface UserSettingStore {
-
   /**
    * @return a map of all settings keys and values, all values are as stored in database
    */
