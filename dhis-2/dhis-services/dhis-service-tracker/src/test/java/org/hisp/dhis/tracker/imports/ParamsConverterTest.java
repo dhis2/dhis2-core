@@ -54,13 +54,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 class ParamsConverterTest extends TestBase {
   private static final UID TRACKER_EVENT_UID = UID.generate();
 
@@ -76,7 +72,7 @@ class ParamsConverterTest extends TestBase {
 
   private UserDetails user;
 
-  @Mock private TrackerPreheat trackerPreheat;
+  private TrackerPreheat trackerPreheat;
 
   @BeforeEach
   void setup() {
@@ -88,6 +84,11 @@ class ParamsConverterTest extends TestBase {
     programWithoutRegistration.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     programStageWithRegistration = createProgramStage('C', programWithRegistration);
     programStageWithoutRegistration = createProgramStage('D', programWithoutRegistration);
+    trackerPreheat = new TrackerPreheat();
+    trackerPreheat.put(programWithRegistration);
+    trackerPreheat.put(programWithoutRegistration);
+    trackerPreheat.put(programStageWithRegistration);
+    trackerPreheat.put(programStageWithoutRegistration);
   }
 
   @Test
@@ -162,11 +163,6 @@ class ParamsConverterTest extends TestBase {
 
   @Test
   void shouldSuccessToConvertEventsBasedOnProgramWhenStrategyIsCreate() {
-    when(trackerPreheat.getProgram(MetadataIdentifier.ofUid(programWithRegistration)))
-        .thenReturn(programWithRegistration);
-    when(trackerPreheat.getProgram(MetadataIdentifier.ofUid(programWithoutRegistration)))
-        .thenReturn(programWithoutRegistration);
-
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
 
@@ -187,11 +183,6 @@ class ParamsConverterTest extends TestBase {
 
   @Test
   void shouldSuccessToConvertEventsBasedOnProgramStageWhenStrategyIsCreate() {
-    when(trackerPreheat.getProgramStage(MetadataIdentifier.ofUid(programStageWithRegistration)))
-        .thenReturn(programStageWithRegistration);
-    when(trackerPreheat.getProgramStage(MetadataIdentifier.ofUid(programStageWithoutRegistration)))
-        .thenReturn(programStageWithoutRegistration);
-
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
     TrackerObjects trackerObjects =
@@ -231,8 +222,8 @@ class ParamsConverterTest extends TestBase {
       names = {"UPDATE", "DELETE"})
   void shouldSuccessToConvertEventsWithDeleteOrUpdateStrategyWhenEventsArePresentInPreheat(
       TrackerImportStrategy importStrategy) {
-    when(trackerPreheat.getEvent(TRACKER_EVENT_UID)).thenReturn(trackerEventFromDB());
-    when(trackerPreheat.getEvent(SINGLE_EVENT_UID)).thenReturn(singleEventFromDB());
+    trackerPreheat.putEvent(trackerEventFromDB());
+    trackerPreheat.putEvent(singleEventFromDB());
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(importStrategy).build();
