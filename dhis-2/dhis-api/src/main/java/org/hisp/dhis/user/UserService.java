@@ -65,7 +65,7 @@ public interface UserService {
 
   String TBD_NAME = "(TBD)";
 
-  String DEFAULT_APPLICATION_TITLE = "DHIS 2";
+  String DEFAULT_APPLICATION_TITLE = "DHIS2";
 
   int LOGIN_MAX_FAILED_ATTEMPTS = 4;
 
