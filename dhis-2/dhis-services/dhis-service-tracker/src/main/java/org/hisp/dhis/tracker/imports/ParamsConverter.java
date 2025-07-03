@@ -30,9 +30,6 @@
 package org.hisp.dhis.tracker.imports;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -79,17 +76,17 @@ public class ParamsConverter {
   private static List<TrackerEvent> buildTrackerEvents(
       List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
     if (importStrategy.isUpdateOrDelete()) {
-      Stream<TrackerEvent> notFoundEvents =
-          events.stream()
-              .filter(e -> preheat.getEvent(e.getUid()) == null)
-              .map(e -> TrackerEvent.builder().event(e.getUid()).build());
-      Stream<TrackerEvent> trackerEventStream =
-          events.stream()
-              .map(e -> preheat.getEvent(e.getUid()))
-              .filter(Objects::nonNull)
-              .filter(e -> e.getProgramStage().getProgram().isRegistration())
-              .map(e -> TrackerEvent.builder().event(UID.of(e)).build());
-      return Stream.concat(notFoundEvents, trackerEventStream).toList();
+      return events.stream()
+          .filter(
+              e ->
+                  preheat.getEvent(e.getUid()) == null
+                      || preheat
+                          .getEvent(e.getUid())
+                          .getProgramStage()
+                          .getProgram()
+                          .isRegistration())
+          .map(e -> TrackerEvent.builderFromEvent(e).build())
+          .toList();
     }
     return events.stream()
         .filter(
@@ -108,10 +105,15 @@ public class ParamsConverter {
       List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
     if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
-          .map(e -> preheat.getEvent(e.getUid()))
-          .filter(Objects::nonNull)
-          .filter(e -> e.getProgramStage().getProgram().isWithoutRegistration())
-          .map(e -> SingleEvent.builder().event(UID.of(e)).build())
+          .filter(e -> preheat.getEvent(e.getUid()) != null)
+          .filter(
+              e ->
+                  preheat
+                      .getEvent(e.getUid())
+                      .getProgramStage()
+                      .getProgram()
+                      .isWithoutRegistration())
+          .map(e -> SingleEvent.builderFromEvent(e).build())
           .toList();
     }
     return events.stream()
