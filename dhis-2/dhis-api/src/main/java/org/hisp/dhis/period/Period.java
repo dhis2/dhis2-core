@@ -221,7 +221,7 @@ public class Period extends BaseDimensionalItemObject {
    * annotations the column can simply be mapped as write-only instead.
    */
   @Deprecated
-  public void setIsoPeriod(String isoPeriod) {
+  public void setIsoDate(String isoPeriod) {
     // NOOP - ISO value is a transient computed property that is only written to DB
     // to allow matching it but should not be read back
   }

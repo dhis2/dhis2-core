@@ -60,6 +60,7 @@ import org.hisp.dhis.feedback.ImportResult.ImportError;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -90,36 +91,45 @@ public class DefaultDviService implements DviService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public ImportResult importAll(Options options, DviUpsertRequest request)
-      throws BadRequestException, ConflictException {
+  public ImportResult importAll(Options options, DviUpsertRequest request, JobProgress progress)
+      throws ConflictException {
+
+    progress.startingStage("Unifying {} values...", request.values().size());
+    List<DviValue> values = progress.runStage(List.of(), () -> completedValues(request));
+
+    progress.startingStage("Validating {} values...", values.size());
     List<ImportError> errors = new ArrayList<>();
-    List<DviValue> values = completedValues(request);
-    List<DviValue> validValues = validate(options.force(), request.dataSet(), values, errors);
+    List<DviValue> validValues =
+        progress.runStage(
+            List.of(), () -> validate(options.force(), request.dataSet(), values, errors));
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
-    int imported = options.dryRun() ? validValues.size() : store.upsertValues(validValues);
+
+    progress.startingStage("Importing {} values...", validValues.size());
+    int imported =
+        progress.runStage(
+            0, () -> options.dryRun() ? validValues.size() : store.upsertValues(validValues));
+
     return new ImportResult(validValues.size(), imported, errors);
   }
 
   @Override
   @Transactional
-  public void deleteValue(DviKey key) {}
+  public void deleteValue(DviKey key) {
+    // TODO
+  }
 
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value deletion")
   public int deleteAll(DviDeleteRequest request) throws BadRequestException {
+    // TODO
     return 0;
   }
 
-  // TODO job for data value FileResource cleanup
-  // DE of files => data values (for the DEs)
-  // 1. mark all as assigned that are used
-  // 2. mark all as not assigned that are not used by any
-
   private List<DviValue> validate(
       boolean force, UID ds, List<DviValue> values, List<ImportError> errors)
-      throws ConflictException, BadRequestException {
+      throws ConflictException {
     if (ds == null) {
       /*
        * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
@@ -168,17 +178,16 @@ public class DefaultDviService implements DviService {
   /**
    * Are the data value components that make a unique data value key consistent with the metadata?
    */
-  private void validateKeyConsistency(UID ds, List<DviValue> values)
-      throws ConflictException, BadRequestException {
+  private void validateKeyConsistency(UID ds, List<DviValue> values) throws ConflictException {
     // - require: DEs must belong to the specified DS
     List<String> deNotInDs =
         store.getDataElementsNotInDataSet(ds, values.stream().map(DviValue::dataElement));
-    if (!deNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7605, ds, deNotInDs);
+    if (!deNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7605, ds, deNotInDs);
 
     // - require: OU must be a source of the DS for the DE
     List<String> ouNotInDs =
         store.getOrgUnitsNotInDataSet(ds, values.stream().map(DviValue::orgUnit));
-    if (!ouNotInDs.isEmpty()) throw new BadRequestException(ErrorCode.E7609, ds, ouNotInDs);
+    if (!ouNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7609, ds, ouNotInDs);
 
     // - require: PE ISO must be of PT used by the DS
     List<String> isoNotUsableInDs =

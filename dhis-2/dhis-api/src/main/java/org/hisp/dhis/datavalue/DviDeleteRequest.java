@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.log.TimeExecution;
 
-public record DviDeleteRequest(@CheckForNull UID dataSet, @Nonnull List<DviKey> values) {}
+public record DviDeleteRequest(
+    @TimeExecution.Include @CheckForNull UID dataSet,
+    @TimeExecution.Include @JsonAlias("dataValues") List<DviKey> values) {}

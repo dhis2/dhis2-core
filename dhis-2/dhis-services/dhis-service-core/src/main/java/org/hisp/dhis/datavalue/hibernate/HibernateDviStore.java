@@ -325,20 +325,34 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
 
   @Override
   public boolean getDataSetCommentAllowsEmptyValue(UID dataSet) {
-    return false;
+    String sql = "SELECT ds.novaluerequirescomment FROM dataset ds WHERE ds.uid = :ds";
+    Object res =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .getSingleResult();
+    return res instanceof Boolean b && b;
   }
 
   @Override
   public int getDataSetExpiryDays(UID dataSet) {
     String sql = "SELECT ds.expirydays FROM dataset ds WHERE ds.uid = :ds";
-    Object res = getSession().createNativeQuery(sql).getSingleResult();
+    Object res =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .getSingleResult();
     return res instanceof Number n ? n.intValue() : 0;
   }
 
   @Override
   public int getDataSetOpenPeriodsOffset(UID dataSet) {
     String sql = "SELECT ds.openfutureperiods FROM dataset ds WHERE ds.uid = :ds";
-    Object res = getSession().createNativeQuery(sql).getSingleResult();
+    Object res =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .getSingleResult();
     return res instanceof Number n ? n.intValue() : 0;
   }
 

@@ -33,15 +33,16 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.log.TimeExecution;
 
 public record DviUpsertRequest(
-    @CheckForNull UID dataSet,
+    @TimeExecution.Include @CheckForNull UID dataSet,
     // common dimensions (optional)
     @CheckForNull UID dataElement,
     @CheckForNull UID orgUnit,
     @CheckForNull String period,
     @CheckForNull UID attrOptionCombo,
-    @JsonAlias("dataValues") List<DviValue> values) {
+    @TimeExecution.Include @JsonAlias("dataValues") List<DviValue> values) {
 
   /**
    * Options for the import. By default, all are {@code false}.

@@ -67,11 +67,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.node.Provider;
@@ -284,22 +281,10 @@ public class DataValueSetController {
   @ResponseBody
   public WebMessage postJsonDataValue(@RequestBody DviUpsertRequest request)
       throws ConflictException {
-
-    try {
-      ImportResult result =
-          dviService.importAll(new DviUpsertRequest.Options(false, false, false), request);
-      ImportSummary summary = new ImportSummary();
-      summary.setImportCount(
-          new ImportCount(result.succeeded(), 0, result.attempted() - result.succeeded(), 0));
-      for (ImportResult.ImportError error : result.errors()) {
-        summary.addRejected(error.index());
-        summary.addConflict(
-            ImportConflict.createUniqueConflict(error.index(), error.code(), error.args()));
-      }
-      return importSummary(summary);
-    } catch (BadRequestException ex) {
-      throw new ConflictException(ex.getCode(), ex.getArgs());
-    }
+    ImportResult result =
+        dviService.importAll(
+            new DviUpsertRequest.Options(false, false, false), request, JobProgress.noop());
+    return importSummary(result.toImportSummary());
   }
 
   @PostMapping(consumes = "application/csv")

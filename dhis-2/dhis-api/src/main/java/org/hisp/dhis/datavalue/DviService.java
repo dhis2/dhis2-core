@@ -35,6 +35,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ImportResult;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * Service for DVI (Data Value Import).
@@ -49,8 +50,9 @@ public interface DviService {
 
   void deleteValue(DviKey key);
 
-  ImportResult importAll(DviUpsertRequest.Options options, DviUpsertRequest request)
-      throws BadRequestException, ConflictException;
+  ImportResult importAll(
+      DviUpsertRequest.Options options, DviUpsertRequest request, JobProgress progress)
+      throws ConflictException;
 
   int deleteAll(DviDeleteRequest request) throws BadRequestException;
 }
