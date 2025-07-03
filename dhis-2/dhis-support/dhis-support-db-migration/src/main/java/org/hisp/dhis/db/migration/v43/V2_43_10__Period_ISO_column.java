@@ -50,12 +50,9 @@ public class V2_43_10__Period_ISO_column extends BaseJavaMigration {
         WHERE iso IS NULL
         ORDER BY pt.name, p.startdate""";
 
-    try (Connection conn = context.getConnection();
-        Statement st = conn.createStatement();
-        ResultSet r = st.executeQuery(query)) {
-
-      conn.setAutoCommit(false);
-      st.setFetchSize(1000);
+    Connection conn = context.getConnection();
+    try (Statement stmt = conn.createStatement()) {
+      ResultSet r = stmt.executeQuery(query);
 
       try (PreparedStatement ps =
           conn.prepareStatement("UPDATE period SET iso = ? WHERE periodid = ?")) {
