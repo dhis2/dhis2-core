@@ -83,6 +83,13 @@ public interface UserService {
    */
   long addUser(User user);
 
+  /**
+   * Adds a User.
+   *
+   * @param user the User to add.
+   * @param actingUser the user performing the add.
+   * @return the generated identifier.
+   */
   long addUser(User user, UserDetails actingUser);
 
   /**
@@ -340,10 +347,9 @@ public interface UserService {
   void setLastLogin(String username);
 
   /**
-   * Updates the last login date of User with the given username with the given date.
+   * Returns the number of active users since the given number of days.
    *
-   * @param username the username of the User.
-   * @param lastLogin the date to set as last login.
+   * @param days the number of days.
    */
   int getActiveUsersCount(int days);
 
@@ -356,9 +362,10 @@ public interface UserService {
   int getActiveUsersCount(Date since);
 
   /**
-   * If the user's password has not expired, return true
+   * Checks if the user account is not expired.
    *
-   * @param user The user object that is being checked.
+   * @param user the user object that is being checked.
+   * @return true if the user account is not expired.
    */
   boolean userNonExpired(User user);
 
@@ -374,10 +381,10 @@ public interface UserService {
    * Adds a UserRole.
    *
    * @param userRole the UserRole.
-   * @param currentUser the current active user.
+   * @param actingUser the current active user.
    * @return the generated identifier.
    */
-  long addUserRole(UserRole userRole, UserDetails currentUser);
+  long addUserRole(UserRole userRole, UserDetails actingUser);
 
   /**
    * Updates a UserRole.
