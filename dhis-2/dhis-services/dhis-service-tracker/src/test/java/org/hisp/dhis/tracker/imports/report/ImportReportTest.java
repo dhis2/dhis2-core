@@ -49,12 +49,13 @@ class ImportReportTest {
   @Test
   void testImportCalculatesIgnoredValues() {
     // Create Bundle report for te and enrollment
-    final Map<TrackerType, TrackerTypeReport> trackerTypeReportMap = new HashMap<>();
-    trackerTypeReportMap.put(
-        TrackerType.TRACKED_ENTITY, createTypeReport(TrackerType.TRACKED_ENTITY, 5, 3, 0));
-    trackerTypeReportMap.put(
-        TrackerType.ENROLLMENT, createTypeReport(TrackerType.ENROLLMENT, 3, 3, 0));
-    PersistenceReport persistenceReport = new PersistenceReport(trackerTypeReportMap);
+    PersistenceReport persistenceReport =
+        new PersistenceReport(
+            createTypeReport(TrackerType.TRACKED_ENTITY, 5, 3, 0),
+            createTypeReport(TrackerType.ENROLLMENT, 3, 3, 0),
+            createTypeReport(TrackerType.EVENT, 0, 0, 0),
+            createTypeReport(TrackerType.EVENT, 0, 0, 0),
+            createTypeReport(TrackerType.RELATIONSHIP, 0, 0, 0));
     // Create validation report with 3 objects
     ValidationReport validationReport = ValidationReport.emptyReport();
     validationReport.addErrors(rnd.objects(Error.class, 3).toList());
