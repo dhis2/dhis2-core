@@ -120,9 +120,9 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     programStageB.setProgramStageSections(Sets.newHashSet(programStageSectionA));
     stagesA.add(programStageB);
     programA.setProgramStages(stagesA);
-    programService.updateProgram(programA);
     programStageService.saveProgramStage(programStageA);
     programStageService.saveProgramStage(programStageB);
+    programService.updateProgram(programA);
     programStageSectionA.setProgramStage(programStageB);
     programStageSectionService.updateProgramStageSection(programStageSectionA);
     // Add a tree of variables, rules and actions to programA:

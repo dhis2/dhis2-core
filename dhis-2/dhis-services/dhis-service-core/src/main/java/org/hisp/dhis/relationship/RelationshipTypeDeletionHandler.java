@@ -32,6 +32,7 @@ package org.hisp.dhis.relationship;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,7 @@ public class RelationshipTypeDeletionHandler extends IdObjectDeletionHandler<Rel
   @Override
   protected void registerHandler() {
     whenDeleting(Program.class, this::deleteProgram);
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
   }
 
   private void deleteProgram(Program program) {
@@ -54,6 +56,15 @@ public class RelationshipTypeDeletionHandler extends IdObjectDeletionHandler<Rel
             type ->
                 Objects.equals(type.getFromConstraint().getProgram(), program)
                     || Objects.equals(type.getToConstraint().getProgram(), program))
+        .forEach(relationshipTypeService::deleteRelationshipType);
+  }
+
+  private void deleteProgramStage(ProgramStage programStage) {
+    relationshipTypeService.getAllRelationshipTypes().stream()
+        .filter(
+            type ->
+                Objects.equals(type.getFromConstraint().getProgramStage(), programStage)
+                    || Objects.equals(type.getToConstraint().getProgramStage(), programStage))
         .forEach(relationshipTypeService::deleteRelationshipType);
   }
 }
