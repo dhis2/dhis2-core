@@ -1488,7 +1488,7 @@ public class DefaultUserService implements UserService {
     if (System.currentTimeMillis() > Long.parseLong(tokenParts[1])) {
       return false;
     }
-    // Someone else could have verified the same email with another account in the meantime
+
     if (getUserByVerifiedEmail(user.getEmail()) != null) {
       return false;
     }
