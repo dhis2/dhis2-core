@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.util;
 
-import java.util.Date;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-/**
- * Bean used when finding user accounts that are soon to expire.
- *
- * @author Jan Bernitt
- */
-@Getter
-@RequiredArgsConstructor
-public final class UserAccountExpiryInfo {
-  private final String username;
-
-  private final String email;
-
-  private final Date accountExpiry;
+public class ZipSlipException extends Exception {
+  public ZipSlipException(String s) {
+    super(s);
+  }
 }

@@ -48,8 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Nguyen Hong Duc
  */
 public interface UserStore extends IdentifiableObjectStore<User> {
-  String ID = UserStore.class.getName();
-
   /**
    * Returns a list of users based on the given query parameters.
    *
