@@ -590,15 +590,13 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void encodeAndSetPassword(User user, String rawPassword) {
     if (isEmpty(rawPassword) && !user.isExternalAuth()) {
-      return; // Leave unchanged if internal authentication and no
-      // password supplied
+      return; // Leave unchanged if internal authentication and no password supplied
     }
 
     if (user.isExternalAuth()) {
       user.setPassword(UserService.PW_NO_INTERNAL_LOGIN);
 
-      return; // Set unusable, not-encoded password if external
-      // authentication
+      return; // Set unusable, not-encoded password if external authentication
     }
 
     boolean isNewPassword =
@@ -613,7 +611,7 @@ public class DefaultUserService implements UserService {
     Matcher matcher = UserService.BCRYPT_PATTERN.matcher(rawPassword);
     if (matcher.matches()) {
       throw new IllegalArgumentException(
-          "Raw password look like BCrypt encoded password, this is most certainly a bug");
+          "Raw password looks like bcrypt encoded password, this is most likely a bug");
     }
 
     String encode = passwordManager.encode(rawPassword);
@@ -899,7 +897,6 @@ public class DefaultUserService implements UserService {
     Objects.requireNonNull(user);
 
     String username = user.getUsername();
-
     boolean enabled = !user.isDisabled();
     boolean accountNonExpired = user.isAccountNonExpired();
     boolean credentialsNonExpired = userNonExpired(user);
@@ -1087,12 +1084,12 @@ public class DefaultUserService implements UserService {
     VelocityManager vm = new VelocityManager();
 
     String messageBody = vm.render(vars, restoreType.getEmailTemplate() + "1");
-
     String messageSubject = i18n.getString(restoreType.getEmailSubject()) + " " + rootPath;
 
     // -------------------------------------------------------------------------
     // Send emails
     // -------------------------------------------------------------------------
+
     emailMessageSender.sendMessage(
         messageSubject, messageBody, null, null, Set.of(persistedUser), true);
 
@@ -1116,7 +1113,7 @@ public class DefaultUserService implements UserService {
             .add(restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount())
             .time();
 
-    // The id token is not hashed since we use it for lookup.
+    // ID token is not hashed as it is used for lookups
     user.setIdToken(idToken);
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
@@ -1260,9 +1257,7 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean canRestore(User user, String token, RestoreType restoreType) {
     ErrorCode code = validateRestore(user, token, restoreType);
-
     log.info("User account restore outcome: {}", code);
-
     return code == null;
   }
 
@@ -1457,15 +1452,16 @@ public class DefaultUserService implements UserService {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
 
+    I18n i18n =
+        i18nManager.getI18n(
+            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
+
     Map<String, Object> vars = new HashMap<>();
     vars.put("applicationTitle", applicationTitle);
     vars.put("requestUrl", requestUrl + "/api/account/verifyEmail");
     vars.put("token", token);
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
-    I18n i18n =
-        i18nManager.getI18n(
-            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
     vars.put("i18n", i18n);
 
     VelocityManager vm = new VelocityManager();
