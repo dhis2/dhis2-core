@@ -46,6 +46,7 @@ import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
@@ -126,6 +127,7 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
   @Autowired private CategoryOptionComboStore categoryOptionComboStore;
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
@@ -377,7 +379,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private void assertCocCountAfterAutoGenerate(int expectedCocCount) {
     entityManager.flush();
     entityManager.clear();
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
     assertEquals(expectedCocCount, allCategoryOptionCombos.size());

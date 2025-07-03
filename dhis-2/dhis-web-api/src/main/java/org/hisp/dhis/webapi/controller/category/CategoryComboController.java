@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -31,7 +31,9 @@ package org.hisp.dhis.webapi.controller.category;
 
 import java.util.Objects;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.OpenApi;
@@ -42,7 +44,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,12 +56,14 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/categoryCombos")
+@RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class CategoryComboController
     extends AbstractCrudController<CategoryCombo, GetObjectListParams> {
-  @Autowired private CategoryService categoryService;
 
-  @Autowired private DataValueService dataValueService;
+  private final CategoryService categoryService;
+  private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
+  private final DataValueService dataValueService;
 
   @GetMapping("/{uid}/metadata")
   public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
@@ -106,11 +109,11 @@ public class CategoryComboController
 
   @Override
   public void postCreateEntity(CategoryCombo categoryCombo) {
-    categoryService.addAndPruneOptionCombos(categoryCombo);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryCombo);
   }
 
   @Override
   public void postUpdateEntity(CategoryCombo categoryCombo) {
-    categoryService.addAndPruneOptionCombos(categoryCombo);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryCombo);
   }
 }

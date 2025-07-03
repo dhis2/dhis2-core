@@ -213,7 +213,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetOperands() {
     setupCategoryCombo();
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -230,7 +230,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetOperandsWithTotals() {
     setupCategoryCombo();
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -279,7 +279,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testAddAndPruneAllCategoryCombos() {
     setupCategoryCombo();
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
@@ -289,7 +289,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
@@ -300,7 +300,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryCombo() {
     setupCategoryCombo();
 
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
     CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
@@ -309,7 +309,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
@@ -320,7 +320,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryComboWithSummary() {
     setupCategoryCombo();
 
-    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries importSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
     assertEquals(2, importSummary.getImported());
     assertEquals(SUCCESS, importSummary.getStatus());
     assertTrue(
@@ -336,7 +337,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries updateSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
 
     assertEquals(1, updateSummary.getUpdated());
     assertEquals(SUCCESS, updateSummary.getStatus());
@@ -354,7 +356,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryComboWithSummaryDelete() {
     setupCategoryCombo();
 
-    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries importSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
     assertEquals(2, importSummary.getImported());
     assertEquals(SUCCESS, importSummary.getStatus());
     assertTrue(
@@ -370,7 +373,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     // trigger update
-    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries updateSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
     assertEquals(1, updateSummary.getDeleted());
     assertEquals(SUCCESS, updateSummary.getStatus());
     assertTrue(
@@ -402,7 +406,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     ccNew.addCategory(catData.c1());
     ccNew.addCategory(catData.c2());
     entityManager.persist(ccNew);
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     entityManager.flush();
 
     // check expected count
@@ -414,11 +418,11 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     catNew.addCategoryOption(catData.co3());
     catNew.addCategoryOption(catData.co4());
     entityManager.merge(catNew);
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     entityManager.flush();
 
     // update cocs
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     entityManager.flush();
 
     // check expected count
@@ -427,7 +431,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void test() {
+  void cocGenerationDuplicateTest() {
     // setup data - cc with 3 cats, some of which have same COs
     CategoryOption co1 = createCategoryOption('1');
     CategoryOption co2 = createCategoryOption('2');

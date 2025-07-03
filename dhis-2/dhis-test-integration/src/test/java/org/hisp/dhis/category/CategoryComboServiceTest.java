@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryComboServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   private CategoryOption categoryOptionA;
 
@@ -224,7 +225,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     Set<CategoryOptionCombo> optionCombos = categoryComboA.getOptionCombos();
     assertEquals(8, optionCombos.size());
     assertOptionCombos(optionCombos);
@@ -235,13 +236,13 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
     categoryC.addCategoryOption(categoryOptionG);
     categoryService.updateCategory(categoryC);
-    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(12, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
@@ -276,11 +277,11 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
-    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
@@ -291,13 +292,13 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
     categoryC.addCategoryOption(categoryOptionG);
     categoryService.updateCategory(categoryC);
-    categoryService.updateOptionCombos(categoryC);
+    categoryOptionComboGenerateService.updateOptionCombos(categoryC);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(12, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
@@ -338,7 +339,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboT = categoryService.getCategoryCombo(id);
     assertNotNull(categoryComboT);
     assertEquals(categories, categoryComboT.getCategories());
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     assertTrue(
         categoryComboT
             .getOptionCombos()
@@ -350,7 +351,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryB.removeCategoryOption(categoryOptionC);
     categoryB.addCategoryOption(categoryOptionE);
     categoryService.updateCategory(categoryB);
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     categoryComboT = categoryService.getCategoryCombo(id);
     assertFalse(
         categoryComboT
