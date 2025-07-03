@@ -43,8 +43,9 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -54,14 +55,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
   private Program trackerProgramA;
   private ProgramStage trackerProgramStageA, trackerProgramStageB, eventProgramStage;
   private DataElement dataElement;
   private ProgramRule programRuleA, programRuleB;
 
-  @BeforeEach
-  public void testSetup() {
+  @BeforeAll
+  public void setUp() {
     createProgramRuleActions();
   }
 
