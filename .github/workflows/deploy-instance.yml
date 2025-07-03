@@ -1,8 +1,7 @@
 name: Deploy instance
 
 on:
-  pull_request:
-    types: [opened, reopened, labeled, synchronize]
+  workflow_dispatch:  # Only manual trigger, no automatic triggers
 
 # Cancel previous runs of the same workflow and PR number or branch/tag
 concurrency:
