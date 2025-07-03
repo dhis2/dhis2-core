@@ -97,10 +97,8 @@ public class TrackerIdentifierCollector {
         .getTrackedEntityAttributesPresentInProgramRuleActions()
         .forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, attribute));
 
-    // Adds to the preheat cache all programStages that may be scheduled as a result of
-    // SCHEDULEEVENT rule action
     programRuleActionService
-        .getProgramStagesPresentInProgramRuleActions()
+        .getProgramStagesUsedInScheduleEventActions()
         .forEach(stage -> addIdentifier(map, ProgramStage.class, stage));
   }
 

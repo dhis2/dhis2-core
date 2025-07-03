@@ -63,7 +63,6 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
     }
 
     if (programStage == null) {
-      log.debug("ProgramStage is null in ruleAction for rule: {}", rule.getName());
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
           .errorReport(
@@ -76,9 +75,6 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
     }
 
     if (!program.isRegistration()) {
-      log.debug(
-          "Schedule event only allowed for tracker (with registration) programs. Rule: {}",
-          rule.getName());
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
           .errorReport(new ErrorReport(Program.class, ErrorCode.E4081, rule.getName()))
@@ -86,8 +82,6 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
     }
 
     if (!Objects.equals(programStage.getProgram().getUid(), program.getUid())) {
-      log.debug(
-          "ProgramStage is not part of the same program as the rule. Rule: {}", rule.getName());
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
           .errorReport(

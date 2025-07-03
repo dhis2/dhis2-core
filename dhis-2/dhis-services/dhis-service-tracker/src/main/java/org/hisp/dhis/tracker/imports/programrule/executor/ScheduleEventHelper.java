@@ -75,7 +75,7 @@ public class ScheduleEventHelper {
       return Optional.of(
           ProgramRuleIssue.warning(
               programRule,
-              ValidationCode.E1095,
+              ValidationCode.E1321,
               bundle.getUser().getUsername(),
               programStage.getValue()));
     }

@@ -74,7 +74,7 @@ public interface ProgramRuleActionService {
 
   List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
 
-  List<String> getProgramStagesPresentInProgramRuleActions();
+  List<String> getProgramStagesUsedInScheduleEventActions();
 
   @Transactional(readOnly = true)
   List<String> getDataElementsPresentInProgramRuleActions();

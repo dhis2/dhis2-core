@@ -106,7 +106,7 @@ public class HibernateProgramRuleActionStore
   }
 
   @Override
-  public List<String> getProgramStagesPresentInProgramRuleActions(ProgramRuleActionType type) {
+  public List<String> getProgramStagesUsedInScheduleEventActions(ProgramRuleActionType type) {
     String sql =
         """
             select distinct ps.uid

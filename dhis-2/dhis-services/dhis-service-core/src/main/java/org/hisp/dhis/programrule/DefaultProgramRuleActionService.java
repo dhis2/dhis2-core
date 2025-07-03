@@ -99,8 +99,8 @@ public class DefaultProgramRuleActionService implements ProgramRuleActionService
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> getProgramStagesPresentInProgramRuleActions() {
-    return programRuleActionStore.getProgramStagesPresentInProgramRuleActions(
+  public List<String> getProgramStagesUsedInScheduleEventActions() {
+    return programRuleActionStore.getProgramStagesUsedInScheduleEventActions(
         ProgramRuleActionType.SCHEDULEEVENT);
   }
 
