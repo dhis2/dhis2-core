@@ -60,4 +60,22 @@ class ObjectUtilsTest {
     assertTrue(ObjectUtils.notNull(ImportStrategy.CREATE_AND_UPDATE));
     assertFalse(ObjectUtils.notNull(null));
   }
+
+  @Test
+  void testAnyIsTrue() {
+    assertTrue(ObjectUtils.anyIsTrue(true, false, false));
+    assertFalse(ObjectUtils.anyIsTrue(false, false, false));
+  }
+
+  @Test
+  void testAnyIsFalse() {
+    assertTrue(ObjectUtils.anyIsFalse(false, true, true));
+    assertFalse(ObjectUtils.anyIsFalse(true, true, true));
+  }
+
+  @Test
+  void testAnyIsNull() {
+    assertTrue(ObjectUtils.anyIsNull(null, true, false));
+    assertFalse(ObjectUtils.anyIsNull(true, true, false));
+  }
 }

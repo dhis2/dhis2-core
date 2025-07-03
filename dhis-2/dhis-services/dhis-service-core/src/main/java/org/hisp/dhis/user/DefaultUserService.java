@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
@@ -576,7 +577,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void encodeAndSetPassword(User user, String rawPassword) {
-    if (StringUtils.isEmpty(rawPassword) && !user.isExternalAuth()) {
+    if (isEmpty(rawPassword) && !user.isExternalAuth()) {
       return; // Leave unchanged if internal authentication and no
       // password supplied
     }
@@ -1029,7 +1030,7 @@ public class DefaultUserService implements UserService {
 
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
 
-    if (applicationTitle == null || applicationTitle.isEmpty()) {
+    if (isEmpty(applicationTitle)) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
 
@@ -1116,10 +1117,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public boolean restore(User user, String token, String newPassword, RestoreType restoreType) {
-    if (user == null
-        || token == null
-        || newPassword == null
-        || !canRestore(user, token, restoreType)) {
+    if (ObjectUtils.anyIsNull(user, token, newPassword) || !canRestore(user, token, restoreType)) {
       return false;
     }
 
@@ -1129,7 +1127,6 @@ public class DefaultUserService implements UserService {
     user.setInvitation(false);
 
     encodeAndSetPassword(user, newPassword);
-
     updateUser(user, new SystemUser());
 
     return true;
@@ -1193,7 +1190,7 @@ public class DefaultUserService implements UserService {
   public void prepareUserForInvite(User user) {
     Objects.requireNonNull(user, "User object can't be null");
 
-    if (user.getUsername() == null || user.getUsername().isEmpty()) {
+    if (isEmpty(user.getUsername())) {
       String username = "invite" + CodeGenerator.generateUid().toLowerCase();
 
       user.setUsername(username);
@@ -1202,10 +1199,9 @@ public class DefaultUserService implements UserService {
     int minPasswordLength = settingsProvider.getCurrentSettings().getMinPasswordLength();
     char[] plaintextPassword = PasswordGenerator.generateValidPassword(minPasswordLength);
 
-    user.setSurname(StringUtils.isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
-    user.setFirstName(StringUtils.isEmpty(user.getFirstName()) ? TBD_NAME : user.getFirstName());
+    user.setSurname(isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
+    user.setFirstName(isEmpty(user.getFirstName()) ? TBD_NAME : user.getFirstName());
     user.setInvitation(true);
-
     user.setPassword(new String(plaintextPassword));
   }
 
@@ -1430,7 +1426,7 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
-    if (applicationTitle == null || applicationTitle.isEmpty()) {
+    if (isEmpty(applicationTitle)) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
 
