@@ -111,7 +111,7 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
-  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
+  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
