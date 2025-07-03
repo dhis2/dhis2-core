@@ -33,6 +33,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -75,13 +78,17 @@ public class BundledAppManager {
     bundledAppsInfo.forEach(
         (appName, appInfo) -> {
           Resource zipFileResource = bundledAppsResources.get(appName + ".zip");
-          try {
-            File zipFile = zipFileResource.getFile();
+          try (InputStream inputStream = zipFileResource.getInputStream()) {
+            Path tempFile = Files.createTempFile("bundled-app-" + appName, ".zip");
+            Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            File zipFile = tempFile.toFile();
             String topLevelFolder = ZipFileUtils.getTopLevelFolder(zipFile);
             App app = AppManager.readAppManifest(zipFile, jsonMapper, topLevelFolder);
             consumer.accept(app, appInfo, zipFileResource);
+            Files.deleteIfExists(tempFile);
           } catch (IOException e) {
-            log.error("");
+            log.error(
+                "Fail to read app manifest from bundled app zip file, appName: '{}'", appName, e);
             throw new RuntimeException(e);
           }
         });
