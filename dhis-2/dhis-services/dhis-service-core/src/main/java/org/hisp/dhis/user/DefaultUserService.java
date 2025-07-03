@@ -1052,6 +1052,7 @@ public class DefaultUserService implements UserService {
     String encodedTokens = generateAndPersistTokens(persistedUser, restoreOptions);
     RestoreType restoreType = restoreOptions.getRestoreType();
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
+    String restorePath = String.format("%s%s%s", rootPath, RESTORE_PATH, restoreType.getAction());
 
     if (isEmpty(applicationTitle)) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1059,7 +1060,7 @@ public class DefaultUserService implements UserService {
 
     Map<String, Object> vars = new HashMap<>();
     vars.put("applicationTitle", applicationTitle);
-    vars.put("restorePath", rootPath + RESTORE_PATH + restoreType.getAction());
+    vars.put("restorePath", restorePath);
     vars.put("token", encodedTokens);
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
