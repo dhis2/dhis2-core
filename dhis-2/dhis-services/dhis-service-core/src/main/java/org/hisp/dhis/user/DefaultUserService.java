@@ -1053,6 +1053,7 @@ public class DefaultUserService implements UserService {
     RestoreType restoreType = restoreOptions.getRestoreType();
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
     String restorePath = String.format("%s%s%s", rootPath, RESTORE_PATH, restoreType.getAction());
+    rootPath = rootPath.replace("http://", "").replace("https://", "");
 
     if (isEmpty(applicationTitle)) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1067,18 +1068,8 @@ public class DefaultUserService implements UserService {
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
     vars.put("i18n", i18n);
 
-    rootPath = rootPath.replace("http://", "").replace("https://", "");
-
-    // -------------------------------------------------------------------------
-    // Render emails
-    // -------------------------------------------------------------------------
-
     String messageBody = new VelocityManager().render(vars, restoreType.getEmailTemplate() + "1");
     String messageSubject = i18n.getString(restoreType.getEmailSubject()) + " " + rootPath;
-
-    // -------------------------------------------------------------------------
-    // Send emails
-    // -------------------------------------------------------------------------
 
     emailMessageSender.sendMessage(
         messageSubject, messageBody, null, null, Set.of(persistedUser), true);
