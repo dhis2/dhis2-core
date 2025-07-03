@@ -63,7 +63,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
   private ProgramRule programRuleA, programRuleB;
 
   @BeforeAll
-  public void setUp() {
+  void setUp() {
     createProgramRuleActions();
   }
 
