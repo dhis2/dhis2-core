@@ -94,10 +94,10 @@ public class DefaultDviService implements DviService {
   public ImportResult importAll(Options options, DviUpsertRequest request, JobProgress progress)
       throws ConflictException {
 
-    progress.startingStage("Unifying {} values...", request.values().size());
+    progress.startingStage("Unifying %d values...".formatted(request.values().size()));
     List<DviValue> values = progress.runStage(List.of(), () -> completedValues(request));
 
-    progress.startingStage("Validating {} values...", values.size());
+    progress.startingStage("Validating %d values...".formatted(values.size()));
     List<ImportError> errors = new ArrayList<>();
     List<DviValue> validValues =
         progress.runStage(
@@ -105,7 +105,7 @@ public class DefaultDviService implements DviService {
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
 
-    progress.startingStage("Importing {} values...", validValues.size());
+    progress.startingStage("Importing %d values...".formatted(validValues.size()));
     int imported =
         progress.runStage(
             0, () -> options.dryRun() ? validValues.size() : store.upsertValues(validValues));
