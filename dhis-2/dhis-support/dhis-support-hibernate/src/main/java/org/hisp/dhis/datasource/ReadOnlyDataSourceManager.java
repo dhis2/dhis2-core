@@ -52,7 +52,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
- * Class responsible for detecting read-only databases configured in the DHIS 2 configuration file.
+ * Class responsible for detecting read-only databases configured in the DHIS2 configuration file.
  *
  * @author Lars Helge Overland
  */
@@ -164,7 +164,7 @@ public class ReadOnlyDataSourceManager {
 
   /**
    * Returns a list of read-only data source configurations. The configurations are detected from
-   * the DHIS 2 configuration file.
+   * the DHIS2 configuration file.
    *
    * @param config the {@link DhisConfigurationProvider}.
    * @return a list of {@link ReadOnlyDataSourceConfig}.
