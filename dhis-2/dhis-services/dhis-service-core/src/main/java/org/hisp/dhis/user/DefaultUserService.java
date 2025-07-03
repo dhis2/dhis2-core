@@ -355,6 +355,11 @@ public class DefaultUserService implements UserService {
     return userStore.getUserCount();
   }
 
+  /**
+   * Handles the user query parameters by setting defaults and processing specific fields.
+   *
+   * @param params the {@link UserQueryParams}.
+   */
   private void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
@@ -398,6 +403,13 @@ public class DefaultUserService implements UserService {
     }
   }
 
+  /**
+   * Validates the user query parameters to ensure that the user has the necessary permissions to
+   * perform the requested operation.
+   *
+   * @param params the {@link UserQueryParams} to validate.
+   * @throws ConflictException if the user does not have the required permissions.
+   */
   private void validateUserQueryParams(UserQueryParams params) throws ConflictException {
     if (params.isCanManage()
         && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
@@ -721,8 +733,15 @@ public class DefaultUserService implements UserService {
     }
   }
 
+  /**
+   * Checks if the current user has access to the user groups of the user being created or updated.
+   * If not, adds an error report to the list of errors.
+   *
+   * @param user the user being created or updated.
+   * @param currentUser the user performing the action.
+   * @param errors the list of error reports to add to.
+   */
   private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
-
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
       return;
@@ -744,6 +763,14 @@ public class DefaultUserService implements UserService {
             });
   }
 
+  /**
+   * Checks if the current user has access to the user roles of the user being created or updated.
+   * If not, adds an error report to the list of errors.
+   *
+   * @param user the user being created or updated.
+   * @param currentUser the user performing the action.
+   * @param errors the list of error reports to add to.
+   */
   private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
@@ -818,7 +845,7 @@ public class DefaultUserService implements UserService {
     if (ZonedDateTime.ofInstant(inactiveSince.toInstant(), systemDefault())
         .plusMonths(1)
         .isAfter(now())) {
-      // we never disable users that have been active during last month
+      // Never disable users that have been active during last month
       return 0;
     }
     return userStore.disableUsersInactiveSince(inactiveSince);
