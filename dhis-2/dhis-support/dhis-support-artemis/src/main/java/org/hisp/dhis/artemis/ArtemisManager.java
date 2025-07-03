@@ -32,7 +32,9 @@ package org.hisp.dhis.artemis;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.activemq.artemis.core.remoting.impl.invm.InVMRegistry;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.spi.core.remoting.Acceptor;
 import org.hisp.dhis.artemis.config.ArtemisConfigData;
 import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.springframework.stereotype.Service;
@@ -55,8 +57,18 @@ public class ArtemisManager {
   @PostConstruct
   public void startArtemis() throws Exception {
     if (ArtemisMode.EMBEDDED == artemisConfigData.getMode()) {
-      log.info("Starting embedded Artemis ActiveMQ server.");
-      embeddedActiveMQ.start();
+      Acceptor existingAcceptor =
+          InVMRegistry.instance.getAcceptor(ArtemisConfigData.EMBEDDED_ACCEPTOR_ID);
+      if (existingAcceptor == null) {
+        log.info(
+            "Starting embedded Artemis ActiveMQ server with Acceptor ID {}",
+            ArtemisConfigData.EMBEDDED_ACCEPTOR_ID);
+        embeddedActiveMQ.start();
+      } else {
+        log.warn(
+            "Acceptor with ID {} already exists, skip starting embedded Artemis ActiveMQ server.",
+            ArtemisConfigData.EMBEDDED_ACCEPTOR_ID);
+      }
     }
   }
 
