@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+package org.hisp.dhis.util;
 
-/**
- * This class defines metadata model property's names of {@link
- * org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help supporting type-safe
- * queries with JPA Criteria API. TODO: This should be replaced with JPAMetaModelEntityProcessor's
- * auto generated class
- */
-public class BaseIdentifiableObject_ {
-  public static final String CREATED_BY = "createdBy";
-  public static final String LAST_UPDATED_BY = "lastUpdatedBy";
+public class ZipBombException extends Exception {
 
-  public static final String TRANSLATIONS = "translations";
-
-  public static final String SHARING = "sharing";
-  public static final String ATTRIBUTE_VALUES = "attributeValues";
+  public ZipBombException(String s) {
+    super(s);
+  }
 }
