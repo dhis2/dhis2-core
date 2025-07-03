@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -238,6 +236,16 @@ public class JCloudsAppStorageService implements AppStorageService {
       return app;
     }
 
+    if (bundledAppInfo != null) {
+      try {
+        writeBundledAppInfo(bundledAppInfo, installationFolder);
+      } catch (IOException e) {
+        log.error("Failed to install app: Failure during writing bundled app info");
+        app.setAppState(AppStatus.FAILED_TO_WRITE_BUNDLED_APP_INFO);
+        return app;
+      }
+    }
+
     if (!validateApp(app, appCache)) {
       log.error("Failed to install app: App validation failed");
       return app;
@@ -246,33 +254,10 @@ public class JCloudsAppStorageService implements AppStorageService {
     try {
       ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
 
-      try (ZipFile zipFile = new ZipFile(file)) {
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while (entries.hasMoreElements()) {
-          ZipEntry zipEntry = entries.nextElement();
-          String filePath = getFilePath(installationFolder, topLevelFolder, zipEntry);
-          // If it's the root folder, skip
-          if (filePath == null) continue;
-          try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-            Blob blob =
-                jCloudsStore
-                    .getBlobStore()
-                    .blobBuilder(filePath)
-                    .payload(zipInputStream)
-                    .contentLength(zipEntry.getSize())
-                    .build();
-            jCloudsStore.putBlob(blob);
-          }
-        }
-      }
-
-      if (bundledAppInfo != null) {
-        writeBundledAppInfo(bundledAppInfo, installationFolder);
-      }
-
+      unzipFile(file, installationFolder, topLevelFolder);
       removePreviousVersions(app, bundledAppInfo);
-      app.setAppState(AppStatus.OK);
 
+      app.setAppState(AppStatus.OK);
       logInstallSuccess(app, installationFolder);
       return app;
 
@@ -288,15 +273,38 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     if (!app.getAppState().ok()) {
-      deleteAppAsync(app);
+      deleteApp(app);
     }
 
     return app;
   }
 
+  private void unzipFile(File file, String installationFolder, String topLevelFolder)
+      throws IOException, ZipSlipException {
+    try (ZipFile zipFile = new ZipFile(file)) {
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
+        String filePath = getFilePath(installationFolder, topLevelFolder, zipEntry);
+        // If it's the root folder, skip
+        if (filePath == null) continue;
+        try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+          Blob blob =
+              jCloudsStore
+                  .getBlobStore()
+                  .blobBuilder(filePath)
+                  .payload(zipInputStream)
+                  .contentLength(zipEntry.getSize())
+                  .build();
+          jCloudsStore.putBlob(blob);
+        }
+      }
+    }
+  }
+
+  // Create the BundledAppInfo JSON file and write it to JClouds storage
   private void writeBundledAppInfo(BundledAppInfo bundledAppInfo, String installationFolder)
       throws IOException {
-    // Create the BundledAppInfo JSON file and write it to JClouds storage
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
     byte[] bundledAppInfoBytes = baos.toByteArray();
@@ -332,31 +340,32 @@ public class JCloudsAppStorageService implements AppStorageService {
           }
         });
 
-    appsToRemove.forEach(this::deleteAppAsync);
+    appsToRemove.forEach(this::deleteApp);
   }
 
   @Override
-  public Future<Boolean> deleteAppAsync(App app) {
-    log.info("Deleting app {}", app.getName());
-
+  public void deleteApp(App app) {
     // delete the manifest file first in case the system crashes during deletion
     // and the manifest file is not deleted, resulting in an app that can't be installed
-    jCloudsStore.removeBlob(app.getFolderName() + MANIFEST_WEBAPP_FILENAME);
+    String folderName = app.getFolderName();
+    jCloudsStore.removeBlob(
+        folderName.endsWith("/")
+            ? folderName + MANIFEST_WEBAPP_FILENAME
+            : folderName + "/" + MANIFEST_WEBAPP_FILENAME);
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):
-      jCloudsStore.deleteDirectory(app.getFolderName());
+      jCloudsStore.deleteDirectory(folderName);
     } else {
       // slower but works for S3:
       // Delete all files related to app
-      ListContainerOptions options = prefix(app.getFolderName()).recursive();
+      ListContainerOptions options = prefix(folderName).recursive();
       for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
         log.debug("Deleting app file: {}", resource.getName());
         jCloudsStore.removeBlob(resource.getName());
       }
     }
     log.info("Deleted app {}", app.getName());
-    return CompletableFuture.completedFuture(true);
   }
 
   @Override

@@ -32,7 +32,6 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.Future;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
@@ -70,13 +69,12 @@ public interface AppStorageService {
   App installApp(File file, Cache<App> appCache, BundledAppInfo bundledAppInfo);
 
   /**
-   * Deletes an app from the AppHubService.
+   * Deletes the app from storage.
    *
    * @param app the app to delete
-   * @return true if app is deleted, false if something fails
    */
   @Async
-  Future<Boolean> deleteAppAsync(App app);
+  void deleteApp(App app);
 
   /**
    * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will be

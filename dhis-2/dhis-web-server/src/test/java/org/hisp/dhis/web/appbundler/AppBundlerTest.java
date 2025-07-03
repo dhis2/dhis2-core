@@ -83,8 +83,8 @@ class AppBundlerTest {
     Path downloadArtifactDir = Path.of(downloadDir).resolve(artifactId);
     assertTrue(Files.exists(downloadArtifactDir), "Artifact download directory should exist");
 
-    Path checksumDir = downloadArtifactDir.resolve("checksums");
-    assertTrue(Files.exists(checksumDir), "Checksums directory should exist");
+    Path etagsDir = downloadArtifactDir.resolve("etags");
+    assertTrue(Files.exists(etagsDir), "Etags directory should exist");
 
     Path importExportAppZip = downloadArtifactDir.resolve("import-export-app.zip");
     assertTrue(Files.exists(importExportAppZip), "Import export app ZIP should exist");

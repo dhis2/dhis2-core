@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppStorageSource;
 import org.hisp.dhis.appmanager.ResourceResult;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
@@ -283,7 +282,7 @@ public class AppController {
       throw new WebMessageException(conflict("App is already being deleted: " + app));
     }
 
-    if (appToDelete.getAppStorageSource() == AppStorageSource.BUNDLED) {
+    if (appToDelete.isBundled()) {
       throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
     }
 

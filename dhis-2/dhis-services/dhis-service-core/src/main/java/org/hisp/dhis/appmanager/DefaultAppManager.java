@@ -46,8 +46,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -491,30 +489,11 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Async
-  public Future<Boolean> deleteAppFromStorageAsync(App app) {
+  public void deleteAppFromStorageAsync(App app) {
     if (app != null) {
-      Future<Boolean> promise = jCloudsAppStorageService.deleteAppAsync(app);
-
-      // Await the result of the delete request
-      boolean result;
-      try {
-        result = promise.get();
-      } catch (Exception e) {
-        log.error("Interrupted while deleting app {}", app.getKey());
-        app.setAppState(AppStatus.INSTALLATION_FAILED);
-        appCache.put(app.getKey(), app);
-        return CompletableFuture.completedFuture(false);
-      }
-
-      if (!result) {
-        log.warn("Deleting app {} is not allowed", app.getKey());
-        app.setAppState(AppStatus.OK);
-        appCache.put(app.getKey(), app);
-        return CompletableFuture.completedFuture(false);
-      }
+      jCloudsAppStorageService.deleteApp(app);
     }
     reloadApps();
-    return CompletableFuture.completedFuture(true);
   }
 
   @Override
@@ -523,7 +502,7 @@ public class DefaultAppManager implements AppManager {
     if (appOpt.isEmpty()) return false;
 
     // Bundled apps cannot be deleted
-    if (appOpt.get().getAppStorageSource() == AppStorageSource.BUNDLED) return false;
+    if (appOpt.get().isBundled()) return false;
 
     App appFromCache = appOpt.get();
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
