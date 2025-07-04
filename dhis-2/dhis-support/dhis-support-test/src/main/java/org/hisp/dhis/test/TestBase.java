@@ -276,7 +276,7 @@ public abstract class TestBase {
   private static Date date;
 
   protected static final double DELTA = 0.01;
-  private static int categoryCounter = 1;
+  private int categoryCounter = 1;
 
   // -------------------------------------------------------------------------
   // Service references
