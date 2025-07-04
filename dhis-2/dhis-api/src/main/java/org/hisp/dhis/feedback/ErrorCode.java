@@ -493,6 +493,7 @@ public enum ErrorCode {
   E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
   E7150("No periods found for subexpression query"),
+  E7151("Too many combinations of columns or rows."),
   /* Analytics outliers */
 
   E7180(

@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.common.DxfNamespaces;
 
 @JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
@@ -40,13 +42,17 @@ public class AppShortcut implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = -8865601558938806456L;
 
+  @Getter
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private String name;
 
+  @Getter
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private String url;
+
+  @Setter private String displayName;
 
   public AppShortcut() {}
 
@@ -55,11 +61,12 @@ public class AppShortcut implements Serializable {
     this.url = url;
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public String getUrl() {
-    return url;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayName() {
+    if (displayName == null) {
+      return name;
+    }
+    return displayName;
   }
 }

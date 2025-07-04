@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
@@ -88,7 +89,7 @@ class PersistablesFilterTest {
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p", "Ok4Fe5moc3N"),
         () ->
             assertContainsOnly(
-                persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
+                persistable, TrackerEvent.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
@@ -114,7 +115,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertContainsOnly(persistable, Event.class, "Ox1qBWsnVwE"),
+        () -> assertContainsOnly(persistable, TrackerEvent.class, "Ox1qBWsnVwE"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
@@ -137,7 +138,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertContainsOnly(persistable, Event.class, "Qck4PQ7TMun"),
+        () -> assertContainsOnly(persistable, TrackerEvent.class, "Qck4PQ7TMun"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
@@ -197,7 +198,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
-        () -> assertContainsOnly(persistable, Event.class, "Qck4PQ7TMun"),
+        () -> assertContainsOnly(persistable, TrackerEvent.class, "Qck4PQ7TMun"),
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
@@ -217,7 +218,8 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertIsEmpty(persistable.get(Enrollment.class)),
-        () -> assertIsEmpty(persistable.get(Event.class)),
+        () -> assertIsEmpty(persistable.get(TrackerEvent.class)),
+        () -> assertIsEmpty(persistable.get(SingleEvent.class)),
         () ->
             assertHasError(
                 persistable, EVENT, "Qck4PQ7TMun", E5000, "because enrollment `t1zaUjKgT3p`"));
@@ -239,7 +241,7 @@ class PersistablesFilterTest {
     assertAll(
         () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2"),
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertIsEmpty(persistable.get(Event.class)),
+        () -> assertIsEmpty(persistable.get(TrackerEvent.class)),
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
@@ -376,7 +378,7 @@ class PersistablesFilterTest {
         () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p", "Ok4Fe5moc3N"),
         () ->
             assertContainsOnly(
-                persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
+                persistable, TrackerEvent.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }

@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.user;
 
-/** Created by zubair on 06.03.17. */
+/**
+ * @author Zubair
+ */
 public interface PasswordValidationService {
   PasswordValidationResult validate(CredentialsInfo credentialsInfo);
 }

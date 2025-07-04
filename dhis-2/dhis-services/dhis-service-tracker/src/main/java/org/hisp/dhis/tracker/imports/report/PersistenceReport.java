@@ -31,9 +31,9 @@ package org.hisp.dhis.tracker.imports.report;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -47,14 +47,29 @@ import org.hisp.dhis.tracker.TrackerType;
  */
 @Getter
 @ToString
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PersistenceReport {
   public static PersistenceReport emptyReport() {
-    return new PersistenceReport(new HashMap<>());
+    return new PersistenceReport();
   }
 
-  @JsonProperty private Map<TrackerType, TrackerTypeReport> typeReportMap;
+  public PersistenceReport(
+      TrackerTypeReport trackedEntityReport,
+      TrackerTypeReport enrollmentReport,
+      TrackerTypeReport trackerEventReport,
+      TrackerTypeReport singleEventReport,
+      TrackerTypeReport relationshipReport) {
+    TrackerTypeReport eventReport = merge(trackerEventReport, singleEventReport);
+    this.typeReportMap =
+        Map.of(
+            TrackerType.TRACKED_ENTITY, trackedEntityReport,
+            TrackerType.ENROLLMENT, enrollmentReport,
+            TrackerType.EVENT, eventReport,
+            TrackerType.RELATIONSHIP, relationshipReport);
+  }
+
+  @JsonProperty
+  private Map<TrackerType, TrackerTypeReport> typeReportMap = new EnumMap<>(TrackerType.class);
 
   @JsonIgnore
   public Stats getStats() {
@@ -66,5 +81,19 @@ public class PersistenceReport {
 
   public boolean isEmpty() {
     return typeReportMap.values().stream().allMatch(TrackerTypeReport::isEmpty);
+  }
+
+  private TrackerTypeReport merge(
+      TrackerTypeReport typeReport, TrackerTypeReport anotherTypeReport) {
+    typeReport.getStats().merge(anotherTypeReport.getStats());
+    typeReport.getEntityReport().addAll(anotherTypeReport.getEntityReport());
+    typeReport.getNotificationDataBundles().addAll(anotherTypeReport.getNotificationDataBundles());
+
+    TrackerTypeReport trackerTypeReport = new TrackerTypeReport(TrackerType.EVENT);
+    trackerTypeReport.setStats(typeReport.getStats());
+    trackerTypeReport.setEntityReport(typeReport.getEntityReport());
+    trackerTypeReport.setNotificationDataBundles(typeReport.getNotificationDataBundles());
+
+    return trackerTypeReport;
   }
 }

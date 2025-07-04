@@ -154,7 +154,7 @@ public class TrackerTrigramIndexingJob implements Job {
 
     Set<Long> teaIds = new HashSet<>(teaIdList);
 
-    // Collect tea ids of all indexable attributets
+    // Collect tea ids of all indexable attributes
     Set<Long> allIndexableAttributeIds =
         allIndexableAttributes.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
 

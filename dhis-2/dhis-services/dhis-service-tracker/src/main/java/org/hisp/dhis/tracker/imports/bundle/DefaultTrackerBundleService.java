@@ -36,7 +36,6 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
@@ -44,7 +43,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
@@ -118,18 +116,23 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return PersistenceReport.emptyReport();
     }
 
-    Map<TrackerType, TrackerTypeReport> reportMap =
-        Map.of(
-            TrackerType.TRACKED_ENTITY,
-            commitService.getTrackerPersister().persist(entityManager, bundle),
-            TrackerType.ENROLLMENT,
-            commitService.getEnrollmentPersister().persist(entityManager, bundle),
-            TrackerType.EVENT,
-            commitService.getEventPersister().persist(entityManager, bundle),
-            TrackerType.RELATIONSHIP,
-            commitService.getRelationshipPersister().persist(entityManager, bundle));
+    TrackerTypeReport trackedEntitiesReport =
+        commitService.getTrackerPersister().persist(entityManager, bundle);
+    TrackerTypeReport enrollmentsReport =
+        commitService.getEnrollmentPersister().persist(entityManager, bundle);
+    TrackerTypeReport trackerEventsReport =
+        commitService.getTrackerEventPersister().persist(entityManager, bundle);
+    TrackerTypeReport singleEventsReport =
+        commitService.getSingleEventPersister().persist(entityManager, bundle);
+    TrackerTypeReport relationshipsReport =
+        commitService.getRelationshipPersister().persist(entityManager, bundle);
 
-    return new PersistenceReport(reportMap);
+    return new PersistenceReport(
+        trackedEntitiesReport,
+        enrollmentsReport,
+        trackerEventsReport,
+        singleEventsReport,
+        relationshipsReport);
   }
 
   @Override
@@ -185,21 +188,27 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return PersistenceReport.emptyReport();
     }
 
-    Map<TrackerType, TrackerTypeReport> reportMap =
-        Map.of(
-            TrackerType.RELATIONSHIP,
-                deletionService.deleteRelationships(
-                    bundle.getRelationships().stream().map(TrackerDto::getUid).toList()),
-            TrackerType.EVENT,
-                deletionService.deleteEvents(
-                    bundle.getEvents().stream().map(TrackerDto::getUid).toList()),
-            TrackerType.ENROLLMENT,
-                deletionService.deleteEnrollments(
-                    bundle.getEnrollments().stream().map(TrackerDto::getUid).toList()),
-            TrackerType.TRACKED_ENTITY,
-                deletionService.deleteTrackedEntities(
-                    bundle.getTrackedEntities().stream().map(TrackerDto::getUid).toList()));
+    TrackerTypeReport trackedEntitiesReport =
+        deletionService.deleteTrackedEntities(
+            bundle.getTrackedEntities().stream().map(TrackerDto::getUid).toList());
+    TrackerTypeReport enrollmentsReport =
+        deletionService.deleteEnrollments(
+            bundle.getEnrollments().stream().map(TrackerDto::getUid).toList());
+    TrackerTypeReport trackerEventsReport =
+        deletionService.deleteTrackerEvents(
+            bundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList());
+    TrackerTypeReport singleEventsReport =
+        deletionService.deleteSingleEvents(
+            bundle.getSingleEvents().stream().map(TrackerDto::getUid).toList());
+    TrackerTypeReport relationshipsReport =
+        deletionService.deleteRelationships(
+            bundle.getRelationships().stream().map(TrackerDto::getUid).toList());
 
-    return new PersistenceReport(reportMap);
+    return new PersistenceReport(
+        trackedEntitiesReport,
+        enrollmentsReport,
+        trackerEventsReport,
+        singleEventsReport,
+        relationshipsReport);
   }
 }

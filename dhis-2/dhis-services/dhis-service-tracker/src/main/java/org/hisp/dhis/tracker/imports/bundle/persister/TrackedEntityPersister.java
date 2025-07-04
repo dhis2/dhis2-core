@@ -88,6 +88,12 @@ public class TrackedEntityPersister
   }
 
   @Override
+  protected List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> getByType(
+      TrackerBundle bundle) {
+    return bundle.getTrackedEntities();
+  }
+
+  @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, TrackedEntity entity, List<NotificationTrigger> triggers) {
     return TrackerNotificationDataBundle.builder().build();
