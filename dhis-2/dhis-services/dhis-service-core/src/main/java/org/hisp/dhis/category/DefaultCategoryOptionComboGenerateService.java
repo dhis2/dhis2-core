@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.category;
 
-import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -46,6 +45,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
+ * This class is responsible for generating {@link CategoryOptionCombo}s (COC). It should be the
+ * only place in the system where the generation of these types exists.
+ *
+ * <p>All public methods use synchronization to ensure that only 1 process(generating COCs) is
+ * running at a time. This helps prevent duplicates entering the system. The reason for this is due
+ * to how we distinguish duplicate COCs in the system (criteria spans multiple DB tables).
+ *
+ * <p>The generation of new COC occurs within a transaction within the synchronization block to help
+ * ensure that the system has a consistent view of the database.
+ *
  * @author david mackessy
  */
 @Slf4j
@@ -123,7 +132,7 @@ public class DefaultCategoryOptionComboGenerateService
    * following: <br>
    *
    * <ol>
-   *   <li>Delete a persisted COC if it is not present in the generated COCs
+   *   <li>Delete a persisted COC if it is not present in the generated COCs (if possible)
    *   <li>Updates a persisted COC name if it is present and has a different name to its generated
    *       COC match
    *   <li>Add a generated COC if it is not present in the persisted COCs
@@ -138,8 +147,9 @@ public class DefaultCategoryOptionComboGenerateService
   private ImportSummaries addAndPruneOptionCombo(
       @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
     Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
+    CategoryCombo catCombo = categoryComboStore.getByUid(categoryCombo.getUid());
     Set<CategoryOptionCombo> persistedCocs =
-        Sets.newHashSet(categoryComboStore.getByUid(categoryCombo.getUid()).getOptionCombos());
+        catCombo != null ? Set.copyOf(catCombo.getOptionCombos()) : Set.of();
 
     // Persisted COC checks (update name or delete)
     for (CategoryOptionCombo persistedCoc : persistedCocs) {
@@ -157,9 +167,9 @@ public class DefaultCategoryOptionComboGenerateService
         log.warn(
             "Generated category option combo %S has 0 options, skip adding for category combo `%s` as this is an invalid category option combo. Consider cleaning up the metadata model."
                 .formatted(generatedCoc.getName(), categoryCombo.getName()));
-      } else if (!persistedCocs.contains(generatedCoc)) {
-        boolean cocAdded = categoryCombo.getOptionCombos().add(generatedCoc);
-        if (cocAdded) categoryService.addCategoryOptionCombo(generatedCoc);
+      } else if (!persistedCocs.contains(generatedCoc)
+          && (categoryCombo.getOptionCombos().add(generatedCoc))) {
+        categoryService.addCategoryOptionCombo(generatedCoc);
 
         String msg =
             "Added missing category option combo: `%s` for category combo: `%s`"

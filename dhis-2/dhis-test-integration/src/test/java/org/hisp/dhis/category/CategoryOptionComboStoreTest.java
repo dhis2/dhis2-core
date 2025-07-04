@@ -43,7 +43,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -86,7 +86,7 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   private DataElement dataElementA;
 
-  @BeforeAll
+  @BeforeEach
   void setUp() {
     categoryOptionA = new CategoryOption("Male");
     categoryOptionB = new CategoryOption("Female");

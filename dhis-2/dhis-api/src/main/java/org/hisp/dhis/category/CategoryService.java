@@ -533,5 +533,4 @@ public interface CategoryService {
   void validate(CategoryCombo combo) throws ConflictException;
 
   void validate(CategoryOptionCombo combo) throws ConflictException;
-
 }
