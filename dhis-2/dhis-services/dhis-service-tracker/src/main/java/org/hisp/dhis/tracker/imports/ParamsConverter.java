@@ -64,14 +64,30 @@ public class ParamsConverter {
         .validationMode(params.getValidationMode())
         .trackedEntities(trackerObjects.getTrackedEntities())
         .enrollments(trackerObjects.getEnrollments())
-        .trackerEvents(buildTrackerEvents(trackerObjects.getEvents(), preheat))
-        .singleEvents(buildSingleEvents(trackerObjects.getEvents(), preheat))
+        .trackerEvents(
+            buildTrackerEvents(trackerObjects.getEvents(), preheat, params.getImportStrategy()))
+        .singleEvents(
+            buildSingleEvents(trackerObjects.getEvents(), preheat, params.getImportStrategy()))
         .relationships(trackerObjects.getRelationships())
         .user(user)
         .build();
   }
 
-  private static List<TrackerEvent> buildTrackerEvents(List<Event> events, TrackerPreheat preheat) {
+  private static List<TrackerEvent> buildTrackerEvents(
+      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+    if (importStrategy.isUpdateOrDelete()) {
+      return events.stream()
+          .filter(
+              e ->
+                  preheat.getEvent(e.getUid()) == null
+                      || preheat
+                          .getEvent(e.getUid())
+                          .getProgramStage()
+                          .getProgram()
+                          .isRegistration())
+          .map(e -> TrackerEvent.builderFromEvent(e).build())
+          .toList();
+    }
     return events.stream()
         .filter(
             e -> {
@@ -85,7 +101,21 @@ public class ParamsConverter {
         .toList();
   }
 
-  private static List<SingleEvent> buildSingleEvents(List<Event> events, TrackerPreheat preheat) {
+  private static List<SingleEvent> buildSingleEvents(
+      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+    if (importStrategy.isUpdateOrDelete()) {
+      return events.stream()
+          .filter(e -> preheat.getEvent(e.getUid()) != null)
+          .filter(
+              e ->
+                  preheat
+                      .getEvent(e.getUid())
+                      .getProgramStage()
+                      .getProgram()
+                      .isWithoutRegistration())
+          .map(e -> SingleEvent.builderFromEvent(e).build())
+          .toList();
+    }
     return events.stream()
         .filter(
             e -> {

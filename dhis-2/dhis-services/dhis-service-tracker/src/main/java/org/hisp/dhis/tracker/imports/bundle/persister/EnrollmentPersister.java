@@ -142,6 +142,11 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected List<org.hisp.dhis.tracker.imports.domain.Enrollment> getByType(TrackerBundle bundle) {
+    return bundle.getEnrollments();
+  }
+
+  @Override
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,

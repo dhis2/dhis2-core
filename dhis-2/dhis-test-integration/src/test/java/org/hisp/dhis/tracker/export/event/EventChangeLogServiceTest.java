@@ -119,7 +119,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
-    trackerObjectDeletionService.deleteEvents(List.of(UID.of("D9PbzJY8bJM")));
+    trackerObjectDeletionService.deleteTrackerEvents(List.of(UID.of("D9PbzJY8bJM")));
 
     assertThrows(
         NotFoundException.class,

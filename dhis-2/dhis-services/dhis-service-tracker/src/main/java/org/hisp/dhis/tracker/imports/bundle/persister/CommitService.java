@@ -47,7 +47,9 @@ public class CommitService {
 
   @Nonnull private EnrollmentPersister enrollmentPersister;
 
-  @Nonnull private EventPersister eventPersister;
+  @Nonnull private TrackerEventPersister trackerEventPersister;
+
+  @Nonnull private SingleEventPersister singleEventPersister;
 
   @Nonnull private RelationshipPersister relationshipPersister;
 }
