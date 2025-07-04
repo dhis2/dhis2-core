@@ -55,6 +55,7 @@ public enum ProgramRuleActionType {
   SHOWERROR("showerror"),
   ERRORONCOMPLETE("erroroncomplete"),
   SCHEDULEEVENT("scheduleevent"),
+  CREATEEVENT("createevent"),
   SETMANDATORYFIELD("setmandatoryfield", Set.of(ON_DATA_ENTRY)),
   SENDMESSAGE("sendmessage", Set.of(ON_DATA_ENTRY, ON_COMPLETE)),
   SCHEDULEMESSAGE("schedulemessage", Set.of(ON_DATA_ENTRY, ON_COMPLETE)),
@@ -89,7 +90,8 @@ public enum ProgramRuleActionType {
           WARNINGONCOMPLETE,
           ASSIGN,
           SETMANDATORYFIELD,
-          SCHEDULEEVENT);
+          SCHEDULEEVENT,
+          CREATEEVENT);
 
   ProgramRuleActionType(String value) {
     this.value = value;
