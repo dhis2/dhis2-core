@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>dhis-web-server</artifactId>
-  <packaging>${packaging.type:-war}</packaging>
+  <packaging>${packaging.type}</packaging>
   <name>DHIS Web Server</name>
 
   <properties>
@@ -23,6 +23,8 @@
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/app</jib.container.appRoot>
     <spring-boot-maven-plugin.version>3.5.3</spring-boot-maven-plugin.version>
+    <!-- Default packaging type - can be overridden by profiles -->
+    <packaging.type>war</packaging.type>
   </properties>
 
   <dependencies>
@@ -230,6 +232,9 @@
     </profile>
     <profile>
       <id>jibDockerBuild</id>
+      <properties>
+        <packaging.type>jar</packaging.type>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -250,6 +255,9 @@
     <profile>
       <!-- used to build and push multi-architecture images -->
       <id>jibBuild</id>
+      <properties>
+        <packaging.type>jar</packaging.type>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -284,6 +292,9 @@
     <profile>
       <!-- used to automatically build images for arm64 on Mac without users needing to configure Jib -->
       <id>jibBuildArmOnly</id>
+      <properties>
+        <packaging.type>jar</packaging.type>
+      </properties>
       <build>
         <plugins>
           <plugin>
