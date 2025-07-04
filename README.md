@@ -38,6 +38,14 @@ A database dump is downloaded automatically the first time you start DHIS2. If y
 docker compose down --volumes
 ```
 
+# Building Docker images
+
+We need to specify the packaing type to JAR in order to make it work with embedded mode.
+
+```sh
+mvn clean install -Dpackaging.type=jar -DskipTests --activate-profiles embedded,jibDockerBuild
+```
+
 ### Pre-built images
 
 We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
