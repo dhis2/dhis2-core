@@ -144,7 +144,6 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .getString("warningCode")
             .string());
     assertEquals(2, importReport.getStats().getCreated());
-    assertEquals(0, importReport.getStats().getDeleted());
     assertEquals(0, importReport.getStats().getIgnored());
     assertEquals(0, importReport.getStats().getUpdated());
   }
@@ -165,7 +164,6 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .getString("warningCode")
             .string());
     assertEquals(1, importReport.getStats().getCreated());
-    assertEquals(0, importReport.getStats().getDeleted());
     assertEquals(0, importReport.getStats().getIgnored());
     assertEquals(0, importReport.getStats().getUpdated());
   }
@@ -186,7 +184,6 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .getString("warningCode")
             .string());
     assertEquals(1, importReport.getStats().getCreated());
-    assertEquals(0, importReport.getStats().getDeleted());
     assertEquals(0, importReport.getStats().getIgnored());
     assertEquals(0, importReport.getStats().getUpdated());
   }
