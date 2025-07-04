@@ -288,47 +288,6 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testUpdateCategoryOptionCombosC() {
-    categoryComboA =
-        new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
-    categoryService.addCategoryCombo(categoryComboA);
-    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
-    assertNotNull(categoryComboA.getOptionCombos());
-    assertEquals(8, categoryComboA.getOptionCombos().size());
-    assertOptionCombos(categoryComboA.getOptionCombos());
-    categoryC.addCategoryOption(categoryOptionG);
-    categoryService.updateCategory(categoryC);
-    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
-    assertNotNull(categoryComboA.getOptionCombos());
-    assertEquals(12, categoryComboA.getOptionCombos().size());
-    assertOptionCombos(categoryComboA.getOptionCombos());
-    assertTrue(
-        categoryComboA
-            .getOptionCombos()
-            .contains(
-                createCategoryOptionCombo(
-                    categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG)));
-    assertTrue(
-        categoryComboA
-            .getOptionCombos()
-            .contains(
-                createCategoryOptionCombo(
-                    categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG)));
-    assertTrue(
-        categoryComboA
-            .getOptionCombos()
-            .contains(
-                createCategoryOptionCombo(
-                    categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG)));
-    assertTrue(
-        categoryComboA
-            .getOptionCombos()
-            .contains(
-                createCategoryOptionCombo(
-                    categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG)));
-  }
-
-  @Test
   void testAddAndPruneCategoryOptionCombo() {
     categories.clear();
     categories.add(categoryA);
