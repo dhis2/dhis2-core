@@ -44,9 +44,8 @@ import org.hisp.dhis.system.util.AnnotationUtils;
 public class TranslatablePropertyIntrospector implements PropertyIntrospector {
   @Override
   public void introspect(Class<?> klass, Map<String, Property> properties) {
-    Property translationsProperty = properties.get(BaseIdentifiableObject_.TRANSLATIONS);
 
-    if (translationsProperty == null || !translationsProperty.isPersisted()) {
+    if (!hasTranslationsProperty(properties)) {
       return;
     }
 
@@ -67,5 +66,17 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector {
         property.setTranslatable(true);
       }
     }
+  }
+
+  /**
+   * Checks if the given properties map contains a translations property, either as
+   * BaseIdentifiableObject_.TRANSLATIONS or BaseIdentifiableObject_.TRANSLATION_PROPERTY.
+   *
+   * @param properties the properties map to check.
+   * @return true if a translations property is present, false otherwise.
+   */
+  private boolean hasTranslationsProperty(Map<String, Property> properties) {
+    Property property = properties.get(BaseIdentifiableObject_.TRANSLATIONS);
+    return property != null && property.isPersisted();
   }
 }

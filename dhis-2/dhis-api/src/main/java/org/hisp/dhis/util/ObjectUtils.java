@@ -104,14 +104,14 @@ public class ObjectUtils {
   }
 
   /**
-   * Indicates whether any of the given conditions are not null and true.
+   * Indicates whether any of the given expressions is not null and true.
    *
    * @param conditions the conditions.
-   * @return whether any of the given conditions are not null and true.
+   * @return true if any the given conditions is not null and true, false otherwise.
    */
-  public static boolean anyIsTrue(Boolean... conditions) {
-    if (conditions != null) {
-      for (Boolean condition : conditions) {
+  public static boolean anyIsTrue(Boolean... expressions) {
+    if (expressions != null) {
+      for (Boolean condition : expressions) {
         if (condition != null && condition.booleanValue()) {
           return true;
         }
@@ -122,15 +122,33 @@ public class ObjectUtils {
   }
 
   /**
-   * Indicates whether any of the given conditions are not null and false.
+   * Indicates whether any of the given expressions is not null and false.
    *
-   * @param conditions the conditions.
-   * @return whether any of the given conditions are not null and false.
+   * @param expressions the expressions.
+   * @return true if any of the given conditions is not null and false, false otherwise.
    */
-  public static boolean anyIsFalse(Boolean... conditions) {
-    if (conditions != null) {
-      for (Boolean condition : conditions) {
+  public static boolean anyIsFalse(Boolean... expressions) {
+    if (expressions != null) {
+      for (Boolean condition : expressions) {
         if (condition != null && !condition.booleanValue()) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Indicates whether any of the given objects is null.
+   *
+   * @param objects the objects.
+   * @return true if any of the given objects is null, false otherwise.
+   */
+  public static boolean anyIsNull(Object... objects) {
+    if (objects != null) {
+      for (Object object : objects) {
+        if (object == null) {
           return true;
         }
       }

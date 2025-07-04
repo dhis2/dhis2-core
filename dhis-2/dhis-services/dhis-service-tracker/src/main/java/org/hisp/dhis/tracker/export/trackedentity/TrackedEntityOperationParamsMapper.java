@@ -200,6 +200,19 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
+      List<QueryFilter> binaryFilters =
+          attributeFilter.getValue().stream().filter(qf -> qf.getOperator().isBinary()).toList();
+      for (QueryFilter queryFilter : binaryFilters) {
+        if (tea.getMinCharactersToSearch() > 0
+            && (queryFilter.getFilter() == null
+                || queryFilter.getFilter().length() < tea.getMinCharactersToSearch())) {
+          throw new IllegalQueryException(
+              String.format(
+                  "At least %d character(s) should be present in the filter to start a search, but the filter for operator %s doesn't contain enough.",
+                  tea.getMinCharactersToSearch(), queryFilter.getOperator()));
+        }
+      }
+
       params.filterBy(tea, attributeFilter.getValue());
     }
   }

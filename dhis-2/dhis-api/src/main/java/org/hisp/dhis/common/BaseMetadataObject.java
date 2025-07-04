@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.common;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.Date;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.user.User;
 
 /**
- * Bean used when finding user accounts that are soon to expire.
- *
- * @author Jan Bernitt
+ * Base Object for metadata entities. All declared properties must be mapped to corresponding
+ * database columns.
  */
-@Getter
-@RequiredArgsConstructor
-public final class UserAccountExpiryInfo {
-  private final String username;
+@Setter
+@MappedSuperclass
+public class BaseMetadataObject implements MetadataObject {
 
-  private final String email;
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  protected String uid;
 
-  private final Date accountExpiry;
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
+  protected User lastUpdatedBy;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "userid")
+  protected User createdBy;
 }
