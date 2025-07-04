@@ -63,13 +63,16 @@ public class FileResourceEventListener {
 
   @TransactionalEventListener
   @Async
-  public void save(FileSavedEvent fileSavedEvent) {
+  public void save(FileSavedEvent fileSavedEvent)
+      throws
+      NotFoundException
+  {
     DateTime startTime = DateTime.now();
 
     File file = fileSavedEvent.getFile();
 
     FileResource fileResource =
-        fileResourceService.getFileResource(fileSavedEvent.getFileResource());
+        fileResourceService.getExistingFileResource(fileSavedEvent.getFileResource());
 
     String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, file);
 
