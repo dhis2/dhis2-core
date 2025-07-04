@@ -23,7 +23,6 @@
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/app</jib.container.appRoot>
     <spring-boot-maven-plugin.version>3.5.3</spring-boot-maven-plugin.version>
-    <!-- Default packaging type - can be overridden by profiles -->
     <packaging.type>war</packaging.type>
   </properties>
 
