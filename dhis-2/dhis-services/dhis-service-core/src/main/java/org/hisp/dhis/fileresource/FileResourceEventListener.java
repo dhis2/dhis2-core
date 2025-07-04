@@ -63,10 +63,7 @@ public class FileResourceEventListener {
 
   @TransactionalEventListener
   @Async
-  public void save(FileSavedEvent fileSavedEvent)
-      throws
-      NotFoundException
-  {
+  public void save(FileSavedEvent fileSavedEvent) throws NotFoundException {
     DateTime startTime = DateTime.now();
 
     File file = fileSavedEvent.getFile();
