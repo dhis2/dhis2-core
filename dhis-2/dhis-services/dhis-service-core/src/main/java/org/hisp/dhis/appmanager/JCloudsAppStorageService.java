@@ -132,6 +132,7 @@ public class JCloudsAppStorageService implements AppStorageService {
           try (InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream()) {
             BundledAppInfo appInfo =
                 App.MAPPER.readValue(bundledAppInfoStream, BundledAppInfo.class);
+            app.setBundled(true);
             handler.accept(app, appInfo);
           }
         }
