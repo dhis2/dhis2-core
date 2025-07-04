@@ -49,6 +49,18 @@ import org.hisp.dhis.jsontree.JsonMixed;
 public sealed interface Settings permits UserSettings, SystemSettings {
 
   /**
+   * Resolves the key name by a Java property name as used in the settings interface
+   *
+   * @param property as derived from a default method in a {@link Settings} interface
+   * @return the key name for the given property name
+   */
+  @Nonnull
+  static String getKey(@Nonnull String property) {
+    String key = LazySettings.keyOf(property);
+    return key == null ? property : key;
+  }
+
+  /**
    * Converts Java types to a setting raw {@link String} value
    *
    * @param value a {@link Boolean}, {@link Number}, {@link String}, {@link Date}, {@link Locale} or

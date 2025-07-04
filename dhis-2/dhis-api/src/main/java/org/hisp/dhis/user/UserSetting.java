@@ -50,6 +50,7 @@ import lombok.ToString;
 public class UserSetting implements Serializable {
 
   @Nonnull private User user;
+
   @Nonnull private String name;
 
   @EqualsAndHashCode.Exclude private Serializable value;

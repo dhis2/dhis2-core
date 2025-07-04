@@ -140,8 +140,8 @@
       <artifactId>javacsv</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.lowagie</groupId>
-      <artifactId>itext</artifactId>
+      <groupId>com.github.librepdf</groupId>
+      <artifactId>openpdf</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
