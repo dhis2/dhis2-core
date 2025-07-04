@@ -33,7 +33,6 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_LOWE
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 08.03.17. */
 public class LowerCasePatternValidationRule implements PasswordValidationRule {
   private static final Pattern LOWERCASE_PATTERN = Pattern.compile(".*[a-z].*");
 

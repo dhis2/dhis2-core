@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -156,5 +157,16 @@ public interface IdentifiableObject
     }
 
     setLastUpdated(date);
+  }
+
+  // TODO check for usage and remove if not needed
+  default int compareTo(@Nonnull IdentifiableObject o) {
+    if (this.getDisplayName() == null) {
+      return o.getDisplayName() == null ? 0 : 1;
+    }
+
+    return o.getDisplayName() == null
+        ? -1
+        : this.getDisplayName().compareToIgnoreCase(o.getDisplayName());
   }
 }

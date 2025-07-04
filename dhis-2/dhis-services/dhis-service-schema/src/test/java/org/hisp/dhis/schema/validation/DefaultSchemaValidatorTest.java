@@ -66,8 +66,8 @@ import org.junit.jupiter.api.Test;
  */
 class DefaultSchemaValidatorTest {
 
-  @Builder
   @Setter
+  @Builder
   public static class SimpleFields {
 
     String optional;
