@@ -53,14 +53,9 @@ public interface CategoryOptionComboGenerateService {
    */
   void addAndPruneOptionCombos(CategoryCombo categoryCombo);
 
-  /** Generates the complete set of category option combos for all category combos. */
-  void addAndPruneAllOptionCombos();
-
   /**
-   * Invokes updateOptionCombos( CategoryCombo ) for all category combos which the given category is
-   * a part of.
-   *
-   * @param category the Category.
+   * Generates the complete set of category option combos for all category combos. Removes obsolete
+   * category option combos if possible.
    */
-  void updateOptionCombos(Category category);
+  void addAndPruneAllOptionCombos();
 }

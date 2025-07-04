@@ -314,7 +314,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
    *
    * @return a set of all possible combinations of category option combos for this category combo.
    */
-  public Set<CategoryOptionCombo> generateOptionCombosList() {
+  public Set<CategoryOptionCombo> generateOptionCombosSet() {
     // return default option combos if default
     if (this.isDefault()) return new HashSet<>(this.optionCombos);
 

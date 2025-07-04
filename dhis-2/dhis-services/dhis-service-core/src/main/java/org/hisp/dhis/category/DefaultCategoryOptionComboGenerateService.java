@@ -41,18 +41,18 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * This class is responsible for generating {@link CategoryOptionCombo}s (COC). It should be the
  * only place in the system where the generation of these types exists.
  *
- * <p>All public methods use synchronization to ensure that only 1 process(generating COCs) is
+ * <p>All public methods use synchronization to ensure that only 1 process (generating COCs) is
  * running at a time. This helps prevent duplicates entering the system. The reason for this is due
- * to how we distinguish duplicate COCs in the system (criteria spans multiple DB tables).
+ * to how we distinguish duplicate COCs in the system (criteria spans multiple DB tables). We need
+ * to control duplicates at the application level.
  *
- * <p>The generation of new COC occurs within a transaction within the synchronization block to help
+ * <p>The generation of new COCs occur within a transaction within the synchronization block to help
  * ensure that the system has a consistent view of the database.
  *
  * @author david mackessy
@@ -110,22 +110,6 @@ public class DefaultCategoryOptionComboGenerateService
     return importSummaries;
   }
 
-  @Override
-  @Transactional
-  public synchronized void updateOptionCombos(Category category) {
-    synchronized (lock) {
-      transactionTemplate.execute(
-          status -> {
-            for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
-              if (categoryCombo.getCategories().contains(category)) {
-                addAndPruneOptionCombos(categoryCombo);
-              }
-            }
-            return null;
-          });
-    }
-  }
-
   /**
    * Aligns the persisted state (DB) of COCs with the generated state (in-memory) of COCs for a CC.
    * The generated state is treated as the most up-to-date state of the COCs. This method does the
@@ -146,7 +130,7 @@ public class DefaultCategoryOptionComboGenerateService
   @CheckForNull
   private ImportSummaries addAndPruneOptionCombo(
       @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
-    Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosSet();
     CategoryCombo catCombo = categoryComboStore.getByUid(categoryCombo.getUid());
     Set<CategoryOptionCombo> persistedCocs =
         catCombo != null ? Set.copyOf(catCombo.getOptionCombos()) : Set.of();

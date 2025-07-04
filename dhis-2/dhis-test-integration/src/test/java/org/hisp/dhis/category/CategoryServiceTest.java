@@ -458,7 +458,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.persist(cc);
     entityManager.flush();
 
-    Set<CategoryOptionCombo> categoryOptionCombos = cc.generateOptionCombosList();
+    Set<CategoryOptionCombo> categoryOptionCombos = cc.generateOptionCombosSet();
     assertEquals(7, categoryOptionCombos.size());
   }
 

@@ -298,7 +298,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     assertOptionCombos(categoryComboA.getOptionCombos());
     categoryC.addCategoryOption(categoryOptionG);
     categoryService.updateCategory(categoryC);
-    categoryOptionComboGenerateService.updateOptionCombos(categoryC);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(12, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());

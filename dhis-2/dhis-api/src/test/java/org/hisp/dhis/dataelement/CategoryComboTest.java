@@ -100,8 +100,8 @@ class CategoryComboTest {
   }
 
   @Test
-  void testGenerateOptionCombosList() {
-    Set<CategoryOptionCombo> set = categoryCombo.generateOptionCombosList();
+  void testGenerateOptionCombosSet() {
+    Set<CategoryOptionCombo> set = categoryCombo.generateOptionCombosSet();
     assertNotNull(set);
     assertEquals(8, set.size());
     assertTrue(
