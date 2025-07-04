@@ -101,7 +101,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -165,7 +164,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void setUp() {
-    categoryMetadata = TestBase.setupCategoryMetadata("cocm " + ++catCounter);
+    categoryMetadata = setupCategoryMetadata("cocm " + ++catCounter);
     cocTarget = categoryMetadata.coc3();
     cocRandom = categoryMetadata.coc4();
 

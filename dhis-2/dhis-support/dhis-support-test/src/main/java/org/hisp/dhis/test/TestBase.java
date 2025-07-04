@@ -292,17 +292,15 @@ public abstract class TestBase {
   protected CategoryService internalCategoryService;
 
   @Autowired(required = false)
-  protected CategoryOptionComboGenerateService internalCategoryOptionComboGenerateService;
+  protected CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired protected HibernateService hibernateService;
 
   protected static CategoryService categoryService;
-  protected static CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @PostConstruct
   protected void initServices() {
     categoryService = internalCategoryService;
-    categoryOptionComboGenerateService = internalCategoryOptionComboGenerateService;
   }
 
   static {
@@ -3108,7 +3106,7 @@ public abstract class TestBase {
    * @param identifier unique identifier to create different objects
    * @return record of created category types
    */
-  protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
+  protected TestCategoryMetadata setupCategoryMetadata(String identifier) {
     // 4 category options
     CategoryOption co1 =
         createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
