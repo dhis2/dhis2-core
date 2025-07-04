@@ -56,5 +56,7 @@ public final class UserConstants {
 
   public static final int RECOVER_MAX_ATTEMPTS = 5;
 
+  public static final int MAX_LENGTH_NAME = 80;
+
   public static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 }
