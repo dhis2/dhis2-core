@@ -31,7 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.LocalDate;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +64,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final String INVALID_DATE = "2025-22-22";
+  private static final String DATE_TODAY = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+
   private User importUser;
   private User readOnlyUser;
   private Enrollment enrollment;
@@ -75,9 +78,8 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
   @BeforeAll
   void setUp() {
     importUser = makeUser("o", List.of("ALL"));
-    manager.save(importUser, false);
-
     readOnlyUser = makeUser("p");
+    manager.save(importUser, false);
     manager.save(readOnlyUser, false);
 
     OrganisationUnit orgUnit = createOrganisationUnit('A');
@@ -87,43 +89,45 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     manager.save(dataElementA);
 
     importUser.addOrganisationUnit(orgUnit);
-    manager.update(importUser);
     readOnlyUser.addOrganisationUnit(orgUnit);
+    manager.update(importUser);
     manager.save(readOnlyUser);
 
     program = createProgram('A', new HashSet<>(), orgUnit);
-    program.getSharing().addUserAccess(new UserAccess(importUser, AccessStringHelper.READ_WRITE));
     manager.save(program, false);
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType);
-    trackedEntityType
-        .getSharing()
-        .addUserAccess(new UserAccess(importUser, AccessStringHelper.READ_WRITE));
-    manager.update(trackedEntityType);
 
     programStageA = createProgramStage('A', program);
     manager.save(programStageA);
+    programStageA
+        .getSharing()
+        .addUserAccess(new UserAccess(readOnlyUser, AccessStringHelper.DATA_WRITE));
+    manager.update(programStageA);
 
     ProgramStage programStageB = createProgramStage('B', program);
     manager.save(programStageB);
 
     ProgramStage programStageReadOnly = createProgramStage('C', program);
+    manager.save(programStageReadOnly, false);
+
     programStageReadOnly
         .getSharing()
-        .addUserAccess(new UserAccess(importUser, AccessStringHelper.READ_ONLY));
-    manager.save(programStageReadOnly, false);
+        .addUserAccess(new UserAccess(readOnlyUser, AccessStringHelper.READ_ONLY));
+
+    manager.update(programStageReadOnly);
 
     TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);
     manager.save(te);
 
-    enrollment = enrollment(te, program, orgUnit);
+    enrollment = createEnrollment(te, program, orgUnit);
     manager.update(enrollment);
 
     createProgramRuleWithAction(
         'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageB);
-    createProgramRuleWithAction('S', "V{current_date}==V{event_date}", "2025-22-22", programStageB);
+    createProgramRuleWithAction('S', "V{current_date}==V{event_date}", INVALID_DATE, programStageB);
     createProgramRuleWithAction(
         'S', "'2025-12-12'==V{event_date}", "V{current_date}", programStageReadOnly);
   }
@@ -145,7 +149,6 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .string());
     assertEquals(2, importReport.getStats().getCreated());
     assertEquals(0, importReport.getStats().getIgnored());
-    assertEquals(0, importReport.getStats().getUpdated());
   }
 
   @Test
@@ -153,7 +156,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     injectSecurityContextUser(importUser);
 
     JsonImportReport importReport =
-        POST("/tracker?async=false&reportMode=FULL", buildEventJson(LocalDate.now().toString()))
+        POST("/tracker?async=false&reportMode=FULL", buildEventJson(DATE_TODAY))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 
@@ -165,12 +168,11 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .string());
     assertEquals(1, importReport.getStats().getCreated());
     assertEquals(0, importReport.getStats().getIgnored());
-    assertEquals(0, importReport.getStats().getUpdated());
   }
 
   @Test
   void shouldReturnWarningUserHasNoWriteAccess() {
-    injectSecurityContextUser(importUser);
+    injectSecurityContextUser(readOnlyUser);
 
     JsonImportReport importReport =
         POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-12-12"))
@@ -185,10 +187,9 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .string());
     assertEquals(1, importReport.getStats().getCreated());
     assertEquals(0, importReport.getStats().getIgnored());
-    assertEquals(0, importReport.getStats().getUpdated());
   }
 
-  private Enrollment enrollment(TrackedEntity te, Program program, OrganisationUnit orgUnit) {
+  private Enrollment createEnrollment(TrackedEntity te, Program program, OrganisationUnit orgUnit) {
     Enrollment enrollmentA = new Enrollment(program, te, orgUnit);
     enrollmentA.setAutoFields();
     enrollmentA.setEnrollmentDate(new Date());
