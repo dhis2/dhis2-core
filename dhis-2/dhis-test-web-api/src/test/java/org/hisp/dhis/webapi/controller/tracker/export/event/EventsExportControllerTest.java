@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
@@ -41,6 +42,7 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNo
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -51,6 +53,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -97,12 +100,21 @@ import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value";
+  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE_RBG = "red,blue,Green";
+  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE_RWY = "red,white,yellow";
+  private static final String MULTI_TEXT_DATA_ELEMENT_VALUE_NO_VALUE = "";
+  private static final String EVENT_RBG = CodeGenerator.generateUid();
+  private static final String EVENT_RWY = CodeGenerator.generateUid();
+  private static final String EVENT_NO_VALUE = CodeGenerator.generateUid();
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -131,8 +143,15 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   private TrackedEntityType trackedEntityType;
 
   private EventDataValue dv;
+  private EventDataValue dvMultiText;
 
   private DataElement de;
+
+  private DataElement deMultiText;
+
+  private Event eventRBG;
+  private Event eventRWY;
+  private Event eventNoValue;
 
   @BeforeEach
   void setUp() {
@@ -165,18 +184,33 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     de.getSharing().setOwner(owner);
     manager.save(de, false);
 
+    deMultiText = createDataElement('D', ValueType.MULTI_TEXT, AggregationType.NONE);
+    deMultiText.getSharing().setOwner(owner);
+    manager.save(deMultiText, false);
+
     programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
+
     ProgramStageDataElement programStageDataElement =
         createProgramStageDataElement(programStage, de, 1, false);
-    programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
+    ProgramStageDataElement programStageDataElementMultiText =
+        createProgramStageDataElement(programStage, deMultiText, 1, false);
+
+    programStage.setProgramStageDataElements(
+        Sets.newHashSet(programStageDataElement, programStageDataElementMultiText));
     manager.save(programStage, false);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
     dv.setStoredBy("user");
     dv.setValue(DATA_ELEMENT_VALUE);
+
+    eventRBG = createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RBG), orgUnit, EVENT_RBG);
+    eventRWY = createEvent(createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_RWY), orgUnit, EVENT_RWY);
+    eventNoValue =
+        createEvent(
+            createDataValue(MULTI_TEXT_DATA_ELEMENT_VALUE_NO_VALUE), orgUnit, EVENT_NO_VALUE);
   }
 
   @Test
@@ -267,6 +301,66 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
     assertHasMember(dataValue, "storedBy");
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideMultiTextFilterTestCases")
+  void shouldReturnExpectedEventsForMultiTextFilter(
+      String filter, List<String> expectedDataValues, List<String> expectedEvents) {
+    switchContextToUser(user);
+
+    JsonList<JsonEvent> jsonEvents =
+        GET(
+                "/tracker/events?filter={de}:{filter}&program={program}&programStage={programStage}&fields=dataValues,event",
+                deMultiText.getUid(),
+                filter,
+                program.getUid(),
+                programStage.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    assertContainsOnly(expectedEvents, jsonEvents.stream().map(JsonEvent::getEvent).toList());
+    assertContainsOnly(
+        expectedDataValues,
+        jsonEvents.stream().map(jsonEvent -> jsonEvent.getDataValues().get(0).getValue()).toList());
+  }
+
+  @Test
+  void shouldReturnEventForMultiTextDataValuesUsingNullOperators() {
+    switchContextToUser(user);
+
+    JsonEvent jsonEvent =
+        GET(
+                "/tracker/events?filter={de}:null&program={program}&programStage={programStage}&fields=dataValues,event",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0);
+
+    assertHasOnlyMembers(jsonEvent, "dataValues", "event");
+    JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
+    assertEquals(eventNoValue.getUid(), jsonEvent.getEvent());
+    assertEquals(deMultiText.getUid(), dataValue.getDataElement());
+    assertNull(dataValue.getValue());
+  }
+
+  @Test
+  void shouldReturnErrorWhenFetchingEventsUsingUnsupportedOperators() {
+    switchContextToUser(user);
+
+    assertEquals(
+        String.format(
+            "Invalid filter: Operator 'GT' is not supported for multi-text data element '%s'.",
+            deMultiText.getUid()),
+        GET(
+                "/tracker/events?filter={de}:GT:bl&program={program}&programStage={programStage}&fields=dataValues",
+                deMultiText.getUid(),
+                program.getUid(),
+                programStage.getUid())
+            .error(BAD_REQUEST)
+            .getMessage());
   }
 
   @Test
@@ -897,6 +991,29 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertStartsWith("Image is not stored using multiple dimensions", message);
   }
 
+  /**
+   * Provides test cases for multi-text data element filtering using different operators. Each test
+   * case defines: - The filter expression to be tested - The expected matching multi-text event
+   * data values - The expected matching event UIDs
+   */
+  private static Stream<Arguments> provideMultiTextFilterTestCases() {
+    return Stream.of(
+        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(EVENT_RBG)),
+        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(EVENT_RBG)),
+        Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(EVENT_RWY)),
+        Arguments.of("like:ello", List.of("red,white,yellow"), List.of(EVENT_RWY)),
+        Arguments.of("ew:bl", List.of(), List.of()), // no match
+        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(EVENT_RBG)),
+        Arguments.of(
+            "in:red", List.of("red,blue,Green", "red,white,yellow"), List.of(EVENT_RBG, EVENT_RWY)),
+        Arguments.of(
+            "like:red",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(EVENT_RBG, EVENT_RWY)),
+        Arguments.of(
+            "!null", List.of("red,blue,Green", "red,white,yellow"), List.of(EVENT_RBG, EVENT_RWY)));
+  }
+
   private FileResource storeFile(String contentType, String content) throws ConflictException {
     byte[] data = content.getBytes();
     FileResource fr = createFileResource('A', data);
@@ -1078,6 +1195,25 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     r.getSharing().setOwner(owner);
     manager.save(r, false);
     return r;
+  }
+
+  private EventDataValue createDataValue(String value) {
+    EventDataValue dvMultiText = new EventDataValue();
+    dvMultiText.setDataElement(deMultiText.getUid());
+    dvMultiText.setStoredBy("user");
+    dvMultiText.setValue(value);
+    return dvMultiText;
+  }
+
+  private Event createEvent(EventDataValue eventDataValue, OrganisationUnit orgUnit, String uid) {
+    Event event = event(enrollment(trackedEntity()));
+    event.setUid(uid);
+    event.getEventDataValues().add(eventDataValue);
+    event.setOrganisationUnit(orgUnit);
+    event.setProgramStage(programStage);
+    manager.update(event);
+
+    return event;
   }
 
   private Note note(String uid, String value, String storedBy) {

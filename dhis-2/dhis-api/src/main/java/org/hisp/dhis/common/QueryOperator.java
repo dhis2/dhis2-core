@@ -81,6 +81,9 @@ public enum QueryOperator {
   private static final Set<QueryOperator> LIKE_BASED_OPERATORS =
       EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW);
 
+  private static final Set<QueryOperator> MULTI_TEXT_OPERATORS =
+      EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW, NE, NEQ, IN, EQ, IEQ, NULL, NNULL);
+
   private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
 
   private static final Set<QueryOperator> UNARY_OPERATORS = EnumSet.of(NULL, NNULL);
@@ -135,6 +138,10 @@ public enum QueryOperator {
 
   public boolean isIn() {
     return IN == this;
+  }
+
+  public boolean isMultiTextSupported() {
+    return MULTI_TEXT_OPERATORS.contains(this);
   }
 
   public boolean isComparison() {
