@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.feedback;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
-
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
+ * @param attempted number of rows that were attempted to import
+ * @param succeeded number of rows affected by the import (ideally same as upserted)
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange {
+public record ImportResult(int attempted, int succeeded, @Nonnull List<ImportError> errors) {
 
-  private Date startDate;
-  private Date endDate;
-
-  public Date getEndDatePlusOneDay() {
-    return plusOneDay(endDate);
+  public static ImportError error(int index, ErrorCode code, Object... args) {
+    return new ImportError(index, code, List.of(args));
   }
 
-  public String toString() {
-    return String.format("%s-%s", startDate, endDate);
-  }
+  public record ImportError(int index, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 
-  public boolean includes(Date time) {
-    return (startDate == null || !time.before(startDate))
-        && (endDate == null || !time.after(endDate));
+  /** Adapter to the extensive legacy summary */
+  public ImportSummary toImportSummary() {
+    ImportSummary summary = new ImportSummary();
+    summary.setImportCount(new ImportCount(succeeded(), 0, attempted() - succeeded(), 0));
+    for (ImportResult.ImportError error : errors()) {
+      summary.addRejected(error.index());
+      summary.addConflict(
+          ImportConflict.createUniqueConflict(error.index(), error.code(), error.args()));
+    }
+    return summary;
   }
 }

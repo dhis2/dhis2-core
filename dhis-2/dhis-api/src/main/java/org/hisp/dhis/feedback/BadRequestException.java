@@ -58,16 +58,19 @@ public final class BadRequestException extends Exception implements Error {
   }
 
   private final ErrorCode code;
+  private final Object[] args;
 
   @Setter private List<ErrorReport> errorReports = List.of();
 
   public BadRequestException(String message) {
     super(message);
     this.code = ErrorCode.E1003;
+    this.args = new Object[0];
   }
 
   public BadRequestException(ErrorCode code, Object... args) {
     super(MessageFormat.format(code.getMessage(), args));
     this.code = code;
+    this.args = args;
   }
 }

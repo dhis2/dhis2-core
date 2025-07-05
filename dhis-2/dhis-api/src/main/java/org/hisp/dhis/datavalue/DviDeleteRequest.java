@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.log.TimeExecution;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-/**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
- */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange {
-
-  private Date startDate;
-  private Date endDate;
-
-  public Date getEndDatePlusOneDay() {
-    return plusOneDay(endDate);
-  }
-
-  public String toString() {
-    return String.format("%s-%s", startDate, endDate);
-  }
-
-  public boolean includes(Date time) {
-    return (startDate == null || !time.before(startDate))
-        && (endDate == null || !time.after(endDate));
-  }
-}
+public record DviDeleteRequest(
+    @TimeExecution.Include @CheckForNull UID dataSet,
+    @TimeExecution.Include @JsonAlias("dataValues") List<DviKey> values) {}

@@ -31,9 +31,11 @@ package org.hisp.dhis.dxf2.datavalueset.tasks;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.datavalue.DviService;
+import org.hisp.dhis.datavalue.DviUpsertRequest;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -61,6 +63,8 @@ public class DataValueSetImportJob implements Job {
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
   private final Notifier notifier;
+  private final DviService dviService;
+  private final ObjectMapper jsonMapper;
 
   @Override
   public JobType getJobType() {
@@ -82,8 +86,7 @@ public class DataValueSetImportJob implements Job {
       boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" ->
-                dataValueSetService.importDataValueSetJson(input, options, progress);
+            case "application/json" -> importDataValueSetJson(input, options, progress);
             case "application/csv" ->
                 dataValueSetService.importDataValueSetCsv(input, options, progress);
             case "application/pdf" ->
@@ -121,8 +124,24 @@ public class DataValueSetImportJob implements Job {
 
       NotificationLevel level = options == null ? INFO : options.getNotificationLevel(INFO);
       notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       progress.failedProcess(ex);
     }
+  }
+
+  private ImportSummary importDataValueSetJson(
+      InputStream input, ImportOptions options, JobProgress progress) throws Exception {
+    if (options.isMixed())
+      return dataValueSetService.importDataValueSetJson(input, options, progress);
+
+    progress.startingStage("Deserializing data values...");
+    DviUpsertRequest request =
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> jsonMapper.readValue(input, DviUpsertRequest.class)));
+
+    // further stages happen within the service method...
+    DviUpsertRequest.Options opt =
+        new DviUpsertRequest.Options(options.isDryRun(), options.isAtomic(), options.isForce());
+    return dviService.importAll(opt, request, progress).toImportSummary();
   }
 }

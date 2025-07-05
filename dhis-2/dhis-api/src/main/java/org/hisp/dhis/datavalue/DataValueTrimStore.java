@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
-
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
- * Simple class to store start and end dates.
+ * API for data values operations executed by jobs to trim and adjust the data.
  *
- * @author Jim Grace
+ * @author Jan Bernitt
+ * @since 2.43
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange {
+public interface DataValueTrimStore {
 
-  private Date startDate;
-  private Date endDate;
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code false} for any data value related file resource
+   * where no data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being true to becoming
+   *     false
+   */
+  int updateFileResourcesNotAssignedToAnyDataValue();
 
-  public Date getEndDatePlusOneDay() {
-    return plusOneDay(endDate);
-  }
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code true} for any data value related file resource
+   * where at least one data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being false to becoming
+   *     true
+   */
+  int updateFileResourcesAssignedToAnyDataValue();
 
-  public String toString() {
-    return String.format("%s-%s", startDate, endDate);
-  }
-
-  public boolean includes(Date time) {
-    return (startDate == null || !time.before(startDate))
-        && (endDate == null || !time.after(endDate));
-  }
+  /**
+   * Set any row to deleted {@code true} that has an empty value and a DE that does not consider
+   * zero being significant.
+   *
+   * @return the number of data values that got changed from deleted being false to becoming true
+   */
+  int updateDeletedIfNotZeroIsSignificant();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,36 +29,24 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
-
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
 /**
- * Simple class to store start and end dates.
+ * A name of a DB table or column.
  *
- * @author Jim Grace
+ * <p>The main point is to be sure by design that these cannot be used for SQL injection because it
+ * is impossible to create an instance that isn't just letters.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange {
+public record DbName(String name) {
 
-  private Date startDate;
-  private Date endDate;
-
-  public Date getEndDatePlusOneDay() {
-    return plusOneDay(endDate);
+  public DbName {
+    if (!name.matches("[a-zA-Z_]{1,127}"))
+      throw new IllegalArgumentException(
+          "A table or column name must only contain letters and underscores");
   }
 
-  public String toString() {
-    return String.format("%s-%s", startDate, endDate);
-  }
-
-  public boolean includes(Date time) {
-    return (startDate == null || !time.before(startDate))
-        && (endDate == null || !time.after(endDate));
+  public DbName plus(String suffix) {
+    return new DbName(name + suffix);
   }
 }

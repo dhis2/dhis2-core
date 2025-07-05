@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
-
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ImportResult;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * Simple class to store start and end dates.
+ * Service for DVI (Data Value Import).
  *
- * @author Jim Grace
+ * @author Jan Bernitt
+ * @since 2.43
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange {
+public interface DviService {
 
-  private Date startDate;
-  private Date endDate;
+  void importValue(@CheckForNull UID dataSet, @Nonnull DviValue value)
+      throws ConflictException, BadRequestException;
 
-  public Date getEndDatePlusOneDay() {
-    return plusOneDay(endDate);
-  }
+  void deleteValue(DviKey key);
 
-  public String toString() {
-    return String.format("%s-%s", startDate, endDate);
-  }
+  ImportResult importAll(
+      DviUpsertRequest.Options options, DviUpsertRequest request, JobProgress progress)
+      throws ConflictException;
 
-  public boolean includes(Date time) {
-    return (startDate == null || !time.before(startDate))
-        && (endDate == null || !time.after(endDate));
-  }
+  int deleteAll(DviDeleteRequest request) throws BadRequestException;
 }
