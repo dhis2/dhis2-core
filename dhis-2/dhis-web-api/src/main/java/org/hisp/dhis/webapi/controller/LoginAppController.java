@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.Getter;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.hisp.dhis.appmanager.AppManager;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@Getter
-public enum AppStatus {
-  OK("ok"),
-  INVALID_BUNDLED_APP_OVERRIDE("invalid_bundled_app_override"),
-  INVALID_CORE_APP("invalid_core_app"),
-  NAMESPACE_TAKEN("namespace_defined_in_manifest_is_in_use"),
-  NAMESPACE_INVALID("namespace_invalid"),
-  INVALID_ZIP_FORMAT("zip_file_could_not_be_read"),
-  MISSING_MANIFEST("missing_manifest"),
-  INVALID_MANIFEST_JSON("invalid_json_in_app_manifest_file"),
-  INSTALLATION_FAILED("app_could_not_be_installed_on_file_system"),
-  NOT_FOUND("app_could_not_be_found"),
-  MISSING_SYSTEM_BASE_URL("system_base_url_is_not_defined"),
-  APPROVED("approved"),
-  PENDING("pending"),
-  NOT_APPROVED("not_approved"),
-  DELETION_IN_PROGRESS("deletion_in_progress"),
-  FAILED_TO_WRITE_BUNDLED_APP_INFO("failed_to_write_bundled_app_info");
+/**
+ * Controller for handling the login app.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Controller
+public class LoginAppController {
 
-  private final String message;
+  @GetMapping("/login/**")
+  public void getLoginApp(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    String contextRelativePath =
+        request.getRequestURI().substring(request.getContextPath().length());
+    String forwardPath =
+        "/" + AppManager.INSTALLED_APP_PREFIX + contextRelativePath.replaceFirst("/", "");
 
-  AppStatus(String message) {
-    this.message = message;
-  }
-
-  public boolean ok() {
-    return this == OK;
+    // TODO: MAS: Here we can introduce a swappable login app configurable similar to the start page
+    RequestDispatcher dispatcher = request.getServletContext().getRequestDispatcher(forwardPath);
+    dispatcher.forward(request, response);
   }
 }

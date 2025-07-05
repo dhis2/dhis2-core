@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.Getter;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import org.hisp.dhis.appmanager.BundledAppManager;
+import org.hisp.dhis.commons.util.StreamUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-@Getter
-public enum AppStatus {
-  OK("ok"),
-  INVALID_BUNDLED_APP_OVERRIDE("invalid_bundled_app_override"),
-  INVALID_CORE_APP("invalid_core_app"),
-  NAMESPACE_TAKEN("namespace_defined_in_manifest_is_in_use"),
-  NAMESPACE_INVALID("namespace_invalid"),
-  INVALID_ZIP_FORMAT("zip_file_could_not_be_read"),
-  MISSING_MANIFEST("missing_manifest"),
-  INVALID_MANIFEST_JSON("invalid_json_in_app_manifest_file"),
-  INSTALLATION_FAILED("app_could_not_be_installed_on_file_system"),
-  NOT_FOUND("app_could_not_be_found"),
-  MISSING_SYSTEM_BASE_URL("system_base_url_is_not_defined"),
-  APPROVED("approved"),
-  PENDING("pending"),
-  NOT_APPROVED("not_approved"),
-  DELETION_IN_PROGRESS("deletion_in_progress"),
-  FAILED_TO_WRITE_BUNDLED_APP_INFO("failed_to_write_bundled_app_info");
-
-  private final String message;
-
-  AppStatus(String message) {
-    this.message = message;
-  }
-
-  public boolean ok() {
-    return this == OK;
+@Controller
+@RequestMapping("/dhis-web-apps")
+public class AppBundleController {
+  @GetMapping("/apps-bundle.json")
+  public void getAppsBundle(HttpServletResponse response) throws IOException {
+    InputStream appBundleInfoInputStream = BundledAppManager.getAppBundleInfoInputStream();
+    response.setContentType("application/json");
+    StreamUtils.copyThenCloseInputStream(appBundleInfoInputStream, response.getOutputStream());
   }
 }

@@ -48,10 +48,20 @@ public class AppHtmlTemplate {
 
   public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
     PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
+
     try (LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
       while (iterator.hasNext()) {
         String line = iterator.next();
-        output.println(replaceLine(line));
+        if (line.contains("__DHIS2_BASE_URL__") || line.contains("__DHIS2_APP_ROOT_URL__")) {
+          line = replaceLine(line);
+        }
+        if (line.contains("<head>")) {
+          line =
+              line.replace(
+                  "<head>",
+                  "<head><meta name=\"dhis2-base-url\" content=\"" + this.contextPath + "\" />");
+        }
+        output.println(line);
       }
     }
   }
