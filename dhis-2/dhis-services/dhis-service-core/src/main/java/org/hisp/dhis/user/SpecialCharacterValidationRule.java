@@ -37,11 +37,11 @@ import java.util.regex.Pattern;
  * @author Zubair
  */
 public class SpecialCharacterValidationRule implements PasswordValidationRule {
-  private static final Pattern SPECIAL_CHARACTER = Pattern.compile(".*[^A-Za-z0-9].*");
+  private static final Pattern SPECIAL_CHARACTER_PATTERN = Pattern.compile(".*[^A-Za-z0-9].*");
 
   @Override
   public PasswordValidationResult validate(CredentialsInfo credentials) {
-    return !SPECIAL_CHARACTER.matcher(credentials.getPassword()).matches()
+    return !SPECIAL_CHARACTER_PATTERN.matcher(credentials.getPassword()).matches()
         ? new PasswordValidationResult(PASSWORD_MUST_HAVE_SPECIAL)
         : PasswordValidationResult.VALID;
   }

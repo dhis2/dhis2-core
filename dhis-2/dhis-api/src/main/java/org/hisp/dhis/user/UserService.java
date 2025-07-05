@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,24 +56,6 @@ import org.springframework.security.core.session.SessionInformation;
  * @author Chau Thu Tran
  */
 public interface UserService {
-  Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
-
-  String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
-
-  String RESTORE_PATH = "/dhis-web-login/index.html#/";
-
-  String TBD_NAME = "(TBD)";
-
-  String DEFAULT_APPLICATION_TITLE = "DHIS2";
-
-  int LOGIN_MAX_FAILED_ATTEMPTS = 4;
-
-  int RECOVERY_LOCKOUT_MINS = 15;
-
-  int RECOVER_MAX_ATTEMPTS = 5;
-
-  String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
-
   /**
    * Adds a User.
    *

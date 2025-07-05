@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.user.UserConstants.MAX_LENGTH_NAME;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
@@ -65,8 +67,6 @@ public class DefaultUserAccountService implements UserAccountService {
   private final TwoFactorAuthenticationProvider twoFactorAuthProvider;
   private final SystemSettingsProvider settingsProvider;
   private final PasswordValidationService passwordValidationService;
-
-  private static final int MAX_LENGTH = 80;
 
   @Override
   public void validateUserRegistration(RegistrationParams params, String remoteAddress)
@@ -218,14 +218,14 @@ public class DefaultUserAccountService implements UserAccountService {
   }
 
   private void validateFirstName(String firstName) throws BadRequestException {
-    if (firstName == null || firstName.trim().length() > MAX_LENGTH) {
+    if (firstName == null || firstName.trim().length() > MAX_LENGTH_NAME) {
       log.warn("First name validation failed");
       throw new BadRequestException("First name is not specified or invalid");
     }
   }
 
   private void validateSurname(String surname) throws BadRequestException {
-    if (surname == null || surname.trim().length() > MAX_LENGTH) {
+    if (surname == null || surname.trim().length() > MAX_LENGTH_NAME) {
       log.warn("Surname validation failed");
       throw new BadRequestException("Surname is not specified or invalid");
     }
