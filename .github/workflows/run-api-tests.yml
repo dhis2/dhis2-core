@@ -41,14 +41,14 @@ jobs:
             # build and publish multi-arch images using Jib. Image is used for api tests in
             # this workflow and can be pulled from Dockerhub by devs to run locally, ...
             mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
-              -DskipTests -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
-              --projects dhis-web-server --also-make --activate-profiles jibBuild \
+              -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
+              --projects dhis-web-server --also-make --activate-profiles embedded,jibBuild \
               -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
           else
             # only build image for running api tests in this workflow i.e. master, 2.39, ...
             mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
-              -DskipTests -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
-              --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+              -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
+              --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
               -Djib.to.image=$CORE_IMAGE_NAME
           fi
 

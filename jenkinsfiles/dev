@@ -67,8 +67,8 @@ pipeline {
                       steps {
                           withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                               withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                  sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                          --file dhis-2/dhis-web-server/pom.xml --activate-profiles jibBuild jib:build \
+                                  sh "mvn --batch-mode --no-transfer-progress -Dpackaging.type=jar -DskipTests -Dmaven.test.skip=true \
+                                          --file dhis-2/dhis-web-server/pom.xml --activate-profiles embedded,jibBuild jib:build \
                                           -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
                                           -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                               }
