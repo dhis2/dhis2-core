@@ -234,7 +234,7 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     Event eventB = createEvent(stageA, enrollment, orgUnitA);
     eventB.setOccurredDate(dateApr10);
     manager.save(eventB);
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
     Expression expressionI = new Expression(EXPRESSION_I, "ProgramIndicator");

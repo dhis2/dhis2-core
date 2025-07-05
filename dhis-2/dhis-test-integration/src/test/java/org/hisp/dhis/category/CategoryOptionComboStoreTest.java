@@ -43,7 +43,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -58,9 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryOptionComboStore categoryOptionComboStore;
-
   @Autowired private CategoryService categoryService;
-
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
   @Autowired private DataElementService dataElementService;
 
   private Category categoryA;
@@ -87,7 +86,7 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   private DataElement dataElementA;
 
-  @BeforeAll
+  @BeforeEach
   void setUp() {
     categoryOptionA = new CategoryOption("Male");
     categoryOptionB = new CategoryOption("Female");
@@ -213,8 +212,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionCombo() {
-    categoryService.addAndPruneOptionCombos(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboB);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboB);
     Set<CategoryOption> categoryOptions1 = new HashSet<>();
     categoryOptions1.add(categoryOptionA);
     categoryOptions1.add(categoryOptionC);
@@ -251,8 +250,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionComboNotFound() {
-    categoryService.addAndPruneOptionCombos(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboB);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboB);
     CategoryOption co = new CategoryOption("10000");
     categoryService.addCategoryOption(co);
     Set<CategoryOption> options = new HashSet<>();
@@ -263,8 +262,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionComboGivenSubsetOfCategoryOptions() {
-    categoryService.addAndPruneOptionCombos(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboB);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboB);
     Set<CategoryOption> options = new HashSet<>();
     options.add(categoryOptionA);
 
@@ -273,8 +272,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionComboByOptionGroup() {
-    categoryService.addAndPruneOptionCombos(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboB);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryComboB);
     CategoryOptionGroup catOptionGroup = createCategoryOptionGroup('A');
     catOptionGroup.addCategoryOption(categoryOptionA);
     catOptionGroup.addCategoryOption(categoryOptionB);
@@ -305,7 +304,7 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
     CategoryCombo categoryCombo = createCategoryCombo('Z', c1, c2);
     categoryService.addCategoryCombo(categoryCombo);
-    categoryService.addAndPruneOptionCombos(categoryCombo);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryCombo);
 
     List<CategoryOptionCombo> cocsByCategoryOption =
         categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
