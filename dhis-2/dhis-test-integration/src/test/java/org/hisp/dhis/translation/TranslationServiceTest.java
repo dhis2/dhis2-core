@@ -151,7 +151,9 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testFormNameTranslationForProgramStage() {
-    ProgramStage programStage = createProgramStage('A', 0);
+    Program program = createProgram('A');
+    manager.save(program);
+    ProgramStage programStage = createProgramStage('A', program);
     manager.save(programStage);
     String translatedValue = "ProgramStage FormName Translated";
     Set<Translation> translations = new HashSet<>(programStage.getTranslations());

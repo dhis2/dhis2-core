@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports.preprocess;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import org.hisp.dhis.common.UID;
@@ -79,28 +78,5 @@ class EventWithoutRegistrationPreProcessorTest {
     preProcessorToTest.process(bundle);
     // Then
     assertEquals(enrollmentUid, bundle.getEvents().get(0).getEnrollment());
-  }
-
-  @Test
-  void testEnrollmentIsNotAddedIntoEventWhenItProgramStageHasNoReferenceToProgram() {
-    // Given
-    SingleEvent event = new SingleEvent();
-    event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
-    TrackerBundle bundle =
-        TrackerBundle.builder().singleEvents(Collections.singletonList(event)).build();
-    Enrollment enrollment = new Enrollment();
-    enrollment.setUid("enrollmentUid");
-    Program program = new Program();
-    program.setUid("programUid");
-    ProgramStage programStage = new ProgramStage();
-    programStage.setUid("programStageUid");
-    TrackerPreheat preheat = new TrackerPreheat();
-    preheat.putEnrollmentsWithoutRegistration("programUid", enrollment);
-    preheat.put(programStage);
-    bundle.setPreheat(preheat);
-    // When
-    preProcessorToTest.process(bundle);
-    // Then
-    assertNull(bundle.getEvents().get(0).getEnrollment(), "enrollmentUid");
   }
 }

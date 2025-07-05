@@ -1875,7 +1875,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     manager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    ProgramStage stage = createProgramStage('s', program);
     manager.save(stage);
 
     Event e1 = createEvent(stage, enrollment, ou1);
