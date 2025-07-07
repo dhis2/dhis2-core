@@ -37,13 +37,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.springframework.core.io.Resource;
@@ -54,6 +59,9 @@ import org.springframework.stereotype.Component;
  * Component that installs bundled app ZIP files during server startup.
  *
  * <p>It detects .zip files in the bundled apps directory and installs them using the AppManager.
+ *
+ * <p>It also caches the the AppBundleInfo file and the list of apps names it contains for fast
+ * lookup.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -64,11 +72,40 @@ public class BundledAppManager {
   private static final String APPS_BUNDLE_INFO_PATH = CLASSPATH_DHIS_WEB_APPS + "/apps-bundle.json";
 
   private final ObjectMapper jsonMapper;
-  private volatile AppBundleInfo cachedBundleInfo;
-  private volatile Set<String> cachedBundledAppNames;
+
+  @Getter private AppBundleInfo cachedBundleInfo;
+  @Getter private Set<String> cachedBundledAppNames;
+  @Getter private final Set<String> bundledAppsKeys = new HashSet<>();
+  @Getter private final Map<String, Pair<App, BundledAppInfo>> bundledApps = new HashMap<>();
+
+  @PostConstruct
+  private void initializeCache() {
+    InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
+    if (appBundleInfoInputStream == null) {
+      cachedBundleInfo = null;
+      cachedBundledAppNames = Set.of();
+      return;
+    }
+    try (appBundleInfoInputStream) {
+      cachedBundleInfo = jsonMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
+      if (cachedBundleInfo == null || cachedBundleInfo.getApps() == null) {
+        cachedBundledAppNames = Set.of();
+      } else {
+        cachedBundledAppNames =
+            cachedBundleInfo.getApps().stream()
+                .map(BundledAppInfo::getName)
+                .collect(Collectors.toSet());
+      }
+    } catch (IOException e) {
+      log.error("Failed to read bundled apps info file from disk", e);
+      throw new RuntimeException(e);
+    }
+
+    cacheAppManifestsAndBundleInfo();
+  }
 
   public void installBundledApps(TriConsumer<App, BundledAppInfo, Resource> consumer) {
-    AppBundleInfo appBundleInfo = getAppBundleInfo();
+    AppBundleInfo appBundleInfo = getCachedBundleInfo();
     if (appBundleInfo == null) {
       return;
     }
@@ -78,19 +115,38 @@ public class BundledAppManager {
             .collect(Collectors.toMap(BundledAppInfo::getName, Function.identity()));
 
     bundledAppsInfo.forEach(
-        (appName, appInfo) -> {
-          Resource zipFileResource = getBundledAppsResources().get(appName + ".zip");
+        (fileName, bundledAppInfo) -> {
+          Resource zipFileResource = getBundledAppsResources().get(fileName + ".zip");
+          consumer.accept(
+              getBundledApps().get(fileName).getLeft(), bundledAppInfo, zipFileResource);
+        });
+  }
+
+  private void cacheAppManifestsAndBundleInfo() {
+    AppBundleInfo appBundleInfo = getCachedBundleInfo();
+    if (appBundleInfo == null) {
+      return;
+    }
+
+    Map<String, BundledAppInfo> bundledAppsInfo =
+        appBundleInfo.getApps().stream()
+            .collect(Collectors.toMap(BundledAppInfo::getName, Function.identity()));
+
+    bundledAppsInfo.forEach(
+        (fileName, bundledAppInfo) -> {
+          Resource zipFileResource = getBundledAppsResources().get(fileName + ".zip");
           try (InputStream inputStream = zipFileResource.getInputStream()) {
-            Path tempFile = Files.createTempFile("bundled-app-" + appName, ".zip");
+            Path tempFile = Files.createTempFile("bundled-app-" + fileName, ".zip");
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
             File zipFile = tempFile.toFile();
             String topLevelFolder = ZipFileUtils.getTopLevelFolder(zipFile);
             App app = AppManager.readAppManifest(zipFile, jsonMapper, topLevelFolder);
-            consumer.accept(app, appInfo, zipFileResource);
+            bundledAppsKeys.add(app.getKey());
+            bundledApps.put(fileName, Pair.of(app, bundledAppInfo));
             Files.deleteIfExists(tempFile);
           } catch (IOException e) {
             log.error(
-                "Fail to read app manifest from bundled app zip file, appName: '{}'", appName, e);
+                "Fail to read app manifest from bundled app zip file, appName: '{}'", fileName, e);
             throw new RuntimeException(e);
           }
         });
@@ -108,55 +164,13 @@ public class BundledAppManager {
     }
   }
 
-  /*
-   Get the AppBundleInfo which contains a list of all the bundled apps
-  */
-  public AppBundleInfo getAppBundleInfo() {
-    if (cachedBundleInfo == null) {
-      synchronized (this) {
-        if (cachedBundleInfo == null) {
-          InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
-          if (appBundleInfoInputStream == null) {
-            return null;
-          }
-          try (appBundleInfoInputStream) {
-            cachedBundleInfo = jsonMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
-          } catch (IOException e) {
-            log.error("Failed to read bundled apps info file from disk", e);
-            throw new RuntimeException(e);
-          }
-        }
-      }
-    }
-    return cachedBundleInfo;
-  }
-
-  public Set<String> getBundledAppNames() {
-    if (cachedBundledAppNames == null) {
-      synchronized (this) {
-        if (cachedBundledAppNames == null) {
-          AppBundleInfo bundleInfo = getAppBundleInfo();
-          if (bundleInfo == null || bundleInfo.getApps() == null) {
-            cachedBundledAppNames = Set.of();
-          } else {
-            cachedBundledAppNames =
-                bundleInfo.getApps().stream()
-                    .map(BundledAppInfo::getName)
-                    .collect(Collectors.toSet());
-          }
-        }
-      }
-    }
-    return cachedBundledAppNames;
-  }
-
   public static InputStream getAppBundleInfoInputStream() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
       // Ignore if not exists, this is the case when running tests
       if (resources.length == 0 || resources[0] == null || !resources[0].exists()) {
-        log.warn("Bundled apps info file not found at: {}", APPS_BUNDLE_INFO_PATH);
+        log.error("Bundled apps info file not found at: {}", APPS_BUNDLE_INFO_PATH);
         return null;
       }
       return resources[0].getInputStream();

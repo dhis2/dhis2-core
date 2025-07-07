@@ -107,10 +107,13 @@ public class JCloudsAppStorageService implements AppStorageService {
         jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"));
 
     for (StorageMetadata resource : allAppFolders) {
-      Blob manifest = jCloudsStore.getBlob(resource.getName() + MANIFEST_WEBAPP_FILENAME);
+      String blobKey = resource.getName() + MANIFEST_WEBAPP_FILENAME;
+      Blob manifest = jCloudsStore.getBlob(blobKey);
       if (manifest == null) {
         log.error(
-            "Could not find manifest file of app folder '{}', skipping app.", resource.getName());
+            "Could not find manifest file in app folder '{}', with key '{}' skipping app.",
+            resource.getName(),
+            blobKey);
         continue;
       }
 

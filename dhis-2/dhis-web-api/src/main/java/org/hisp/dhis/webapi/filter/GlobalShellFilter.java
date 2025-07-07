@@ -56,8 +56,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class GlobalShellFilter extends OncePerRequestFilter {
-  public static final String BUNDLED_GLOBAL_SHELL_NAME = "global-shell";
-  public static final String BUNDLED_GLOBAL_SHELL_PATH = "dhis-web-" + BUNDLED_GLOBAL_SHELL_NAME;
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
   public static final String REFERER_HEADER = "Referer";
   public static final String SERVICE_WORKER_JS = "/service-worker.js";
@@ -145,25 +143,13 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
   private boolean redirectLegacyAppPaths(
       HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
-    String baseUrl = HttpServletRequestPaths.getContextPath(request);
-    String queryString = request.getQueryString();
-    Matcher m = LEGACY_APP_PATH_PATTERN.matcher(path);
-
-    boolean matchesPattern = m.find();
-    if (!matchesPattern) {
+    Matcher legacyPatternMatcher = LEGACY_APP_PATH_PATTERN.matcher(path);
+    if (!legacyPatternMatcher.find()) {
       return false;
     }
 
-    // Only redirect index.html or directory root requests
-    boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
-
-    // Skip redirect if explicitly requested with ?redirect=false
-    boolean hasRedirectFalse =
-        queryString != null
-            && (queryString.contains(REDIRECT_FALSE) || queryString.contains(SHELL_FALSE));
-
     String referer = request.getHeader(REFERER_HEADER);
-    boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
+    String queryString = request.getQueryString();
 
     log.debug(
         "redirectLegacyAppPaths: path = {}, queryString = {}, referer = {}",
@@ -171,9 +157,21 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         queryString,
         referer);
 
+    // Only redirect index.html or directory root requests
+    boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
+
+    // Skip redirect if its a service worker request
+    boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
+
+    // Skip redirect if explicitly requested with ?redirect=false
+    boolean hasRedirectFalse =
+        queryString != null
+            && (queryString.contains(REDIRECT_FALSE) || queryString.contains(SHELL_FALSE));
+
     if (isIndexPath && !isServiceWorkerRequest && !hasRedirectFalse) {
-      String appName = m.group(1);
-      String targetPath = baseUrl + GLOBAL_SHELL_PATH_PREFIX + appName;
+      String appName = legacyPatternMatcher.group(1);
+      String targetPath =
+          HttpServletRequestPaths.getContextPath(request) + GLOBAL_SHELL_PATH_PREFIX + appName;
       targetPath = withQueryString(targetPath, queryString);
       response.sendRedirect(targetPath);
       log.debug("Redirecting to global shell {}", targetPath);

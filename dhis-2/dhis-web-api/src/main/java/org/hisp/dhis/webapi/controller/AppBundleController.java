@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.appmanager.BundledAppManager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.springframework.stereotype.Controller;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/dhis-web-apps")
+@RequiredArgsConstructor
 public class AppBundleController {
   @GetMapping("/apps-bundle.json")
   public void getAppsBundle(HttpServletResponse response) throws IOException {
