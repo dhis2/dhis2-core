@@ -451,7 +451,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DviValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
-    Function<UID, Long> cocOf = uid -> cocs.get(uid == null ? "default" : uid.getValue());
+    Function<UID, Long> cocOf = uid -> cocs.get(uid == null ? "" : uid.getValue());
 
     List<DviRow> internalValues = new ArrayList<>(values.size());
 
@@ -512,9 +512,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   private Map<String, Long> getPeriodsIdMap(List<DviValue> values) {
     List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
     Map<String, Long> res = new HashMap<>(isoPeriods.size());
-    String sql =
-        """
-      SELECT iso, periodid FROM period where iso IN (:iso)""";
+    String sql = "SELECT iso, periodid FROM period where iso IN (:iso)";
     @SuppressWarnings("unchecked")
     Stream<Object[]> rows =
         getSession().createNativeQuery(sql).setParameterList("iso", isoPeriods).stream();

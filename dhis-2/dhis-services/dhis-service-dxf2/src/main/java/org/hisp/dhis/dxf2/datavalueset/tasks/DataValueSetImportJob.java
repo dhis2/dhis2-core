@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.util.StreamUtils.wrapAndCheckCompressionForm
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -136,8 +135,7 @@ public class DataValueSetImportJob implements Job {
   }
 
   private ImportSummary importDataValueSetCsv(
-      InputStream input, ImportOptions options, JobProgress progress)
-      throws ConflictException, IOException {
+      InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
     if (options.isMixed())
       return dataValueSetService.importDataValueSetCsv(input, options, progress);
 
@@ -157,7 +155,7 @@ public class DataValueSetImportJob implements Job {
   }
 
   private ImportSummary importDataValueSetJson(
-      InputStream input, ImportOptions options, JobProgress progress) throws Exception {
+      InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
     if (options.isMixed())
       return dataValueSetService.importDataValueSetJson(input, options, progress);
 

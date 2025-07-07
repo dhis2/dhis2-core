@@ -355,7 +355,7 @@ public class DefaultDviService implements DviService {
                         // day
                         Date endOfEntryPeriod =
                             new Date(
-                                p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1));
+                                p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
                         return now.after(endOfEntryPeriod);
                       })
                   .map(DviValue::period)
