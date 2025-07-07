@@ -14,6 +14,6 @@
 -->
 <hibernate-configuration>
   <session-factory>
-    <mapping jar="../../dhis-service-core-2.42-SNAPSHOT.jar"/>
+    <mapping jar="../../dhis-service-core-2.43-SNAPSHOT.jar"/>
   </session-factory>
 </hibernate-configuration>
