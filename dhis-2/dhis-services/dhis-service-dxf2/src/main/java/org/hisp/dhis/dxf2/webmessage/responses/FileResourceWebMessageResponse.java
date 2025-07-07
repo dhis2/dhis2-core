@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.webmessage.responses;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Halvdan Hoem Grelland

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.api;
 
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- */
-public interface CategoryManager {
-  /**
-   * Generates the complete set of category option combos for the given category combo. Removes
-   * obsolete category option combos.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+import java.util.Set;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
-  /** Generates the complete set of category option combos for all category combos. */
-  void addAndPruneAllOptionCombos();
+public record TestCategoryMetadata(
+    CategoryCombo cc1,
+    Category c1,
+    Category c2,
+    CategoryOption co1,
+    CategoryOption co2,
+    CategoryOption co3,
+    CategoryOption co4,
+    CategoryOptionCombo coc1,
+    CategoryOptionCombo coc2,
+    CategoryOptionCombo coc3,
+    CategoryOptionCombo coc4) {
+
+  public Set<String> getCocNames() {
+    return Set.of(coc1.getName(), coc2.getName(), coc3.getName(), coc4.getName());
+  }
+
+  public Set<String> getCoNames() {
+    return Set.of(co1.getName(), co2.getName(), co3.getName(), co4.getName());
+  }
+
+  public Set<CategoryOption> getCategoryOptions() {
+    return Set.of(co1, co2, co3, co4);
+  }
 }

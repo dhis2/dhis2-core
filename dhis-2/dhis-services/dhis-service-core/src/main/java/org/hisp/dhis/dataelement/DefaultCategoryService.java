@@ -618,7 +618,7 @@ public class DefaultCategoryService implements CategoryService {
       return;
     }
 
-    List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosSet();
     Set<CategoryOptionCombo> persistedOptionCombos = categoryCombo.getOptionCombos();
 
     boolean modified = false;
