@@ -274,7 +274,7 @@ public class CategoryCombo extends BaseMetadataObject
    * Generates a set of all possible combinations of category option combos for this category combo.
    * This is done by generating all possible combinations of the category options in the categories
    * of this category combo. This used to return a list but that had the potential to return
-   * duplicates if categories shared similar category options.
+   * duplicates if categories shared the same category options.
    *
    * @return a set of all possible combinations of category option combos for this category combo.
    */
