@@ -75,19 +75,6 @@ public class SingleEventChangeLog {
     this.createdByUsername = createdByUsername;
   }
 
-  public SingleEventChangeLog(
-      Event event,
-      DataElement dataElement,
-      String eventField,
-      String previousValue,
-      String currentValue,
-      ChangeLogType changeLogType,
-      Date created,
-      UserInfoSnapshot createdBy) {
-    this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
-    this.createdBy = createdBy;
-  }
-
   private SingleEventChangeLog(
       Event event,
       DataElement dataElement,

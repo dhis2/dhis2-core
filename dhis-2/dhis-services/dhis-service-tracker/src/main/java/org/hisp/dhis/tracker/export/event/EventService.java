@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.tracker.export.event;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.springframework.stereotype.Repository;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Event;
 
-@Repository("org.hisp.dhis.tracker.export.singleevent.HibernateSingleEventChangeLogStore")
-public class HibernateSingleEventChangeLogStore
-    extends HibernateEventChangeLogStore<SingleEventChangeLog> {
-
-  public HibernateSingleEventChangeLogStore(EntityManager entityManager) {
-    super(entityManager);
-  }
-
-  @Override
-  public String getTableName() {
-    return "SingleEventChangeLog";
-  }
+public interface EventService {
+  /**
+   * Finds the event that matches the given {@code UID} based on the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
+   *
+   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
+   */
+  @Nonnull
+  Optional<Event> findEvent(@Nonnull UID uid);
 }

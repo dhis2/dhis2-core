@@ -29,159 +29,36 @@
  */
 package org.hisp.dhis.tracker.export.singleevent;
 
-import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
-import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
-import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.Page;
-import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLog;
-import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
-import org.locationtech.jts.geom.Geometry;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-@RequiredArgsConstructor
-public class SingleEventChangeLogService {
+public class SingleEventChangeLogService extends EventChangeLogService<SingleEventChangeLog> {
 
-  private final SingleEventService singleEventService;
-  private final IdentifiableObjectManager manager;
-  private final HibernateSingleEventChangeLogStore hibernateEventChangeLogStore;
-  private final DhisConfigurationProvider config;
-
-  @Nonnull
-  @Transactional(readOnly = true)
-  public Page<EventChangeLog> getEventChangeLog(
-      UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException {
-    // check existence and access
-    singleEventService.getEvent(event);
-
-    return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
+  protected SingleEventChangeLogService(
+      SingleEventService singleEventService,
+      HibernateEventChangeLogStore<SingleEventChangeLog> hibernateEventChangeLogStore,
+      DhisConfigurationProvider config) {
+    super(singleEventService, hibernateEventChangeLogStore, config);
   }
 
-  @Transactional
-  public void deleteEventChangeLog(Event event) {
-    hibernateEventChangeLogStore.deleteEventChangeLog(event);
-  }
-
-  @Transactional
-  public void deleteEventChangeLog(DataElement dataElement) {
-    hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
-  }
-
-  @Transactional
-  public void addEventChangeLog(
+  @Override
+  public SingleEventChangeLog buildEventChangeLog(
       Event event,
       DataElement dataElement,
+      String eventField,
       String previousValue,
       String value,
       ChangeLogType changeLogType,
+      Date created,
       String userName) {
-    if (config.isDisabled(CHANGELOG_TRACKER)) {
-      return;
-    }
-
-    SingleEventChangeLog eventChangeLog =
-        new SingleEventChangeLog(
-            event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
-
-    hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
-  }
-
-  @Transactional
-  public void addFieldChangeLog(
-      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
-    if (config.isDisabled(CHANGELOG_TRACKER)) {
-      return;
-    }
-
-    logIfChanged(
-        "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
-    logIfChanged(
-        "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
-  }
-
-  @Transactional(readOnly = true)
-  public Set<String> getOrderableFields() {
-    return hibernateEventChangeLogStore.getOrderableFields();
-  }
-
-  public Set<Pair<String, Class<?>>> getFilterableFields() {
-    return hibernateEventChangeLogStore.getFilterableFields();
-  }
-
-  private <T> void logIfChanged(
-      String field,
-      Function<Event, T> valueExtractor,
-      Function<T, String> formatter,
-      Event currentEvent,
-      Event event,
-      String userName) {
-
-    String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
-    String newValue = formatter.apply(valueExtractor.apply(event));
-
-    if (!Objects.equals(currentValue, newValue)) {
-      ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
-
-      SingleEventChangeLog eventChangeLog =
-          new SingleEventChangeLog(
-              event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
-
-      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
-    }
-  }
-
-  private ChangeLogType getChangeLogType(String oldValue, String newValue) {
-    if (isFieldCreated(oldValue, newValue)) {
-      return CREATE;
-    } else if (isFieldUpdated(oldValue, newValue)) {
-      return UPDATE;
-    } else {
-      return DELETE;
-    }
-  }
-
-  private boolean isFieldCreated(String originalValue, String payloadValue) {
-    return originalValue == null && payloadValue != null;
-  }
-
-  private boolean isFieldUpdated(String originalValue, String payloadValue) {
-    return originalValue != null && payloadValue != null;
-  }
-
-  private String formatDate(Date date) {
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    return date != null ? formatter.format(date) : null;
-  }
-
-  private String formatGeometry(Geometry geometry) {
-    if (geometry == null) {
-      return null;
-    }
-
-    return Stream.of(geometry.getCoordinates())
-        .map(c -> String.format("(%f, %f)", c.x, c.y))
-        .collect(Collectors.joining(", "));
+    return new SingleEventChangeLog(
+        event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
   }
 }
