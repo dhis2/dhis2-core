@@ -33,15 +33,20 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DviService;
 import org.hisp.dhis.datavalue.DviUpsertRequest;
+import org.hisp.dhis.datavalue.DviValue;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
@@ -87,8 +92,7 @@ public class DataValueSetImportJob implements Job {
       ImportSummary summary =
           switch (contentType) {
             case "application/json" -> importDataValueSetJson(input, options, progress);
-            case "application/csv" ->
-                dataValueSetService.importDataValueSetCsv(input, options, progress);
+            case "application/csv" -> importDataValueSetCsv(input, options, progress);
             case "application/pdf" ->
                 dataValueSetService.importDataValueSetPdf(input, options, progress);
             case "application/xml" ->
@@ -127,6 +131,25 @@ public class DataValueSetImportJob implements Job {
     } catch (Exception ex) {
       progress.failedProcess(ex);
     }
+  }
+
+  private ImportSummary importDataValueSetCsv(
+      InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
+    if (options.isMixed())
+      return dataValueSetService.importDataValueSetCsv(input, options, progress);
+
+    progress.startingStage("Deserializing data values...");
+    List<DviValue> values =
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> CSV.of(input).as(DviValue.class).list()));
+    String ds = options.getDataSet();
+    DviUpsertRequest request =
+        new DviUpsertRequest(ds == null ? null : UID.of(ds), null, null, null, null, values);
+
+    // further stages happen within the service method...
+    DviUpsertRequest.Options opt =
+        new DviUpsertRequest.Options(options.isDryRun(), options.isAtomic(), options.isForce());
+    return dviService.importAll(opt, request, progress).toImportSummary();
   }
 
   private ImportSummary importDataValueSetJson(
