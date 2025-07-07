@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.dxf2.datavalueset.tasks;
 
+import static org.hisp.dhis.commons.util.StreamUtils.wrapAndCheckCompressionFormat;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -134,14 +136,16 @@ public class DataValueSetImportJob implements Job {
   }
 
   private ImportSummary importDataValueSetCsv(
-      InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
+      InputStream input, ImportOptions options, JobProgress progress)
+      throws ConflictException, IOException {
     if (options.isMixed())
       return dataValueSetService.importDataValueSetCsv(input, options, progress);
 
     progress.startingStage("Deserializing data values...");
     List<DviValue> values =
         progress.nonNullStagePostCondition(
-            progress.runStage(() -> CSV.of(input).as(DviValue.class).list()));
+            progress.runStage(
+                () -> CSV.of(wrapAndCheckCompressionFormat(input)).as(DviValue.class).list()));
     String ds = options.getDataSet();
     DviUpsertRequest request =
         new DviUpsertRequest(ds == null ? null : UID.of(ds), null, null, null, null, values);
@@ -160,7 +164,10 @@ public class DataValueSetImportJob implements Job {
     progress.startingStage("Deserializing data values...");
     DviUpsertRequest request =
         progress.nonNullStagePostCondition(
-            progress.runStage(() -> jsonMapper.readValue(input, DviUpsertRequest.class)));
+            progress.runStage(
+                () ->
+                    jsonMapper.readValue(
+                        wrapAndCheckCompressionFormat(input), DviUpsertRequest.class)));
 
     // further stages happen within the service method...
     DviUpsertRequest.Options opt =
