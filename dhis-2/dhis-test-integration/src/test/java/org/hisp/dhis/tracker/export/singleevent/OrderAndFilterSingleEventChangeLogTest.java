@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
@@ -53,6 +53,8 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
@@ -72,10 +74,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
+class OrderAndFilterSingleEventChangeLogTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
-  @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -89,7 +91,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   private TrackerObjects trackerObjects;
 
-  OrderAndFilterEventChangeLogTest() throws BadRequestException {
+  OrderAndFilterSingleEventChangeLogTest() throws BadRequestException {
     defaultPageParams = PageParams.of(1, 50, false);
   }
 
@@ -123,7 +125,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
@@ -145,7 +147,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
@@ -159,56 +161,44 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsWhenOrderingByDataElementAsc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
-    Event event = getEvent("D9PbzJY8bJM");
+    Event event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
     List<EventChangeLog> changeLogs =
-        eventChangeLogService
-            .getEventChangeLog(UID.of("D9PbzJY8bJM"), params, defaultPageParams)
+        singleEventChangeLogService
+            .getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams)
             .getItems();
 
-    assertNumberOfChanges(11, changeLogs);
+    assertNumberOfChanges(5, changeLogs);
     assertAll(
         () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(0)),
         () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(1)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(2)),
-        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(3)),
-        () -> assertFieldCreate("occurredAt", "2020-01-28 00:00:00.000", changeLogs.get(4)),
-        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", changeLogs.get(5)),
-        () -> assertDataElementCreate("DATAEL00002", "value00002", changeLogs.get(6)),
-        () -> assertDataElementCreate("DATAEL00006", "70", changeLogs.get(7)),
-        () -> assertDataElementCreate("DATAEL00007", "70", changeLogs.get(8)),
-        () -> assertDataElementCreate("DATAEL00001", "value00002", changeLogs.get(9)),
-        () -> assertDataElementCreate("DATAEL00005", "option2", changeLogs.get(10)));
+        () -> assertDataElementUpdate("GieVkTxp4HH", "13", "20", changeLogs.get(2)),
+        () -> assertDataElementCreate("GieVkTxp4HH", "13", changeLogs.get(3)),
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(4)));
   }
 
   @Test
   void shouldSortChangeLogsWhenOrderingByChangeDesc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("D9PbzJY8bJM");
+    Event event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
     List<EventChangeLog> changeLogs =
-        eventChangeLogService
-            .getEventChangeLog(UID.of("D9PbzJY8bJM"), params, defaultPageParams)
+        singleEventChangeLogService
+            .getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams)
             .getItems();
 
-    assertNumberOfChanges(11, changeLogs);
+    assertNumberOfChanges(5, changeLogs);
     assertAll(
-        () -> assertDataElementCreate("DATAEL00005", "option2", changeLogs.get(0)),
-        () -> assertDataElementCreate("DATAEL00001", "value00002", changeLogs.get(1)),
-        () -> assertDataElementCreate("DATAEL00007", "70", changeLogs.get(2)),
-        () -> assertDataElementCreate("DATAEL00006", "70", changeLogs.get(3)),
-        () -> assertDataElementCreate("DATAEL00002", "value00002", changeLogs.get(4)),
-        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", changeLogs.get(5)),
-        () -> assertFieldCreate("occurredAt", "2020-01-28 00:00:00.000", changeLogs.get(6)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(7)),
-        () -> assertDataElementUpdate("GieVkTxp4HH", "15", "20", changeLogs.get(8)),
-        () -> assertDataElementCreate("GieVkTxp4HH", "15", changeLogs.get(9)),
-        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(10)));
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(0)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(1)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "13", "20", changeLogs.get(2)),
+        () -> assertDataElementCreate("GieVkTxp4HH", "13", changeLogs.get(3)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(4)));
   }
 
   @Test
@@ -216,33 +206,26 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       throws NotFoundException, IOException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
-    UID event = UID.of("D9PbzJY8bJM");
+    UID event = UID.of("OTmjvJDn0Fu");
 
     LocalDateTime currentTime = LocalDateTime.now();
     updateEventDates(event, currentTime.toDate().toInstant());
 
     List<EventChangeLog> changeLogs =
         getAllFieldChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("D9PbzJY8bJM"), params, defaultPageParams));
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
 
-    assertNumberOfChanges(5, changeLogs);
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
         () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(0)),
         () ->
             assertFieldUpdate(
                 "occurredAt",
-                "2020-01-28 00:00:00.000",
+                "2022-04-23 06:00:38.343",
                 currentTime.toString(formatter),
                 changeLogs.get(1)),
-        () -> assertFieldCreate("occurredAt", "2020-01-28 00:00:00.000", changeLogs.get(2)),
-        () ->
-            assertFieldUpdate(
-                "scheduledAt",
-                "2019-01-28 12:10:38.100",
-                currentTime.toString(formatter),
-                changeLogs.get(3)),
-        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", changeLogs.get(4)));
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(2)));
   }
 
   @Test
@@ -250,33 +233,26 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       throws NotFoundException, IOException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    UID event = UID.of("D9PbzJY8bJM");
+    UID event = UID.of("OTmjvJDn0Fu");
 
     LocalDateTime currentTime = LocalDateTime.now();
     updateEventDates(event, currentTime.toDate().toInstant());
 
     List<EventChangeLog> changeLogs =
         getAllFieldChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("D9PbzJY8bJM"), params, defaultPageParams));
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
 
-    assertNumberOfChanges(5, changeLogs);
+    assertNumberOfChanges(3, changeLogs);
     assertAll(
         () ->
             assertFieldUpdate(
-                "scheduledAt",
-                "2019-01-28 12:10:38.100",
+                "occurredAt",
+                "2022-04-23 06:00:38.343",
                 currentTime.toString(formatter),
                 changeLogs.get(0)),
-        () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", changeLogs.get(1)),
-        () ->
-            assertFieldUpdate(
-                "occurredAt",
-                "2020-01-28 00:00:00.000",
-                currentTime.toString(formatter),
-                changeLogs.get(2)),
-        () -> assertFieldCreate("occurredAt", "2020-01-28 00:00:00.000", changeLogs.get(3)),
-        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(4)));
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(1)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(2)));
   }
 
   @Test
@@ -284,28 +260,19 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("pTzf9KYMk72");
+    Event event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "DATAEL00001", "value00002", "value00003");
 
     List<String> changeLogs =
-        eventChangeLogService
-            .getEventChangeLog(UID.of("pTzf9KYMk72"), params, defaultPageParams)
+        singleEventChangeLogService
+            .getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams)
             .getItems()
             .stream()
             .map(this::getDisplayName)
             .toList();
 
-    assertEquals(
-        List.of(
-            "with-option-set",
-            "test-dataelement9",
-            "test-dataelement9",
-            "test-dataelement9",
-            "test-dataelement6",
-            "scheduledAt",
-            "occurredAt"),
-        changeLogs);
+    assertEquals(List.of("occurredAt", "height in cm", "height in cm", "geometry"), changeLogs);
   }
 
   @Test
@@ -316,7 +283,8 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             .build();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
 
     Set<String> changeLogUsers =
         changeLogs.getItems().stream()
@@ -335,7 +303,8 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             .build();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of(event.getUid()), params, defaultPageParams);
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of(event.getUid()), params, defaultPageParams);
 
     Set<String> changeLogDataElements =
         changeLogs.getItems().stream()
@@ -345,8 +314,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   private Stream<Arguments> provideEventField() {
-    return Stream.of(
-        Arguments.of("occurredAt"), Arguments.of("scheduledAt"), Arguments.of("geometry"));
+    return Stream.of(Arguments.of("occurredAt"), Arguments.of("geometry"));
   }
 
   @ParameterizedTest
@@ -358,7 +326,8 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             .build();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), params, defaultPageParams);
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
 
     Set<String> changeLogOccurredAtFields =
         changeLogs.getItems().stream()

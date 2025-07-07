@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
 
@@ -51,10 +51,12 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore")
-public class HibernateEventChangeLogStore {
+@Repository("org.hisp.dhis.tracker.export.trackerevent.HibernateTrackerEventChangeLogStore")
+public class HibernateTrackerEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
@@ -85,11 +87,11 @@ public class HibernateEventChangeLogStore {
 
   private final EntityManager entityManager;
 
-  public HibernateEventChangeLogStore(EntityManager entityManager) {
+  public HibernateTrackerEventChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
 
-  public void addEventChangeLog(EventChangeLog eventChangeLog) {
+  public void addEventChangeLog(TrackerEventChangeLog eventChangeLog) {
     entityManager.unwrap(Session.class).save(eventChangeLog);
   }
 
@@ -117,7 +119,7 @@ public class HibernateEventChangeLogStore {
             u.firstName, \
             u.surname, \
             u.uid \
-        from EventChangeLog ecl \
+        from TrackerEventChangeLog ecl \
         join ecl.event e \
         left join ecl.dataElement d \
         left join ecl.createdBy u \
@@ -165,7 +167,6 @@ public class HibernateEventChangeLogStore {
                   createdBy.setUid((String) row[10]);
 
                   return new EventChangeLog(
-                      e,
                       dataElement,
                       eventField,
                       previousValue,
@@ -180,13 +181,13 @@ public class HibernateEventChangeLogStore {
   }
 
   public void deleteEventChangeLog(DataElement dataElement) {
-    String hql = "delete from EventChangeLog where dataElement = :dataElement";
+    String hql = "delete from TrackerEventChangeLog where dataElement = :dataElement";
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
   public void deleteEventChangeLog(Event event) {
-    String hql = "delete from EventChangeLog where event = :event";
+    String hql = "delete from TrackerEventChangeLog where event = :event";
 
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }

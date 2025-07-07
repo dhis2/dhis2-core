@@ -27,59 +27,81 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.singleevent;
 
-import java.util.Set;
-import javax.annotation.Nonnull;
-import org.apache.commons.lang3.tuple.Pair;
+import java.util.Date;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.Page;
-import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-public interface EventChangeLogService {
+@NoArgsConstructor
+@Getter
+@Setter
+public class SingleEventChangeLog {
+  private long id;
 
-  /**
-   * Retrieves the change log data for a particular event.
-   *
-   * @return event change logs page
-   */
-  @Nonnull
-  Page<EventChangeLog> getEventChangeLog(
-      UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException;
+  private Event event;
 
-  void addEventChangeLog(
+  private DataElement dataElement;
+
+  private String eventField;
+
+  private String previousValue;
+
+  private String currentValue;
+
+  private ChangeLogType changeLogType;
+
+  private Date created;
+
+  private String createdByUsername;
+
+  private UserInfoSnapshot createdBy;
+
+  public SingleEventChangeLog(
       Event event,
       DataElement dataElement,
+      String eventField,
       String previousValue,
-      String value,
+      String currentValue,
       ChangeLogType changeLogType,
-      String userName);
+      Date created,
+      String createdByUsername) {
+    this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
+    this.createdByUsername = createdByUsername;
+  }
 
-  void addFieldChangeLog(
-      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
+  public SingleEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      UserInfoSnapshot createdBy) {
+    this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
+    this.createdBy = createdBy;
+  }
 
-  void deleteEventChangeLog(Event event);
-
-  void deleteEventChangeLog(DataElement dataElement);
-
-  /**
-   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
-   * event change logs by. Ordering by fields other than these, is considered a programmer error.
-   * Validation of user provided field names should occur before calling {@link
-   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
-   */
-  Set<String> getOrderableFields();
-
-  /**
-   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can
-   * filter event change logs by. Filtering by fields other than these, is considered a programmer
-   * error. Validation of user provided field names should occur before calling {@link
-   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
-   */
-  Set<Pair<String, Class<?>>> getFilterableFields();
+  private SingleEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created) {
+    this.event = event;
+    this.dataElement = dataElement;
+    this.eventField = eventField;
+    this.previousValue = previousValue;
+    this.currentValue = currentValue;
+    this.changeLogType = changeLogType;
+    this.created = created;
+  }
 }

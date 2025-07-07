@@ -27,29 +27,81 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.Date;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
+@NoArgsConstructor
 @Getter
-@RequiredArgsConstructor
-public class EventChangeLog {
-  private final DataElement dataElement;
+@Setter
+public class TrackerEventChangeLog {
+  private long id;
 
-  private final String eventField;
+  private Event event;
 
-  private final String previousValue;
+  private DataElement dataElement;
 
-  private final String currentValue;
+  private String eventField;
 
-  private final ChangeLogType changeLogType;
+  private String previousValue;
 
-  private final Date created;
+  private String currentValue;
 
-  private final UserInfoSnapshot createdBy;
+  private ChangeLogType changeLogType;
+
+  private Date created;
+
+  private String createdByUsername;
+
+  private UserInfoSnapshot createdBy;
+
+  public TrackerEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      String createdByUsername) {
+    this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
+    this.createdByUsername = createdByUsername;
+  }
+
+  public TrackerEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      UserInfoSnapshot createdBy) {
+    this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
+    this.createdBy = createdBy;
+  }
+
+  private TrackerEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created) {
+    this.event = event;
+    this.dataElement = dataElement;
+    this.eventField = eventField;
+    this.previousValue = previousValue;
+    this.currentValue = currentValue;
+    this.changeLogType = changeLogType;
+    this.created = created;
+  }
 }

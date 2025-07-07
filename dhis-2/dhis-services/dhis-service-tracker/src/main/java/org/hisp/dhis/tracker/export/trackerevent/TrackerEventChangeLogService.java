@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
@@ -51,65 +51,44 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
-import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.event.EventChangeLogService")
+@Service("org.hisp.dhis.tracker.export.event.TrackerEventChangeLogService")
 @RequiredArgsConstructor
-public class DefaultEventChangeLogService implements EventChangeLogService {
+public class TrackerEventChangeLogService {
 
   private final TrackerEventService trackerEventService;
-  private final SingleEventService singleEventService;
   private final IdentifiableObjectManager manager;
-  private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
+  private final HibernateTrackerEventChangeLogStore hibernateEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
   @Nonnull
-  @Override
   @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     // check existence and access
-    Program program = getProgramFromEvent(event);
-    if (program.isRegistration()) {
-      trackerEventService.getEvent(event);
-    } else {
-      singleEventService.getEvent(event);
-    }
+    trackerEventService.getEvent(event);
 
     return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
   }
 
-  @Nonnull
-  private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
-    Event event = manager.get(Event.class, eventUID);
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUID);
-    }
-
-    return event.getProgramStage().getProgram();
-  }
-
   @Transactional
-  @Override
   public void deleteEventChangeLog(Event event) {
     hibernateEventChangeLogStore.deleteEventChangeLog(event);
   }
 
   @Transactional
-  @Override
   public void deleteEventChangeLog(DataElement dataElement) {
     hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
   }
 
-  @Override
   @Transactional
   public void addEventChangeLog(
       Event event,
@@ -122,14 +101,13 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       return;
     }
 
-    EventChangeLog eventChangeLog =
-        new EventChangeLog(
+    TrackerEventChangeLog eventChangeLog =
+        new TrackerEventChangeLog(
             event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
 
     hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
   }
 
-  @Override
   @Transactional
   public void addFieldChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
@@ -145,13 +123,11 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
         "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
   }
 
-  @Override
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return hibernateEventChangeLogStore.getOrderableFields();
   }
 
-  @Override
   public Set<Pair<String, Class<?>>> getFilterableFields() {
     return hibernateEventChangeLogStore.getFilterableFields();
   }
@@ -170,8 +146,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
     if (!Objects.equals(currentValue, newValue)) {
       ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
 
-      EventChangeLog eventChangeLog =
-          new EventChangeLog(
+      TrackerEventChangeLog eventChangeLog =
+          new TrackerEventChangeLog(
               event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
 
       hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);

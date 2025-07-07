@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
@@ -49,6 +49,8 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
@@ -70,9 +72,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
+class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
-  @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -91,7 +93,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   private TrackerObjects trackerObjects;
   @Autowired private TestSetup testSetup;
 
-  EventChangeLogServiceTest() throws BadRequestException {
+  TrackerEventChangeLogServiceTest() throws BadRequestException {
     defaultPageParams = PageParams.of(1, 10, false);
   }
 
@@ -114,7 +116,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.generate(), null, null));
+        () -> trackerEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
   }
 
   @Test
@@ -123,7 +125,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.generate(), null, null));
+        () -> trackerEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
   }
 
   @Test
@@ -132,7 +134,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
+        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
   }
 
   @Test
@@ -141,7 +143,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
+        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -150,7 +152,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
+        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -159,160 +161,160 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
+        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(1, changeLogs);
-    assertDataElementCreate(dataElement, "13", changeLogs.get(0));
+    assertDataElementCreate(dataElement, "value00001", changeLogs.get(0));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     updateDataValue(event, dataElement, "");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDataElementDelete(dataElement, "13", changeLogs.get(0)),
-        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(1)));
+        () -> assertDataElementDelete(dataElement, "value00001", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "value00001", changeLogs.get(1)));
   }
 
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     updateDataValue(event, dataElement, "");
     updateDataValue(event, dataElement, "");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDataElementDelete(dataElement, "13", changeLogs.get(0)),
-        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(1)));
+        () -> assertDataElementDelete(dataElement, "value00001", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "value00001", changeLogs.get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     updateDataValue(event, dataElement, "20");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDataElementUpdate(dataElement, "13", "20", changeLogs.get(0)),
-        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(1)));
+        () -> assertDataElementUpdate(dataElement, "value00001", "20", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "value00001", changeLogs.get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     updateDataValue(event, dataElement, "20");
     updateDataValue(event, dataElement, "25");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
         () -> assertDataElementUpdate(dataElement, "20", "25", changeLogs.get(0)),
-        () -> assertDataElementUpdate(dataElement, "13", "20", changeLogs.get(1)),
-        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(2)));
+        () -> assertDataElementUpdate(dataElement, "value00001", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "value00001", changeLogs.get(2)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted() throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     updateDataValue(event, dataElement, "20");
     updateDataValue(event, dataElement, "");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
         () -> assertDataElementDelete(dataElement, "20", changeLogs.get(0)),
-        () -> assertDataElementUpdate(dataElement, "13", "20", changeLogs.get(1)),
-        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(2)));
+        () -> assertDataElementUpdate(dataElement, "value00001", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "value00001", changeLogs.get(2)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedDeletedAndCreatedAgain()
       throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-    String dataElement = getDataElement(event);
+    String event = "pTzf9KYMk72";
+    String dataElement = "DATAEL00001";
 
     updateDataValue(event, dataElement, "");
     updateDataValue(event, dataElement, "20");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
         () -> assertDataElementCreate(dataElement, "20", changeLogs.get(0)),
-        () -> assertDataElementDelete(dataElement, "13", changeLogs.get(1)),
-        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(2)));
+        () -> assertDataElementDelete(dataElement, "value00001", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "value00001", changeLogs.get(2)));
   }
 
   @Test
   void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
-    Event event = getEvent("OTmjvJDn0Fu");
-    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+    Event event = getEvent("pTzf9KYMk72");
+    String dataElementUid = "DATAEL00001";
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
-    eventChangeLogService.addEventChangeLog(
+    trackerEventChangeLogService.addEventChangeLog(
         event, dataElement, "previous", "current", UPDATE, deletedUser.getUsername());
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("OTmjvJDn0Fu"), defaultOperationParams, defaultPageParams));
+            trackerEventChangeLogService.getEventChangeLog(
+                UID.of("pTzf9KYMk72"), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
         () ->
             assertUpdate(
                 dataElementUid, null, "previous", "current", changeLogs.get(0), deletedUser),
-        () -> assertDataElementCreate(dataElementUid, "13", changeLogs.get(1)));
+        () -> assertDataElementCreate(dataElementUid, "value00001", changeLogs.get(1)));
   }
 
   @Test
@@ -320,7 +322,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     String event = "H0PbzJY8bJG";
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
+        trackerEventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
     List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
     List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
@@ -341,7 +343,8 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateEventDates(event, currentTime.toDate().toInstant());
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
     List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
@@ -371,7 +374,8 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     deleteScheduledAtDate(event);
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> scheduledAtLogs = getChangeLogsByField(changeLogs, "scheduledAt");
     List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
@@ -386,16 +390,20 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
       throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
+    String event = "YKmfzHdjUDL";
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
+        trackerEventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(1, geometryChangeLogs);
     assertAll(
-        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)));
+        () ->
+            assertFieldCreate(
+                "geometry",
+                "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
+                geometryChangeLogs.get(0)));
   }
 
   @Test
@@ -404,7 +412,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     String event = "YKmfzHdjUDL";
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(
+        trackerEventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
@@ -420,13 +428,14 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldUpdated()
       throws NotFoundException {
-    UID event = UID.of("OTmjvJDn0Fu");
+    UID event = UID.of("D9PbzJY8bJM");
 
     Geometry geometry = createGeometryPoint(16.435547, 49.26422);
     updateEventGeometry(event, geometry);
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(2, geometryChangeLogs);
@@ -443,18 +452,27 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldDeleted()
       throws NotFoundException {
-    UID event = UID.of("OTmjvJDn0Fu");
+    UID event = UID.of("YKmfzHdjUDL");
 
     deleteEventGeometry(event);
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(event, defaultOperationParams, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
     assertNumberOfChanges(2, geometryChangeLogs);
     assertAll(
-        () -> assertFieldDelete("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)),
-        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(1)));
+        () ->
+            assertFieldDelete(
+                "geometry",
+                "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
+                geometryChangeLogs.get(0)),
+        () ->
+            assertFieldCreate(
+                "geometry",
+                "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
+                geometryChangeLogs.get(1)));
   }
 
   private void updateDataValue(String event, String dataElementUid, String newValue) {
@@ -540,13 +558,6 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
                       TrackerImportParams.builder().build(),
                       TrackerObjects.builder().events(List.of(ev)).build()));
             });
-  }
-
-  private String getDataElement(String uid) {
-    Event event = getEvent(uid);
-    String dataElement = event.getEventDataValues().iterator().next().getDataElement();
-    assertNotNull(dataElement);
-    return dataElement;
   }
 
   private Event getEvent(String uid) {
@@ -670,7 +681,10 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   private List<EventChangeLog> getDataElementChangeLogs(Page<EventChangeLog> changeLogs) {
-    return changeLogs.getItems().stream().filter(cl -> cl.getDataElement() != null).toList();
+    return changeLogs.getItems().stream()
+        .filter(cl -> cl.getDataElement() != null)
+        .filter(cl -> cl.getDataElement().getUid().equals("DATAEL00001"))
+        .toList();
   }
 
   private List<EventChangeLog> getChangeLogsByField(
