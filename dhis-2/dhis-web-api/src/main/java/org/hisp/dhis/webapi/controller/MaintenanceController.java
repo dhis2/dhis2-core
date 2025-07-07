@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -85,6 +86,7 @@ public class MaintenanceController {
   private final List<AnalyticsTableService> analyticsTableService;
   private final AppManager appManager;
   private final CategoryService categoryService;
+  private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @RequestMapping(
       value = "/analyticsTablesClear",
@@ -195,7 +197,7 @@ public class MaintenanceController {
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCategoryOptionCombos() {
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
   }
 
   @RequestMapping(
@@ -209,7 +211,8 @@ public class MaintenanceController {
       return conflict("CategoryCombo does not exist: " + uid);
     }
 
-    return importSummaries(categoryService.addAndPruneOptionCombosWithSummary(categoryCombo));
+    return importSummaries(
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(categoryCombo));
   }
 
   @RequestMapping(
