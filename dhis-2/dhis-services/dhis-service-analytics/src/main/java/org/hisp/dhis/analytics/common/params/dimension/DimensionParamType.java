@@ -80,9 +80,14 @@ public enum DimensionParamType {
   private static List<String> parseDate(
       CommonRequestParams commonRequestParams, AnalyticsDateFilter analyticsDateFilter) {
 
-    return SetUtils.emptyIfNull(
-            analyticsDateFilter.getTrackedEntityExtractor().apply(commonRequestParams))
-        .stream()
+    Function<CommonRequestParams, java.util.Set<String>> extractor =
+        analyticsDateFilter.getTrackedEntityExtractor();
+
+    if (extractor == null) {
+      return List.of();
+    }
+
+    return SetUtils.emptyIfNull(extractor.apply(commonRequestParams)).stream()
         .filter(StringUtils::isNotEmpty)
         .map(df -> df.split(";"))
         .flatMap(Arrays::stream)
