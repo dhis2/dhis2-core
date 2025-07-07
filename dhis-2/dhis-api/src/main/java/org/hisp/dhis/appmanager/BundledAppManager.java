@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,8 @@ public class BundledAppManager {
   private static final String APPS_BUNDLE_INFO_PATH = CLASSPATH_DHIS_WEB_APPS + "/apps-bundle.json";
 
   private final ObjectMapper jsonMapper;
+  private volatile AppBundleInfo cachedBundleInfo;
+  private volatile Set<String> cachedBundledAppNames;
 
   public void installBundledApps(TriConsumer<App, BundledAppInfo, Resource> consumer) {
     AppBundleInfo appBundleInfo = getAppBundleInfo();
@@ -70,14 +73,13 @@ public class BundledAppManager {
       return;
     }
 
-    Map<String, Resource> bundledAppsResources = getBundledApps();
-
     Map<String, BundledAppInfo> bundledAppsInfo =
         appBundleInfo.getApps().stream()
             .collect(Collectors.toMap(BundledAppInfo::getName, Function.identity()));
+
     bundledAppsInfo.forEach(
         (appName, appInfo) -> {
-          Resource zipFileResource = bundledAppsResources.get(appName + ".zip");
+          Resource zipFileResource = getBundledAppsResources().get(appName + ".zip");
           try (InputStream inputStream = zipFileResource.getInputStream()) {
             Path tempFile = Files.createTempFile("bundled-app-" + appName, ".zip");
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
@@ -94,7 +96,7 @@ public class BundledAppManager {
         });
   }
 
-  private Map<String, Resource> getBundledApps() {
+  private Map<String, Resource> getBundledAppsResources() {
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
     try {
       Resource[] resources = resolver.getResources(ZIPPED_APPS_PATH);
@@ -109,17 +111,43 @@ public class BundledAppManager {
   /*
    Get the AppBundleInfo which contains a list of all the bundled apps
   */
-  private AppBundleInfo getAppBundleInfo() {
-    InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
-    if (appBundleInfoInputStream == null) {
-      return null;
+  public AppBundleInfo getAppBundleInfo() {
+    if (cachedBundleInfo == null) {
+      synchronized (this) {
+        if (cachedBundleInfo == null) {
+          InputStream appBundleInfoInputStream = getAppBundleInfoInputStream();
+          if (appBundleInfoInputStream == null) {
+            return null;
+          }
+          try (appBundleInfoInputStream) {
+            cachedBundleInfo = jsonMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
+          } catch (IOException e) {
+            log.error("Failed to read bundled apps info file from disk", e);
+            throw new RuntimeException(e);
+          }
+        }
+      }
     }
-    try (appBundleInfoInputStream) {
-      return jsonMapper.readValue(appBundleInfoInputStream, AppBundleInfo.class);
-    } catch (IOException e) {
-      log.error("Failed to read bundled apps info file from disk", e);
-      throw new RuntimeException(e);
+    return cachedBundleInfo;
+  }
+
+  public Set<String> getBundledAppNames() {
+    if (cachedBundledAppNames == null) {
+      synchronized (this) {
+        if (cachedBundledAppNames == null) {
+          AppBundleInfo bundleInfo = getAppBundleInfo();
+          if (bundleInfo == null || bundleInfo.getApps() == null) {
+            cachedBundledAppNames = Set.of();
+          } else {
+            cachedBundledAppNames =
+                bundleInfo.getApps().stream()
+                    .map(BundledAppInfo::getName)
+                    .collect(Collectors.toSet());
+          }
+        }
+      }
     }
+    return cachedBundledAppNames;
   }
 
   public static InputStream getAppBundleInfoInputStream() {
