@@ -37,10 +37,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.api.TestCategoryMetadata;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +79,9 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private CategoryManager categoryManager;
+  @Autowired protected DbmsManager dbmsManager;
+
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   // -------------------------------------------------------------------------
   // Fixture
@@ -341,14 +346,89 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     categoryService.addCategory(categoryB);
     ccA = createCategoryCombo('A', categoryA, categoryB);
     categoryService.addCategoryCombo(ccA);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
     CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
     categoryOption.setName("UpdateOption");
     categoryService.updateCategoryOption(categoryOption);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
     assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
+  }
+
+  @Test
+  void noDuplicateCocTest() {
+    // setup data
+    TestCategoryMetadata catData = setupCategoryMetadata("a");
+
+    assertEquals(4, catData.getCc1().getOptionCombos().size());
+    assertEquals(5, categoryService.getAllCategoryOptionCombos().size());
+
+    // create new cat with exiting co
+    Category catNew = createCategory('s');
+    catNew.addCategoryOption(catData.getCo1());
+    categoryService.addCategory(catNew);
+
+    // create new cc with new cat + existing cats
+    CategoryCombo ccNew = createCategoryCombo('y');
+    ccNew.addCategory(catNew);
+    ccNew.addCategory(catData.getC1());
+    ccNew.addCategory(catData.getC2());
+    categoryService.addCategoryCombo(ccNew);
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    dbmsManager.flushSession();
+
+    // check expected count
+    assertEquals(4, catData.getCc1().getOptionCombos().size());
+    assertEquals(9, categoryService.getAllCategoryOptionCombos().size());
+
+    // add more existing co to new c
+    catNew.addCategoryOption(catData.getCo2());
+    catNew.addCategoryOption(catData.getCo3());
+    catNew.addCategoryOption(catData.getCo4());
+    categoryService.updateCategory(catNew);
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    dbmsManager.flushSession();
+
+    // update cocs
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    dbmsManager.flushSession();
+
+    // check expected count
+    assertEquals(4, catData.getCc1().getOptionCombos().size());
+    assertEquals(13, categoryService.getAllCategoryOptionCombos().size());
+  }
+
+  @Test
+  void cocGenerationDuplicateTest() {
+    // setup data - cc with 3 cats, some of which have same COs
+    CategoryOption co1 = createCategoryOption('1');
+    CategoryOption co2 = createCategoryOption('2');
+    CategoryOption co3 = createCategoryOption('3');
+    CategoryOption co4 = createCategoryOption('4');
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+    categoryService.addCategoryOption(co3);
+    categoryService.addCategoryOption(co4);
+    dbmsManager.flushSession();
+
+    Category cat1 = createCategory('1', co1, co2);
+    Category cat2 = createCategory('2', co3, co4);
+    Category cat3 = createCategory('3', co1, co4);
+    categoryService.addCategory(cat1);
+    categoryService.addCategory(cat2);
+    categoryService.addCategory(cat3);
+    dbmsManager.flushSession();
+
+    CategoryCombo cc = createCategoryCombo('1', cat1, cat2, cat3);
+    // combo consists of 3 categories with options: [co1,co2] [co3,co4] [co1,co4]
+    // all combinations (7) should be:
+    // [co1,co3] [co1,co4] [co1,co3,co4] [co2,co3,co1] [co2,co3,co4] [2,4,1] [2,4]
+    categoryService.addCategoryCombo(cc);
+    dbmsManager.flushSession();
+
+    Set<CategoryOptionCombo> categoryOptionCombos = cc.generateOptionCombosSet();
+    assertEquals(7, categoryOptionCombos.size());
   }
 }

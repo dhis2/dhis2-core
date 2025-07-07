@@ -67,12 +67,14 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.api.TestCategoryMetadata;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
@@ -261,6 +263,8 @@ public abstract class DhisConvenienceTest {
 
   protected static final double DELTA = 0.01;
 
+  private int categoryCounter = 1;
+
   // -------------------------------------------------------------------------
   // Service references
   // -------------------------------------------------------------------------
@@ -271,6 +275,9 @@ public abstract class DhisConvenienceTest {
 
   @Autowired(required = false)
   protected CategoryService internalCategoryService;
+
+  @Autowired(required = false)
+  protected CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired protected HibernateService hibernateService;
 
@@ -556,6 +563,23 @@ public abstract class DhisConvenienceTest {
   }
 
   /**
+   * @param identifier A unique string to identify the category option combo.
+   * @param categories the categories category options.
+   * @return CategoryOptionCombo
+   */
+  public static CategoryCombo createCategoryCombo(String identifier, Category... categories) {
+    CategoryCombo categoryCombo =
+        new CategoryCombo("CategoryCombo " + identifier, DataDimensionType.DISAGGREGATION);
+    categoryCombo.setAutoFields();
+
+    for (Category category : categories) {
+      categoryCombo.getCategories().add(category);
+    }
+
+    return categoryCombo;
+  }
+
+  /**
    * Creates a {@see CategoryCombo} with name, uid, and categories.
    *
    * @param name desired name
@@ -664,6 +688,22 @@ public abstract class DhisConvenienceTest {
     category.setAutoFields();
     category.setShortName(category.getName());
 
+    for (CategoryOption categoryOption : categoryOptions) {
+      category.addCategoryOption(categoryOption);
+    }
+
+    return category;
+  }
+
+  /**
+   * @param identifier A unique string to identify the category.
+   * @param categoryOptions the category options.
+   * @return Category
+   */
+  public static Category createCategory(String identifier, CategoryOption... categoryOptions) {
+    Category category = new Category("Category" + identifier, DataDimensionType.DISAGGREGATION);
+    category.setAutoFields();
+    category.setShortName(category.getName());
     for (CategoryOption categoryOption : categoryOptions) {
       category.addCategoryOption(categoryOption);
     }
@@ -2887,5 +2927,70 @@ public abstract class DhisConvenienceTest {
     relType.setToConstraint(relationshipConstraintTo);
 
     return relType;
+  }
+
+  /**
+   * This test setup allows easy creation of more realistic {@link CategoryOptionCombo}s. It creates
+   * multiple {@link CategoryOptionCombo}s that mirror how they are created in live code, (creating
+   * {@link Category}s, {@link CategoryOption}s, {@link CategoryCombo}s and then invoking the
+   * generation of {@link CategoryOptionCombo}s through the service). {@link CategoryOptionCombo}s
+   * are always system-generated and never created in isolation, like most other resources. When
+   * system-generated, they always have a {@link CategoryCombo} and {@link CategoryOption}s.
+   *
+   * @param identifier unique identifier to create different objects
+   * @return record of created category types
+   */
+  protected TestCategoryMetadata setupCategoryMetadata(String identifier) {
+    // 4 category options
+    CategoryOption co1 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co2 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co3 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co4 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+    categoryService.addCategoryOption(co3);
+    categoryService.addCategoryOption(co4);
+
+    // 2 categories (each with 2 category options)
+    Category cat1 = createCategory(identifier + " " + categoryCounter++, co1, co2);
+    Category cat2 = createCategory(identifier + " " + categoryCounter++, co3, co4);
+    categoryService.addCategory(cat1);
+    categoryService.addCategory(cat2);
+
+    // 1 category combo with 2 categories
+    CategoryCombo cc1 = createCategoryCombo(identifier + " " + categoryCounter++, cat1, cat2);
+    categoryService.addCategoryCombo(cc1);
+
+    // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(cc1);
+
+    CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
+    CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());
+    CategoryOptionCombo coc3 = getCocWithOptions(co2.getName(), co3.getName());
+    CategoryOptionCombo coc4 = getCocWithOptions(co2.getName(), co4.getName());
+
+    return new TestCategoryMetadata(cc1, cat1, cat2, co1, co2, co3, co4, coc1, coc2, coc3, coc4);
+  }
+
+  private static CategoryOptionCombo getCocWithOptions(String co1, String co2) {
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    return allCategoryOptionCombos.stream()
+        .filter(
+            coc -> {
+              Set<String> categoryOptions =
+                  coc.getCategoryOptions().stream()
+                      .map(IdentifiableObject::getName)
+                      .collect(Collectors.toSet());
+              return categoryOptions.containsAll(List.of(co1, co2));
+            })
+        .collect(Collectors.toList())
+        .get(0);
   }
 }

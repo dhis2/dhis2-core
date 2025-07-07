@@ -29,8 +29,9 @@ package org.hisp.dhis.dataelement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -97,41 +98,42 @@ class CategoryComboTest {
   }
 
   @Test
-  void testGenerateOptionCombosList() {
-    List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-    assertNotNull(list);
-    assertEquals(8, list.size());
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionC, categoryOptionE),
-        list.get(0));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionC, categoryOptionF),
-        list.get(1));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionD, categoryOptionE),
-        list.get(2));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionD, categoryOptionF),
-        list.get(3));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionC, categoryOptionE),
-        list.get(4));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionC, categoryOptionF),
-        list.get(5));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionD, categoryOptionE),
-        list.get(6));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionD, categoryOptionF),
-        list.get(7));
-  }
-
-  @Test
-  void test() {
-    List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-    categoryCombo.generateOptionCombos();
-    assertEquals(list, categoryCombo.getSortedOptionCombos());
+  void testGenerateOptionCombosSet() {
+    Set<CategoryOptionCombo> set = categoryCombo.generateOptionCombosSet();
+    assertNotNull(set);
+    assertEquals(8, set.size());
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionA, categoryOptionC, categoryOptionE)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionA, categoryOptionC, categoryOptionF)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionA, categoryOptionD, categoryOptionE)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionA, categoryOptionD, categoryOptionF)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionB, categoryOptionC, categoryOptionE)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionB, categoryOptionC, categoryOptionF)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionB, categoryOptionD, categoryOptionE)));
+    assertTrue(
+        set.contains(
+            createCategoryOptionCombo(
+                categoryCombo, categoryOptionB, categoryOptionD, categoryOptionF)));
   }
 
   private static CategoryOptionCombo createCategoryOptionCombo(

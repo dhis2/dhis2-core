@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.feedback;
+package org.hisp.dhis.api;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum ImportReportMode {
-  /** Gives full import report, including object reports for valid objects. */
-  FULL,
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
-  /** Returns import report where valid object report has been filtered out. */
-  ERRORS,
+@Data
+@AllArgsConstructor
+public class TestCategoryMetadata {
+  private CategoryCombo cc1;
+  private Category c1;
+  private Category c2;
+  private CategoryOption co1;
+  private CategoryOption co2;
+  private CategoryOption co3;
+  private CategoryOption co4;
+  private CategoryOptionCombo coc1;
+  private CategoryOptionCombo coc2;
+  private CategoryOptionCombo coc3;
+  private CategoryOptionCombo coc4;
 
-  /**
-   * Works the same as ERRORS, but in addition it will also report references that are not owned by
-   * the object.
-   */
-  ERRORS_NOT_OWNER,
+  public Set<String> getCocNames() {
+    return Set.of(coc1.getName(), coc2.getName(), coc3.getName(), coc4.getName());
+  }
 
-  /**
-   * Gives full import report, including object reports for valid objects and names (if available).
-   */
-  DEBUG
+  public Set<String> getCoNames() {
+    return Set.of(co1.getName(), co2.getName(), co3.getName(), co4.getName());
+  }
+
+  public Set<CategoryOption> getCategoryOptions() {
+    return Set.of(co1, co2, co3, co4);
+  }
 }

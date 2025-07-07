@@ -47,6 +47,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.data.redis.core.BoundHashOperations;
