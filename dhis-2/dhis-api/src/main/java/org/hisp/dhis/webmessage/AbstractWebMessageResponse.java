@@ -25,20 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.webmessage;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface CategoryManager {
+public class AbstractWebMessageResponse implements WebMessageResponse {
   /**
-   * Generates the complete set of category option combos for the given category combo. Removes
-   * obsolete category option combos.
+   * Optional type property. Since we are using the somewhat generic name 'response' for the data
+   * part of the message, this can be used to signal what kind of response this is.
    *
-   * @param categoryCombo the CategoryCombo.
+   * <p>Some examples might be 'ImportCount', 'ImportSummary', etc.
    */
-  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+  private String responseType;
 
-  /** Generates the complete set of category option combos for all category combos. */
-  void addAndPruneAllOptionCombos();
+  public AbstractWebMessageResponse() {
+    this.responseType = getClass().getSimpleName().replaceFirst("WebMessageResponse", "");
+  }
+
+  public AbstractWebMessageResponse(String responseType) {
+    this.responseType = responseType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getResponseType() {
+    return responseType;
+  }
+
+  public void setResponseType(String responseType) {
+    this.responseType = responseType;
+  }
 }

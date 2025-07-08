@@ -32,7 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>

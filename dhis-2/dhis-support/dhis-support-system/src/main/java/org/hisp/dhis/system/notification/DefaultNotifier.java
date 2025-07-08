@@ -50,6 +50,7 @@ import java.util.function.LongSupplier;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;

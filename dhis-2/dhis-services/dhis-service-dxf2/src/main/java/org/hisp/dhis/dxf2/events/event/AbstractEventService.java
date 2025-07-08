@@ -52,7 +52,7 @@ import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_PROGRAM_STA
 import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.events.event.EventQueryParams.EVENT_STORED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventQueryParams.PAGER_META_KEY;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -108,6 +108,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
@@ -123,7 +124,6 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;

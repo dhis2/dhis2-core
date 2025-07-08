@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

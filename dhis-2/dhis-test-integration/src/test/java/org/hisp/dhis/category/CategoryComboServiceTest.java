@@ -51,7 +51,7 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private CategoryManager categoryManager;
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   private CategoryOption categoryOptionA;
 
@@ -338,7 +338,7 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
     categoryComboT = categoryService.getCategoryCombo(id);
     assertNotNull(categoryComboT);
     assertEquals(categories, categoryComboT.getCategories());
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     assertTrue(
         categoryComboT
             .getOptionCombos()
@@ -350,7 +350,7 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
     categoryB.removeCategoryOption(categoryOptionC);
     categoryB.addCategoryOption(categoryOptionE);
     categoryService.updateCategory(categoryB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     categoryComboT = categoryService.getCategoryCombo(id);
     assertFalse(
         categoryComboT
