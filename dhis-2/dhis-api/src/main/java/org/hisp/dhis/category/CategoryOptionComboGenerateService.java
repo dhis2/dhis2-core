@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,58 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage.responses;
+package org.hisp.dhis.category;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author david mackessy
  */
-@JsonPropertyOrder({"type", "created", "updated", "deleted"})
-public class ImportCountWebMessageResponse extends AbstractWebMessageResponse {
-  private int created;
+public interface CategoryOptionComboGenerateService {
 
-  private int updated;
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos if possible.
+   *
+   * @param categoryCombo the CategoryCombo
+   * @return returns an ImportSummary
+   */
+  ImportSummaries addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
 
-  private int deleted;
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos if possible.
+   *
+   * @param categoryCombo the CategoryCombo
+   */
+  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
 
-  public ImportCountWebMessageResponse(int created, int updated, int deleted) {
-    this.created = created;
-    this.updated = updated;
-    this.deleted = deleted;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getCreated() {
-    return created;
-  }
-
-  public void setCreated(int created) {
-    this.created = created;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getUpdated() {
-    return updated;
-  }
-
-  public void setUpdated(int updated) {
-    this.updated = updated;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getDeleted() {
-    return deleted;
-  }
-
-  public void setDeleted(int deleted) {
-    this.deleted = deleted;
-  }
+  /**
+   * Generates the complete set of category option combos for all category combos. Removes obsolete
+   * category option combos if possible.
+   */
+  void addAndPruneAllOptionCombos();
 }

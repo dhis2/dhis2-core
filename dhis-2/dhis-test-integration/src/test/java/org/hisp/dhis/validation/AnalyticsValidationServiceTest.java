@@ -51,8 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -129,7 +129,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ValidationRuleService validationRuleService;
 
-  @Autowired private CategoryManager categoryManager;
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired private DataValidationRunner runner;
 
@@ -238,7 +238,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     stageInstanceB.setAttributeOptionCombo(defaultCombo);
     eventService.addEvent(stageInstanceA);
     eventService.addEvent(stageInstanceB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
     Expression expressionI = new Expression(EXPRESSION_I, "ProgramIndicator");

@@ -140,8 +140,8 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
         .collect(Collectors.toList());
   }
 
-  public List<CategoryOptionCombo> generateOptionCombosList() {
-    List<CategoryOptionCombo> list = new ArrayList<>();
+  public Set<CategoryOptionCombo> generateOptionCombosSet() {
+    Set<CategoryOptionCombo> generatedOptionCombos = new HashSet<>();
 
     CombinationGenerator<CategoryOption> generator =
         CombinationGenerator.newInstance(getCategoryOptionsAsLists());
@@ -150,10 +150,10 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
       CategoryOptionCombo optionCombo = new CategoryOptionCombo();
       optionCombo.setCategoryOptions(new HashSet<>(generator.getNext()));
       optionCombo.setCategoryCombo(this);
-      list.add(optionCombo);
+      generatedOptionCombos.add(optionCombo);
     }
 
-    return list;
+    return generatedOptionCombos;
   }
 
   public List<CategoryOptionCombo> getSortedOptionCombos() {
@@ -182,7 +182,7 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
   }
 
   public void generateOptionCombos() {
-    this.optionCombos = new HashSet<>(generateOptionCombosList());
+    this.optionCombos = new HashSet<>(generateOptionCombosSet());
 
     for (CategoryOptionCombo optionCombo : optionCombos) {
       for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
