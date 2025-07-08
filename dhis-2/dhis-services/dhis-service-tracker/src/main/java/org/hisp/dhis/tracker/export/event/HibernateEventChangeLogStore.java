@@ -86,7 +86,7 @@ public abstract class HibernateEventChangeLogStore<T> {
 
   protected abstract String getTableName();
 
-  public HibernateEventChangeLogStore(EntityManager entityManager) {
+  protected HibernateEventChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
 

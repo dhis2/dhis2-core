@@ -74,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
-  @Autowired private SingleEventChangeLogService trackerEventChangeLogService;
+  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -116,7 +116,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
+        () -> singleEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
   }
 
   @Test
@@ -125,7 +125,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
+        () -> singleEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
   }
 
   @Test
@@ -134,7 +134,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
+        () -> singleEventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
   }
 
   @Test
@@ -143,25 +143,14 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
+        () -> singleEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
-  void shouldFailWhenProgramTrackedEntityTypeIsNotAccessible() {
-    testAsUser("FIgVWzUCkpw");
-
+  void shouldFailWithNotFoundWhenTryingToGetChangeLogsForTrackerEvent() {
     assertThrows(
         NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
-  }
-
-  @Test
-  void shouldFailWhenProgramWithoutRegistrationAndNoAccessToEventOrgUnit() {
-    testAsUser("o1HMTIzBGo7");
-
-    assertThrows(
-        NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
+        () -> singleEventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
   }
 
   @Test
@@ -171,7 +160,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(1, changeLogs);
@@ -187,7 +176,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
@@ -206,7 +195,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
@@ -224,7 +213,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
@@ -243,7 +232,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
@@ -263,7 +252,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
@@ -284,7 +273,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(3, changeLogs);
@@ -301,12 +290,12 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
-    trackerEventChangeLogService.addEventChangeLog(
+    singleEventChangeLogService.addEventChangeLog(
         event, dataElement, "previous", "current", UPDATE, deletedUser.getUsername());
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            trackerEventChangeLogService.getEventChangeLog(
+            singleEventChangeLogService.getEventChangeLog(
                 UID.of("OTmjvJDn0Fu"), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
@@ -322,7 +311,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     String event = "OTmjvJDn0Fu";
 
     Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
+        singleEventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
     List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
@@ -340,7 +329,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateEventDates(event, currentTime.toDate().toInstant());
 
     Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
+        singleEventChangeLogService.getEventChangeLog(
             event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> occurredAtLogs = getChangeLogsByField(changeLogs, "occurredAt");
 
@@ -361,22 +350,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     String event = "OTmjvJDn0Fu";
 
     Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
-
-    assertNumberOfChanges(1, geometryChangeLogs);
-    assertAll(
-        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", geometryChangeLogs.get(0)));
-  }
-
-  @Test
-  void shouldReturnEventFieldChangeLogWhenNewGeometryPolygonFieldValueAdded()
-      throws NotFoundException {
-    String event = "OTmjvJDn0Fu";
-
-    Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
+        singleEventChangeLogService.getEventChangeLog(
             UID.of(event), defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
@@ -394,7 +368,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateEventGeometry(event, geometry);
 
     Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
+        singleEventChangeLogService.getEventChangeLog(
             event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 
@@ -417,7 +391,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     deleteEventGeometry(event);
 
     Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
+        singleEventChangeLogService.getEventChangeLog(
             event, defaultOperationParams, defaultPageParams);
     List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
 

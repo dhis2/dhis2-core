@@ -138,15 +138,6 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenEventProgramIsNotAccessible() {
-    testAsUser("o1HMTIzBGo7");
-
-    assertThrows(
-        NotFoundException.class,
-        () -> trackerEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
-  }
-
-  @Test
   void shouldFailWhenProgramTrackedEntityTypeIsNotAccessible() {
     testAsUser("FIgVWzUCkpw");
 
@@ -156,9 +147,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenProgramWithoutRegistrationAndNoAccessToEventOrgUnit() {
-    testAsUser("o1HMTIzBGo7");
-
+  void shouldFailWithNotFoundWhenTryingToGetChangeLogsForSingleEvent() {
     assertThrows(
         NotFoundException.class,
         () -> trackerEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
@@ -385,25 +374,6 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         () -> assertFieldDelete("scheduledAt", "2019-01-28 12:10:38.100", scheduledAtLogs.get(0)),
         () -> assertFieldCreate("scheduledAt", "2019-01-28 12:10:38.100", scheduledAtLogs.get(1)),
         () -> assertFieldCreate("occurredAt", "2019-01-28 00:00:00.000", occurredAtLogs.get(0)));
-  }
-
-  @Test
-  void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
-      throws NotFoundException {
-    String event = "YKmfzHdjUDL";
-
-    Page<EventChangeLog> changeLogs =
-        trackerEventChangeLogService.getEventChangeLog(
-            UID.of(event), defaultOperationParams, defaultPageParams);
-    List<EventChangeLog> geometryChangeLogs = getChangeLogsByField(changeLogs, "geometry");
-
-    assertNumberOfChanges(1, geometryChangeLogs);
-    assertAll(
-        () ->
-            assertFieldCreate(
-                "geometry",
-                "(-11.416855, 8.132308), (-11.445351, 8.089312), (-11.383896, 8.089652), (-11.416855, 8.132308)",
-                geometryChangeLogs.get(0)));
   }
 
   @Test
