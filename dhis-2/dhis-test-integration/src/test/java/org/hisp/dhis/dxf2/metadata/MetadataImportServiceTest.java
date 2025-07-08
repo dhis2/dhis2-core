@@ -954,6 +954,39 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testUpdateProgramStageWithSharing() throws IOException {
+    User user = createUserWithAuth("A", "ALL");
+    manager.save(user);
+    User user2 = createUserWithAuth("B", "F_PROGRAMSTAGE_ADD");
+    user2.setUid("userabcdefB");
+    manager.save(user2);
+
+    injectSecurityContextUser(user);
+
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/program_programStages_sharing.json").getInputStream(),
+            RenderFormat.JSON);
+    MetadataImportParams params = createParams(ImportStrategy.CREATE);
+    params.setSkipSharing(false);
+    params.setUser(UID.of(user));
+    ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
+    assertEquals(Status.OK, report.getStatus());
+
+    injectSecurityContextUser(user2);
+    metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/programStages_update.json").getInputStream(),
+            RenderFormat.JSON);
+    params = createParams(ImportStrategy.UPDATE);
+    params.setUser(UID.of(user2));
+    report = importService.importMetadata(params, new MetadataObjects(metadata));
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
+    assertEquals(Status.OK, report.getStatus());
+  }
+
+  @Test
   void testImportEventReportWithProgramIndicators() throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(
