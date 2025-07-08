@@ -40,12 +40,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,6 +81,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   private List<CategoryOption> categoryOptions;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -211,7 +215,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetOperands() {
     setupCategoryCombo();
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -228,7 +232,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetOperandsWithTotals() {
     setupCategoryCombo();
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -277,7 +281,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testAddAndPruneAllCategoryCombos() {
     setupCategoryCombo();
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
@@ -287,7 +291,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
@@ -298,7 +302,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryCombo() {
     setupCategoryCombo();
 
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
     CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
@@ -307,7 +311,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    categoryService.addAndPruneOptionCombos(ccA);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(ccA);
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
@@ -318,7 +322,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryComboWithSummary() {
     setupCategoryCombo();
 
-    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries importSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
     assertEquals(2, importSummary.getImported());
     assertEquals(SUCCESS, importSummary.getStatus());
     assertTrue(
@@ -334,7 +339,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries updateSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
 
     assertEquals(1, updateSummary.getUpdated());
     assertEquals(SUCCESS, updateSummary.getStatus());
@@ -352,7 +358,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryComboWithSummaryDelete() {
     setupCategoryCombo();
 
-    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries importSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
     assertEquals(2, importSummary.getImported());
     assertEquals(SUCCESS, importSummary.getStatus());
     assertTrue(
@@ -368,7 +375,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     // trigger update
-    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    ImportSummaries updateSummary =
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccA);
     assertEquals(1, updateSummary.getDeleted());
     assertEquals(SUCCESS, updateSummary.getStatus());
     assertTrue(
@@ -381,11 +389,79 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void test() {
-    setupCategoryCombo();
-    List<CategoryOptionCombo> list = ccA.generateOptionCombosList();
-    categoryService.addAndPruneOptionCombos(ccA);
-    assertEquals(list, ccA.getSortedOptionCombos());
+  void noDuplicateCocTest() {
+    // setup data
+    TestCategoryMetadata catData = setupCategoryMetadata("a");
+
+    assertEquals(4, catData.cc1().getOptionCombos().size());
+    assertEquals(5, categoryService.getAllCategoryOptionCombos().size());
+
+    // create new cat with exiting co
+    Category catNew = createCategory('s');
+    catNew.addCategoryOption(catData.co1());
+    entityManager.persist(catNew);
+    entityManager.flush();
+
+    // create new cc with new cat + existing cats
+    CategoryCombo ccNew = createCategoryCombo('y');
+    ccNew.addCategory(catNew);
+    ccNew.addCategory(catData.c1());
+    ccNew.addCategory(catData.c2());
+    entityManager.persist(ccNew);
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    entityManager.flush();
+
+    // check expected count
+    assertEquals(4, catData.cc1().getOptionCombos().size());
+    assertEquals(9, categoryService.getAllCategoryOptionCombos().size());
+
+    // add more existing co to new c
+    catNew.addCategoryOption(catData.co2());
+    catNew.addCategoryOption(catData.co3());
+    catNew.addCategoryOption(catData.co4());
+    entityManager.merge(catNew);
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    entityManager.flush();
+
+    // update cocs
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    entityManager.flush();
+
+    // check expected count
+    assertEquals(4, catData.cc1().getOptionCombos().size());
+    assertEquals(13, categoryService.getAllCategoryOptionCombos().size());
+  }
+
+  @Test
+  void cocGenerationDuplicateTest() {
+    // setup data - cc with 3 cats, some of which have same COs
+    CategoryOption co1 = createCategoryOption('1');
+    CategoryOption co2 = createCategoryOption('2');
+    CategoryOption co3 = createCategoryOption('3');
+    CategoryOption co4 = createCategoryOption('4');
+    entityManager.persist(co1);
+    entityManager.persist(co2);
+    entityManager.persist(co3);
+    entityManager.persist(co4);
+    entityManager.flush();
+
+    Category cat1 = createCategory('1', co1, co2);
+    Category cat2 = createCategory('2', co3, co4);
+    Category cat3 = createCategory('3', co1, co4);
+    entityManager.persist(cat1);
+    entityManager.persist(cat2);
+    entityManager.persist(cat3);
+    entityManager.flush();
+
+    CategoryCombo cc = createCategoryCombo('1', cat1, cat2, cat3);
+    // combo consists of 3 categories with options: [co1,co2] [co3,co4] [co1,co4]
+    // all combinations (7) should be:
+    // [co1,co3] [co1,co4] [co1,co3,co4] [co2,co3,co1] [co2,co3,co4] [2,4,1] [2,4]
+    entityManager.persist(cc);
+    entityManager.flush();
+
+    Set<CategoryOptionCombo> categoryOptionCombos = cc.generateOptionCombosSet();
+    assertEquals(7, categoryOptionCombos.size());
   }
 
   private void setupCategoryCombo() {

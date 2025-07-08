@@ -77,6 +77,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
@@ -276,7 +277,7 @@ public abstract class TestBase {
   private static Date date;
 
   protected static final double DELTA = 0.01;
-  private static int categoryCounter = 1;
+  private int categoryCounter = 1;
 
   // -------------------------------------------------------------------------
   // Service references
@@ -290,6 +291,9 @@ public abstract class TestBase {
 
   @Autowired(required = false)
   protected CategoryService internalCategoryService;
+
+  @Autowired(required = false)
+  protected CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired protected HibernateService hibernateService;
 
@@ -3103,7 +3107,7 @@ public abstract class TestBase {
    * @param identifier unique identifier to create different objects
    * @return record of created category types
    */
-  protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
+  protected TestCategoryMetadata setupCategoryMetadata(String identifier) {
     // 4 category options
     CategoryOption co1 =
         createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
@@ -3130,7 +3134,7 @@ public abstract class TestBase {
     categoryService.addCategoryCombo(cc1);
 
     // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
-    categoryService.addAndPruneOptionCombos(cc1);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(cc1);
 
     CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
     CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());
