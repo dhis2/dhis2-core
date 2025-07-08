@@ -282,7 +282,7 @@ public class FilterJdbcPredicate {
           throw new BadRequestException(
               String.format(
                   "Invalid filter: Operator '%s' is not supported for multi-text data element '%s'.",
-                  operator.getValue(), de.getUid()));
+                  operator.name(), de.getUid()));
     };
   }
 
