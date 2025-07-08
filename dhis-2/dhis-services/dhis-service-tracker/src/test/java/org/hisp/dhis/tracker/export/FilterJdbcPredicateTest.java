@@ -47,6 +47,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +89,7 @@ lower("%s".value) is not null"""
   }
 
   @Test
-  void shouldCreateFilterGivenUnaryOperatorOnDataElement() {
+  void shouldCreateFilterGivenUnaryOperatorOnDataElement() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.NNULL);
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
@@ -116,7 +117,8 @@ lower("%s".value) in (:"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeTextAndDataElement() {
+  void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeTextAndDataElement()
+      throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "summer;Winter;SPRING");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
@@ -145,7 +147,8 @@ cast ("%s".value as integer) in (:"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeIntegerAndDataElement() {
+  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeIntegerAndDataElement()
+      throws BadRequestException {
     de.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42;17;7");
 
@@ -383,7 +386,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldCreateFilterGivenMultiTextWithInOperator() {
+  void shouldCreateFilterGivenMultiTextWithInOperator() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "blue;green;red");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
@@ -397,7 +400,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldCreateFilterGivenMultiTextWithLikeOperator() {
+  void shouldCreateFilterGivenMultiTextWithLikeOperator() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.LIKE, "blue");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
@@ -411,7 +414,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldCreateFilterGivenMultiTextWithNNULLOperator() {
+  void shouldCreateFilterGivenMultiTextWithNNULLOperator() throws BadRequestException {
     QueryFilter filter = new QueryFilter(QueryOperator.NULL);
     FilterJdbcPredicate predicate = FilterJdbcPredicate.of(deMultiText, filter, "ev");
 

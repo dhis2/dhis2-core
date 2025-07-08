@@ -49,6 +49,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueType.SqlType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -105,7 +106,8 @@ public class FilterJdbcPredicate {
   }
 
   public static FilterJdbcPredicate of(
-      @Nonnull DataElement de, @Nonnull QueryFilter filter, @Nonnull String tableName) {
+      @Nonnull DataElement de, @Nonnull QueryFilter filter, @Nonnull String tableName)
+      throws BadRequestException {
     Parameter parameter = parseFilterValue(de, filter);
     String sql = generateSql(de, filter, parameter, tableName);
     return new FilterJdbcPredicate(sql, Optional.ofNullable(parameter));
@@ -182,9 +184,10 @@ public class FilterJdbcPredicate {
   }
 
   private static String generateSql(
-      DataElement de, QueryFilter filter, Parameter parameter, String ev) {
+      DataElement de, QueryFilter filter, Parameter parameter, String ev)
+      throws BadRequestException {
     if (isMultiTextType(de)) {
-      return multiTextClause(getColumn(de, ev), filter.getOperator(), parameter);
+      return multiTextClause(getColumn(de, ev), filter.getOperator(), parameter, de);
     }
     String leftOperand = leftOperandSql(de, filter.getOperator(), ev);
     String rightOperand = rightOperandSql(filter.getOperator(), parameter);
@@ -250,7 +253,8 @@ public class FilterJdbcPredicate {
 
   @Nonnull
   private static String multiTextClause(
-      String column, QueryOperator operator, Parameter parameter) {
+      String column, QueryOperator operator, Parameter parameter, DataElement de)
+      throws BadRequestException {
     String unnestSql = "unnest(string_to_array(lower(" + column + "), ',')) AS val";
     String trimmed = "trim(val)";
     String param = parameter != null ? parameter.name() : null;
@@ -274,7 +278,11 @@ public class FilterJdbcPredicate {
           String.format(
               "exists (select 1 from %s where %s is not null and %s <> '')",
               unnestSql, trimmed, trimmed);
-      default -> "";
+      default ->
+          throw new BadRequestException(
+              String.format(
+                  "Invalid filter: Operator '%s' is not supported for multi-text data element '%s'.",
+                  operator.getValue(), de.getUid()));
     };
   }
 

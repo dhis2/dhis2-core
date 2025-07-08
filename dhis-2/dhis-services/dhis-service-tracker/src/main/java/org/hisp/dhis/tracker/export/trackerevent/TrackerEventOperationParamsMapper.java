@@ -41,7 +41,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -208,8 +207,6 @@ class TrackerEventOperationParamsMapper {
                 dataElementFilter.getKey()));
       }
 
-      validateMultiTextDataElementFilters(dataElementFilter, de);
-
       if (dataElementFilter.getValue().isEmpty()) {
         params.filterBy(de);
       }
@@ -240,22 +237,6 @@ class TrackerEventOperationParamsMapper {
 
       for (QueryFilter filter : attributeFilter.getValue()) {
         params.filterBy(tea, filter);
-      }
-    }
-  }
-
-  private void validateMultiTextDataElementFilters(
-      Entry<UID, List<QueryFilter>> deFilter, DataElement de) throws BadRequestException {
-    if (ValueType.MULTI_TEXT != de.getValueType()) {
-      return;
-    }
-
-    for (QueryFilter filter : deFilter.getValue()) {
-      if (!filter.getOperator().isMultiTextSupported()) {
-        throw new BadRequestException(
-            String.format(
-                "Invalid filter: Operator '%s' is not supported for multi-text data element '%s'.",
-                filter.getOperator(), de.getUid()));
       }
     }
   }

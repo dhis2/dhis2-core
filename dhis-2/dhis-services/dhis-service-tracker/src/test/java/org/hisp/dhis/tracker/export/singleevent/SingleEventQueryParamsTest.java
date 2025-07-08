@@ -42,6 +42,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
@@ -70,7 +71,7 @@ class SingleEventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void shouldKeepExistingDataElementFiltersWhenOrderingByDataElement() {
+  void shouldKeepExistingDataElementFiltersWhenOrderingByDataElement() throws BadRequestException {
     SingleEventQueryParams params = new SingleEventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
