@@ -17,7 +17,6 @@
         foreign-key="fk_period_periodtypeid" />
       <property name="startDate" not-null="true" type="date" column="startdate" />
       <property name="endDate" not-null="true" type="date" column="enddate" />
-      <property name="isoDate" type="string" column="iso" insert="true" update="true" not-null="true" />
     </properties>
 
   </class>

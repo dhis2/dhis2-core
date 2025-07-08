@@ -124,7 +124,7 @@ public class Period extends BaseDimensionalItemObject {
   private transient String isoPeriod;
 
   /** date field this period refers to */
-  @Getter @Setter private String dateField;
+  @Getter @Setter private transient String dateField;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -217,16 +217,6 @@ public class Period extends BaseDimensionalItemObject {
   }
 
   /**
-   * Only to be used by hibernate to effectively make the property write only. When moving to
-   * annotations the column can simply be mapped as write-only instead.
-   */
-  @Deprecated(since = "2.43")
-  public void setIsoDate(String isoPeriod) {
-    // NOOP - ISO value is a transient computed property that is only written to DB
-    // to allow matching it but should not be read back
-  }
-
-  /**
    * It returns the ISO date for the current periodType of "this" object.
    *
    * @return the ISO date.
@@ -238,20 +228,6 @@ public class Period extends BaseDimensionalItemObject {
     }
 
     return "";
-  }
-
-  /**
-   * Copies the transient properties (name) from the argument Period to this Period.
-   *
-   * @param other Period to copy from.
-   * @return this Period.
-   */
-  public Period copyTransientProperties(Period other) {
-    this.name = other.getName();
-    this.shortName = other.getShortName();
-    this.code = other.getCode();
-
-    return this;
   }
 
   /**
@@ -346,11 +322,6 @@ public class Period extends BaseDimensionalItemObject {
     return getEndDate().after(period.getEndDate());
   }
 
-  /** Returns a unique key suitable for caching and lookups. */
-  public String getCacheKey() {
-    return periodType.getName() + "-" + startDate.toString() + "-" + endDate.toString();
-  }
-
   // -------------------------------------------------------------------------
   // DimensionalItemObject
   // -------------------------------------------------------------------------
@@ -366,15 +337,7 @@ public class Period extends BaseDimensionalItemObject {
 
   @Override
   public int hashCode() {
-    int prime = 31;
-    int result = 1;
-
-    result = result * prime + (startDate != null ? startDate.hashCode() : 0);
-    result = result * prime + (endDate != null ? endDate.hashCode() : 0);
-    result = result * prime + (getCode() != null ? getCode().hashCode() : 0);
-    result = result * prime + (periodType != null ? periodType.hashCode() : 0);
-
-    return result;
+    return getIsoDate().hashCode();
   }
 
   @Override
@@ -383,12 +346,7 @@ public class Period extends BaseDimensionalItemObject {
   }
 
   private boolean objectEquals(Period other) {
-    return startDate.equals(other.getStartDate())
-        && endDate.equals(other.getEndDate())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getIsoDate(), other.getIsoDate())
-        && Objects.equals(periodType, other.periodType)
-        && Objects.equals(dateField, other.getDateField());
+    return Objects.equals(getIsoDate(), other.getIsoDate());
   }
 
   @Override

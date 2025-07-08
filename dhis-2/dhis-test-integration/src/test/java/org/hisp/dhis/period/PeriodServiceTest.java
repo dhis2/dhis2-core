@@ -133,59 +133,6 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetPeriod() {
-    List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeB, getDay(2), getDay(3));
-    Period periodD = new Period(periodTypeB, getDay(3), getDay(4));
-    Period periodE = new Period(periodTypeA, getDay(3), getDay(4));
-    long idA = periodService.addPeriod(periodA);
-    long idB = periodService.addPeriod(periodB);
-    long idC = periodService.addPeriod(periodC);
-    long idD = periodService.addPeriod(periodD);
-    long idE = periodService.addPeriod(periodE);
-    periodA = periodService.getPeriod(getDay(1), getDay(2), periodTypeA);
-    assertNotNull(periodA);
-    assertEquals(idA, periodA.getId());
-    assertEquals(periodTypeA, periodA.getPeriodType());
-    assertEquals(getDay(1), periodA.getStartDate());
-    assertEquals(getDay(2), periodA.getEndDate());
-    periodB = periodService.getPeriod(getDay(2), getDay(3), periodTypeA);
-    assertNotNull(periodB);
-    assertEquals(idB, periodB.getId());
-    assertEquals(periodTypeA, periodB.getPeriodType());
-    assertEquals(getDay(2), periodB.getStartDate());
-    assertEquals(getDay(3), periodB.getEndDate());
-    periodC = periodService.getPeriod(getDay(2), getDay(3), periodTypeB);
-    assertNotNull(periodC);
-    assertEquals(idC, periodC.getId());
-    assertEquals(periodTypeB, periodC.getPeriodType());
-    assertEquals(getDay(2), periodC.getStartDate());
-    assertEquals(getDay(3), periodC.getEndDate());
-    periodD = periodService.getPeriod(getDay(3), getDay(4), periodTypeB);
-    assertNotNull(periodD);
-    assertEquals(idD, periodD.getId());
-    assertEquals(periodTypeB, periodD.getPeriodType());
-    assertEquals(getDay(3), periodD.getStartDate());
-    assertEquals(getDay(4), periodD.getEndDate());
-    periodE = periodService.getPeriod(getDay(3), getDay(4), periodTypeA);
-    assertNotNull(periodE);
-    assertEquals(idE, periodE.getId());
-    assertEquals(periodTypeA, periodE.getPeriodType());
-    assertEquals(getDay(3), periodE.getStartDate());
-    assertEquals(getDay(4), periodE.getEndDate());
-    assertNull(periodService.getPeriod(getDay(1), getDay(2), periodTypeB));
-    assertNull(periodService.getPeriod(getDay(4), getDay(5), periodTypeA));
-    assertNull(periodService.getPeriod(getDay(1), getDay(5), periodTypeB));
-    assertNull(periodService.getPeriod(getDay(4), getDay(3), periodTypeB));
-    assertNull(periodService.getPeriod(getDay(5), getDay(6), periodTypeA));
-  }
-
-  @Test
   void testGetAllPeriods() {
     PeriodType periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
     Period periodA = new Period(periodType, getDay(1), getDay(2));
@@ -367,28 +314,6 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
     PeriodType periodTypeB = periodService.getPeriodTypeByName(refB.getName());
     assertNotNull(periodTypeB);
     assertEquals(refB.getName(), periodTypeB.getName());
-  }
-
-  @Test
-  void testDeleteAndGetPeriodType() {
-    List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    PeriodType periodTypeC = it.next();
-    PeriodType periodTypeD = it.next();
-    int idA = periodTypeA.getId();
-    int idB = periodTypeB.getId();
-    int idC = periodTypeC.getId();
-    int idD = periodTypeD.getId();
-    assertNotNull(periodService.getPeriodType(idA));
-    assertNotNull(periodService.getPeriodType(idB));
-    assertNotNull(periodService.getPeriodType(idC));
-    assertNotNull(periodService.getPeriodType(idD));
-    assertNotNull(periodService.getPeriodType(periodTypeA.getId()));
-    assertNotNull(periodService.getPeriodType(periodTypeB.getId()));
-    assertNotNull(periodService.getPeriodType(periodTypeC.getId()));
-    assertNotNull(periodService.getPeriodType(periodTypeD.getId()));
   }
 
   @Test

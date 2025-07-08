@@ -54,12 +54,10 @@ public interface PeriodStore extends GenericStore<Period> {
   /**
    * Returns a Period.
    *
-   * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
-   * @param periodType the PeriodType of the Period
-   * @return the Period matching the dates and periodtype, or null if no match.
+   * @param isoPeriod ISO value
+   * @return the Period matching ISO value, or null if no match.
    */
-  Period getPeriod(Date startDate, Date endDate, PeriodType periodType);
+  Period getPeriod(String isoPeriod);
 
   /**
    * Returns a Period.
@@ -147,49 +145,15 @@ public interface PeriodStore extends GenericStore<Period> {
   int addPeriodType(PeriodType periodType);
 
   /**
-   * Deletes a PeriodType.
-   *
-   * @param periodType the PeriodType to delete.
-   */
-  void deletePeriodType(PeriodType periodType);
-
-  /**
-   * Returns a PeriodType.
-   *
-   * @param id the id of the PeriodType to return.
-   * @return the PeriodType with the given id, or null if no match.
-   */
-  PeriodType getPeriodType(int id);
-
-  /**
-   * Returns the persisted instance of a given PeriodType.
-   *
-   * @param periodType the PeriodType class of the instance to return.
-   * @return the period type.
-   */
-  PeriodType getPeriodType(Class<? extends PeriodType> periodType);
-
-  /**
    * Returns all PeriodTypes.
    *
    * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
    */
   List<PeriodType> getAllPeriodTypes();
 
-  /**
-   * Checks if the given periodType is associated with the current session and loads it if not. Null
-   * is returned if the period does not exist.
-   *
-   * @param periodType the PeriodType.
-   * @return the Period.
-   */
-  PeriodType reloadPeriodType(PeriodType periodType);
-
   // -------------------------------------------------------------------------
   // RelativePeriods
   // -------------------------------------------------------------------------
-
-  Period insertIsoPeriodInStatelessSession(Period period);
 
   /**
    * Deletes a RelativePeriods instance.

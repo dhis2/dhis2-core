@@ -197,17 +197,6 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
-  public <V> Cache<V> createPeriodIdCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.periodIdCache.name())
-            .expireAfterWrite(24, TimeUnit.HOURS)
-            .withInitialCapacity((int) getActualSize(200))
-            .forceInMemory()
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
   public <V> Cache<V> createUserAccountRecoverAttemptCache(V defaultValue) {
     return registerCache(
         this.<V>newBuilder()

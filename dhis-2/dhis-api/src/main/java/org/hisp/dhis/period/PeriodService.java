@@ -81,16 +81,6 @@ public interface PeriodService {
    * @param periodType the PeriodType of the Period
    * @return the Period matching the dates and periodtype, or null if no match.
    */
-  Period getPeriod(Date startDate, Date endDate, PeriodType periodType);
-
-  /**
-   * Returns a Period.
-   *
-   * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
-   * @param periodType the PeriodType of the Period
-   * @return the Period matching the dates and periodtype, or null if no match.
-   */
   Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType);
 
   /**
@@ -250,14 +240,6 @@ public interface PeriodService {
   // -------------------------------------------------------------------------
   // PeriodType
   // -------------------------------------------------------------------------
-
-  /**
-   * Returns a persisted PeriodType.
-   *
-   * @param id the id of the PeriodType to return.
-   * @return the PeriodType with the given id, or null if no match.
-   */
-  PeriodType getPeriodType(int id);
 
   /**
    * Returns a PeriodType with the given name.

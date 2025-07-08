@@ -58,8 +58,6 @@ public interface CacheProvider {
 
   <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
-  <V> Cache<V> createPeriodIdCache();
-
   <V> Cache<V> createUserFailedLoginAttemptCache(V defaultValue);
 
   <V> Cache<V> createDisable2FAFailedAttemptCache(V defaultValue);

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class DefaultPeriodService implements PeriodService {
   // -------------------------------------------------------------------------
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public long addPeriod(Period period) {
     periodStore.addPeriod(period);
     return period.getId();
@@ -83,17 +84,10 @@ public class DefaultPeriodService implements PeriodService {
     Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
 
     if (period != null) {
-      period =
-          periodStore.getPeriod(period.getStartDate(), period.getEndDate(), period.getPeriodType());
+      period = periodStore.getPeriod(isoPeriod);
     }
 
     return period;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Period getPeriod(Date startDate, Date endDate, PeriodType periodType) {
-    return periodStore.getPeriod(startDate, endDate, periodType);
   }
 
   @Override
@@ -165,15 +159,9 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public List<Period> reloadPeriods(Collection<Period> periods) {
-    List<Period> reloaded = new ArrayList<>();
-
-    for (Period period : periods) {
-      reloaded.add(periodStore.reloadForceAddPeriod(period));
-    }
-
-    return reloaded;
+    return periods.stream().map(periodStore::reloadForceAddPeriod).toList();
   }
 
   @Override
@@ -216,7 +204,7 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public Period reloadPeriod(Period period) {
     return periodStore.reloadForceAddPeriod(period);
   }
@@ -227,27 +215,13 @@ public class DefaultPeriodService implements PeriodService {
    * constraint error in subsequence calls of batch.flush()
    */
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public Period reloadIsoPeriodInStatelessSession(String isoPeriod) {
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
-
-    if (period == null) {
-      return null;
-    }
-
-    Period reloadedPeriod = periodStore.reloadPeriod(period);
-
-    if (reloadedPeriod != null) {
-      return reloadedPeriod;
-    }
-
-    period.setPeriodType(reloadPeriodType(period.getPeriodType()));
-
-    return periodStore.insertIsoPeriodInStatelessSession(period);
+    return reloadPeriod(PeriodType.getPeriodFromIsoString(isoPeriod));
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public Period reloadIsoPeriod(String isoPeriod) {
     Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
 
@@ -255,19 +229,9 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public List<Period> reloadIsoPeriods(List<String> isoPeriods) {
-    List<Period> periods = new ArrayList<>();
-
-    for (String iso : isoPeriods) {
-      Period period = reloadIsoPeriod(iso);
-
-      if (period != null) {
-        periods.add(period);
-      }
-    }
-
-    return periods;
+    return isoPeriods.stream().map(this::reloadIsoPeriod).toList();
   }
 
   @Override
@@ -312,26 +276,24 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @Transactional(readOnly = true)
-  public PeriodType getPeriodType(int id) {
-    return periodStore.getPeriodType(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public PeriodType getPeriodTypeByName(String name) {
     return PeriodType.getPeriodTypeByName(name);
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public PeriodType getPeriodTypeByClass(Class<? extends PeriodType> periodType) {
-    return periodStore.getPeriodType(periodType);
+    PeriodType type = PeriodType.getPeriodTypeByClass(periodType);
+    if (type == null) throw new IllegalArgumentException("Unknown period type: " + periodType);
+    periodStore.addPeriodType(type);
+    return type;
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public PeriodType reloadPeriodType(PeriodType periodType) {
-    return periodStore.reloadPeriodType(periodType);
+    periodStore.addPeriodType(periodType);
+    return periodType;
   }
 
   // -------------------------------------------------------------------------
