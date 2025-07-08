@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datasource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -92,6 +93,8 @@ class DatabasePoolUtilsTest {
         .willReturn(String.valueOf(ThreadLocalRandom.current().nextInt()));
     given(mockDhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_POOL_NUM_THREADS))
         .willReturn("1");
+    given(mockDhisConfigurationProvider.getIntProperty(ConfigurationKey.CONNECTION_POOL_TIMEOUT))
+        .willReturn(250);
 
     DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
         DbPoolConfig.builder()
@@ -108,6 +111,7 @@ class DatabasePoolUtilsTest {
 
     DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
     assertInstanceOf(ComboPooledDataSource.class, dataSource);
+    assertEquals(250, ((ComboPooledDataSource) dataSource).getCheckoutTimeout());
   }
 
   @Test

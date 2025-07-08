@@ -284,8 +284,8 @@ public enum ConfigurationKey {
       "analytics.connection.pool.test.on.checkin", Constants.ON, false),
 
   /**
-   * Hikari DB pool feature. Connection pool timeout: Set the maximum number of milliseconds that a
-   * client will wait for a connection from the pool. (default: 30s)
+   * Connection pool timeout: Set the maximum number of milliseconds that a client will wait for a
+   * connection from the pool. (default: 30s)
    */
   CONNECTION_POOL_TIMEOUT("connection.pool.timeout", String.valueOf(SECONDS.toMillis(30)), false),
 

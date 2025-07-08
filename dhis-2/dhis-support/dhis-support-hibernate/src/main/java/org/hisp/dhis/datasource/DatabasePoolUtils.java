@@ -318,6 +318,8 @@ public final class DatabasePoolUtils {
             firstNonNull(
                 config.getMaxIdleTime(),
                 dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
+    final int connectionTimeout =
+        dhisConfig.getIntProperty(mapper.getConfigKey(CONNECTION_POOL_TIMEOUT));
 
     final int minPoolSize =
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_SIZE)));
@@ -355,6 +357,7 @@ public final class DatabasePoolUtils {
     pooledDataSource.setIdleConnectionTestPeriod(idleConnectionTestPeriod);
     pooledDataSource.setPreferredTestQuery(preferredTestQuery);
     pooledDataSource.setNumHelperThreads(numHelperThreads);
+    pooledDataSource.setCheckoutTimeout(connectionTimeout);
 
     return pooledDataSource;
   }

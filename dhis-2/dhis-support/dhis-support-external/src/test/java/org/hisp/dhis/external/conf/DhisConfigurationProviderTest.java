@@ -80,6 +80,7 @@ class DhisConfigurationProviderTest {
 
   @Test
   void getIntProperty() {
+    assertEquals(30000, configProvider.getIntProperty(ConfigurationKey.CONNECTION_POOL_TIMEOUT));
     assertEquals(80, configProvider.getIntProperty(ConfigurationKey.CONNECTION_POOL_MAX_SIZE));
     assertEquals(10, configProvider.getIntProperty(ConfigurationKey.CONNECTION_POOL_MIN_SIZE));
   }
