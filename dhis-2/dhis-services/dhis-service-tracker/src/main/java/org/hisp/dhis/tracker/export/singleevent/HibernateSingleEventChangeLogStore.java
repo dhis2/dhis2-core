@@ -34,7 +34,7 @@ import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.singleevent.HibernateSingleEventChangeLogStore")
-public class HibernateSingleEventChangeLogStore
+class HibernateSingleEventChangeLogStore
     extends HibernateEventChangeLogStore<SingleEventChangeLog> {
 
   public HibernateSingleEventChangeLogStore(EntityManager entityManager) {

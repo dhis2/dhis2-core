@@ -128,11 +128,26 @@ public abstract class EventChangeLogService<T> {
     }
 
     logIfChanged(
-        "scheduledAt", Event::getScheduledDate, this::formatDate, currentEvent, event, username);
+        "scheduledAt",
+        Event::getScheduledDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
     logIfChanged(
-        "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
+        "occurredAt",
+        Event::getOccurredDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
     logIfChanged(
-        "geometry", Event::getGeometry, this::formatGeometry, currentEvent, event, username);
+        "geometry",
+        Event::getGeometry,
+        EventChangeLogService::formatGeometry,
+        currentEvent,
+        event,
+        username);
   }
 
   @Transactional(readOnly = true)
@@ -166,7 +181,7 @@ public abstract class EventChangeLogService<T> {
     }
   }
 
-  private ChangeLogType getChangeLogType(String oldValue, String newValue) {
+  private static ChangeLogType getChangeLogType(String oldValue, String newValue) {
     if (isFieldCreated(oldValue, newValue)) {
       return CREATE;
     } else if (isFieldUpdated(oldValue, newValue)) {
@@ -176,20 +191,20 @@ public abstract class EventChangeLogService<T> {
     }
   }
 
-  private boolean isFieldCreated(String originalValue, String payloadValue) {
+  private static boolean isFieldCreated(String originalValue, String payloadValue) {
     return originalValue == null && payloadValue != null;
   }
 
-  private boolean isFieldUpdated(String originalValue, String payloadValue) {
+  private static boolean isFieldUpdated(String originalValue, String payloadValue) {
     return originalValue != null && payloadValue != null;
   }
 
-  private String formatDate(Date date) {
+  private static String formatDate(Date date) {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     return date != null ? formatter.format(date) : null;
   }
 
-  private String formatGeometry(Geometry geometry) {
+  private static String formatGeometry(Geometry geometry) {
     if (geometry == null) {
       return null;
     }

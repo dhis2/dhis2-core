@@ -51,7 +51,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog;
 
 public abstract class HibernateEventChangeLogStore<T> {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
@@ -67,8 +66,8 @@ public abstract class HibernateEventChangeLogStore<T> {
 
   /**
    * Event change logs can be ordered by given fields which correspond to fields on {@link
-   * SingleEventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case
-   * we need to sort by concatenation, to treat the dataElement and eventField as a single entity.
+   * EventChangeLog}. Maps fields to DB columns, except when sorting by 'change'. In that case we
+   * need to sort by concatenation, to treat the dataElement and eventField as a single entity.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
