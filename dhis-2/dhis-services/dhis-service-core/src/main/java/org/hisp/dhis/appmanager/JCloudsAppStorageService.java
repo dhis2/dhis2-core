@@ -223,14 +223,13 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   @Override
   public App installApp(File file, Cache<App> appCache, BundledAppInfo bundledAppInfo) {
-    // Use a random generated name for the installation folder to avoid collisions.
-    String installationFolder = APPS_DIR + File.separator + CodeGenerator.getRandomSecureToken();
-
     App app;
     String topLevelFolder;
+    String installationFolder;
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
       app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
+      installationFolder = getInstallationFolder(app);
       app.setFolderName(installationFolder);
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
@@ -281,6 +280,16 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     return app;
+  }
+
+  private String getInstallationFolder(App app) {
+    // Add a random generated name part for the installation folder to avoid collisions.
+    String appKey = app.getKey();
+    String folderName =
+        appKey.length() > 32
+            ? appKey.substring(0, 31)
+            : appKey + "_" + CodeGenerator.getRandomSecureToken();
+    return APPS_DIR + File.separator + folderName;
   }
 
   private void unzipFile(File file, String installationFolder, String topLevelFolder)
