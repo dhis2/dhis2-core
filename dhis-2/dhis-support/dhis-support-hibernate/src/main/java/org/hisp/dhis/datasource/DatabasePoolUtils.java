@@ -150,6 +150,7 @@ public final class DatabasePoolUtils {
   }
 
   public enum DbPoolType {
+    @Deprecated(since = "v43", forRemoval = true)
     C3P0,
     HIKARI,
     UNPOOLED
@@ -180,9 +181,9 @@ public final class DatabasePoolUtils {
 
     final DataSource dataSource =
         switch (dbPoolType) {
-          case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
           case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
+          case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           default ->
               throw new IllegalArgumentException(
                   TextUtils.format(
@@ -286,6 +287,7 @@ public final class DatabasePoolUtils {
   }
 
   /** Create a data source based on a C3p0 connection pool. */
+  @Deprecated(since = "v43", forRemoval = true)
   private static ComboPooledDataSource createC3p0DbPool(
       String username, String password, String driverClassName, String jdbcUrl, DbPoolConfig config)
       throws PropertyVetoException {

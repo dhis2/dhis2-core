@@ -138,58 +138,68 @@ public enum ConfigurationKey {
   ANALYTICS_CONNECTION_POOL_MAX_SIZE("analytics.connection.pool.max_size", "80", false),
 
   /** Minimum number of Connections a pool will maintain at any given time (default: 5). */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_MIN_SIZE("connection.pool.min_size", "5", false),
 
   /**
    * Analytics Minimum number of Connections a pool will maintain at any given time (default: 5).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_MIN_SIZE("analytics.connection.pool.min_size", "5", false),
 
   /**
    * Number of Connections a pool will try to acquire upon startup. Should be between minPoolSize
    * and maxPoolSize. (default: 5).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_INITIAL_SIZE("connection.pool.initial_size", "5", false),
 
   /**
    * Number of Connections a pool will try to acquire upon startup. Should be between minPoolSize
    * and maxPoolSize. (default: 5).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_INITIAL_SIZE("analytics.connection.pool.initial_size", "5", false),
 
   /**
    * Determines how many connections at a time will try to acquire when the pool is exhausted.
    * (default: 5).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_ACQUIRE_INCR("connection.pool.acquire_incr", "5", false),
 
   /**
    * Determines how many times the system will try to acquire a connection before giving up. If this
    * value is less than or equal to zero, the system will keep trying indefinitely. (default: 30).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS("connection.pool.acquire_retry_attempts", "30", false),
 
   /**
    * Determines the delay in milliseconds, c3p0 will wait between acquire attempts. (default: 1000)
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_ACQUIRE_RETRY_DELAY("connection.pool.acquire_retry_delay", "1", false),
 
   /**
    * Determines how many connections at a time will try to acquire when the pool is exhausted.
    * (default: 5).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR("analytics.connection.pool.acquire_incr", "5", false),
 
   /**
    * Determines how many times the system will try to acquire a connection before giving up. If this
    * value is less than or equal to zero, the system will keep trying indefinitely. (default: 30).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS(
       "analytics.connection.pool.acquire_retry_attempts", "30", false),
 
   /**
    * Determines the delay in milliseconds, c3p0 will wait between acquire attempts. (default: 1000)
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY(
       "analytics.connection.pool.acquire_retry_delay", "1", false),
 
@@ -235,12 +245,14 @@ public enum ConfigurationKey {
    * Number of seconds that Connections in excess of minPoolSize should be permitted to remain idle
    * in the pool before being culled (default: 0).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON("connection.pool.max_idle_time_excess_con", "0", false),
 
   /**
    * Number of seconds that Connections in excess of minPoolSize should be permitted to remain idle
    * in the pool before being culled (default: 0).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON(
       "analytics.connection.pool.max_idle_time_excess_con", "0", false),
 
@@ -248,12 +260,14 @@ public enum ConfigurationKey {
    * If this is a number greater than 0, dhis2 will test all idle, pooled but unchecked-out
    * connections, every this number of seconds (default: 0).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_IDLE_CON_TEST_PERIOD("connection.pool.idle.con.test.period", "0", false),
 
   /**
    * If this is a number greater than 0, dhis2 will test all idle, pooled but unchecked-out
    * connections, every this number of seconds (default: 0).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD(
       "analytics.connection.pool.idle.con.test.period", "0", false),
 
@@ -261,6 +275,7 @@ public enum ConfigurationKey {
    * If true, an operation will be performed at every connection checkout to verify that the
    * connection is valid (default: false).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_TEST_ON_CHECKOUT("connection.pool.test.on.checkout", Constants.OFF, false),
 
   /**
@@ -274,12 +289,14 @@ public enum ConfigurationKey {
    * If true, an operation will be performed asynchronously at every connection checkin to verify
    * that the connection is valid (default: true).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_TEST_ON_CHECKIN("connection.pool.test.on.checkin", Constants.ON, false),
 
   /**
    * If true, an operation will be performed asynchronously at every connection checkin to verify
    * that the connection is valid (default: true).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKIN(
       "analytics.connection.pool.test.on.checkin", Constants.ON, false),
 
@@ -317,12 +334,14 @@ public enum ConfigurationKey {
       "analytics.connection.pool.validation_timeout", String.valueOf(SECONDS.toMillis(5)), false),
 
   /** Configure the number of helper threads used by C3P0 pool for jdbc operations (default: 3). */
+  @Deprecated(since = "v43", forRemoval = true)
   CONNECTION_POOL_NUM_THREADS("connection.pool.num.helper.threads", "3", false),
 
   /**
    * Configure the number of helper threads used by Analytics C3P0 pool for jdbc operations
    * (default: 3).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_NUM_THREADS("analytics.connection.pool.num.helper.threads", "3", false),
 
   /**
@@ -524,7 +543,7 @@ public enum ConfigurationKey {
   /**
    * @deprecated use META_DATA_SYNC_SERVERS_ALLOWED instead
    */
-  @Deprecated
+  @Deprecated(since = "v42", forRemoval = true)
   REMOTE_SERVERS_ALLOWED("system.remote_servers_allowed", "", false),
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
@@ -662,8 +681,11 @@ public enum ConfigurationKey {
   /** Database debugging feature. Enable time query logging. */
   ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
-  /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
-  DB_POOL_TYPE("db.pool.type", "c3p0", false),
+  /**
+   * Database datasource pool type. Supported pool types are: hikari (default), c3p0 (deprecated),
+   * unpooled
+   */
+  DB_POOL_TYPE("db.pool.type", "hikari", false),
 
   /**
    * @TODO
