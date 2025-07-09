@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.config;
 
-import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
@@ -57,9 +56,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StartupConfig {
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
-  public PeriodTypePopulator periodTypePopulator(
-      PeriodStore periodStore, EntityManagerFactory entityManagerFactory) {
-    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore, entityManagerFactory);
+  public PeriodTypePopulator periodTypePopulator(PeriodStore periodStore) {
+    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore);
     populator.setName("PeriodTypePopulator");
     populator.setRunlevel(3);
     return populator;
