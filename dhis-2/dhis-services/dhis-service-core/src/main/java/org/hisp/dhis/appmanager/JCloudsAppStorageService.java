@@ -121,7 +121,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       try (InputStream inputStream = manifest.getPayload().openStream()) {
         App app = App.MAPPER.readValue(inputStream, App.class);
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
-        app.setFolderName(resource.getName());
+        app.setFolderName(resource.getName().replaceAll("/$", ""));
 
         Blob translationFile =
             jCloudsStore.getBlob(
@@ -362,10 +362,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     // delete the manifest file first in case the system crashes during deletion
     // and the manifest file is not deleted, resulting in an app that can't be installed
     String folderName = app.getFolderName();
-    jCloudsStore.removeBlob(
-        folderName.endsWith("/")
-            ? folderName + MANIFEST_WEBAPP_FILENAME
-            : folderName + "/" + MANIFEST_WEBAPP_FILENAME);
+    jCloudsStore.removeBlob(folderName + File.separator + MANIFEST_WEBAPP_FILENAME);
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):
@@ -397,7 +394,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
-    String key = app.getFolderName() + ("/" + resolvedFileResource);
+    String key = app.getFolderName() + File.separator + resolvedFileResource;
     String cleanedKey = key.replaceAll("/+", "/");
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
