@@ -201,7 +201,7 @@ public class DefaultAppManager implements AppManager {
   }
 
   private Stream<App> getAppsStream() {
-    return appCache.getAll().filter(app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS);
+    return appCache.getAll();
   }
 
   private Stream<App> getAccessibleAppsStream() {
@@ -506,7 +506,6 @@ public class DefaultAppManager implements AppManager {
     if (appOpt.get().isBundled()) return false;
 
     App appFromCache = appOpt.get();
-    appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
 
     jCloudsAppStorageService.deleteApp(app);

@@ -182,12 +182,6 @@ public class AppController {
           forbidden("User does not have access to app '" + appName + "'."));
     }
 
-    if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      log.debug("App deletion in progress {}", appName);
-      throw new WebMessageException(
-          conflict("App '" + appName + "' deletion is still in progress."));
-    }
-
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
@@ -276,10 +270,6 @@ public class AppController {
     App appToDelete = appManager.getApp(app);
     if (appToDelete == null) {
       throw new WebMessageException(notFound("App does not exist: " + app));
-    }
-
-    if (appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      throw new WebMessageException(conflict("App is already being deleted: " + app));
     }
 
     if (appToDelete.isBundled()) {

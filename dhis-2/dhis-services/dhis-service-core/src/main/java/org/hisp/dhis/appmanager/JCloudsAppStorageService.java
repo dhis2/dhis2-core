@@ -161,21 +161,9 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   private boolean validateApp(App app, Cache<App> appCache) {
-    validateAppDeletionNotInProgress(app, appCache);
     validateAppNamespaceNotAlreadyInUse(app, appCache);
     validateAppAdditionalNamespacesAreWellDefined(app);
     return app.getAppState().ok();
-  }
-
-  private void validateAppDeletionNotInProgress(App app, Cache<App> appCache) {
-    if (!app.getAppState().ok()) return;
-    Optional<App> existingApp = appCache.getIfPresent(app.getKey());
-    if (existingApp.isPresent()
-        && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      log.error("Failed to install app: App with same name is currently being deleted");
-
-      app.setAppState(AppStatus.DELETION_IN_PROGRESS);
-    }
   }
 
   private void validateAppNamespaceNotAlreadyInUse(App app, Cache<App> appCache) {
