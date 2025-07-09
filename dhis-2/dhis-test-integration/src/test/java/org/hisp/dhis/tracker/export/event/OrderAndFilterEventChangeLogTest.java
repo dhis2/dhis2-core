@@ -293,7 +293,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     Set<String> changeLogUsers =
         changeLogs.getItems().stream()
-            .map(cl -> cl.getCreatedBy().getUsername())
+            .map(cl -> cl.createdBy().getUsername())
             .collect(Collectors.toSet());
     assertContainsOnly(List.of(importUser.getUsername()), changeLogUsers);
   }
@@ -313,7 +313,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     Set<String> changeLogDataElements =
         changeLogs.getItems().stream()
-            .map(cl -> cl.getDataElement().getUid())
+            .map(cl -> cl.dataElement().getUid())
             .collect(Collectors.toSet());
     assertContainsOnly(List.of(dataElement), changeLogDataElements);
   }
@@ -336,9 +336,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
 
     Set<String> changeLogOccurredAtFields =
-        changeLogs.getItems().stream()
-            .map(EventChangeLog::getEventField)
-            .collect(Collectors.toSet());
+        changeLogs.getItems().stream().map(EventChangeLog::eventField).collect(Collectors.toSet());
     assertContainsOnly(List.of(filterValue), changeLogOccurredAtFields);
   }
 
@@ -556,7 +554,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     Set<String> changeLogUsers =
         changeLogs.getItems().stream()
-            .map(cl -> cl.getCreatedBy().getUsername())
+            .map(cl -> cl.createdBy().getUsername())
             .collect(Collectors.toSet());
     assertContainsOnly(List.of(importUser.getUsername()), changeLogUsers);
   }
@@ -576,7 +574,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     Set<String> changeLogDataElements =
         changeLogs.getItems().stream()
-            .map(cl -> cl.getDataElement().getUid())
+            .map(cl -> cl.dataElement().getUid())
             .collect(Collectors.toSet());
     assertContainsOnly(List.of(dataElement), changeLogDataElements);
   }
@@ -600,9 +598,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             UID.of("D9PbzJY8bJM"), params, defaultPageParams);
 
     Set<String> changeLogOccurredAtFields =
-        changeLogs.getItems().stream()
-            .map(EventChangeLog::getEventField)
-            .collect(Collectors.toSet());
+        changeLogs.getItems().stream().map(EventChangeLog::eventField).collect(Collectors.toSet());
     assertContainsOnly(List.of(filterValue), changeLogOccurredAtFields);
   }
 
@@ -663,14 +659,14 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       String dataElement, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertDataElementChange(dataElement, null, currentValue, changeLog));
   }
 
   private void assertFieldCreate(String field, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertFieldChange(field, null, currentValue, changeLog));
   }
 
@@ -694,7 +690,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     assertAll(
         "asserting update to field " + field,
         () -> assertUser(user, changeLog),
-        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("UPDATE", changeLog.changeLogType().name()),
         () -> {
           if (dataElement != null) {
             assertDataElementChange(dataElement, previousValue, currentValue, changeLog);
@@ -707,46 +703,45 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   private static void assertDataElementChange(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
     assertEquals(
-        dataElement,
-        changeLog.getDataElement() != null ? changeLog.getDataElement().getUid() : null);
-    assertEquals(previousValue, changeLog.getPreviousValue());
-    assertEquals(currentValue, changeLog.getCurrentValue());
+        dataElement, changeLog.dataElement() != null ? changeLog.dataElement().getUid() : null);
+    assertEquals(previousValue, changeLog.previousValue());
+    assertEquals(currentValue, changeLog.currentValue());
   }
 
   private static void assertFieldChange(
       String field, String previousValue, String currentValue, EventChangeLog changeLog) {
-    assertEquals(field, changeLog.getEventField());
-    assertEquals(previousValue, changeLog.getPreviousValue());
-    assertEquals(currentValue, changeLog.getCurrentValue());
+    assertEquals(field, changeLog.eventField());
+    assertEquals(previousValue, changeLog.previousValue());
+    assertEquals(currentValue, changeLog.currentValue());
   }
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
+        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
         () ->
             assertEquals(
                 user.getFirstName(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getFirstName()),
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getFirstName()),
         () ->
             assertEquals(
                 user.getSurname(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getSurname()),
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getSurname()),
         () ->
             assertEquals(
                 user.getUid(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getUid()));
   }
 
   private List<EventChangeLog> getDataElementChangeLogs(
       Page<EventChangeLog> changeLogs, String dataElementUid) {
     return changeLogs.getItems().stream()
-        .filter(cl -> cl.getDataElement() != null)
-        .filter(cl -> cl.getDataElement().getUid().equals(dataElementUid))
+        .filter(cl -> cl.dataElement() != null)
+        .filter(cl -> cl.dataElement().getUid().equals(dataElementUid))
         .toList();
   }
 
   private List<EventChangeLog> getAllFieldChangeLogs(Page<EventChangeLog> changeLogs) {
-    return changeLogs.getItems().stream().filter(cl -> cl.getEventField() != null).toList();
+    return changeLogs.getItems().stream().filter(cl -> cl.eventField() != null).toList();
   }
 
   private void updateDataValues(Event event, String dataElementUid, String... values) {
@@ -760,12 +755,12 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   private String getDisplayName(EventChangeLog cl) {
-    if (cl.getEventField() != null) {
-      return cl.getEventField();
-    } else if (cl.getDataElement().getFormName() != null) {
-      return cl.getDataElement().getFormName();
+    if (cl.eventField() != null) {
+      return cl.eventField();
+    } else if (cl.dataElement().getFormName() != null) {
+      return cl.dataElement().getFormName();
     } else {
-      return cl.getDataElement().getName();
+      return cl.dataElement().getName();
     }
   }
 }

@@ -30,26 +30,15 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.Date;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-@Getter
-@RequiredArgsConstructor
-public class EventChangeLog {
-  private final DataElement dataElement;
-
-  private final String eventField;
-
-  private final String previousValue;
-
-  private final String currentValue;
-
-  private final ChangeLogType changeLogType;
-
-  private final Date created;
-
-  private final UserInfoSnapshot createdBy;
-}
+public record EventChangeLog(
+    DataElement dataElement,
+    String eventField,
+    String previousValue,
+    String currentValue,
+    ChangeLogType changeLogType,
+    Date created,
+    UserInfoSnapshot createdBy) {}

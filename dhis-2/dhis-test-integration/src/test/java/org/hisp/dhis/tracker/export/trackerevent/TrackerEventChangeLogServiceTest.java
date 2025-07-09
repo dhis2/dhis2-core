@@ -554,14 +554,14 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
       String dataElement, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertDataElementChange(dataElement, null, currentValue, changeLog));
   }
 
   private void assertFieldCreate(String field, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertFieldChange(field, null, currentValue, changeLog));
   }
 
@@ -584,7 +584,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
       User user) {
     assertAll(
         () -> assertUser(user, changeLog),
-        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("UPDATE", changeLog.changeLogType().name()),
         () -> {
           if (dataElement != null) {
             assertDataElementChange(dataElement, previousValue, currentValue, changeLog);
@@ -607,7 +607,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
       String dataElement, String field, String previousValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("DELETE", changeLog.changeLogType().name()),
         () -> {
           if (dataElement != null) {
             assertDataElementChange(dataElement, previousValue, null, changeLog);
@@ -620,47 +620,46 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   private static void assertDataElementChange(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
     assertEquals(
-        dataElement,
-        changeLog.getDataElement() != null ? changeLog.getDataElement().getUid() : null);
-    assertEquals(previousValue, changeLog.getPreviousValue());
-    assertEquals(currentValue, changeLog.getCurrentValue());
+        dataElement, changeLog.dataElement() != null ? changeLog.dataElement().getUid() : null);
+    assertEquals(previousValue, changeLog.previousValue());
+    assertEquals(currentValue, changeLog.currentValue());
   }
 
   private static void assertFieldChange(
       String field, String previousValue, String currentValue, EventChangeLog changeLog) {
-    assertEquals(field, changeLog.getEventField());
-    assertEquals(previousValue, changeLog.getPreviousValue());
-    assertEquals(currentValue, changeLog.getCurrentValue());
+    assertEquals(field, changeLog.eventField());
+    assertEquals(previousValue, changeLog.previousValue());
+    assertEquals(currentValue, changeLog.currentValue());
   }
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
+        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
         () ->
             assertEquals(
                 user.getFirstName(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getFirstName()),
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getFirstName()),
         () ->
             assertEquals(
                 user.getSurname(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getSurname()),
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getSurname()),
         () ->
             assertEquals(
                 user.getUid(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getUid()));
   }
 
   private List<EventChangeLog> getDataElementChangeLogs(Page<EventChangeLog> changeLogs) {
     return changeLogs.getItems().stream()
-        .filter(cl -> cl.getDataElement() != null)
-        .filter(cl -> cl.getDataElement().getUid().equals("DATAEL00001"))
+        .filter(cl -> cl.dataElement() != null)
+        .filter(cl -> cl.dataElement().getUid().equals("DATAEL00001"))
         .toList();
   }
 
   private List<EventChangeLog> getChangeLogsByField(
       Page<EventChangeLog> changeLogs, String fieldName) {
     return changeLogs.getItems().stream()
-        .filter(cl -> cl.getEventField() != null && cl.getEventField().equals(fieldName))
+        .filter(cl -> cl.eventField() != null && cl.eventField().equals(fieldName))
         .toList();
   }
 

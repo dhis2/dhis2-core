@@ -2756,7 +2756,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   private List<EventChangeLog> filterByDataElement(
       List<EventChangeLog> changeLogs, Set<String> dataElements) {
     return changeLogs.stream()
-        .filter(cl -> dataElements.contains(cl.getDataElement().getUid()))
+        .filter(cl -> dataElements.contains(cl.dataElement().getUid()))
         .toList();
   }
 }
