@@ -67,8 +67,15 @@ public class ZipFileUtils {
 
   /**
    * Finds the top level directory in a zip file with 'TOP_LEVEL_DIRECTORY_PREFIX_PATTERN' that
-   * matches then extract like this: 1. home/user/file.txt -> home/ 2. data\archive.zip -> data\ 3.
-   * project/src/main.java -> project/ 4. dir/ -> dir/
+   * matches then extract like this:
+   *
+   * <p>1: home/user/file.txt -> home/
+   *
+   * <p>2: data\archive.zip -> data\
+   *
+   * <p>3: project/src/main.java -> project/
+   *
+   * <p>4: dir/ -> dir/
    *
    * <p>It looks at the first entry and checks if all other files starts with the same folder name.
    * If not all entries are in the same root folder, it returns an empty string.

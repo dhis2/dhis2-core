@@ -47,10 +47,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.JCloudsAppStorageService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -88,6 +91,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Autowired private AppManager appManager;
+  @Autowired private JCloudsAppStorageService jCloudsAppStorageService;
 
   static {
     try {
@@ -130,6 +134,21 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         "31.0.0",
         result.getVersion(),
         "the version returned should match the version in the installed zip file");
+  }
+
+  @Test
+  @DisplayName(
+      "When installing multiple versions of the same app, only the last one installed should exist.")
+  void testInstallMultipleSameKey() throws IOException {
+    appManager.installApp(new ClassPathResource("app/app_ver1.zip").getFile());
+    appManager.installApp(new ClassPathResource("app/app_ver3.zip").getFile());
+    appManager.installApp(new ClassPathResource("app/app_ver2.zip").getFile());
+
+    Map<String, Pair<App, BundledAppInfo>> installedApps =
+        jCloudsAppStorageService.discoverInstalledApps();
+
+    assertEquals(1, installedApps.size());
+    assertEquals("2.0.0", installedApps.values().stream().findFirst().get().getLeft().getVersion());
   }
 
   @Test
