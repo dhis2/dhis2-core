@@ -73,9 +73,30 @@ public interface ProgramRuleActionService {
 
   List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
 
+  /**
+   * Retrieves all {@link org.hisp.dhis.program.ProgramStage} stages that are used in {@link
+   * ProgramRuleActionType#SCHEDULEEVENT} actions within a given program.
+   *
+   * <p>These program stages are referenced as targets for automatically scheduled events based on
+   * evaluated program rule conditions.
+   */
   List<String> getProgramStagesUsedInScheduleEventActions();
 
+  /**
+   * Retrieves all {@link org.hisp.dhis.dataelement.DataElement} data elements that are referenced
+   * in {@link ProgramRuleAction} objects.
+   *
+   * <p>These data elements are used in program rule actions such as assigning values, showing
+   * warnings/errors.
+   */
   List<String> getDataElementsPresentInProgramRuleActions();
 
+  /**
+   * Retrieves all {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute} attributes that are
+   * referenced in {@link ProgramRuleAction} objects.
+   *
+   * <p>These attributes are used in program rule actions such as assigning values, showing
+   * warnings/errors.
+   */
   List<String> getTrackedEntityAttributesPresentInProgramRuleActions();
 }
