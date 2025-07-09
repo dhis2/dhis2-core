@@ -140,12 +140,16 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName(
       "When installing multiple versions of the same app, only the last one installed should exist.")
   void testInstallMultipleSameKey() throws IOException {
+    // Clean up first
+    Map<String, Pair<App, BundledAppInfo>> installedApps =
+        jCloudsAppStorageService.discoverInstalledApps();
+    installedApps.values().forEach(p -> appManager.deleteApp(p.getLeft(), true));
+
     appManager.installApp(new ClassPathResource("app/app_ver1.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver3.zip").getFile());
     appManager.installApp(new ClassPathResource("app/app_ver2.zip").getFile());
 
-    Map<String, Pair<App, BundledAppInfo>> installedApps =
-        jCloudsAppStorageService.discoverInstalledApps();
+    installedApps = jCloudsAppStorageService.discoverInstalledApps();
 
     assertEquals(1, installedApps.size());
     assertEquals("2.0.0", installedApps.values().stream().findFirst().get().getLeft().getVersion());
