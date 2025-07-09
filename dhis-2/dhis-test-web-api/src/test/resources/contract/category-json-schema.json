@@ -1,0 +1,124 @@
+{
+  "type": "object",
+  "required": [
+    "aggregationType",
+    "dataDimensionType",
+    "valueType"
+  ],
+  "properties": {
+    "access": {
+      "type": "object"
+    },
+    "aggregationType": {
+      "type": "object"
+    },
+    "allItems": {
+      "type": "boolean"
+    },
+    "attributeValues": {
+      "type": "array"
+    },
+    "categoryCombos": {
+      "type": "array"
+    },
+    "categoryOptions": {
+      "type": "array"
+    },
+    "code": {
+      "type": "string"
+    },
+    "created": {
+      "type": "string"
+    },
+    "createdBy": {
+      "type": "object"
+    },
+    "dataDimension": {
+      "type": "boolean"
+    },
+    "dataDimensionType": {
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "dimension": {
+      "type": "string"
+    },
+    "dimensionItemKeywords": {
+      "type": "object"
+    },
+    "displayDescription": {
+      "type": "string"
+    },
+    "displayFormName": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "displayShortName": {
+      "type": "string"
+    },
+    "favorite": {
+      "type": "boolean"
+    },
+    "favorites": {
+      "type": "array"
+    },
+    "filter": {
+      "type": "string"
+    },
+    "formName": {
+      "type": "string"
+    },
+    "href": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array"
+    },
+    "lastUpdated": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "object"
+    },
+    "legendSet": {
+      "type": "object"
+    },
+    "name": {
+      "type": "string"
+    },
+    "optionSet": {
+      "type": "object"
+    },
+    "program": {
+      "type": "object"
+    },
+    "programStage": {
+      "type": "object"
+    },
+    "repetition": {
+      "type": "object"
+    },
+    "sharing": {
+      "type": "object"
+    },
+    "shortName": {
+      "type": "string"
+    },
+    "translations": {
+      "type": "array"
+    },
+    "valueType": {
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dhis2.org/Category.schema.json",
+  "title": "Category JSON Schema"
+}
