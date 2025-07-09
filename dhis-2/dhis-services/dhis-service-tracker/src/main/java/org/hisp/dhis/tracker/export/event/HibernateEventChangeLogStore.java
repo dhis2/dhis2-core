@@ -153,16 +153,16 @@ public abstract class HibernateEventChangeLogStore<T> {
         results.stream()
             .map(
                 row -> {
-                  DataElement dataElement = (DataElement) row[1];
-                  String eventField = (String) row[2];
-                  String previousValue = (String) row[3];
-                  String currentValue = (String) row[4];
-                  ChangeLogType changeLogType = (ChangeLogType) row[5];
-                  Date created = (Date) row[6];
+                  DataElement dataElement = (DataElement) row[0];
+                  String eventField = (String) row[1];
+                  String previousValue = (String) row[2];
+                  String currentValue = (String) row[3];
+                  ChangeLogType changeLogType = (ChangeLogType) row[4];
+                  Date created = (Date) row[5];
 
                   UserInfoSnapshot createdBy =
-                      new UserInfoSnapshot((String) row[7], (String) row[8], (String) row[9]);
-                  createdBy.setUid((String) row[10]);
+                      new UserInfoSnapshot((String) row[6], (String) row[7], (String) row[8]);
+                  createdBy.setUid((String) row[9]);
 
                   return new EventChangeLog(
                       dataElement,
