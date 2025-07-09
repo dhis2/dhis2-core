@@ -107,7 +107,6 @@ public abstract class HibernateEventChangeLogStore<T> {
         String.format(
             """
         select \
-            ecl.event, \
             ecl.dataElement, \
             ecl.eventField, \
             ecl.previousValue, \
