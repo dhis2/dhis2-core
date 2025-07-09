@@ -29,12 +29,16 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.SW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -115,6 +119,16 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertMinCharactersToSearch(trackedEntityAttributes, "TsfP85GKsU5", 0);
   }
 
+  @Test
+  void shouldSetPreferredSearchOperatorFromImportOrDefaultIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
+    assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
+    assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", SW);
+  }
+
   private void assertMinCharactersToSearch(
       List<TrackedEntityAttribute> teas, String uid, int expected) {
     TrackedEntityAttribute tea =
@@ -128,5 +142,20 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         expected,
         tea.getMinCharactersToSearch(),
         "Expected minCharactersToSearch for UID " + uid + " to be " + expected);
+  }
+
+  private void assertPreferredSearchOperator(
+      List<TrackedEntityAttribute> teas, String uid, QueryOperator expected) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.getPreferredSearchOperator(),
+        "Expected preferredSearchOperator for UID " + uid + " to be " + expected);
   }
 }
