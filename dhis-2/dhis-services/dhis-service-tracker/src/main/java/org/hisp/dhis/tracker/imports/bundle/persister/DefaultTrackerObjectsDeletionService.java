@@ -52,8 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -71,7 +72,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
-  private final EventChangeLogService eventChangeLogService;
+  private final SingleEventChangeLogService singleEventChangeLogService;
+
+  private final TrackerEventChangeLogService trackerEventChangeLogService;
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
@@ -198,7 +201,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      eventChangeLogService.deleteEventChangeLog(event);
+      trackerEventChangeLogService.deleteEventChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
@@ -278,7 +281,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      eventChangeLogService.deleteEventChangeLog(event);
+      singleEventChangeLogService.deleteEventChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
