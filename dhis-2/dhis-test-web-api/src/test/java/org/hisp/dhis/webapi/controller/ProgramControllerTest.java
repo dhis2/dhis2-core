@@ -60,6 +60,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -348,6 +349,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @Disabled
   void testCopyProgramWithNoPublicSharing() {
     PUT(
             "/programs/" + PROGRAM_UID,

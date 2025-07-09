@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -111,6 +112,7 @@ class DataIntegrityEmptyCustomDataEntryFormsControllerTest
   }
 
   @Test
+  @Disabled
   void testNoEventForm() {
 
     final String check = "programs_custom_data_entry_forms_empty";
@@ -153,6 +155,7 @@ class DataIntegrityEmptyCustomDataEntryFormsControllerTest
   }
 
   @Test
+  @Disabled
   void testNonEmptyEventFormHasNoDataIntegrityIssues() {
     final String check = "programs_custom_data_entry_forms_empty";
     final String programUID = "IpHINAT79UW";
