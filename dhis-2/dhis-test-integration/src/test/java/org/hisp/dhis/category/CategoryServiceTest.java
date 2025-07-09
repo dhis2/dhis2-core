@@ -347,11 +347,17 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     ccA = createCategoryCombo('A', categoryA, categoryB);
     categoryService.addCategoryCombo(ccA);
     categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    entityManager.flush();
+    entityManager.clear();
+
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
     CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
     categoryOption.setName("UpdateOption");
     categoryService.updateCategoryOption(categoryOption);
     categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
+    entityManager.flush();
+    entityManager.clear();
+
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
     assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
