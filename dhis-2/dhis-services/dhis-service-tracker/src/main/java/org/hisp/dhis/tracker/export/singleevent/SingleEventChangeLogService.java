@@ -27,18 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.Date;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
+import org.springframework.stereotype.Service;
 
-public record EventChangeLog(
-    DataElement dataElement,
-    String eventField,
-    String previousValue,
-    String currentValue,
-    ChangeLogType changeLogType,
-    Date created,
-    UserInfoSnapshot createdBy) {}
+@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
+public class SingleEventChangeLogService extends EventChangeLogService<SingleEventChangeLog> {
+
+  protected SingleEventChangeLogService(
+      SingleEventService singleEventService,
+      HibernateEventChangeLogStore<SingleEventChangeLog> hibernateEventChangeLogStore,
+      DhisConfigurationProvider config) {
+    super(singleEventService, hibernateEventChangeLogStore, config);
+  }
+
+  @Override
+  public SingleEventChangeLog buildEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String value,
+      ChangeLogType changeLogType,
+      Date created,
+      String userName) {
+    return new SingleEventChangeLog(
+        event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
+  }
+}

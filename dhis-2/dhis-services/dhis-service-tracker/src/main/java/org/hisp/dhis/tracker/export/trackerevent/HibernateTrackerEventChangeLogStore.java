@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.trackerevent;
 
-import java.util.Date;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
+import org.springframework.stereotype.Repository;
 
-public record EventChangeLog(
-    DataElement dataElement,
-    String eventField,
-    String previousValue,
-    String currentValue,
-    ChangeLogType changeLogType,
-    Date created,
-    UserInfoSnapshot createdBy) {}
+@Repository("org.hisp.dhis.tracker.export.trackerevent.HibernateTrackerEventChangeLogStore")
+class HibernateTrackerEventChangeLogStore
+    extends HibernateEventChangeLogStore<TrackerEventChangeLog> {
+
+  public HibernateTrackerEventChangeLogStore(EntityManager entityManager) {
+    super(entityManager);
+  }
+
+  @Override
+  public String getTableName() {
+    return "TrackerEventChangeLog";
+  }
+}

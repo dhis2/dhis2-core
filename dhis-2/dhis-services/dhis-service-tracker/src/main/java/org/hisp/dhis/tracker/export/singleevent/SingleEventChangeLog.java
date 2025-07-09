@@ -27,18 +27,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.Date;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-public record EventChangeLog(
-    DataElement dataElement,
-    String eventField,
-    String previousValue,
-    String currentValue,
-    ChangeLogType changeLogType,
-    Date created,
-    UserInfoSnapshot createdBy) {}
+@NoArgsConstructor
+@Getter
+@Setter
+public class SingleEventChangeLog {
+  private long id;
+
+  private Event event;
+
+  private DataElement dataElement;
+
+  private String eventField;
+
+  private String previousValue;
+
+  private String currentValue;
+
+  private ChangeLogType changeLogType;
+
+  private Date created;
+
+  private String createdByUsername;
+
+  private UserInfoSnapshot createdBy;
+
+  public SingleEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created,
+      String createdByUsername) {
+    this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
+    this.createdByUsername = createdByUsername;
+  }
+
+  private SingleEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String currentValue,
+      ChangeLogType changeLogType,
+      Date created) {
+    this.event = event;
+    this.dataElement = dataElement;
+    this.eventField = eventField;
+    this.previousValue = previousValue;
+    this.currentValue = currentValue;
+    this.changeLogType = changeLogType;
+    this.created = created;
+  }
+}

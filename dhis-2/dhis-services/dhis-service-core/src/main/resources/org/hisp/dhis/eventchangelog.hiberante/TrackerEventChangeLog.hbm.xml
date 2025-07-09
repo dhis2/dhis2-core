@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog" table="eventchangelog">
+
+    <id name="id" column="eventchangelogid">
+      <generator class="sequence">
+        <param name="sequence_name">eventchangelog_sequence</param>
+      </generator>
+    </id>
+
+    <many-to-one name="event" class="org.hisp.dhis.program.Event"
+      column="eventid" foreign-key="fk_eventchangelog_eventid" not-null="true"/>
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+      foreign-key="fk_eventchangelog_dataelementid" />
+
+    <property name="eventField" length="100" />
+
+    <property name="previousValue" length="50000" />
+
+    <property name="currentValue" length="50000" />
+
+    <property name="changeLogType" column="changelogtype" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.changelog.ChangeLogType</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+    <property name="created" type="timestamp" not-null="true"/>
+
+    <property name="createdByUsername" column="createdby" type="string"/>
+
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" insert="false" update="false" property-ref="username">
+      <column name="createdby" />
+    </many-to-one>
+  </class>
+</hibernate-mapping>

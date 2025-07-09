@@ -56,8 +56,8 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -74,12 +74,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrackerEventPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.TrackerEvent, Event> {
-  private final EventChangeLogService eventChangeLogService;
+  private final TrackerEventChangeLogService eventChangeLogService;
 
   public TrackerEventPersister(
       ReservedValueService reservedValueService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      EventChangeLogService eventChangeLogService) {
+      TrackerEventChangeLogService eventChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
     this.eventChangeLogService = eventChangeLogService;
   }

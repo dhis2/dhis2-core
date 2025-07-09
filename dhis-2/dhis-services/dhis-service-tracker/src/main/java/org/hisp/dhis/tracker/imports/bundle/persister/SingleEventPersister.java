@@ -56,7 +56,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -74,14 +74,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class SingleEventPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.SingleEvent, Event> {
-  private final EventChangeLogService eventChangeLogService;
+  private final SingleEventChangeLogService singleEventChangeLogService;
 
   public SingleEventPersister(
       ReservedValueService reservedValueService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      EventChangeLogService eventChangeLogService) {
+      SingleEventChangeLogService eventChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
-    this.eventChangeLogService = eventChangeLogService;
+    this.singleEventChangeLogService = eventChangeLogService;
   }
 
   @Override
@@ -180,7 +180,7 @@ public class SingleEventPersister
       Event currentEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    eventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
+    singleEventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
   }
 
   private void handleDataValues(
@@ -204,11 +204,11 @@ public class SingleEventPersister
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
+            singleEventChangeLogService.addEventChangeLog(
                 event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
+            singleEventChangeLogService.addEventChangeLog(
                 event,
                 dataElement,
                 dbDataValue.getValue(),
@@ -218,7 +218,7 @@ public class SingleEventPersister
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
+            singleEventChangeLogService.addEventChangeLog(
                 event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
