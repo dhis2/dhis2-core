@@ -50,8 +50,6 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
 
   @Autowired private ProgramStageService programStageService;
 
-  private ProgramStage programStageA;
-
   private Program programA;
 
   private Program programB;
@@ -75,7 +73,7 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
     ProgramStage programStageB = new ProgramStage();
     programStageB.setAutoFields();
     programStageB.setName("programStageB");
-    programStageA.setProgram(programB);
+    programStageB.setProgram(programB);
 
     ProgramRule programRuleB = new ProgramRule();
     programRuleB.setAutoFields();
@@ -111,7 +109,7 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
     programB.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programB);
 
-    programStageA = new ProgramStage();
+    ProgramStage programStageA = new ProgramStage();
     programStageA.setAutoFields();
     programStageA.setName("programStageA");
     programStageA.setProgram(programA);
