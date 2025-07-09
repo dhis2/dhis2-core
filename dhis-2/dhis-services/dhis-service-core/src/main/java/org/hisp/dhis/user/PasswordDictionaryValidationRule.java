@@ -29,16 +29,17 @@
  */
 package org.hisp.dhis.user;
 
-import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_RESERVED_WORD;
 
 import java.util.List;
 
-/** Created by zubair on 16.03.17. */
+/**
+ * @author Zubair
+ */
 public class PasswordDictionaryValidationRule implements PasswordValidationRule {
   private static final List<String> DICTIONARY =
-      asList(
+      List.of(
           "user", "admin", "system", "administrator", "username", "password", "login", "manager");
 
   @Override

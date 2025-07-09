@@ -30,8 +30,8 @@
 package org.hisp.dhis.user;
 
 import java.util.Date;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Bean used when finding user accounts that are soon to expire.
@@ -39,7 +39,7 @@ import lombok.Getter;
  * @author Jan Bernitt
  */
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public final class UserAccountExpiryInfo {
   private final String username;
 

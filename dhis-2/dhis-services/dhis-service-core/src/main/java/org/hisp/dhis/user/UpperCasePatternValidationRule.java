@@ -33,7 +33,9 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_UPPE
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 08.03.17. */
+/**
+ * @author Zubair
+ */
 public class UpperCasePatternValidationRule implements PasswordValidationRule {
   private static final Pattern UPPERCASE_PATTERN = Pattern.compile(".*[A-Z].*");
 

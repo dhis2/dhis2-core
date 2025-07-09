@@ -679,6 +679,13 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
+   * @return The limit of combinations of columns and rows allowed in downloads.
+   */
+  default int getAnalyticsDownloadCombinationLimit() {
+    return asInt("keyAnalyticsDownloadCombinationLimit", 20000);
+  }
+
+  /**
    * @return Max tracked entity records that can be retrieved from database.
    */
   default int getTrackedEntityMaxLimit() {

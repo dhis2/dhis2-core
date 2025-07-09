@@ -29,11 +29,16 @@
  */
 package org.hisp.dhis.user;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
- * Possible reasons for passwords to be invalid.
+ * Reasons for passwords to be invalid.
  *
  * @author Jan Bernitt
  */
+@Getter
+@RequiredArgsConstructor
 public enum PasswordValidationError {
   PASSWORD_IS_MANDATORY("mandatory_parameter_missing", "Username or Password is missing"),
   PASSWORD_TOO_LONG_TOO_SHORT(
@@ -52,20 +57,7 @@ public enum PasswordValidationError {
   PASSWORD_ALREADY_USED_BEFORE(
       "password_history_validation", "Password must not be one of the previous %d passwords");
 
-  private final String message;
-
   private final String i18nKey;
 
-  PasswordValidationError(String i18nKey, String message) {
-    this.message = message;
-    this.i18nKey = i18nKey;
-  }
-
-  public String getMessage() {
-    return message;
-  }
-
-  public String getI18nKey() {
-    return i18nKey;
-  }
+  private final String message;
 }

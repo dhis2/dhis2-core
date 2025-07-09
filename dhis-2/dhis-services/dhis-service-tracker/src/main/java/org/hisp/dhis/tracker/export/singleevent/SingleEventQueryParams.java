@@ -49,6 +49,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -233,14 +234,15 @@ class SingleEventQueryParams {
     return this;
   }
 
-  public SingleEventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
+  public SingleEventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter)
+      throws BadRequestException {
     this.dataElements.putIfAbsent(de, new ArrayList<>());
     this.dataElements.get(de).add(FilterJdbcPredicate.of(de, filter, "ev"));
     this.hasDataElementFilter = true;
     return this;
   }
 
-  public SingleEventQueryParams filterBy(DataElement de) {
+  public SingleEventQueryParams filterBy(DataElement de) throws BadRequestException {
     this.dataElements.putIfAbsent(
         de, List.of(FilterJdbcPredicate.of(de, new QueryFilter(QueryOperator.NNULL), "ev")));
     return this;

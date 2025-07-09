@@ -100,6 +100,11 @@ public class RelationshipPersister
   }
 
   @Override
+  protected List<Relationship> getByType(TrackerBundle bundle) {
+    return bundle.getRelationships();
+  }
+
+  @Override
   protected void persistOwnership(
       TrackerBundle bundle,
       Relationship trackerDto,
