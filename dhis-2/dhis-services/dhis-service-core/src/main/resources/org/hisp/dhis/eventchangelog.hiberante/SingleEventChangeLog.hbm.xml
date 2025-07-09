@@ -24,7 +24,13 @@
 
     <property name="currentValue" length="50000" />
 
-    <property name="changeLogType" column="changelogtype" length="100" not-null="true"/>
+    <property name="changeLogType" column="changelogtype" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.changelog.ChangeLogType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <property name="created" type="timestamp" not-null="true"/>
 
