@@ -208,8 +208,8 @@ class TrackedEntityOperationParamsMapper {
                 || queryFilter.getFilter().length() < tea.getMinCharactersToSearch())) {
           throw new IllegalQueryException(
               String.format(
-                  "At least %d character(s) should be present in the filter to start a search, but the filter for operator %s doesn't contain enough.",
-                  tea.getMinCharactersToSearch(), queryFilter.getOperator()));
+                  "At least %d character(s) should be present in the filter to start a search, but the filter for the TEA %s doesn't contain enough.",
+                  tea.getMinCharactersToSearch(), tea.getUid()));
         }
       }
 

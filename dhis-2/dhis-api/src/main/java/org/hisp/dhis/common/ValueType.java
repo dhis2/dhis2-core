@@ -330,4 +330,12 @@ public enum ValueType {
         .filter(v -> Arrays.stream(AggregationType.values()).anyMatch(v::isAggregatable))
         .collect(toSet());
   }
+
+  public QueryOperator getDefaultOperator() {
+    return switch (this) {
+      case TEXT, LONG_TEXT, MULTI_TEXT, PHONE_NUMBER, EMAIL, URL, GEOJSON, COORDINATE ->
+          QueryOperator.SW;
+      default -> QueryOperator.EQ;
+    };
+  }
 }

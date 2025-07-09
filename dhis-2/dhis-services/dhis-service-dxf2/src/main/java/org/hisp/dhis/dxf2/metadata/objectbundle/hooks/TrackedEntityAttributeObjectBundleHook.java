@@ -71,6 +71,10 @@ public class TrackedEntityAttributeObjectBundleHook
                 "Not a valid TextPattern 'TEXT' segment."));
       }
     }
+
+    if (attr.getPreferredSearchOperator() == null) {
+      attr.setPreferredSearchOperator(attr.getValueType().getDefaultOperator());
+    }
   }
 
   @Override

@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
@@ -100,6 +101,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   private Boolean skipSynchronization = false;
 
   private int minCharactersToSearch;
+
+  private QueryOperator preferredSearchOperator;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -379,6 +382,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setMinCharactersToSearch(int minCharactersToSearch) {
     this.minCharactersToSearch = minCharactersToSearch;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public QueryOperator getPreferredSearchOperator() {
+    return preferredSearchOperator;
+  }
+
+  public void setPreferredSearchOperator(QueryOperator preferredSearchOperator) {
+    this.preferredSearchOperator = preferredSearchOperator;
   }
 
   @JsonProperty

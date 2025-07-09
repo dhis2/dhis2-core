@@ -56,6 +56,7 @@
       "attributeValues": [],
       "legendSets": [],
       "minCharactersToSearch": 2,
+      "preferredSearchOperator": "LIKE",
       "sharing": {
         "public": "rw------",
         "external": false,
