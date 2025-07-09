@@ -48,6 +48,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +81,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -160,9 +160,10 @@ public class DefaultAppManager implements AppManager {
    * Installs bundled apps, by looking in the classpath for app .zip files. If the bundled app is
    * already installed, it can be overwritten with a newer one if the Etag is different.
    *
-   * @param installedApps the Map to put the installed apps in
+   * @param installedApps the Map with all existing apps, we overwrite existing apps in this Map
+   *     with new ones.
    */
-  private void installBundledApps(Map<String, Pair<App, BundledAppInfo>> installedApps) {
+  private void installBundledApps(@Nonnull Map<String, Pair<App, BundledAppInfo>> installedApps) {
     bundledAppManager.installBundledApps(
         (app, bundledAppInfo, zipFileResource) -> {
           String appKey = app.getKey();
@@ -192,7 +193,7 @@ public class DefaultAppManager implements AppManager {
         });
   }
 
-  private void cacheApp(App app) {
+  private void cacheApp(@Nonnull App app) {
     if (app.getAppState() == AppStatus.OK) {
       appCache.put(app.getKey(), app);
       registerDatastoreProtection(app);
@@ -208,7 +209,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public List<App> getApps(String contextPath, int max) {
+  @Nonnull
+  public List<App> getApps(@CheckForNull String contextPath, int max) {
     return getAppsList(getAccessibleAppsStream(), max, contextPath);
   }
 
@@ -256,7 +258,9 @@ public class DefaultAppManager implements AppManager {
    * @param contextPath the path used to initialize each {@link App}.
    * @return the list of {@link App}.
    */
-  private List<App> getAppsList(Stream<App> stream, int max, String contextPath) {
+  @Nonnull
+  private List<App> getAppsList(
+      @Nonnull Stream<App> stream, int max, @CheckForNull String contextPath) {
     if (max >= 0) {
       stream = stream.limit(max);
     }
@@ -279,7 +283,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public List<App> getApps(String contextPath) {
+  @Nonnull
+  public List<App> getApps(@CheckForNull String contextPath) {
     return this.getApps(contextPath, -1);
   }
 
@@ -324,7 +329,7 @@ public class DefaultAppManager implements AppManager {
     return modules;
   }
 
-  private List<WebModule> getAccessibleAppMenu(String contextPath) {
+  private List<WebModule> getAccessibleAppMenu(@CheckForNull String contextPath) {
     List<WebModule> modules = new ArrayList<>();
     List<App> apps =
         getApps(contextPath).stream()
@@ -401,7 +406,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App getApp(String key, String contextPath) {
+  @CheckForNull
+  public App getApp(@Nonnull String key, @Nonnull String contextPath) {
     Collection<App> apps = getApps(contextPath);
     for (App app : apps) {
       if (key.equals(app.getKey())) {
@@ -412,11 +418,13 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App installApp(File file) {
+  @Nonnull
+  public App installApp(@Nonnull File file) {
     return installAppZipFile(file, null);
   }
 
-  private App installAppZipFile(File file, BundledAppInfo bundledAppInfo) {
+  @Nonnull
+  private App installAppZipFile(@Nonnull File file, @CheckForNull BundledAppInfo bundledAppInfo) {
     App app = jCloudsAppStorageService.installApp(file, appCache, bundledAppInfo);
     log.debug(
         String.format(
@@ -426,7 +434,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Nonnull
-  public App installBundledAppResource(Resource resource, BundledAppInfo bundledAppInfo) {
+  public App installBundledAppResource(
+      @Nonnull Resource resource, @Nonnull BundledAppInfo bundledAppInfo) {
     try {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", CodeGenerator.generateUid());
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
@@ -445,7 +454,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   @Nonnull
-  public App installAppByHubId(UUID appHubId) {
+  public App installAppByHubId(@CheckForNull UUID appHubId) {
     App installedApp = new App();
     if (appHubId == null) {
       installedApp.setAppState(AppStatus.NOT_FOUND);
@@ -488,16 +497,8 @@ public class DefaultAppManager implements AppManager {
     return getApp(appName) != null;
   }
 
-  @Async
-  public void deleteAppFromStorageAsync(App app) {
-    if (app != null) {
-      jCloudsAppStorageService.deleteApp(app);
-    }
-    reloadApps();
-  }
-
   @Override
-  public boolean deleteApp(App app, boolean deleteAppData) {
+  public boolean deleteApp(@Nonnull App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
 
@@ -508,7 +509,8 @@ public class DefaultAppManager implements AppManager {
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
 
-    deleteAppFromStorageAsync(app);
+    jCloudsAppStorageService.deleteApp(app);
+    reloadApps();
 
     boolean isBundledAppOverride = app.isBundled();
     // If a bundled version exists it will replace the deleted override.

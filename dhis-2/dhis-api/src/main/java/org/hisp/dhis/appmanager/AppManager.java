@@ -43,6 +43,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,7 +144,8 @@ public interface AppManager {
    * @param file the app file.
    * @return the installed app instance
    */
-  App installApp(File file);
+  @Nonnull
+  App installApp(@Nonnull File file);
 
   /**
    * Installs an app from the AppHub with the given ID.
@@ -150,7 +153,8 @@ public interface AppManager {
    * @param appHubId A unqiue ID for a specific app version
    * @return outcome of the installation
    */
-  App installAppByHubId(UUID appHubId);
+  @Nonnull
+  App installAppByHubId(@CheckForNull UUID appHubId);
 
   /**
    * Indicates whether the app with the given name exist.
@@ -206,7 +210,7 @@ public interface AppManager {
    * @param deleteAppData decide if associated data in dataStore should be deleted or not.
    * @return true if the status was changed in this method.
    */
-  boolean deleteApp(App app, boolean deleteAppData);
+  boolean deleteApp(@Nonnull App app, boolean deleteAppData);
 
   int getUriContentLength(Resource resource);
 

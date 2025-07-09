@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -104,7 +106,7 @@ public class BundledAppManager {
     cacheAppManifestsAndBundleInfo();
   }
 
-  public void installBundledApps(TriConsumer<App, BundledAppInfo, Resource> consumer) {
+  public void installBundledApps(@Nonnull TriConsumer<App, BundledAppInfo, Resource> consumer) {
     AppBundleInfo appBundleInfo = getCachedBundleInfo();
     if (appBundleInfo == null) {
       return;
@@ -138,11 +140,14 @@ public class BundledAppManager {
           try (InputStream inputStream = zipFileResource.getInputStream()) {
             Path tempFile = Files.createTempFile("bundled-app-" + fileName, ".zip");
             Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+
             File zipFile = tempFile.toFile();
             String topLevelFolder = ZipFileUtils.getTopLevelFolder(zipFile);
             App app = AppManager.readAppManifest(zipFile, jsonMapper, topLevelFolder);
+
             bundledAppsKeys.add(app.getKey());
             bundledApps.put(fileName, Pair.of(app, bundledAppInfo));
+
             Files.deleteIfExists(tempFile);
           } catch (IOException e) {
             log.error(
@@ -164,6 +169,7 @@ public class BundledAppManager {
     }
   }
 
+  @CheckForNull
   public static InputStream getAppBundleInfoInputStream() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();

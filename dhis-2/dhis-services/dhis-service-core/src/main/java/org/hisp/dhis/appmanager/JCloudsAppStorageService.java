@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -52,6 +51,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,6 +95,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final FileResourceContentStore fileResourceContentStore;
 
   @Override
+  @Nonnull
   public Map<String, Pair<App, BundledAppInfo>> discoverInstalledApps() {
     Map<String, Pair<App, BundledAppInfo>> apps = new HashMap<>();
     discoverInstalledApps((app, appInfo) -> apps.put(app.getKey(), Pair.of(app, appInfo)));
@@ -222,7 +223,11 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public App installApp(File file, Cache<App> appCache, BundledAppInfo bundledAppInfo) {
+  @Nonnull
+  public App installApp(
+      @Nonnull File file,
+      @Nonnull Cache<App> appCache,
+      @CheckForNull BundledAppInfo bundledAppInfo) {
     App app;
     String topLevelFolder;
     String installationFolder;
@@ -256,9 +261,9 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     try {
       ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
-
       unzipFile(file, installationFolder, topLevelFolder);
-      removePreviousVersions(app, bundledAppInfo);
+
+      removeOtherAppsWithSameKey(app);
 
       app.setAppState(AppStatus.OK);
       logInstallSuccess(app, installationFolder);
@@ -282,8 +287,13 @@ public class JCloudsAppStorageService implements AppStorageService {
     return app;
   }
 
+  /**
+   * Add a random generated part on the installation folder to avoid collisions.
+   *
+   * @param app the app manifest
+   * @return the name of the folder to install the app
+   */
   private String getInstallationFolder(App app) {
-    // Add a random generated name part for the installation folder to avoid collisions.
     String appKey = app.getKey();
     String folderName =
         appKey.length() > 32
@@ -334,30 +344,21 @@ public class JCloudsAppStorageService implements AppStorageService {
     baos.close();
   }
 
-  private void removePreviousVersions(App newApp, BundledAppInfo bundledAppInfo) {
-    List<App> appsToRemove = new ArrayList<>();
-    String key = newApp.getKey();
-    String version = newApp.getVersion();
-
+  /**
+   * Simpy removes all other apps with the same key as the one we are installing.
+   *
+   * @param newApp the manifest of the app we are trying to install
+   */
+  private void removeOtherAppsWithSameKey(@Nonnull App newApp) {
     discoverInstalledApps(
         (a, bai) -> {
-          if (key.equals(a.getKey()) && !version.equals(a.getVersion())) appsToRemove.add(a);
-          // Remove bundled apps that have same version and are development versions,
-          // then differentiated only by Etag
-          if (bundledAppInfo != null
-              && bai != null
-              && key.equals(a.getKey())
-              && !version.equals(a.getVersion())
-              && !bai.getEtag().equals(bundledAppInfo.getEtag())) {
-            appsToRemove.add(a);
-          }
+          if (newApp.getKey().equals(a.getKey())
+              && !newApp.getFolderName().equals(a.getFolderName())) deleteApp(a);
         });
-
-    appsToRemove.forEach(this::deleteApp);
   }
 
   @Override
-  public void deleteApp(App app) {
+  public void deleteApp(@Nonnull App app) {
     // delete the manifest file first in case the system crashes during deletion
     // and the manifest file is not deleted, resulting in an app that can't be installed
     String folderName = app.getFolderName();
@@ -382,7 +383,9 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public ResourceResult getAppResource(App app, @Nonnull String resource) throws IOException {
+  @Nonnull
+  public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
+      throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
