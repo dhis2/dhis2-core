@@ -337,7 +337,7 @@ public class Period extends BaseDimensionalItemObject {
 
   @Override
   public int hashCode() {
-    return getIsoDate().hashCode();
+    return Objects.hash(getIsoDate().hashCode(), dateField);
   }
 
   @Override
@@ -346,7 +346,8 @@ public class Period extends BaseDimensionalItemObject {
   }
 
   private boolean objectEquals(Period other) {
-    return Objects.equals(getIsoDate(), other.getIsoDate());
+    return Objects.equals(getIsoDate(), other.getIsoDate())
+        && Objects.equals(dateField, other.dateField);
   }
 
   @Override
