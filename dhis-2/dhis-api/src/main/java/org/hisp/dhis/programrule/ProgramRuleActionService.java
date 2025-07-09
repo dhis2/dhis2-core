@@ -30,7 +30,6 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author markusbekken
@@ -76,9 +75,7 @@ public interface ProgramRuleActionService {
 
   List<String> getProgramStagesUsedInScheduleEventActions();
 
-  @Transactional(readOnly = true)
   List<String> getDataElementsPresentInProgramRuleActions();
 
-  @Transactional(readOnly = true)
   List<String> getTrackedEntityAttributesPresentInProgramRuleActions();
 }
