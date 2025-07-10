@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Luciano Fiandesio
  */
 @Slf4j
+@Deprecated(since = "v43", forRemoval = true)
 public class C3p0MetadataProvider extends AbstractPoolMetadata<ComboPooledDataSource> {
   /**
    * Create an instance with the data source to use.

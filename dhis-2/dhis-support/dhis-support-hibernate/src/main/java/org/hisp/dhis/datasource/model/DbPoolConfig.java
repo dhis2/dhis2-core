@@ -57,10 +57,13 @@ public class DbPoolConfig {
 
   private String maxPoolSize;
 
+  @Deprecated(since = "v43", forRemoval = true)
   private String acquireIncrement;
 
+  @Deprecated(since = "v43", forRemoval = true)
   private String acquireRetryAttempts;
 
+  @Deprecated(since = "v43", forRemoval = true)
   private String acquireRetryDelay;
 
   private String maxIdleTime;
