@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 
 import java.util.Calendar;
@@ -101,13 +102,14 @@ public class DefaultDataValueService implements DataValueService {
   }
 
   @Override
-  @Transactional
-  public void updateDataValue(DataValue dataValue) throws ConflictException, BadRequestException {
-    dviService.importValue(false, null, toDviValue(dataValue));
+  @IndirectTransactional
+  public void updateDataValue(DataValue dv) throws ConflictException, BadRequestException {
+    if (isNullOrEmpty(dv.getValue()) && isNullOrEmpty(dv.getComment())) dv.setDeleted(true);
+    dviService.importValue(false, null, toDviValue(dv));
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public void updateDataValues(List<DataValue> dataValues) throws ConflictException {
     dviService.importAll(
         new DviUpsertRequest.Options(false, true, false),
@@ -116,7 +118,7 @@ public class DefaultDataValueService implements DataValueService {
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public void deleteDataValue(DataValue dataValue) throws ConflictException, BadRequestException {
     DviKey key =
         new DviKey(

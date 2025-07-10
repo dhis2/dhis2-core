@@ -62,8 +62,10 @@ public interface DataValueService {
   boolean addDataValue(DataValue dataValue);
 
   /**
-   * Updates a DataValue. If both the value and the comment properties of the specified DataValue
-   * object are null, then the object should be deleted from the underlying storage.
+   * Upserts a data value.
+   *
+   * <p>If both the value and the comment properties of the specified DataValue object are null or
+   * empty, then the object should be deleted from the underlying storage.
    *
    * @param dataValue the DataValue to update.
    * @throws ConflictException when the submitted value is invalid
