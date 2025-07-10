@@ -55,6 +55,7 @@
       "translations": [],
       "attributeValues": [],
       "legendSets": [],
+      "minCharactersToSearch": 2,
       "sharing": {
         "public": "rw------",
         "external": false,

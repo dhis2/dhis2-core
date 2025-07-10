@@ -52,8 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -71,108 +72,13 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
-  private final EventChangeLogService eventChangeLogService;
+  private final SingleEventChangeLogService singleEventChangeLogService;
+
+  private final TrackerEventChangeLogService trackerEventChangeLogService;
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
-
-  @Override
-  public TrackerTypeReport deleteEnrollments(List<UID> enrollments) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
-    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
-
-    for (UID uid : enrollments) {
-      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
-
-      Enrollment enrollment = manager.get(Enrollment.class, uid);
-      if (enrollment == null) {
-        throw new NotFoundException(Enrollment.class, uid);
-      }
-      enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
-
-      List<UID> events =
-          enrollment.getEvents().stream().filter(event -> !event.isDeleted()).map(UID::of).toList();
-      deleteEvents(events);
-
-      List<UID> relationships =
-          enrollment.getRelationshipItems().stream()
-              .map(RelationshipItem::getRelationship)
-              .filter(r -> !r.isDeleted())
-              .map(UID::of)
-              .toList();
-      deleteRelationships(relationships);
-
-      List<ProgramNotificationInstance> notificationInstances =
-          programNotificationInstanceService.getProgramNotificationInstances(
-              ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
-
-      notificationInstances.forEach(programNotificationInstanceService::delete);
-
-      TrackedEntity te = enrollment.getTrackedEntity();
-      te.setLastUpdatedByUserInfo(userInfoSnapshot);
-
-      manager.delete(enrollment);
-
-      manager.update(te);
-
-      typeReport.getStats().incDeleted();
-      typeReport.addEntity(objectReport);
-    }
-
-    return typeReport;
-  }
-
-  @Override
-  public TrackerTypeReport deleteEvents(List<UID> events) throws NotFoundException {
-    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
-    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
-    for (UID uid : events) {
-      Entity objectReport = new Entity(TrackerType.EVENT, uid);
-
-      Event event = manager.get(Event.class, uid);
-      if (event == null) {
-        throw new NotFoundException(Event.class, uid);
-      }
-      event.setLastUpdatedByUserInfo(userInfoSnapshot);
-
-      List<UID> relationships =
-          event.getRelationshipItems().stream()
-              .map(RelationshipItem::getRelationship)
-              .filter(r -> !r.isDeleted())
-              .map(UID::of)
-              .toList();
-
-      deleteRelationships(relationships);
-
-      eventChangeLogService.deleteEventChangeLog(event);
-
-      List<ProgramNotificationInstance> notificationInstances =
-          programNotificationInstanceService.getProgramNotificationInstances(
-              ProgramNotificationInstanceParam.builder().event(event).build());
-
-      notificationInstances.forEach(programNotificationInstanceService::delete);
-
-      manager.delete(event);
-
-      if (event.getProgramStage().getProgram().isRegistration()) {
-        TrackedEntity entity = event.getEnrollment().getTrackedEntity();
-        entity.setLastUpdatedByUserInfo(userInfoSnapshot);
-
-        manager.update(entity);
-
-        Enrollment enrollment = event.getEnrollment();
-        enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
-
-        manager.update(enrollment);
-      }
-
-      typeReport.getStats().incDeleted();
-      typeReport.addEntity(objectReport);
-    }
-
-    return typeReport;
-  }
 
   @Override
   public TrackerTypeReport deleteTrackedEntities(List<UID> trackedEntities)
@@ -228,6 +134,101 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
+  public TrackerTypeReport deleteEnrollments(List<UID> enrollments) throws NotFoundException {
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
+
+    for (UID uid : enrollments) {
+      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
+
+      Enrollment enrollment = manager.get(Enrollment.class, uid);
+      if (enrollment == null) {
+        throw new NotFoundException(Enrollment.class, uid);
+      }
+      enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
+
+      List<UID> events =
+          enrollment.getEvents().stream().filter(event -> !event.isDeleted()).map(UID::of).toList();
+      deleteTrackerEvents(events);
+
+      List<UID> relationships =
+          enrollment.getRelationshipItems().stream()
+              .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
+              .map(UID::of)
+              .toList();
+      deleteRelationships(relationships);
+
+      List<ProgramNotificationInstance> notificationInstances =
+          programNotificationInstanceService.getProgramNotificationInstances(
+              ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
+
+      notificationInstances.forEach(programNotificationInstanceService::delete);
+
+      TrackedEntity te = enrollment.getTrackedEntity();
+      te.setLastUpdatedByUserInfo(userInfoSnapshot);
+
+      manager.delete(enrollment);
+
+      manager.update(te);
+
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
+    }
+
+    return typeReport;
+  }
+
+  @Override
+  public TrackerTypeReport deleteTrackerEvents(List<UID> events) throws NotFoundException {
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
+    for (UID uid : events) {
+      Entity objectReport = new Entity(TrackerType.EVENT, uid);
+
+      Event event = manager.get(Event.class, uid);
+      if (event == null) {
+        throw new NotFoundException(Event.class, uid);
+      }
+      event.setLastUpdatedByUserInfo(userInfoSnapshot);
+
+      List<UID> relationships =
+          event.getRelationshipItems().stream()
+              .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
+              .map(UID::of)
+              .toList();
+
+      deleteRelationships(relationships);
+
+      trackerEventChangeLogService.deleteEventChangeLog(event);
+
+      List<ProgramNotificationInstance> notificationInstances =
+          programNotificationInstanceService.getProgramNotificationInstances(
+              ProgramNotificationInstanceParam.builder().event(event).build());
+
+      notificationInstances.forEach(programNotificationInstanceService::delete);
+
+      manager.delete(event);
+
+      TrackedEntity entity = event.getEnrollment().getTrackedEntity();
+      entity.setLastUpdatedByUserInfo(userInfoSnapshot);
+
+      manager.update(entity);
+
+      Enrollment enrollment = event.getEnrollment();
+      enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
+
+      manager.update(enrollment);
+
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
+    }
+
+    return typeReport;
+  }
+
+  @Override
   public TrackerTypeReport deleteRelationships(List<UID> relationships) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
     UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
@@ -250,6 +251,45 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               });
 
       manager.delete(relationship);
+
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
+    }
+
+    return typeReport;
+  }
+
+  @Override
+  public TrackerTypeReport deleteSingleEvents(List<UID> events) throws NotFoundException {
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
+    for (UID uid : events) {
+      Entity objectReport = new Entity(TrackerType.EVENT, uid);
+
+      Event event = manager.get(Event.class, uid);
+      if (event == null) {
+        throw new NotFoundException(Event.class, uid);
+      }
+      event.setLastUpdatedByUserInfo(userInfoSnapshot);
+
+      List<UID> relationships =
+          event.getRelationshipItems().stream()
+              .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
+              .map(UID::of)
+              .toList();
+
+      deleteRelationships(relationships);
+
+      singleEventChangeLogService.deleteEventChangeLog(event);
+
+      List<ProgramNotificationInstance> notificationInstances =
+          programNotificationInstanceService.getProgramNotificationInstances(
+              ProgramNotificationInstanceParam.builder().event(event).build());
+
+      notificationInstances.forEach(programNotificationInstanceService::delete);
+
+      manager.delete(event);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);

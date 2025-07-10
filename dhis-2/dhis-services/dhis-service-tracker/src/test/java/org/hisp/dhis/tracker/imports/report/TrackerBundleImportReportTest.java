@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -124,7 +127,13 @@ class TrackerBundleImportReportTest {
     typeReport.getStats().setUpdated(2);
     typeReport.getStats().setDeleted(3);
     typeReportMap.put(TRACKED_ENTITY, typeReport);
-    PersistenceReport persistenceReport = new PersistenceReport(typeReportMap);
+    PersistenceReport persistenceReport =
+        new PersistenceReport(
+            typeReport,
+            new TrackerTypeReport(ENROLLMENT),
+            new TrackerTypeReport(EVENT),
+            new TrackerTypeReport(EVENT),
+            new TrackerTypeReport(RELATIONSHIP));
 
     // Build ValidationReport
     ValidationReport tvr = ValidationReport.emptyReport();

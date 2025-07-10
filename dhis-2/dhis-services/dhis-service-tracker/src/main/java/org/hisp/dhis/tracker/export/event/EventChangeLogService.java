@@ -29,57 +29,188 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
+import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.locationtech.jts.geom.Geometry;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface EventChangeLogService {
+public abstract class EventChangeLogService<T> {
 
-  /**
-   * Retrieves the change log data for a particular event.
-   *
-   * @return event change logs page
-   */
+  private final EventService eventService;
+  private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
+  private final DhisConfigurationProvider config;
+
+  protected EventChangeLogService(
+      EventService eventService,
+      HibernateEventChangeLogStore<T> hibernateEventChangeLogStore,
+      DhisConfigurationProvider config) {
+    this.eventService = eventService;
+    this.hibernateEventChangeLogStore = hibernateEventChangeLogStore;
+    this.config = config;
+  }
+
+  public abstract T buildEventChangeLog(
+      Event event,
+      DataElement dataElement,
+      String eventField,
+      String previousValue,
+      String value,
+      ChangeLogType changeLogType,
+      Date created,
+      String userName);
+
   @Nonnull
-  Page<EventChangeLog> getEventChangeLog(
+  @Transactional(readOnly = true)
+  public Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException;
+      throws NotFoundException {
+    if (eventService.findEvent(event).isEmpty()) {
+      throw new NotFoundException(Event.class, event);
+    }
 
-  void addEventChangeLog(
+    return hibernateEventChangeLogStore.getEventChangeLogs(event, operationParams, pageParams);
+  }
+
+  @Transactional
+  public void deleteEventChangeLog(Event event) {
+    hibernateEventChangeLogStore.deleteEventChangeLog(event);
+  }
+
+  @Transactional
+  public void deleteEventChangeLog(DataElement dataElement) {
+    hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
+  }
+
+  @Transactional
+  public void addEventChangeLog(
       Event event,
       DataElement dataElement,
       String previousValue,
       String value,
       ChangeLogType changeLogType,
-      String userName);
+      String userName) {
+    if (config.isDisabled(CHANGELOG_TRACKER)) {
+      return;
+    }
 
-  void addFieldChangeLog(
-      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String userName);
+    T eventChangeLog =
+        buildEventChangeLog(
+            event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
 
-  void deleteEventChangeLog(Event event);
+    hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+  }
 
-  void deleteEventChangeLog(DataElement dataElement);
+  @Transactional
+  public void addFieldChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+    if (config.isDisabled(CHANGELOG_TRACKER)) {
+      return;
+    }
 
-  /**
-   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order
-   * event change logs by. Ordering by fields other than these, is considered a programmer error.
-   * Validation of user provided field names should occur before calling {@link
-   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
-   */
-  Set<String> getOrderableFields();
+    logIfChanged(
+        "scheduledAt",
+        Event::getScheduledDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "occurredAt",
+        Event::getOccurredDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "geometry",
+        Event::getGeometry,
+        EventChangeLogService::formatGeometry,
+        currentEvent,
+        event,
+        username);
+  }
 
-  /**
-   * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can
-   * filter event change logs by. Filtering by fields other than these, is considered a programmer
-   * error. Validation of user provided field names should occur before calling {@link
-   * #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)}.
-   */
-  Set<Pair<String, Class<?>>> getFilterableFields();
+  @Transactional(readOnly = true)
+  public Set<String> getOrderableFields() {
+    return hibernateEventChangeLogStore.getOrderableFields();
+  }
+
+  public Set<Pair<String, Class<?>>> getFilterableFields() {
+    return hibernateEventChangeLogStore.getFilterableFields();
+  }
+
+  private <V> void logIfChanged(
+      String field,
+      Function<Event, V> valueExtractor,
+      Function<V, String> formatter,
+      Event currentEvent,
+      Event event,
+      String userName) {
+
+    String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
+    String newValue = formatter.apply(valueExtractor.apply(event));
+
+    if (!Objects.equals(currentValue, newValue)) {
+      ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
+
+      T eventChangeLog =
+          buildEventChangeLog(
+              event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
+
+      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
+    }
+  }
+
+  private static ChangeLogType getChangeLogType(String oldValue, String newValue) {
+    if (isFieldCreated(oldValue, newValue)) {
+      return CREATE;
+    } else if (isFieldUpdated(oldValue, newValue)) {
+      return UPDATE;
+    } else {
+      return DELETE;
+    }
+  }
+
+  private static boolean isFieldCreated(String originalValue, String payloadValue) {
+    return originalValue == null && payloadValue != null;
+  }
+
+  private static boolean isFieldUpdated(String originalValue, String payloadValue) {
+    return originalValue != null && payloadValue != null;
+  }
+
+  private static String formatDate(Date date) {
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    return date != null ? formatter.format(date) : null;
+  }
+
+  private static String formatGeometry(Geometry geometry) {
+    if (geometry == null) {
+      return null;
+    }
+
+    return Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(Collectors.joining(", "));
+  }
 }

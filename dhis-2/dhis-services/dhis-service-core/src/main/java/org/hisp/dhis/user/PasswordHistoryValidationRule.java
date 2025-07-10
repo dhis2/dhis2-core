@@ -32,20 +32,19 @@ package org.hisp.dhis.user;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_ALREADY_USED_BEFORE;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/** Created by zubair on 08.03.17. */
+/**
+ * @author Zubair
+ */
+@RequiredArgsConstructor
 public class PasswordHistoryValidationRule implements PasswordValidationRule {
   private static final int HISTORY_LIMIT = 24;
 
   private final PasswordEncoder passwordEncoder;
 
   private final UserService userService;
-
-  public PasswordHistoryValidationRule(PasswordEncoder passwordEncoder, UserService userService) {
-    this.passwordEncoder = passwordEncoder;
-    this.userService = userService;
-  }
 
   @Override
   public PasswordValidationResult validate(CredentialsInfo credentials) {

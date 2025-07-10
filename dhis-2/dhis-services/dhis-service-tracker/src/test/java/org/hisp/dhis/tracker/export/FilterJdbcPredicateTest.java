@@ -47,6 +47,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate.Parameter;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 class FilterJdbcPredicateTest {
   private TrackedEntityAttribute tea;
   private DataElement de;
+  private DataElement deMultiText;
 
   @BeforeEach
   void setUp() {
@@ -65,6 +67,10 @@ class FilterJdbcPredicateTest {
     de = new DataElement();
     de.setValueType(ValueType.TEXT);
     de.setUid(UID.generate().getValue());
+
+    deMultiText = new DataElement();
+    deMultiText.setValueType(ValueType.MULTI_TEXT);
+    deMultiText.setUid(UID.generate().getValue());
   }
 
   @Test
@@ -83,7 +89,7 @@ lower("%s".value) is not null"""
   }
 
   @Test
-  void shouldCreateFilterGivenUnaryOperatorOnDataElement() {
+  void shouldCreateFilterGivenUnaryOperatorOnDataElement() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.NNULL);
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
@@ -111,7 +117,8 @@ lower("%s".value) in (:"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeTextAndDataElement() {
+  void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeTextAndDataElement()
+      throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "summer;Winter;SPRING");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(de, queryFilter, "ev");
@@ -140,7 +147,8 @@ cast ("%s".value as integer) in (:"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeIntegerAndDataElement() {
+  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeIntegerAndDataElement()
+      throws BadRequestException {
     de.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42;17;7");
 
@@ -375,6 +383,48 @@ lower("%s".value) like :"""
     addPredicates(sql, params, Map.of(tea, List.of(), tea2, List.of()));
 
     assertEquals("", sql.toString());
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithInOperator() throws BadRequestException {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "blue;green;red");
+
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
+
+    assertStartsWith(
+        "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+            + deMultiText.getUid()
+            + ", value}'), ',')) AS val where trim(val) in",
+        filter.getSql());
+    assertParameter(deMultiText, filter, Types.VARCHAR, "blue", "green", "red");
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithLikeOperator() throws BadRequestException {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.LIKE, "blue");
+
+    FilterJdbcPredicate filter = FilterJdbcPredicate.of(deMultiText, queryFilter, "ev");
+
+    assertStartsWith(
+        "exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{"
+            + deMultiText.getUid()
+            + ", value}'), ',')) AS val where trim(val) like",
+        filter.getSql());
+    assertParameter(deMultiText, filter, Types.VARCHAR, "%blue%");
+  }
+
+  @Test
+  void shouldCreateFilterGivenMultiTextWithNNULLOperator() throws BadRequestException {
+    QueryFilter filter = new QueryFilter(QueryOperator.NULL);
+    FilterJdbcPredicate predicate = FilterJdbcPredicate.of(deMultiText, filter, "ev");
+
+    assertEquals(
+        String.format(
+            "not exists (select 1 from unnest(string_to_array(lower(ev.eventdatavalues #>> '{%s, value}'), ',')) AS val where trim(val) is not null and trim(val) <> '')",
+            deMultiText.getUid()),
+        predicate.getSql());
+
+    assertNoParameter(predicate);
   }
 
   @Test

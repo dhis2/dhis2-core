@@ -33,7 +33,9 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_DIGI
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 08.03.17. */
+/**
+ * @author Zubair
+ */
 public class DigitPatternValidationRule implements PasswordValidationRule {
   private static final Pattern DIGIT_PATTERN = Pattern.compile(".*\\d.*");
 

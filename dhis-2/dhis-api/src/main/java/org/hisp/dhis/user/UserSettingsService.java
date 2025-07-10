@@ -44,7 +44,6 @@ import org.hisp.dhis.setting.UserSettings;
  * @author Jan Bernitt
  */
 public interface UserSettingsService {
-
   /**
    * Note that a user's setting including fallbacks can and should be accessed via {@link
    * UserSettings#getCurrentSettings()} for the current user.
