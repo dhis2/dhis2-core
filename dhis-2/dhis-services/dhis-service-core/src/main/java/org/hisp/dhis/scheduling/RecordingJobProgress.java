@@ -41,7 +41,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -88,7 +87,7 @@ public class RecordingJobProgress implements JobProgress {
   private final Runnable observer;
   private final boolean logOnDebug;
   private final boolean skipRecording;
-  private final UID user;
+  private final String user;
 
   private final AtomicBoolean cancellationRequested = new AtomicBoolean();
   private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
@@ -126,9 +125,7 @@ public class RecordingJobProgress implements JobProgress {
             && configuration != null
             && configuration.getJobType().isUsingErrorNotification();
     this.user =
-        CurrentUserUtil.hasCurrentUser()
-            ? UID.of(CurrentUserUtil.getCurrentUserDetails().getUid())
-            : null;
+        CurrentUserUtil.hasCurrentUser() ? CurrentUserUtil.getCurrentUserDetails().getUid() : null;
   }
 
   /**
@@ -494,7 +491,7 @@ public class RecordingJobProgress implements JobProgress {
       process.setJobId(configuration.getUid());
     }
     if (user != null) {
-      process.setUserId(user.getValue());
+      process.setUserId(user);
     }
     incompleteProcess.set(process);
     if (skipRecording) progress.sequence.clear();
