@@ -335,7 +335,7 @@ class DataValueListenerTest extends TestBase {
               return updatedDataValue;
             })
         .when(dataValueService)
-        .updateDataValue(any());
+        .addDataValue(any());
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);

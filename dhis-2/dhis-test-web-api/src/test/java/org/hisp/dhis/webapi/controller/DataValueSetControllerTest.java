@@ -142,21 +142,25 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPostCsvDataValueSet() {
+    String csv =
+        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted";
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Import was successful.",
-        POST("/38/dataValueSets/", Body("abc"), ContentType("application/csv"))
+        POST("/38/dataValueSets/", Body(csv), ContentType("application/csv"))
             .content(HttpStatus.OK));
   }
 
   @Test
   void testPostCsvDataValueSet_Async() {
+    String csv =
+        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted";
     JsonWebMessage msg =
         assertWebMessage(
             HttpStatus.OK,
-            POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv")));
+            POST("/dataValueSets?async=true", Body(csv), ContentType("application/csv")));
     assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
   }
 

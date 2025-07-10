@@ -39,6 +39,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -310,10 +311,17 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   private <R> R runInStatelessSession(Function<StatelessSession, R> query) {
     StatelessSession session = getSession().getSessionFactory().openStatelessSession();
+    Transaction transaction = null;
     try {
-      return query.apply(session);
+      transaction = session.beginTransaction(); // REQUIRED: Start transaction
+      R result = query.apply(session);
+      transaction.commit(); // REQUIRED: Commit changes
+      return result;
     } catch (Exception exception) {
       log.error(DebugUtils.getStackTrace(exception));
+      if (transaction != null && transaction.isActive()) {
+        transaction.rollback(); // REQUIRED: Rollback on error
+      }
     } finally {
       DbmsUtils.closeStatelessSession(session);
     }

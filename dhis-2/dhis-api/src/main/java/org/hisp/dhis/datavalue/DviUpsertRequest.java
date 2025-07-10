@@ -44,6 +44,14 @@ public record DviUpsertRequest(
     @CheckForNull UID attrOptionCombo,
     @TimeExecution.Include @JsonAlias("dataValues") List<DviValue> values) {
 
+  public DviUpsertRequest(UID ds, List<DviValue> values) {
+    this(ds, null, null, null, null, values);
+  }
+
+  public DviUpsertRequest(List<DviValue> values) {
+    this(null, values);
+  }
+
   /**
    * Options for the import. By default, all are {@code false}.
    *
@@ -54,5 +62,10 @@ public record DviUpsertRequest(
    *     allow out-of-time (early/late) entry of data e.g. as part of a data synchronisation or
    *     repair
    */
-  public record Options(boolean dryRun, boolean atomic, boolean force) {}
+  public record Options(boolean dryRun, boolean atomic, boolean force) {
+
+    public Options() {
+      this(false, false, false);
+    }
+  }
 }

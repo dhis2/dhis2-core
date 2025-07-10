@@ -80,10 +80,10 @@ public class DefaultDviService implements DviService {
 
   @Override
   @Transactional
-  public void importValue(@CheckForNull UID dataSet, @Nonnull DviValue value)
+  public void importValue(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
       throws ConflictException, BadRequestException {
     List<ImportError> errors = new ArrayList<>(1);
-    List<DviValue> validValues = validate(false, dataSet, List.of(value), errors);
+    List<DviValue> validValues = validate(force, dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -93,8 +93,10 @@ public class DefaultDviService implements DviService {
   @TimeExecution(level = INFO, name = "data value import")
   public ImportResult importAll(Options options, DviUpsertRequest request, JobProgress progress)
       throws ConflictException {
+    List<DviValue> requestValues = request.values();
+    if (requestValues == null || requestValues.isEmpty()) return new ImportResult(0, 0, List.of());
 
-    progress.startingStage("Unifying %d values...".formatted(request.values().size()));
+    progress.startingStage("Unifying %d values...".formatted(requestValues.size()));
     List<DviValue> values = progress.runStage(List.of(), () -> completedValues(request));
 
     progress.startingStage("Validating %d values...".formatted(values.size()));
@@ -115,16 +117,13 @@ public class DefaultDviService implements DviService {
 
   @Override
   @Transactional
-  public void deleteValue(DviKey key) {
-    // TODO
-  }
-
-  @Override
-  @Transactional
-  @TimeExecution(level = INFO, name = "data value deletion")
-  public int deleteAll(DviDeleteRequest request) throws BadRequestException {
-    // TODO
-    return 0;
+  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, DviKey key)
+      throws ConflictException, BadRequestException {
+    DviValue value = key.toDeletedValue();
+    List<ImportError> errors = new ArrayList<>(1);
+    List<DviValue> validValues = validate(force, dataSet, List.of(value), errors);
+    if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
+    return store.deleteByKeys(List.of(key)) > 0;
   }
 
   private List<DviValue> validate(
@@ -233,6 +232,7 @@ public class DefaultDviService implements DviService {
    * errors list.
    */
   private List<DviValue> validateValues(UID ds, List<DviValue> values, List<ImportError> errors) {
+    if (values.stream().allMatch(v -> v.deleted() == Boolean.TRUE)) return values;
     boolean commentAllowsEmptyValue = store.getDataSetCommentAllowsEmptyValue(ds);
     List<UID> dataElements = values.stream().map(DviValue::dataElement).distinct().toList();
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());

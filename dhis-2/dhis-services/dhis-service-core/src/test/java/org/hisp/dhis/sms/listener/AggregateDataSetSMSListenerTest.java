@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,7 +51,9 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DviService;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -102,7 +105,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
-  @Mock private DataValueService dataValueService;
+  @Mock private DviService dviService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
@@ -133,16 +136,15 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   private DataSet dataSet;
 
   @BeforeEach
-  public void initTest() throws SmsCompressionException {
+  public void initTest() throws SmsCompressionException, ConflictException {
     subject =
         new AggregateDataSetSMSListener(
             incomingSmsService,
             smsSender,
             organisationUnitService,
             categoryService,
-            dataElementService,
             dataSetService,
-            dataValueService,
+            dviService,
             registrationService,
             identifiableObjectManager);
 
@@ -161,7 +163,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
     when(dataSetService.getDataSet(anyString())).thenReturn(dataSet);
     when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
         .thenReturn(LockStatus.OPEN);
-    when(dataValueService.addDataValue(any())).thenReturn(true);
+    when(dviService.importAll(any(), any(), any())).thenReturn(new ImportResult(0, 0, List.of()));
     when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
     when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
 

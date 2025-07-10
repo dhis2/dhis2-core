@@ -459,7 +459,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportLastUpdatedWithDeletedValues() throws IOException {
+  void testExportLastUpdatedWithDeletedValues() throws Exception {
     DataValue dvA = new DataValue(deC, peA, ouA, cocA, cocA, "1");
     DataValue dvB = new DataValue(deC, peB, ouA, cocA, cocA, "2");
     dataValueService.addDataValue(dvA);

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -41,4 +42,19 @@ public record DviKey(
     @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID categoryOptionCombo,
     @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID attributeOptionCombo,
     String period)
-    implements DviId {}
+    implements DviId {
+
+  @Nonnull
+  public DviValue toDeletedValue() {
+    return new DviValue(
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        attributeOptionCombo,
+        period,
+        null,
+        null,
+        null,
+        true);
+  }
+}

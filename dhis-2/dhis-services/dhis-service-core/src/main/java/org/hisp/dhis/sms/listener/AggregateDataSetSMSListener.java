@@ -29,22 +29,24 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
+
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DviService;
+import org.hisp.dhis.datavalue.DviUpsertRequest;
+import org.hisp.dhis.datavalue.DviValue;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -69,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AggregateDataSetSMSListener extends CompressionSMSListener {
   private final DataSetService dataSetService;
 
-  private final DataValueService dataValueService;
+  private final DviService dviService;
 
   private final CompleteDataSetRegistrationService registrationService;
 
@@ -77,25 +79,21 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
 
   private final CategoryService categoryService;
 
-  private final DataElementService dataElementService;
-
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      DataElementService dataElementService,
       DataSetService dataSetService,
-      DataValueService dataValueService,
+      DviService dviService,
       CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
     super(incomingSmsService, smsSender, identifiableObjectManager);
     this.dataSetService = dataSetService;
-    this.dataValueService = dataValueService;
+    this.dviService = dviService;
     this.registrationService = registrationService;
     this.organisationUnitService = organisationUnitService;
     this.categoryService = categoryService;
-    this.dataElementService = dataElementService;
   }
 
   @Override
@@ -135,10 +133,9 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(dsid, per));
     }
 
-    List<Object> errorElems =
-        submitDataValues(subm.getValues(), period, orgUnit, aoc, smsCreatedBy);
+    SmsResponse response = importDataValues(subm);
 
-    if (subm.isComplete()) {
+    if (response == SmsResponse.SUCCESS && subm.isComplete()) {
       CompleteDataSetRegistration existingReg =
           registrationService.getCompleteDataSetRegistration(dataSet, period, orgUnit, aoc);
       if (existingReg != null) {
@@ -158,85 +155,54 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
               true);
       registrationService.saveCompleteDataSetRegistration(newReg);
     }
-
-    if (!errorElems.isEmpty()) {
-      return SmsResponse.WARN_DVERR.setList(errorElems);
-    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
-      // TODO: Should we save if there are no data values?
-      return SmsResponse.WARN_DVEMPTY;
-    }
-
-    return SmsResponse.SUCCESS;
+    return response;
   }
 
-  private List<Object> submitDataValues(
-      List<SmsDataValue> values,
-      Period period,
-      OrganisationUnit orgUnit,
-      CategoryOptionCombo aoc,
-      UserDetails smsCreatedBy) {
-    ArrayList<Object> errorElems = new ArrayList<>();
+  private SmsResponse importDataValues(AggregateDatasetSmsSubmission sub) {
+    // Note that the user passed to postProcess is the current user
+    // so no need to pass it along explicitly
+    UID ou = UID.of(sub.getOrgUnit().getUid());
+    UID ds = UID.of(sub.getDataSet().getUid());
+    String pe = sub.getPeriod();
+    UID aoc = UID.of(sub.getAttributeOptionCombo().getUid());
 
-    if (values == null) {
-      return errorElems;
-    }
-
-    for (SmsDataValue smsdv : values) {
-      Uid deid = smsdv.getDataElement();
-      Uid cocid = smsdv.getCategoryOptionCombo();
-      String combid = deid + "-" + cocid;
-
-      DataElement de = dataElementService.getDataElement(deid.getUid());
-
-      if (de == null) {
-        log.warn("Data element does not exist: '{}'. Continuing with submission.", deid);
-        errorElems.add(combid);
-        continue;
-      }
-
-      CategoryOptionCombo coc = categoryService.getCategoryOptionCombo(cocid.getUid());
-
-      if (coc == null) {
-        log.warn("Category option combo does not exist: '{}'. Continuing with submission.", cocid);
-        errorElems.add(combid);
-        continue;
-      }
-
-      String val = smsdv.getValue();
-      if (val == null || StringUtils.isEmpty(val)) {
-        log.warn("Value for '{}' is null or empty. Continuing with submission.", combid);
-        continue;
-      }
-
-      DataValue dv = dataValueService.getDataValue(de, period, orgUnit, coc, aoc);
-
-      boolean newDataValue = false;
-      if (dv == null) {
-        dv = new DataValue();
-        dv.setCategoryOptionCombo(coc);
-        dv.setSource(orgUnit);
-        dv.setDataElement(de);
-        dv.setPeriod(period);
-        dv.setComment("");
-        newDataValue = true;
-      }
-
-      dv.setValue(val);
-      dv.setLastUpdated(new Date());
-      dv.setStoredBy(smsCreatedBy.getUsername());
-
-      if (newDataValue) {
-        boolean addedDataValue = dataValueService.addDataValue(dv);
-        if (!addedDataValue) {
-          log.warn("Failed to submit data value '{}'. Continuing with submission.", combid);
-          errorElems.add(combid);
-        }
-      } else {
-        dataValueService.updateDataValue(dv);
+    DviUpsertRequest.Options options = new DviUpsertRequest.Options();
+    List<DviValue> values =
+        sub.getValues().stream().map(AggregateDataSetSMSListener::toDviValue).toList();
+    if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
+    DviUpsertRequest request = new DviUpsertRequest(ds, null, ou, pe, aoc, values);
+    try {
+      ImportResult result = dviService.importAll(options, request, transitory());
+      if (!result.errors().isEmpty())
+        return SmsResponse.WARN_DVERR.setList(
+            result.errors().stream().map(e -> toIdentifier(values.get(e.index()))).toList());
+      return SmsResponse.SUCCESS;
+    } catch (ConflictException ex) {
+      switch (ex.getCode()) {
+        case E7601:
+          throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(ds));
+        case E7608:
+          throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(pe));
+        case E7623:
+          throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aoc));
+        case E7609, E7628:
+          throw new SMSProcessingException(SmsResponse.OU_NOTIN_DATASET.set(ou, ds));
+        case E7629, E7626:
+          throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(ds, pe));
+        default:
+          throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
       }
     }
+  }
 
-    return errorElems;
+  private static DviValue toDviValue(SmsDataValue value) {
+    UID de = UID.of(value.getDataElement().getUid());
+    UID coc = UID.of(value.getCategoryOptionCombo().getUid());
+    return new DviValue(de, null, coc, null, null, value.getValue(), null, null, null);
+  }
+
+  private static Object toIdentifier(DviValue dv) {
+    return dv.dataElement() + "-" + dv.categoryOptionCombo();
   }
 
   @Override

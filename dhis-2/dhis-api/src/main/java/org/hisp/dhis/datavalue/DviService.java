@@ -45,14 +45,13 @@ import org.hisp.dhis.scheduling.JobProgress;
  */
 public interface DviService {
 
-  void importValue(@CheckForNull UID dataSet, @Nonnull DviValue value)
+  void importValue(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
       throws ConflictException, BadRequestException;
 
-  void deleteValue(DviKey key);
+  boolean deleteValue(boolean force, @CheckForNull UID dataSet, DviKey key)
+      throws ConflictException, BadRequestException;
 
   ImportResult importAll(
       DviUpsertRequest.Options options, DviUpsertRequest request, JobProgress progress)
       throws ConflictException;
-
-  int deleteAll(DviDeleteRequest request) throws BadRequestException;
 }
