@@ -15,7 +15,7 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.8</tomcat.version>
+    <tomcat.version>11.0.9</tomcat.version>
     <jib.version>3.4.6</jib.version>
     <jib.from.image>gcr.io/distroless/java21-debian12@sha256:7c05bf8a64ff1a70a16083e9bdd35b463aa0d014c2fc782d31d13ea7a61de633</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
