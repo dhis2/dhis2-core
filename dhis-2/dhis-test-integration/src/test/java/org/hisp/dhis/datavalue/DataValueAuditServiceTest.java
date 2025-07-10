@@ -278,7 +278,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate2() {
+  void testGetDataValueAuditWithFakeCreate2() throws Exception {
     dataValueA.setValue("10");
     dataValueService.updateDataValue(dataValueA);
 
@@ -315,7 +315,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDelete2() {
+  void testGetDataValueAuditWithFakeCreateDelete2() throws Exception {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
@@ -340,7 +340,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() {
+  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() throws Exception {
     DataElement dataElement = createDataElement('F');
     DataValue dataValue =
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");

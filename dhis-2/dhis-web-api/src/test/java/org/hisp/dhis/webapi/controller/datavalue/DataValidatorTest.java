@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
-import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -44,13 +43,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -69,23 +65,16 @@ class DataValidatorTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private DataSetService dataSetService;
-
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private DataValueService dataValueService;
 
   @Mock private InputUtils inputUtils;
 
-  @Mock private FileResourceService fileResourceService;
-
-  @Mock private CalendarService calendarService;
-
   @Mock private AggregateAccessManager accessManager;
 
   @Mock private DataValidator dataValidator;
   @Mock private UserService userService;
-  @Mock private OptionService optionService;
 
   private Period peJan;
 
@@ -111,15 +100,11 @@ class DataValidatorTest {
         new DataValidator(
             categoryService,
             organisationUnitService,
-            dataSetService,
             idObjectManager,
             dataValueService,
             inputUtils,
-            fileResourceService,
-            calendarService,
             accessManager,
-            userService,
-            optionService);
+            userService);
 
     peJan = createPeriod("202001");
     peFeb = createPeriod("202002");

@@ -44,6 +44,7 @@ import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -75,6 +76,8 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -594,7 +597,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void useDataValue(DataElement e, Period p, OrganisationUnit s, String value) {
-    dataValueService.addDataValue(createDataValue(e, p, s, optionCombo, optionCombo, value));
+    useDataValue(createDataValue(e, p, s, optionCombo, optionCombo, value));
   }
 
   private void useDataValue(
@@ -604,7 +607,15 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
       String value,
       CategoryOptionCombo oc1,
       CategoryOptionCombo oc2) {
-    dataValueService.addDataValue(createDataValue(e, p, s, oc1, oc2, value));
+    useDataValue(createDataValue(e, p, s, oc1, oc2, value));
+  }
+
+  private void useDataValue(DataValue dv) {
+    try {
+      dataValueService.updateDataValue(dv);
+    } catch (ConflictException | BadRequestException e) {
+      fail(e);
+    }
   }
 
   // -------------------------------------------------------------------------

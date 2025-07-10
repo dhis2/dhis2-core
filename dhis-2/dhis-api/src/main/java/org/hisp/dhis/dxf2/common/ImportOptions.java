@@ -42,6 +42,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -79,6 +80,21 @@ public class ImportOptions implements JobParameters {
   @OpenApi.Ignore
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private IdSchemes idSchemes = new IdSchemes();
+
+  @Maturity.Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description(
+      """
+    The values belong to multiple data sets and require use of the legacy import.
+    Used to opt-out of the new JSON import.""")
+  @JsonProperty
+  private boolean mixed;
+
+  @Maturity.Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description("Import only if all values are valid. New JSON import only.")
+  @JsonProperty
+  private boolean atomic;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private boolean dryRun;

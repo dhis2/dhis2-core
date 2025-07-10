@@ -245,8 +245,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
   private Period getDataSetPeriod(DataSet dataSet) {
     Period period = dataSet.getPeriodType().createPeriod();
 
-    return periodService.getPeriod(
-        period.getStartDate(), period.getEndDate(), period.getPeriodType());
+    return periodService.getPeriod(period.getIsoDate());
   }
 
   private CompleteDataSetRegistration createRespectiveRegistrationObject(
@@ -255,9 +254,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
 
     CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
     registration.setDataSet(dataSet);
-    registration.setPeriod(
-        periodService.getPeriod(
-            period.getStartDate(), period.getEndDate(), period.getPeriodType()));
+    registration.setPeriod(periodService.getPeriod(period.getIsoDate()));
     registration.setPeriodName(getPeriodString(registration.getPeriod()));
     registration.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
     registration.setSource(ou);
