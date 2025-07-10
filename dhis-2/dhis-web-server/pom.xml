@@ -118,6 +118,7 @@
           <version>${jib.version}</version>
           <configuration>
             <container>
+              <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
               <environment>
                 <!-- default DHIS2 web application context to / but allow for customization -->
                 <CATALINA_OPTS>-Dcontext.path=""</CATALINA_OPTS>
