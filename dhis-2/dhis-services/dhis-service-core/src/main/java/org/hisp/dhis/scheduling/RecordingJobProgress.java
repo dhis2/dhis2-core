@@ -41,13 +41,13 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * The {@link RecordingJobProgress} take care of the flow control aspect of {@link JobProgress} API.
@@ -88,7 +88,7 @@ public class RecordingJobProgress implements JobProgress {
   private final Runnable observer;
   private final boolean logOnDebug;
   private final boolean skipRecording;
-  private final UserDetails user;
+  private final UID user;
 
   private final AtomicBoolean cancellationRequested = new AtomicBoolean();
   private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
@@ -125,7 +125,10 @@ public class RecordingJobProgress implements JobProgress {
         messageService != null
             && configuration != null
             && configuration.getJobType().isUsingErrorNotification();
-    this.user = CurrentUserUtil.getCurrentUserDetails();
+    this.user =
+        CurrentUserUtil.hasCurrentUser()
+            ? UID.of(CurrentUserUtil.getCurrentUserDetails().getUid())
+            : null;
   }
 
   /**
@@ -491,7 +494,7 @@ public class RecordingJobProgress implements JobProgress {
       process.setJobId(configuration.getUid());
     }
     if (user != null) {
-      process.setUserId(user.getUid());
+      process.setUserId(user.getValue());
     }
     incompleteProcess.set(process);
     if (skipRecording) progress.sequence.clear();

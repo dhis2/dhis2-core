@@ -329,13 +329,7 @@ class DataValueListenerTest extends TestBase {
     // Mock for dataValueService
     when(dataValueService.getDataValue(any(), any(), any(), any())).thenReturn(fetchedDataValue);
 
-    doAnswer(
-            invocation -> {
-              updatedDataValue = (DataValue) invocation.getArguments()[0];
-              return updatedDataValue;
-            })
-        .when(dataValueService)
-        .addDataValue(any());
+    when(dataValueService.addDataValue(any())).thenReturn(true);
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
