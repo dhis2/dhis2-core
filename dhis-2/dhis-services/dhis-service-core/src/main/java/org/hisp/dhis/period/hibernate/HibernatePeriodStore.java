@@ -104,24 +104,28 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
    */
   @Override
   public void save(@Nonnull Period period, @Nonnull UserDetails userDetails, boolean clearSharing) {
-    String sql =
+    String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
+    String sql2 =
         """
       INSERT INTO period (periodid, periodtypeid, startdate, enddate, iso)
-      VALUES (nextval('hibernate_sequence'), (select periodtypeid from periodtype where name = :type), :start, :end, :iso)
-      ON CONFLICT (iso)
-      DO UPDATE SET iso = excluded.iso -- "fake" update required to always cause RETURNING
-      RETURNING periodid""";
+      VALUES (nextval('hibernate_sequence'),
+        (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
     String isoDate = period.getIsoDate();
     Object id =
         runInStatelessSession(
-            session ->
-                session
-                    .createNativeQuery(sql)
-                    .setParameter("type", period.getPeriodType().getName())
-                    .setParameter("start", period.getStartDate())
-                    .setParameter("end", period.getEndDate())
-                    .setParameter("iso", isoDate)
-                    .getSingleResult());
+            session -> {
+              Object pk =
+                  getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
+              if (pk != null) return pk;
+              session
+                  .createNativeQuery(sql2)
+                  .setParameter("type", period.getPeriodType().getName())
+                  .setParameter("start", period.getStartDate())
+                  .setParameter("end", period.getEndDate())
+                  .setParameter("iso", isoDate)
+                  .executeUpdate();
+              return session.createNativeQuery("SELECT lastval()").uniqueResult();
+            });
     if (id instanceof Number n) {
       long periodId = n.longValue();
       periodIdByIsoPeriod.putIfAbsent(isoDate, periodId);
@@ -282,26 +286,27 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
 
   @Override
   public int addPeriodType(PeriodType periodType) {
-    String sql =
+    String name = periodType.getName();
+    String sql1 = "SELECT periodtypeid from periodtype where name = :name";
+    String sql2 =
         """
       INSERT INTO periodtype (periodtypeid, name)
-      VALUES (nextval('hibernate_sequence'), :name)
-      ON CONFLICT (name)
-      DO UPDATE SET name = excluded.name -- "fake" update required to always cause RETURNING
-      RETURNING periodtypeid""";
+      VALUES (nextval('hibernate_sequence'), :name)""";
     Object id =
         runInStatelessSession(
-            session ->
-                session
-                    .createNativeQuery(sql)
-                    .setParameter("name", periodType.getName())
-                    .getSingleResult());
+            session -> {
+              Object pk =
+                  getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
+              if (pk != null) return pk;
+              session.createNativeQuery(sql2).setParameter("name", name).executeUpdate();
+              return session.createNativeQuery("SELECT lastval()").uniqueResult();
+            });
     if (id instanceof Number n) {
       int periodTypeId = n.intValue();
       periodType.setId(periodTypeId);
       return periodTypeId;
     }
-    throw new IllegalStateException("Failed to upsert period type: " + periodType.getName());
+    throw new IllegalStateException("Failed to upsert period type: " + name);
   }
 
   @Override
