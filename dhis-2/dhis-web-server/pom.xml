@@ -9,20 +9,21 @@
   </parent>
 
   <artifactId>dhis-web-server</artifactId>
-  <packaging>war</packaging>
+  <packaging>${packaging.type}</packaging>
   <name>DHIS Web Server</name>
 
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
     <tomcat.version>11.0.8</tomcat.version>
-    <jib.version>3.4.5</jib.version>
-    <jib.from.image>tomcat:${tomcat.version}-jre17</jib.from.image>
+    <jib.version>3.4.6</jib.version>
+    <jib.from.image>gcr.io/distroless/java21-debian12@sha256:7c05bf8a64ff1a70a16083e9bdd35b463aa0d014c2fc782d31d13ea7a61de633</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
-    <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
-    <jib.container.user>65534</jib.container.user>
-    <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
+    <!-- uid=65532(nonroot) gid=65532(nonroot) present in the Distroless image -->
+    <jib.container.user>65532</jib.container.user>
+    <jib.container.appRoot>/app</jib.container.appRoot>
     <spring-boot-maven-plugin.version>3.5.3</spring-boot-maven-plugin.version>
+    <packaging.type>war</packaging.type>
   </properties>
 
   <dependencies>
@@ -124,7 +125,7 @@
               <labels>
                 <DHIS2_VERSION>${project.version}</DHIS2_VERSION>
               </labels>
-              <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+              <appRoot>${jib.container.appRoot}</appRoot>
             </container>
             <pluginExtensions>
               <pluginExtension>
@@ -247,6 +248,9 @@
     </profile>
     <profile>
       <id>jibDockerBuild</id>
+      <properties>
+        <packaging.type>jar</packaging.type>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -267,6 +271,9 @@
     <profile>
       <!-- used to build and push multi-architecture images -->
       <id>jibBuild</id>
+      <properties>
+        <packaging.type>jar</packaging.type>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -301,6 +308,9 @@
     <profile>
       <!-- used to automatically build images for arm64 on Mac without users needing to configure Jib -->
       <id>jibBuildArmOnly</id>
+      <properties>
+        <packaging.type>jar</packaging.type>
+      </properties>
       <build>
         <plugins>
           <plugin>
