@@ -27,47 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.base.Strings;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
-import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.BundledAppManager;
+import org.hisp.dhis.commons.util.StreamUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+@Controller
+@RequestMapping("/dhis-web-apps")
 @RequiredArgsConstructor
-public class AppHtmlTemplate {
-
-  private final String contextPath;
-  private final App app;
-
-  public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
-    PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
-
-    try (LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
-      while (iterator.hasNext()) {
-        String line = iterator.next();
-        if (line.contains("__DHIS2_BASE_URL__") || line.contains("__DHIS2_APP_ROOT_URL__")) {
-          line = replaceLine(line);
-        }
-        if (line.contains("<head>")) {
-          line =
-              line.replace(
-                  "<head>",
-                  "<head><meta name=\"dhis2-base-url\" content=\"" + this.contextPath + "\" />");
-        }
-        output.println(line);
-      }
-    }
-  }
-
-  private String replaceLine(String line) {
-    return line.replace("__DHIS2_BASE_URL__", this.contextPath)
-        .replace("__DHIS2_APP_ROOT_URL__", Strings.nullToEmpty(this.app.getBaseUrl()));
+public class AppBundleController {
+  @GetMapping("/apps-bundle.json")
+  public void getAppsBundle(HttpServletResponse response) throws IOException {
+    InputStream appBundleInfoInputStream = BundledAppManager.getAppBundleInfoInputStream();
+    response.setContentType("application/json");
+    StreamUtils.copyThenCloseInputStream(appBundleInfoInputStream, response.getOutputStream());
   }
 }

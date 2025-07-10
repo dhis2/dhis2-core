@@ -33,24 +33,35 @@ import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.Consumer;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -59,9 +70,9 @@ import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.hisp.dhis.util.ZipSlipException;
 import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
-import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -74,97 +85,85 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.appmanager.JCloudsAppStorageService")
 public class JCloudsAppStorageService implements AppStorageService {
-  private static final long FIVE_MINUTES_IN_SECONDS =
-      Minutes.minutes(5).toStandardDuration().getStandardSeconds();
+
+  private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
+  public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
 
   private final JCloudsStore jCloudsStore;
-
   private final LocationManager locationManager;
-
   private final ObjectMapper jsonMapper;
   private final FileResourceContentStore fileResourceContentStore;
 
-  private void discoverInstalledApps(Consumer<App> handler) {
-    log.info("Starting JClouds discovery");
-    for (StorageMetadata resource :
-        jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"))) {
-      log.info("Found potential app: {}", resource.getName());
+  @Override
+  @Nonnull
+  public Map<String, Pair<App, BundledAppInfo>> discoverInstalledApps() {
+    Map<String, Pair<App, BundledAppInfo>> apps = new HashMap<>();
+    discoverInstalledApps((app, appInfo) -> apps.put(app.getKey(), Pair.of(app, appInfo)));
+    logDiscoveredApps(apps);
+    return apps;
+  }
 
-      // Found potential app
-      Blob manifest =
-          jCloudsStore.getBlob(resource.getName() + AppStorageService.MANIFEST_FILENAME);
-      Blob manifestTranslationsFile =
-          jCloudsStore.getBlob(
-              resource.getName() + AppStorageService.MANIFEST_TRANSLATION_FILENAME);
+  private void discoverInstalledApps(BiConsumer<App, BundledAppInfo> handler) {
+    PageSet<? extends StorageMetadata> allAppFolders =
+        jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"));
 
+    for (StorageMetadata resource : allAppFolders) {
+      String blobKey = resource.getName() + MANIFEST_WEBAPP_FILENAME;
+      Blob manifest = jCloudsStore.getBlob(blobKey);
       if (manifest == null) {
-        log.warn("Could not find manifest file of {}", resource.getName());
+        log.error(
+            "Could not find manifest file in app folder '{}', with key '{}' skipping app.",
+            resource.getName(),
+            blobKey);
         continue;
       }
 
       try (InputStream inputStream = manifest.getPayload().openStream()) {
         App app = App.MAPPER.readValue(inputStream, App.class);
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
-        app.setFolderName(resource.getName());
+        app.setFolderName(resource.getName().replaceAll("/$", ""));
 
-        List<AppManifestTranslation> manifestTranslations =
-            readAppManifestTranslations(manifestTranslationsFile);
-        app.setManifestTranslations(manifestTranslations);
-        handler.accept(app);
+        Blob translationFile =
+            jCloudsStore.getBlob(
+                resource.getName() + AppStorageService.MANIFEST_TRANSLATION_FILENAME);
+        List<AppManifestTranslation> translations = readAppManifestTranslations(translationFile);
+        app.setManifestTranslations(translations);
+
+        Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + BUNDLED_APP_INFO_FILENAME);
+        if (bundledAppInfo == null) {
+          handler.accept(app, null);
+        } else {
+          try (InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream()) {
+            BundledAppInfo appInfo =
+                App.MAPPER.readValue(bundledAppInfoStream, BundledAppInfo.class);
+            app.setBundled(true);
+            handler.accept(app, appInfo);
+          }
+        }
       } catch (IOException ex) {
-        log.error("Could not read manifest file of {}", resource.getName(), ex);
+        log.error("Could not read manifest file of '{}'", resource.getName(), ex);
       }
     }
   }
 
   private List<AppManifestTranslation> readAppManifestTranslations(Blob manifestTranslationsFile) {
-    try {
-      if (manifestTranslationsFile == null) {
-        return Collections.emptyList();
-      }
-
-      try (InputStream inputStream = manifestTranslationsFile.getPayload().openStream()) {
-        return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
-      }
-    } catch (Exception e) {
-      log.warn(
-          "An error occurred trying to read the app manifest translations {}",
+    if (manifestTranslationsFile == null) {
+      return Collections.emptyList();
+    }
+    try (InputStream inputStream = manifestTranslationsFile.getPayload().openStream()) {
+      return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+    } catch (IOException e) {
+      log.error(
+          "An error occurred trying to read the app manifest translations '{}'",
           e.getLocalizedMessage());
       return Collections.emptyList();
     }
   }
 
-  @Override
-  public Map<String, App> discoverInstalledApps() {
-    Map<String, App> apps = new HashMap<>();
-    discoverInstalledApps(app -> apps.put(app.getKey(), app));
-
-    if (apps.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
-    } else {
-      apps.values()
-          .forEach(app -> log.info("Discovered app '{}' from JClouds storage ", app.getName()));
-    }
-
-    return apps;
-  }
-
   private boolean validateApp(App app, Cache<App> appCache) {
-    validateAppDeletionNotInProgress(app, appCache);
     validateAppNamespaceNotAlreadyInUse(app, appCache);
     validateAppAdditionalNamespacesAreWellDefined(app);
     return app.getAppState().ok();
-  }
-
-  private void validateAppDeletionNotInProgress(App app, Cache<App> appCache) {
-    if (!app.getAppState().ok()) return;
-    Optional<App> existingApp = appCache.getIfPresent(app.getKey());
-    if (existingApp.isPresent()
-        && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      log.error("Failed to install app: App with same name is currently being deleted");
-
-      app.setAppState(AppStatus.DELETION_IN_PROGRESS);
-    }
   }
 
   private void validateAppNamespaceNotAlreadyInUse(App app, Cache<App> appCache) {
@@ -212,23 +211,35 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public App installApp(File file, String filename, Cache<App> appCache) {
-    log.info("Installing new app: {}", filename);
-    String installationFolder =
-        APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
-
+  @Nonnull
+  public App installApp(
+      @Nonnull File file,
+      @Nonnull Cache<App> appCache,
+      @CheckForNull BundledAppInfo bundledAppInfo) {
     App app;
     String topLevelFolder;
+    String installationFolder;
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
-      app = readAppManifest(file, this.jsonMapper, topLevelFolder);
+      app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
+      installationFolder = getInstallationFolder(app);
       app.setFolderName(installationFolder);
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
-      log.error("Failed to install app: Missing manifest.webapp in zip");
+      log.error("Failed to install app: Failure during reading manifest from zip file", e);
       app = new App();
       app.setAppState(AppStatus.MISSING_MANIFEST);
       return app;
+    }
+
+    if (bundledAppInfo != null) {
+      try {
+        writeBundledAppInfo(bundledAppInfo, installationFolder);
+      } catch (IOException e) {
+        log.error("Failed to install app: Failure during writing bundled app info");
+        app.setAppState(AppStatus.FAILED_TO_WRITE_BUNDLED_APP_INFO);
+        return app;
+      }
     }
 
     if (!validateApp(app, appCache)) {
@@ -238,28 +249,13 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     try {
       ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
+      unzipFile(file, installationFolder, topLevelFolder);
 
-      try (ZipFile zipFile = new ZipFile(file)) {
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while (entries.hasMoreElements()) {
-          ZipEntry zipEntry = entries.nextElement();
-          String filePath = getFilePath(topLevelFolder, installationFolder, zipEntry);
-          // If it's the root folder, skip
-          if (filePath == null) continue;
-          try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-            Blob blob =
-                jCloudsStore
-                    .getBlobStore()
-                    .blobBuilder(filePath)
-                    .payload(zipInputStream)
-                    .contentLength(zipEntry.getSize())
-                    .build();
-            jCloudsStore.putBlob(blob);
-          }
-        }
-      }
+      removeOtherAppsWithSameKey(app);
 
       app.setAppState(AppStatus.OK);
+      logInstallSuccess(app, installationFolder);
+      return app;
 
     } catch (IOException e) {
       log.error("Failed to install app: IO Failure during unzipping", e);
@@ -273,99 +269,108 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     if (!app.getAppState().ok()) {
-      deleteAppAsync(app);
-      return app;
+      deleteApp(app);
     }
 
-    removePreviousVersions(app);
-    logSuccess(app, installationFolder);
     return app;
   }
 
-  private static void logSuccess(App app, String appFolder) {
-    String namespace = app.getActivities().getDhis().getNamespace();
-    log.info(
-        "New app {} installed, Install path: {}, Namespace reserved: {}",
-        app.getName(),
-        appFolder,
-        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
+  /**
+   * Add a random generated part on the installation folder to avoid collisions.
+   *
+   * @param app the app manifest
+   * @return the name of the folder to install the app
+   */
+  private String getInstallationFolder(App app) {
+    String appKey = app.getKey();
+    String folderName =
+        appKey.length() > 32
+            ? appKey.substring(0, 31)
+            : appKey + "_" + CodeGenerator.getRandomSecureToken();
+    return APPS_DIR + File.separator + folderName;
   }
 
-  private void removePreviousVersions(App app) {
-    List<App> otherVersions = new ArrayList<>();
-    String key = app.getKey();
-    String version = app.getVersion();
-    discoverInstalledApps(
-        other -> {
-          if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
-            otherVersions.add(other);
-        });
-    otherVersions.forEach(this::deleteAppAsync);
+  private void unzipFile(File file, String installationFolder, String topLevelFolder)
+      throws IOException, ZipSlipException {
+    try (ZipFile zipFile = new ZipFile(file)) {
+      Enumeration<? extends ZipEntry> entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry zipEntry = entries.nextElement();
+        String filePath = getFilePath(installationFolder, topLevelFolder, zipEntry);
+        // If it's the root folder, skip
+        if (filePath == null) continue;
+        try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+          Blob blob =
+              jCloudsStore
+                  .getBlobStore()
+                  .blobBuilder(filePath)
+                  .payload(zipInputStream)
+                  .contentLength(zipEntry.getSize())
+                  .build();
+          jCloudsStore.putBlob(blob);
+        }
+      }
+    }
   }
 
-  private static App readAppManifest(File file, ObjectMapper jsonMapper, String topLevelFolder)
+  // Create the BundledAppInfo JSON file and write it to JClouds storage
+  private void writeBundledAppInfo(BundledAppInfo bundledAppInfo, String installationFolder)
       throws IOException {
-    App app = new App();
-    try (ZipFile zip = new ZipFile(file)) {
-      // Parse manifest.webapp file from ZIP archive.
-      ZipEntry manifestEntry = zip.getEntry(topLevelFolder + MANIFEST_FILENAME);
-      if (manifestEntry == null) {
-        log.error("Failed to install app: Missing manifest.webapp in zip");
-        app.setAppState(AppStatus.MISSING_MANIFEST);
-        return app;
-      }
-
-      InputStream inputStream = zip.getInputStream(manifestEntry);
-      app = jsonMapper.readValue(inputStream, App.class);
-
-      extractManifestTranslations(zip, topLevelFolder, app);
-    }
-    return app;
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
+    byte[] bundledAppInfoBytes = baos.toByteArray();
+    ByteArrayInputStream bais = new ByteArrayInputStream(bundledAppInfoBytes);
+    Blob bundledAppInfoBlob =
+        jCloudsStore
+            .getBlobStore()
+            .blobBuilder(installationFolder + File.separator + BUNDLED_APP_INFO_FILENAME)
+            .payload(bais)
+            .contentLength(bundledAppInfoBytes.length)
+            .build();
+    jCloudsStore.putBlob(bundledAppInfoBlob);
+    bais.close();
+    baos.close();
   }
 
-  private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
-    try {
-      ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
-
-      try (InputStream inputStream = zip.getInputStream(translationFiles)) {
-        List<AppManifestTranslation> appManifestTranslations =
-            App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
-        app.setManifestTranslations(appManifestTranslations);
-      }
-    } catch (Exception e) {
-      log.debug(
-          "Failed to read manifest translations from file for {} {}",
-          app.getName(),
-          e.getMessage());
-    }
+  /**
+   * Simpy removes all other apps with the same key as the one we are installing.
+   *
+   * @param newApp the manifest of the app we are trying to install
+   */
+  private void removeOtherAppsWithSameKey(@Nonnull App newApp) {
+    discoverInstalledApps(
+        (a, bai) -> {
+          if (newApp.getKey().equals(a.getKey())
+              && !newApp.getFolderName().equals(a.getFolderName())) deleteApp(a);
+        });
   }
 
   @Override
-  public Future<Boolean> deleteAppAsync(App app) {
-    log.info("Deleting app {}", app.getName());
-
+  public void deleteApp(@Nonnull App app) {
     // delete the manifest file first in case the system crashes during deletion
     // and the manifest file is not deleted, resulting in an app that can't be installed
-    jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
+    String folderName = app.getFolderName();
+    jCloudsStore.removeBlob(folderName + File.separator + MANIFEST_WEBAPP_FILENAME);
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):
-      jCloudsStore.deleteDirectory(app.getFolderName());
+      jCloudsStore.deleteDirectory(folderName);
     } else {
       // slower but works for S3:
       // Delete all files related to app
-      ListContainerOptions options = prefix(app.getFolderName()).recursive();
+      ListContainerOptions options = prefix(folderName).recursive();
       for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
         log.debug("Deleting app file: {}", resource.getName());
         jCloudsStore.removeBlob(resource.getName());
       }
     }
     log.info("Deleted app {}", app.getName());
-    return CompletableFuture.completedFuture(true);
   }
 
   @Override
-  public ResourceResult getAppResource(App app, @Nonnull String resource) throws IOException {
+  @Nonnull
+  public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
+      throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
@@ -377,7 +382,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     String resolvedFileResource = useIndexHtmlIfDirCall(resource);
-    String key = app.getFolderName() + ("/" + resolvedFileResource);
+    String key = app.getFolderName() + File.separator + resolvedFileResource;
     String cleanedKey = key.replaceAll("/+", "/");
 
     log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
@@ -428,5 +433,25 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
     // any other resource, no special handling required, return as is
     return resource;
+  }
+
+  private static void logInstallSuccess(App app, String appFolder) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    log.info(
+        "New app {} installed, Install path: {}, Namespace reserved: {}",
+        app.getName(),
+        appFolder,
+        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
+  }
+
+  private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
+    if (apps.isEmpty()) {
+      log.info("No apps found during JClouds discovery.");
+    } else {
+      apps.values()
+          .forEach(
+              pair ->
+                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
+    }
   }
 }

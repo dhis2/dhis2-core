@@ -67,8 +67,15 @@ public class ZipFileUtils {
 
   /**
    * Finds the top level directory in a zip file with 'TOP_LEVEL_DIRECTORY_PREFIX_PATTERN' that
-   * matches then extract like this: 1. home/user/file.txt -> home/ 2. data\archive.zip -> data\ 3.
-   * project/src/main.java -> project/ 4. dir/ -> dir/
+   * matches then extract like this:
+   *
+   * <p>1: home/user/file.txt -> home/
+   *
+   * <p>2: data\archive.zip -> data\
+   *
+   * <p>3: project/src/main.java -> project/
+   *
+   * <p>4: dir/ -> dir/
    *
    * <p>It looks at the first entry and checks if all other files starts with the same folder name.
    * If not all entries are in the same root folder, it returns an empty string.
@@ -100,7 +107,8 @@ public class ZipFileUtils {
     return "";
   }
 
-  private static void validateAllFiles(ZipFile zipFile, String topLevelFolder, String appFolder)
+  private static void validateAllFiles(
+      ZipFile zipFile, String installationFolder, String topLevelFolder)
       throws ZipBombException, ZipSlipException, IOException {
     int entryCount = 0;
     long totalUncompressedSize = 0;
@@ -114,7 +122,7 @@ public class ZipFileUtils {
             "Maximum number of entries (%s) exceeded.".formatted(MAX_ENTRIES));
       }
 
-      String filePath = getFilePath(topLevelFolder, appFolder, zipEntry);
+      String filePath = getFilePath(installationFolder, topLevelFolder, zipEntry);
       // If it's the root folder, skip
       if (filePath == null) continue;
 
@@ -127,14 +135,14 @@ public class ZipFileUtils {
   }
 
   public static @CheckForNull String getFilePath(
-      String topLevelFolder, String appFolder, ZipEntry zipEntry)
+      String installationFolder, String topLevelFolder, ZipEntry zipEntry)
       throws IOException, ZipSlipException {
     String normalizedName = validateFilePaths(topLevelFolder, zipEntry.getName());
     if (normalizedName.isBlank()) {
       return null;
     }
-    String sanitizedName = getSanitizedName(appFolder, normalizedName);
-    return appFolder + File.separator + sanitizedName;
+    String sanitizedName = getSanitizedName(installationFolder, normalizedName);
+    return installationFolder + File.separator + sanitizedName;
   }
 
   private static @Nonnull String validateFilePaths(String topLevelFolder, String filename)
@@ -159,12 +167,12 @@ public class ZipFileUtils {
     return normalizedName;
   }
 
-  private static @Nonnull String getSanitizedName(String appFolder, String normalizedName)
+  private static @Nonnull String getSanitizedName(String installationFolder, String normalizedName)
       throws ZipSlipException, IOException {
     String sanitizedName = normalizedName.replaceAll("^[./\\\\]+", "").replace('\\', '/');
-    // Check sanitizedName is not trying to escape the appFolder
-    String canonicalBasePath = new File(appFolder).getCanonicalPath();
-    String canonicalDestPath = new File(appFolder, sanitizedName).getCanonicalPath();
+    // Check sanitizedName is not trying to escape the installationFolder
+    String canonicalBasePath = new File(installationFolder).getCanonicalPath();
+    String canonicalDestPath = new File(installationFolder, sanitizedName).getCanonicalPath();
     if (!canonicalDestPath.startsWith(canonicalBasePath + File.separator)) {
       throw new ZipSlipException(
           "Invalid zip manifestEntry path after sanitization, potential traversal attempt");
@@ -212,10 +220,10 @@ public class ZipFileUtils {
     }
   }
 
-  public static void validateZip(File file, String appFolder, String topLevelFolder)
+  public static void validateZip(File file, String installationFolder, String topLevelFolder)
       throws IOException, ZipBombException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
-      validateAllFiles(zipFile, topLevelFolder, appFolder);
+      validateAllFiles(zipFile, installationFolder, topLevelFolder);
     }
   }
 }

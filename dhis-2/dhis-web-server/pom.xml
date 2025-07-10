@@ -98,6 +98,14 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -110,6 +118,7 @@
           <version>${jib.version}</version>
           <configuration>
             <container>
+              <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
               <environment>
                 <!-- default DHIS2 web application context to / but allow for customization -->
                 <CATALINA_OPTS>-Dcontext.path=""</CATALINA_OPTS>
@@ -153,8 +162,6 @@
           <version>${maven-war-plugin.version}</version>
           <configuration>
             <failOnMissingWebXml>false</failOnMissingWebXml>
-            <!-- this template is only needed by bundle-apps.js to generate the dhis-web-apps/index.html -->
-            <packagingExcludes>dhis-web-apps/template.html</packagingExcludes>
             <archiveClasses>true</archiveClasses>
             <archive>
               <compress>true</compress>
@@ -163,32 +170,43 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <!-- nodejs is expected to be present to clone bundled apps -->
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <configuration>
-          <executable>npm</executable>
-          <arguments>
-            <argument>run</argument>
-            <argument>bundle-apps</argument>
-          </arguments>
-          <environmentVariables>
-            <BUILD_DIR>${project.build.directory}/classes/static</BUILD_DIR>
-            <ARTIFACT_ID>dhis-web-apps</ARTIFACT_ID>
-            <APPS>./apps-to-bundle.json</APPS>
-            <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
-          </environmentVariables>
-          <skip>${skip.bundle.apps}</skip>
-        </configuration>
         <executions>
           <execution>
             <id>bundle-apps</id>
             <goals>
-              <goal>exec</goal>
+              <goal>java</goal>
             </goals>
             <phase>prepare-package</phase>
+            <configuration>
+              <mainClass>org.hisp.dhis.web.appbundler.AppBundler</mainClass>
+              <systemProperties>
+                <property>
+                  <key>DOWNLOAD_DIR</key>
+                  <value>${project.basedir}/bundled_apps</value>
+                </property>
+                <property>
+                  <key>BUILD_DIR</key>
+                  <value>${project.build.directory}/classes/static</value>
+                </property>
+                <property>
+                  <key>ARTIFACT_ID</key>
+                  <value>dhis-web-apps</value>
+                </property>
+                <property>
+                  <key>APP_LIST</key>
+                  <value>${project.basedir}/apps-to-bundle.json</value>
+                </property>
+                <property>
+                  <key>DEFAULT_BRANCH</key>
+                  <value>master</value>
+                </property>
+              </systemProperties>
+              <skip>${skip.bundle.apps}</skip>
+            </configuration>
           </execution>
         </executions>
       </plugin>

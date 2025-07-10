@@ -41,9 +41,11 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.BundledAppManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -56,14 +58,20 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class AppOverrideFilter extends OncePerRequestFilter {
-  public static final String APP_PATH_PATTERN_STRING =
-      "^/"
-          + AppManager.BUNDLED_APP_PREFIX
-          + "("
-          + String.join("|", AppManager.BUNDLED_APPS)
-          + ")(/?.*)";
 
-  public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
+  private final BundledAppManager bundledAppManager;
+  private Pattern appPathPattern;
+
+  @PostConstruct
+  private void initializeCachedAppNameLookup() {
+    this.appPathPattern =
+        compile(
+            "^/"
+                + AppManager.BUNDLED_APP_PREFIX
+                + "("
+                + String.join("|", bundledAppManager.getBundledAppsKeys())
+                + ")(/?.*)");
+  }
 
   @Override
   protected void doFilterInternal(
@@ -71,22 +79,12 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
-
     String pathInfo = request.getPathInfo();
-    Matcher m = APP_PATH_PATTERN.matcher(Strings.nullToEmpty(pathInfo));
-    if (m.find()) {
-      String appName = m.group(1);
-      String resourcePath = m.group(2);
-
+    Matcher appPathMatcher = appPathPattern.matcher(Strings.nullToEmpty(pathInfo));
+    if (appPathMatcher.find()) {
+      String appName = appPathMatcher.group(1);
+      String resourcePath = appPathMatcher.group(2);
       String destinationPath = "/" + AppManager.INSTALLED_APP_PREFIX + appName + resourcePath;
-
-      log.debug(
-          "AppOverrideFilter :: Matched for path {} ({} | {}) => {}",
-          pathInfo,
-          appName,
-          resourcePath,
-          destinationPath);
-
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       if (authentication != null
           && authentication.isAuthenticated()
@@ -96,7 +94,6 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         return;
       }
     }
-
     chain.doFilter(request, response);
   }
 }

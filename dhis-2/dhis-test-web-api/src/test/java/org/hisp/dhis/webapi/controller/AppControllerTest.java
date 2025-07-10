@@ -47,10 +47,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.appmanager.JCloudsAppStorageService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -88,6 +91,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Autowired private AppManager appManager;
+  @Autowired private JCloudsAppStorageService jCloudsAppStorageService;
 
   static {
     try {
@@ -113,9 +117,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetInstalledAppIndexHtml() throws IOException {
-    appManager.installApp(
-        new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
-        "test-app-with-index-html.zip");
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
 
     HttpResponse response = GET("/apps/myapp/index.html");
     assertTrue(response.hasBody());
@@ -126,14 +128,31 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testInstallReturnsAppInfo() throws IOException {
     var result =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
-            "test-app-with-index-html.zip");
+        appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
 
     assertEquals(
         "31.0.0",
         result.getVersion(),
         "the version returned should match the version in the installed zip file");
+  }
+
+  @Test
+  @DisplayName(
+      "When installing multiple versions of the same app, only the last one installed should exist.")
+  void testInstallMultipleSameKey() throws IOException {
+    // Clean up first
+    Map<String, Pair<App, BundledAppInfo>> installedApps =
+        jCloudsAppStorageService.discoverInstalledApps();
+    installedApps.values().forEach(p -> appManager.deleteApp(p.getLeft(), true));
+
+    appManager.installApp(new ClassPathResource("app/app_ver1.zip").getFile());
+    appManager.installApp(new ClassPathResource("app/app_ver3.zip").getFile());
+    appManager.installApp(new ClassPathResource("app/app_ver2.zip").getFile());
+
+    installedApps = jCloudsAppStorageService.discoverInstalledApps();
+
+    assertEquals(1, installedApps.size());
+    assertEquals("2.0.0", installedApps.values().stream().findFirst().get().getLeft().getVersion());
   }
 
   @Test
@@ -175,8 +194,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Redirect for bundled app has correct location header")
   void redirectLocationTest() throws IOException {
-    appManager.installApp(
-        new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
+    appManager.installApp(new ClassPathResource("app/test-bundled-app.zip").getFile());
 
     HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
     assertEquals("http://localhost/dhis-web-cache-cleaner/index.html", get.location());
@@ -184,9 +202,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testInstalledAppReturnsShortcuts() throws IOException {
-    appManager.installApp(
-        new ClassPathResource("app/test-app-with-shortcuts.zip").getFile(),
-        "test-app-with-shortcuts.zip");
+    appManager.installApp(new ClassPathResource("app/test-app-with-shortcuts.zip").getFile());
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
@@ -213,8 +229,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=es");
 
     appManager.installApp(
-        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
-        "test-app-with-translated-manifest.zip");
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile());
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
@@ -237,8 +252,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=es_CO");
 
     appManager.installApp(
-        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
-        "test-app-with-translated-manifest.zip");
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile());
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
@@ -262,8 +276,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=ar_IQ");
 
     appManager.installApp(
-        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
-        "test-app-with-translated-manifest.zip");
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile());
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
@@ -282,24 +295,19 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testInstalledEvilZipSlipApp() throws IOException {
-    App app =
-        appManager.installApp(new ClassPathResource("app/evil_app.zip").getFile(), "evil_app.zip");
+    App app = appManager.installApp(new ClassPathResource("app/evil_app.zip").getFile());
     assertEquals(AppStatus.INVALID_ZIP_FORMAT, app.getAppState());
   }
 
   @Test
   void testInstalledEvilFlatZipBombApp() throws IOException {
-    App app =
-        appManager.installApp(
-            new ClassPathResource("app/flat_bomb.zip").getFile(), "flat_bomb.zip");
+    App app = appManager.installApp(new ClassPathResource("app/flat_bomb.zip").getFile());
     assertEquals(AppStatus.INVALID_ZIP_FORMAT, app.getAppState());
   }
 
   @Test
   void testInstalledEvilNestedZipBombApp() throws IOException {
-    App app =
-        appManager.installApp(
-            new ClassPathResource("app/nested_bomb.zip").getFile(), "nested_bomb.zip");
+    App app = appManager.installApp(new ClassPathResource("app/nested_bomb.zip").getFile());
     // Should be OK, as the nested zips is not unpacked
     assertEquals(AppStatus.OK, app.getAppState());
   }
@@ -315,7 +323,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
             "evil content".getBytes(StandardCharsets.UTF_8));
 
     File evilZip = createTempZipFile(entries);
-    App app = appManager.installApp(evilZip, "evil_slip.zip");
+    App app = appManager.installApp(evilZip);
 
     AppStatus appState = app.getAppState();
     assertTrue(
@@ -342,7 +350,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     }
 
     File bombZip = createTempZipFile(entries);
-    App app = appManager.installApp(bombZip, "bomb.zip");
+    App app = appManager.installApp(bombZip);
 
     AppStatus appState = app.getAppState();
     assertTrue(
