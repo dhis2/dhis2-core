@@ -422,11 +422,8 @@ public class DefaultAppManager implements AppManager {
     if (!resource.endsWith("manifest.webapp")) {
       return false;
     }
-    // If request was for manifest.webapp, check for * and replace with
-    // host
-    if (application.getActivities() != null
-        && application.getActivities().getDhis() != null
-        && "*".equals(application.getActivities().getDhis().getHref())) {
+    // If request was for manifest.webapp, replace href with the host
+    if (application.getActivities() != null && application.getActivities().getDhis() != null) {
       application.getActivities().getDhis().setHref(contextPath);
       log.debug(String.format("Manifest context path: '%s'", contextPath));
       return true;
