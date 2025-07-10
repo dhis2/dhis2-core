@@ -31,7 +31,6 @@ package org.hisp.dhis.period;
 
 import java.util.Date;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.GenericStore;
 
 /**
@@ -119,9 +118,6 @@ public interface PeriodStore extends GenericStore<Period> {
    * @return the Period.
    */
   Period reloadPeriod(Period period);
-
-  @CheckForNull
-  Long getPeriodId(Period period);
 
   /**
    * Checks if the given period is associated with the current session and loads it if not. The

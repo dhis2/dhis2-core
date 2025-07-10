@@ -63,6 +63,7 @@ import org.hisp.dhis.datavalue.DviRow;
 import org.hisp.dhis.datavalue.DviStore;
 import org.hisp.dhis.datavalue.DviValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserDetails;
@@ -451,7 +452,8 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DviValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
-    Function<UID, Long> cocOf = uid -> cocs.get(uid == null ? "" : uid.getValue());
+    long defaultCoc = getDefaultCategoryOptionComboId();
+    Function<UID, Long> cocOf = uid -> uid == null ? defaultCoc : cocs.get(uid.getValue());
 
     List<DviRow> internalValues = new ArrayList<>(values.size());
 
@@ -498,14 +500,10 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   private Map<String, Long> getOptionComboIdMap(List<DviValue> values) {
-    long defaultCoc = getDefaultCategoryOptionComboId();
-    Map<String, Long> res =
-        getOptionComboIdMap(
-            Stream.concat(
-                values.stream().map(DviValue::categoryOptionCombo),
-                values.stream().map(DviValue::attributeOptionCombo).filter(Objects::nonNull)));
-    res.put("", defaultCoc);
-    return res;
+    return getOptionComboIdMap(
+        Stream.concat(
+            values.stream().map(DviValue::categoryOptionCombo),
+            values.stream().map(DviValue::attributeOptionCombo).filter(Objects::nonNull)));
   }
 
   @Nonnull
@@ -522,7 +520,11 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
       isoPeriods.stream()
           .filter(not(res::containsKey))
           .forEach(
-              iso -> res.put(iso, periodStore.getPeriodId(PeriodType.getPeriodFromIsoString(iso))));
+              iso -> {
+                Period p = PeriodType.getPeriodFromIsoString(iso);
+                periodStore.reloadForceAddPeriod(p);
+                res.put(iso, p.getId());
+              });
     }
     return res;
   }

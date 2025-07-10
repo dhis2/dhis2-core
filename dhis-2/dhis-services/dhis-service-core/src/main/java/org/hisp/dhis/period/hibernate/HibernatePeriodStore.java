@@ -30,6 +30,7 @@
 package org.hisp.dhis.period.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,13 +38,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
@@ -52,7 +52,9 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Persistence for {@link Period} and {@link PeriodType}.
@@ -78,13 +80,16 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     implements PeriodStore {
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
+  private final DataSource dataSource;
 
   public HibernatePeriodStore(
       EntityManager entityManager,
+      DataSource dataSource,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Period.class, aclService, false);
+    this.dataSource = dataSource;
 
     transientIdentifiableProperties = true;
   }
@@ -112,7 +117,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
         (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
     String isoDate = period.getIsoDate();
     Object id =
-        runInStatelessSession(
+        runAutoJoinTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
@@ -258,8 +263,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   }
 
   @CheckForNull
-  @Override
-  public Long getPeriodId(Period period) {
+  private Long getPeriodId(Period period) {
     Long cachedId = periodIdByIsoPeriod.get(period.getIsoDate());
     if (cachedId != null) return cachedId;
     String isoDate = period.getIsoDate();
@@ -293,7 +297,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
       INSERT INTO periodtype (periodtypeid, name)
       VALUES (nextval('hibernate_sequence'), :name)""";
     Object id =
-        runInStatelessSession(
+        runAutoJoinTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
@@ -314,23 +318,38 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     return getSession().createNativeQuery("select * from periodtype", PeriodType.class).list();
   }
 
-  private <R> R runInStatelessSession(Function<StatelessSession, R> query) {
+  private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {
+    boolean active = TransactionSynchronizationManager.isActualTransactionActive();
+    boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+
+    if (active && !readOnly) {
+      // run in existing TX (for visibility)
+      Connection borrowedConnection = DataSourceUtils.getConnection(dataSource);
+      StatelessSession session =
+          getSession().getSessionFactory().openStatelessSession(borrowedConnection);
+      return query.apply(session);
+    }
+
+    // run in new TX
     StatelessSession session = getSession().getSessionFactory().openStatelessSession();
+
     Transaction transaction = null;
     try {
-      transaction = session.beginTransaction(); // REQUIRED: Start transaction
+      transaction = session.beginTransaction();
       R result = query.apply(session);
-      transaction.commit(); // REQUIRED: Commit changes
+      transaction.commit();
       return result;
-    } catch (Exception exception) {
-      log.error(DebugUtils.getStackTrace(exception));
-      if (transaction != null && transaction.isActive()) {
-        transaction.rollback(); // REQUIRED: Rollback on error
-      }
+    } catch (RuntimeException e) {
+      // Handle rollback for self-managed transactions
+      if (transaction != null && transaction.isActive()) transaction.rollback();
+      throw e;
     } finally {
-      DbmsUtils.closeStatelessSession(session);
+      try {
+        session.close();
+      } catch (Exception e) {
+        log.error("Session close error", e);
+      }
     }
-    return null;
   }
 
   // -------------------------------------------------------------------------
