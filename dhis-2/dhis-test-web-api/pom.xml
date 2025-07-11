@@ -392,6 +392,11 @@
       <artifactId>spring-security-oauth2-client</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.david-mackessy</groupId>
+      <artifactId>dhis2-api-contracts</artifactId>
+      <version>8.0.0</version>
+    </dependency>
   </dependencies>
 
   <build>

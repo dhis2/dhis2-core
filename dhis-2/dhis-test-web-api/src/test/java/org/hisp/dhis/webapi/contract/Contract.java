@@ -1,0 +1,34 @@
+package org.hisp.dhis.webapi.contract;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import java.io.IOException;
+import org.hisp.dhis.http.HttpMethod;
+
+public record Contract(
+    String name,
+    HttpMethod httpMethod,
+    String requestUrl,
+    int responseStatus,
+    @JsonDeserialize(using = JsonSchemaDeserializer.class) JsonSchema jsonSchema) {
+
+  @Override
+  public String toString() {
+    return name;
+  }
+}
+
+class JsonSchemaDeserializer extends JsonDeserializer<JsonSchema> {
+  @Override
+  public JsonSchema deserialize(JsonParser parser, DeserializationContext context)
+      throws IOException {
+    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+    return factory.getSchema(
+        getClass().getClassLoader().getResourceAsStream(parser.getValueAsString()));
+  }
+}
