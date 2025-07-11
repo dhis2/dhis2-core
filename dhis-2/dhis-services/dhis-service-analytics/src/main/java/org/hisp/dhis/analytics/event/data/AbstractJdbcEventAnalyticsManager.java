@@ -71,13 +71,11 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
@@ -86,6 +84,7 @@ import static org.springframework.transaction.annotation.Propagation.REQUIRES_NE
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -104,8 +103,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-
-import com.google.common.collect.Sets;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -1780,7 +1777,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
 
-
     // 3.1: Append the WITH clause if needed
     addCteClause(sb, cteContext);
 
@@ -1869,9 +1865,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param params The {@link EventQueryParams} driving the query.
    * @param cteContext The {@link CteContext} to which these shadow CTEs will be added.
-   * @param selectColumns The list of columns computed for the main SELECT statement. This is used when
-   *                      computing the main {@code top_enrollments} CTE to ensure that any missing column is
-   *                      used in the shadow CTEs.
+   * @param selectColumns The list of columns computed for the main SELECT statement. This is used
+   *     when computing the main {@code top_enrollments} CTE to ensure that any missing column is
+   *     used in the shadow CTEs.
    */
   void addShadowCtes(EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
 
@@ -1913,7 +1909,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *     definition will be added. It's added with a specific type ({@code CteType.TOP_ENROLLMENTS})
    *     to ensure correct ordering in the final SQL query.
    */
-  void addTopEnrollmentsCte(EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
+  void addTopEnrollmentsCte(
+      EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
     SelectBuilder topEnrollments = new SelectBuilder();
     Map<String, String> formulaAliases = getFormulaColumnAliases();
 
@@ -1944,13 +1941,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
     // Add ORGANISATION_UNIT_GROUP_SET columns
     List<DimensionalObject> dynamicDimensions =
-            params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
+        params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
 
     for (DimensionalObject dim : dynamicDimensions) {
       if (!dim.isAllItems()) {
         String col = quoteAlias(dim.getDimensionName());
         topEnrollments.addColumnIfNotExist(col);
-
       }
     }
     for (String selectColumn : selectColumns) {
