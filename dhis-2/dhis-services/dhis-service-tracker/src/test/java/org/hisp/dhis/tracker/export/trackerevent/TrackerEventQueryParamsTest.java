@@ -65,7 +65,7 @@ class TrackerEventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() {
+  void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() throws BadRequestException {
     TrackerEventQueryParams params = new TrackerEventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");

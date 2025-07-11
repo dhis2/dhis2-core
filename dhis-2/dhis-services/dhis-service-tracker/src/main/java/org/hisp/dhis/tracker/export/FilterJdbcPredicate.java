@@ -42,6 +42,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
@@ -99,7 +100,7 @@ public class FilterJdbcPredicate {
    * attribute {@code UID} to access the attribute value using {@code 'uid'.value}.
    */
   public static FilterJdbcPredicate of(
-      @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
+      @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) throws BadRequestException {
     Parameter parameter = parseFilterValue(tea, filter);
     String sql = generateSql(tea, filter, parameter);
     return new FilterJdbcPredicate(sql, Optional.ofNullable(parameter));
@@ -177,7 +178,11 @@ public class FilterJdbcPredicate {
   }
 
   private static String generateSql(
-      TrackedEntityAttribute tea, QueryFilter filter, Parameter parameter) {
+      TrackedEntityAttribute tea, QueryFilter filter, Parameter parameter)
+      throws BadRequestException {
+    if (isMultiTextType(tea)) {
+      return getMultiTextClause(getAttributeValueColumn(tea), filter.getOperator(), parameter, tea);
+    }
     String leftOperand = leftOperandSql(tea, filter.getOperator());
     String rightOperand = rightOperandSql(filter.getOperator(), parameter);
     return leftOperand + " " + filter.getSqlOperator() + rightOperand;
@@ -187,7 +192,7 @@ public class FilterJdbcPredicate {
       DataElement de, QueryFilter filter, Parameter parameter, String ev)
       throws BadRequestException {
     if (isMultiTextType(de)) {
-      return multiTextClause(getColumn(de, ev), filter.getOperator(), parameter, de);
+      return getMultiTextClause(getDataValueColumn(de, ev), filter.getOperator(), parameter, de);
     }
     String leftOperand = leftOperandSql(de, filter.getOperator(), ev);
     String rightOperand = rightOperandSql(filter.getOperator(), parameter);
@@ -196,7 +201,7 @@ public class FilterJdbcPredicate {
 
   @Nonnull
   private static String leftOperandSql(TrackedEntityAttribute tea, QueryOperator operator) {
-    String column = quote(tea.getUid()) + ".value";
+    String column = getAttributeValueColumn(tea);
 
     String leftOperand;
     if (operator.isCastOperand() && tea.getValueType().getSqlType().type() != Types.VARCHAR) {
@@ -214,7 +219,7 @@ public class FilterJdbcPredicate {
 
   @Nonnull
   private static String leftOperandSql(DataElement de, QueryOperator operator, String table) {
-    String column = getColumn(de, table);
+    String column = getDataValueColumn(de, table);
 
     String leftOperand;
     if (operator.isUnary()) {
@@ -233,8 +238,13 @@ public class FilterJdbcPredicate {
   }
 
   @Nonnull
-  private static String getColumn(DataElement de, String table) {
+  private static String getDataValueColumn(DataElement de, String table) {
     return table + ".eventdatavalues #>> '{" + de.getUid() + ", value}'";
+  }
+
+  @Nonnull
+  private static String getAttributeValueColumn(TrackedEntityAttribute attribute) {
+    return quote(attribute.getUid()) + ".value";
   }
 
   @Nonnull
@@ -252,8 +262,8 @@ public class FilterJdbcPredicate {
   }
 
   @Nonnull
-  private static String multiTextClause(
-      String column, QueryOperator operator, Parameter parameter, DataElement de)
+  private static String getMultiTextClause(
+      String column, QueryOperator operator, Parameter parameter, IdentifiableObject entity)
       throws BadRequestException {
     String unnestSql = "unnest(string_to_array(lower(" + column + "), ',')) AS val";
     String trimmed = "trim(val)";
@@ -281,13 +291,13 @@ public class FilterJdbcPredicate {
       default ->
           throw new BadRequestException(
               String.format(
-                  "Invalid filter: Operator '%s' is not supported for multi-text data element '%s'.",
-                  operator.name(), de.getUid()));
+                  "Invalid filter: Operator '%s' is not supported for multi-text %s : '%s'.",
+                  operator.name(), entity.getClass().getSimpleName(), entity.getUid()));
     };
   }
 
-  private static boolean isMultiTextType(DataElement de) {
-    return ValueType.MULTI_TEXT == de.getValueType();
+  private static boolean isMultiTextType(ValueTypedDimensionalItemObject valueTypedObject) {
+    return ValueType.MULTI_TEXT == valueTypedObject.getValueType();
   }
 
   /**

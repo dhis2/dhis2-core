@@ -352,7 +352,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     assertEquals(
         String.format(
-            "Invalid filter: Operator 'GT' is not supported for multi-text data element '%s'.",
+            "Invalid filter: Operator 'GT' is not supported for multi-text DataElement : '%s'.",
             deMultiText.getUid()),
         GET(
                 "/tracker/events?filter={de}:GT:bl&program={program}&programStage={programStage}&fields=dataValues",

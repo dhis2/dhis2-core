@@ -52,6 +52,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -407,9 +408,14 @@ public class TrackedEntityQueryParams {
    * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
    * that consist of an operator and a value.
    */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filter) {
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filters)
+      throws BadRequestException {
     this.filters.putIfAbsent(tea, new ArrayList<>());
-    this.filters.get(tea).addAll(filter.stream().map(f -> FilterJdbcPredicate.of(tea, f)).toList());
+    for (QueryFilter filter : filters) {
+      FilterJdbcPredicate predicate = FilterJdbcPredicate.of(tea, filter);
+      this.filters.get(tea).add(predicate);
+    }
+
     return this;
   }
 

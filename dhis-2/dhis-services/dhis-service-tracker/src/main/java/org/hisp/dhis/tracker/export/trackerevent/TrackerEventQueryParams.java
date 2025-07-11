@@ -330,7 +330,7 @@ class TrackerEventQueryParams {
   }
 
   public TrackerEventQueryParams filterBy(
-      @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
+      @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) throws BadRequestException {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     this.attributes.get(tea).add(FilterJdbcPredicate.of(tea, filter));
     return this;
