@@ -33,7 +33,9 @@ import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
@@ -54,6 +56,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -103,11 +106,18 @@ import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String TE_RBG = "QS6w44flWSS";
+  private static final String TE_RWY = "QS6w44flWTT";
+  private static final String TE_NO_VALUE = "QS6w44flWUU";
+  private static final String TRACKED_ENTITY_ATTRIBUTE = "multitxtAtr";
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -1111,6 +1121,53 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertEquals("file content", response.content("image/png"));
   }
 
+  @ParameterizedTest
+  @MethodSource("provideMultiTextFilterTestCases")
+  void shouldReturnExpectedTrackedEntitiesForMultiTextFilter(
+      String filter, List<String> expectedDataValues, List<String> expectedTrackedEntities) {
+    switchContextToUser(get(User.class, "tTgjgobT1oS"));
+
+    JsonList<JsonTrackedEntity> jsonTrackedEntities =
+        GET(
+                "/tracker/trackedEntities?filter={attr}:{filter}&program={program}&fields=trackedEntity,attributes",
+                TRACKED_ENTITY_ATTRIBUTE,
+                filter,
+                "BFcipDERJnf")
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    assertContainsOnly(
+        expectedTrackedEntities,
+        jsonTrackedEntities.stream().map(JsonTrackedEntity::getTrackedEntity).toList());
+    assertContainsOnly(
+        expectedDataValues,
+        jsonTrackedEntities.stream()
+            .map(
+                te ->
+                    te.getAttributes().stream()
+                        .filter(attr -> "multitxtAtr".equals(attr.getAttribute()))
+                        .findFirst()
+                        .map(JsonAttribute::getValue)
+                        .orElse(null))
+            .toList());
+  }
+
+  @Test
+  void shouldReturnErrorWhenFetchingTrackedEntitiesUsingUnsupportedOperators() {
+    switchContextToUser(get(User.class, "tTgjgobT1oS"));
+
+    assertEquals(
+        String.format(
+            "Invalid filter: Operator 'GT' is not supported for multi-text TrackedEntityAttribute : '%s'.",
+            TRACKED_ENTITY_ATTRIBUTE),
+        GET(
+                "/tracker/trackedEntities?filter={attribute}:GT:bl&program={program}&fields=trackedEntity,attributes",
+                TRACKED_ENTITY_ATTRIBUTE,
+                "BFcipDERJnf")
+            .error(BAD_REQUEST)
+            .getMessage());
+  }
+
   private TrackedEntity deleteTrackedEntity(UID uid) {
     TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
     org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
@@ -1440,5 +1497,26 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         expected.getRelationshipType().getUid(),
         actual.getRelationshipType(),
         "relationshipType UID");
+  }
+
+  /**
+   * Provides test cases for multi-text data element filtering using different operators. Each test
+   * case defines: - The filter expression to be tested - The expected matching multi-text event
+   * data values - The expected matching event UIDs
+   */
+  private static Stream<Arguments> provideMultiTextFilterTestCases() {
+    return Stream.of(
+        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_RBG)),
+        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_RBG)),
+        Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_RWY)),
+        Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_RWY)),
+        Arguments.of("ew:bl", List.of(), List.of()), // no match
+        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_RBG)),
+        Arguments.of(
+            "in:red", List.of("red,blue,Green", "red,white,yellow"), List.of(TE_RBG, TE_RWY)),
+        Arguments.of(
+            "like:red", List.of("red,blue,Green", "red,white,yellow"), List.of(TE_RBG, TE_RWY)),
+        Arguments.of(
+            "!null", List.of("red,blue,Green", "red,white,yellow"), List.of(TE_RBG, TE_RWY)));
   }
 }
