@@ -71,11 +71,13 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
@@ -102,6 +104,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+
+import com.google.common.collect.Sets;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -1931,6 +1935,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Set<String> enrollmentColumns = getEnrollmentColumnsFromProgramIndicators(params);
     for (String column : enrollmentColumns) {
       topEnrollments.addColumn(quote(column), "ax");
+    }
+    // Add ORGANISATION_UNIT_GROUP_SET columns
+    List<DimensionalObject> dynamicDimensions =
+            params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
+
+    for (DimensionalObject dim : dynamicDimensions) {
+      if (!dim.isAllItems()) {
+        String col = quoteAlias(dim.getDimensionName());
+        topEnrollments.addColumnIfNotExist(col);
+
+      }
     }
 
     // Build from clause and where clauses
