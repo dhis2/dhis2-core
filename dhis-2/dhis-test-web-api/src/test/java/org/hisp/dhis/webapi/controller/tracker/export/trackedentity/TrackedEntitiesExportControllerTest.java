@@ -1500,9 +1500,9 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   /**
-   * Provides test cases for multi-text data element filtering using different operators. Each test
-   * case defines: - The filter expression to be tested - The expected matching multi-text event
-   * data values - The expected matching event UIDs
+   * Provides test cases for multi-text tracked entity attribute filtering using different
+   * operators. Each test case defines: - The filter expression to be tested - The expected matching
+   * multi-text tracked entity attribute values - The expected matching TrackedEntity UIDs
    */
   private static Stream<Arguments> provideMultiTextFilterTestCases() {
     return Stream.of(
