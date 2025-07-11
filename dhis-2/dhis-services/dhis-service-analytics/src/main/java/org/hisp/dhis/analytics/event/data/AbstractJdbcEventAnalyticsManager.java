@@ -1919,7 +1919,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
-      topEnrollments.addColumn(
+      topEnrollments.addColumnIfNotExist(
           params
               .getOrgUnitField()
               .withSqlBuilder(sqlBuilder)
