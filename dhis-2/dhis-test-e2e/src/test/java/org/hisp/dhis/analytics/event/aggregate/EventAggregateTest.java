@@ -78,8 +78,7 @@ public class EventAggregateTest extends AnalyticsApiTest {
         "java.lang.Boolean",
         false,
         true);
-    validateHeader(
-        response, 1, "CklPZdOd6H1", "Sex", "TEXT", "java.lang.String", false, true, "hiQ3QFheQ3O");
+    validateHeader(response, 1, "CklPZdOd6H1", "Sex", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,
