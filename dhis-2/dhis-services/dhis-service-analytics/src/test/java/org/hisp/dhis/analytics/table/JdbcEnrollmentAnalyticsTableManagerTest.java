@@ -88,8 +88,6 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private SystemSettingsProvider settingsProvider;
 
-  @Mock private SystemSettings settings;
-
   @Mock private DataApprovalLevelService dataApprovalLevelService;
 
   @Mock private ResourceTableService resourceTableService;
@@ -126,7 +124,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,
-            new ColumnMapper(sqlBuilder),
+            new ColumnMapper(sqlBuilder, settingsProvider),
             sqlBuilder);
   }
 

@@ -170,6 +170,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @BeforeEach
   public void setUp() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     subject =
         new JdbcEventAnalyticsTableManager(
             idObjectManager,
@@ -183,11 +184,9 @@ class JdbcEventAnalyticsTableManagerTest {
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,
-            new ColumnMapper(sqlBuilder),
+            new ColumnMapper(sqlBuilder, settingsProvider),
             sqlBuilder);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
 
@@ -283,7 +282,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .addColumns(periodColumns)
         .addColumn(
             categoryA.getUid(),
@@ -487,7 +486,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .addColumn(d5.getUid() + "_geom", GEOMETRY, aliasD5_geo, IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(d5.getUid() + "_name", TEXT, aliasD5_name, Skip.SKIP)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .build()
         .verify();
   }
@@ -559,7 +558,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .addColumn(tea1.getUid() + "_geom", GEOMETRY, ouGeometryQuery, IndexType.GIST)
         // Org unit name column
         .addColumn(tea1.getUid() + "_name", TEXT, ouNameQuery, Skip.SKIP)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .build()
         .verify();
   }
@@ -762,13 +761,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            EventAnalyticsColumn.getColumns(sqlBuilder).size()
+            EventAnalyticsColumn.getColumns(sqlBuilder, false).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouLevels.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .addColumn(("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
         .addColumn(("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
         .build()
@@ -804,13 +803,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            EventAnalyticsColumn.getColumns(sqlBuilder).size()
+            EventAnalyticsColumn.getColumns(sqlBuilder, false).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
         .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -845,13 +844,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            EventAnalyticsColumn.getColumns(sqlBuilder).size()
+            EventAnalyticsColumn.getColumns(sqlBuilder, false).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .addColumn(cogs.get(0).getUid(), col -> match(cogs.get(0), col))
         .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()

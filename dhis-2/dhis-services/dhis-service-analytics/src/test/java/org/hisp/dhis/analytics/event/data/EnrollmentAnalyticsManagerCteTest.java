@@ -115,6 +115,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+    when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
@@ -123,7 +124,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             systemSettingsService,
             new PostgreSqlBuilder(),
             dataElementService);
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(

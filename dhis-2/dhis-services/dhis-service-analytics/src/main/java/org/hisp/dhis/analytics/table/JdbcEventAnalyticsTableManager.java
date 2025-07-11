@@ -133,7 +133,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         periodDataProvider,
         columnMapper,
         sqlBuilder);
-    fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
+    fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder, useCentroidForOuColumns());
   }
 
   @Override
@@ -751,5 +751,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
+  }
+
+  private boolean useCentroidForOuColumns() {
+    return settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics();
   }
 }

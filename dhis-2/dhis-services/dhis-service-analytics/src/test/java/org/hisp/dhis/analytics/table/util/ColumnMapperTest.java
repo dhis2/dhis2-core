@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.table.util;
 import static org.hisp.dhis.db.model.DataType.*;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -44,6 +46,8 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,14 +57,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class ColumnUtilsTest extends TestBase {
+class ColumnMapperTest extends TestBase {
 
   private ColumnMapper columnMapper;
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private SystemSettings systemSettings;
 
   @BeforeEach
   void setUp() {
-    columnMapper = new ColumnMapper(sqlBuilder);
+    SystemSettingsProvider settingsProvider = mock(SystemSettingsProvider.class);
+    systemSettings = mock(SystemSettings.class);
+    when(settingsProvider.getCurrentSettings()).thenReturn(systemSettings);
+    columnMapper = new ColumnMapper(sqlBuilder, settingsProvider);
   }
 
   @Nested
@@ -218,6 +226,40 @@ class ColumnUtilsTest extends TestBase {
       assertEquals(tea.getUid() + "_geom", geometryColumn.getName());
       assertEquals(GEOMETRY, geometryColumn.getDataType());
       assertEquals(IndexType.GIST, geometryColumn.getIndexType());
+      assertFalse(geometryColumn.getSelectExpression().contains("ST_Centroid"));
+
+      // Name column (second in list)
+      AnalyticsTableColumn nameColumn = result.get(1);
+      assertEquals(tea.getUid() + "_name", nameColumn.getName());
+      assertEquals(TEXT, nameColumn.getDataType());
+      assertEquals(Skip.SKIP, nameColumn.getSkipIndex());
+    }
+
+    @Test
+    @DisplayName("Should create multiple columns for organisation unit attribute using Centroid")
+    void shouldCreateMultipleColumnsForOrgUnitAttribute_Centroid() {
+
+      when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(true);
+      // Given
+      TrackedEntityAttribute tea = createTrackedEntityAttribute('G');
+      tea.setValueType(ValueType.ORGANISATION_UNIT);
+
+      // When
+      List<AnalyticsTableColumn> result = columnMapper.getColumnsForAttribute(tea);
+
+      // Then
+      assertEquals(3, result.size()); // main column + geometry + name
+
+      // Main column (last in list)
+      AnalyticsTableColumn mainColumn = result.get(2);
+      assertEquals(tea.getUid(), mainColumn.getName());
+
+      // Geometry column (first in list)
+      AnalyticsTableColumn geometryColumn = result.get(0);
+      assertEquals(tea.getUid() + "_geom", geometryColumn.getName());
+      assertEquals(GEOMETRY, geometryColumn.getDataType());
+      assertEquals(IndexType.GIST, geometryColumn.getIndexType());
+      assertTrue(geometryColumn.getSelectExpression().contains("ST_Centroid"));
 
       // Name column (second in list)
       AnalyticsTableColumn nameColumn = result.get(1);

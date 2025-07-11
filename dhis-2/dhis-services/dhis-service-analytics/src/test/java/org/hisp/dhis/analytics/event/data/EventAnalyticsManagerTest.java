@@ -161,7 +161,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             new PostgreSqlBuilder(),
             dataElementService);
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
 
     subject =
         new JdbcEventAnalyticsManager(
