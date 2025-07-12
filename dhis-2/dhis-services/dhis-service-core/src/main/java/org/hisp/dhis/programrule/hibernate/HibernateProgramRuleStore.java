@@ -69,29 +69,6 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes) {
-    String sql =
-        """
-            SELECT distinct de.uid
-            FROM ProgramRuleAction pra JOIN pra.dataElement de
-            WHERE pra.programRuleActionType in (:types)
-        """;
-    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
-  }
-
-  @Override
-  public List<String> getTrackedEntityAttributesPresentInProgramRules(
-      Set<ProgramRuleActionType> actionTypes) {
-    String sql =
-        """
-                SELECT distinct att.uid
-                FROM ProgramRuleAction pra JOIN pra.attribute att
-                WHERE pra.programRuleActionType in (:types)
-            """;
-    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
-  }
-
-  @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     final String hql =
