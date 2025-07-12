@@ -438,7 +438,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldFailIfOperatorIsNotSupportedForMultiTextTEA() throws BadRequestException {
+  void shouldFailIfOperatorIsNotSupportedForMultiTextTEA() {
     QueryFilter filter = new QueryFilter(QueryOperator.GT, "blue");
 
     BadRequestException exception =
@@ -451,7 +451,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldFailIfOperatorIsNotSupportedForMultiTextDataElement() throws BadRequestException {
+  void shouldFailIfOperatorIsNotSupportedForMultiTextDataElement() {
     QueryFilter filter = new QueryFilter(QueryOperator.GT, "blue");
 
     BadRequestException exception =

@@ -116,7 +116,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String TE_RBG = "QS6w44flWSS";
   private static final String TE_RWY = "QS6w44flWTT";
-  private static final String TE_NO_VALUE = "QS6w44flWUU";
   private static final String TRACKED_ENTITY_ATTRIBUTE = "multitxtAtr";
 
   @Autowired private TrackerImportService trackerImportService;
