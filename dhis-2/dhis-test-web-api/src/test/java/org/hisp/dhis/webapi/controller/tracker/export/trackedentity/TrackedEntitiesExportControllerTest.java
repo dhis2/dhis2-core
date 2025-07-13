@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -114,9 +115,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final String TE_RBG = "QS6w44flWSS";
-  private static final String TE_RWY = "QS6w44flWTT";
-  private static final String TRACKED_ENTITY_ATTRIBUTE = "multitxtAtr";
+  private static final String TEA_MULTI_TEXT = "multitxtAtr";
+  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red,blue,Green" as multi text value
+  private static final String TE_UID_RWY = "QS6w44flWTT"; // "red,white,yellow" as multi text value
+  private static final String TE_UID_EMPTY_STRING = "QS6w44flWUU"; // "" as multi text value
+  public static final List<String> TE_UID_NULL =
+      List.of("mHWCacsGYYn", "dUE514NMOlo", "QS6w44flWAf"); // no value or null as multi text value
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -140,6 +144,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     injectSecurityContextUser(importUser);
 
     trackerObjects = testSetup.importTrackerData();
+    testSetup.importTrackerData("tracker/tracker_multi_text_attribute_data.json");
 
     manager.flush();
     manager.clear();
@@ -1129,7 +1134,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     JsonList<JsonTrackedEntity> jsonTrackedEntities =
         GET(
                 "/tracker/trackedEntities?filter={attr}:{filter}&program={program}&fields=trackedEntity,attributes",
-                TRACKED_ENTITY_ATTRIBUTE,
+                TEA_MULTI_TEXT,
                 filter,
                 "BFcipDERJnf")
             .content(HttpStatus.OK)
@@ -1152,16 +1157,35 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void shouldReturnWhenFetchingTrackedEntitiesUsingNullOperators() {
+    switchContextToUser(get(User.class, "tTgjgobT1oS"));
+
+    JsonList<JsonTrackedEntity> jsonTrackedEntities =
+        GET(
+                "/tracker/trackedEntities?filter={attr}:null&program={program}&fields=trackedEntity,attributes",
+                TEA_MULTI_TEXT,
+                "BFcipDERJnf")
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    assertContainsAll(
+        Stream.concat(Stream.of(TE_UID_EMPTY_STRING), TE_UID_NULL.stream())
+            .collect(Collectors.toList()),
+        jsonTrackedEntities,
+        JsonTrackedEntity::getTrackedEntity);
+  }
+
+  @Test
   void shouldReturnErrorWhenFetchingTrackedEntitiesUsingUnsupportedOperators() {
     switchContextToUser(get(User.class, "tTgjgobT1oS"));
 
     assertEquals(
         String.format(
             "Invalid filter: Operator 'GT' is not supported for multi-text TrackedEntityAttribute : '%s'.",
-            TRACKED_ENTITY_ATTRIBUTE),
+            TEA_MULTI_TEXT),
         GET(
                 "/tracker/trackedEntities?filter={attribute}:GT:bl&program={program}&fields=trackedEntity,attributes",
-                TRACKED_ENTITY_ATTRIBUTE,
+                TEA_MULTI_TEXT,
                 "BFcipDERJnf")
             .error(BAD_REQUEST)
             .getMessage());
@@ -1505,17 +1529,23 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
    */
   private static Stream<Arguments> provideMultiTextFilterTestCases() {
     return Stream.of(
-        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_RBG)),
-        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_RBG)),
-        Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_RWY)),
-        Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_RWY)),
+        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
+        Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("ew:bl", List.of(), List.of()), // no match
-        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_RBG)),
+        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
         Arguments.of(
-            "in:red", List.of("red,blue,Green", "red,white,yellow"), List.of(TE_RBG, TE_RWY)),
+            "in:red",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
-            "like:red", List.of("red,blue,Green", "red,white,yellow"), List.of(TE_RBG, TE_RWY)),
+            "like:red",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
-            "!null", List.of("red,blue,Green", "red,white,yellow"), List.of(TE_RBG, TE_RWY)));
+            "!null",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)));
   }
 }
