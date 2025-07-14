@@ -85,6 +85,9 @@ public enum QueryOperator {
 
   private static final Set<QueryOperator> UNARY_OPERATORS = EnumSet.of(NULL, NNULL);
 
+  private static final Set<QueryOperator> CASE_INSENSITIVE_OPERATORS =
+      EnumSet.of(IEQ, NIEQ, ILIKE, NILIKE);
+
   private final String value;
 
   private final boolean nullAllowed;
@@ -147,5 +150,27 @@ public enum QueryOperator {
 
   public boolean isUnary() {
     return UNARY_OPERATORS.contains(this);
+  }
+
+  public boolean isCaseInsensitive() {
+    return CASE_INSENSITIVE_OPERATORS.contains(this);
+  }
+
+  /**
+   * Case‑insensitive operators are analytics specific and should not be used in tracker, because
+   * the values there are already converted to lowercase before comparison. For now, we are not
+   * enforcing this rule in the API, so those operators can still be used. Adding such validation
+   * would be a breaking change, and we are not ready for that yet.
+   *
+   * <p>This method should therefore be used to map case‑insensitive operators to their
+   * case‑sensitive equivalents.
+   */
+  public QueryOperator mapToCaseSensitiveOperator() {
+    return switch (this) {
+      case IEQ -> EQ;
+      case NIEQ -> NEQ;
+      case ILIKE, NLIKE -> LIKE;
+      default -> this;
+    };
   }
 }

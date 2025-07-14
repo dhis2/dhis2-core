@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -123,7 +124,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
     assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
-    assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", null);
+    assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
     assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", null);
   }
 
