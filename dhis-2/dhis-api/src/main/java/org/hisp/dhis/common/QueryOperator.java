@@ -85,9 +85,6 @@ public enum QueryOperator {
 
   private static final Set<QueryOperator> UNARY_OPERATORS = EnumSet.of(NULL, NNULL);
 
-  private static final Set<QueryOperator> CASE_INSENSITIVE_OPERATORS =
-      EnumSet.of(IEQ, NIEQ, ILIKE, NILIKE);
-
   private final String value;
 
   private final boolean nullAllowed;
@@ -150,10 +147,6 @@ public enum QueryOperator {
 
   public boolean isUnary() {
     return UNARY_OPERATORS.contains(this);
-  }
-
-  public boolean isCaseInsensitive() {
-    return CASE_INSENSITIVE_OPERATORS.contains(this);
   }
 
   /**

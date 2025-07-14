@@ -72,8 +72,7 @@ public class TrackedEntityAttributeObjectBundleHook
       }
     }
 
-    if (attr.getPreferredSearchOperator() != null
-        && attr.getPreferredSearchOperator().isCaseInsensitive()) {
+    if (attr.getPreferredSearchOperator() != null) {
       attr.setPreferredSearchOperator(
           attr.getPreferredSearchOperator().mapToCaseSensitiveOperator());
     }
