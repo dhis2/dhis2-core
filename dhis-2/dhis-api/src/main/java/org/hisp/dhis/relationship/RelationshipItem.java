@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
@@ -52,6 +53,8 @@ public class RelationshipItem implements EmbeddedObject {
   private Enrollment enrollment;
 
   private Event event;
+
+  private SingleEvent singleEvent;
 
   public RelationshipItem() {}
 
@@ -105,5 +108,16 @@ public class RelationshipItem implements EmbeddedObject {
 
   public void setEvent(Event event) {
     this.event = event;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public SingleEvent getSingleEvent() {
+    return singleEvent;
+  }
+
+  public void setSingleEvent(SingleEvent singleEvent) {
+    this.singleEvent = singleEvent;
   }
 }

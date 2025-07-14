@@ -33,8 +33,10 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1128;
 
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -45,18 +47,40 @@ class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.import
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
-    ProgramStage programStage = preheatEvent.getProgramStage();
+    if (event instanceof TrackerEvent) {
 
-    reporter.addErrorIf(
-        () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
-    reporter.addErrorIf(
-        () ->
-            event.getEnrollment() != null
-                && !event.getEnrollment().getValue().equals(preheatEvent.getEnrollment().getUid()),
-        event,
-        E1128,
-        "enrollment");
+      Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
+      ProgramStage programStage = preheatEvent.getProgramStage();
+
+      reporter.addErrorIf(
+          () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
+      reporter.addErrorIf(
+          () ->
+              event.getEnrollment() != null
+                  && !event
+                      .getEnrollment()
+                      .getValue()
+                      .equals(preheatEvent.getEnrollment().getUid()),
+          event,
+          E1128,
+          "enrollment");
+    } else if (event instanceof org.hisp.dhis.tracker.imports.domain.SingleEvent) {
+      SingleEvent preheatEvent = bundle.getPreheat().getSingleEvent(event.getEvent());
+      ProgramStage programStage = preheatEvent.getProgramStage();
+
+      reporter.addErrorIf(
+          () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
+      reporter.addErrorIf(
+          () ->
+              event.getEnrollment() != null
+                  && !event
+                      .getEnrollment()
+                      .getValue()
+                      .equals(preheatEvent.getEnrollment().getUid()),
+          event,
+          E1128,
+          "enrollment");
+    }
   }
 
   @Override

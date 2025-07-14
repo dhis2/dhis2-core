@@ -28,5 +28,9 @@
         <many-to-one name="event" class="org.hisp.dhis.program.Event"
                      column="eventid"
                      foreign-key="fk_relationshipitem_programstageinstanceid"/>
+
+        <many-to-one name="singleEvent" class="org.hisp.dhis.program.SingleEvent"
+                     column="eventid"
+                     foreign-key="fk_relationshipitem_programstageinstanceid" insert="false" update="false"/>
     </class>
 </hibernate-mapping>

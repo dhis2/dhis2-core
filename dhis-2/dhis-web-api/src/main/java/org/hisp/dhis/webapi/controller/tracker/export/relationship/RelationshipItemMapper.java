@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
@@ -109,6 +110,27 @@ interface RelationshipItemMapper {
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "notes", source = "notes")
   RelationshipItem.Event map(Event event);
+
+  @Mapping(target = "event", source = "uid")
+  @Mapping(target = "program", source = "enrollment.program.uid")
+  @Mapping(target = "programStage", source = "programStage.uid")
+  @Mapping(target = "enrollment", source = "enrollment.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "occurredAt", source = "occurredDate")
+  @Mapping(target = "scheduledAt", source = "scheduledDate")
+  @Mapping(target = "followUp", source = "enrollment.followup")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
+  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  @Mapping(target = "completedAt", source = "completedDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "dataValues", source = "eventDataValues")
+  @Mapping(target = "notes", source = "notes")
+  RelationshipItem.Event map(SingleEvent event);
 
   @Mapping(target = "displayName", source = "name")
   User map(org.hisp.dhis.user.User user);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackerevent;
+package org.hisp.dhis.program;
 
 import java.util.Date;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.springframework.stereotype.Service;
+import org.locationtech.jts.geom.Geometry;
 
-@Service("org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService")
-public class TrackerEventChangeLogService
-    extends EventChangeLogService<TrackerEventChangeLog, Event> {
+public interface EventInterface {
+  Date getScheduledDate();
 
-  protected TrackerEventChangeLogService(
-      TrackerEventService trackerEventService,
-      HibernateEventChangeLogStore<TrackerEventChangeLog> hibernateEventChangeLogStore,
-      DhisConfigurationProvider config) {
-    super(trackerEventService, hibernateEventChangeLogStore, config);
-  }
+  Date getOccurredDate();
 
-  @Override
-  public TrackerEventChangeLog buildEventChangeLog(
-      Event event,
-      DataElement dataElement,
-      String eventField,
-      String previousValue,
-      String value,
-      ChangeLogType changeLogType,
-      Date created,
-      String userName) {
-    return new TrackerEventChangeLog(
-        event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
-  }
+  Geometry getGeometry();
+
+  boolean isDeleted();
 }

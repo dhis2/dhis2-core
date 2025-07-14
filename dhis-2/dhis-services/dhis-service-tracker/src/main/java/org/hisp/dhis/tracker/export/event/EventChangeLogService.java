@@ -49,12 +49,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventInterface;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class EventChangeLogService<T> {
+public abstract class EventChangeLogService<T, R extends EventInterface> {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
@@ -70,7 +71,7 @@ public abstract class EventChangeLogService<T> {
   }
 
   public abstract T buildEventChangeLog(
-      Event event,
+      R event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -103,7 +104,7 @@ public abstract class EventChangeLogService<T> {
 
   @Transactional
   public void addEventChangeLog(
-      Event event,
+      R event,
       DataElement dataElement,
       String previousValue,
       String value,
@@ -122,28 +123,28 @@ public abstract class EventChangeLogService<T> {
 
   @Transactional
   public void addFieldChangeLog(
-      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+      @Nonnull R currentEvent, @Nonnull R event, @Nonnull String username) {
     if (config.isDisabled(CHANGELOG_TRACKER)) {
       return;
     }
 
     logIfChanged(
         "scheduledAt",
-        Event::getScheduledDate,
+        EventInterface::getScheduledDate,
         EventChangeLogService::formatDate,
         currentEvent,
         event,
         username);
     logIfChanged(
         "occurredAt",
-        Event::getOccurredDate,
+        EventInterface::getOccurredDate,
         EventChangeLogService::formatDate,
         currentEvent,
         event,
         username);
     logIfChanged(
         "geometry",
-        Event::getGeometry,
+        EventInterface::getGeometry,
         EventChangeLogService::formatGeometry,
         currentEvent,
         event,
@@ -161,10 +162,10 @@ public abstract class EventChangeLogService<T> {
 
   private <V> void logIfChanged(
       String field,
-      Function<Event, V> valueExtractor,
+      Function<R, V> valueExtractor,
       Function<V, String> formatter,
-      Event currentEvent,
-      Event event,
+      R currentEvent,
+      R event,
       String userName) {
 
     String currentValue = formatter.apply(valueExtractor.apply(currentEvent));

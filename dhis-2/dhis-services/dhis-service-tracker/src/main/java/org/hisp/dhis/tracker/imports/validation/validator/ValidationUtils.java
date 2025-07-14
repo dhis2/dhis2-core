@@ -226,7 +226,9 @@ public class ValidationUtils {
   }
 
   public static boolean eventExist(TrackerBundle bundle, UID event) {
-    return bundle.getPreheat().getEvent(event) != null || bundle.findEventByUid(event).isPresent();
+    return (bundle.getPreheat().getEvent(event) != null
+            && bundle.getPreheat().getSingleEvent(event) != null)
+        || bundle.findEventByUid(event).isPresent();
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(

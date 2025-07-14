@@ -67,6 +67,7 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -101,6 +102,9 @@ class EventsExportController {
   protected static final String EVENTS = "events";
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
+
+  private static final SingleEventMapper SINGLE_EVENTS_MAPPER =
+      Mappers.getMapper(SingleEventMapper.class);
 
   private static final EventChangeLogMapper EVENT_CHANGE_LOG_MAPPER =
       Mappers.getMapper(EventChangeLogMapper.class);
@@ -213,12 +217,12 @@ class EventsExportController {
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       SingleEventOperationParams singleEventOperationParams =
           singleEventParamsMapper.map(requestParams, idSchemeParams);
-      org.hisp.dhis.tracker.Page<Event> eventsPage =
+      org.hisp.dhis.tracker.Page<SingleEvent> eventsPage =
           singleEventService.findEvents(singleEventOperationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
       org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.Event> page =
-          eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
+          eventsPage.withMappedItems(ev -> SINGLE_EVENTS_MAPPER.map(idSchemeParams, errors, ev));
       ensureNoMappingErrors(errors);
 
       return requestHandler.serve(request, EVENTS, page, requestParams);
@@ -369,7 +373,7 @@ class EventsExportController {
       TrackerIdSchemeParams idSchemeParams)
       throws NotFoundException, WebMessageException {
     MappingErrors errors = new MappingErrors(idSchemeParams);
-    Event event;
+    org.hisp.dhis.webapi.controller.tracker.view.Event eventView;
     Program program = getProgramFromEvent(uid);
     if (program.isRegistration()) {
       org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields eventFields =
@@ -378,7 +382,8 @@ class EventsExportController {
                   fieldFilterService.filterIncludes(
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
-      event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+      Event event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+      eventView = EVENTS_MAPPER.map(idSchemeParams, errors, event);
     } else {
       org.hisp.dhis.tracker.export.singleevent.SingleEventFields eventFields =
           org.hisp.dhis.tracker.export.singleevent.SingleEventFields.of(
@@ -386,11 +391,10 @@ class EventsExportController {
                   fieldFilterService.filterIncludes(
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
-      event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+      SingleEvent event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+      eventView = SINGLE_EVENTS_MAPPER.map(idSchemeParams, errors, event);
     }
 
-    org.hisp.dhis.webapi.controller.tracker.view.Event eventView =
-        EVENTS_MAPPER.map(idSchemeParams, errors, event);
     ensureNoMappingErrors(errors);
 
     return requestHandler.serve(eventView, fields);
@@ -427,7 +431,7 @@ class EventsExportController {
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         singleEventService.findEvents(singleEventOperationParams).stream()
-            .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
+            .map(ev -> SINGLE_EVENTS_MAPPER.map(idSchemeParams, errors, ev))
             .toList();
     ensureNoMappingErrors(errors);
     return events;

@@ -78,7 +78,8 @@ public class RelationshipUtils {
         ObjectUtils.firstNonNull(
             relationshipItem.getTrackedEntity(),
             relationshipItem.getEnrollment(),
-            relationshipItem.getEvent());
+            relationshipItem.getEvent(),
+            relationshipItem.getSingleEvent());
 
     return identifiableObject.getUid();
   }
@@ -90,6 +91,7 @@ public class RelationshipUtils {
           .trackedEntity(getUidOrNull(relationshipItem.getTrackedEntity()))
           .enrollment(getUidOrNull(relationshipItem.getEnrollment()))
           .event(getUidOrNull(relationshipItem.getEvent()))
+          .singleEvent(getUidOrNull(relationshipItem.getSingleEvent()))
           .build();
     }
     throw new IllegalStateException("Unable to determine uid for relationship item");

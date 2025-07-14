@@ -44,7 +44,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -285,7 +284,7 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
-    Event event = getEvent("OTmjvJDn0Fu");
+    org.hisp.dhis.program.SingleEvent event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
@@ -471,14 +470,15 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   private String getDataElement(String uid) {
-    Event event = getEvent(uid);
+    org.hisp.dhis.program.SingleEvent event = getEvent(uid);
     String dataElement = event.getEventDataValues().iterator().next().getDataElement();
     assertNotNull(dataElement);
     return dataElement;
   }
 
-  private Event getEvent(String uid) {
-    Event event = manager.get(Event.class, uid);
+  private org.hisp.dhis.program.SingleEvent getEvent(String uid) {
+    org.hisp.dhis.program.SingleEvent event =
+        manager.get(org.hisp.dhis.program.SingleEvent.class, uid);
     assertNotNull(event);
     return event;
   }

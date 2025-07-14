@@ -59,7 +59,7 @@ import org.locationtech.jts.geom.Geometry;
  * @author Abyot Asalefew
  */
 @Auditable(scope = AuditScope.TRACKER)
-public class Event extends SoftDeletableObject implements EventInterface {
+public class SingleEvent extends SoftDeletableObject implements EventInterface {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
@@ -106,20 +106,20 @@ public class Event extends SoftDeletableObject implements EventInterface {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public Event() {}
+  public SingleEvent() {}
 
-  public Event(Enrollment enrollment, ProgramStage programStage) {
+  public SingleEvent(Enrollment enrollment, ProgramStage programStage) {
     this.enrollment = enrollment;
     this.programStage = programStage;
   }
 
-  public Event(
+  public SingleEvent(
       Enrollment enrollment, ProgramStage programStage, OrganisationUnit organisationUnit) {
     this(enrollment, programStage);
     this.organisationUnit = organisationUnit;
   }
 
-  public Event(
+  public SingleEvent(
       Enrollment enrollment,
       ProgramStage programStage,
       OrganisationUnit organisationUnit,
@@ -263,7 +263,7 @@ public class Event extends SoftDeletableObject implements EventInterface {
     return organisationUnit;
   }
 
-  public Event setOrganisationUnit(OrganisationUnit organisationUnit) {
+  public SingleEvent setOrganisationUnit(OrganisationUnit organisationUnit) {
     this.organisationUnit = organisationUnit;
     return this;
   }
@@ -327,7 +327,7 @@ public class Event extends SoftDeletableObject implements EventInterface {
     return status;
   }
 
-  public Event setStatus(EventStatus status) {
+  public SingleEvent setStatus(EventStatus status) {
     this.status = status;
     return this;
   }
@@ -373,17 +373,9 @@ public class Event extends SoftDeletableObject implements EventInterface {
     this.assignedUser = assignedUser;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isCreatableInSearchScope() {
-    return this.getStatus() == EventStatus.SCHEDULE
-        && this.getEventDataValues().isEmpty()
-        && this.getOccurredDate() == null;
-  }
-
   @Override
   public String toString() {
-    return "Event{"
+    return "SingleEvent{"
         + "id="
         + id
         + ", uid='"

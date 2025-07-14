@@ -33,9 +33,12 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1030;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1032;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1082;
 
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventInterface;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -48,7 +51,7 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     TrackerImportStrategy importStrategy = bundle.getStrategy(event);
 
-    Event existingEvent = bundle.getPreheat().getEvent(event.getEvent());
+    EventInterface existingEvent = getExistingEvent(event, bundle.getPreheat());
 
     // If the event is soft-deleted no operation is allowed
     if (existingEvent != null && existingEvent.isDeleted()) {
@@ -61,6 +64,16 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
     } else if (existingEvent == null && importStrategy.isUpdateOrDelete()) {
       reporter.addError(event, E1032, event.getEvent());
     }
+  }
+
+  private EventInterface getExistingEvent(
+      org.hisp.dhis.tracker.imports.domain.Event event, TrackerPreheat preheat) {
+    if (event instanceof TrackerEvent) {
+      return preheat.getEvent(event.getEvent());
+    } else if (event instanceof SingleEvent) {
+      return preheat.getSingleEvent(event.getEvent());
+    }
+    return null;
   }
 
   @Override

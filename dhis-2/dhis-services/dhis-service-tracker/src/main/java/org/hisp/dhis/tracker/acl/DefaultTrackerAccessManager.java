@@ -45,6 +45,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -328,6 +329,36 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  public List<String> canRead(@Nonnull UserDetails user, SingleEvent event) {
+    // always allow if user == null (internal process) or user is superuser
+    if (user.isSuper() || event == null) {
+      return List.of();
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+
+    if (isNull(programStage)) {
+      return List.of();
+    }
+
+    Program program = programStage.getProgram();
+    List<String> errors = new ArrayList<>();
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
+    }
+
+    OrganisationUnit ou = event.getOrganisationUnit();
+
+    if (!canAccess(user, program, ou)) {
+      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
+    }
+
+    errors.addAll(canRead(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
   public List<String> canCreate(
       @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
@@ -576,6 +607,24 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     List<String> errors = new ArrayList<>();
     errors.addAll(canRead(user, event, skipOwnershipCheck));
+
+    if (!aclService.canRead(user, dataElement)) {
+      errors.add("User has no read access to data element: " + dataElement.getUid());
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(
+      @Nonnull UserDetails user, SingleEvent event, DataElement dataElement) {
+
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<String> errors = new ArrayList<>();
+    errors.addAll(canRead(user, event));
 
     if (!aclService.canRead(user, dataElement)) {
       errors.add("User has no read access to data element: " + dataElement.getUid());

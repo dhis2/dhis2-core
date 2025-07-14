@@ -37,7 +37,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -70,7 +70,7 @@ public interface SingleEventService extends EventService {
    * relationships and specify different {@code idSchemes}.
    */
   @Nonnull
-  Event getEvent(UID uid) throws NotFoundException;
+  SingleEvent getEvent(UID uid) throws NotFoundException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
@@ -78,14 +78,15 @@ public interface SingleEventService extends EventService {
    * TrackerIdSchemeParams}.
    */
   @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, SingleEventFields fields)
+  SingleEvent getEvent(
+      UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, SingleEventFields fields)
       throws NotFoundException;
 
   /**
    * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> findEvents(@Nonnull SingleEventOperationParams params)
+  List<SingleEvent> findEvents(@Nonnull SingleEventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -93,7 +94,8 @@ public interface SingleEventService extends EventService {
    * user.
    */
   @Nonnull
-  Page<Event> findEvents(@Nonnull SingleEventOperationParams params, @Nonnull PageParams pageParams)
+  Page<SingleEvent> findEvents(
+      @Nonnull SingleEventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**

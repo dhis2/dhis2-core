@@ -77,14 +77,7 @@ public class ParamsConverter {
       List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
     if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
-          .filter(
-              e ->
-                  preheat.getEvent(e.getUid()) == null
-                      || preheat
-                          .getEvent(e.getUid())
-                          .getProgramStage()
-                          .getProgram()
-                          .isRegistration())
+          .filter(e -> preheat.getSingleEvent(e.getUid()) == null)
           .map(e -> TrackerEvent.builderFromEvent(e).build())
           .toList();
     }
@@ -105,14 +98,7 @@ public class ParamsConverter {
       List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
     if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
-          .filter(e -> preheat.getEvent(e.getUid()) != null)
-          .filter(
-              e ->
-                  preheat
-                      .getEvent(e.getUid())
-                      .getProgramStage()
-                      .getProgram()
-                      .isWithoutRegistration())
+          .filter(e -> preheat.getSingleEvent(e.getUid()) != null)
           .map(e -> SingleEvent.builderFromEvent(e).build())
           .toList();
     }
