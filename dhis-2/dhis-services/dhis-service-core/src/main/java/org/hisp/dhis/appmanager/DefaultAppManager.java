@@ -221,7 +221,7 @@ public class DefaultAppManager implements AppManager {
               try {
                 return app.localise(userLocale);
               } catch (RuntimeException e) {
-                log.warn(
+                log.debug(
                     String.format("Could not localise app information for app: %s", app.getName()));
                 return app;
               }
