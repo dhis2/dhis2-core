@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -1169,8 +1168,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             .getList("trackedEntities", JsonTrackedEntity.class);
 
     assertContainsAll(
-        Stream.concat(Stream.of(TE_UID_EMPTY_STRING), TE_UID_NULL.stream())
-            .collect(Collectors.toList()),
+        Stream.concat(Stream.of(TE_UID_EMPTY_STRING), TE_UID_NULL.stream()).toList(),
         jsonTrackedEntities,
         JsonTrackedEntity::getTrackedEntity);
   }
