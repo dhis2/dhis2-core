@@ -29,9 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
-import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
-import static org.hisp.dhis.common.QueryOperator.SW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -120,13 +118,13 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetPreferredSearchOperatorFromImportOrDefaultIfNotSpecified() {
+  void shouldSetPreferredSearchOperatorFromImportOrNullIfNotSpecified() {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
     assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
-    assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
-    assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", SW);
+    assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", null);
+    assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", null);
   }
 
   private void assertMinCharactersToSearch(
