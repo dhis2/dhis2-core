@@ -15,7 +15,7 @@
     <maven-surefire-junit5-tree-reporter.version>1.4.0</maven-surefire-junit5-tree-reporter.version>
     <junit.version>5.13.3</junit.version>
     <gson.version>2.13.1</gson.version>
-    <log4j.version>2.25.0</log4j.version>
+    <log4j.version>2.25.1</log4j.version>
     <rest-assured.version>5.5.5</rest-assured.version>
     <jackson.version>2.19.1</jackson.version>
     <guava.version>33.4.8-jre</guava.version>
