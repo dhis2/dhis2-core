@@ -36,8 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.time.Duration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -131,7 +134,7 @@ class OAuth2Test extends BaseE2ETest {
     driver = new RemoteWebDriver(new URL(seleniumUrl), chromeOptions);
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-    // 1. Call the authorize endpoint
+    // Call the authorize endpoint
     driver.get(
         serverHostUrl
             + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email");
@@ -142,7 +145,7 @@ class OAuth2Test extends BaseE2ETest {
     // Wait for the login page to load
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input#username")));
 
-    // 2. Login
+    // Login
     LoginPage mainPage = new LoginPage(driver);
     mainPage.inputUsername.sendKeys(username);
     mainPage.inputPassword.sendKeys(password);
@@ -156,12 +159,12 @@ class OAuth2Test extends BaseE2ETest {
             + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email",
         consentPageUrl);
 
-    // 3. Give consent
+    // Give consent
     ConsentPage consentPage = new ConsentPage(driver);
     consentPage.emailCheckbox.click();
     consentPage.submitButton.click();
 
-    // 4. Wait for the redirect to happen
+    // Wait for the redirect to happen
     wait.until(ExpectedConditions.urlContains("http://localhost:9090/oauth2/code/dhis2-client"));
     int codeStartIndex = driver.getCurrentUrl().indexOf("code=") + 5;
 
@@ -188,13 +191,32 @@ class OAuth2Test extends BaseE2ETest {
     assertTrue(
         code.length() == 128, "code has wrong size: '" + code + "', code length: " + code.length());
 
-    // 5. Call the token endpoint with the authorization code
+    // Call the token endpoint with the authorization code and get access token
     String accessToken = getAccessToken(code);
+
+    String actualIssuerUri = null;
+    String expectedIssuerUri = "http://web:8080";
+
+    // 6. Decode the access_token
+    try {
+      SignedJWT signedJWT = SignedJWT.parse(accessToken);
+      JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+      // 3. Extract the actual issuer URI from the token's "iss" claim
+      actualIssuerUri = claimsSet.getIssuer();
+    } catch (ParseException e) {
+      log.info("Parsing failed", e);
+      throw new RuntimeException(e);
+    }
+    // 5. Assert that the actual issuer URI matches the configured SERVER_BASE_URL
+    assertEquals(
+        expectedIssuerUri,
+        actualIssuerUri,
+        "The JWT issuer URI should match the configured SERVER_BASE_URL.");
 
     assertNotNull(accessToken);
     log.info("Access token: " + accessToken);
 
-    // 6. Call the /me endpoint with the access token
+    // Call the /me endpoint with the access token
     ResponseEntity<String> withBearerJwt = getWithBearerJwt(serverApiUrl + "/me", accessToken);
     HttpStatusCode statusCode = withBearerJwt.getStatusCode();
     assertEquals(HttpStatus.UNAUTHORIZED, statusCode);
