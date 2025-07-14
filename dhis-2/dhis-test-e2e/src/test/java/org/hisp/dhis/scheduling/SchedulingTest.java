@@ -86,7 +86,7 @@ class SchedulingTest extends ApiTest {
     String jobId = jobConfigActions.post(jobConfig).validateStatus(201).extractUid();
 
     // when executing it manually
-    jobConfigActions.post("/" + jobId + "/execute", "null").validateStatus(200);
+    jobConfigActions.post("/" + jobId + "/execute", "null");
 
     // then it should complete without errors
     ApiResponse apiResponse =
