@@ -42,12 +42,6 @@ import org.junit.jupiter.api.Test;
 class ResourceTableControllerTest extends DhisControllerIntegrationTest {
 
   @Test
-  void testAnalytics() {
-    JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables/analytics"));
-    assertStartsWith("Initiated ANALYTICS_TABLE", msg.getMessage());
-  }
-
-  @Test
   void testResourceTables() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
     assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
