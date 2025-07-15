@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.statistics.jdbc;
 
+import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -98,11 +99,24 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
    * Returns the approximate count of rows in the given table.
    *
    * @param table the table name.
-   * @return the approximate count of rows in the given table.
+   * @return the approximate count of rows in the given table. If the table has no rows, 0 is
+   * returned instead of a negative value.
    */
   private Long approximateCount(final String table) {
-    final String sql = "select reltuples::bigint from pg_class where relname = '%s';";
+    final String sql = "SELECT reltuples::bigint FROM pg_class WHERE relname = ?";
 
-    return jdbcTemplate.queryForObject(String.format(sql, table), Long.class);
+    return jdbcTemplate.query(
+        con -> {
+          PreparedStatement ps = con.prepareStatement(sql);
+          ps.setString(1, table);
+          return ps;
+        },
+        rs -> {
+          if (rs.next()) {
+            return Math.max(0L, rs.getLong(1));
+          } else {
+            return 0L;
+          }
+        });
   }
 }
