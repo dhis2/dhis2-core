@@ -38,12 +38,14 @@ import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,6 +112,26 @@ public class NotificationSender {
 
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, event.getEnrollment());
+    }
+  }
+
+  @Transactional
+  public void send(Notification notification, SingleEvent singleEvent) {
+    ProgramNotificationTemplate template = getNotificationTemplate(notification);
+
+    Event event = TrackerObjectsMapper.map(singleEvent);
+
+    if (notification.scheduledAt() != null) {
+      ProgramNotificationInstance notificationInstance =
+          notificationTemplateService.createNotificationInstance(
+              template, notification.scheduledAt());
+
+      notificationInstance.setEvent(event);
+      notificationInstance.setEnrollment(null);
+
+      programNotificationInstanceService.save(notificationInstance);
+    } else {
+      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
     }
   }
 

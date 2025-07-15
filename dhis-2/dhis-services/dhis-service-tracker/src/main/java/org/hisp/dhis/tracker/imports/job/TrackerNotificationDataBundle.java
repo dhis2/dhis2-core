@@ -77,7 +77,11 @@ public class TrackerNotificationDataBundle implements Message {
   @JsonProperty @Builder.Default
   private List<Notification> enrollmentNotifications = new ArrayList<>();
 
-  @JsonProperty @Builder.Default private List<Notification> eventNotifications = new ArrayList<>();
+  @JsonProperty @Builder.Default
+  private List<Notification> trackerEventNotifications = new ArrayList<>();
+
+  @JsonProperty @Builder.Default
+  private List<Notification> singleEventNotifications = new ArrayList<>();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 

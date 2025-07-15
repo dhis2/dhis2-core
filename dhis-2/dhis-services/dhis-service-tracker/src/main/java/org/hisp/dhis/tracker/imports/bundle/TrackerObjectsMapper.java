@@ -402,7 +402,7 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
-  private static Event map(SingleEvent singleEvent) {
+  public static Event map(SingleEvent singleEvent) {
     if (singleEvent == null) {
       return null;
     }
