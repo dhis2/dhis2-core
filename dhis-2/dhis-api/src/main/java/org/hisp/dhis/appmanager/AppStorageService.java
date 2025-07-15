@@ -32,12 +32,14 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.Future;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
-import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Stian Sandvold
@@ -55,26 +57,29 @@ public interface AppStorageService {
    *
    * @return A map of all app names and apps found
    */
-  Map<String, App> discoverInstalledApps();
+  @Nonnull
+  Map<String, Pair<App, BundledAppInfo>> discoverInstalledApps();
 
   /**
    * Installs an app using the AppServiceStore.
    *
    * @param file the zip file containing the app
-   * @param filename The name of the file
    * @param appCache The app cache
+   * @param bundledAppInfo bundled app info, can be null
    * @return The status of the installation
    */
-  App installApp(File file, String filename, Cache<App> appCache);
+  @Nonnull
+  App installApp(
+      @Nonnull File file,
+      @Nonnull Cache<App> appCache,
+      @CheckForNull BundledAppInfo bundledAppInfo);
 
   /**
-   * Deletes an app from the AppHubService.
+   * Deletes the app from storage.
    *
    * @param app the app to delete
-   * @return true if app is deleted, false if something fails
    */
-  @Async
-  Future<Boolean> deleteAppAsync(App app);
+  void deleteApp(@Nonnull App app);
 
   /**
    * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will be
@@ -90,5 +95,6 @@ public interface AppStorageService {
    * @param resource the name of the resource to look up (can be directory or file)
    * @return {@link ResourceResult}
    */
-  ResourceResult getAppResource(App app, String resource) throws IOException;
+  @Nonnull
+  ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource) throws IOException;
 }

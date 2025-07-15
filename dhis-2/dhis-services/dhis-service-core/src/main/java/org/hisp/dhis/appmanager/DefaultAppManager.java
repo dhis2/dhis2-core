@@ -37,24 +37,30 @@ import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionTyp
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.apphub.AppHubService;
+import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
@@ -75,9 +81,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -87,26 +90,18 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.appmanager.AppManager")
 public class DefaultAppManager implements AppManager {
   public static final String INVALID_FILTER_MSG = "Invalid filter: ";
-
   private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
-
-  private final DhisConfigurationProvider dhisConfigurationProvider;
-  private final AppHubService appHubService;
-  private final AppStorageService localAppStorageService;
-  private final AppStorageService jCloudsAppStorageService;
-  private final AppStorageService bundledAppStorageService;
-  private final DatastoreService datastoreService;
-
-  private final I18nManager i18nManager;
 
   @Autowired private UserService userService;
   @Autowired private ObjectMapper jsonMapper;
-
   @Autowired private LocaleManager localeManager;
 
-  @Autowired private ResourcePatternResolver resourcePatternResolver;
-
-  @Autowired private ResourceLoader resourceLoader;
+  private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final AppHubService appHubService;
+  private final AppStorageService jCloudsAppStorageService;
+  private final DatastoreService datastoreService;
+  private final BundledAppManager bundledAppManager;
+  private final I18nManager i18nManager;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -117,41 +112,96 @@ public class DefaultAppManager implements AppManager {
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
       AppHubService appHubService,
-      @Qualifier("org.hisp.dhis.appmanager.LocalAppStorageService")
-          AppStorageService localAppStorageService,
       @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
           AppStorageService jCloudsAppStorageService,
-      @Qualifier("org.hisp.dhis.appmanager.BundledAppStorageService")
-          AppStorageService bundledAppStorageService,
       DatastoreService datastoreService,
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
-      LocaleManager localeManager) {
+      LocaleManager localeManager,
+      BundledAppManager bundledAppManager) {
+
     checkNotNull(dhisConfigurationProvider);
-    checkNotNull(localAppStorageService);
     checkNotNull(jCloudsAppStorageService);
-    checkNotNull(bundledAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
     checkNotNull(i18nManager);
+    checkNotNull(bundledAppManager);
+    checkNotNull(localeManager);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
-    this.localAppStorageService = localAppStorageService;
     this.jCloudsAppStorageService = jCloudsAppStorageService;
-    this.bundledAppStorageService = bundledAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
     this.i18nManager = i18nManager;
     this.localeManager = localeManager;
+    this.bundledAppManager = bundledAppManager;
   }
 
-  // -------------------------------------------------------------------------
-  // AppManagerService implementation
-  // -------------------------------------------------------------------------
+  /**
+   * Reloads apps by triggering the process to discover apps from local filesystem and remote cloud
+   * storage and installing all detected apps. This method is invoked automatically on startup.
+   */
+  @Override
+  @PostConstruct
+  public void reloadApps() {
+    Map<String, Pair<App, BundledAppInfo>> installedApps =
+        jCloudsAppStorageService.discoverInstalledApps();
+
+    installBundledApps(installedApps);
+    // Invalidate the previous app cache
+    appCache.invalidateAll();
+    // Cache all discovered apps
+    installedApps.values().forEach(app -> cacheApp(app.getLeft()));
+    log.info("Loaded {} apps.", installedApps.size());
+  }
+
+  /**
+   * Installs bundled apps, by looking in the classpath for app .zip files. If the bundled app is
+   * already installed, it can be overwritten with a newer one if the Etag is different.
+   *
+   * @param installedApps the Map with all existing apps, we overwrite existing apps in this Map
+   *     with new ones.
+   */
+  private void installBundledApps(@Nonnull Map<String, Pair<App, BundledAppInfo>> installedApps) {
+    bundledAppManager.installBundledApps(
+        (app, bundledAppInfo, zipFileResource) -> {
+          String appKey = app.getKey();
+          installedApps.computeIfAbsent(
+              appKey,
+              x ->
+                  Pair.of(
+                      installBundledAppResource(zipFileResource, bundledAppInfo), bundledAppInfo));
+
+          // If the bundled app is already installed and the Etag is different, overwrite the
+          // existing.
+          if (installedApps.containsKey(appKey)) {
+            BundledAppInfo installedAppInfo = installedApps.get(appKey).getRight();
+            if (installedAppInfo != null
+                && installedAppInfo.getEtag() != null
+                && !installedAppInfo.getEtag().equals(bundledAppInfo.getEtag())) {
+              installedApps.put(
+                  appKey,
+                  Pair.of(
+                      installBundledAppResource(zipFileResource, bundledAppInfo), bundledAppInfo));
+
+              log.info(
+                  "A bundled app with a different Etag was installed and replaced the existing one. App name: '{}'",
+                  installedAppInfo.getName());
+            }
+          }
+        });
+  }
+
+  private void cacheApp(@Nonnull App app) {
+    if (app.getAppState() == AppStatus.OK) {
+      appCache.put(app.getKey(), app);
+      registerDatastoreProtection(app);
+    }
+  }
 
   private Stream<App> getAppsStream() {
-    return appCache.getAll().filter(app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS);
+    return appCache.getAll();
   }
 
   private Stream<App> getAccessibleAppsStream() {
@@ -159,7 +209,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public List<App> getApps(String contextPath, int max) {
+  @Nonnull
+  public List<App> getApps(@CheckForNull String contextPath, int max) {
     return getAppsList(getAccessibleAppsStream(), max, contextPath);
   }
 
@@ -207,7 +258,9 @@ public class DefaultAppManager implements AppManager {
    * @param contextPath the path used to initialize each {@link App}.
    * @return the list of {@link App}.
    */
-  private List<App> getAppsList(Stream<App> stream, int max, String contextPath) {
+  @Nonnull
+  private List<App> getAppsList(
+      @Nonnull Stream<App> stream, int max, @CheckForNull String contextPath) {
     if (max >= 0) {
       stream = stream.limit(max);
     }
@@ -230,7 +283,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public List<App> getApps(String contextPath) {
+  @Nonnull
+  public List<App> getApps(@CheckForNull String contextPath) {
     return this.getApps(contextPath, -1);
   }
 
@@ -275,7 +329,7 @@ public class DefaultAppManager implements AppManager {
     return modules;
   }
 
-  private List<WebModule> getAccessibleAppMenu(String contextPath) {
+  private List<WebModule> getAccessibleAppMenu(@CheckForNull String contextPath) {
     List<WebModule> modules = new ArrayList<>();
     List<App> apps =
         getApps(contextPath).stream()
@@ -352,36 +406,55 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App getApp(String key, String contextPath) {
+  @CheckForNull
+  public App getApp(@Nonnull String key, @Nonnull String contextPath) {
     Collection<App> apps = getApps(contextPath);
-
     for (App app : apps) {
       if (key.equals(app.getKey())) {
         return app;
       }
     }
-
     return null;
   }
 
   @Override
-  public App installApp(File file, String fileName) {
-    App app = jCloudsAppStorageService.installApp(file, fileName, appCache);
+  @Nonnull
+  public App installApp(@Nonnull File file) {
+    return installAppZipFile(file, null);
+  }
 
-    log.info(
+  @Nonnull
+  private App installAppZipFile(@Nonnull File file, @CheckForNull BundledAppInfo bundledAppInfo) {
+    App app = jCloudsAppStorageService.installApp(file, appCache, bundledAppInfo);
+    log.debug(
         String.format(
-            "Installed App with ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
-
-    if (app.getAppState().ok()) {
-      installApp(app);
-    }
-
+            "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
+    cacheApp(app);
     return app;
   }
 
-  @Override
-  public App installApp(UUID appHubId) {
+  @Nonnull
+  public App installBundledAppResource(
+      @Nonnull Resource resource, @Nonnull BundledAppInfo bundledAppInfo) {
+    try {
+      Path tempFile = Files.createTempFile("tmp-bundled-app-", CodeGenerator.generateUid());
+      Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+      try {
+        App app = installAppZipFile(tempFile.toFile(), bundledAppInfo);
+        app.setBundled(true);
+        return app;
+      } finally {
+        Files.deleteIfExists(tempFile);
+      }
+    } catch (IOException e) {
+      log.error("Failed to install bundled app: '{}'", bundledAppInfo.getName(), e);
+      throw new RuntimeException(e);
+    }
+  }
 
+  @Override
+  @Nonnull
+  public App installAppByHubId(@CheckForNull UUID appHubId) {
     App installedApp = new App();
     if (appHubId == null) {
       installedApp.setAppState(AppStatus.NOT_FOUND);
@@ -406,9 +479,7 @@ public class DefaultAppManager implements AppManager {
       String downloadUrl = downloadUrlNode.string();
       URL url = new URL(downloadUrl);
 
-      String filename = FilenameUtils.getName(downloadUrl);
-
-      return installApp(getFile(url), filename);
+      return installApp(getFile(url));
 
     } catch (IOException ex) {
       log.info(String.format("No version found for id %s", appHubId));
@@ -426,46 +497,19 @@ public class DefaultAppManager implements AppManager {
     return getApp(appName) != null;
   }
 
-  @Async
-  public Future<Boolean> deleteAppFromStorageAsync(App app) {
-    if (app != null) {
-      Future<Boolean> promise = getAppStorageServiceByApp(app).deleteAppAsync(app);
-
-      // Await the result of the delete request
-      boolean result;
-      try {
-        result = promise.get();
-      } catch (Exception e) {
-        log.error("Interrupted while deleting app {}", app.getKey());
-        app.setAppState(AppStatus.INSTALLATION_FAILED);
-        appCache.put(app.getKey(), app);
-        return CompletableFuture.completedFuture(false);
-      }
-
-      if (!result) {
-        log.warn("Deleting app {} is not allowed", app.getKey());
-        app.setAppState(AppStatus.OK);
-        appCache.put(app.getKey(), app);
-        return CompletableFuture.completedFuture(false);
-      }
-    }
-    reloadApps();
-    return CompletableFuture.completedFuture(true);
-  }
-
   @Override
-  public boolean deleteApp(App app, boolean deleteAppData) {
+  public boolean deleteApp(@Nonnull App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
 
     // Bundled apps cannot be deleted
-    if (appOpt.get().getAppStorageSource() == AppStorageSource.BUNDLED) return false;
+    if (appOpt.get().isBundled()) return false;
 
     App appFromCache = appOpt.get();
-    appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
 
-    deleteAppFromStorageAsync(app);
+    jCloudsAppStorageService.deleteApp(app);
+    reloadApps();
 
     boolean isBundledAppOverride = app.isBundled();
     // If a bundled version exists it will replace the deleted override.
@@ -492,54 +536,6 @@ public class DefaultAppManager implements AppManager {
     return "{" + "\"baseUrl\": \"" + baseUrl + "\", " + "\"apiUrl\": \"" + apiUrl + "\"" + "}";
   }
 
-  /**
-   * Reloads apps by triggering the process to discover apps from local filesystem and remote cloud
-   * storage and installing all detected apps. This method is invoked automatically on startup.
-   */
-  @Override
-  @PostConstruct
-  public void reloadApps() {
-    Map<String, App> discoveredApps = new HashMap<>();
-
-    /*
-     * DEPRECATED - local app storage is no longer used, but some implementations upgrading from 2.28
-     * or earlier might still have app files in the local system.  To be removed in 2.43.
-     */
-    localAppStorageService.discoverInstalledApps().values().stream()
-        .forEach(
-            app -> {
-              discoveredApps.putIfAbsent(app.getKey(), app);
-              log.warn(
-                  "App {} uses local app storage is deprecated and will be removed in DHIS2 version 43.  Please delete this app and re-install it to migrate to the new JClouds app storage service.",
-                  app.getKey());
-            });
-
-    // Install apps from jClouds (either local storage or a remote object store)
-    jCloudsAppStorageService.discoverInstalledApps().values().stream()
-        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
-
-    // Only add bundled apps if an override with the same key hasn't already been installed
-    bundledAppStorageService.discoverInstalledApps().values().stream()
-        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
-
-    log.info("Loaded {} apps from all sources", discoveredApps.size());
-
-    // Invalidate the previous app cache
-    appCache.invalidateAll();
-
-    // Install all discovered apps
-    discoveredApps.values().forEach(this::installApp);
-  }
-
-  private void installApp(App app) {
-    if (AppManager.BUNDLED_APPS.contains(app.getKey())) {
-      app.setBundled(true);
-    }
-
-    appCache.put(app.getKey(), app);
-    registerDatastoreProtection(app);
-  }
-
   @Override
   public boolean isAccessible(App app) {
     return ALWAYS_ACCESSIBLE_APPS.contains(app.getKey())
@@ -552,7 +548,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public ResourceResult getRawAppResource(App app, String pageName) throws IOException {
-    return getAppStorageServiceByApp(app).getAppResource(app, pageName);
+    return jCloudsAppStorageService.getAppResource(app, pageName);
   }
 
   @Override
@@ -566,26 +562,37 @@ public class DefaultAppManager implements AppManager {
 
     if (resource instanceof ResourceResult.ResourceFound resourceFound) {
       if (pageName.equals("/manifest.webapp")) {
-        // If request was for manifest.webapp, check for * and replace with host
-        if (app.getActivities() != null
-            && app.getActivities().getDhis() != null
-            && "*".equals(app.getActivities().getDhis().getHref())) {
-          app.getActivities().getDhis().setHref(contextPath);
-        }
+        app.getActivities().getDhis().setHref(contextPath);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         jsonMapper.writeValue(bout, app);
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "application/json");
-      } else if (pageName.endsWith(".html")) {
+      } else if (pageName.endsWith(".html")
+          || (resourceFound.resource().getFilename() != null
+              && resourceFound.resource().getFilename().endsWith(".html"))) {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
-
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         template.apply(resourceFound.resource().getInputStream(), bout);
-
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
+      } else if (pageName.endsWith(".js")
+          || (resourceFound.resource().getFilename() != null
+              && resourceFound.resource().getFilename().endsWith(".js"))) {
+        // Read the original JS content
+        String originalJsContent;
+        try (InputStream inputStream = resourceFound.resource().getInputStream()) {
+          originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        }
+
+        // TODO: MAS: Approval app requires this, why?
+        String modifiedJsContent =
+            originalJsContent.replace("url:\"..\"", "url:\"" + "../../.." + "\"");
+        ByteArrayResource byteArrayResource =
+            toByteArrayResource(
+                modifiedJsContent.getBytes(StandardCharsets.UTF_8), resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource, "application/javascript");
       }
     }
 
@@ -613,7 +620,6 @@ public class DefaultAppManager implements AppManager {
       }
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
-      e.printStackTrace();
       return -1;
     }
   }
@@ -621,15 +627,6 @@ public class DefaultAppManager implements AppManager {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
-
-  private AppStorageService getAppStorageServiceByApp(App app) {
-    if (app != null && app.getAppStorageSource() == AppStorageSource.LOCAL) {
-      return localAppStorageService;
-    } else if (app != null && app.getAppStorageSource() == AppStorageSource.BUNDLED) {
-      return bundledAppStorageService;
-    }
-    return jCloudsAppStorageService;
-  }
 
   private void deleteAppData(App app) {
     String namespace = app.getActivities().getDhis().getNamespace();
