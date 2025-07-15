@@ -151,7 +151,7 @@ public enum QueryOperator {
 
   /**
    * Case‑insensitive operators are analytics specific and should not be used in tracker, because
-   * the values there are already converted to lowercase before comparison. For now, we are not
+   * the values there, are already converted to lowercase before comparison. For now, we are not
    * enforcing this rule in the API, so those operators can still be used. Adding such validation
    * would be a breaking change, and we are not ready for that yet.
    *
