@@ -627,6 +627,8 @@ public enum ErrorCode {
   E7651("Illegal fields expression, expected `,`, `[` or `]` at position {0} but found `{1}`"),
   E7652("Illegal filter expression `{0}`: {1}"),
   E7653("Illegal filter `{0}`: {1}"),
+  E7654(
+      "Data cannot be entered for a period outside of a organisation units operational span: `{0}`"),
 
   /* GeoJSON import validation and conflicts */
   E7700("Error reading JSON input: {0}"),

@@ -256,6 +256,22 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
+  public Map<String, Set<String>> getDataSetsByDataElement(Stream<UID> dataElements) {
+    // TOOD maybe this should also consider input periods so that
+    // those not open now are sorted after any DS that is open
+    String sql =
+        """
+      SELECT de.uid, ARRAY_AGG(ds.uid ORDER BY ds.created DESC)
+      FROM dataelement de
+      JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
+      JOIN dataset ds ON de_ds.datasetid = ds.datasetid
+      WHERE de.uid IN (:de)
+      GROUP BY de.uid""";
+    String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
+  }
+
+  @Override
   public List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements) {
     String sql =
         """
@@ -603,7 +619,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public Map<String, List<DateRange>> getEntryPeriodsByIsoPeriod(UID dataSet) {
+  public Map<String, List<DateRange>> getEntrySpansByIsoPeriod(UID dataSet) {
     String sql =
         """
       SELECT p.iso, ip.openingdate, ip.closingdate
@@ -619,6 +635,28 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
             res.computeIfAbsent((String) row[0], key -> new ArrayList<>())
                 .add(new DateRange((Date) row[1], (Date) row[2])));
     return res;
+  }
+
+  @Override
+  public Map<String, DateRange> getOrgUnitOperationalSpan(
+      Stream<UID> orgUnits, Date start, Date end) {
+    String sql =
+        """
+      SELECT ou.uid, ou.openingdate, ou.closeddate
+      FROM organisationunit ou
+      WHERE (ou.openingdate > :start OR (ou.closeddate is not null and ou.closeddate < :end))
+        AND ou.uid IN (:ou)""";
+    String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("start", start)
+            .setParameter("end", end)
+            .setParameterList("ou", ou)
+            .stream();
+    return rows.collect(
+        toMap(row -> (String) row[0], row -> new DateRange((Date) row[1], (Date) row[2])));
   }
 
   @Nonnull

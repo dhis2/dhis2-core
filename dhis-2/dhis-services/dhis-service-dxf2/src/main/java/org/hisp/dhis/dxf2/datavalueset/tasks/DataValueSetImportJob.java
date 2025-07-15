@@ -136,9 +136,10 @@ public class DataValueSetImportJob implements Job {
 
   private ImportSummary importDataValueSetCsv(
       InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
-    if (options.isMixed())
+    if (options.isGroup())
       return dataValueSetService.importDataValueSetCsv(input, options, progress);
 
+    // TODO maybe handle firstRowIsHeader=false by specifying a default header?
     progress.startingStage("Deserializing data values...");
     List<DviValue> values =
         progress.nonNullStagePostCondition(
@@ -150,13 +151,14 @@ public class DataValueSetImportJob implements Job {
 
     // further stages happen within the service method...
     DviUpsertRequest.Options opt =
-        new DviUpsertRequest.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-    return dviService.importAll(opt, request, progress).toImportSummary();
+        new DviUpsertRequest.Options(
+            options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());
+    return dviService.valueEntryBulk(opt, request, progress).toImportSummary();
   }
 
   private ImportSummary importDataValueSetJson(
       InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
-    if (options.isMixed())
+    if (options.isGroup())
       return dataValueSetService.importDataValueSetJson(input, options, progress);
 
     progress.startingStage("Deserializing data values...");
@@ -169,7 +171,8 @@ public class DataValueSetImportJob implements Job {
 
     // further stages happen within the service method...
     DviUpsertRequest.Options opt =
-        new DviUpsertRequest.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-    return dviService.importAll(opt, request, progress).toImportSummary();
+        new DviUpsertRequest.Options(
+            options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());
+    return dviService.valueEntryBulk(opt, request, progress).toImportSummary();
   }
 }

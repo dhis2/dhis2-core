@@ -30,7 +30,10 @@
 package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
+import static java.util.Comparator.comparingLong;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.feedback.ImportResult.error;
@@ -39,6 +42,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,7 +84,7 @@ public class DefaultDviService implements DviService {
 
   @Override
   @Transactional
-  public void importValue(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
+  public void valueEntry(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
       throws ConflictException, BadRequestException {
     List<ImportError> errors = new ArrayList<>(1);
     List<DviValue> validValues = validate(force, dataSet, List.of(value), errors);
@@ -91,19 +95,48 @@ public class DefaultDviService implements DviService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public ImportResult importAll(Options options, DviUpsertRequest request, JobProgress progress)
-      throws ConflictException {
+  public ImportResult valueEntryBulk(
+      Options options, DviUpsertRequest request, JobProgress progress) throws ConflictException {
     List<DviValue> requestValues = request.values();
     if (requestValues == null || requestValues.isEmpty()) return new ImportResult(0, 0, List.of());
 
     progress.startingStage("Unifying %d values...".formatted(requestValues.size()));
     List<DviValue> values = progress.runStage(List.of(), () -> completedValues(request));
 
+    if (options.group()) {
+      Map<String, Set<String>> dsxByDe =
+          store.getDataSetsByDataElement(values.stream().map(DviValue::dataElement));
+      if (dsxByDe.size() == 1) {
+        UID ds = UID.of(dsxByDe.entrySet().iterator().next().getValue().iterator().next());
+        return importAll(options, ds, progress, values);
+      }
+      Map<UID, List<DviValue>> valuesByDs = new HashMap<>();
+      values.forEach(
+          v -> {
+            UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
+            valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
+          });
+      // TODO merge result reports
+      for (Map.Entry<UID, List<DviValue>> e : valuesByDs.entrySet()) {
+        // TODO should validation be done first on all ?
+        importAll(options, e.getKey(), progress, e.getValue());
+      }
+    }
+
+    // TODO what about completion? requires common DS-OU-PE-AOC
+
+    // auto-import into a single DS (if not specified)
+    return importAll(options, request.dataSet(), progress, values);
+  }
+
+  @Nonnull
+  private ImportResult importAll(
+      Options options, UID ds, JobProgress progress, List<DviValue> values)
+      throws ConflictException {
     progress.startingStage("Validating %d values...".formatted(values.size()));
     List<ImportError> errors = new ArrayList<>();
     List<DviValue> validValues =
-        progress.runStage(
-            List.of(), () -> validate(options.force(), request.dataSet(), values, errors));
+        progress.runStage(List.of(), () -> validate(options.force(), ds, values, errors));
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
 
@@ -117,7 +150,7 @@ public class DefaultDviService implements DviService {
 
   @Override
   @Transactional
-  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, DviKey key)
+  public boolean valueEntryDeletion(boolean force, @CheckForNull UID dataSet, DviKey key)
       throws ConflictException, BadRequestException {
     DviValue value = key.toDeletedValue();
     List<ImportError> errors = new ArrayList<>(1);
@@ -224,6 +257,42 @@ public class DefaultDviService implements DviService {
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E7628, aoc, ouNotInAoc);
       }
     }
+
+    // - require: PEs must be within the OU's operational span
+    List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
+    PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
+    Map<String, Period> peByIso =
+        isoPeriods.stream().collect(toMap(identity(), type::createPeriod));
+    Date peStart =
+        peByIso.values().stream()
+            .map(Period::getStartDate)
+            .min(comparingLong(Date::getTime))
+            .orElse(null);
+    Date peEnd =
+        peByIso.values().stream()
+            .map(Period::getEndDate)
+            .max(comparingLong(Date::getTime))
+            .orElse(null);
+    Map<String, DateRange> ouOpSpan =
+        store.getOrgUnitOperationalSpan(values.stream().map(DviValue::orgUnit), peStart, peEnd);
+    if (!ouOpSpan.isEmpty()) {
+      List<String> peNotInOuSpan =
+          values.stream()
+              // only keep OUs that are not valid
+              .filter(
+                  dv -> {
+                    DateRange range = ouOpSpan.get(dv.orgUnit().getValue());
+                    if (range == null) return false; // null = includes max range
+                    Period pe = peByIso.get(dv.period());
+                    if (range.getStartDate().after(pe.getStartDate())) return true;
+                    Date endDate = range.getEndDate();
+                    return endDate != null && pe.getEndDate().after(endDate);
+                  })
+              .map(dv -> dv.period() + "-" + dv.orgUnit())
+              .distinct()
+              .toList();
+      if (!peNotInOuSpan.isEmpty()) throw new ConflictException(ErrorCode.E7654, peNotInOuSpan);
+    }
   }
 
   /**
@@ -325,18 +394,21 @@ public class DefaultDviService implements DviService {
   /*
   Everything below belongs to the additional DS based data entry validation mechanisms
   like input periods, locking, approval...
+  that are concerned with the question of "can the data be entered now".
+  So the current moment is the key parameter to these checks.
   */
 
   private void validateEntryTimeliness(UID ds, List<DviValue> values) throws ConflictException {
-    Map<String, List<DateRange>> entryPeriodsByIso = store.getEntryPeriodsByIsoPeriod(ds);
+    Date now = new Date();
+    Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
     // only if no explicit ranges are defined use expiry and future periods
-    if (entryPeriodsByIso.isEmpty()) {
+    if (entrySpansByIso.isEmpty()) {
       // - require: DS entry for period still allowed?
       // (how much later can data be entered relative to current period)
       int expiryDays = store.getDataSetExpiryDays(ds);
       if (!getCurrentUserDetails().isAuthorized(F_EDIT_EXPIRED)) {
         if (expiryDays > 0) { // 0 = no expiry, always open
-          Date now = new Date();
+
           Map<String, Set<String>> exemptedIsoByOu =
               store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
           List<String> isoNoLongerOpen =
@@ -344,8 +416,8 @@ public class DefaultDviService implements DviService {
                   // only check values not exempt
                   .filter(
                       dv -> {
-                        Set<String> isoPeriods = exemptedIsoByOu.get(dv.orgUnit().getValue());
-                        return isoPeriods == null || !isoPeriods.contains(dv.period());
+                        Set<String> ouIsoPeriods = exemptedIsoByOu.get(dv.orgUnit().getValue());
+                        return ouIsoPeriods == null || !ouIsoPeriods.contains(dv.period());
                       })
                   // find the values entered outside their input period
                   .filter(
@@ -373,9 +445,7 @@ public class DefaultDviService implements DviService {
           PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
           Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
           List<String> isoNotYetOpen =
-              values.stream()
-                  .map(DviValue::period)
-                  .distinct()
+              isoPeriods.stream()
                   .filter(iso -> PeriodType.getPeriodFromIsoString(iso).isAfter(latestOpen))
                   .toList();
           if (!isoNotYetOpen.isEmpty())
@@ -385,14 +455,13 @@ public class DefaultDviService implements DviService {
     } else {
       // - require: DS input period is open explicitly
       // entry time-frame(s) are explicitly defined...
-      Date now = new Date();
       List<String> isoNotOpen =
           values.stream()
               .filter(
                   dv -> {
-                    List<DateRange> open = entryPeriodsByIso.get(dv.period());
-                    if (open == null) return true;
-                    return open.stream().anyMatch(range -> range.includes(now));
+                    List<DateRange> openSpan = entrySpansByIso.get(dv.period());
+                    if (openSpan == null) return true;
+                    return openSpan.stream().anyMatch(range -> range.includes(now));
                   })
               .map(DviValue::period)
               .distinct()
@@ -414,8 +483,8 @@ public class DefaultDviService implements DviService {
         if (!isoByOu.isEmpty()) {
           Predicate<DviValue> dvApproved =
               dv -> {
-                Set<String> isoPeriods = isoByOu.get(dv.orgUnit().getValue());
-                return isoPeriods != null && isoPeriods.contains(dv.period());
+                Set<String> ouIsoPeriods = isoByOu.get(dv.orgUnit().getValue());
+                return ouIsoPeriods != null && ouIsoPeriods.contains(dv.period());
               };
           List<String> ouPeInApproval =
               e.getValue().stream()

@@ -174,7 +174,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
     DviUpsertRequest request = new DviUpsertRequest(ds, null, ou, pe, aoc, values);
     try {
-      ImportResult result = dviService.importAll(options, request, transitory());
+      ImportResult result = dviService.valueEntryBulk(options, request, transitory());
       if (!result.errors().isEmpty())
         return SmsResponse.WARN_DVERR.setList(
             result.errors().stream().map(e -> toIdentifier(values.get(e.index()))).toList());

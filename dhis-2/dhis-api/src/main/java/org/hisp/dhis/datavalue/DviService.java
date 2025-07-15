@@ -45,13 +45,41 @@ import org.hisp.dhis.scheduling.JobProgress;
  */
 public interface DviService {
 
-  void importValue(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
+  /**
+   * Data entry of a single value.
+   *
+   * @param force true to skip timeliness validation as super-user
+   * @param dataSet when not provided it must be unique for the key combination
+   * @param value entered
+   * @throws ConflictException in case of validation errors
+   * @throws BadRequestException in case the submitted value is formally invalid
+   */
+  void valueEntry(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
       throws ConflictException, BadRequestException;
 
-  boolean deleteValue(boolean force, @CheckForNull UID dataSet, DviKey key)
+  /**
+   * Data entry of a single data value deletion.
+   *
+   * @param force true to skip timeliness validation as super-user
+   * @param dataSet when not provided it must be unique for the key combination
+   * @param key of the data value to soft delete
+   * @return true, if a value got soft deleted, false when no such value did exist
+   * @throws ConflictException in case of validation errors
+   * @throws BadRequestException in case the submitted key is formally invalid
+   */
+  boolean valueEntryDeletion(boolean force, @CheckForNull UID dataSet, DviKey key)
       throws ConflictException, BadRequestException;
 
-  ImportResult importAll(
+  /**
+   * Data entry of many values. Typically, all values belong to the same dataset.
+   *
+   * @param options for the entry
+   * @param request the data to enter
+   * @param progress to track processing progress
+   * @return a summary of the import
+   * @throws ConflictException in case of validation errors
+   */
+  ImportResult valueEntryBulk(
       DviUpsertRequest.Options options, DviUpsertRequest request, JobProgress progress)
       throws ConflictException;
 }

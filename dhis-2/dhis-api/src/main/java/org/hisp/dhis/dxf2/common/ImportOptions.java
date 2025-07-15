@@ -85,10 +85,11 @@ public class ImportOptions implements JobParameters {
   @OpenApi.Since(43)
   @OpenApi.Description(
       """
-    The values belong to multiple data sets and require use of the legacy import.
-    Used to opt-out of the new JSON import.""")
+    Opt-in to import data values for potentially multiple data sets.
+    Values are grouped by data set.
+    If multiple data sets are available for a data element the most recently created one is used.""")
   @JsonProperty
-  private boolean mixed;
+  private boolean group;
 
   @Maturity.Beta
   @OpenApi.Since(43)

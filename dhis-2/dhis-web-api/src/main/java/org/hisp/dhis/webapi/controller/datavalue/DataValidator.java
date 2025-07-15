@@ -30,15 +30,11 @@
 package org.hisp.dhis.webapi.controller.datavalue;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
-import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -269,68 +265,6 @@ public class DataValidator {
     if ((closedDate != null && closedDate.before(startDate)) || openingDate.after(endDate)) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2019, organisationUnit.getUid()));
     }
-  }
-
-  /**
-   * Check for an invalid period within the given CategoryOptionCombo (attribute option combo).
-   *
-   * @param attributeOptionCombo is the {@link CategoryOptionCombo}.
-   * @param period the {@link Period} to be checked.
-   * @param dataSet the {@link DataSet} (if present) to be checked.
-   * @param dataElement the {@link DataElement} to be checked.
-   * @throws IllegalQueryException if the validation fails.
-   */
-  public void validateAttributeOptionCombo(
-      CategoryOptionCombo attributeOptionCombo,
-      Period period,
-      DataSet dataSet,
-      DataElement dataElement) {
-    for (CategoryOption option : attributeOptionCombo.getCategoryOptions()) {
-      if (option.getStartDate() != null && period.getEndDate().before(option.getStartDate())) {
-        throw new IllegalQueryException(
-            new ErrorMessage(
-                ErrorCode.E2023,
-                period.getIsoDate(),
-                toMediumDate(option.getStartDate()),
-                option.getUid()));
-      }
-
-      Date adjustedEndDate =
-          (dataSet != null)
-              ? option.getAdjustedEndDate(dataSet)
-              : option.getAdjustedEndDate(dataElement);
-
-      if (adjustedEndDate != null && period.getStartDate().after(adjustedEndDate)) {
-        throw new IllegalQueryException(
-            new ErrorMessage(
-                ErrorCode.E2024,
-                period.getIsoDate(),
-                toMediumDate(adjustedEndDate),
-                option.getUid()));
-      }
-    }
-  }
-
-  /**
-   * Validates if the given data value is valid for the given DataElement, and normalize it if the
-   * dataValue is a boolean type.
-   *
-   * @param dataValue the data value.
-   * @param dataElement the {@link DataElement}.
-   * @return the normalized boolean or the same dataValue provided.
-   * @throws IllegalQueryException if the validation fails.
-   */
-  public String validateAndNormalizeDataValue(String dataValue, DataElement dataElement) {
-    final String normalizedBoolean = normalizeBoolean(dataValue, dataElement.getValueType());
-
-    final String valueValid = valueIsValid(normalizedBoolean, dataElement);
-
-    if (valueValid != null) {
-      throw new IllegalQueryException(
-          new ErrorMessage(ErrorCode.E2030, dataElement.getValueType()));
-    }
-
-    return normalizedBoolean;
   }
 
   /**

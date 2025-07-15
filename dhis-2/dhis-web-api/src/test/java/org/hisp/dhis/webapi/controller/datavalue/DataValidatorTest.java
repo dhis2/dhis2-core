@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -148,44 +145,6 @@ class DataValidatorTest {
   }
 
   @Test
-  void testValidateAttributeOptionComboWithValidData() {
-    // Initially
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, deA);
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, null);
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, null, deA);
-
-    dataValidator.validateAttributeOptionCombo(cocA, peFeb, dsA, deA);
-    dataValidator.validateAttributeOptionCombo(cocA, peMar, dsA, deA);
-
-    // Given
-    coA.setStartDate(jan15);
-
-    // Then
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, deA);
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, null);
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, null, deA);
-
-    dataValidator.validateAttributeOptionCombo(cocA, peFeb, dsA, deA);
-    dataValidator.validateAttributeOptionCombo(cocA, peMar, dsA, deA);
-
-    // And given
-    coA.setEndDate(jan15);
-
-    // Then
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, deA);
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, null);
-    dataValidator.validateAttributeOptionCombo(cocA, peJan, null, deA);
-
-    // And given
-    dsA.setOpenPeriodsAfterCoEndDate(1);
-
-    // Then
-    dataValidator.validateAttributeOptionCombo(cocA, peFeb, dsA, deA);
-    dataValidator.validateAttributeOptionCombo(cocA, peFeb, dsA, null);
-    dataValidator.validateAttributeOptionCombo(cocA, peFeb, null, deA);
-  }
-
-  @Test
   void testGetAndValidateAttributeOptionComboNull() {
     IllegalQueryException ex =
         assertThrows(
@@ -200,110 +159,5 @@ class DataValidatorTest {
         assertThrows(IllegalQueryException.class, () -> dataValidator.getAndValidatePeriod("502"));
 
     assertEquals(ErrorCode.E1101, ex.getErrorCode());
-  }
-
-  @Test
-  void testValidateAttributeOptionComboWithEarlyData() {
-    coA.setStartDate(feb15);
-
-    assertThrows(
-        IllegalQueryException.class,
-        () -> dataValidator.validateAttributeOptionCombo(cocA, peJan, dsA, deA));
-  }
-
-  @Test
-  void testValidateAttributeOptionComboWithLateData() {
-    coA.setEndDate(jan15);
-
-    assertThrows(
-        IllegalQueryException.class,
-        () -> dataValidator.validateAttributeOptionCombo(cocA, peFeb, null, deA));
-  }
-
-  @Test
-  void testValidateAttributeOptionComboWithLateAdjustedData() {
-    coA.setEndDate(jan15);
-    dsA.setOpenPeriodsAfterCoEndDate(1);
-
-    assertThrows(
-        IllegalQueryException.class,
-        () -> dataValidator.validateAttributeOptionCombo(cocA, peMar, dsA, deA));
-  }
-
-  @Test
-  void validateBooleanDataValueWhenValuesAreAcceptableTrue() {
-    final DataElement aBooleanTypeDataElement = new DataElement();
-    final String normalizedBooleanValue = "true";
-    aBooleanTypeDataElement.setValueType(BOOLEAN);
-
-    String aBooleanDataValue = "true";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "1";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "t";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "True";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "TRUE";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-  }
-
-  @Test
-  void validateBooleanDataValueWhenValuesAreAcceptableFalse() {
-    final DataElement aBooleanTypeDataElement = new DataElement();
-    final String normalizedBooleanValue = "false";
-    aBooleanTypeDataElement.setValueType(BOOLEAN);
-
-    String aBooleanDataValue = "false";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "0";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "f";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "False";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-
-    aBooleanDataValue = "FALSE";
-    aBooleanDataValue =
-        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
-    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
-  }
-
-  @Test
-  void validateBooleanDataValueWhenValueIsNotValid() {
-    String anInvalidBooleanValue = "InvalidValue";
-    final DataElement aBooleanTypeDataElement = new DataElement();
-    aBooleanTypeDataElement.setValueType(BOOLEAN);
-
-    assertThrows(
-        IllegalQueryException.class,
-        () ->
-            dataValidator.validateAndNormalizeDataValue(
-                anInvalidBooleanValue, aBooleanTypeDataElement));
   }
 }

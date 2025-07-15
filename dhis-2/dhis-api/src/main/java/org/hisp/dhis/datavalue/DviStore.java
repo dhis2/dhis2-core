@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -246,5 +247,30 @@ public interface DviStore {
    * @param dataSet DS for scope
    * @return for each period ISO (key) the map contains all valid input periods for that period
    */
-  Map<String, List<DateRange>> getEntryPeriodsByIsoPeriod(UID dataSet);
+  Map<String, List<DateRange>> getEntrySpansByIsoPeriod(UID dataSet);
+
+  /**
+   * Fetches the span in time when each OU is operational only for those OUs in the provided list
+   * that do not fully include the start-end range.
+   *
+   * @param orgUnits OUs for scope
+   * @param start most past start of any used period for the given OUs
+   * @param end most future end of any used period for the given OUs
+   * @return for each OU (UID as key) the span in which it is operational (a.k.a. "open")
+   */
+  Map<String, DateRange> getOrgUnitOperationalSpan(Stream<UID> orgUnits, Date start, Date end);
+
+  /*
+  Support to automatically group data entry into datasets
+   */
+
+  /**
+   * Find the datasets a data element can be used with to allow grouping data values into groups of
+   * data sets based on the data element.
+   *
+   * @param dataElements all data elements to check (scope)
+   * @return for each data element (key) it lists all datasets it can be used with (ordered most
+   *     recently created first)
+   */
+  Map<String, Set<String>> getDataSetsByDataElement(Stream<UID> dataElements);
 }

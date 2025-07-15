@@ -55,17 +55,20 @@ public record DviUpsertRequest(
   /**
    * Options for the import. By default, all are {@code false}.
    *
-   * @param dryRun not actually do the upsert
+   * @param dryRun essentially all the validation and preparation but without actually doing the
+   *     upsert
    * @param atomic then true, any validation error (including value validation) aborts the entire
    *     import
    * @param force when true, any timeliness validation is skipped (only possible as superuser) to
    *     allow out-of-time (early/late) entry of data e.g. as part of a data synchronisation or
    *     repair
+   * @param group automatically find and group values by data set, when multiple data sets exist for
+   *     a data element use the most recently created one
    */
-  public record Options(boolean dryRun, boolean atomic, boolean force) {
+  public record Options(boolean dryRun, boolean atomic, boolean force, boolean group) {
 
     public Options() {
-      this(false, false, false);
+      this(false, false, false, false);
     }
   }
 }

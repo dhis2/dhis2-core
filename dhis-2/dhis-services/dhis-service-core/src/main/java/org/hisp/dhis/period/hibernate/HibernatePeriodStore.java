@@ -80,6 +80,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     implements PeriodStore {
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
+
   private final DataSource dataSource;
 
   public HibernatePeriodStore(

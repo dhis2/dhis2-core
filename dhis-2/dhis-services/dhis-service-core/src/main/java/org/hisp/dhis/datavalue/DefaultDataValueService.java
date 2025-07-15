@@ -94,7 +94,7 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public boolean addDataValue(DataValue dataValue) {
     try {
-      dviService.importValue(false, null, toDviValue(dataValue));
+      dviService.valueEntry(false, null, toDviValue(dataValue));
       return true;
     } catch (ConflictException | BadRequestException ex) {
       return false;
@@ -105,13 +105,13 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public void updateDataValue(DataValue dv) throws ConflictException, BadRequestException {
     if (isNullOrEmpty(dv.getValue()) && isNullOrEmpty(dv.getComment())) dv.setDeleted(true);
-    dviService.importValue(false, null, toDviValue(dv));
+    dviService.valueEntry(false, null, toDviValue(dv));
   }
 
   @Override
   @IndirectTransactional
   public void updateDataValues(List<DataValue> dataValues) throws ConflictException {
-    dviService.importAll(
+    dviService.valueEntryBulk(
         new DviUpsertRequest.Options(false, true, false),
         new DviUpsertRequest(dataValues.stream().map(DefaultDataValueService::toDviValue).toList()),
         transitory());
@@ -127,7 +127,7 @@ public class DefaultDataValueService implements DataValueService {
             UID.of(dataValue.getCategoryOptionCombo()),
             UID.of(dataValue.getAttributeOptionCombo()),
             dataValue.getPeriod().getIsoDate());
-    dviService.deleteValue(false, null, key);
+    dviService.valueEntryDeletion(false, null, key);
   }
 
   @Override
