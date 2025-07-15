@@ -82,9 +82,9 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
       return false;
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
-    }
+//    if (log.isDebugEnabled()) {
+//      log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
+//    }
 
     if (excludeDefaults && object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
       return false;
@@ -153,10 +153,31 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   public void serializeAsField(
       Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
       throws Exception {
-    if (include(writer, jgen, pojo)) {
-      writer.serializeAsField(pojo, jgen, provider);
-    } else if (!jgen.canOmitFields()) { // since 2.3
-      writer.serializeAsOmittedField(pojo, jgen, provider);
+    if (log.isDebugEnabled()) {
+      long includeStartTime = System.nanoTime();
+
+      boolean include = include(writer, jgen, pojo);
+
+      long includeEndTime = System.nanoTime();
+
+      if (include) {
+        long serializeStartTime = System.nanoTime();
+
+        writer.serializeAsField(pojo, jgen, provider);
+
+        long serializeEndTime = System.nanoTime();
+
+        log.debug("serializeAsField: include={} ns, serialize={} ns",
+             (includeEndTime - includeStartTime), (serializeEndTime - serializeStartTime));
+      } else if (!jgen.canOmitFields()) { // since 2.3
+        writer.serializeAsOmittedField(pojo, jgen, provider);
+      }
+    } else {
+      if (include(writer, jgen, pojo)) {
+        writer.serializeAsField(pojo, jgen, provider);
+      } else if (!jgen.canOmitFields()) { // since 2.3
+        writer.serializeAsOmittedField(pojo, jgen, provider);
+      }
     }
   }
 
