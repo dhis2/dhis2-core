@@ -145,7 +145,7 @@ public class EmailVerificationTest extends BaseE2ETest {
 
     // Look for the token in the invitation URL
     // Format is typically
-    // http://localhost:8080/dhis-web-login/index.html#/complete-registration?token=aXM0SmVUaEo3bVhrNDZlN0cwVkVadUlNY0JCR1BsYWJnVEdkT3hIT3Fublk6SUN0OW9JQU5FWm1HcUJpaVMxV0xwd3AzR3dvN29LaTRkOHFFMzh3ZEZaNHNVaw&email=jpjdk0ie@dhis2.org&username=invitevlk45rojitc
+    // http://localhost:8080/login/#/complete-registration?token=aXM0SmVUaEo3bVhrNDZlN0cwVkVadUlNY0JCR1BsYWJnVEdkT3hIT3Fublk6SUN0OW9JQU5FWm1HcUJpaVMxV0xwd3AzR3dvN29LaTRkOHFFMzh3ZEZaNHNVaw&email=jpjdk0ie@dhis2.org&username=invitevlk45rojitc
     int tokenStartIndex = invitationEmail.indexOf("token=");
     assertTrue(tokenStartIndex != -1);
     tokenStartIndex += 6;

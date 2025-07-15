@@ -57,12 +57,16 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 class FilterJdbcPredicateTest {
   private TrackedEntityAttribute tea;
+  private TrackedEntityAttribute teaMultiText;
   private DataElement de;
   private DataElement deMultiText;
 
   @BeforeEach
   void setUp() {
     tea = trackedEntityAttribute();
+    teaMultiText = trackedEntityAttribute();
+    teaMultiText.setValueType(ValueType.MULTI_TEXT);
+    teaMultiText.setUid(UID.generate().getValue());
 
     de = new DataElement();
     de.setValueType(ValueType.TEXT);
@@ -74,7 +78,7 @@ class FilterJdbcPredicateTest {
   }
 
   @Test
-  void shouldCreateFilterGivenUnaryOperatorOnAttribute() {
+  void shouldCreateFilterGivenUnaryOperatorOnAttribute() throws BadRequestException {
     tea.setValueType(ValueType.NUMBER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.NNULL);
 
@@ -103,7 +107,7 @@ ev.eventdatavalues -> '%s' is not null"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeText() {
+  void shouldCreateFilterGivenTextInputWithInOperatorForValueTypeText() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "summer;Winter;SPRING");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
@@ -132,7 +136,8 @@ lower(ev.eventdatavalues #>> '{%s, value}') in (:"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeInteger() {
+  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeInteger()
+      throws BadRequestException {
     tea.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42;17;7");
 
@@ -163,7 +168,8 @@ cast (ev.eventdatavalues #>> '{%s, value}' as integer) in (:"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeNumber() {
+  void shouldCreateFilterGivenNumericInputWithInOperatorForValueTypeNumber()
+      throws BadRequestException {
     tea.setValueType(ValueType.NUMBER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.IN, "42.5;17.2;7");
 
@@ -184,8 +190,8 @@ cast ("%s".value as numeric) in (:"""
   }
 
   @Test
-  void
-      shouldCreateFilterGivenTextInputWithLikeBasedOperatorForValueTypeTextAndWildcardCharacters() {
+  void shouldCreateFilterGivenTextInputWithLikeBasedOperatorForValueTypeTextAndWildcardCharacters()
+      throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EW, "80%_60%");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
@@ -199,7 +205,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithEqOperatorForValueTypeText() {
+  void shouldCreateFilterGivenTextInputWithEqOperatorForValueTypeText() throws BadRequestException {
     // % is not a wildcard in operators other than SQL like so will not be escaped
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "summer % DAY");
 
@@ -214,7 +220,8 @@ lower("%s".value) = :"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithEqOperatorForValueTypeText() {
+  void shouldCreateFilterGivenNumericInputWithEqOperatorForValueTypeText()
+      throws BadRequestException {
     tea.setValueType(ValueType.TEXT);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42.5");
 
@@ -229,7 +236,8 @@ lower("%s".value) = :"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithEqOperatorForValueTypeNumber() {
+  void shouldCreateFilterGivenNumericInputWithEqOperatorForValueTypeNumber()
+      throws BadRequestException {
     tea.setValueType(ValueType.NUMBER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42.5");
 
@@ -244,7 +252,8 @@ cast ("%s".value as numeric) = :"""
   }
 
   @Test
-  void shouldCreateFilterGivenNumericInputWithEqOperatorForValueTypeInteger() {
+  void shouldCreateFilterGivenNumericInputWithEqOperatorForValueTypeInteger()
+      throws BadRequestException {
     tea.setValueType(ValueType.INTEGER);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "42");
 
@@ -259,7 +268,7 @@ cast ("%s".value as integer) = :"""
   }
 
   @Test
-  void shouldCreateFilterGivenDateInputWithEqOperatorForValueTypeDate() {
+  void shouldCreateFilterGivenDateInputWithEqOperatorForValueTypeDate() throws BadRequestException {
     tea.setValueType(ValueType.DATE);
     QueryFilter queryFilter = new QueryFilter(QueryOperator.GT, "2013-04-01");
 
@@ -274,7 +283,8 @@ lower("%s".value) > :"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithLikeOperatorForValueTypeText() {
+  void shouldCreateFilterGivenTextInputWithLikeOperatorForValueTypeText()
+      throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.LIKE, "summer");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
@@ -288,7 +298,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithSWOperatorForValueTypeText() {
+  void shouldCreateFilterGivenTextInputWithSWOperatorForValueTypeText() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.SW, "summer");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
@@ -302,7 +312,7 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldCreateFilterGivenTextInputWithEWOperatorForValueTypeText() {
+  void shouldCreateFilterGivenTextInputWithEWOperatorForValueTypeText() throws BadRequestException {
     QueryFilter queryFilter = new QueryFilter(QueryOperator.EW, "summer");
 
     FilterJdbcPredicate filter = FilterJdbcPredicate.of(tea, queryFilter);
@@ -428,7 +438,34 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldAddPredicates() {
+  void shouldFailIfOperatorIsNotSupportedForMultiTextTEA() {
+    QueryFilter filter = new QueryFilter(QueryOperator.GT, "blue");
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> FilterJdbcPredicate.of(teaMultiText, filter));
+
+    assertContains(
+        "Invalid filter: Operator '%s' is not supported for multi-text TrackedEntityAttribute : '%s'."
+            .formatted(filter.getOperator(), teaMultiText.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfOperatorIsNotSupportedForMultiTextDataElement() {
+    QueryFilter filter = new QueryFilter(QueryOperator.GT, "blue");
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> FilterJdbcPredicate.of(deMultiText, filter, "ev"));
+
+    assertContains(
+        "Invalid filter: Operator '%s' is not supported for multi-text DataElement : '%s'."
+            .formatted(filter.getOperator(), deMultiText.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldAddPredicates() throws BadRequestException {
     StringBuilder sql = new StringBuilder();
     QueryFilter notNull = new QueryFilter(QueryOperator.NNULL);
     TrackedEntityAttribute tea2 = trackedEntityAttribute();
@@ -453,7 +490,7 @@ lower("%s".value) is not null and lower("%s".value) is not null and lower("%s".v
   }
 
   @Test
-  void shouldAddPredicateParameters() {
+  void shouldAddPredicateParameters() throws BadRequestException {
     StringBuilder sql = new StringBuilder();
     QueryFilter eq = new QueryFilter(QueryOperator.EQ, "blue");
 
