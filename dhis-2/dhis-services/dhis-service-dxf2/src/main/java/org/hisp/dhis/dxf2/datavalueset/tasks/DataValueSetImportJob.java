@@ -35,10 +35,10 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
-import org.hisp.dhis.datavalue.DataEntryRequest;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -135,45 +136,54 @@ public class DataValueSetImportJob implements Job {
   }
 
   private ImportSummary importDataValueSetCsv(
-      InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
+      InputStream input, ImportOptions options, JobProgress progress)
+      throws ConflictException, BadRequestException {
     if (options.isGroup())
       return dataValueSetService.importDataValueSetCsv(input, options, progress);
 
     // TODO maybe handle firstRowIsHeader=false by specifying a default header?
     progress.startingStage("Deserializing data values...");
-    List<DataEntryValue> values =
+    List<DataEntryValue.Input> values =
         progress.nonNullStagePostCondition(
             progress.runStage(
                 () ->
-                    CSV.of(wrapAndCheckCompressionFormat(input)).as(DataEntryValue.class).list()));
+                    CSV.of(wrapAndCheckCompressionFormat(input))
+                        .as(DataEntryValue.Input.class)
+                        .list()));
     String ds = options.getDataSet();
-    DataEntryRequest request =
-        new DataEntryRequest(ds == null ? null : UID.of(ds), null, null, null, null, values);
+    DataEntryGroup.Input request = new DataEntryGroup.Input(ds, null, null, null, null, values);
 
-    // further stages happen within the service method...
-    DataEntryRequest.Options opt =
-        new DataEntryRequest.Options(
-            options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());
-    return dataEntryService.upsertDataValues(opt, request, progress).toImportSummary();
+    return importDataValues(request, options, progress);
   }
 
   private ImportSummary importDataValueSetJson(
-      InputStream input, ImportOptions options, JobProgress progress) throws ConflictException {
+      InputStream input, ImportOptions options, JobProgress progress)
+      throws ConflictException, BadRequestException {
     if (options.isGroup())
       return dataValueSetService.importDataValueSetJson(input, options, progress);
 
     progress.startingStage("Deserializing data values...");
-    DataEntryRequest request =
+    DataEntryGroup.Input request =
         progress.nonNullStagePostCondition(
             progress.runStage(
                 () ->
                     jsonMapper.readValue(
-                        wrapAndCheckCompressionFormat(input), DataEntryRequest.class)));
+                        wrapAndCheckCompressionFormat(input), DataEntryGroup.Input.class)));
 
     // further stages happen within the service method...
-    DataEntryRequest.Options opt =
-        new DataEntryRequest.Options(
+    return importDataValues(request, options, progress);
+  }
+
+  @Nonnull
+  private ImportSummary importDataValues(
+      DataEntryGroup.Input request, ImportOptions options, JobProgress progress)
+      throws BadRequestException, ConflictException {
+    // further stages happen within the service method...
+    DataEntryGroup.Identifiers identifiers = DataEntryGroup.Identifiers.of(options.getIdSchemes());
+    DataEntryGroup group = dataEntryService.decode(request, identifiers, progress);
+    DataEntryGroup.Options opt =
+        new DataEntryGroup.Options(
             options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());
-    return dataEntryService.upsertDataValues(opt, request, progress).toImportSummary();
+    return dataEntryService.upsertDataValueGroup(opt, group, progress).toImportSummary();
   }
 }

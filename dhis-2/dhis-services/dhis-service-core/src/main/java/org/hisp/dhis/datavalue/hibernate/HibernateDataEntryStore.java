@@ -55,8 +55,10 @@ import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
+import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
@@ -96,6 +98,37 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
+  }
+
+  @Override
+  public Map<String, String> mapToUid(KeyTable table, InputId id, Stream<String> identifiers) {
+    @Language("sql")
+    String sqlTemplate =
+        """
+      SELECT t.${property}, t.uid
+      FROM ${table} t
+      JOIN unnest(:ids) AS input(id) ON t.{$property} = input.id
+      """;
+    String tableName =
+        switch (table) {
+          case DS -> "datset";
+          case DE -> "dataelement";
+          case OU -> "organisationunit";
+          case COC -> "categoryoptioncombo";
+        };
+    String propertyName =
+        switch (id.type()) {
+          case ID -> "uid";
+          case NAME -> "name";
+          case CODE -> "code";
+          default -> throw new UnsupportedOperationException("");
+        };
+    String sql =
+        TextUtils.replace(sqlTemplate, Map.of("table", tableName, "property", propertyName));
+    String[] ids = identifiers.distinct().toArray(String[]::new);
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows = getSession().createNativeQuery(sql).setParameter("ids", ids).stream();
+    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Override

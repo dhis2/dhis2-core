@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.datavalue;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -37,11 +39,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /** A single data value in the data entry service API. */
 public record DataEntryValue(
-    UID dataElement,
-    UID orgUnit,
-    UID categoryOptionCombo,
-    UID attributeOptionCombo,
-    String period,
+    int index,
+    @Nonnull UID dataElement,
+    @Nonnull UID orgUnit,
+    @CheckForNull UID categoryOptionCombo,
+    @CheckForNull UID attributeOptionCombo,
+    @Nonnull String period,
     String value,
     String comment,
     Boolean followUp,
@@ -52,16 +55,19 @@ public record DataEntryValue(
    * How a {@link DataEntryValue} is provided as user input in the web API.
    *
    * <p>Mainly different from a {@link DataEntryValue} in that the {@link UID}s can also be other
-   * identifiers when using ID-schemes.
+   * identifiers when using ID-schemes. Also, some fields might not be present because they are
+   * common for all values, so they are defined in the group (request).
    */
   @OpenApi.Shared(name = "DataEntryValue")
   public record Input(
-      @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
-      @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
-      @OpenApi.Property({UID.class, CategoryOptionCombo.class}) String categoryOptionCombo,
-      @OpenApi.Property({UID.class, CategoryOptionCombo.class}) String attributeOptionCombo,
-      String period,
-      String value,
-      String comment,
-      Boolean followUp) {}
+      @CheckForNull @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
+      @CheckForNull @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
+      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+          String categoryOptionCombo,
+      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+          String attributeOptionCombo,
+      @CheckForNull String period,
+      @CheckForNull String value,
+      @CheckForNull String comment,
+      @CheckForNull Boolean followUp) {}
 }

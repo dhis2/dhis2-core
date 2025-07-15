@@ -32,7 +32,10 @@ package org.hisp.dhis.datavalue;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,39 +44,29 @@ import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * The data of a data entry bulk operation in the service API.
+ * Service API data structure to enter multiple values for the same dataset. This set is either
+ * specified explicitly using {@link #dataSet()} or inferred implicitly from the data elements. If
+ * not all data elements belong to a single unique set this is an error that requires explicit
+ * specification of the target dataset.
  *
- * @param dataSet common dataset (if known)
- * @param dataElement common data element of all values (if common)
- * @param orgUnit common organisation unit of all values (if common)
- * @param period common period of all values (if common)
- * @param attrOptionCombo common AOC of all values (if common)
+ * @param dataSet explicit target dataset (leave null for auto-detect)
  * @param values the raw values
  */
-public record DataEntryRequest(
+public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
-    // common dimensions (optional)
-    @CheckForNull UID dataElement,
-    @CheckForNull UID orgUnit,
-    @CheckForNull String period,
-    @CheckForNull UID attrOptionCombo,
-    @TimeExecution.Include @JsonAlias("dataValues") List<DataEntryValue> values) {
+    @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
 
-  public DataEntryRequest(UID ds, List<DataEntryValue> values) {
-    this(ds, null, null, null, null, values);
-  }
-
-  public DataEntryRequest(List<DataEntryValue> values) {
+  public DataEntryGroup(List<DataEntryValue> values) {
     this(null, values);
   }
 
   /**
-   * How a {@link DataEntryRequest} is provided as user input in the web API.
+   * How a {@link DataEntryGroup} is provided as user input in the web API.
    *
-   * <p>Mainly differs from the {@link DataEntryRequest} by allowing other forms of identifiers to
-   * be used instead of {@link UID}s.
+   * <p>Mainly differs from the {@link DataEntryGroup} by allowing other forms of identifiers to be
+   * used instead of {@link UID}s.
    */
-  @OpenApi.Shared(name = "DataEntryRequest")
+  @OpenApi.Shared(name = "DataEntryGroup")
   public record Input(
       @OpenApi.Property({UID.class, DataSet.class}) @CheckForNull String dataSet,
       // common dimensions (optional)
@@ -82,7 +75,6 @@ public record DataEntryRequest(
       @CheckForNull String period,
       @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @CheckForNull
           String attrOptionCombo,
-      // TODO add ID schemes
       @JsonAlias("dataValues") List<DataEntryValue.Input> values) {}
 
   /**
@@ -102,6 +94,26 @@ public record DataEntryRequest(
 
     public Options() {
       this(false, false, false, false);
+    }
+  }
+
+  /** The identifiers supported for {@link Input}. */
+  public record Identifiers(
+      @Nonnull InputId dataSets,
+      @Nonnull InputId dataElements,
+      @Nonnull InputId orgUnits,
+      @Nonnull InputId categoryOptionCombos,
+      @Nonnull InputId attributeOptionCombos) {
+
+    public static Identifiers of(IdSchemes schemes) {
+      return schemes == null
+          ? null
+          : new DataEntryGroup.Identifiers(
+              InputId.of(schemes.getDataSetIdScheme()),
+              InputId.of(schemes.getDataElementIdScheme()),
+              InputId.of(schemes.getOrgUnitIdScheme()),
+              InputId.of(schemes.getCategoryOptionComboIdScheme()),
+              InputId.of(schemes.getAttributeOptionComboIdScheme()));
     }
   }
 }

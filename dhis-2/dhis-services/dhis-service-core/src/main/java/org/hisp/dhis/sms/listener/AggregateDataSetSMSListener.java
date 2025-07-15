@@ -37,21 +37,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataEntryRequest;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ImportResult;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -161,25 +162,29 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
   private SmsResponse importDataValues(AggregateDatasetSmsSubmission sub) {
     // Note that the user passed to postProcess is the current user
     // so no need to pass it along explicitly
-    UID ou = UID.of(sub.getOrgUnit().getUid());
-    UID ds = UID.of(sub.getDataSet().getUid());
+    String ou = sub.getOrgUnit().getUid();
+    String ds = sub.getDataSet().getUid();
     String pe = sub.getPeriod();
-    UID aoc = UID.of(sub.getAttributeOptionCombo().getUid());
+    String aoc = sub.getAttributeOptionCombo().getUid();
 
-    DataEntryRequest.Options options = new DataEntryRequest.Options();
-    List<DataEntryValue> values =
+    DataEntryGroup.Options options = new DataEntryGroup.Options();
+    List<DataEntryValue.Input> values =
         sub.getValues() == null
             ? List.of()
             : sub.getValues().stream().map(AggregateDataSetSMSListener::toDataEntryValue).toList();
     if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
-    DataEntryRequest request = new DataEntryRequest(ds, null, ou, pe, aoc, values);
+    DataEntryGroup.Input request = new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
     try {
-      ImportResult result = dataEntryService.upsertDataValues(options, request, transitory());
+      JobProgress progress = transitory();
+      DataEntryGroup group = dataEntryService.decode(request, null, progress);
+      DataEntrySummary result = dataEntryService.upsertDataValueGroup(options, group, progress);
       if (!result.errors().isEmpty())
         return SmsResponse.WARN_DVERR.setList(
-            result.errors().stream().map(e -> toIdentifier(values.get(e.index()))).toList());
+            result.errors().stream()
+                .map(e -> toIdentifier(group.values().get(e.value().index())))
+                .toList());
       return SmsResponse.SUCCESS;
-    } catch (ConflictException ex) {
+    } catch (ConflictException | BadRequestException ex) {
       switch (ex.getCode()) {
         case E7601:
           throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(ds));
@@ -197,10 +202,10 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     }
   }
 
-  private static DataEntryValue toDataEntryValue(SmsDataValue value) {
-    UID de = UID.of(value.getDataElement().getUid());
-    UID coc = UID.of(value.getCategoryOptionCombo().getUid());
-    return new DataEntryValue(de, null, coc, null, null, value.getValue(), null, null, null);
+  private static DataEntryValue.Input toDataEntryValue(SmsDataValue value) {
+    String de = value.getDataElement().getUid();
+    String coc = value.getCategoryOptionCombo().getUid();
+    return new DataEntryValue.Input(de, null, coc, null, null, value.getValue(), null, null);
   }
 
   private static Object toIdentifier(DataEntryValue dv) {

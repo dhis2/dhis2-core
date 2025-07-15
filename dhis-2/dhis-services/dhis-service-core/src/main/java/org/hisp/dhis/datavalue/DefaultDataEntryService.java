@@ -36,7 +36,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.feedback.ImportResult.error;
+import static org.hisp.dhis.common.InputId.ToUID.mapBy;
+import static org.hisp.dhis.common.InputId.ToUID.requireNonNull;
+import static org.hisp.dhis.common.InputId.ToUID.whenNullUse;
+import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -47,20 +50,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.datavalue.DataEntryRequest.Options;
+import org.hisp.dhis.datavalue.DataEntryGroup.Options;
+import org.hisp.dhis.datavalue.DataEntryStore.KeyTable;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
+import org.hisp.dhis.feedback.DataEntrySummary.DataEntryError;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ImportResult;
-import org.hisp.dhis.feedback.ImportResult.ImportError;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -84,9 +90,94 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataEntryRequest decode(DataEntryRequest.Input request) throws BadRequestException {
-    // TODO
-    return null;
+  public DataEntryGroup decode(
+      DataEntryGroup.Input group, DataEntryGroup.Identifiers ids, JobProgress progress)
+      throws BadRequestException {
+    InputId.ToUID dsOf = UID::ofNullable;
+    InputId.ToUID deOf = whenNullUse(group.dataElement(), requireNonNull("data element", UID::of));
+    InputId.ToUID ouOf = whenNullUse(group.orgUnit(), requireNonNull("org unit", UID::of));
+    InputId.ToUID cocOf = UID::ofNullable;
+    InputId.ToUID aocOf = whenNullUse(group.attrOptionCombo(), UID::ofNullable);
+    String isoGroup = group.period();
+    Function<String, String> isoOf = iso -> iso != null ? iso : isoGroup;
+    List<DataEntryValue.Input> values = group.values();
+    String dataSet = group.dataSet();
+    if (ids != null) {
+      if (dataSet != null && ids.dataSets().isNotUid())
+        dsOf = mapBy(store.mapToUid(KeyTable.DS, ids.dataSets(), Stream.of(dataSet)), dsOf);
+      if (ids.dataElements().isNotUid()) {
+        Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
+        deOf = mapBy(store.mapToUid(KeyTable.DE, ids.dataElements(), deIds), deOf);
+      }
+      if (ids.orgUnits().isNotUid()) {
+        Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
+        ouOf = mapBy(store.mapToUid(KeyTable.OU, ids.orgUnits(), ouIds), ouOf);
+      }
+      if (ids.categoryOptionCombos().isNotUid()) {
+        Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
+        cocOf = mapBy(store.mapToUid(KeyTable.COC, ids.categoryOptionCombos(), cocIds), cocOf);
+      }
+      if (ids.attributeOptionCombos().isNotUid()) {
+        Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
+        aocOf = mapBy(store.mapToUid(KeyTable.COC, ids.attributeOptionCombos(), aocIds), aocOf);
+      }
+    }
+    int i = 0;
+    try {
+      UID ds = dsOf.decode(dataSet);
+      // progress.startingStage("Unifying %d values...".formatted(values.size()));
+      List<DataEntryValue> decoded = new ArrayList<>(values.size());
+      for (DataEntryValue.Input e : values) {
+        DataEntryValue dv =
+            new DataEntryValue(
+                i,
+                deOf.decode(e.dataElement()),
+                ouOf.decode(e.orgUnit()),
+                cocOf.decode(e.categoryOptionCombo()),
+                aocOf.decode(e.attributeOptionCombo()),
+                isoOf.apply(e.period()),
+                e.value(),
+                e.comment(),
+                e.followUp(),
+                null);
+        decoded.add(dv);
+        i++;
+      }
+      return new DataEntryGroup(ds, decoded);
+    } catch (IllegalArgumentException ex) {
+      throw new BadRequestException("");
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed, JobProgress progress) {
+    List<DataEntryValue> values = mixed.values();
+
+    progress.startingStage("Loading data element to data set mapping");
+    Map<String, Set<String>> dsxByDe =
+        progress.nonNullStagePostCondition(
+            progress.runStage(
+                () ->
+                    store.getDataSetsByDataElement(
+                        values.stream().map(DataEntryValue::dataElement))));
+    if (dsxByDe.size() == 1) return List.of(mixed);
+
+    progress.startingStage("Grouping data values");
+    return progress.nonNullStagePostCondition(
+        progress.runStage(
+            () -> {
+              Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
+
+              values.forEach(
+                  v -> {
+                    UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
+                    valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
+                  });
+              return valuesByDs.entrySet().stream()
+                  .map(e -> new DataEntryGroup(e.getKey(), List.copyOf(e.getValue())))
+                  .toList();
+            }));
   }
 
   @Override
@@ -94,7 +185,7 @@ public class DefaultDataEntryService implements DataEntryService {
   public void upsertDataValue(
       boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
-    List<ImportError> errors = new ArrayList<>(1);
+    List<DataEntryError> errors = new ArrayList<>(1);
     List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
@@ -103,48 +194,26 @@ public class DefaultDataEntryService implements DataEntryService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public ImportResult upsertDataValues(
-      Options options, DataEntryRequest request, JobProgress progress) throws ConflictException {
-    List<DataEntryValue> requestValues = request.values();
-    if (requestValues == null || requestValues.isEmpty()) return new ImportResult(0, 0, List.of());
-
-    progress.startingStage("Unifying %d values...".formatted(requestValues.size()));
-    List<DataEntryValue> values = progress.runStage(List.of(), () -> completedValues(request));
-
-    if (options.group()) {
-      Map<String, Set<String>> dsxByDe =
-          store.getDataSetsByDataElement(values.stream().map(DataEntryValue::dataElement));
-      if (dsxByDe.size() == 1) {
-        UID ds = UID.of(dsxByDe.entrySet().iterator().next().getValue().iterator().next());
-        return upsertDataValues(options, ds, progress, values);
-      }
-      Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
-      values.forEach(
-          v -> {
-            UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
-            valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
-          });
-      // TODO merge result reports
-      for (Map.Entry<UID, List<DataEntryValue>> e : valuesByDs.entrySet()) {
-        // TODO should validation be done first on all ?
-        upsertDataValues(options, e.getKey(), progress, e.getValue());
-      }
-    }
+  public DataEntrySummary upsertDataValueGroup(
+      Options options, DataEntryGroup group, JobProgress progress) throws ConflictException {
+    List<DataEntryValue> values = group.values();
+    if (values.isEmpty()) return new DataEntrySummary(0, 0, List.of());
 
     // TODO what about completion? requires common DS-OU-PE-AOC
 
     // auto-import into a single DS (if not specified)
-    return upsertDataValues(options, request.dataSet(), progress, values);
+    return upsertDataValueGroup(options, group.dataSet(), progress, values);
   }
 
   @Nonnull
-  private ImportResult upsertDataValues(
+  private DataEntrySummary upsertDataValueGroup(
       Options options, UID ds, JobProgress progress, List<DataEntryValue> values)
       throws ConflictException {
     progress.startingStage("Validating %d values...".formatted(values.size()));
-    List<ImportError> errors = new ArrayList<>();
+    List<DataEntryError> errors = new ArrayList<>();
     List<DataEntryValue> validValues =
-        progress.runStage(List.of(), () -> validate(options.force(), ds, values, errors));
+        progress.runStageAndRethrow(
+            ConflictException.class, () -> validate(options.force(), ds, values, errors));
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
 
@@ -153,7 +222,7 @@ public class DefaultDataEntryService implements DataEntryService {
         progress.runStage(
             0, () -> options.dryRun() ? validValues.size() : store.upsertValues(validValues));
 
-    return new ImportResult(validValues.size(), imported, errors);
+    return new DataEntrySummary(validValues.size(), imported, errors);
   }
 
   @Override
@@ -161,14 +230,14 @@ public class DefaultDataEntryService implements DataEntryService {
   public boolean deleteDataValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
-    List<ImportError> errors = new ArrayList<>(1);
+    List<DataEntryError> errors = new ArrayList<>(1);
     List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     return store.deleteByKeys(List.of(key)) > 0;
   }
 
   private List<DataEntryValue> validate(
-      boolean force, UID ds, List<DataEntryValue> values, List<ImportError> errors)
+      boolean force, UID ds, List<DataEntryValue> values, List<DataEntryError> errors)
       throws ConflictException {
     if (ds == null) {
       /*
@@ -315,7 +384,7 @@ public class DefaultDataEntryService implements DataEntryService {
    * errors list.
    */
   private List<DataEntryValue> validateValues(
-      UID ds, List<DataEntryValue> values, List<ImportError> errors) {
+      UID ds, List<DataEntryValue> values, List<DataEntryError> errors) {
     if (values.stream().allMatch(v -> v.deleted() == Boolean.TRUE)) return values;
     boolean commentAllowsEmptyValue = store.getDataSetCommentAllowsEmptyValue(ds);
     List<UID> dataElements = values.stream().map(DataEntryValue::dataElement).distinct().toList();
@@ -330,31 +399,32 @@ public class DefaultDataEntryService implements DataEntryService {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
       String val = normalizeValue(e, type);
+      String comment = e.comment();
       boolean allowEmptyValue =
-          e.deleted() == Boolean.TRUE || commentAllowsEmptyValue && !isNotEmpty(e.comment());
+          e.deleted() == Boolean.TRUE || commentAllowsEmptyValue && !isNotEmpty(comment);
       // - require: value not null/empty (not for delete or deleted value)
       boolean emptyValue = isEmpty(val);
       if (emptyValue && !allowEmptyValue) {
-        errors.add(error(index, ErrorCode.E7618, e));
+        errors.add(error(e, ErrorCode.E7618, e.dataElement()));
       } else {
         // - require: value valid for the DE value type?
         String error = emptyValue ? null : ValidationUtils.valueIsValid(val, type);
         if (error != null) {
-          errors.add(error(index, ErrorCode.E7619, type, e));
+          errors.add(error(e, ErrorCode.E7619, type, val));
         } else {
           // - require: if DE uses OptionSet - is value a valid option?
           Set<String> options = emptyValue ? null : optionsByDe.get(de);
           if (options != null && !options.contains(val)) {
-            errors.add(error(index, ErrorCode.E7621, e));
+            errors.add(error(e, ErrorCode.E7621, de));
           } else {
             // - require: if DE uses comment OptionSet - is comment a valid option?
             Set<String> cOptions = commentOptionsByDe.get(de);
-            if (cOptions != null && (e.comment() == null || !cOptions.contains(e.comment()))) {
-              errors.add(error(index, ErrorCode.E7620, e));
+            if (cOptions != null && (comment == null || !cOptions.contains(comment))) {
+              errors.add(error(e, ErrorCode.E7620, comment));
             } else {
               // - require: does the comment not exceed maximum length?
-              if (e.comment() != null && e.comment().length() > 5000) {
-                errors.add(error(index, ErrorCode.E7620, e));
+              if (comment != null && comment.length() > 5000) {
+                errors.add(error(e, ErrorCode.E7620, comment));
               } else {
                 // finally: all is good, we try to upsert this value
                 res.add(e);
@@ -375,35 +445,6 @@ public class DefaultDataEntryService implements DataEntryService {
       val = "false";
     if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("t") || "1".equals(val)) val = "true";
     return val;
-  }
-
-  private static List<DataEntryValue> completedValues(DataEntryRequest request) {
-    List<DataEntryValue> values = request.values();
-    UID de = request.dataElement();
-    UID ou = request.orgUnit();
-    String pe = request.period();
-    UID aoc = request.attrOptionCombo();
-    return (de == null && ou == null && pe == null && aoc == null)
-        ? values
-        : values.stream().map(e -> completeValue(e, de, ou, pe, aoc)).toList();
-  }
-
-  private static DataEntryValue completeValue(
-      DataEntryValue e, UID dataElement, UID orgUnit, String period, UID aoc) {
-    if (e.orgUnit() != null
-        && e.dataElement() != null
-        && e.period() != null
-        && e.attributeOptionCombo() != null) return e;
-    return new DataEntryValue(
-        e.dataElement() == null ? dataElement : e.dataElement(),
-        e.orgUnit() == null ? orgUnit : e.orgUnit(),
-        e.categoryOptionCombo(),
-        e.attributeOptionCombo() == null ? aoc : e.attributeOptionCombo(),
-        e.period() == null ? period : e.period(),
-        e.value(),
-        e.comment(),
-        e.followUp(),
-        e.deleted());
   }
 
   /*

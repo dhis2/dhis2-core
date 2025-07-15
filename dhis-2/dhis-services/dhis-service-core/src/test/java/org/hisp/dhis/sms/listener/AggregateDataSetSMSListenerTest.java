@@ -53,7 +53,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ImportResult;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -163,8 +163,8 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
     when(dataSetService.getDataSet(anyString())).thenReturn(dataSet);
     when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
         .thenReturn(LockStatus.OPEN);
-    when(dataEntryService.upsertDataValues(any(), any(), any()))
-        .thenReturn(new ImportResult(0, 0, List.of()));
+    when(dataEntryService.upsertDataValueGroup(any(), any(), any()))
+        .thenReturn(new DataEntrySummary(0, 0, List.of()));
     when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
     when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
 

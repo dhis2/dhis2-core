@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
@@ -45,6 +46,24 @@ import org.hisp.dhis.common.ValueType;
  * @since 2.43
  */
 public interface DataEntryStore {
+
+  /*
+  Preparation support
+   */
+
+  /** Tables for which ID scheme values may have to be resolved */
+  enum KeyTable {
+    DS,
+    DE,
+    OU,
+    COC
+  }
+
+  Map<String, String> mapToUid(KeyTable table, InputId scheme, Stream<String> identifiers);
+
+  /*
+  Import support
+   */
 
   int deleteByKeys(List<DataEntryKey> keys);
 

@@ -31,6 +31,7 @@ package org.hisp.dhis.feedback;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -39,22 +40,24 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
  * @param attempted number of rows that were attempted to import
  * @param succeeded number of rows affected by the import (ideally same as upserted)
  */
-public record ImportResult(int attempted, int succeeded, @Nonnull List<ImportError> errors) {
+public record DataEntrySummary(int attempted, int succeeded, @Nonnull List<DataEntryError> errors) {
 
-  public static ImportError error(int index, ErrorCode code, Object... args) {
-    return new ImportError(index, code, List.of(args));
+  public static DataEntryError error(
+      @Nonnull DataEntryValue value, @Nonnull ErrorCode code, Object... args) {
+    return new DataEntryError(value, code, List.of(args));
   }
 
-  public record ImportError(int index, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
+  public record DataEntryError(
+      @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 
   /** Adapter to the extensive legacy summary */
   public ImportSummary toImportSummary() {
     ImportSummary summary = new ImportSummary();
     summary.setImportCount(new ImportCount(succeeded(), 0, attempted() - succeeded(), 0));
-    for (ImportResult.ImportError error : errors()) {
-      summary.addRejected(error.index());
-      summary.addConflict(
-          ImportConflict.createUniqueConflict(error.index(), error.code(), error.args()));
+    for (DataEntryError error : errors()) {
+      int index = error.value().index();
+      summary.addRejected(index);
+      summary.addConflict(ImportConflict.createUniqueConflict(index, error.code(), error.args()));
     }
     return summary;
   }

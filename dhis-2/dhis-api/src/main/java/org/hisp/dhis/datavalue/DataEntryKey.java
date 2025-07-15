@@ -47,6 +47,7 @@ public record DataEntryKey(
   @Nonnull
   public DataEntryValue toDeletedValue() {
     return new DataEntryValue(
+        0,
         dataElement,
         orgUnit,
         categoryOptionCombo,

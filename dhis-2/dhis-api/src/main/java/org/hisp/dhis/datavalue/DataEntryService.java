@@ -29,12 +29,13 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ImportResult;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -45,7 +46,11 @@ import org.hisp.dhis.scheduling.JobProgress;
  */
 public interface DataEntryService {
 
-  DataEntryRequest decode(DataEntryRequest.Input request) throws BadRequestException;
+  DataEntryGroup decode(
+      DataEntryGroup.Input request, DataEntryGroup.Identifiers identifiers, JobProgress progress)
+      throws BadRequestException;
+
+  List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed, JobProgress progress);
 
   /**
    * Data entry of a single value.
@@ -81,7 +86,7 @@ public interface DataEntryService {
    * @return a summary of the import
    * @throws ConflictException in case of validation errors
    */
-  ImportResult upsertDataValues(
-      DataEntryRequest.Options options, DataEntryRequest request, JobProgress progress)
+  DataEntrySummary upsertDataValueGroup(
+      DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
       throws ConflictException;
 }
