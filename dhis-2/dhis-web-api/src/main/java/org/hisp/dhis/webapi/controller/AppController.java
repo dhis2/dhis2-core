@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppStorageSource;
 import org.hisp.dhis.appmanager.ResourceResult;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
@@ -140,7 +139,7 @@ public class AppController {
     File tempFile = File.createTempFile("IMPORT_", "_ZIP");
     file.transferTo(tempFile);
 
-    App installedApp = appManager.installApp(tempFile, file.getOriginalFilename());
+    App installedApp = appManager.installApp(tempFile);
     AppStatus appStatus = installedApp.getAppState();
 
     if (!appStatus.ok()) {
@@ -181,12 +180,6 @@ public class AppController {
       log.debug("User does not have access to app {}", appName);
       throw new WebMessageException(
           forbidden("User does not have access to app '" + appName + "'."));
-    }
-
-    if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      log.debug("App deletion in progress {}", appName);
-      throw new WebMessageException(
-          conflict("App '" + appName + "' deletion is still in progress."));
     }
 
     // Get page requested
@@ -279,11 +272,7 @@ public class AppController {
       throw new WebMessageException(notFound("App does not exist: " + app));
     }
 
-    if (appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      throw new WebMessageException(conflict("App is already being deleted: " + app));
-    }
-
-    if (appToDelete.getAppStorageSource() == AppStorageSource.BUNDLED) {
+    if (appToDelete.isBundled()) {
       throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
     }
 

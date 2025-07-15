@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.appmanager;
 
-import com.google.common.base.Strings;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
-import org.hisp.dhis.appmanager.App;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.Data;
 
-@RequiredArgsConstructor
-public class AppHtmlTemplate {
+/**
+ * Class representing information about all the bundled apps. This is serialized to JSON and stored
+ * in the apps-bundle.json file.
+ */
+@Data
+public class AppBundleInfo {
+  @JsonProperty private String buildDate;
+  @JsonProperty private List<BundledAppInfo> apps = new ArrayList<>();
 
-  private final String contextPath;
-  private final App app;
-
-  public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
-    PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
-
-    try (LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
-      while (iterator.hasNext()) {
-        String line = iterator.next();
-        if (line.contains("__DHIS2_BASE_URL__") || line.contains("__DHIS2_APP_ROOT_URL__")) {
-          line = replaceLine(line);
-        }
-        if (line.contains("<head>")) {
-          line =
-              line.replace(
-                  "<head>",
-                  "<head><meta name=\"dhis2-base-url\" content=\"" + this.contextPath + "\" />");
-        }
-        output.println(line);
-      }
-    }
+  public AppBundleInfo() {
+    this.buildDate = new Date().toString();
   }
 
-  private String replaceLine(String line) {
-    return line.replace("__DHIS2_BASE_URL__", this.contextPath)
-        .replace("__DHIS2_APP_ROOT_URL__", Strings.nullToEmpty(this.app.getBaseUrl()));
+  public void addApp(BundledAppInfo app) {
+    this.apps.add(app);
+  }
+
+  /** Class representing information about a single bundled app. */
+  @Data
+  public static class BundledAppInfo {
+    @JsonProperty private String name;
+    @JsonProperty private String url;
+    @JsonProperty private String branch;
+    @JsonProperty private String etag;
+    @JsonProperty private String downloadDate;
+
+    public BundledAppInfo() {
+      this.downloadDate = new Date().toString();
+    }
   }
 }
