@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.statistics.jdbc;
 
-import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -104,19 +103,7 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
    */
   private Long approximateCount(final String table) {
     final String sql = "SELECT reltuples::bigint FROM pg_class WHERE relname = ?";
-
-    return jdbcTemplate.query(
-        con -> {
-          PreparedStatement ps = con.prepareStatement(sql);
-          ps.setString(1, table);
-          return ps;
-        },
-        rs -> {
-          if (rs.next()) {
-            return Math.max(0L, rs.getLong(1));
-          } else {
-            return 0L;
-          }
-        });
+    Long result = jdbcTemplate.queryForObject(sql, Long.class, table);
+    return Math.max(0L, result);
   }
 }
