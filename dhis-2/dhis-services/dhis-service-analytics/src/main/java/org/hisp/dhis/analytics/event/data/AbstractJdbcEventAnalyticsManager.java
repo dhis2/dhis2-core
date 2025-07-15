@@ -1586,6 +1586,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         // For program indicators, use CTE reference
         String piUid = queryItem.getItem().getUid();
         CteDefinition cteDef = cteContext.getDefinitionByItemUid(piUid);
+        if (cteDef == null) {
+          continue;
+        }
         String col =
             cteDef.isRequiresCoalesce()
                 ? "coalesce(%s.value, 0) as %s".formatted(cteDef.getAlias(), piUid)
