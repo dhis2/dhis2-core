@@ -402,6 +402,7 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
+  // TODO: should we remove this method when we will separate the event tables?
   public static Event map(SingleEvent singleEvent) {
     if (singleEvent == null) {
       return null;

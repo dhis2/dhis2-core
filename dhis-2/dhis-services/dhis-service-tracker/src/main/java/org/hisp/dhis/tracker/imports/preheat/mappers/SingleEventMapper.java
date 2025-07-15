@@ -45,6 +45,7 @@ import org.mapstruct.factory.Mappers;
 public interface SingleEventMapper extends PreheatMapper<SingleEvent> {
   SingleEventMapper INSTANCE = Mappers.getMapper(SingleEventMapper.class);
 
+  @Override
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")

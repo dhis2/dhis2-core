@@ -58,7 +58,7 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class SingleEvent extends SoftDeletableObject implements ChangelogableEvent {
+public class SingleEvent extends SoftDeletableObject implements ChangeLogableEvent {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;

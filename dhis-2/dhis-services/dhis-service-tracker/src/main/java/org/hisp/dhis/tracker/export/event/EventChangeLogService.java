@@ -48,14 +48,14 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.ChangelogableEvent;
+import org.hisp.dhis.program.ChangeLogableEvent;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class EventChangeLogService<T, R extends ChangelogableEvent> {
+public abstract class EventChangeLogService<T, R extends ChangeLogableEvent> {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
@@ -130,21 +130,21 @@ public abstract class EventChangeLogService<T, R extends ChangelogableEvent> {
 
     logIfChanged(
         "scheduledAt",
-        ChangelogableEvent::getScheduledDate,
+        ChangeLogableEvent::getScheduledDate,
         EventChangeLogService::formatDate,
         currentEvent,
         event,
         username);
     logIfChanged(
         "occurredAt",
-        ChangelogableEvent::getOccurredDate,
+        ChangeLogableEvent::getOccurredDate,
         EventChangeLogService::formatDate,
         currentEvent,
         event,
         username);
     logIfChanged(
         "geometry",
-        ChangelogableEvent::getGeometry,
+        ChangeLogableEvent::getGeometry,
         EventChangeLogService::formatGeometry,
         currentEvent,
         event,

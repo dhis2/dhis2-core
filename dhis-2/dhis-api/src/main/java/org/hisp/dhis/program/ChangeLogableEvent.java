@@ -32,7 +32,7 @@ package org.hisp.dhis.program;
 import java.util.Date;
 import org.locationtech.jts.geom.Geometry;
 
-public interface ChangelogableEvent {
+public interface ChangeLogableEvent {
   Date getScheduledDate();
 
   Date getOccurredDate();
