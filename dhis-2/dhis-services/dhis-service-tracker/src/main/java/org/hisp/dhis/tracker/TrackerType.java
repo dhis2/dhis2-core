@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +56,18 @@ public enum TrackerType {
     return Arrays.stream(values())
         .sorted(Comparator.comparing(TrackerType::getPriority))
         .collect(Collectors.toList());
+  }
+
+  public static Optional<TrackerType> fromName(String name) {
+    if (name == null) {
+      return Optional.empty();
+    }
+
+    try {
+      return Optional.of(TrackerType.valueOf(name.toUpperCase()));
+    } catch (IllegalArgumentException ex) {
+      // Not found in enum constants
+      return Optional.empty();
+    }
   }
 }

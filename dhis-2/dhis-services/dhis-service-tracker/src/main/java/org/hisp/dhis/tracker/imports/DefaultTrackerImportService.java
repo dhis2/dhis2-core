@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
+import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -93,11 +95,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
             jobProgress.runStage(
                 () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
-    jobProgress.startingStage("Calculating Payload Size");
-    Map<TrackerType, Integer> bundleSize =
-        jobProgress.nonNullStagePostCondition(
-            jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
-
     jobProgress.startingStage("Running PreProcess");
     jobProgress.runStage(() -> trackerPreprocessService.preprocess(trackerBundle));
 
@@ -123,6 +120,12 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
       validationReport = ValidationReport.merge(validationResult, result);
     }
+
+    jobProgress.startingStage("Calculating Payload Size");
+    final ValidationReport reportForSize = validationReport;
+    Map<TrackerType, Integer> bundleSize =
+        jobProgress.nonNullStagePostCondition(
+            jobProgress.runStage(() -> calculatePayloadSize(trackerBundle, reportForSize)));
 
     if (exitOnError(validationReport, params)) {
       return ImportReport.withValidationErrors(
@@ -155,12 +158,28 @@ public class DefaultTrackerImportService implements TrackerImportService {
     return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
   }
 
-  private Map<TrackerType, Integer> calculatePayloadSize(TrackerBundle bundle) {
-    return Map.of(
-        TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size(),
-        TrackerType.ENROLLMENT, bundle.getEnrollments().size(),
-        TrackerType.EVENT, bundle.getEvents().size(),
-        TrackerType.RELATIONSHIP, bundle.getRelationships().size());
+  /**
+   * Calculates the payload size for each {@link TrackerType}, combining data from both the {@link
+   * TrackerBundle} and the {@link ValidationReport}.
+   *
+   * <p>This ensures that even if validation excludes certain tracker types from the bundle, their
+   * presence is still accounted for via validation errors.
+   */
+  private Map<TrackerType, Integer> calculatePayloadSize(
+      TrackerBundle bundle, ValidationReport validationReport) {
+    final Map<TrackerType, Integer> bundleSize = new EnumMap<>(TrackerType.class);
+    for (Error error : validationReport.getErrors()) {
+      TrackerType type = TrackerType.fromName(error.getTrackerType()).orElse(null);
+      if (type != null) {
+        bundleSize.merge(type, 1, Integer::sum);
+      }
+    }
+    bundleSize.merge(TrackerType.TRACKED_ENTITY, bundle.getTrackedEntities().size(), Integer::sum);
+    bundleSize.merge(TrackerType.ENROLLMENT, bundle.getEnrollments().size(), Integer::sum);
+    bundleSize.merge(TrackerType.EVENT, bundle.getEvents().size(), Integer::sum);
+    bundleSize.merge(TrackerType.RELATIONSHIP, bundle.getRelationships().size(), Integer::sum);
+
+    return bundleSize;
   }
 
   protected PersistenceReport commitBundle(TrackerBundle trackerBundle) {

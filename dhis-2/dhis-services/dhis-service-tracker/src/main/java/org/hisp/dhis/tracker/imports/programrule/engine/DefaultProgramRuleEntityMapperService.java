@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ERRORONCOMPLETE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEEVENT;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SETMANDATORYFIELD;
@@ -177,6 +178,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
+      case SCHEDULEEVENT ->
+          new RuleAction(
+              pra.getData(),
+              SCHEDULEEVENT.name(),
+              createValues(FIELD, pra.getProgramStage().getUid()));
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
