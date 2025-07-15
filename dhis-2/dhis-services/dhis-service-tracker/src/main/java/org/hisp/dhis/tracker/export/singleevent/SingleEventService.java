@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -71,6 +72,15 @@ public interface SingleEventService extends EventService {
    */
   @Nonnull
   SingleEvent getEvent(UID uid) throws NotFoundException;
+
+  /**
+   * Finds the event that matches the given {@code UID} based on the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
+   *
+   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
+   */
+  @Nonnull
+  Optional<SingleEvent> findEvent(@Nonnull UID uid);
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently

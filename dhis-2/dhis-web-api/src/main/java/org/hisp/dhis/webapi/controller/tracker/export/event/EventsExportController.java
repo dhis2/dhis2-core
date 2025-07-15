@@ -103,9 +103,6 @@ class EventsExportController {
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
-  private static final SingleEventMapper SINGLE_EVENTS_MAPPER =
-      Mappers.getMapper(SingleEventMapper.class);
-
   private static final EventChangeLogMapper EVENT_CHANGE_LOG_MAPPER =
       Mappers.getMapper(EventChangeLogMapper.class);
 
@@ -222,7 +219,7 @@ class EventsExportController {
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
       org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.Event> page =
-          eventsPage.withMappedItems(ev -> SINGLE_EVENTS_MAPPER.map(idSchemeParams, errors, ev));
+          eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
       ensureNoMappingErrors(errors);
 
       return requestHandler.serve(request, EVENTS, page, requestParams);
@@ -392,7 +389,7 @@ class EventsExportController {
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
       SingleEvent event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
-      eventView = SINGLE_EVENTS_MAPPER.map(idSchemeParams, errors, event);
+      eventView = EVENTS_MAPPER.map(idSchemeParams, errors, event);
     }
 
     ensureNoMappingErrors(errors);
@@ -431,7 +428,7 @@ class EventsExportController {
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         singleEventService.findEvents(singleEventOperationParams).stream()
-            .map(ev -> SINGLE_EVENTS_MAPPER.map(idSchemeParams, errors, ev))
+            .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
             .toList();
     ensureNoMappingErrors(errors);
     return events;

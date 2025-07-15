@@ -85,7 +85,7 @@ public abstract class EventChangeLogService<T, R extends ChangelogableEvent> {
   public Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
-    if (eventService.findEvent(event).isEmpty()) {
+    if (!eventService.exists(event)) {
       throw new NotFoundException(Event.class, event);
     }
 

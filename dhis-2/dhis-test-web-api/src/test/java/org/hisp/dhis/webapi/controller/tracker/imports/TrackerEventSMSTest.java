@@ -321,7 +321,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertFalse(trackerEventService.findEvent(UID.of(event.getUid())).isPresent());
+    assertFalse(trackerEventService.exists(UID.of(event.getUid())));
   }
 
   @Test
@@ -365,7 +365,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertFalse(trackerEventService.findEvent(UID.of(event.getUid())).isPresent());
+    assertFalse(trackerEventService.exists(UID.of(event.getUid())));
   }
 
   @Test
@@ -382,7 +382,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     String originator = user1.getPhoneNumber();
 
     switchContextToUser(user1);
-    assertFalse(trackerEventService.findEvent(uid).isPresent());
+    assertFalse(trackerEventService.exists(uid));
 
     JsonWebMessage response =
         POST(
@@ -458,7 +458,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertTrue(trackerEventService.findEvent(UID.of(eventUid)).isPresent());
+    assertTrue(trackerEventService.exists(UID.of(eventUid)));
     Event actual = trackerEventService.getEvent(UID.of(eventUid));
     assertAll(
         "created event",
@@ -526,7 +526,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertTrue(trackerEventService.findEvent(UID.of(event)).isPresent());
+    assertTrue(trackerEventService.exists(UID.of(event)));
     Event actual = trackerEventService.getEvent(UID.of(event.getUid()));
     assertAll(
         "updated event",
@@ -596,7 +596,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertTrue(singleEventService.findEvent(UID.of(eventUid)).isPresent());
+    assertTrue(singleEventService.exists(UID.of(eventUid)));
     SingleEvent actual = singleEventService.getEvent(UID.of(eventUid));
     assertAll(
         "created event",

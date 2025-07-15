@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -54,6 +56,8 @@ import org.locationtech.jts.geom.Geometry;
 
 @Auditable(scope = AuditScope.TRACKER)
 @Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class SingleEvent extends SoftDeletableObject implements ChangelogableEvent {
   private Date createdAtClient;
 
@@ -93,12 +97,6 @@ public class SingleEvent extends SoftDeletableObject implements ChangelogableEve
 
   private User assignedUser;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public SingleEvent() {}
-
   @Override
   public void setAutoFields() {
     super.setAutoFields();
@@ -114,10 +112,6 @@ public class SingleEvent extends SoftDeletableObject implements ChangelogableEve
   public boolean hasAttributeOptionCombo() {
     return attributeOptionCombo != null;
   }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
 
   @JsonProperty
   public Date getCreatedAtClient() {

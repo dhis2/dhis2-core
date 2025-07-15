@@ -157,6 +157,11 @@ class DefaultSingleEventService implements SingleEventService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
+  @Override
+  public boolean exists(@Nonnull UID event) {
+    return findEvent(event).isPresent();
+  }
+
   @Nonnull
   @Override
   public Optional<SingleEvent> findEvent(@Nonnull UID event) {
