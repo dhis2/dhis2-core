@@ -57,11 +57,11 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryRow;
+import org.hisp.dhis.datavalue.DataEntryStore;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DviKey;
-import org.hisp.dhis.datavalue.DviRow;
-import org.hisp.dhis.datavalue.DviStore;
-import org.hisp.dhis.datavalue.DviValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -79,7 +79,8 @@ import org.springframework.stereotype.Repository;
  * @since 2.43
  */
 @Repository
-public class HibernateDviStore extends HibernateGenericStore<DataValue> implements DviStore {
+public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
+    implements DataEntryStore {
 
   private final PeriodStore periodStore;
 
@@ -88,7 +89,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
    */
   private static final int MAX_ROWS_PER_INSERT = 500;
 
-  public HibernateDviStore(
+  public HibernateDataEntryStore(
       EntityManager entityManager,
       PeriodStore periodStore,
       JdbcTemplate jdbcTemplate,
@@ -393,16 +394,16 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Override
-  public int deleteByKeys(List<DviKey> keys) {
+  public int deleteByKeys(List<DataEntryKey> keys) {
     // TODO
     return 0;
   }
 
   @Override
-  public int upsertValues(List<DviValue> values) {
+  public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
-    List<DviRow> internalValues = upsertValuesResolveIds(values);
+    List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
     int size = internalValues.size();
@@ -439,7 +440,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
             int to = from + n;
             try (PreparedStatement stmt = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
               int p = 0;
-              for (DviRow value : internalValues.subList(from, to)) {
+              for (DataEntryRow value : internalValues.subList(from, to)) {
                 stmt.setLong(p + 1, value.de());
                 stmt.setLong(p + 2, value.pe());
                 stmt.setLong(p + 3, value.ou());
@@ -463,17 +464,17 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
   }
 
   @Nonnull
-  private List<DviRow> upsertValuesResolveIds(List<DviValue> values) {
-    Map<String, Long> des = getDataElementIdMap(values.stream().map(DviValue::dataElement));
-    Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DviValue::orgUnit));
+  private List<DataEntryRow> upsertValuesResolveIds(List<DataEntryValue> values) {
+    Map<String, Long> des = getDataElementIdMap(values.stream().map(DataEntryValue::dataElement));
+    Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DataEntryValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
     long defaultCoc = getDefaultCategoryOptionComboId();
     Function<UID, Long> cocOf = uid -> uid == null ? defaultCoc : cocs.get(uid.getValue());
 
-    List<DviRow> internalValues = new ArrayList<>(values.size());
+    List<DataEntryRow> internalValues = new ArrayList<>(values.size());
 
-    for (DviValue value : values) {
+    for (DataEntryValue value : values) {
       Long de = des.get(value.dataElement().getValue());
       Long pe = pes.get(value.period());
       Long ou = ous.get(value.orgUnit().getValue());
@@ -483,7 +484,7 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
         Boolean deleted = value.deleted();
         if (deleted == null) deleted = false;
         internalValues.add(
-            new DviRow(
+            new DataEntryRow(
                 de, pe, ou, coc, aoc, value.value(), value.comment(), value.followUp(), deleted));
       }
     }
@@ -515,16 +516,16 @@ public class HibernateDviStore extends HibernateGenericStore<DataValue> implemen
     return ((Number) getSession().createNativeQuery(sql).getSingleResult()).longValue();
   }
 
-  private Map<String, Long> getOptionComboIdMap(List<DviValue> values) {
+  private Map<String, Long> getOptionComboIdMap(List<DataEntryValue> values) {
     return getOptionComboIdMap(
         Stream.concat(
-            values.stream().map(DviValue::categoryOptionCombo),
-            values.stream().map(DviValue::attributeOptionCombo).filter(Objects::nonNull)));
+            values.stream().map(DataEntryValue::categoryOptionCombo),
+            values.stream().map(DataEntryValue::attributeOptionCombo).filter(Objects::nonNull)));
   }
 
   @Nonnull
-  private Map<String, Long> getPeriodsIdMap(List<DviValue> values) {
-    List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
+  private Map<String, Long> getPeriodsIdMap(List<DataEntryValue> values) {
+    List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
     Map<String, Long> res = new HashMap<>(isoPeriods.size());
     String sql = "SELECT iso, periodid FROM period where iso IN (:iso)";
     @SuppressWarnings("unchecked")

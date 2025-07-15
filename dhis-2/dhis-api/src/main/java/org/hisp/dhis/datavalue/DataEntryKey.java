@@ -29,46 +29,32 @@
  */
 package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import java.util.List;
-import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.log.TimeExecution;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public record DviUpsertRequest(
-    @TimeExecution.Include @CheckForNull UID dataSet,
-    // common dimensions (optional)
-    @CheckForNull UID dataElement,
-    @CheckForNull UID orgUnit,
-    @CheckForNull String period,
-    @CheckForNull UID attrOptionCombo,
-    @TimeExecution.Include @JsonAlias("dataValues") List<DviValue> values) {
+public record DataEntryKey(
+    @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID categoryOptionCombo,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID attributeOptionCombo,
+    String period)
+    implements DataEntryId {
 
-  public DviUpsertRequest(UID ds, List<DviValue> values) {
-    this(ds, null, null, null, null, values);
-  }
-
-  public DviUpsertRequest(List<DviValue> values) {
-    this(null, values);
-  }
-
-  /**
-   * Options for the import. By default, all are {@code false}.
-   *
-   * @param dryRun essentially all the validation and preparation but without actually doing the
-   *     upsert
-   * @param atomic then true, any validation error (including value validation) aborts the entire
-   *     import
-   * @param force when true, any timeliness validation is skipped (only possible as superuser) to
-   *     allow out-of-time (early/late) entry of data e.g. as part of a data synchronisation or
-   *     repair
-   * @param group automatically find and group values by data set, when multiple data sets exist for
-   *     a data element use the most recently created one
-   */
-  public record Options(boolean dryRun, boolean atomic, boolean force, boolean group) {
-
-    public Options() {
-      this(false, false, false, false);
-    }
+  @Nonnull
+  public DataEntryValue toDeletedValue() {
+    return new DataEntryValue(
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        attributeOptionCombo,
+        period,
+        null,
+        null,
+        null,
+        true);
   }
 }

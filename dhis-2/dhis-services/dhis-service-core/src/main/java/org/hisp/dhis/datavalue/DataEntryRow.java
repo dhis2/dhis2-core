@@ -29,17 +29,20 @@
  */
 package org.hisp.dhis.datavalue;
 
-import org.hisp.dhis.common.UID;
+import javax.annotation.CheckForNull;
 
-public interface DviId {
-
-  UID dataElement();
-
-  UID orgUnit();
-
-  UID categoryOptionCombo();
-
-  UID attributeOptionCombo();
-
-  String period();
-}
+/**
+ * A data value tuple when doing an insert or update operation.
+ *
+ * @since 2.43
+ */
+public record DataEntryRow(
+    long de,
+    long pe,
+    long ou,
+    long coc,
+    long aoc,
+    @CheckForNull String value,
+    @CheckForNull String comment,
+    @CheckForNull Boolean followup,
+    boolean deleted) {}

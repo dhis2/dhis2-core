@@ -42,9 +42,9 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DviService;
-import org.hisp.dhis.datavalue.DviUpsertRequest;
-import org.hisp.dhis.datavalue.DviValue;
+import org.hisp.dhis.datavalue.DataEntryRequest;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.message.MessageSender;
@@ -71,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AggregateDataSetSMSListener extends CompressionSMSListener {
   private final DataSetService dataSetService;
 
-  private final DviService dviService;
+  private final DataEntryService dataEntryService;
 
   private final CompleteDataSetRegistrationService registrationService;
 
@@ -85,12 +85,12 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataSetService dataSetService,
-      DviService dviService,
+      DataEntryService dataEntryService,
       CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
     super(incomingSmsService, smsSender, identifiableObjectManager);
     this.dataSetService = dataSetService;
-    this.dviService = dviService;
+    this.dataEntryService = dataEntryService;
     this.registrationService = registrationService;
     this.organisationUnitService = organisationUnitService;
     this.categoryService = categoryService;
@@ -166,15 +166,15 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     String pe = sub.getPeriod();
     UID aoc = UID.of(sub.getAttributeOptionCombo().getUid());
 
-    DviUpsertRequest.Options options = new DviUpsertRequest.Options();
-    List<DviValue> values =
+    DataEntryRequest.Options options = new DataEntryRequest.Options();
+    List<DataEntryValue> values =
         sub.getValues() == null
             ? List.of()
-            : sub.getValues().stream().map(AggregateDataSetSMSListener::toDviValue).toList();
+            : sub.getValues().stream().map(AggregateDataSetSMSListener::toDataEntryValue).toList();
     if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
-    DviUpsertRequest request = new DviUpsertRequest(ds, null, ou, pe, aoc, values);
+    DataEntryRequest request = new DataEntryRequest(ds, null, ou, pe, aoc, values);
     try {
-      ImportResult result = dviService.valueEntryBulk(options, request, transitory());
+      ImportResult result = dataEntryService.upsertDataValues(options, request, transitory());
       if (!result.errors().isEmpty())
         return SmsResponse.WARN_DVERR.setList(
             result.errors().stream().map(e -> toIdentifier(values.get(e.index()))).toList());
@@ -197,13 +197,13 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     }
   }
 
-  private static DviValue toDviValue(SmsDataValue value) {
+  private static DataEntryValue toDataEntryValue(SmsDataValue value) {
     UID de = UID.of(value.getDataElement().getUid());
     UID coc = UID.of(value.getCategoryOptionCombo().getUid());
-    return new DviValue(de, null, coc, null, null, value.getValue(), null, null, null);
+    return new DataEntryValue(de, null, coc, null, null, value.getValue(), null, null, null);
   }
 
-  private static Object toIdentifier(DviValue dv) {
+  private static Object toIdentifier(DataEntryValue dv) {
     return dv.dataElement() + "-" + dv.categoryOptionCombo();
   }
 

@@ -38,12 +38,14 @@ import org.hisp.dhis.feedback.ImportResult;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * Service for DVI (Data Value Import).
+ * Service for entry of aggregate data.
  *
  * @author Jan Bernitt
  * @since 2.43
  */
-public interface DviService {
+public interface DataEntryService {
+
+  DataEntryRequest decode(DataEntryRequest.Input request) throws BadRequestException;
 
   /**
    * Data entry of a single value.
@@ -54,7 +56,7 @@ public interface DviService {
    * @throws ConflictException in case of validation errors
    * @throws BadRequestException in case the submitted value is formally invalid
    */
-  void valueEntry(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
+  void upsertDataValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException;
 
   /**
@@ -67,7 +69,7 @@ public interface DviService {
    * @throws ConflictException in case of validation errors
    * @throws BadRequestException in case the submitted key is formally invalid
    */
-  boolean valueEntryDeletion(boolean force, @CheckForNull UID dataSet, DviKey key)
+  boolean deleteDataValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
       throws ConflictException, BadRequestException;
 
   /**
@@ -79,7 +81,7 @@ public interface DviService {
    * @return a summary of the import
    * @throws ConflictException in case of validation errors
    */
-  ImportResult valueEntryBulk(
-      DviUpsertRequest.Options options, DviUpsertRequest request, JobProgress progress)
+  ImportResult upsertDataValues(
+      DataEntryRequest.Options options, DataEntryRequest request, JobProgress progress)
       throws ConflictException;
 }

@@ -29,32 +29,39 @@
  */
 package org.hisp.dhis.datavalue;
 
-import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public record DviKey(
-    @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
-    @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
-    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID categoryOptionCombo,
-    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID attributeOptionCombo,
-    String period)
-    implements DviId {
+/** A single data value in the data entry service API. */
+public record DataEntryValue(
+    UID dataElement,
+    UID orgUnit,
+    UID categoryOptionCombo,
+    UID attributeOptionCombo,
+    String period,
+    String value,
+    String comment,
+    Boolean followUp,
+    Boolean deleted)
+    implements DataEntryId {
 
-  @Nonnull
-  public DviValue toDeletedValue() {
-    return new DviValue(
-        dataElement,
-        orgUnit,
-        categoryOptionCombo,
-        attributeOptionCombo,
-        period,
-        null,
-        null,
-        null,
-        true);
-  }
+  /**
+   * How a {@link DataEntryValue} is provided as user input in the web API.
+   *
+   * <p>Mainly different from a {@link DataEntryValue} in that the {@link UID}s can also be other
+   * identifiers when using ID-schemes.
+   */
+  @OpenApi.Shared(name = "DataEntryValue")
+  public record Input(
+      @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
+      @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
+      @OpenApi.Property({UID.class, CategoryOptionCombo.class}) String categoryOptionCombo,
+      @OpenApi.Property({UID.class, CategoryOptionCombo.class}) String attributeOptionCombo,
+      String period,
+      String value,
+      String comment,
+      Boolean followUp) {}
 }

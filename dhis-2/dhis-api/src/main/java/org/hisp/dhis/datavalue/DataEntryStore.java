@@ -44,11 +44,11 @@ import org.hisp.dhis.common.ValueType;
  * @author Jan Bernitt
  * @since 2.43
  */
-public interface DviStore {
+public interface DataEntryStore {
 
-  int deleteByKeys(List<DviKey> keys);
+  int deleteByKeys(List<DataEntryKey> keys);
 
-  int upsertValues(List<DviValue> values);
+  int upsertValues(List<DataEntryValue> values);
 
   /*
   Validation support

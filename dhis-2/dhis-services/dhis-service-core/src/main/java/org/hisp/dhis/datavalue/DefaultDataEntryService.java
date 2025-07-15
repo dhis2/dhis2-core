@@ -55,7 +55,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.datavalue.DviUpsertRequest.Options;
+import org.hisp.dhis.datavalue.DataEntryRequest.Options;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -78,16 +78,24 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultDviService implements DviService {
+public class DefaultDataEntryService implements DataEntryService {
 
-  private final DviStore store;
+  private final DataEntryStore store;
+
+  @Override
+  @Transactional(readOnly = true)
+  public DataEntryRequest decode(DataEntryRequest.Input request) throws BadRequestException {
+    // TODO
+    return null;
+  }
 
   @Override
   @Transactional
-  public void valueEntry(boolean force, @CheckForNull UID dataSet, @Nonnull DviValue value)
+  public void upsertDataValue(
+      boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
     List<ImportError> errors = new ArrayList<>(1);
-    List<DviValue> validValues = validate(force, dataSet, List.of(value), errors);
+    List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -95,47 +103,47 @@ public class DefaultDviService implements DviService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public ImportResult valueEntryBulk(
-      Options options, DviUpsertRequest request, JobProgress progress) throws ConflictException {
-    List<DviValue> requestValues = request.values();
+  public ImportResult upsertDataValues(
+      Options options, DataEntryRequest request, JobProgress progress) throws ConflictException {
+    List<DataEntryValue> requestValues = request.values();
     if (requestValues == null || requestValues.isEmpty()) return new ImportResult(0, 0, List.of());
 
     progress.startingStage("Unifying %d values...".formatted(requestValues.size()));
-    List<DviValue> values = progress.runStage(List.of(), () -> completedValues(request));
+    List<DataEntryValue> values = progress.runStage(List.of(), () -> completedValues(request));
 
     if (options.group()) {
       Map<String, Set<String>> dsxByDe =
-          store.getDataSetsByDataElement(values.stream().map(DviValue::dataElement));
+          store.getDataSetsByDataElement(values.stream().map(DataEntryValue::dataElement));
       if (dsxByDe.size() == 1) {
         UID ds = UID.of(dsxByDe.entrySet().iterator().next().getValue().iterator().next());
-        return importAll(options, ds, progress, values);
+        return upsertDataValues(options, ds, progress, values);
       }
-      Map<UID, List<DviValue>> valuesByDs = new HashMap<>();
+      Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
       values.forEach(
           v -> {
             UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
             valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
           });
       // TODO merge result reports
-      for (Map.Entry<UID, List<DviValue>> e : valuesByDs.entrySet()) {
+      for (Map.Entry<UID, List<DataEntryValue>> e : valuesByDs.entrySet()) {
         // TODO should validation be done first on all ?
-        importAll(options, e.getKey(), progress, e.getValue());
+        upsertDataValues(options, e.getKey(), progress, e.getValue());
       }
     }
 
     // TODO what about completion? requires common DS-OU-PE-AOC
 
     // auto-import into a single DS (if not specified)
-    return importAll(options, request.dataSet(), progress, values);
+    return upsertDataValues(options, request.dataSet(), progress, values);
   }
 
   @Nonnull
-  private ImportResult importAll(
-      Options options, UID ds, JobProgress progress, List<DviValue> values)
+  private ImportResult upsertDataValues(
+      Options options, UID ds, JobProgress progress, List<DataEntryValue> values)
       throws ConflictException {
     progress.startingStage("Validating %d values...".formatted(values.size()));
     List<ImportError> errors = new ArrayList<>();
-    List<DviValue> validValues =
+    List<DataEntryValue> validValues =
         progress.runStage(List.of(), () -> validate(options.force(), ds, values, errors));
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
@@ -150,27 +158,29 @@ public class DefaultDviService implements DviService {
 
   @Override
   @Transactional
-  public boolean valueEntryDeletion(boolean force, @CheckForNull UID dataSet, DviKey key)
+  public boolean deleteDataValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
       throws ConflictException, BadRequestException {
-    DviValue value = key.toDeletedValue();
+    DataEntryValue value = key.toDeletedValue();
     List<ImportError> errors = new ArrayList<>(1);
-    List<DviValue> validValues = validate(force, dataSet, List.of(value), errors);
+    List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
     if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     return store.deleteByKeys(List.of(key)) > 0;
   }
 
-  private List<DviValue> validate(
-      boolean force, UID ds, List<DviValue> values, List<ImportError> errors)
+  private List<DataEntryValue> validate(
+      boolean force, UID ds, List<DataEntryValue> values, List<ImportError> errors)
       throws ConflictException {
     if (ds == null) {
       /*
        * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
        * without risk of misinterpretation of the request.
        */
-      List<String> dsForDe = store.getDataSets(values.stream().map(DviValue::dataElement));
+      List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
       if (dsForDe.isEmpty())
         throw new ConflictException(
-            ErrorCode.E7605, "", values.stream().map(DviValue::dataElement).distinct().toList());
+            ErrorCode.E7605,
+            "",
+            values.stream().map(DataEntryValue::dataElement).distinct().toList());
       if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7606, dsForDe);
       ds = UID.of(dsForDe.get(0));
     }
@@ -184,14 +194,15 @@ public class DefaultDviService implements DviService {
   }
 
   /** Is the user allowed to write (capture) the data values? */
-  private void validateUserAccess(UID ds, List<DviValue> values) throws ConflictException {
+  private void validateUserAccess(UID ds, List<DataEntryValue> values) throws ConflictException {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return; // super always can
 
     // - require: OUs are in user hierarchy
     String userId = user.getUid();
     List<String> noAccessOrgUnits =
-        store.getOrgUnitsNotInUserHierarchy(UID.of(userId), values.stream().map(DviValue::orgUnit));
+        store.getOrgUnitsNotInUserHierarchy(
+            UID.of(userId), values.stream().map(DataEntryValue::orgUnit));
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
 
     // - require: DS ACL check canDataWrite
@@ -202,64 +213,66 @@ public class DefaultDviService implements DviService {
     List<String> coNoAccess =
         store.getCategoryOptionsCanNotDataWrite(
             Stream.concat(
-                values.stream().map(DviValue::attributeOptionCombo),
-                values.stream().map(DviValue::categoryOptionCombo)));
+                values.stream().map(DataEntryValue::attributeOptionCombo),
+                values.stream().map(DataEntryValue::categoryOptionCombo)));
     if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
   }
 
   /**
    * Are the data value components that make a unique data value key consistent with the metadata?
    */
-  private void validateKeyConsistency(UID ds, List<DviValue> values) throws ConflictException {
+  private void validateKeyConsistency(UID ds, List<DataEntryValue> values)
+      throws ConflictException {
     // - require: DEs must belong to the specified DS
     List<String> deNotInDs =
-        store.getDataElementsNotInDataSet(ds, values.stream().map(DviValue::dataElement));
+        store.getDataElementsNotInDataSet(ds, values.stream().map(DataEntryValue::dataElement));
     if (!deNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7605, ds, deNotInDs);
 
     // - require: OU must be a source of the DS for the DE
     List<String> ouNotInDs =
-        store.getOrgUnitsNotInDataSet(ds, values.stream().map(DviValue::orgUnit));
+        store.getOrgUnitsNotInDataSet(ds, values.stream().map(DataEntryValue::orgUnit));
     if (!ouNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7609, ds, ouNotInDs);
 
     // - require: PE ISO must be of PT used by the DS
     List<String> isoNotUsableInDs =
-        store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(DviValue::period));
+        store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(DataEntryValue::period));
     if (!isoNotUsableInDs.isEmpty())
       throw new ConflictException(ErrorCode.E7608, ds, isoNotUsableInDs);
 
     // - require: AOC must link (belong) to the CC of the DS
     List<String> aocNotInDs =
-        store.getAocNotInDataSet(ds, values.stream().map(DviValue::attributeOptionCombo));
+        store.getAocNotInDataSet(ds, values.stream().map(DataEntryValue::attributeOptionCombo));
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7623, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    Map<UID, List<DviValue>> valuesByDe =
-        values.stream().collect(groupingBy(DviValue::dataElement));
-    for (Map.Entry<UID, List<DviValue>> e : valuesByDe.entrySet()) {
+    Map<UID, List<DataEntryValue>> valuesByDe =
+        values.stream().collect(groupingBy(DataEntryValue::dataElement));
+    for (Map.Entry<UID, List<DataEntryValue>> e : valuesByDe.entrySet()) {
       UID de = e.getKey();
       List<String> cocNotInDs =
           store.getCocNotInDataSet(
-              ds, de, e.getValue().stream().map(DviValue::categoryOptionCombo));
+              ds, de, e.getValue().stream().map(DataEntryValue::categoryOptionCombo));
       if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
     }
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     List<String> aocOuRestricted =
-        store.getAocWithOrgUnitHierarchy(values.stream().map(DviValue::attributeOptionCombo));
+        store.getAocWithOrgUnitHierarchy(values.stream().map(DataEntryValue::attributeOptionCombo));
     if (!aocOuRestricted.isEmpty()) {
-      Map<UID, List<DviValue>> ouByAoc =
-          values.stream().collect(groupingBy(DviValue::attributeOptionCombo));
-      for (Map.Entry<UID, List<DviValue>> e : ouByAoc.entrySet()) {
+      Map<UID, List<DataEntryValue>> ouByAoc =
+          values.stream().collect(groupingBy(DataEntryValue::attributeOptionCombo));
+      for (Map.Entry<UID, List<DataEntryValue>> e : ouByAoc.entrySet()) {
         UID aoc = e.getKey();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
         List<String> ouNotInAoc =
-            store.getOrgUnitsNotInAocHierarchy(aoc, e.getValue().stream().map(DviValue::orgUnit));
+            store.getOrgUnitsNotInAocHierarchy(
+                aoc, e.getValue().stream().map(DataEntryValue::orgUnit));
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E7628, aoc, ouNotInAoc);
       }
     }
 
     // - require: PEs must be within the OU's operational span
-    List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
+    List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
     PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
     Map<String, Period> peByIso =
         isoPeriods.stream().collect(toMap(identity(), type::createPeriod));
@@ -274,7 +287,8 @@ public class DefaultDviService implements DviService {
             .max(comparingLong(Date::getTime))
             .orElse(null);
     Map<String, DateRange> ouOpSpan =
-        store.getOrgUnitOperationalSpan(values.stream().map(DviValue::orgUnit), peStart, peEnd);
+        store.getOrgUnitOperationalSpan(
+            values.stream().map(DataEntryValue::orgUnit), peStart, peEnd);
     if (!ouOpSpan.isEmpty()) {
       List<String> peNotInOuSpan =
           values.stream()
@@ -300,18 +314,19 @@ public class DefaultDviService implements DviService {
    * context. Non-conforming values will be removed from the result, and an error is added to the
    * errors list.
    */
-  private List<DviValue> validateValues(UID ds, List<DviValue> values, List<ImportError> errors) {
+  private List<DataEntryValue> validateValues(
+      UID ds, List<DataEntryValue> values, List<ImportError> errors) {
     if (values.stream().allMatch(v -> v.deleted() == Boolean.TRUE)) return values;
     boolean commentAllowsEmptyValue = store.getDataSetCommentAllowsEmptyValue(ds);
-    List<UID> dataElements = values.stream().map(DviValue::dataElement).distinct().toList();
+    List<UID> dataElements = values.stream().map(DataEntryValue::dataElement).distinct().toList();
     Map<String, Set<String>> optionsByDe = store.getOptionsByDataElements(dataElements.stream());
     Map<String, Set<String>> commentOptionsByDe =
         store.getCommentOptionsByDataElements(dataElements.stream());
     Map<String, ValueType> valueTypeByDe = store.getValueTypeByDataElements(dataElements.stream());
 
     int index = 0;
-    List<DviValue> res = new ArrayList<>(values.size());
-    for (DviValue e : values) {
+    List<DataEntryValue> res = new ArrayList<>(values.size());
+    for (DataEntryValue e : values) {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
       String val = normalizeValue(e, type);
@@ -353,7 +368,7 @@ public class DefaultDviService implements DviService {
     return res;
   }
 
-  private static String normalizeValue(DviValue e, ValueType type) {
+  private static String normalizeValue(DataEntryValue e, ValueType type) {
     if (type == null || !type.isBoolean()) return e.value();
     String val = e.value();
     if (val.equalsIgnoreCase("false") || val.equalsIgnoreCase("f") || "0".equals(val))
@@ -362,8 +377,8 @@ public class DefaultDviService implements DviService {
     return val;
   }
 
-  private static List<DviValue> completedValues(DviUpsertRequest request) {
-    List<DviValue> values = request.values();
+  private static List<DataEntryValue> completedValues(DataEntryRequest request) {
+    List<DataEntryValue> values = request.values();
     UID de = request.dataElement();
     UID ou = request.orgUnit();
     String pe = request.period();
@@ -373,13 +388,13 @@ public class DefaultDviService implements DviService {
         : values.stream().map(e -> completeValue(e, de, ou, pe, aoc)).toList();
   }
 
-  private static DviValue completeValue(
-      DviValue e, UID dataElement, UID orgUnit, String period, UID aoc) {
+  private static DataEntryValue completeValue(
+      DataEntryValue e, UID dataElement, UID orgUnit, String period, UID aoc) {
     if (e.orgUnit() != null
         && e.dataElement() != null
         && e.period() != null
         && e.attributeOptionCombo() != null) return e;
-    return new DviValue(
+    return new DataEntryValue(
         e.dataElement() == null ? dataElement : e.dataElement(),
         e.orgUnit() == null ? orgUnit : e.orgUnit(),
         e.categoryOptionCombo(),
@@ -398,7 +413,8 @@ public class DefaultDviService implements DviService {
   So the current moment is the key parameter to these checks.
   */
 
-  private void validateEntryTimeliness(UID ds, List<DviValue> values) throws ConflictException {
+  private void validateEntryTimeliness(UID ds, List<DataEntryValue> values)
+      throws ConflictException {
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
     // only if no explicit ranges are defined use expiry and future periods
@@ -430,7 +446,7 @@ public class DefaultDviService implements DviService {
                                 p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
                         return now.after(endOfEntryPeriod);
                       })
-                  .map(DviValue::period)
+                  .map(DataEntryValue::period)
                   .distinct()
                   .toList();
           if (!isoNoLongerOpen.isEmpty())
@@ -441,7 +457,7 @@ public class DefaultDviService implements DviService {
           // - require: DS entry for period already allowed?
           // (how much earlier can data be entered relative to the current period)
           int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-          List<String> isoPeriods = values.stream().map(DviValue::period).distinct().toList();
+          List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
           PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
           Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
           List<String> isoNotYetOpen =
@@ -463,7 +479,7 @@ public class DefaultDviService implements DviService {
                     if (openSpan == null) return true;
                     return openSpan.stream().anyMatch(range -> range.includes(now));
                   })
-              .map(DviValue::period)
+              .map(DataEntryValue::period)
               .distinct()
               .toList();
       if (!isoNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E7629, ds, isoNotOpen);
@@ -472,16 +488,16 @@ public class DefaultDviService implements DviService {
     // - require: DS not already approved (data approval)
     List<String> aocInApproval = store.getDataSetAocInApproval(ds);
     if (!aocInApproval.isEmpty()) {
-      Map<UID, List<DviValue>> byAoc =
-          values.stream().collect(groupingBy(DviValue::attributeOptionCombo));
-      for (Map.Entry<UID, List<DviValue>> e : byAoc.entrySet()) {
+      Map<UID, List<DataEntryValue>> byAoc =
+          values.stream().collect(groupingBy(DataEntryValue::attributeOptionCombo));
+      for (Map.Entry<UID, List<DataEntryValue>> e : byAoc.entrySet()) {
         UID aoc = e.getKey();
         if (!aocInApproval.contains(aoc.getValue())) continue;
         Map<String, Set<String>> isoByOu =
             store.getApprovedIsoPeriodsByOrgUnit(
-                ds, aoc, e.getValue().stream().map(DviValue::orgUnit));
+                ds, aoc, e.getValue().stream().map(DataEntryValue::orgUnit));
         if (!isoByOu.isEmpty()) {
-          Predicate<DviValue> dvApproved =
+          Predicate<DataEntryValue> dvApproved =
               dv -> {
                 Set<String> ouIsoPeriods = isoByOu.get(dv.orgUnit().getValue());
                 return ouIsoPeriods != null && ouIsoPeriods.contains(dv.period());

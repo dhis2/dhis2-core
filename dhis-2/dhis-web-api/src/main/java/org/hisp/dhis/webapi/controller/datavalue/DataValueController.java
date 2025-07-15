@@ -49,11 +49,11 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.datavalue.DviKey;
-import org.hisp.dhis.datavalue.DviService;
-import org.hisp.dhis.datavalue.DviValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
@@ -112,7 +112,7 @@ public class DataValueController {
 
   private final DataValueService dataValueService;
 
-  private final DviService dviService;
+  private final DataEntryService dataEntryService;
 
   private final FileResourceService fileResourceService;
 
@@ -143,8 +143,8 @@ public class DataValueController {
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
     UID aoc = UID.of(dataValidator.getAndValidateAttributeOptionCombo(cc, cp));
-    dviService.valueEntry(
-        force, ds, new DviValue(de, ou, co, aoc, pe, value, comment, followUp, null));
+    dataEntryService.upsertDataValue(
+        force, ds, new DataEntryValue(de, ou, co, aoc, pe, value, comment, followUp, null));
   }
 
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
@@ -210,7 +210,7 @@ public class DataValueController {
     UID aoc =
         UID.of(dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp()));
     String pe = params.getPe();
-    if (!dviService.valueEntryDeletion(force, ds, new DviKey(de, ou, coc, aoc, pe)))
+    if (!dataEntryService.deleteDataValue(force, ds, new DataEntryKey(de, ou, coc, aoc, pe)))
       throw new ConflictException("Data value cannot be deleted because it does not exist");
   }
 

@@ -68,7 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.datavalue.DataValueService")
 public class DefaultDataValueService implements DataValueService {
 
-  private final DviService dviService;
+  private final DataEntryService dataEntryService;
   private final DataValueStore dataValueStore;
   private final CategoryService categoryService;
 
@@ -77,8 +77,8 @@ public class DefaultDataValueService implements DataValueService {
   // -------------------------------------------------------------------------
 
   @Nonnull
-  private static DviValue toDviValue(DataValue dataValue) {
-    return new DviValue(
+  private static DataEntryValue toDataEntryValue(DataValue dataValue) {
+    return new DataEntryValue(
         UID.of(dataValue.getDataElement()),
         UID.of(dataValue.getSource()),
         UID.of(dataValue.getCategoryOptionCombo()),
@@ -94,7 +94,7 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public boolean addDataValue(DataValue dataValue) {
     try {
-      dviService.valueEntry(false, null, toDviValue(dataValue));
+      dataEntryService.upsertDataValue(false, null, toDataEntryValue(dataValue));
       return true;
     } catch (ConflictException | BadRequestException ex) {
       return false;
@@ -105,29 +105,30 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public void updateDataValue(DataValue dv) throws ConflictException, BadRequestException {
     if (isNullOrEmpty(dv.getValue()) && isNullOrEmpty(dv.getComment())) dv.setDeleted(true);
-    dviService.valueEntry(false, null, toDviValue(dv));
+    dataEntryService.upsertDataValue(false, null, toDataEntryValue(dv));
   }
 
   @Override
   @IndirectTransactional
   public void updateDataValues(List<DataValue> dataValues) throws ConflictException {
-    dviService.valueEntryBulk(
-        new DviUpsertRequest.Options(false, true, false),
-        new DviUpsertRequest(dataValues.stream().map(DefaultDataValueService::toDviValue).toList()),
+    dataEntryService.upsertDataValues(
+        new DataEntryRequest.Options(false, true, false, true),
+        new DataEntryRequest(
+            dataValues.stream().map(DefaultDataValueService::toDataEntryValue).toList()),
         transitory());
   }
 
   @Override
   @IndirectTransactional
   public void deleteDataValue(DataValue dataValue) throws ConflictException, BadRequestException {
-    DviKey key =
-        new DviKey(
+    DataEntryKey key =
+        new DataEntryKey(
             UID.of(dataValue.getDataElement()),
             UID.of(dataValue.getSource()),
             UID.of(dataValue.getCategoryOptionCombo()),
             UID.of(dataValue.getAttributeOptionCombo()),
             dataValue.getPeriod().getIsoDate());
-    dviService.valueEntryDeletion(false, null, key);
+    dataEntryService.deleteDataValue(false, null, key);
   }
 
   @Override

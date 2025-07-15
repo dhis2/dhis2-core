@@ -38,9 +38,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
-import org.hisp.dhis.datavalue.DviService;
-import org.hisp.dhis.datavalue.DviUpsertRequest;
-import org.hisp.dhis.datavalue.DviValue;
+import org.hisp.dhis.datavalue.DataEntryRequest;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -69,7 +69,7 @@ public class DataValueSetImportJob implements Job {
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
   private final Notifier notifier;
-  private final DviService dviService;
+  private final DataEntryService dataEntryService;
   private final ObjectMapper jsonMapper;
 
   @Override
@@ -141,19 +141,20 @@ public class DataValueSetImportJob implements Job {
 
     // TODO maybe handle firstRowIsHeader=false by specifying a default header?
     progress.startingStage("Deserializing data values...");
-    List<DviValue> values =
+    List<DataEntryValue> values =
         progress.nonNullStagePostCondition(
             progress.runStage(
-                () -> CSV.of(wrapAndCheckCompressionFormat(input)).as(DviValue.class).list()));
+                () ->
+                    CSV.of(wrapAndCheckCompressionFormat(input)).as(DataEntryValue.class).list()));
     String ds = options.getDataSet();
-    DviUpsertRequest request =
-        new DviUpsertRequest(ds == null ? null : UID.of(ds), null, null, null, null, values);
+    DataEntryRequest request =
+        new DataEntryRequest(ds == null ? null : UID.of(ds), null, null, null, null, values);
 
     // further stages happen within the service method...
-    DviUpsertRequest.Options opt =
-        new DviUpsertRequest.Options(
+    DataEntryRequest.Options opt =
+        new DataEntryRequest.Options(
             options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());
-    return dviService.valueEntryBulk(opt, request, progress).toImportSummary();
+    return dataEntryService.upsertDataValues(opt, request, progress).toImportSummary();
   }
 
   private ImportSummary importDataValueSetJson(
@@ -162,17 +163,17 @@ public class DataValueSetImportJob implements Job {
       return dataValueSetService.importDataValueSetJson(input, options, progress);
 
     progress.startingStage("Deserializing data values...");
-    DviUpsertRequest request =
+    DataEntryRequest request =
         progress.nonNullStagePostCondition(
             progress.runStage(
                 () ->
                     jsonMapper.readValue(
-                        wrapAndCheckCompressionFormat(input), DviUpsertRequest.class)));
+                        wrapAndCheckCompressionFormat(input), DataEntryRequest.class)));
 
     // further stages happen within the service method...
-    DviUpsertRequest.Options opt =
-        new DviUpsertRequest.Options(
+    DataEntryRequest.Options opt =
+        new DataEntryRequest.Options(
             options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());
-    return dviService.valueEntryBulk(opt, request, progress).toImportSummary();
+    return dataEntryService.upsertDataValues(opt, request, progress).toImportSummary();
   }
 }
