@@ -233,7 +233,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         join ri.relationship r \
         join r.relationshipType rt \
         where (r.from = ri or rt.bidirectional = true) \
-        and (ri.event.uid = :event or ri.singleEvent.uid = :event) \
+        and ri.event.uid = :event \
         """;
     if (!includeDeleted) {
       hql += "and r.deleted = false";

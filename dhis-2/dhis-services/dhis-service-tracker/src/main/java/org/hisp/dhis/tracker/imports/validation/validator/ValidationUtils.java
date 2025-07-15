@@ -226,8 +226,8 @@ public class ValidationUtils {
   }
 
   public static boolean eventExist(TrackerBundle bundle, UID event) {
-    return (bundle.getPreheat().getEvent(event) != null
-            && bundle.getPreheat().getSingleEvent(event) != null)
+    return bundle.getPreheat().getEvent(event) != null
+        || bundle.getPreheat().getSingleEvent(event) != null
         || bundle.findEventByUid(event).isPresent();
   }
 

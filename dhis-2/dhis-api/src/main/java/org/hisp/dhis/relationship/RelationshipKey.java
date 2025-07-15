@@ -64,8 +64,6 @@ public class RelationshipKey {
 
     private final UID event;
 
-    private final UID singleEvent;
-
     public String asString() {
       if (isTrackedEntity()) {
         return trackedEntity.getValue();
@@ -73,8 +71,6 @@ public class RelationshipKey {
         return enrollment.getValue();
       } else if (isEvent()) {
         return event.getValue();
-      } else if (isSingleEvent()) {
-        return singleEvent.getValue();
       }
 
       return "ERROR";
@@ -90,10 +86,6 @@ public class RelationshipKey {
 
     public boolean isEvent() {
       return event != null;
-    }
-
-    public boolean isSingleEvent() {
-      return singleEvent != null;
     }
   }
 }

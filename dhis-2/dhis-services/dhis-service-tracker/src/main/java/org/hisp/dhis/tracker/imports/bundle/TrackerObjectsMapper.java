@@ -349,8 +349,9 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE -> {
-        fromItem.setEvent(preheat.getEvent(relationship.getFrom().getEvent()));
-        fromItem.setSingleEvent(preheat.getSingleEvent(relationship.getFrom().getEvent()));
+        Event event = preheat.getEvent(relationship.getFrom().getEvent());
+        SingleEvent singleEvent = preheat.getSingleEvent(relationship.getFrom().getEvent());
+        fromItem.setEvent(event != null ? event : map(singleEvent));
       }
     }
     dbRelationship.setFrom(fromItem);
@@ -365,8 +366,9 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE -> {
-        toItem.setEvent(preheat.getEvent(relationship.getTo().getEvent()));
-        toItem.setSingleEvent(preheat.getSingleEvent(relationship.getTo().getEvent()));
+        Event event = preheat.getEvent(relationship.getTo().getEvent());
+        SingleEvent singleEvent = preheat.getSingleEvent(relationship.getTo().getEvent());
+        toItem.setEvent(event != null ? event : map(singleEvent));
       }
     }
     dbRelationship.setTo(toItem);
@@ -399,6 +401,42 @@ public class TrackerObjectsMapper {
     dbNote.setNoteText(note.getValue());
 
     return dbNote;
+  }
+
+  private static Event map(SingleEvent singleEvent) {
+    if (singleEvent == null) {
+      return null;
+    }
+
+    Event event = new Event();
+    event.setId(singleEvent.getId());
+    event.setUid(singleEvent.getUid());
+    event.setCreated(singleEvent.getCreated());
+    event.setCreatedBy(singleEvent.getCreatedBy());
+    event.setCreatedAtClient(singleEvent.getCreatedAtClient());
+    event.setCreatedByUserInfo(singleEvent.getCreatedByUserInfo());
+    event.setStoredBy(singleEvent.getStoredBy());
+    event.setLastUpdated(singleEvent.getLastUpdated());
+    event.setLastUpdatedBy(singleEvent.getLastUpdatedBy());
+    event.setLastUpdatedAtClient(singleEvent.getLastUpdatedAtClient());
+    event.setLastUpdatedByUserInfo(singleEvent.getLastUpdatedByUserInfo());
+    event.setOccurredDate(singleEvent.getOccurredDate());
+    event.setCompletedBy(singleEvent.getCompletedBy());
+    event.setCompletedDate(singleEvent.getCompletedDate());
+
+    event.setProgramStage(singleEvent.getProgramStage());
+    event.setEnrollment(singleEvent.getEnrollment());
+    event.setOrganisationUnit(singleEvent.getOrganisationUnit());
+    event.setRelationshipItems(singleEvent.getRelationshipItems());
+
+    event.setAssignedUser(singleEvent.getAssignedUser());
+    event.setAttributeOptionCombo(singleEvent.getAttributeOptionCombo());
+    event.setEventDataValues(singleEvent.getEventDataValues());
+    event.setGeometry(singleEvent.getGeometry());
+    event.setStatus(singleEvent.getStatus());
+    event.setNotes(singleEvent.getNotes());
+
+    return event;
   }
 
   private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {
