@@ -54,10 +54,6 @@ public class Constants {
 
   public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
 
-  public static String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
-
-  public static String ANOTHER_TRACKER_PROGRAM_STAGE_ID = "PaOOjwLVW23";
-
   public static Program TRACKER_PROGRAM =
       new Program()
           .setUid("f1AyMswryyQ")

@@ -62,7 +62,7 @@ public class EventUpdateTests extends TrackerApiTest {
 
     object =
         JsonObjectBuilder.jsonObject(object)
-            .addProperty("programStage", Constants.ANOTHER_TRACKER_PROGRAM_STAGE_ID)
+            .addProperty("programStage", Constants.EVENT_PROGRAM_STAGE_ID)
             .addProperty("enrollment", enrollmentId)
             .wrapIntoArray("events");
 

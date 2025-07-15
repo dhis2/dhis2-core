@@ -157,6 +157,10 @@ public class TrackerBundle {
     return findById(this.getTrackerEvents(), uid);
   }
 
+  public Optional<SingleEvent> findSingleEventByUid(@Nonnull UID uid) {
+    return findById(this.getSingleEvents(), uid);
+  }
+
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
     return findById(this.getEvents(), uid);
   }
