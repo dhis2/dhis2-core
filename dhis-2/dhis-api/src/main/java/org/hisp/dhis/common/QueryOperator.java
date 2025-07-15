@@ -155,14 +155,15 @@ public enum QueryOperator {
    * enforcing this rule in the API, so those operators can still be used. Adding such validation
    * would be a breaking change, and we are not ready for that yet.
    *
-   * <p>This method should therefore be used to map case‑insensitive operators to their
-   * case‑sensitive equivalents.
+   * <p>This method should therefore be used to map case‑insensitive operators, which are analytics
+   * specific, to their case‑sensitive equivalents.
    */
-  public QueryOperator mapToCaseSensitiveOperator() {
+  public QueryOperator mapToTrackerQueryOperator() {
     return switch (this) {
       case IEQ -> EQ;
       case NIEQ -> NEQ;
-      case ILIKE, NLIKE -> LIKE;
+      case ILIKE -> LIKE;
+      case NLIKE -> NLIKE;
       default -> this;
     };
   }
