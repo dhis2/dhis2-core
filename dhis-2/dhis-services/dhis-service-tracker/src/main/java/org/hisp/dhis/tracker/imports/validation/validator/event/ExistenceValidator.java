@@ -33,7 +33,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1030;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1032;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1082;
 
-import org.hisp.dhis.program.EventInterface;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.SingleEvent;
@@ -51,7 +51,7 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     TrackerImportStrategy importStrategy = bundle.getStrategy(event);
 
-    EventInterface existingEvent = getExistingEvent(event, bundle.getPreheat());
+    SoftDeletableObject existingEvent = getExistingEvent(event, bundle.getPreheat());
 
     // If the event is soft-deleted no operation is allowed
     if (existingEvent != null && existingEvent.isDeleted()) {
@@ -66,7 +66,7 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
     }
   }
 
-  private EventInterface getExistingEvent(
+  private SoftDeletableObject getExistingEvent(
       org.hisp.dhis.tracker.imports.domain.Event event, TrackerPreheat preheat) {
     if (event instanceof TrackerEvent) {
       return preheat.getEvent(event.getEvent());

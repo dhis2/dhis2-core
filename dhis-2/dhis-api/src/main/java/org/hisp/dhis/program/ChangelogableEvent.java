@@ -32,12 +32,10 @@ package org.hisp.dhis.program;
 import java.util.Date;
 import org.locationtech.jts.geom.Geometry;
 
-public interface EventInterface {
+public interface ChangelogableEvent {
   Date getScheduledDate();
 
   Date getOccurredDate();
 
   Geometry getGeometry();
-
-  boolean isDeleted();
 }

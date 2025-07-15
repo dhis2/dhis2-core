@@ -145,7 +145,6 @@ public class SingleEventPersister
     SingleEvent clonedEvent = new SingleEvent();
     clonedEvent.setUid(originalEvent.getUid());
     clonedEvent.setOccurredDate(originalEvent.getOccurredDate());
-    clonedEvent.setScheduledDate(originalEvent.getScheduledDate());
     clonedEvent.setGeometry(originalEvent.getGeometry());
 
     return clonedEvent;

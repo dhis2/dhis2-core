@@ -44,8 +44,6 @@
 
     <property name="storedBy" />
 
-    <property name="scheduledDate" column="scheduleddate" />
-
     <property name="occurredDate" column="occurreddate" type="timestamp" index="programstageinstance_executiondate" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"

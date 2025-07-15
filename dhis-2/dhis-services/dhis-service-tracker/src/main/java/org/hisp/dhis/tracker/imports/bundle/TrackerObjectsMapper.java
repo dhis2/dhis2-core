@@ -278,7 +278,6 @@ public class TrackerObjectsMapper {
     dbEvent.setProgramStage(programStage);
 
     dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
-    dbEvent.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
 
     dbEvent.setGeometry(event.getGeometry());
 

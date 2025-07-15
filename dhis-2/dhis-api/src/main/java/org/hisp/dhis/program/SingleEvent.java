@@ -32,34 +32,29 @@ package org.hisp.dhis.program;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
-/**
- * @author Abyot Asalefew
- */
 @Auditable(scope = AuditScope.TRACKER)
-public class SingleEvent extends SoftDeletableObject implements EventInterface {
+@Setter
+public class SingleEvent extends SoftDeletableObject implements ChangelogableEvent {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
@@ -74,15 +69,11 @@ public class SingleEvent extends SoftDeletableObject implements EventInterface {
 
   private UserInfoSnapshot lastUpdatedByUserInfo;
 
-  private Date scheduledDate;
-
   private Date occurredDate;
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
   @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
-
-  private List<MessageConversation> messageConversations = new ArrayList<>();
 
   private List<Note> notes = new ArrayList<>();
 
@@ -108,26 +99,6 @@ public class SingleEvent extends SoftDeletableObject implements EventInterface {
 
   public SingleEvent() {}
 
-  public SingleEvent(Enrollment enrollment, ProgramStage programStage) {
-    this.enrollment = enrollment;
-    this.programStage = programStage;
-  }
-
-  public SingleEvent(
-      Enrollment enrollment, ProgramStage programStage, OrganisationUnit organisationUnit) {
-    this(enrollment, programStage);
-    this.organisationUnit = organisationUnit;
-  }
-
-  public SingleEvent(
-      Enrollment enrollment,
-      ProgramStage programStage,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo) {
-    this(enrollment, programStage, organisationUnit);
-    this.attributeOptionCombo = attributeOptionCombo;
-  }
-
   @Override
   public void setAutoFields() {
     super.setAutoFields();
@@ -149,187 +120,95 @@ public class SingleEvent extends SoftDeletableObject implements EventInterface {
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getCreatedAtClient() {
     return createdAtClient;
   }
 
-  public void setCreatedAtClient(Date createdAtClient) {
-    this.createdAtClient = createdAtClient;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getLastUpdatedAtClient() {
     return lastUpdatedAtClient;
   }
 
-  public void setLastUpdatedAtClient(Date lastUpdatedAtClient) {
-    this.lastUpdatedAtClient = lastUpdatedAtClient;
-  }
-
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Enrollment getEnrollment() {
     return enrollment;
   }
 
-  public void setEnrollment(Enrollment enrollment) {
-    this.enrollment = enrollment;
-  }
-
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ProgramStage getProgramStage() {
     return programStage;
   }
 
-  public void setProgramStage(ProgramStage programStage) {
-    this.programStage = programStage;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getStoredBy() {
     return storedBy;
   }
 
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public UserInfoSnapshot getCreatedByUserInfo() {
     return createdByUserInfo;
   }
 
-  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
-    this.createdByUserInfo = createdByUserInfo;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public UserInfoSnapshot getLastUpdatedByUserInfo() {
     return lastUpdatedByUserInfo;
   }
 
-  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
-    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getCompletedBy() {
     return completedBy;
   }
 
-  public void setCompletedBy(String completedBy) {
-    this.completedBy = completedBy;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Override
+  @JsonIgnore
   public Date getScheduledDate() {
-    return scheduledDate;
+    return null;
   }
 
-  public void setScheduledDate(Date scheduledDate) {
-    this.scheduledDate = scheduledDate;
-  }
-
+  @Override
   @JsonProperty("eventDate")
-  @JacksonXmlProperty(localName = "eventDate", namespace = DxfNamespaces.DXF_2_0)
   public Date getOccurredDate() {
     return occurredDate;
   }
 
-  public void setOccurredDate(Date occurredDate) {
-    this.occurredDate = occurredDate;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isCompleted() {
     return status == EventStatus.COMPLETED;
   }
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnit getOrganisationUnit() {
     return organisationUnit;
   }
 
-  public SingleEvent setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-    return this;
-  }
-
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getAttributeOptionCombo() {
     return attributeOptionCombo;
   }
 
-  public void setAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
-    this.attributeOptionCombo = attributeOptionCombo;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getCompletedDate() {
     return completedDate;
   }
 
-  public void setCompletedDate(Date completedDate) {
-    this.completedDate = completedDate;
-  }
-
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public List<MessageConversation> getMessageConversations() {
-    return messageConversations;
-  }
-
-  public void setMessageConversations(List<MessageConversation> messageConversations) {
-    this.messageConversations = messageConversations;
-  }
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public List<Note> getNotes() {
     return notes;
   }
 
-  public void setNotes(List<Note> notes) {
-    this.notes = notes;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<EventDataValue> getEventDataValues() {
     return eventDataValues;
   }
 
-  public void setEventDataValues(Set<EventDataValue> eventDataValues) {
-    this.eventDataValues = eventDataValues;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EventStatus getStatus() {
     return status;
-  }
-
-  public SingleEvent setStatus(EventStatus status) {
-    this.status = status;
-    return this;
   }
 
   @JsonIgnore
@@ -337,72 +216,20 @@ public class SingleEvent extends SoftDeletableObject implements EventInterface {
     return lastSynchronized;
   }
 
-  public void setLastSynchronized(Date lastSynchronized) {
-    this.lastSynchronized = lastSynchronized;
-  }
-
   @JsonProperty
-  @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0)
   public Set<RelationshipItem> getRelationshipItems() {
     return relationshipItems;
   }
 
-  public void setRelationshipItems(Set<RelationshipItem> relationshipItems) {
-    this.relationshipItems = relationshipItems;
-  }
-
+  @Override
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Geometry getGeometry() {
     return geometry;
   }
 
-  public void setGeometry(Geometry geometry) {
-    this.geometry = geometry;
-  }
-
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getAssignedUser() {
     return assignedUser;
-  }
-
-  public void setAssignedUser(User assignedUser) {
-    this.assignedUser = assignedUser;
-  }
-
-  @Override
-  public String toString() {
-    return "SingleEvent{"
-        + "id="
-        + id
-        + ", uid='"
-        + uid
-        + '\''
-        + ", name='"
-        + name
-        + '\''
-        + ", created="
-        + created
-        + ", lastUpdated="
-        + lastUpdated
-        + ", enrollment="
-        + (enrollment != null ? enrollment.getUid() : null)
-        + ", programStage="
-        + (programStage != null ? programStage.getUid() : null)
-        + ", deleted="
-        + isDeleted()
-        + ", storedBy='"
-        + storedBy
-        + '\''
-        + ", organisationUnit="
-        + (organisationUnit != null ? organisationUnit.getUid() : null)
-        + ", status="
-        + status
-        + ", lastSynchronized="
-        + lastSynchronized
-        + '}';
   }
 }

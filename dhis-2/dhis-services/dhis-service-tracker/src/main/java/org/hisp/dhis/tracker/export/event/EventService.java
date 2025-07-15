@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.event;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.EventInterface;
+import org.hisp.dhis.program.ChangelogableEvent;
 
 public interface EventService {
   /**
@@ -42,5 +42,5 @@ public interface EventService {
    * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
    */
   @Nonnull
-  Optional<? extends EventInterface> findEvent(@Nonnull UID uid);
+  Optional<? extends ChangelogableEvent> findEvent(@Nonnull UID uid);
 }
