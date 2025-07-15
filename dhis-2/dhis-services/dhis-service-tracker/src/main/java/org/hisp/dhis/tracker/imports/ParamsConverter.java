@@ -108,7 +108,9 @@ public class ParamsConverter {
               Program program = preheat.getProgram(e.getProgram());
               ProgramStage programStage = preheat.getProgramStage(e.getProgramStage());
               return (program != null && program.isWithoutRegistration())
-                  || (programStage != null && programStage.getProgram().isWithoutRegistration());
+                  || (program == null
+                      && programStage != null
+                      && programStage.getProgram().isWithoutRegistration());
             })
         .map(e -> SingleEvent.builderFromEvent(e).build())
         .toList();
