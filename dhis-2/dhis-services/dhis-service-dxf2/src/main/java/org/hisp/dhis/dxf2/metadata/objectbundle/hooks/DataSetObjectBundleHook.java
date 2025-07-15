@@ -85,10 +85,13 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    importDataSet.setCompulsoryDataElementOperands(
-        importDataSet.getCompulsoryDataElementOperands().stream()
-            .filter(dop -> dataElementIds.contains(dop.getDataElement().getUid()))
-            .collect(Collectors.toSet()));
+    importDataSet.getCompulsoryDataElementOperands().clear();
+    importDataSet
+        .getCompulsoryDataElementOperands()
+        .addAll(
+            importDataSet.getCompulsoryDataElementOperands().stream()
+                .filter(dop -> dataElementIds.contains(dop.getDataElement().getUid()))
+                .collect(Collectors.toSet()));
   }
 
   private void deleteRemovedSection(

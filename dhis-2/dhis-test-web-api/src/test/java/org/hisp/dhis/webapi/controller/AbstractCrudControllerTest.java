@@ -59,6 +59,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
@@ -1323,6 +1324,60 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             .getList("categories", JsonIdentifiableObject.class);
     assertEquals("births attended by", response.get(0).getDisplayName());
     assertEquals("Child Health", response.get(1).getDisplayName());
+  }
+
+  @Test
+  void testPartialPutObject() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        null,
+        PUT("/organisationUnits/" + ouId, "{'shortName':'OU2'}").content(HttpStatus.OK));
+
+    // Verify that the shortName was updated, but the name remains unchanged
+    JsonObject updated = GET("/organisationUnits/{id}", ouId).content().as(JsonObject.class);
+
+    assertEquals("OU2", updated.getString("shortName").string());
+    assertEquals("My Unit", updated.getString("name").string());
+  }
+
+  @Test
+  void testPartialPutObjectWithCollection() {
+    DataElement de1 = createDataElement('A');
+    manager.save(de1);
+    DataElement de2 = createDataElement('B');
+    manager.save(de2);
+    PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
+    DataSet ds = createDataSet('A', monthly);
+    ds.setShortName("DataSet");
+    ds.addDataSetElement(de1);
+    ds.addDataSetElement(de2);
+    manager.save(ds);
+
+    assertEquals(2, ds.getDataSetElements().size());
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        null,
+        PUT("/dataSets/" + ds.getUid(), "{'shortName':'DataSet Updated'}").content(HttpStatus.OK));
+
+    DataSet updatedDs = manager.get(DataSet.class, ds.getUid());
+    assertEquals(2, updatedDs.getDataSetElements().size());
+
+    // Verify that the shortName was updated, but the name remains unchanged
+    JsonObject updated = GET("/dataSets/{id}", ds.getUid()).content().as(JsonObject.class);
+
+    assertEquals("DataSet Updated", updated.getString("shortName").string());
+    assertEquals("DataSetA", updated.getString("name").string());
+    assertEquals(2, updated.getArray("dataSetElements").size());
   }
 
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {

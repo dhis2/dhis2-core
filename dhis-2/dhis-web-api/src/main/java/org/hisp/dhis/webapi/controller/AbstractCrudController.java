@@ -418,7 +418,7 @@ public abstract class AbstractCrudController<
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
-    T parsed = deserializeJsonEntity(request);
+    T parsed = patchJsonToEntity(request, persisted);
     parsed.setUid(pvUid);
 
     preUpdateEntity(persisted, parsed);
@@ -728,6 +728,10 @@ public abstract class AbstractCrudController<
 
   protected T deserializeJsonEntity(HttpServletRequest request) throws IOException {
     return renderService.fromJson(request.getInputStream(), getEntityClass());
+  }
+
+  protected T patchJsonToEntity(HttpServletRequest request, T existed) throws IOException {
+    return jsonMapper.readerForUpdating(existed).readValue(request.getInputStream(), getEntityClass());
   }
 
   protected T deserializeXmlEntity(HttpServletRequest request) throws IOException {
