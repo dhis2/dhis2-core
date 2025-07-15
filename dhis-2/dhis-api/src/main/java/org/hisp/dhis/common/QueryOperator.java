@@ -163,7 +163,7 @@ public enum QueryOperator {
       case IEQ -> EQ;
       case NIEQ -> NEQ;
       case ILIKE -> LIKE;
-      case NLIKE -> NLIKE;
+      case NILIKE -> NLIKE;
       default -> this;
     };
   }
