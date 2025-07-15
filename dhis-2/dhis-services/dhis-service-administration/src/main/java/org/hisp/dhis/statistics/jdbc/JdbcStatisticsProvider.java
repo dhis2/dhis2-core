@@ -100,7 +100,7 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
    *
    * @param table the table name.
    * @return the approximate count of rows in the given table. If the table has no rows, 0 is
-   * returned instead of a negative value.
+   *     returned instead of a negative value.
    */
   private Long approximateCount(final String table) {
     final String sql = "SELECT reltuples::bigint FROM pg_class WHERE relname = ?";
