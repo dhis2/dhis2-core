@@ -95,11 +95,12 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
    * Returns the approximate count of rows in the given table.
    *
    * @param table the table name.
-   * @return the approximate count of rows in the given table.
+   * @return the approximate count of rows in the given table. If the table has no rows, 0 is
+   *     returned instead of a negative value.
    */
   private Long approximateCount(final String table) {
-    final String sql = "select reltuples::bigint from pg_class where relname = '%s';";
-
-    return jdbcTemplate.queryForObject(String.format(sql, table), Long.class);
+    final String sql = "SELECT reltuples::bigint FROM pg_class WHERE relname = ?";
+    Long result = jdbcTemplate.queryForObject(sql, Long.class, table);
+    return Math.max(0L, result);
   }
 }
