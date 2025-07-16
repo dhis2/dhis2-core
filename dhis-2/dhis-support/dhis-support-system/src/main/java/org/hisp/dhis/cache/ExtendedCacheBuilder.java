@@ -30,7 +30,6 @@
 package org.hisp.dhis.cache;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -85,21 +84,8 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V> {
    */
   @Override
   public Cache<V> build() {
-    if (getMaximumSize() == 0 || isDisabled()) {
       log.debug(String.format("NoOp Cache instance created for region:'%s'", getRegion()));
       return new NoOpCache<>(this);
-    }
-    if (forceInMemory) {
-      log.debug(
-          String.format("Local Cache (forced) instance created for region:'%s'", getRegion()));
-      return new LocalCache<>(this);
-    }
-    if (configuration.isEnabled(ConfigurationKey.REDIS_ENABLED)) {
-      log.debug(String.format("Redis Cache instance created for region:'%s'", getRegion()));
-      return new RedisCache<>(this);
-    }
-    log.debug(String.format("Local Cache instance created for region:'%s'", getRegion()));
-    return new LocalCache<>(this);
   }
 
   public RedisTemplate<String, ?> getRedisTemplate() {
