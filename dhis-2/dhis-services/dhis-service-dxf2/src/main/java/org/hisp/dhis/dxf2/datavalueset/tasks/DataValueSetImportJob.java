@@ -83,14 +83,10 @@ public class DataValueSetImportJob implements Job {
       boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" ->
-                dataEntryIO.importDataValueSetJson(input, options, progress);
-            case "application/csv" ->
-                dataEntryIO.importDataValueSetCsv(input, options, progress);
-            case "application/pdf" ->
-                dataValueSetService.importDataValueSetPdf(input, options, progress);
-            case "application/xml" ->
-                dataEntryIO.importDataValueSetXml(input, options, progress);
+            case "application/json" -> dataEntryIO.importJson(input, options, progress);
+            case "application/csv" -> dataEntryIO.importCsv(input, options, progress);
+            case "application/pdf" -> dataEntryIO.importPdf(input, options, progress);
+            case "application/xml" -> dataEntryIO.importXml(input, options, progress);
             case "application/adx+xml" -> adxDataService.saveDataValueSet(input, options, progress);
             default -> {
               unknownFormat = true;

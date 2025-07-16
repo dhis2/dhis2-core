@@ -238,7 +238,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
     return importSummary(
-        dataEntryIO.importDataValueSetXml(request.getInputStream(), importOptions, transitory()));
+        dataEntryIO.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
@@ -266,7 +266,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
     return importSummary(
-        dataEntryIO.importDataValueSetJson(request.getInputStream(), importOptions, transitory()));
+        dataEntryIO.importJson(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = "application/csv")
@@ -278,7 +278,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
     return importSummary(
-        dataEntryIO.importDataValueSetCsv(request.getInputStream(), importOptions, transitory()));
+        dataEntryIO.importCsv(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
@@ -289,11 +289,8 @@ public class DataValueSetController {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryIO.importPdf(request.getInputStream(), importOptions, transitory()));
   }
 
   // -------------------------------------------------------------------------

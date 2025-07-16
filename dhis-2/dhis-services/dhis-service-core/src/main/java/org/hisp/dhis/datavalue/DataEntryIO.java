@@ -33,10 +33,13 @@ import static java.lang.Boolean.parseBoolean;
 import static org.hisp.dhis.commons.util.StreamUtils.wrapAndCheckCompressionFormat;
 import static org.hisp.dhis.feedback.DataEntrySummary.toConflict;
 
+import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.PdfReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
@@ -49,6 +52,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -60,6 +64,10 @@ import org.springframework.stereotype.Component;
  * Handles the input and output format and exception transformations for data entry between the
  * controller and the service layer.
  *
+ * <p>Transactions are opened and closed by {@link DataEntryService} so that each {@link
+ * DataEntryGroup} is handled in its on transaction context to keep the transactions smaller in
+ * scope.
+ *
  * @author Jan Bernitt
  * @since 2.43
  */
@@ -69,8 +77,40 @@ public class DataEntryIO {
 
   private final DataEntryService service;
 
-  public ImportSummary importDataValueSetXml(
-      InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress) {
+
+    progress.startingStage("Deserializing PDF data");
+    DataEntryGroup.Input input =
+        progress.nonNullStagePostCondition(
+            progress.runStage(
+                () -> {
+                  PdfReader dvs = new PdfReader(in);
+                  AcroFields form = dvs.getAcroFields();
+                  if (form == null) throw new IllegalArgumentException("PDF has no Acro fields");
+                  String ou = form.getField("TXFD_OrgID").trim();
+                  String pe = form.getField("TXFD_PeriodID").trim();
+                  Set<String> fields = form.getAllFields().keySet();
+                  List<DataEntryValue.Input> values = new ArrayList<>();
+                  for (String field : fields) {
+                    if (field.startsWith("TXFDDV_")) {
+                      String[] parts = field.split("_");
+                      String de = parts[1];
+                      String coc = parts[2];
+                      String value = form.getField(field);
+                      if (parts.length >= 4 && parts[3].startsWith("T4")) { // T4=checkbox
+                        if ("On".equalsIgnoreCase(value)) value = "true";
+                        if ("Off".equalsIgnoreCase(value)) value = "false";
+                      }
+                      values.add(
+                          new DataEntryValue.Input(de, null, coc, null, null, value, null, null));
+                    }
+                  }
+                  return new DataEntryGroup.Input(null, null, ou, pe, null, values);
+                }));
+    return importRaw(input, options, progress);
+  }
+
+  public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
 
     progress.startingStage("Deserializing CVS data");
     DataEntryGroup.Input input =
@@ -85,7 +125,7 @@ public class DataEntryIO {
                   String aoc = dvs.getAttributeValue("attributeOptionCombo");
                   String dryRun = dvs.getAttributeValue("dryRun");
                   if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
-                  //TODO ID scheme
+                  // TODO ID scheme
                   List<DataEntryValue.Input> values = new ArrayList<>();
                   while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
                     String followUp = dvs.getAttributeValue("followUp");
@@ -102,11 +142,10 @@ public class DataEntryIO {
                   }
                   return new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
                 }));
-    return importDataValueSetGroup(input, options, progress);
+    return importRaw(input, options, progress);
   }
 
-    public ImportSummary importDataValueSetCsv(
-      InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importCsv(InputStream in, ImportOptions options, JobProgress progress) {
 
     // TODO maybe handle firstRowIsHeader=false by specifying a default header?
     progress.startingStage("Deserializing CVS data");
@@ -120,11 +159,10 @@ public class DataEntryIO {
     String ds = options.getDataSet();
     DataEntryGroup.Input input = new DataEntryGroup.Input(ds, null, null, null, null, values);
 
-    return importDataValueSetGroup(input, options, progress);
+    return importRaw(input, options, progress);
   }
 
-  public ImportSummary importDataValueSetJson(
-      InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {
 
     progress.startingStage("Deserializing JSON data");
     DataEntryGroup.Input input =
@@ -141,30 +179,36 @@ public class DataEntryIO {
                   Boolean dryRun = dvs.getBoolean("dryRun").bool();
                   if (dryRun != null) options.setDryRun(dryRun);
                   // TODO ID scheme
-                  List<DataEntryValue.Input> values =
-                      dvs.getList("dataValues", JsonObject.class).stream()
-                          .map(
-                              dv ->
-                                  new DataEntryValue.Input(
-                                      dv.getString("dataElement").string(),
-                                      dv.getString("orgUnit").string(),
-                                      dv.getString("categoryOptionCombo").string(),
-                                      dv.getString("attributeOptionCombo").string(),
-                                      dv.getString("period").string(),
-                                      dv.getString("value").string(),
-                                      dv.getString("comment").string(),
-                                      dv.getBoolean("followUp").bool()))
-                          .toList();
+                  List<DataEntryValue.Input> values = new ArrayList<>();
+                  // this uses JsonNode API to iterate without indexing
+                  // to make the memory footprint smaller
+                  dvs.get("dataValues")
+                      .node()
+                      .elements(false)
+                      .forEachRemaining(
+                          node -> {
+                            JsonObject dv = JsonMixed.of(node);
+                            values.add(
+                                new DataEntryValue.Input(
+                                    dv.getString("dataElement").string(),
+                                    dv.getString("orgUnit").string(),
+                                    dv.getString("categoryOptionCombo").string(),
+                                    dv.getString("attributeOptionCombo").string(),
+                                    dv.getString("period").string(),
+                                    dv.getString("value").string(),
+                                    dv.getString("comment").string(),
+                                    dv.getBoolean("followUp").bool()));
+                          });
                   return new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
                 }));
-    return importDataValueSetGroup(input, options, progress);
+    return importRaw(input, options, progress);
   }
 
   @Nonnull
-  public ImportSummary importDataValueSetGroup(
+  public ImportSummary importRaw(
       DataEntryGroup.Input input, ImportOptions options, JobProgress progress) {
     try {
-      ImportSummary summary = importDataValueSet(input, options, progress);
+      ImportSummary summary = importRawUnsafe(input, options, progress);
       summary.setImportOptions(options);
       return summary;
     } catch (BadRequestException ex) {
@@ -177,7 +221,7 @@ public class DataEntryIO {
     }
   }
 
-  private ImportSummary importDataValueSet(
+  private ImportSummary importRawUnsafe(
       DataEntryGroup.Input input, ImportOptions options, JobProgress progress)
       throws BadRequestException {
 
@@ -192,7 +236,7 @@ public class DataEntryIO {
         new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
 
     if (!options.isGroup() || group.dataSet() != null)
-      return importDataValueSet(List.of(group), opt, progress);
+      return importGroups(List.of(group), opt, progress);
 
     progress.startingStage(
         "Grouping %d values by target data set".formatted(group.values().size()));
@@ -210,11 +254,11 @@ public class DataEntryIO {
                                 .collect(Collectors.joining(","))),
                 () -> service.groupByDataSet(group)));
 
-    return importDataValueSet(groups, opt, progress);
+    return importGroups(groups, opt, progress);
   }
 
   @Nonnull
-  private ImportSummary importDataValueSet(
+  private ImportSummary importGroups(
       List<DataEntryGroup> groups, DataEntryGroup.Options options, JobProgress progress) {
     DataEntrySummary summary = new DataEntrySummary(0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
