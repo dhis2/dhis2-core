@@ -417,6 +417,20 @@ public class DefaultAppManager implements AppManager {
     }
   }
 
+  @Override
+  public boolean handlingManifest(String resource, App application, String contextPath) {
+    if (!resource.contains("manifest.webapp")) {
+      return false;
+    }
+    // If request was for manifest.webapp, replace href with the host
+    if (application.getActivities() != null && application.getActivities().getDhis() != null) {
+      application.getActivities().getDhis().setHref(contextPath);
+      log.debug(String.format("Manifest context path: '%s'", contextPath));
+      return true;
+    }
+    return false;
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
