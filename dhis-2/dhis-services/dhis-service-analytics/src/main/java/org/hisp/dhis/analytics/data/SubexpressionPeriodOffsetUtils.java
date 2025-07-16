@@ -43,9 +43,9 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.util.TextUtils;
 
 /**
  * Utility methods for generating a subExpression query containing periodOffsets.

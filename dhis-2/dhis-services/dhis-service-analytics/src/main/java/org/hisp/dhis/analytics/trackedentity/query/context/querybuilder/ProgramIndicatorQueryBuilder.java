@@ -38,8 +38,8 @@ import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextCo
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_UID;
 import static org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders.isOfType;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.util.TextUtils.EMPTY;
+import static org.hisp.dhis.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Objects;
@@ -65,11 +65,11 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.util.TextUtils;
 import org.springframework.stereotype.Service;
 
 /**

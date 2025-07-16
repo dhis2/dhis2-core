@@ -30,7 +30,7 @@
 package org.hisp.dhis.analytics.common.query;
 
 import static org.hisp.dhis.common.QueryOperator.EQ;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 

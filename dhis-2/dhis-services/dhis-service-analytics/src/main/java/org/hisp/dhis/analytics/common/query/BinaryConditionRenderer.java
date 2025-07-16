@@ -40,10 +40,10 @@ import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
 import static org.hisp.dhis.feedback.ErrorCode.E2045;
+import static org.hisp.dhis.util.TextUtils.EMPTY;
+import static org.hisp.dhis.util.TextUtils.SPACE;
 
 import java.util.Arrays;
 import java.util.Collection;

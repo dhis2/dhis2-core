@@ -38,7 +38,7 @@ import static org.hisp.dhis.analytics.tracker.ResponseHelper.applyHeaders;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.hisp.dhis.util.TextUtils.EMPTY;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;

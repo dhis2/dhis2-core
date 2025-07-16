@@ -32,11 +32,11 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
+import static org.hisp.dhis.util.TextUtils.replace;
 
 import java.util.ArrayList;
 import java.util.Date;

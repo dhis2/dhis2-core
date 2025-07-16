@@ -178,9 +178,15 @@ public class DataValueSetImportJob implements Job {
   private ImportSummary importDataValues(
       DataEntryGroup.Input request, ImportOptions options, JobProgress progress)
       throws BadRequestException, ConflictException {
-    // further stages happen within the service method...
+
     DataEntryGroup.Identifiers identifiers = DataEntryGroup.Identifiers.of(options.getIdSchemes());
-    DataEntryGroup group = dataEntryService.decode(request, identifiers, progress);
+
+    progress.startingStage("Resolving data values...");
+    DataEntryGroup group =
+        progress.runStageAndRethrow(
+            BadRequestException.class, () -> dataEntryService.decode(request, identifiers));
+
+    // further stages happen within the service method...
     DataEntryGroup.Options opt =
         new DataEntryGroup.Options(
             options.isDryRun(), options.isAtomic(), options.isForce(), options.isGroup());

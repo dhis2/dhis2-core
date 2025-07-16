@@ -79,6 +79,7 @@ public class DefaultDataValueService implements DataValueService {
   @Nonnull
   private static DataEntryValue toDataEntryValue(DataValue dataValue) {
     return new DataEntryValue(
+        0,
         UID.of(dataValue.getDataElement()),
         UID.of(dataValue.getSource()),
         UID.of(dataValue.getCategoryOptionCombo()),

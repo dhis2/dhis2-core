@@ -58,7 +58,6 @@ import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
@@ -69,6 +68,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.util.TextUtils;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -107,7 +107,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         """
       SELECT t.${property}, t.uid
       FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON t.{$property} = input.id
+      JOIN unnest(:ids) AS input(id) ON t.${property} = input.id
       """;
     String tableName =
         switch (table) {

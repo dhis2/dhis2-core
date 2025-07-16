@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.trackedentity.query;
 
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.DOT;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.util.TextUtils.doubleQuote;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;

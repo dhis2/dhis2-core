@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.commons.util.TextUtils.valueOf;
+import static org.hisp.dhis.util.TextUtils.valueOf;
 
 import java.io.UncheckedIOException;
 import lombok.AllArgsConstructor;

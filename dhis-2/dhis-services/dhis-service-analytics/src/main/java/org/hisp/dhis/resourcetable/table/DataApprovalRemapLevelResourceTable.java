@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.util.TextUtils.replace;
 
 import java.util.List;
 import java.util.Optional;

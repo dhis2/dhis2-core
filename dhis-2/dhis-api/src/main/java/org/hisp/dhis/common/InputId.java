@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
@@ -71,53 +70,5 @@ public record InputId(@Nonnull Type type, @CheckForNull String attributeId) {
 
   public boolean isNotUid() {
     return type != Type.ID;
-  }
-
-  /** A decoder that parses or resolves alternative IDs to a UID */
-  public interface ToUID {
-
-    /**
-     * @param xid the input ID to decode or resolve
-     * @return the input resolved to a {@link UID}
-     * @throws IllegalArgumentException in case the decoding fails
-     */
-    UID decode(String xid) throws IllegalArgumentException;
-
-    /**
-     * @param xid the ID to use when input ID is null
-     * @return a wrapped decoder that uses the fallback ID in case the input id is null
-     */
-    static ToUID whenNullUse(@CheckForNull String xid, ToUID then) {
-      if (xid == null) return then;
-      return nullableXid -> then.decode(nullableXid == null ? xid : nullableXid);
-    }
-
-    /**
-     * @param msg a text describing the type of ID in case an exception is thrown because the input
-     *     was null
-     * @return a wrapped decoder that requires the input ID to be non-null, otherwise a {@link
-     *     IllegalArgumentException} will be thrown
-     */
-    static ToUID requireNonNull(@Nonnull String msg, ToUID then) {
-      return xid -> {
-        if (xid == null) throw new IllegalArgumentException("%s id cannot be null".formatted(msg));
-        return then.decode(xid);
-      };
-    }
-
-    /**
-     * @param xidToUid a mapping from input to mapped a UID
-     * @return a wrapped decoder forwarding a non-null input as mapped ID to the {@link
-     *     #decode(String)} function, throws a {@link IllegalArgumentException} in case there is no
-     *     mapped ID value
-     */
-    static ToUID mapBy(@Nonnull Map<String, String> xidToUid, ToUID then) {
-      return xid -> {
-        if (xid == null) return then.decode(null);
-        String mid = xidToUid.get(xid);
-        if (mid != null) return then.decode(mid);
-        throw new IllegalArgumentException("%s does not map to a UID".formatted(xid));
-      };
-    }
   }
 }

@@ -144,7 +144,7 @@ public class DataValueController {
       throws ConflictException, BadRequestException {
     UID aoc = UID.of(dataValidator.getAndValidateAttributeOptionCombo(cc, cp));
     dataEntryService.upsertDataValue(
-        force, ds, new DataEntryValue(de, ou, co, aoc, pe, value, comment, followUp, null));
+        force, ds, new DataEntryValue(0, de, ou, co, aoc, pe, value, comment, followUp, null));
   }
 
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)

@@ -30,7 +30,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import java.util.Optional;

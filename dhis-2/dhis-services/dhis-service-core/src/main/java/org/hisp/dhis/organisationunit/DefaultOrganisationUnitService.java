@@ -31,7 +31,7 @@ package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+import static org.hisp.dhis.util.TextUtils.joinHyphen;
 
 import com.google.common.collect.Sets;
 import java.awt.geom.Point2D;

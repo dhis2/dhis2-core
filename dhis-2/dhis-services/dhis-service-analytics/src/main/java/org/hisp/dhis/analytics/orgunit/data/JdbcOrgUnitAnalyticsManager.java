@@ -34,9 +34,9 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7302;
+import static org.hisp.dhis.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.util.TextUtils.getQuotedCommaDelimitedString;
 
 import java.util.HashMap;
 import java.util.HashSet;

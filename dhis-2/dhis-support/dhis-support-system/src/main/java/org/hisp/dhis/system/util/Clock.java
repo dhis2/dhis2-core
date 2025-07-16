@@ -31,7 +31,7 @@ package org.hisp.dhis.system.util;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

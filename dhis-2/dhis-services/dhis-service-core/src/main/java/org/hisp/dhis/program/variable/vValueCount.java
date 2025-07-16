@@ -30,8 +30,8 @@
 package org.hisp.dhis.program.variable;
 
 import java.util.Set;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.util.TextUtils;
 
 /**
  * Program indicator variable: value count

@@ -36,9 +36,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.common.InputId.ToUID.mapBy;
-import static org.hisp.dhis.common.InputId.ToUID.requireNonNull;
-import static org.hisp.dhis.common.InputId.ToUID.whenNullUse;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -50,14 +47,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
@@ -90,62 +86,80 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataEntryGroup decode(
-      DataEntryGroup.Input group, DataEntryGroup.Identifiers ids, JobProgress progress)
+  public DataEntryGroup decode(DataEntryGroup.Input group, DataEntryGroup.Identifiers ids)
       throws BadRequestException {
-    InputId.ToUID dsOf = UID::ofNullable;
-    InputId.ToUID deOf = whenNullUse(group.dataElement(), requireNonNull("data element", UID::of));
-    InputId.ToUID ouOf = whenNullUse(group.orgUnit(), requireNonNull("org unit", UID::of));
-    InputId.ToUID cocOf = UID::ofNullable;
-    InputId.ToUID aocOf = whenNullUse(group.attrOptionCombo(), UID::ofNullable);
+    UnaryOperator<String> isoOf = UnaryOperator.identity();
+    UnaryOperator<String> dsOf = UnaryOperator.identity();
+    UnaryOperator<String> deOf = UnaryOperator.identity();
+    UnaryOperator<String> ouOf = UnaryOperator.identity();
+    UnaryOperator<String> cocOf = UnaryOperator.identity();
+    UnaryOperator<String> aocOf = UnaryOperator.identity();
+
     String isoGroup = group.period();
-    Function<String, String> isoOf = iso -> iso != null ? iso : isoGroup;
+    if (isoGroup != null) isoOf = iso -> iso != null ? iso : isoGroup;
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
     if (ids != null) {
       if (dataSet != null && ids.dataSets().isNotUid())
-        dsOf = mapBy(store.mapToUid(KeyTable.DS, ids.dataSets(), Stream.of(dataSet)), dsOf);
+        dsOf = store.mapToUid(KeyTable.DS, ids.dataSets(), Stream.of(dataSet))::get;
       if (ids.dataElements().isNotUid()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
-        deOf = mapBy(store.mapToUid(KeyTable.DE, ids.dataElements(), deIds), deOf);
+        deOf = store.mapToUid(KeyTable.DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUid()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
-        ouOf = mapBy(store.mapToUid(KeyTable.OU, ids.orgUnits(), ouIds), ouOf);
+        ouOf = store.mapToUid(KeyTable.OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUid()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
-        cocOf = mapBy(store.mapToUid(KeyTable.COC, ids.categoryOptionCombos(), cocIds), cocOf);
+        cocOf = store.mapToUid(KeyTable.COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUid()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
-        aocOf = mapBy(store.mapToUid(KeyTable.COC, ids.attributeOptionCombos(), aocIds), aocOf);
+        aocOf = store.mapToUid(KeyTable.COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
     int i = 0;
+    String dsStr = dsOf.apply(dataSet);
+    if (dataSet != null && dsStr == null) throw new BadRequestException(ErrorCode.E7816, dataSet);
+    UID ds = dsStr == null ? null : decodeUID(dsStr);
+    if (dsStr != null && ds == null) throw new BadRequestException(ErrorCode.E7817, dsStr);
+    List<DataEntryValue> decoded = new ArrayList<>(values.size());
+    for (DataEntryValue.Input e : values) {
+      String pe = isoOf.apply(e.period());
+      if (pe == null) throw new BadRequestException(ErrorCode.E7818, i, e);
+      String deStr = deOf.apply(e.dataElement());
+      if (deStr == null) throw new BadRequestException(ErrorCode.E7819, i, e);
+      UID de = decodeUID(deStr);
+      if (de == null) throw new BadRequestException(ErrorCode.E7821, i, deStr);
+      String ouStr = ouOf.apply(e.orgUnit());
+      if (ouStr == null) throw new BadRequestException(ErrorCode.E7820, i, e);
+      UID ou = decodeUID(ouStr);
+      if (ou == null) throw new BadRequestException(ErrorCode.E7822, i, ouStr);
+      String cocStr = cocOf.apply(e.categoryOptionCombo());
+      if (cocStr == null && e.categoryOptionCombo() != null)
+        throw new BadRequestException(ErrorCode.E7823, i, e.categoryOptionCombo());
+      UID coc = decodeUID(cocStr);
+      if (coc == null && cocStr != null) throw new BadRequestException(ErrorCode.E7824, i, cocStr);
+      String aocStr = aocOf.apply(e.attributeOptionCombo());
+      if (aocStr == null && e.attributeOptionCombo() != null)
+        throw new BadRequestException(ErrorCode.E7825, i, e.attributeOptionCombo());
+      UID aoc = decodeUID(aocStr);
+      if (aoc == null && aocStr != null) throw new BadRequestException(ErrorCode.E7826, i, aocStr);
+
+      decoded.add(
+          new DataEntryValue(
+              i++, de, ou, coc, aoc, pe, e.value(), e.comment(), e.followUp(), null));
+    }
+    return new DataEntryGroup(ds, decoded);
+  }
+
+  private static UID decodeUID(String uid) {
+    if (uid == null) return null;
     try {
-      UID ds = dsOf.decode(dataSet);
-      // progress.startingStage("Unifying %d values...".formatted(values.size()));
-      List<DataEntryValue> decoded = new ArrayList<>(values.size());
-      for (DataEntryValue.Input e : values) {
-        DataEntryValue dv =
-            new DataEntryValue(
-                i,
-                deOf.decode(e.dataElement()),
-                ouOf.decode(e.orgUnit()),
-                cocOf.decode(e.categoryOptionCombo()),
-                aocOf.decode(e.attributeOptionCombo()),
-                isoOf.apply(e.period()),
-                e.value(),
-                e.comment(),
-                e.followUp(),
-                null);
-        decoded.add(dv);
-        i++;
-      }
-      return new DataEntryGroup(ds, decoded);
-    } catch (IllegalArgumentException ex) {
-      throw new BadRequestException("");
+      return UID.of(uid);
+    } catch (RuntimeException ex) {
+      return null;
     }
   }
 
@@ -215,7 +229,7 @@ public class DefaultDataEntryService implements DataEntryService {
         progress.runStageAndRethrow(
             ConflictException.class, () -> validate(options.force(), ds, values, errors));
     if (options.atomic() && values.size() > validValues.size())
-      throw new ConflictException(ErrorCode.E7625, validValues.size(), values.size());
+      throw new ConflictException(ErrorCode.E7808, validValues.size(), values.size());
 
     progress.startingStage("Importing %d values...".formatted(validValues.size()));
     int imported =
@@ -247,10 +261,10 @@ public class DefaultDataEntryService implements DataEntryService {
       List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
       if (dsForDe.isEmpty())
         throw new ConflictException(
-            ErrorCode.E7605,
+            ErrorCode.E7801,
             "",
             values.stream().map(DataEntryValue::dataElement).distinct().toList());
-      if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7606, dsForDe);
+      if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7802, dsForDe);
       ds = UID.of(dsForDe.get(0));
     }
 
@@ -267,16 +281,16 @@ public class DefaultDataEntryService implements DataEntryService {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return; // super always can
 
+    // - require: DS ACL check canDataWrite
+    boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
+    if (!dsNoAccess) throw new ConflictException(ErrorCode.E7815, ds);
+
     // - require: OUs are in user hierarchy
     String userId = user.getUid();
     List<String> noAccessOrgUnits =
         store.getOrgUnitsNotInUserHierarchy(
             UID.of(userId), values.stream().map(DataEntryValue::orgUnit));
-    if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7610, noAccessOrgUnits);
-
-    // - require: DS ACL check canDataWrite
-    boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
-    if (!dsNoAccess) throw new ConflictException(ErrorCode.E7601, ds);
+    if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E7814, noAccessOrgUnits);
 
     // - require: AOCs + COCs => COs : ACL canDataWrite
     List<String> coNoAccess =
@@ -284,7 +298,7 @@ public class DefaultDataEntryService implements DataEntryService {
             Stream.concat(
                 values.stream().map(DataEntryValue::attributeOptionCombo),
                 values.stream().map(DataEntryValue::categoryOptionCombo)));
-    if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7627, coNoAccess);
+    if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E7810, coNoAccess);
   }
 
   /**
@@ -295,23 +309,23 @@ public class DefaultDataEntryService implements DataEntryService {
     // - require: DEs must belong to the specified DS
     List<String> deNotInDs =
         store.getDataElementsNotInDataSet(ds, values.stream().map(DataEntryValue::dataElement));
-    if (!deNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7605, ds, deNotInDs);
+    if (!deNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7801, ds, deNotInDs);
 
     // - require: OU must be a source of the DS for the DE
     List<String> ouNotInDs =
         store.getOrgUnitsNotInDataSet(ds, values.stream().map(DataEntryValue::orgUnit));
-    if (!ouNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7609, ds, ouNotInDs);
+    if (!ouNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7805, ds, ouNotInDs);
 
     // - require: PE ISO must be of PT used by the DS
     List<String> isoNotUsableInDs =
         store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(DataEntryValue::period));
     if (!isoNotUsableInDs.isEmpty())
-      throw new ConflictException(ErrorCode.E7608, ds, isoNotUsableInDs);
+      throw new ConflictException(ErrorCode.E7804, ds, isoNotUsableInDs);
 
     // - require: AOC must link (belong) to the CC of the DS
     List<String> aocNotInDs =
         store.getAocNotInDataSet(ds, values.stream().map(DataEntryValue::attributeOptionCombo));
-    if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7623, ds, aocNotInDs);
+    if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7806, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
     Map<UID, List<DataEntryValue>> valuesByDe =
@@ -321,22 +335,27 @@ public class DefaultDataEntryService implements DataEntryService {
       List<String> cocNotInDs =
           store.getCocNotInDataSet(
               ds, de, e.getValue().stream().map(DataEntryValue::categoryOptionCombo));
-      if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7624, ds, de, cocNotInDs);
+      if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E7807, ds, de, cocNotInDs);
     }
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
-    List<String> aocOuRestricted =
-        store.getAocWithOrgUnitHierarchy(values.stream().map(DataEntryValue::attributeOptionCombo));
+    Set<String> aocOuRestricted =
+        Set.copyOf(
+            store.getAocWithOrgUnitHierarchy(
+                values.stream().map(DataEntryValue::attributeOptionCombo)));
     if (!aocOuRestricted.isEmpty()) {
       Map<UID, List<DataEntryValue>> ouByAoc =
-          values.stream().collect(groupingBy(DataEntryValue::attributeOptionCombo));
+          values.stream()
+              .filter(dv -> dv.attributeOptionCombo() != null)
+              .filter(dv -> aocOuRestricted.contains(dv.attributeOptionCombo().getValue()))
+              .collect(groupingBy(DataEntryValue::attributeOptionCombo));
       for (Map.Entry<UID, List<DataEntryValue>> e : ouByAoc.entrySet()) {
         UID aoc = e.getKey();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
         List<String> ouNotInAoc =
             store.getOrgUnitsNotInAocHierarchy(
                 aoc, e.getValue().stream().map(DataEntryValue::orgUnit));
-        if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E7628, aoc, ouNotInAoc);
+        if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E7811, aoc, ouNotInAoc);
       }
     }
 
@@ -374,7 +393,7 @@ public class DefaultDataEntryService implements DataEntryService {
               .map(dv -> dv.period() + "-" + dv.orgUnit())
               .distinct()
               .toList();
-      if (!peNotInOuSpan.isEmpty()) throw new ConflictException(ErrorCode.E7654, peNotInOuSpan);
+      if (!peNotInOuSpan.isEmpty()) throw new ConflictException(ErrorCode.E7813, peNotInOuSpan);
     }
   }
 
@@ -393,7 +412,6 @@ public class DefaultDataEntryService implements DataEntryService {
         store.getCommentOptionsByDataElements(dataElements.stream());
     Map<String, ValueType> valueTypeByDe = store.getValueTypeByDataElements(dataElements.stream());
 
-    int index = 0;
     List<DataEntryValue> res = new ArrayList<>(values.size());
     for (DataEntryValue e : values) {
       String de = e.dataElement().getValue();
@@ -433,7 +451,6 @@ public class DefaultDataEntryService implements DataEntryService {
           }
         }
       }
-      index++;
     }
     return res;
   }
@@ -491,7 +508,7 @@ public class DefaultDataEntryService implements DataEntryService {
                   .distinct()
                   .toList();
           if (!isoNoLongerOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E7629, ds, isoNoLongerOpen);
+            throw new ConflictException(ErrorCode.E7812, ds, isoNoLongerOpen);
         }
 
         if (expiryDays >= 0) {
@@ -506,7 +523,7 @@ public class DefaultDataEntryService implements DataEntryService {
                   .filter(iso -> PeriodType.getPeriodFromIsoString(iso).isAfter(latestOpen))
                   .toList();
           if (!isoNotYetOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E7629, ds, isoNotYetOpen);
+            throw new ConflictException(ErrorCode.E7812, ds, isoNotYetOpen);
         }
       }
     } else {
@@ -523,14 +540,17 @@ public class DefaultDataEntryService implements DataEntryService {
               .map(DataEntryValue::period)
               .distinct()
               .toList();
-      if (!isoNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E7629, ds, isoNotOpen);
+      if (!isoNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E7812, ds, isoNotOpen);
     }
 
     // - require: DS not already approved (data approval)
-    List<String> aocInApproval = store.getDataSetAocInApproval(ds);
+    Set<String> aocInApproval = Set.copyOf(store.getDataSetAocInApproval(ds));
     if (!aocInApproval.isEmpty()) {
       Map<UID, List<DataEntryValue>> byAoc =
-          values.stream().collect(groupingBy(DataEntryValue::attributeOptionCombo));
+          values.stream()
+              .filter(dv -> dv.attributeOptionCombo() != null)
+              .filter(dv -> aocInApproval.contains(dv.attributeOptionCombo().getValue()))
+              .collect(groupingBy(DataEntryValue::attributeOptionCombo));
       for (Map.Entry<UID, List<DataEntryValue>> e : byAoc.entrySet()) {
         UID aoc = e.getKey();
         if (!aocInApproval.contains(aoc.getValue())) continue;
@@ -550,7 +570,7 @@ public class DefaultDataEntryService implements DataEntryService {
                   .distinct()
                   .toList();
           if (!ouPeInApproval.isEmpty())
-            throw new ConflictException(ErrorCode.E7626, aoc, ouPeInApproval);
+            throw new ConflictException(ErrorCode.E7809, aoc, ouPeInApproval);
         }
       }
     }

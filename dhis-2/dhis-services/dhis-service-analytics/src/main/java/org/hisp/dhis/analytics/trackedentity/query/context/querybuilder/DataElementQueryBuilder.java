@@ -34,8 +34,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 import static org.hisp.dhis.system.grid.ListGrid.LEGEND;
+import static org.hisp.dhis.util.TextUtils.doubleQuote;
 
 import java.util.Collection;
 import java.util.List;

@@ -36,8 +36,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.experimental.UtilityClass;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.util.TextUtils;
 
 @UtilityClass
 public class AnalyticsStringUtils {

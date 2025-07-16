@@ -30,8 +30,8 @@
 package org.hisp.dhis.validation.notification;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.commons.util.TextUtils.LN;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.util.TextUtils.LN;
 import static org.hisp.dhis.validation.Importance.HIGH;
 import static org.hisp.dhis.validation.Importance.LOW;
 import static org.hisp.dhis.validation.Importance.MEDIUM;

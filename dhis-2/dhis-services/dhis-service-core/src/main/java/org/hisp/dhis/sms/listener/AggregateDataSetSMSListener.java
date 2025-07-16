@@ -52,7 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -175,9 +174,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
     DataEntryGroup.Input request = new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
     try {
-      JobProgress progress = transitory();
-      DataEntryGroup group = dataEntryService.decode(request, null, progress);
-      DataEntrySummary result = dataEntryService.upsertDataValueGroup(options, group, progress);
+      DataEntryGroup group = dataEntryService.decode(request, null);
+      DataEntrySummary result = dataEntryService.upsertDataValueGroup(options, group, transitory());
       if (!result.errors().isEmpty())
         return SmsResponse.WARN_DVERR.setList(
             result.errors().stream()
@@ -188,13 +186,13 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       switch (ex.getCode()) {
         case E7601:
           throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(ds));
-        case E7608:
+        case E7804:
           throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(pe));
-        case E7623:
+        case E7806:
           throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aoc));
-        case E7609, E7628:
+        case E7805, E7811:
           throw new SMSProcessingException(SmsResponse.OU_NOTIN_DATASET.set(ou, ds));
-        case E7629, E7626:
+        case E7812, E7809:
           throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(ds, pe));
         default:
           throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);

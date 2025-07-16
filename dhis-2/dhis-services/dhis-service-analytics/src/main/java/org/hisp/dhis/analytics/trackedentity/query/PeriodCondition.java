@@ -32,8 +32,8 @@ package org.hisp.dhis.analytics.trackedentity.query;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+import static org.hisp.dhis.util.TextUtils.EMPTY;
 
 import java.util.Date;
 import java.util.List;

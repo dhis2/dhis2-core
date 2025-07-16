@@ -31,8 +31,6 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
-import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -40,6 +38,8 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.TextUtils.emptyIfTrue;
+import static org.hisp.dhis.util.TextUtils.format;
 
 import java.util.ArrayList;
 import java.util.Date;

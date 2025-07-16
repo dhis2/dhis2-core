@@ -37,14 +37,14 @@ import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
-import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
-import static org.hisp.dhis.commons.util.TextUtils.format;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+import static org.hisp.dhis.util.TextUtils.emptyIfTrue;
+import static org.hisp.dhis.util.TextUtils.format;
+import static org.hisp.dhis.util.TextUtils.replace;
 
 import java.time.Year;
 import java.util.ArrayList;

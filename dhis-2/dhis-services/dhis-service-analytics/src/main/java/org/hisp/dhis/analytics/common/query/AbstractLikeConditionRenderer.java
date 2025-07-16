@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.util.TextUtils.SPACE;
 
 import java.util.function.Function;
 import javax.annotation.Nonnull;

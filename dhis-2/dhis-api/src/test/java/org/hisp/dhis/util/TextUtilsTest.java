@@ -27,11 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.util;
+package org.hisp.dhis.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
+import static org.hisp.dhis.util.TextUtils.removeAnyTrailingSlash;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.hisp.dhis.util.MapBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -206,6 +205,15 @@ class TextUtilsTest {
         TextUtils.replace(
             "Welcome ${first_name} ${last_name}",
             Map.of("first_name", "John", "last_name", "Doe")));
+  }
+
+  @Test
+  void testReplaceWithIndex() {
+    assertEquals(
+        "Attribute option combo {0} not connected to org unit(s): `{1}`",
+        TextUtils.replace(
+            "Attribute option combo ${aoc:{0}} not connected to org unit(s): `${units:{1}}`",
+            Map.of()));
   }
 
   @Test

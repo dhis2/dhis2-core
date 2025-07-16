@@ -46,8 +46,7 @@ import org.hisp.dhis.scheduling.JobProgress;
  */
 public interface DataEntryService {
 
-  DataEntryGroup decode(
-      DataEntryGroup.Input request, DataEntryGroup.Identifiers identifiers, JobProgress progress)
+  DataEntryGroup decode(DataEntryGroup.Input request, DataEntryGroup.Identifiers identifiers)
       throws BadRequestException;
 
   List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed, JobProgress progress);
