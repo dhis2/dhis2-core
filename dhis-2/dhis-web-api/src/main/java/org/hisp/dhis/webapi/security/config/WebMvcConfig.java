@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.parseMediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -67,7 +66,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.io.Resource;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -91,8 +89,6 @@ import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfigu
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.servlet.resource.PathResourceResolver;
-import org.springframework.web.servlet.resource.ResourceResolverChain;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -135,32 +131,14 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired private FieldFilterService fieldFilterService;
 
-  static class IndexFallbackResourceResolver extends PathResourceResolver {
-    @Override
-    protected Resource resolveResourceInternal(
-        HttpServletRequest request,
-        String requestPath,
-        List<? extends Resource> locations,
-        ResourceResolverChain chain) {
-      Resource resource = super.resolveResourceInternal(request, requestPath, locations, chain);
-      if (resource == null) {
-        // try with /index.html
-        resource =
-            super.resolveResourceInternal(request, requestPath + "/index.html", locations, chain);
-      }
-      return resource;
-    }
-  }
-
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry
         .setOrder(Ordered.LOWEST_PRECEDENCE)
         .addResourceHandler("/**")
-        .addResourceLocations("classpath:/static/", "file:./dhis-web-apps/target/dhis-web-apps/")
+        .addResourceLocations("classpath:/static/")
         // .setCachePeriod(3600)
-        .resourceChain(false)
-        .addResolver(new IndexFallbackResourceResolver());
+        .resourceChain(false);
   }
 
   @Bean

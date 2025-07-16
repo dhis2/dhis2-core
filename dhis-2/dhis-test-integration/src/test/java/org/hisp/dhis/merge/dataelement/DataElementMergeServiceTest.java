@@ -123,7 +123,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -176,7 +176,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private DataElement deSource1;
@@ -2576,14 +2576,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     // then
     List<EventChangeLog> sourceEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deSource1.getUid(), deSource2.getUid()));
 
     List<EventChangeLog> targetEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deTarget.getUid()));
@@ -2634,14 +2634,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     // then
     List<EventChangeLog> sourceEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deSource1.getUid(), deSource2.getUid()));
 
     List<EventChangeLog> targetEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deTarget.getUid()));
@@ -2657,7 +2657,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addEventChangeLog(Event event, DataElement dataElement, String currentValue) {
-    eventChangeLogService.addEventChangeLog(
+    trackerEventChangeLogService.addEventChangeLog(
         event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
@@ -2756,7 +2756,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   private List<EventChangeLog> filterByDataElement(
       List<EventChangeLog> changeLogs, Set<String> dataElements) {
     return changeLogs.stream()
-        .filter(cl -> dataElements.contains(cl.getDataElement().getUid()))
+        .filter(cl -> dataElements.contains(cl.dataElement().getUid()))
         .toList();
   }
 }
