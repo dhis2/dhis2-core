@@ -29,12 +29,27 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.EW;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.QueryOperator.LE;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
+import static org.hisp.dhis.common.QueryOperator.SW;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -115,6 +130,20 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertMinCharactersToSearch(trackedEntityAttributes, "TsfP85GKsU5", 0);
   }
 
+  @Test
+  void shouldSetAllowedOperatorsFromImportOrAllowAllIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertAllowedSearchOperators(trackedEntityAttributes, "sTGqP5JNy6E", List.of(LIKE, EQ, GT, LT));
+    assertAllowedSearchOperators(
+        trackedEntityAttributes, "sYn3tkL3XKa", List.of(LIKE, NLIKE, EQ, NEQ));
+    assertAllowedSearchOperators(
+        trackedEntityAttributes,
+        "TsfP85GKsU5",
+        List.of(EQ, GT, GE, LT, LE, LIKE, IN, SW, EW, NULL, NNULL));
+  }
+
   private void assertMinCharactersToSearch(
       List<TrackedEntityAttribute> teas, String uid, int expected) {
     TrackedEntityAttribute tea =
@@ -128,5 +157,17 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         expected,
         tea.getMinCharactersToSearch(),
         "Expected minCharactersToSearch for UID " + uid + " to be " + expected);
+  }
+
+  private void assertAllowedSearchOperators(
+      List<TrackedEntityAttribute> teas, String uid, List<QueryOperator> expectedOperators) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertContainsOnly(expectedOperators, tea.getAllowedSearchOperators());
   }
 }

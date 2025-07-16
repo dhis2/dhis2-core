@@ -36,12 +36,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
@@ -100,6 +102,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   private Boolean skipSynchronization = false;
 
   private int minCharactersToSearch;
+
+  private Set<QueryOperator> allowedSearchOperators;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -379,6 +383,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setMinCharactersToSearch(int minCharactersToSearch) {
     this.minCharactersToSearch = minCharactersToSearch;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<QueryOperator> getAllowedSearchOperators() {
+    return allowedSearchOperators;
+  }
+
+  public void setAllowedSearchOperators(Set<QueryOperator> preferredSearchOperator) {
+    this.allowedSearchOperators = preferredSearchOperator;
   }
 
   @JsonProperty

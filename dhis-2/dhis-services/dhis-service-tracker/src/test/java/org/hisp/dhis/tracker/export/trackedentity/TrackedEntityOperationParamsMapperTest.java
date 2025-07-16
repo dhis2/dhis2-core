@@ -34,8 +34,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.common.QueryOperator.NULL;
+import static org.hisp.dhis.common.QueryOperator.SW;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -186,11 +190,13 @@ class TrackedEntityOperationParamsMapperTest {
     tea1.setValueType(ValueType.INTEGER);
     tea1.setUid(TEA_1_UID.getValue());
     tea1.setMinCharactersToSearch(0);
+    tea1.setAllowedSearchOperators(Set.of(LT, GT, EQ, NULL, LIKE));
 
     tea2 = new TrackedEntityAttribute();
     tea2.setValueType(ValueType.TEXT);
     tea2.setUid(TEA_2_UID.getValue());
     tea2.setMinCharactersToSearch(0);
+    tea2.setAllowedSearchOperators(Set.of(LIKE, NNULL, SW));
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
@@ -321,11 +327,7 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .program(program)
-            .filterBy(
-                TEA_1_UID,
-                List.of(
-                    new QueryFilter(QueryOperator.GT, "10"),
-                    new QueryFilter(QueryOperator.LT, "20")))
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(GT, "10"), new QueryFilter(LT, "20")))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -634,6 +636,58 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityQueryParams queryParams = mapper.map(trackedEntityOperationParams, user);
     assertContainsOnly(
         List.of(TEA_1_UID.getValue()), UID.toUidValueSet(queryParams.getFilters().keySet()));
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenOperatorsAreAllowed()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(
+                TEA_2_UID,
+                List.of(
+                    new QueryFilter(LIKE, "12"), new QueryFilter(NNULL), new QueryFilter(SW, "0")))
+            .build();
+
+    TrackedEntityQueryParams queryParams = mapper.map(trackedEntityOperationParams, user);
+    assertContainsOnly(
+        List.of(TEA_2_UID.getValue()), UID.toUidValueSet(queryParams.getFilters().keySet()));
+  }
+
+  @Test
+  void shouldNotMapAttributeFiltersWhenOperatorsAreNotAllowed()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(
+                TEA_2_UID,
+                List.of(
+                    new QueryFilter(LIKE, "12"),
+                    new QueryFilter(EQ, "0"),
+                    new QueryFilter(LT, "0")))
+            .build();
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
+    assertStartsWith(
+        "Operators [EQ, LT] are not allowed for attribute 'cy2oRh2sNr6'", exception.getMessage());
   }
 
   private static void assertQueryFilterValue(

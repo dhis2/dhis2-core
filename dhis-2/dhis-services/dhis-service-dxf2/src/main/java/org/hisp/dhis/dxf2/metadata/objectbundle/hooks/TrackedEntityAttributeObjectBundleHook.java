@@ -30,7 +30,9 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -70,6 +72,15 @@ public class TrackedEntityAttributeObjectBundleHook
                 attr.getFieldMask(),
                 "Not a valid TextPattern 'TEXT' segment."));
       }
+    }
+
+    if (attr.getAllowedSearchOperators() == null || attr.getAllowedSearchOperators().isEmpty()) {
+      attr.setAllowedSearchOperators(QueryOperator.TRACKER_OPERATORS);
+    } else {
+      attr.setAllowedSearchOperators(
+          attr.getAllowedSearchOperators().stream()
+              .map(QueryOperator::mapToTrackerQueryOperator)
+              .collect(Collectors.toSet()));
     }
   }
 

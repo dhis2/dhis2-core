@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -36,6 +37,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -286,6 +288,18 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
     assertAttributeList(json, Set.of());
   }
 
+  @Test
+  void shouldContainAllowedSearchOperatorsWhenSet() {
+    teaA.setAllowedSearchOperators(Set.of(QueryOperator.LIKE, QueryOperator.NNULL));
+    manager.update(teaA);
+
+    JsonObject json =
+        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
+            .content(HttpStatus.OK);
+
+    assertAttributeAllowedOperators(json, Set.of("LIKE", "NNULL"));
+  }
+
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {
     assertFalse(actualJson.isEmpty());
     assertEquals(expected.size(), actualJson.getArray("trackedEntityAttributes").size());
@@ -297,5 +311,19 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
             .stream()
             .map(JsonString::string)
             .collect(Collectors.toSet()));
+  }
+
+  private static void assertAttributeAllowedOperators(JsonObject actualJson, Set<String> expected) {
+    assertFalse(actualJson.isEmpty());
+
+    Set<String> actual =
+        actualJson
+            .getArray("trackedEntityAttributes")
+            .projectAsList(e -> e.asObject().getArray("allowedSearchOperators"))
+            .stream()
+            .flatMap(arr -> arr.stream().map(val -> val.as(JsonString.class).string()))
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(expected, actual);
   }
 }

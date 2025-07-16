@@ -92,6 +92,7 @@
 
     <property name="minCharactersToSearch" column="mincharacterstosearch" />
 
+    <property name="allowedSearchOperators" column="allowedsearchoperators" type="jsbAllowedOperators" />
   </class>
 
 </hibernate-mapping>

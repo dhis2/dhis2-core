@@ -207,5 +207,7 @@
     <param name="clazz">java.lang.String</param>
   </typedef>
 
-
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jsbAllowedOperators">
+    <param name="clazz">org.hisp.dhis.common.QueryOperator</param>
+  </typedef>
 </hibernate-mapping>
