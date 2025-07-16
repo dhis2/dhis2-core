@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -115,11 +114,11 @@ public class FieldFilterService {
   private ObjectMapper configureFieldFilterObjectMapper(ObjectMapper objectMapper) {
     objectMapper = objectMapper.copy();
 
-    SimpleModule module = new SimpleModule();
-    module.setMixInAnnotation(Object.class, FieldFilterMixin.class);
+//    SimpleModule module = new SimpleModule();
+//    module.setMixInAnnotation(Object.class, FieldFilterMixin.class);
 
-    objectMapper.registerModule(module);
-    objectMapper.setAnnotationIntrospector(new IgnoreJsonSerializerRefinementAnnotationInspector());
+//    objectMapper.registerModule(module);
+//    objectMapper.setAnnotationIntrospector(new IgnoreJsonSerializerRefinementAnnotationInspector());
 
     return objectMapper;
   }
@@ -254,12 +253,13 @@ public class FieldFilterService {
     List<FieldPath> paths =
         fieldPathHelper.apply(filter, HibernateProxyUtils.getRealClass(firstObject));
 
-    SimpleFilterProvider filterProvider =
-        getSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
-
-    // only set filter provider on a local copy so that we don't affect
-    // other object mappers (running across other threads)
-    ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider(filterProvider);
+    // SimpleFilterProvider filterProvider =
+    //     getSimpleFilterProvider(paths, isSkipSharing, excludeDefaults);
+    //
+    // // only set filter provider on a local copy so that we don't affect
+    // // other object mappers (running across other threads)
+    // ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider(filterProvider);
+    ObjectMapper objectMapper = jsonMapper.copy();
 
     Map<String, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
     List<FieldPath> absoluteAttributePaths = getAttributePropertyPathsInAttributeValues(paths);

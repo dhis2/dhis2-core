@@ -115,6 +115,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     return false;
   }
 
+  // TODO(ivo) this shows up in alloc profile, the insert at offset 0 looks bad, try to understand what this even does
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {
     StringBuilder nestedPath = new StringBuilder();
     JsonStreamContext sc = jgen.getOutputContext();
