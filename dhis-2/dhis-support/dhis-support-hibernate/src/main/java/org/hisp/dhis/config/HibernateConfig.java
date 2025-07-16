@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CACHE_EHCACHE_CONFIG_FILE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -43,9 +40,6 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
-import org.hibernate.cache.jcache.ConfigSettings;
-import org.hibernate.cache.jcache.MissingCacheStrategy;
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.tool.schema.Action;
@@ -164,19 +158,8 @@ public class HibernateConfig {
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
 
-    if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
-      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
-      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
-      properties.put(
-          ConfigSettings.MISSING_CACHE_STRATEGY,
-          MissingCacheStrategy.CREATE.getExternalRepresentation());
-      // Specify the location of the Ehcache 3 configuration file
-      String configFile = dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE);
-      if (!configFile.isBlank()) {
-        properties.put(ConfigSettings.CONFIG_URI, configFile);
-      }
-    }
+    properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "false");
+    properties.put(AvailableSettings.USE_QUERY_CACHE, "false");
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
