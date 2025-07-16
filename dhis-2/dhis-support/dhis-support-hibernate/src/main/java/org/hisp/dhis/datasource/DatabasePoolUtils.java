@@ -120,7 +120,7 @@ public final class DatabasePoolUtils {
             .put(CONNECTION_POOL_MAX_SIZE, ANALYTICS_CONNECTION_POOL_MAX_SIZE)
             .put(CONNECTION_POOL_TEST_QUERY, ANALYTICS_CONNECTION_POOL_TEST_QUERY)
             .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
-                /* hikari-specific */
+            /* hikari-specific */
             .put(CONNECTION_POOL_TIMEOUT, ANALYTICS_CONNECTION_POOL_TIMEOUT)
             .put(CONNECTION_POOL_VALIDATION_TIMEOUT, ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT)
             /* C3P0-specific */
@@ -365,7 +365,11 @@ public final class DatabasePoolUtils {
 
   private static void logC3p0UnusedSettingsWarning(
       DhisConfigurationProvider dhisConfig, DbPoolType dbPoolType) {
-    Consumer<ConfigurationKey> logConsumer = configurationKey -> log.warn("`{}` C3P0 setting is not used anymore because the default database pool type is set to `hikari` since DHIS2 v43. Remove this C3P0 setting from your `dhis.conf`. Future versions of DHIS2 may stop giving this warning.", configurationKey.getKey());
+    Consumer<ConfigurationKey> logConsumer =
+        configurationKey ->
+            log.warn(
+                "`{}` C3P0 setting is not used anymore because the default database pool type is set to `hikari` since DHIS2 v43. Remove this C3P0 setting from your `dhis.conf`. Future versions of DHIS2 may stop giving this warning.",
+                configurationKey.getKey());
     if (!dbPoolType.equals(DbPoolType.C3P0)) {
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_MIN_SIZE, logConsumer);
       applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_MIN_SIZE, logConsumer);
@@ -375,12 +379,15 @@ public final class DatabasePoolUtils {
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS, logConsumer);
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_ACQUIRE_RETRY_DELAY, logConsumer);
       applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR, logConsumer);
-      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS, logConsumer);
+      applyIfPropertyExists(
+          dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS, logConsumer);
       applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY, logConsumer);
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, logConsumer);
-      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, logConsumer);
+      applyIfPropertyExists(
+          dhisConfig, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, logConsumer);
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_IDLE_CON_TEST_PERIOD, logConsumer);
-      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD, logConsumer);
+      applyIfPropertyExists(
+          dhisConfig, ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD, logConsumer);
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_TEST_ON_CHECKOUT, logConsumer);
       applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKOUT, logConsumer);
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_TEST_ON_CHECKIN, logConsumer);
@@ -390,10 +397,13 @@ public final class DatabasePoolUtils {
     }
   }
 
-  private static void applyIfPropertyExists(DhisConfigurationProvider dhisConfig, ConfigurationKey configurationKey, Consumer<ConfigurationKey> consumer) {
-      if (dhisConfig.hasProperty(configurationKey)) {
-        consumer.accept(configurationKey);
-      }
+  private static void applyIfPropertyExists(
+      DhisConfigurationProvider dhisConfig,
+      ConfigurationKey configurationKey,
+      Consumer<ConfigurationKey> consumer) {
+    if (dhisConfig.hasProperty(configurationKey)) {
+      consumer.accept(configurationKey);
+    }
   }
 
   /** Creates a data source with no connection pool. */
