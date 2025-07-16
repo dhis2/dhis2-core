@@ -31,14 +31,14 @@ package org.hisp.dhis.program.comparator;
 
 import java.util.Comparator;
 import java.util.Date;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 
 /**
  * @author Chau Thu Tran
  */
-public class EventVisitDateComparator implements Comparator<Event> {
+public class EventVisitDateComparator implements Comparator<TrackerEvent> {
   @Override
-  public int compare(Event event1, Event event2) {
+  public int compare(TrackerEvent event1, TrackerEvent event2) {
     Date d1 =
         (event1.getOccurredDate() != null) ? event1.getOccurredDate() : event1.getScheduledDate();
     Date d2 =

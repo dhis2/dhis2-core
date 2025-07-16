@@ -52,10 +52,10 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -109,8 +109,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   private TrackedEntityType trackedEntityType;
 
-  private Event event1;
-  private Event event2;
+  private TrackerEvent event1;
+  private TrackerEvent event2;
   private RelationshipType relType;
 
   @BeforeEach
@@ -291,8 +291,12 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
     return enrollment;
   }
 
-  private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(Enrollment enrollment) {
+    TrackerEvent event = new TrackerEvent();
+    event.setEnrollment(enrollment);
+    event.setProgramStage(programStage);
+    event.setOrganisationUnit(enrollment.getOrganisationUnit());
+    event.setAttributeOptionCombo(coc);
     event.setAutoFields();
     manager.save(event);
     return event;

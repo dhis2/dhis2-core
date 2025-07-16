@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
+public class EventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> {
   @Override
   protected void registerHandler() {
     whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);

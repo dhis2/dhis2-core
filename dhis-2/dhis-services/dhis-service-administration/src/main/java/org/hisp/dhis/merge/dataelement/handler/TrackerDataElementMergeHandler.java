@@ -41,7 +41,6 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
@@ -49,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -203,17 +203,17 @@ public class TrackerDataElementMergeHandler {
   }
 
   /**
-   * Method retrieving {@link Event}s by source {@link DataElement} references present in their
-   * {@link EventDataValue}s. All retrieved {@link Event}s will have their {@link DataElement} ref
-   * in {@link EventDataValue}s replaced with the target {@link DataElement}.
+   * Method retrieving {@link TrackerEvent}s by source {@link DataElement} references present in
+   * their {@link EventDataValue}s. All retrieved {@link TrackerEvent}s will have their {@link
+   * DataElement} ref in {@link EventDataValue}s replaced with the target {@link DataElement}.
    *
    * <p>A native query to retrieve events is required here as Hibernate does not support json
    * functions in the query. Because of this, all events are then updated at the end of this method,
    * which should prevent inconsistent state between Hibernate/JPA
    *
-   * @param sources source {@link DataElement}s used to retrieve {@link Event}s
-   * @param target {@link DataElement} which will be set as the {@link DataElement} in {@link Event}
-   *     eventDataValues
+   * @param sources source {@link DataElement}s used to retrieve {@link TrackerEvent}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} in {@link
+   *     TrackerEvent} eventDataValues
    * @param request merge request
    */
   public void handleEventDataValues(

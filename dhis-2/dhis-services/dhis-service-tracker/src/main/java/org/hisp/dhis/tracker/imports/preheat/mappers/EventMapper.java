@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -42,7 +42,7 @@ import org.mapstruct.factory.Mappers;
       OrganisationUnitMapper.class,
       EnrollmentMapper.class
     })
-public interface EventMapper extends PreheatMapper<Event> {
+public interface EventMapper extends PreheatMapper<TrackerEvent> {
   EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
@@ -65,5 +65,5 @@ public interface EventMapper extends PreheatMapper<Event> {
   @Mapping(target = "createdByUserInfo")
   @Mapping(target = "lastUpdatedByUserInfo")
   @Mapping(target = "geometry")
-  Event map(Event event);
+  TrackerEvent map(TrackerEvent event);
 }

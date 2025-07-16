@@ -34,25 +34,26 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.springframework.stereotype.Service;
 
 @Service("org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService")
 public class TrackerEventChangeLogService
-    extends EventChangeLogService<TrackerEventChangeLog, Event> {
+    extends EventChangeLogService<TrackerEventChangeLog, TrackerEvent> {
 
   protected TrackerEventChangeLogService(
       TrackerEventService trackerEventService,
-      HibernateEventChangeLogStore<TrackerEventChangeLog, Event> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<TrackerEventChangeLog, TrackerEvent>
+          hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     super(trackerEventService, hibernateEventChangeLogStore, config);
   }
 
   @Override
   public TrackerEventChangeLog buildEventChangeLog(
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -66,24 +67,24 @@ public class TrackerEventChangeLogService
 
   @Override
   public void addEntityFieldChangeLog(
-      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+      @Nonnull TrackerEvent currentEvent, @Nonnull TrackerEvent event, @Nonnull String username) {
     logIfChanged(
         "scheduledAt",
-        Event::getScheduledDate,
+        TrackerEvent::getScheduledDate,
         EventChangeLogService::formatDate,
         currentEvent,
         event,
         username);
     logIfChanged(
         "occurredAt",
-        Event::getOccurredDate,
+        TrackerEvent::getOccurredDate,
         EventChangeLogService::formatDate,
         currentEvent,
         event,
         username);
     logIfChanged(
         "geometry",
-        Event::getGeometry,
+        TrackerEvent::getGeometry,
         EventChangeLogService::formatGeometry,
         currentEvent,
         event,

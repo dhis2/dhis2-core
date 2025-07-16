@@ -48,7 +48,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -57,7 +57,6 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.joda.time.LocalDateTime;
@@ -120,7 +119,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       String field, SortDirection sortDirection) throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = getFirstDataElement(event);
 
     updateDataValues(event, dataElementUid, "20", "25");
@@ -143,7 +142,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.ASC).build();
 
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = getFirstDataElement(event);
 
     updateDataValues(event, dataElementUid, "20", "25");
@@ -165,7 +164,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsForSingleEventWhenOrderingByDataElementAsc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
@@ -187,7 +186,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsForSingleEventWhenOrderingByChangeDesc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
@@ -265,7 +264,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
           throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "DATAEL00001", "value00002", "value00003");
 
@@ -300,7 +299,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFilterChangeLogsForSingleEventWhenFilteringByDataElement() throws NotFoundException {
-    Event event = getEvent("kWjSezkXHVp");
+    TrackerEvent event = getEvent("kWjSezkXHVp");
     String dataElement = getFirstDataElement(event);
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
@@ -346,7 +345,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       String field, SortDirection sortDirection) throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
-    Event event = getEvent("pTzf9KYMk72");
+    TrackerEvent event = getEvent("pTzf9KYMk72");
     String dataElementUid = "DATAEL00001";
 
     updateDataValues(event, dataElementUid, "20", "25");
@@ -369,7 +368,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.ASC).build();
 
-    Event event = getEvent("pTzf9KYMk72");
+    TrackerEvent event = getEvent("pTzf9KYMk72");
     String dataElementUid = "DATAEL00001";
 
     updateDataValues(event, dataElementUid, "20", "25");
@@ -391,7 +390,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsForTrackerEventWhenOrderingByDataElementAsc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
-    Event event = getEvent("D9PbzJY8bJM");
+    TrackerEvent event = getEvent("D9PbzJY8bJM");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
@@ -419,7 +418,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsForTrackerEventWhenOrderingByChangeDesc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("D9PbzJY8bJM");
+    TrackerEvent event = getEvent("D9PbzJY8bJM");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
@@ -517,7 +516,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
           throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("pTzf9KYMk72");
+    TrackerEvent event = getEvent("pTzf9KYMk72");
 
     updateDataValues(event, "DATAEL00001", "value00002", "value00003");
 
@@ -561,7 +560,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFilterChangeLogsForTrackerEventWhenFilteringByDataElement() throws NotFoundException {
-    Event event = getEvent("pTzf9KYMk72");
+    TrackerEvent event = getEvent("pTzf9KYMk72");
     String dataElement = getFirstDataElement(event);
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
@@ -630,7 +629,10 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
         .ifPresent(
             e -> {
               org.hisp.dhis.tracker.imports.domain.Event ev =
-                  TrackerEvent.builderFromEvent(e).occurredAt(newDate).scheduledAt(newDate).build();
+                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
+                      .occurredAt(newDate)
+                      .scheduledAt(newDate)
+                      .build();
 
               assertNoErrors(
                   trackerImportService.importTracker(
@@ -639,8 +641,8 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             });
   }
 
-  private Event getEvent(String uid) {
-    Event event = manager.get(Event.class, uid);
+  private TrackerEvent getEvent(String uid) {
+    TrackerEvent event = manager.get(TrackerEvent.class, uid);
     assertNotNull(event);
     return event;
   }
@@ -744,13 +746,13 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     return changeLogs.getItems().stream().filter(cl -> cl.eventField() != null).toList();
   }
 
-  private void updateDataValues(Event event, String dataElementUid, String... values) {
+  private void updateDataValues(TrackerEvent event, String dataElementUid, String... values) {
     for (String value : values) {
       updateDataValue(event.getUid(), dataElementUid, value);
     }
   }
 
-  private String getFirstDataElement(Event event) {
+  private String getFirstDataElement(TrackerEvent event) {
     return event.getEventDataValues().iterator().next().getDataElement();
   }
 

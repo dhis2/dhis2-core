@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -110,7 +110,7 @@ class ExistenceValidatorTest {
   void verifyEventValidationSuccessWhenIsUpdate() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(EVENT_UID).build();
-    when(preheat.getEvent(EVENT_UID)).thenReturn(getEvent());
+    when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(getEvent());
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
@@ -125,7 +125,7 @@ class ExistenceValidatorTest {
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(SOFT_DELETED_EVENT_UID)
             .build();
-    when(preheat.getEvent(SOFT_DELETED_EVENT_UID)).thenReturn(getSoftDeletedEvent());
+    when(preheat.getTrackerEvent(SOFT_DELETED_EVENT_UID)).thenReturn(getSoftDeletedEvent());
     when(bundle.getStrategy(any(org.hisp.dhis.tracker.imports.domain.Event.class)))
         .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
@@ -138,7 +138,7 @@ class ExistenceValidatorTest {
   void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(EVENT_UID).build();
-    when(preheat.getEvent(EVENT_UID)).thenReturn(getEvent());
+    when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(getEvent());
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, event);
@@ -159,15 +159,15 @@ class ExistenceValidatorTest {
     assertHasError(reporter, event, E1032);
   }
 
-  private Event getSoftDeletedEvent() {
-    Event event = new Event();
+  private TrackerEvent getSoftDeletedEvent() {
+    TrackerEvent event = new TrackerEvent();
     event.setUid(SOFT_DELETED_EVENT_UID.getValue());
     event.setDeleted(true);
     return event;
   }
 
-  private Event getEvent() {
-    Event event = new Event();
+  private TrackerEvent getEvent() {
+    TrackerEvent event = new TrackerEvent();
     event.setUid(EVENT_UID.getValue());
     event.setDeleted(false);
     return event;

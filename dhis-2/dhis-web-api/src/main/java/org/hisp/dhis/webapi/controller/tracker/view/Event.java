@@ -43,14 +43,15 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(name = "TrackerEvent")
-@OpenApi.Identifiable(as = org.hisp.dhis.program.Event.class)
+@OpenApi.Shared(name = "TrackerOrSingleEvent")
+@OpenApi.Identifiable(as = TrackerEvent.class)
 @Data
 @Builder
 @NoArgsConstructor
@@ -58,7 +59,7 @@ import org.locationtech.jts.geom.Geometry;
 public class Event {
 
   @JsonProperty
-  @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
+  @OpenApi.Property({UID.class, TrackerEvent.class})
   private UID event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
