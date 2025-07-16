@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
  * @param type the property used to identify an object
  * @param attributeId the attribute UID in case an attribute is used, otherwise always null
  */
-public record InputId(@Nonnull Type type, @CheckForNull String attributeId) {
+public record InputId(@Nonnull Type type, @CheckForNull UID attributeId) {
 
   public InputId {
     if (type == Type.ATTR && attributeId == null)
@@ -55,7 +55,7 @@ public record InputId(@Nonnull Type type, @CheckForNull String attributeId) {
       case ID, UID -> new InputId(Type.ID, null);
       case CODE -> new InputId(Type.CODE, null);
       case NAME -> new InputId(Type.NAME, null);
-      case ATTRIBUTE -> new InputId(Type.ATTR, scheme.getAttribute());
+      case ATTRIBUTE -> new InputId(Type.ATTR, UID.of(scheme.getAttribute()));
       case UUID ->
           throw new UnsupportedOperationException("UUID is not supported for this operation");
     };

@@ -661,6 +661,8 @@ public enum ErrorCode {
   E7824("Value ${index:{0}} category option combo UID is not valid: `${uid:{1}}`"),
   E7825("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
   E7826("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
+  E7827("Value ${index:{0}} org unit not found: `${id:{1}}`"),
+  E7828("Value ${index:{0}} data element not found: `${id:{1}}`"),
   ;
 
   private final String message;

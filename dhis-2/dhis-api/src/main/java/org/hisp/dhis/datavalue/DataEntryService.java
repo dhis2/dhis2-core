@@ -46,7 +46,15 @@ import org.hisp.dhis.scheduling.JobProgress;
  */
 public interface DataEntryService {
 
-  DataEntryGroup decode(DataEntryGroup.Input request, DataEntryGroup.Identifiers identifiers)
+  /**
+   * Resolves any valid input ID to UIDs.
+   *
+   * @param group the group data as submitted by a user
+   * @param identifiers the type of identifiers used or expected in the input
+   * @return The group with all IDs resolved to UIDs
+   * @throws BadRequestException in case required IDs are missing, IDs not being found or invalid
+   */
+  DataEntryGroup decode(DataEntryGroup.Input group, DataEntryGroup.Identifiers identifiers)
       throws BadRequestException;
 
   List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed, JobProgress progress);

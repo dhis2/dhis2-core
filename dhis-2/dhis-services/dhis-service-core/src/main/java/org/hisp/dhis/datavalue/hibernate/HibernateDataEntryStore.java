@@ -105,9 +105,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     @Language("sql")
     String sqlTemplate =
         """
-      SELECT t.${property}, t.uid
+      SELECT ${property}, t.uid
       FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON t.${property} = input.id
+      JOIN unnest(:ids) AS input(id) ON ${property} = input.id
       """;
     String tableName =
         switch (table) {
@@ -118,10 +118,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         };
     String propertyName =
         switch (id.type()) {
-          case ID -> "uid";
-          case NAME -> "name";
-          case CODE -> "code";
-          default -> throw new UnsupportedOperationException("");
+          case ID -> "t.uid";
+          case NAME -> "t.name";
+          case CODE -> "t.code";
+          case ATTR ->
+              "jsonb_extract_path_text(t.attributeValues, '" + id.attributeId() + "', 'value')";
         };
     String sql =
         TextUtils.replace(sqlTemplate, Map.of("table", tableName, "property", propertyName));

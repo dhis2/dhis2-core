@@ -125,25 +125,37 @@ public class DefaultDataEntryService implements DataEntryService {
     UID ds = dsStr == null ? null : decodeUID(dsStr);
     if (dsStr != null && ds == null) throw new BadRequestException(ErrorCode.E7817, dsStr);
     List<DataEntryValue> decoded = new ArrayList<>(values.size());
+    String deGroup = group.dataElement();
+    String ouGroup = group.orgUnit();
+    String aocGroup = group.attrOptionCombo();
     for (DataEntryValue.Input e : values) {
       String pe = isoOf.apply(e.period());
       if (pe == null) throw new BadRequestException(ErrorCode.E7818, i, e);
-      String deStr = deOf.apply(e.dataElement());
-      if (deStr == null) throw new BadRequestException(ErrorCode.E7819, i, e);
+      String deVal = e.dataElement();
+      if (deVal == null && deGroup == null) throw new BadRequestException(ErrorCode.E7819, i, e);
+      String deStr = deOf.apply(deVal == null ? deGroup : deVal);
+      if (deStr == null)
+        throw new BadRequestException(ErrorCode.E7828, i, deVal == null ? deGroup : deVal);
       UID de = decodeUID(deStr);
       if (de == null) throw new BadRequestException(ErrorCode.E7821, i, deStr);
-      String ouStr = ouOf.apply(e.orgUnit());
-      if (ouStr == null) throw new BadRequestException(ErrorCode.E7820, i, e);
+      String ouVal = e.orgUnit();
+      if (ouVal == null && ouGroup == null) throw new BadRequestException(ErrorCode.E7820, i, e);
+      String ouStr = ouOf.apply(ouVal == null ? ouGroup : ouVal);
+      if (ouStr == null)
+        throw new BadRequestException(ErrorCode.E7827, i, ouVal == null ? ouGroup : ouVal);
       UID ou = decodeUID(ouStr);
       if (ou == null) throw new BadRequestException(ErrorCode.E7822, i, ouStr);
-      String cocStr = cocOf.apply(e.categoryOptionCombo());
-      if (cocStr == null && e.categoryOptionCombo() != null)
-        throw new BadRequestException(ErrorCode.E7823, i, e.categoryOptionCombo());
+      String cocVal = e.categoryOptionCombo();
+      String cocStr = cocOf.apply(cocVal);
+      if (cocStr == null && cocVal != null)
+        throw new BadRequestException(ErrorCode.E7823, i, cocVal);
       UID coc = decodeUID(cocStr);
       if (coc == null && cocStr != null) throw new BadRequestException(ErrorCode.E7824, i, cocStr);
-      String aocStr = aocOf.apply(e.attributeOptionCombo());
-      if (aocStr == null && e.attributeOptionCombo() != null)
-        throw new BadRequestException(ErrorCode.E7825, i, e.attributeOptionCombo());
+      String aocVal = e.attributeOptionCombo();
+      if (aocVal == null) aocVal = aocGroup;
+      String aocStr = aocOf.apply(aocVal);
+      if (aocStr == null && aocVal != null)
+        throw new BadRequestException(ErrorCode.E7825, i, aocVal);
       UID aoc = decodeUID(aocStr);
       if (aoc == null && aocStr != null) throw new BadRequestException(ErrorCode.E7826, i, aocStr);
 
