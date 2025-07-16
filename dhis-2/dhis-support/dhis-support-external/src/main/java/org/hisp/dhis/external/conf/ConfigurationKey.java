@@ -282,6 +282,7 @@ public enum ConfigurationKey {
    * If true, an operation will be performed at every connection checkout to verify that the
    * connection is valid (default: false).
    */
+  @Deprecated(since = "v43", forRemoval = true)
   ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKOUT(
       "analytics.connection.pool.test.on.checkout", Constants.OFF, false),
 
