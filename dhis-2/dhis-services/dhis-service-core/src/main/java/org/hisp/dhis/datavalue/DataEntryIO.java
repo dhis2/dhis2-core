@@ -29,11 +29,12 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.lang.Boolean.parseBoolean;
 import static org.hisp.dhis.commons.util.StreamUtils.wrapAndCheckCompressionFormat;
 import static org.hisp.dhis.feedback.DataEntrySummary.toConflict;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,28 +49,67 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.staxwax.factory.XMLFactory;
+import org.hisp.staxwax.reader.XMLReader;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles the data entry process orchestrating the calls to the {@link DataEntryService} without
- * being transactional. This happens between the controller layer and the service layer.
+ * Handles the input and output format and exception transformations for data entry between the
+ * controller and the service layer.
  *
  * @author Jan Bernitt
  * @since 2.43
  */
 @Component
 @RequiredArgsConstructor
-public class DataEntryProcessor {
+public class DataEntryIO {
 
   private final DataEntryService service;
-  private final ObjectMapper jsonMapper;
 
-  public ImportSummary importDataValueSetCsv(
+  public ImportSummary importDataValueSetXml(
+      InputStream in, ImportOptions options, JobProgress progress) {
+
+    progress.startingStage("Deserializing CVS data");
+    DataEntryGroup.Input input =
+        progress.nonNullStagePostCondition(
+            progress.runStage(
+                () -> {
+                  XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
+                  dvs.moveToStartElement("dataValueSet");
+                  String ds = dvs.getAttributeValue("dataSet");
+                  String ou = dvs.getAttributeValue("orgUnit");
+                  String pe = dvs.getAttributeValue("period");
+                  String aoc = dvs.getAttributeValue("attributeOptionCombo");
+                  String dryRun = dvs.getAttributeValue("dryRun");
+                  if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
+                  //TODO ID scheme
+                  List<DataEntryValue.Input> values = new ArrayList<>();
+                  while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
+                    String followUp = dvs.getAttributeValue("followUp");
+                    values.add(
+                        new DataEntryValue.Input(
+                            dvs.getAttributeValue("dataElement"),
+                            dvs.getAttributeValue("orgUnit"),
+                            dvs.getAttributeValue("categoryOptionCombo"),
+                            dvs.getAttributeValue("attributeOptionCombo"),
+                            dvs.getAttributeValue("period"),
+                            dvs.getAttributeValue("value"),
+                            dvs.getAttributeValue("comment"),
+                            followUp == null ? null : parseBoolean(followUp)));
+                  }
+                  return new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
+                }));
+    return importDataValueSetGroup(input, options, progress);
+  }
+
+    public ImportSummary importDataValueSetCsv(
       InputStream in, ImportOptions options, JobProgress progress) {
 
     // TODO maybe handle firstRowIsHeader=false by specifying a default header?
-    progress.startingStage("Deserializing data values");
+    progress.startingStage("Deserializing CVS data");
     List<DataEntryValue.Input> values =
         progress.nonNullStagePostCondition(
             progress.runStage(
@@ -86,14 +126,37 @@ public class DataEntryProcessor {
   public ImportSummary importDataValueSetJson(
       InputStream in, ImportOptions options, JobProgress progress) {
 
-    progress.startingStage("Deserializing data values");
+    progress.startingStage("Deserializing JSON data");
     DataEntryGroup.Input input =
         progress.nonNullStagePostCondition(
             progress.runStage(
-                () ->
-                    jsonMapper.readValue(
-                        wrapAndCheckCompressionFormat(in), DataEntryGroup.Input.class)));
-
+                () -> {
+                  JsonObject dvs =
+                      JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in)))
+                          .asObject();
+                  String ds = dvs.getString("dataSet").string();
+                  String ou = dvs.getString("orgUnit").string();
+                  String pe = dvs.getString("period").string();
+                  String aoc = dvs.getString("attributeOptionCombo").string();
+                  Boolean dryRun = dvs.getBoolean("dryRun").bool();
+                  if (dryRun != null) options.setDryRun(dryRun);
+                  // TODO ID scheme
+                  List<DataEntryValue.Input> values =
+                      dvs.getList("dataValues", JsonObject.class).stream()
+                          .map(
+                              dv ->
+                                  new DataEntryValue.Input(
+                                      dv.getString("dataElement").string(),
+                                      dv.getString("orgUnit").string(),
+                                      dv.getString("categoryOptionCombo").string(),
+                                      dv.getString("attributeOptionCombo").string(),
+                                      dv.getString("period").string(),
+                                      dv.getString("value").string(),
+                                      dv.getString("comment").string(),
+                                      dv.getBoolean("followUp").bool()))
+                          .toList();
+                  return new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
+                }));
     return importDataValueSetGroup(input, options, progress);
   }
 
