@@ -29,20 +29,25 @@
  */
 package org.hisp.dhis.datavalue;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 public record DataEntryKey(
-    @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
-    @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
-    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID categoryOptionCombo,
-    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID attributeOptionCombo,
-    String period)
+    @Nonnull UID dataElement,
+    @Nonnull UID orgUnit,
+    @CheckForNull UID categoryOptionCombo,
+    @CheckForNull UID attributeOptionCombo,
+    @Nonnull String period)
     implements DataEntryId {
+
+  @SuppressWarnings("ConstantConditions")
+  public DataEntryKey {
+    // ensure null safety by design:
+    if (dataElement == null) throw new NullPointerException("dataElement must not be null");
+    if (orgUnit == null) throw new NullPointerException("orgUnit must not be null");
+    if (period == null) throw new NullPointerException("period must not be null");
+  }
 
   @Nonnull
   public DataEntryValue toDeletedValue() {

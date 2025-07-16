@@ -113,7 +113,7 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public void updateDataValues(List<DataValue> dataValues) throws ConflictException {
     dataEntryService.upsertDataValueGroup(
-        new DataEntryGroup.Options(false, true, false, true),
+        new DataEntryGroup.Options(false, true, false),
         new DataEntryGroup(
             dataValues.stream().map(DefaultDataValueService::toDataEntryValue).toList()),
         transitory());

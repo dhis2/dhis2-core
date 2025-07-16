@@ -292,16 +292,16 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public Map<String, Set<String>> getDataSetsByDataElement(Stream<UID> dataElements) {
-    // TOOD maybe this should also consider input periods so that
-    // those not open now are sorted after any DS that is open
     String sql =
         """
-      SELECT de.uid, ARRAY_AGG(ds.uid ORDER BY ds.created DESC)
-      FROM dataelement de
-      JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
-      JOIN dataset ds ON de_ds.datasetid = ds.datasetid
-      WHERE de.uid IN (:de)
-      GROUP BY de.uid""";
+        SELECT
+            de.uid,
+            ARRAY_AGG(ds.uid ORDER BY ds.created DESC) AS dataset_uids
+        FROM dataelement de
+        JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
+        JOIN dataset ds ON de_ds.datasetid = ds.datasetid
+        WHERE de.uid IN (:de)
+        GROUP BY de.uid""";
     String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStringsMapOfSet(sql, q -> q.setParameterList("de", de));
   }
@@ -429,8 +429,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public int deleteByKeys(List<DataEntryKey> keys) {
-    // TODO
-    return 0;
+    // ATM it does not seem worth it to make a dedicated implementation
+    // instead we do...
+    return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
   }
 
   @Override
@@ -674,7 +675,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public Map<String, DateRange> getOrgUnitOperationalSpan(
-      Stream<UID> orgUnits, Date start, Date end) {
+      Stream<UID> orgUnits, DateRange timeframe) {
     String sql =
         """
       SELECT ou.uid, ou.openingdate, ou.closeddate
@@ -686,8 +687,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     Stream<Object[]> rows =
         getSession()
             .createNativeQuery(sql)
-            .setParameter("start", start)
-            .setParameter("end", end)
+            .setParameter("start", timeframe.getStartDate())
+            .setParameter("end", timeframe.getEndDate())
             .setParameterList("ou", ou)
             .stream();
     return rows.collect(

@@ -87,13 +87,11 @@ public record DataEntryGroup(
    * @param force when true, any timeliness validation is skipped (only possible as superuser) to
    *     allow out-of-time (early/late) entry of data e.g. as part of a data synchronisation or
    *     repair
-   * @param group automatically find and group values by data set, when multiple data sets exist for
-   *     a data element use the most recently created one
    */
-  public record Options(boolean dryRun, boolean atomic, boolean force, boolean group) {
+  public record Options(boolean dryRun, boolean atomic, boolean force) {
 
     public Options() {
-      this(false, false, false, false);
+      this(false, false, false);
     }
   }
 

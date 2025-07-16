@@ -51,6 +51,14 @@ public record DataEntryValue(
     Boolean deleted)
     implements DataEntryId {
 
+  @SuppressWarnings("ConstantConditions")
+  public DataEntryValue {
+    // ensure null safety by design:
+    if (dataElement == null) throw new NullPointerException("dataElement must not be null");
+    if (orgUnit == null) throw new NullPointerException("orgUnit must not be null");
+    if (period == null) throw new NullPointerException("period must not be null");
+  }
+
   /**
    * How a {@link DataEntryValue} is provided as user input in the web API.
    *

@@ -57,7 +57,7 @@ public interface DataEntryService {
   DataEntryGroup decode(DataEntryGroup.Input group, DataEntryGroup.Identifiers identifiers)
       throws BadRequestException;
 
-  List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed, JobProgress progress);
+  List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed);
 
   /**
    * Data entry of a single value.

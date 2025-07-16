@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.feedback;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
@@ -50,15 +52,33 @@ public record DataEntrySummary(int attempted, int succeeded, @Nonnull List<DataE
   public record DataEntryError(
       @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 
+  public int ignored() {
+    return attempted - succeeded;
+  }
+
+  public DataEntrySummary add(DataEntrySummary other) {
+    List<DataEntryError> errors = new ArrayList<>(this.errors);
+    errors.addAll(other.errors);
+    return new DataEntrySummary(attempted + other.attempted, succeeded + other.succeeded, errors);
+  }
+
   /** Adapter to the extensive legacy summary */
   public ImportSummary toImportSummary() {
     ImportSummary summary = new ImportSummary();
-    summary.setImportCount(new ImportCount(succeeded(), 0, attempted() - succeeded(), 0));
+    // any value processed successfully in DataEntrySummary
+    // maps to "imported", values attempted but failed become "ignored"
+    // "updated" and "deleted" are not used as we cannot tell the difference
+    int ignored = ignored();
+    summary.setImportCount(new ImportCount(succeeded(), 0, ignored, 0));
     for (DataEntryError error : errors()) {
       int index = error.value().index();
       summary.addRejected(index);
       summary.addConflict(ImportConflict.createUniqueConflict(index, error.code(), error.args()));
     }
+    ImportStatus status = ImportStatus.SUCCESS;
+    if (ignored > 0) status = ImportStatus.WARNING;
+    if (!errors.isEmpty()) status = ImportStatus.ERROR;
+    summary.setStatus(status);
     return summary;
   }
 }

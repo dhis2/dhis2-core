@@ -41,6 +41,7 @@ import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -177,33 +178,22 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed, JobProgress progress) {
+  public List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed) {
     List<DataEntryValue> values = mixed.values();
 
-    progress.startingStage("Loading data element to data set mapping");
     Map<String, Set<String>> dsxByDe =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () ->
-                    store.getDataSetsByDataElement(
-                        values.stream().map(DataEntryValue::dataElement))));
+        store.getDataSetsByDataElement(values.stream().map(DataEntryValue::dataElement));
     if (dsxByDe.size() == 1) return List.of(mixed);
 
-    progress.startingStage("Grouping data values");
-    return progress.nonNullStagePostCondition(
-        progress.runStage(
-            () -> {
-              Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
-
-              values.forEach(
-                  v -> {
-                    UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
-                    valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
-                  });
-              return valuesByDs.entrySet().stream()
-                  .map(e -> new DataEntryGroup(e.getKey(), List.copyOf(e.getValue())))
-                  .toList();
-            }));
+    Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
+    values.forEach(
+        v -> {
+          UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
+          valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
+        });
+    return valuesByDs.entrySet().stream()
+        .map(e -> new DataEntryGroup(e.getKey(), List.copyOf(e.getValue())))
+        .toList();
   }
 
   @Override
@@ -225,25 +215,16 @@ public class DefaultDataEntryService implements DataEntryService {
     List<DataEntryValue> values = group.values();
     if (values.isEmpty()) return new DataEntrySummary(0, 0, List.of());
 
-    // TODO what about completion? requires common DS-OU-PE-AOC
-
-    // auto-import into a single DS (if not specified)
-    return upsertDataValueGroup(options, group.dataSet(), progress, values);
-  }
-
-  @Nonnull
-  private DataEntrySummary upsertDataValueGroup(
-      Options options, UID ds, JobProgress progress, List<DataEntryValue> values)
-      throws ConflictException {
-    progress.startingStage("Validating %d values...".formatted(values.size()));
+    progress.startingStage("Validating %d values".formatted(values.size()));
     List<DataEntryError> errors = new ArrayList<>();
     List<DataEntryValue> validValues =
         progress.runStageAndRethrow(
-            ConflictException.class, () -> validate(options.force(), ds, values, errors));
+            ConflictException.class,
+            () -> validate(options.force(), group.dataSet(), values, errors));
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7808, validValues.size(), values.size());
 
-    progress.startingStage("Importing %d values...".formatted(validValues.size()));
+    progress.startingStage("Writing %d values".formatted(validValues.size()));
     int imported =
         progress.runStage(
             0, () -> options.dryRun() ? validValues.size() : store.upsertValues(validValues));
@@ -376,30 +357,19 @@ public class DefaultDataEntryService implements DataEntryService {
     PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
     Map<String, Period> peByIso =
         isoPeriods.stream().collect(toMap(identity(), type::createPeriod));
-    Date peStart =
-        peByIso.values().stream()
-            .map(Period::getStartDate)
-            .min(comparingLong(Date::getTime))
-            .orElse(null);
-    Date peEnd =
-        peByIso.values().stream()
-            .map(Period::getEndDate)
-            .max(comparingLong(Date::getTime))
-            .orElse(null);
     Map<String, DateRange> ouOpSpan =
         store.getOrgUnitOperationalSpan(
-            values.stream().map(DataEntryValue::orgUnit), peStart, peEnd);
+            values.stream().map(DataEntryValue::orgUnit), timeframeOf(peByIso.values()));
     if (!ouOpSpan.isEmpty()) {
       List<String> peNotInOuSpan =
           values.stream()
-              // only keep OUs that are not valid
               .filter(
                   dv -> {
-                    DateRange range = ouOpSpan.get(dv.orgUnit().getValue());
-                    if (range == null) return false; // null = includes max range
+                    DateRange operational = ouOpSpan.get(dv.orgUnit().getValue());
+                    if (operational == null) return false; // null => no issue with the timeframe
                     Period pe = peByIso.get(dv.period());
-                    if (range.getStartDate().after(pe.getStartDate())) return true;
-                    Date endDate = range.getEndDate();
+                    if (operational.getStartDate().after(pe.getStartDate())) return true;
+                    Date endDate = operational.getEndDate();
                     return endDate != null && pe.getEndDate().after(endDate);
                   })
               .map(dv -> dv.period() + "-" + dv.orgUnit())
@@ -588,5 +558,16 @@ public class DefaultDataEntryService implements DataEntryService {
     }
 
     // - require: PE must be within AOC "date range" (range super complicated to find)
+  }
+
+  private DateRange timeframeOf(Collection<Period> isoPeriods) {
+    Date start =
+        isoPeriods.stream()
+            .map(Period::getStartDate)
+            .min(comparingLong(Date::getTime))
+            .orElse(null);
+    Date end =
+        isoPeriods.stream().map(Period::getEndDate).max(comparingLong(Date::getTime)).orElse(null);
+    return new DateRange(start, end);
   }
 }
