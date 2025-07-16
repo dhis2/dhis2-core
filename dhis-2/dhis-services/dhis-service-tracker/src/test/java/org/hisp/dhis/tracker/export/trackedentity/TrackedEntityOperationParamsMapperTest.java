@@ -35,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.ILIKE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
@@ -654,7 +655,9 @@ class TrackedEntityOperationParamsMapperTest {
             .filterBy(
                 TEA_2_UID,
                 List.of(
-                    new QueryFilter(LIKE, "12"), new QueryFilter(NNULL), new QueryFilter(SW, "0")))
+                    new QueryFilter(LIKE, "12"),
+                    new QueryFilter(NNULL),
+                    new QueryFilter(ILIKE, "0")))
             .build();
 
     TrackedEntityQueryParams queryParams = mapper.map(trackedEntityOperationParams, user);

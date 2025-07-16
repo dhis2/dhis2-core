@@ -205,6 +205,7 @@ class TrackedEntityOperationParamsMapper {
       Set<QueryOperator> disallowedOperators =
           attributeFilter.getValue().stream()
               .map(QueryFilter::getOperator)
+              .map(QueryOperator::mapToTrackerQueryOperator)
               .filter(op -> !tea.getAllowedSearchOperators().contains(op))
               .collect(Collectors.toSet());
 
