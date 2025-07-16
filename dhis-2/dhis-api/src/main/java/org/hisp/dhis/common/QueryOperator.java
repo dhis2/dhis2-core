@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import lombok.Getter;
@@ -88,7 +89,7 @@ public enum QueryOperator {
 
   private static final Set<QueryOperator> UNARY_OPERATORS = EnumSet.of(NULL, NNULL);
 
-  public static final Set<QueryOperator> TRACKER_OPERATORS =
+  private static final Set<QueryOperator> TRACKER_OPERATORS =
       EnumSet.of(EQ, GT, GE, LT, LE, LIKE, IN, SW, EW, NULL, NNULL);
 
   private final String value;
@@ -176,5 +177,9 @@ public enum QueryOperator {
       case NILIKE -> NLIKE;
       default -> this;
     };
+  }
+
+  public static Set<QueryOperator> getTrackerOperators() {
+    return Collections.unmodifiableSet(TRACKER_OPERATORS);
   }
 }

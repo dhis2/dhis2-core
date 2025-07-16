@@ -675,19 +675,14 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams trackedEntityOperationParams =
         TrackedEntityOperationParams.builder()
             .trackedEntityType(trackedEntityType)
-            .filterBy(
-                TEA_2_UID,
-                List.of(
-                    new QueryFilter(LIKE, "12"),
-                    new QueryFilter(EQ, "0"),
-                    new QueryFilter(LT, "0")))
+            .filterBy(TEA_2_UID, List.of(new QueryFilter(LIKE, "12"), new QueryFilter(EQ, "0")))
             .build();
 
     BadRequestException exception =
         assertThrows(
             BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
     assertStartsWith(
-        "Operators [EQ, LT] are not allowed for attribute 'cy2oRh2sNr6'", exception.getMessage());
+        "Operators [EQ] are not allowed for attribute 'cy2oRh2sNr6'", exception.getMessage());
   }
 
   private static void assertQueryFilterValue(

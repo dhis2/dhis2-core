@@ -75,7 +75,7 @@ public class TrackedEntityAttributeObjectBundleHook
     }
 
     if (attr.getAllowedSearchOperators() == null || attr.getAllowedSearchOperators().isEmpty()) {
-      attr.setAllowedSearchOperators(QueryOperator.TRACKER_OPERATORS);
+      attr.setAllowedSearchOperators(QueryOperator.getTrackerOperators());
     } else {
       attr.setAllowedSearchOperators(
           attr.getAllowedSearchOperators().stream()
