@@ -45,6 +45,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -74,6 +75,55 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleProgramIndicatorDimensions(session, schema, analyticalObject, bundle);
     handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
+    handleOrgUnitGroupSetDimensions(schema, analyticalObject, bundle);
+  }
+
+  private void handleOrgUnitGroupSetDimensions(
+      Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+    if (!schema.hasPersistedProperty("organisationUnitGroupSetDimensions")) return;
+
+    for (OrganisationUnitGroupSetDimension organisationUnitGroupSetDimension :
+        analyticalObject.getOrganisationUnitGroupSetDimensions()) {
+      if (organisationUnitGroupSetDimension == null) {
+        continue;
+      }
+
+      BaseAnalyticalObject bundleObject =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), analyticalObject);
+
+      List<OrganisationUnitGroupSetDimension> bundleDimensions =
+          bundleObject.getOrganisationUnitGroupSetDimensions();
+
+      if (bundleDimensions == null || bundleDimensions.isEmpty()) continue;
+
+      List<OrganisationUnitGroupSetDimension> orgUnitGsDimensions =
+          bundleDimensions.stream()
+              .filter(
+                  bd ->
+                      bd.getDimension()
+                          .getUid()
+                          .equals(organisationUnitGroupSetDimension.getDimension().getUid()))
+              .collect(toList());
+
+      if (orgUnitGsDimensions.isEmpty()) continue;
+
+      OrganisationUnitGroupSetDimension orgUnitGsDimension = orgUnitGsDimensions.get(0);
+      organisationUnitGroupSetDimension.setDimension(orgUnitGsDimension.getDimension());
+      organisationUnitGroupSetDimension.setItems(orgUnitGsDimension.getItems());
+
+      bundle.getPreheat().put(bundle.getPreheatIdentifier(), orgUnitGsDimension.getDimension());
+      bundle.getPreheat().put(bundle.getPreheatIdentifier(), orgUnitGsDimension.getItems());
+
+      preheatService.connectReferences(
+          organisationUnitGroupSetDimension.getDimension(),
+          bundle.getPreheat(),
+          bundle.getPreheatIdentifier());
+
+      preheatService.connectReferences(
+          organisationUnitGroupSetDimension.getItems(),
+          bundle.getPreheat(),
+          bundle.getPreheatIdentifier());
+    }
   }
 
   private void handleRelativePeriods(Schema schema, BaseAnalyticalObject analyticalObject) {
