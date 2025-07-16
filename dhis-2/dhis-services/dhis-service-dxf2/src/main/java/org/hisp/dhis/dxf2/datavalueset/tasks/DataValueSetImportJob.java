@@ -29,30 +29,17 @@
  */
 package org.hisp.dhis.dxf2.datavalueset.tasks;
 
-import static org.hisp.dhis.commons.util.StreamUtils.wrapAndCheckCompressionFormat;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.csv.CSV;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataEntryProcessor;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
@@ -74,8 +61,7 @@ public class DataValueSetImportJob implements Job {
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
   private final Notifier notifier;
-  private final DataEntryService dataEntryService;
-  private final ObjectMapper jsonMapper;
+  private final DataEntryProcessor dataEntryProcessor;
 
   @Override
   public JobType getJobType() {
@@ -97,8 +83,10 @@ public class DataValueSetImportJob implements Job {
       boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" -> importDataValueSetJson(input, options, progress);
-            case "application/csv" -> importDataValueSetCsv(input, options, progress);
+            case "application/json" ->
+                dataEntryProcessor.importDataValueSetJson(input, options, progress);
+            case "application/csv" ->
+                dataEntryProcessor.importDataValueSetCsv(input, options, progress);
             case "application/pdf" ->
                 dataValueSetService.importDataValueSetPdf(input, options, progress);
             case "application/xml" ->
@@ -138,101 +126,5 @@ public class DataValueSetImportJob implements Job {
       progress.failedProcess(ex);
       // TODO add error summary
     }
-  }
-
-  private ImportSummary importDataValueSetCsv(
-      InputStream input, ImportOptions options, JobProgress progress) throws BadRequestException {
-    if (options.isGroup())
-      return dataValueSetService.importDataValueSetCsv(input, options, progress);
-
-    // TODO maybe handle firstRowIsHeader=false by specifying a default header?
-    progress.startingStage("Deserializing data values");
-    List<DataEntryValue.Input> values =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () ->
-                    CSV.of(wrapAndCheckCompressionFormat(input))
-                        .as(DataEntryValue.Input.class)
-                        .list()));
-    String ds = options.getDataSet();
-    DataEntryGroup.Input request = new DataEntryGroup.Input(ds, null, null, null, null, values);
-
-    ImportSummary summary = importDataValues(request, options, progress);
-    summary.setImportOptions(options);
-    return summary;
-  }
-
-  private ImportSummary importDataValueSetJson(
-      InputStream in, ImportOptions options, JobProgress progress) throws BadRequestException {
-    if (options.isGroup()) return dataValueSetService.importDataValueSetJson(in, options, progress);
-
-    progress.startingStage("Deserializing data values");
-    DataEntryGroup.Input input =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () ->
-                    jsonMapper.readValue(
-                        wrapAndCheckCompressionFormat(in), DataEntryGroup.Input.class)));
-
-    // further stages happen within the service method...
-    ImportSummary summary = importDataValues(input, options, progress);
-    summary.setImportOptions(options);
-    return summary;
-  }
-
-  @Nonnull
-  private ImportSummary importDataValues(
-      DataEntryGroup.Input input, ImportOptions options, JobProgress progress)
-      throws BadRequestException {
-
-    DataEntryGroup.Identifiers identifiers = DataEntryGroup.Identifiers.of(options.getIdSchemes());
-
-    progress.startingStage("Resolving %d data values".formatted(input.values().size()));
-    DataEntryGroup group =
-        progress.runStageAndRethrow(
-            BadRequestException.class, () -> dataEntryService.decode(input, identifiers));
-
-    DataEntryGroup.Options opt =
-        new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-
-    if (!options.isGroup() || group.dataSet() != null)
-      return importDataValues(List.of(group), opt, progress);
-
-    progress.startingStage(
-        "Grouping %d values by target data set".formatted(group.values().size()));
-    List<DataEntryGroup> groups =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                null,
-                res ->
-                    "Grouped into %d groups targeting data sets %s"
-                        .formatted(
-                            res.size(),
-                            res.stream()
-                                .filter(g -> g.dataSet() != null)
-                                .map(g -> g.dataSet().getValue())
-                                .collect(Collectors.joining(","))),
-                () -> dataEntryService.groupByDataSet(group)));
-
-    return importDataValues(groups, opt, progress);
-  }
-
-  @Nonnull
-  private ImportSummary importDataValues(
-      List<DataEntryGroup> groups, DataEntryGroup.Options options, JobProgress progress) {
-    DataEntrySummary summary = new DataEntrySummary(0, 0, List.of());
-    List<Integer> rejectedNoSummary = new ArrayList<>();
-    for (DataEntryGroup g : groups) {
-      try {
-        // further stages happen within the service method...
-        summary = summary.add(dataEntryService.upsertDataValueGroup(options, g, progress));
-      } catch (ConflictException ex) {
-        rejectedNoSummary.addAll(g.values().stream().map(DataEntryValue::index).toList());
-      }
-    }
-    ImportSummary res = summary.toImportSummary();
-    res.getRejectedIndexes().addAll(rejectedNoSummary);
-    if (!rejectedNoSummary.isEmpty()) res.setStatus(ImportStatus.ERROR);
-    return res;
   }
 }

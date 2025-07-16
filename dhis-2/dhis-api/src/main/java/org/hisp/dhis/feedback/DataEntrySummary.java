@@ -29,8 +29,14 @@
  */
 package org.hisp.dhis.feedback;
 
+import static java.util.stream.Collectors.joining;
+
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -71,14 +77,23 @@ public record DataEntrySummary(int attempted, int succeeded, @Nonnull List<DataE
     int ignored = ignored();
     summary.setImportCount(new ImportCount(succeeded(), 0, ignored, 0));
     for (DataEntryError error : errors()) {
-      int index = error.value().index();
-      summary.addRejected(index);
-      summary.addConflict(ImportConflict.createUniqueConflict(index, error.code(), error.args()));
+      summary.addRejected(error.value().index());
+      summary.addConflict(toConflict(error));
     }
     ImportStatus status = ImportStatus.SUCCESS;
     if (ignored > 0) status = ImportStatus.WARNING;
     if (!errors.isEmpty()) status = ImportStatus.ERROR;
     summary.setStatus(status);
     return summary;
+  }
+
+  private static ImportConflict toConflict(DataEntryError error) {
+    return toConflict(IntStream.of(error.value().index()), error.code(), error.args());
+  }
+
+  public static ImportConflict toConflict(IntStream indexes, ErrorCode code, Object... args) {
+    String message = MessageFormat.format(code.getMessage(), args);
+    String key = Stream.of(args).map(String::valueOf).collect(joining("-"));
+    return new ImportConflict(null, Map.of("args", key), message, code, null, indexes.toArray());
   }
 }
