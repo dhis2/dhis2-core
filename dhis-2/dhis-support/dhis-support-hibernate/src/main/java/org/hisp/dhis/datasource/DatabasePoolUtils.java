@@ -293,6 +293,10 @@ public final class DatabasePoolUtils {
   private static ComboPooledDataSource createC3p0DbPool(
       String username, String password, String driverClassName, String jdbcUrl, DbPoolConfig config)
       throws PropertyVetoException {
+
+    log.warn(
+        "Using deprecated `c3p0` in `db.pool.type` DHIS2 configuration setting. It is highly recommended to set `db.pool.type` to `hikari` in your `dhis.conf`. Future versions of DHIS2 will drop support for C3P0");
+
     ConfigKeyMapper mapper = config.getMapper();
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
@@ -365,12 +369,14 @@ public final class DatabasePoolUtils {
 
   private static void logC3p0UnusedSettingsWarning(
       DhisConfigurationProvider dhisConfig, DbPoolType dbPoolType) {
-    Consumer<ConfigurationKey> logConsumer =
-        configurationKey ->
-            log.warn(
-                "`{}` C3P0 setting is not used anymore because the default database pool type is set to `hikari` since DHIS2 v43. Remove this C3P0 setting from your `dhis.conf`. Future versions of DHIS2 may stop giving this warning.",
-                configurationKey.getKey());
+
     if (!dbPoolType.equals(DbPoolType.C3P0)) {
+      Consumer<ConfigurationKey> logConsumer =
+          configurationKey ->
+              log.warn(
+                  "`{}` C3P0 setting is not used anymore because the default database pool type is set to `hikari` since DHIS2 v43. Remove this C3P0 setting from your `dhis.conf`. Future versions of DHIS2 may stop giving this warning",
+                  configurationKey.getKey());
+
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_MIN_SIZE, logConsumer);
       applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_MIN_SIZE, logConsumer);
       applyIfPropertyExists(dhisConfig, CONNECTION_POOL_INITIAL_SIZE, logConsumer);
