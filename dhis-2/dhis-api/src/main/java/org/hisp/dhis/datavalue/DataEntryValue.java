@@ -73,7 +73,7 @@ public record DataEntryValue(
       // names are chosen to be aligned with web API input
       @CheckForNull @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
       @CheckForNull @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
-      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @OpenApi.Required
           String categoryOptionCombo,
       @OpenApi.Description(
               """

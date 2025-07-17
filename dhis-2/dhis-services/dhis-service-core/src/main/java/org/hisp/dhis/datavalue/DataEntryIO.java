@@ -294,6 +294,9 @@ public class DataEntryIO {
   @Nonnull
   public ImportSummary importRaw(
       List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress) {
+    // when parsing fails the input is null, this forces abort because of failed stage before
+    progress.nonNullStagePostCondition(inputs);
+
     try {
       ImportSummary summary = importRawUnsafe(inputs, options, progress);
       summary.setImportOptions(options);
@@ -308,7 +311,6 @@ public class DataEntryIO {
   private ImportSummary importRawUnsafe(
       List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress)
       throws BadRequestException, ConflictException {
-
     List<DataEntryGroup> groups = new ArrayList<>();
     for (DataEntryGroup.Input input : inputs) {
       progress.startingStage("Resolving " + input.describe());

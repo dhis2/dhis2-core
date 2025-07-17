@@ -208,8 +208,8 @@ public class DefaultDataEntryService implements DataEntryService {
   public void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
-    List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
-    if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
+    DataEntryGroup valid = validate(force, dataSet, List.of(value), errors);
+    if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
 
@@ -219,23 +219,25 @@ public class DefaultDataEntryService implements DataEntryService {
   public DataEntrySummary upsertGroup(Options options, DataEntryGroup group, JobProgress progress)
       throws ConflictException {
     List<DataEntryValue> values = group.values();
-    if (values.isEmpty()) return new DataEntrySummary(0, 0, List.of());
+    if (values.isEmpty()) return new DataEntrySummary(0, 0, 0, List.of());
 
     progress.startingStage("Validating " + group.describe());
     List<DataEntryError> errors = new ArrayList<>();
-    List<DataEntryValue> validValues =
+    DataEntryGroup valid =
         progress.runStageAndRethrow(
             ConflictException.class,
             () -> validate(options.force(), group.dataSet(), values, errors));
-    if (options.atomic() && values.size() > validValues.size())
-      throw new ConflictException(ErrorCode.E7808, validValues.size(), values.size());
+    int entered = values.size();
+    int attempted = valid.values().size();
+    if (options.atomic() && entered > attempted)
+      throw new ConflictException(ErrorCode.E7808, attempted, entered);
 
-    progress.startingStage("Writing %s (%d valid)".formatted(group.describe(), validValues.size()));
+    progress.startingStage("Writing %s".formatted(valid.describe()));
     int imported =
         progress.runStage(
-            0, () -> options.dryRun() ? validValues.size() : store.upsertValues(validValues));
+            0, () -> options.dryRun() ? attempted : store.upsertValues(valid.values()));
 
-    return new DataEntrySummary(validValues.size(), imported, errors);
+    return new DataEntrySummary(entered, attempted, imported, errors);
   }
 
   @Override
@@ -244,12 +246,12 @@ public class DefaultDataEntryService implements DataEntryService {
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
-    List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
-    if (validValues.isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
+    DataEntryGroup valid = validate(force, dataSet, List.of(value), errors);
+    if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     return store.deleteByKeys(List.of(key)) > 0;
   }
 
-  private List<DataEntryValue> validate(
+  private DataEntryGroup validate(
       boolean force, UID ds, List<DataEntryValue> values, List<DataEntryError> errors)
       throws ConflictException {
     if (ds == null) {
@@ -270,7 +272,7 @@ public class DefaultDataEntryService implements DataEntryService {
     boolean skipTimeliness = force && getCurrentUserDetails().isSuper();
     if (!skipTimeliness) validateEntryTimeliness(ds, values);
 
-    return validateValues(ds, values, errors);
+    return new DataEntryGroup(ds, validateValues(ds, values, errors));
   }
 
   /** Is the user allowed to write (capture) the data values? */

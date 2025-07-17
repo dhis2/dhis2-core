@@ -74,7 +74,7 @@ public record DataEntryGroup(
     Map<String, String> vars = new HashMap<>();
     vars.put("ds", dataSet == null ? null : dataSet.getValue());
     vars.put("count", "" + values.size());
-    return replace("ds=${ds:?) (${count:0} values)", vars);
+    return replace("ds=${ds:?} (${count:0} values)", vars);
   }
 
   /**
@@ -110,7 +110,7 @@ public record DataEntryGroup(
       vars.put("aoc", attrOptionCombo);
       vars.put("count", values == null ? null : "" + values.size());
       return replace(
-          "ds=${ds:?} [de=${de:?} ou=${ou:?} pe=${pe:?} aoc=${aoc:?}](${count:0} values)", vars);
+          "ds=${ds:?} [de=${de:} ou=${ou:} pe=${pe:} aoc=${aoc:}](${count:0} values)", vars);
     }
   }
 
