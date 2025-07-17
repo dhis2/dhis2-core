@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class EventChangeLogService<T, R extends ChangeLogableEvent> {
+public abstract class EventChangeLogService<T, S extends ChangeLogableEvent> {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
@@ -71,7 +71,7 @@ public abstract class EventChangeLogService<T, R extends ChangeLogableEvent> {
   }
 
   public abstract T buildEventChangeLog(
-      R event,
+      S event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -104,7 +104,7 @@ public abstract class EventChangeLogService<T, R extends ChangeLogableEvent> {
 
   @Transactional
   public void addEventChangeLog(
-      R event,
+      S event,
       DataElement dataElement,
       String previousValue,
       String value,
@@ -123,7 +123,7 @@ public abstract class EventChangeLogService<T, R extends ChangeLogableEvent> {
 
   @Transactional
   public void addFieldChangeLog(
-      @Nonnull R currentEvent, @Nonnull R event, @Nonnull String username) {
+      @Nonnull S currentEvent, @Nonnull S event, @Nonnull String username) {
     if (config.isDisabled(CHANGELOG_TRACKER)) {
       return;
     }
@@ -162,10 +162,10 @@ public abstract class EventChangeLogService<T, R extends ChangeLogableEvent> {
 
   private <V> void logIfChanged(
       String field,
-      Function<R, V> valueExtractor,
+      Function<S, V> valueExtractor,
       Function<V, String> formatter,
-      R currentEvent,
-      R event,
+      S currentEvent,
+      S event,
       String userName) {
 
     String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
