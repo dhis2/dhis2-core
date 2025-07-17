@@ -29,15 +29,20 @@
  */
 package org.hisp.dhis.analytics.event.aggregate;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 
+import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 public class EventAggregateTest extends AnalyticsApiTest {
@@ -58,6 +63,7 @@ public class EventAggregateTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = analyticsEventActions.aggregate().get("qDkgAbB5Jlk", JSON, JSON, params);
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     response
         .validate()
         .statusCode(200)
@@ -66,8 +72,13 @@ public class EventAggregateTest extends AnalyticsApiTest {
         .body("width", equalTo(0))
         .body("rows", hasSize(equalTo(0)))
         .body("metaData.items", hasKey("CklPZdOd6H1"))
-        .body("metaData.items", hasKey("AZK4rjJCss5"))
-        .body("metaData.items", hasKey("UrUdMteQzlT"));
+        .body("metaData.items", hasKey("hiQ3QFheQ3O"))
+        .body("metaData.items.hiQ3QFheQ3O.options", hasSize(2))
+        .body(
+            "metaData.items.hiQ3QFheQ3O.options",
+            containsInAnyOrder(
+                allOf(hasEntry("code", "FEMALE"), hasEntry("name", "Female")),
+                allOf(hasEntry("code", "MALE"), hasEntry("name", "Male"))));
 
     validateHeader(
         response,
