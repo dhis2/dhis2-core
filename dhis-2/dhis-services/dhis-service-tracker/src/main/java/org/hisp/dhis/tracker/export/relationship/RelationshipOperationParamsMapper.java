@@ -109,7 +109,6 @@ class RelationshipOperationParamsMapper {
 
   private SoftDeletableObject getEvent(UID eventUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    Optional<SingleEvent> singleEvent = relationshipStore.findSingleEvent(eventUid, includeDeleted);
     Optional<Event> event = relationshipStore.findEvent(eventUid, includeDeleted);
     if (event.isPresent()) {
       if (!trackerAccessManager
@@ -120,6 +119,7 @@ class RelationshipOperationParamsMapper {
       return event.get();
     }
 
+    Optional<SingleEvent> singleEvent = relationshipStore.findSingleEvent(eventUid, includeDeleted);
     if (singleEvent.isPresent()) {
       if (!trackerAccessManager
           .canRead(CurrentUserUtil.getCurrentUserDetails(), singleEvent.get())

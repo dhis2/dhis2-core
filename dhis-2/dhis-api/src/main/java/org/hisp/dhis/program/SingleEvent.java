@@ -162,7 +162,7 @@ public class SingleEvent extends SoftDeletableObject implements ChangeLogableEve
   }
 
   @Override
-  @JsonProperty("eventDate")
+  @JsonProperty
   public Date getOccurredDate() {
     return occurredDate;
   }

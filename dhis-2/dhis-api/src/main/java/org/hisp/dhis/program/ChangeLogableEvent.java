@@ -32,6 +32,10 @@ package org.hisp.dhis.program;
 import java.util.Date;
 import org.locationtech.jts.geom.Geometry;
 
+/**
+ * Represents an event that can be logged in the change log system. Implementations of this
+ * interface should provide information about the properties that can be logged.
+ */
 public interface ChangeLogableEvent {
   Date getScheduledDate();
 

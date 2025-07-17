@@ -75,7 +75,7 @@ public class EventStrategy extends HibernateGenericStore<Event>
             getSession()
                 .createQuery(
                     """
-                        select distinct ev
+                        select ev
                         from Event as ev
                         join ev.programStage as ps
                         join ps.program as p

@@ -316,10 +316,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     } else {
-      OrganisationUnit ou = event.getOrganisationUnit();
+      OrganisationUnit orgUnit = event.getOrganisationUnit();
 
-      if (!canAccess(user, program, ou)) {
-        errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
+      if (!canAccess(user, program, orgUnit)) {
+        errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + orgUnit.getUid());
       }
     }
 
@@ -330,7 +330,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(@Nonnull UserDetails user, SingleEvent event) {
-    // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || event == null) {
       return List.of();
     }

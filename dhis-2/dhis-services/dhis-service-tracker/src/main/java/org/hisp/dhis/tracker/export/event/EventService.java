@@ -40,6 +40,5 @@ public interface EventService {
    *
    * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
    */
-  @Nonnull
   boolean exists(@Nonnull UID uid);
 }

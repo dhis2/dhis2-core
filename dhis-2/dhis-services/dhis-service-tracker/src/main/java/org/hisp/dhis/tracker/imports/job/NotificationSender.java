@@ -103,7 +103,6 @@ public class NotificationSender {
           notificationTemplateService.createNotificationInstance(
               template, notification.scheduledAt());
       notificationInstance.setEvent(event);
-      notificationInstance.setEnrollment(null);
 
       programNotificationInstanceService.save(notificationInstance);
     } else {
