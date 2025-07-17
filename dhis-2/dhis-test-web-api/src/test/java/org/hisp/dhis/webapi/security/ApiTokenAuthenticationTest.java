@@ -240,7 +240,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
   private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
     long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
     ApiKeyTokenGenerator.TokenWrapper wrapper =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
     apiTokenService.save(wrapper.getApiToken());
     return wrapper;
   }
