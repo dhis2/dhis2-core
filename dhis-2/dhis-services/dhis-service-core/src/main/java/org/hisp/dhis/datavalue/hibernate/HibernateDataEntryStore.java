@@ -296,10 +296,13 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         """
         SELECT
             de.uid,
-            ARRAY_AGG(ds.uid ORDER BY ds.created DESC) AS dataset_uids
+            COALESCE(
+                ARRAY_AGG(ds.uid ORDER BY ds.created DESC) FILTER (WHERE ds.uid IS NOT NULL),
+                '{}'
+            ) AS dataset_uids
         FROM dataelement de
-        JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
-        JOIN dataset ds ON de_ds.datasetid = ds.datasetid
+        LEFT JOIN datasetelement de_ds ON de.dataelementid = de_ds.dataelementid
+        LEFT JOIN dataset ds ON de_ds.datasetid = ds.datasetid
         WHERE de.uid IN (:de)
         GROUP BY de.uid""";
     String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);

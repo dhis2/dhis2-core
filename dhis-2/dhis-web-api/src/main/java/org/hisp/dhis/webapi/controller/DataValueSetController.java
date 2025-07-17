@@ -67,13 +67,11 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -249,12 +247,8 @@ public class DataValueSetController {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
-    ImportSummary summary =
-        adxDataService.saveDataValueSet(
-            request.getInputStream(), importOptions, JobProgress.noop());
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryIO.importAdx(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)

@@ -34,9 +34,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datavalue.DataEntryIO;
-import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -58,8 +56,6 @@ import org.springframework.stereotype.Component;
 public class DataValueSetImportJob implements Job {
 
   private final FileResourceService fileResourceService;
-  private final DataValueSetService dataValueSetService;
-  private final AdxDataService adxDataService;
   private final Notifier notifier;
   private final DataEntryIO dataEntryIO;
 
@@ -87,7 +83,7 @@ public class DataValueSetImportJob implements Job {
             case "application/csv" -> dataEntryIO.importCsv(input, options, progress);
             case "application/pdf" -> dataEntryIO.importPdf(input, options, progress);
             case "application/xml" -> dataEntryIO.importXml(input, options, progress);
-            case "application/adx+xml" -> adxDataService.saveDataValueSet(input, options, progress);
+            case "application/adx+xml" -> dataEntryIO.importAdx(input, options, progress);
             default -> {
               unknownFormat = true;
               yield null;

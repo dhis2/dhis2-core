@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,33 +29,25 @@
  */
 package org.hisp.dhis.feedback;
 
-import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
-
+import java.text.MessageFormat;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.webmessage.WebResponse;
 
 @Getter
-@Accessors(chain = true)
-@OpenApi.Response(status = NOT_FOUND, value = WebResponse.class)
-public final class NotFoundException extends FeedbackException {
+public abstract class FeedbackException extends Exception implements Error {
 
-  public NotFoundException(Class<?> type, String uid) {
-    this(type.getSimpleName() + " with id " + uid + " could not be found.");
+  @Nonnull private final ErrorCode code;
+  @Nonnull private final Object[] args;
+
+  FeedbackException(String msg, @Nonnull ErrorCode code) {
+    super(msg);
+    this.code = code;
+    this.args = new Object[0];
   }
 
-  public NotFoundException(Class<?> type, @Nonnull UID uid) {
-    this(type, uid.getValue());
-  }
-
-  public NotFoundException(String message) {
-    super(message, ErrorCode.E1005);
-  }
-
-  public NotFoundException(ErrorCode code, Object... args) {
-    super(code, args);
+  FeedbackException(@Nonnull ErrorCode code, @Nonnull Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+    this.args = args;
   }
 }

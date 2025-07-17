@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -138,7 +137,7 @@ public class DataEntryIO {
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
 
     progress.startingStage("Deserializing PDF data");
-    DataEntryGroup.Input input =
+    List<DataEntryGroup.Input> inputs =
         progress.runStage(
             () -> {
               PdfReader dvs = new PdfReader(in);
@@ -165,9 +164,9 @@ public class DataEntryIO {
                           de, null, coc, null, null, null, value, null, null, null));
                 }
               }
-              return new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values);
+              return List.of(new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values));
             });
-    return importRaw(input, options, progress);
+    return importRaw(inputs, options, progress);
   }
 
   public ImportSummary importCsv(InputStream in, ImportOptions options, JobProgress progress) {
@@ -179,16 +178,16 @@ public class DataEntryIO {
             () -> CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list());
     String ds = options.getDataSet();
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
-    DataEntryGroup.Input input = new DataEntryGroup.Input(ids, ds, values);
+    List<DataEntryGroup.Input> inputs = List.of(new DataEntryGroup.Input(ids, ds, values));
 
-    return importRaw(input, options, progress);
+    return importRaw(inputs, options, progress);
   }
 
   public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
     IdSchemes schemes = options.getIdSchemes();
 
     progress.startingStage("Deserializing CVS data");
-    DataEntryGroup.Input input =
+    List<DataEntryGroup.Input> inputs =
         progress.runStage(
             () -> {
               XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
@@ -230,16 +229,16 @@ public class DataEntryIO {
                         deleted == null ? null : parseBoolean(deleted)));
               }
               DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
-              return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
+              return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values));
             });
-    return importRaw(input, options, progress);
+    return importRaw(inputs, options, progress);
   }
 
   public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {
     IdSchemes schemes = options.getIdSchemes();
 
     progress.startingStage("Deserializing JSON data");
-    DataEntryGroup.Input input =
+    List<DataEntryGroup.Input> inputs =
         progress.runStage(
             () -> {
               JsonObject dvs =
@@ -287,59 +286,55 @@ public class DataEntryIO {
                                 dv.getBoolean("deleted").bool()));
                       });
               DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
-              return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
+              return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values));
             });
-    return importRaw(input, options, progress);
+    return importRaw(inputs, options, progress);
   }
 
   @Nonnull
   public ImportSummary importRaw(
-      DataEntryGroup.Input input, ImportOptions options, JobProgress progress) {
+      List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress) {
     try {
-      ImportSummary summary = importRawUnsafe(input, options, progress);
+      ImportSummary summary = importRawUnsafe(inputs, options, progress);
       summary.setImportOptions(options);
       return summary;
-    } catch (BadRequestException ex) {
+    } catch (BadRequestException | ConflictException ex) {
       ImportSummary summary = new ImportSummary(ImportStatus.ERROR);
-      ImportConflict c =
-          toConflict(IntStream.range(0, input.values().size()), ex.getCode(), ex.getArgs());
-      summary.addConflict(c);
-      summary.addRejected(c.getIndexes());
+      summary.addConflict(toConflict(IntStream.of(-1), ex.getCode(), ex.getArgs()));
       return summary;
     }
   }
 
   private ImportSummary importRawUnsafe(
-      DataEntryGroup.Input input, ImportOptions options, JobProgress progress)
-      throws BadRequestException {
+      List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress)
+      throws BadRequestException, ConflictException {
 
-    progress.startingStage("Resolving %d data values".formatted(input.values().size()));
-    DataEntryGroup group =
-        progress.runStageAndRethrow(BadRequestException.class, () -> service.decode(input));
+    List<DataEntryGroup> groups = new ArrayList<>();
+    for (DataEntryGroup.Input input : inputs) {
+      progress.startingStage("Resolving " + input.describe());
+      groups.add(
+          progress.runStageAndRethrow(BadRequestException.class, () -> service.decode(input)));
+    }
+
+    List<DataEntryGroup> dsGroups = groups;
+    if (options.isGroup()) {
+      dsGroups = new ArrayList<>();
+      for (DataEntryGroup g : groups) {
+        if (g.dataSet() == null) {
+          progress.startingStage("Grouping " + g.describe());
+          dsGroups.addAll(
+              progress.runStageAndRethrow(
+                  ConflictException.class, () -> service.groupByDataSet(g)));
+        } else {
+          dsGroups.add(g);
+        }
+      }
+    }
 
     DataEntryGroup.Options opt =
         new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
 
-    if (!options.isGroup() || group.dataSet() != null)
-      return importGroups(List.of(group), opt, progress);
-
-    progress.startingStage(
-        "Grouping %d values by target data set".formatted(group.values().size()));
-    List<DataEntryGroup> groups =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                null,
-                res ->
-                    "Grouped into %d groups targeting data sets %s"
-                        .formatted(
-                            res.size(),
-                            res.stream()
-                                .filter(g -> g.dataSet() != null)
-                                .map(g -> g.dataSet().getValue())
-                                .collect(Collectors.joining(","))),
-                () -> service.groupByDataSet(group)));
-
-    return importGroups(groups, opt, progress);
+    return importGroups(dsGroups, opt, progress);
   }
 
   @Nonnull

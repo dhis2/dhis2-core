@@ -634,10 +634,10 @@ public enum ErrorCode {
   E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
 
   /* New data entry validations */
-  E7801("Data elements not part of dataset {0}: `{1}`"),
-  E7802("Data elements belong to multiple data sets: `{0}`"),
-  E7803("ISO period(s) not recognized: `{0}`"),
-  E7804("ISO period(s) not valid for data set {0}: `{1}`"),
+  E7801("Data set ${ds:{0}} is not connected to data element(s): `${de_ids:{1}}`"),
+  E7802("Data set connection is ambitious for data element(s): `${de_ids:{0}}`"),
+  E7803("No data set for data element(s): `${de_ids:{0}}`"),
+  E7804("Data set ${ds:{0}} incompatible with ISO period(s): `${periods:{1}}`"),
   E7805("Org unit(s) not valid for data set {0}: `{1}`"),
   E7806("Attribute option combo(s) not valid for data set {0}: `{1}`"),
   E7807("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),

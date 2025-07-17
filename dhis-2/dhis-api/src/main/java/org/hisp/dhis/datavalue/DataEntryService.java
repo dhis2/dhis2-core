@@ -54,7 +54,14 @@ public interface DataEntryService {
    */
   DataEntryGroup decode(DataEntryGroup.Input group) throws BadRequestException;
 
-  List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed);
+  /**
+   * @param mixed a group that might contain data that belongs to multiple data sets
+   * @return multiple group each having a possible dataset assigned. in case multiple datasets are
+   *     possible for a data element it will be in the data set group that has been created most
+   *     recently
+   * @throws ConflictException in case there are data elements that are not linked to any data set
+   */
+  List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed) throws ConflictException;
 
   /**
    * Data entry of a single value.

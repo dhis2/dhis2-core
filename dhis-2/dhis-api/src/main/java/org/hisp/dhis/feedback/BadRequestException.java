@@ -31,46 +31,28 @@ package org.hisp.dhis.feedback;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
 
-import java.text.MessageFormat;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webmessage.WebResponse;
 
+@Setter
 @Getter
 @Accessors(chain = true)
 @OpenApi.Response(status = BAD_REQUEST, value = WebResponse.class)
 @SuppressWarnings({"java:S1165", "java:S1948"})
-public final class BadRequestException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrow(type, BadRequestException::new, operation);
-  }
+public final class BadRequestException extends FeedbackException {
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, BadRequestException> map, Supplier<V> operation)
-      throws BadRequestException {
-    return Error.rethrowMapped(type, map, operation);
-  }
-
-  private final ErrorCode code;
-  private final Object[] args;
-
-  @Setter private List<ErrorReport> errorReports = List.of();
+  @Nonnull private List<ErrorReport> errorReports = List.of();
 
   public BadRequestException(String message) {
-    super(message);
-    this.code = ErrorCode.E1003;
-    this.args = new Object[0];
+    super(message, ErrorCode.E1003);
   }
 
   public BadRequestException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-    this.args = args;
+    super(code, args);
   }
 }

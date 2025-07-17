@@ -178,17 +178,23 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed) {
+  public List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed) throws ConflictException {
     List<DataEntryValue> values = mixed.values();
 
-    Map<String, Set<String>> dsxByDe =
+    Map<String, Set<String>> datasetsByDe =
         store.getDataSetsByDataElement(values.stream().map(DataEntryValue::dataElement));
-    if (dsxByDe.size() == 1) return List.of(mixed);
+
+    List<String> deNoDs =
+        datasetsByDe.entrySet().stream()
+            .filter(e -> e.getValue().isEmpty())
+            .map(Map.Entry::getKey)
+            .toList();
+    if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E7803, deNoDs);
 
     Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
     values.forEach(
         v -> {
-          UID ds = UID.of(dsxByDe.get(v.dataElement().getValue()).iterator().next());
+          UID ds = UID.of(datasetsByDe.get(v.dataElement().getValue()).iterator().next());
           valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
         });
     return valuesByDs.entrySet().stream()
@@ -215,7 +221,7 @@ public class DefaultDataEntryService implements DataEntryService {
     List<DataEntryValue> values = group.values();
     if (values.isEmpty()) return new DataEntrySummary(0, 0, List.of());
 
-    progress.startingStage("Validating %d values".formatted(values.size()));
+    progress.startingStage("Validating " + group.describe());
     List<DataEntryError> errors = new ArrayList<>();
     List<DataEntryValue> validValues =
         progress.runStageAndRethrow(
@@ -224,7 +230,7 @@ public class DefaultDataEntryService implements DataEntryService {
     if (options.atomic() && values.size() > validValues.size())
       throw new ConflictException(ErrorCode.E7808, validValues.size(), values.size());
 
-    progress.startingStage("Writing %d values".formatted(validValues.size()));
+    progress.startingStage("Writing %s (%d valid)".formatted(group.describe(), validValues.size()));
     int imported =
         progress.runStage(
             0, () -> options.dryRun() ? validValues.size() : store.upsertValues(validValues));
