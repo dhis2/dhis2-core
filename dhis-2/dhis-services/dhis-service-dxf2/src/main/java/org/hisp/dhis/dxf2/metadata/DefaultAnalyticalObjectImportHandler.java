@@ -45,6 +45,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -75,54 +77,94 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleProgramIndicatorDimensions(session, schema, analyticalObject, bundle);
     handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
-    handleOrgUnitGroupSetDimensions(schema, analyticalObject, bundle);
+    handleOrgUnitGroupSetDimensions(session, schema, analyticalObject, bundle);
   }
 
+  /**
+   * This method implements required custom handling for {@link OrganisationUnitGroupSetDimension}s.
+   * Without it, when importing, these objects throw TransientObjectException.
+   *
+   * <p>There are 2 parts to the handling: <br>
+   * 1. The dimension {@link OrganisationUnitGroupSet}
+   *
+   * <pre>
+   *  a. If available from the bundle preheat, use this instance.
+   *  b. Otherwise use from persisted if it exists, and then add to the bundle for `connectReferences`
+   * </pre>
+   *
+   * 2. The items: List of {@link OrganisationUnitGroup}
+   *
+   * <pre>
+   *  a. If available from the bundle preheat, use this instance.
+   *  b. Otherwise use from persisted if it exists, and then add to the bundle for `connectReferences`
+   * </pre>
+   *
+   * <p>
+   *
+   * @param session session to save object
+   * @param schema schema to check object property
+   * @param analyticalObject object that needs custom handling
+   * @param bundle bundle with preheat objects
+   */
   private void handleOrgUnitGroupSetDimensions(
-      Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
+      Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
     if (!schema.hasPersistedProperty("organisationUnitGroupSetDimensions")) return;
 
     for (OrganisationUnitGroupSetDimension organisationUnitGroupSetDimension :
         analyticalObject.getOrganisationUnitGroupSetDimensions()) {
-      if (organisationUnitGroupSetDimension == null) {
-        continue;
+
+      // handle dimension
+      OrganisationUnitGroupSet orgUnitGroupSetBundle =
+          bundle
+              .getPreheat()
+              .get(bundle.getPreheatIdentifier(), organisationUnitGroupSetDimension.getDimension());
+
+      // use from bundle if available
+      if (orgUnitGroupSetBundle != null) {
+        organisationUnitGroupSetDimension.setDimension(orgUnitGroupSetBundle);
+      } else {
+        // use from persisted if available
+        OrganisationUnitGroupSet orgUnitGroupSetPersisted =
+            objectManager.get(
+                OrganisationUnitGroupSet.class,
+                organisationUnitGroupSetDimension.getDimension().getUid());
+
+        if (orgUnitGroupSetPersisted != null) {
+          organisationUnitGroupSetDimension.setDimension(orgUnitGroupSetPersisted);
+
+          bundle
+              .getPreheat()
+              .put(bundle.getPreheatIdentifier(), organisationUnitGroupSetDimension.getDimension());
+        }
       }
 
-      BaseAnalyticalObject bundleObject =
-          bundle.getPreheat().get(bundle.getPreheatIdentifier(), analyticalObject);
+      // handle items
+      List<OrganisationUnitGroup> organisationUnitGroups =
+          new ArrayList<>(organisationUnitGroupSetDimension.getItems());
+      organisationUnitGroupSetDimension.getItems().clear();
 
-      List<OrganisationUnitGroupSetDimension> bundleDimensions =
-          bundleObject.getOrganisationUnitGroupSetDimensions();
-
-      if (bundleDimensions == null || bundleDimensions.isEmpty()) continue;
-
-      List<OrganisationUnitGroupSetDimension> orgUnitGsDimensions =
-          bundleDimensions.stream()
-              .filter(
-                  bd ->
-                      bd.getDimension()
-                          .getUid()
-                          .equals(organisationUnitGroupSetDimension.getDimension().getUid()))
-              .collect(toList());
-
-      if (orgUnitGsDimensions.isEmpty()) continue;
-
-      OrganisationUnitGroupSetDimension orgUnitGsDimension = orgUnitGsDimensions.get(0);
-      organisationUnitGroupSetDimension.setDimension(orgUnitGsDimension.getDimension());
-      organisationUnitGroupSetDimension.setItems(orgUnitGsDimension.getItems());
-
-      bundle.getPreheat().put(bundle.getPreheatIdentifier(), orgUnitGsDimension.getDimension());
-      bundle.getPreheat().put(bundle.getPreheatIdentifier(), orgUnitGsDimension.getItems());
+      organisationUnitGroups.forEach(
+          oug -> {
+            // use from bundle if available
+            OrganisationUnitGroup orgUnitGroupBundle =
+                bundle.getPreheat().get(bundle.getPreheatIdentifier(), oug);
+            if (orgUnitGroupBundle != null) {
+              organisationUnitGroupSetDimension.getItems().add(orgUnitGroupBundle);
+            } else {
+              // use from persisted if available
+              OrganisationUnitGroup orgUnitGroupPersisted =
+                  objectManager.get(OrganisationUnitGroup.class, oug.getUid());
+              if (orgUnitGroupPersisted != null) {
+                organisationUnitGroupSetDimension.getItems().add(orgUnitGroupPersisted);
+                bundle.getPreheat().put(bundle.getPreheatIdentifier(), orgUnitGroupPersisted);
+              }
+            }
+          });
 
       preheatService.connectReferences(
-          organisationUnitGroupSetDimension.getDimension(),
-          bundle.getPreheat(),
-          bundle.getPreheatIdentifier());
+          organisationUnitGroupSetDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-      preheatService.connectReferences(
-          organisationUnitGroupSetDimension.getItems(),
-          bundle.getPreheat(),
-          bundle.getPreheatIdentifier());
+      session.save(organisationUnitGroupSetDimension);
     }
   }
 

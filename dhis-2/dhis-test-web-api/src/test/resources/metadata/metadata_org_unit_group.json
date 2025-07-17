@@ -1,0 +1,29 @@
+{
+  "organisationUnitGroups": [
+    {
+      "name": "CHC2222",
+      "id": "uYxK4wmcPqA",
+      "shortName": "CHC2222",
+      "groupSets": [
+        {
+          "id": "J5jldMd8OHv"
+        }
+      ],
+      "organisationUnits": []
+    }
+  ],
+  "organisationUnitGroupSets": [
+    {
+      "name": "Facility Type2",
+      "id": "J5jldMd8OHv",
+      "shortName": "Facility Type2",
+      "description": "Facility Type2",
+      "dimensionType": "ORGANISATION_UNIT_GROUP_SET",
+      "organisationUnitGroups": [
+        {
+          "id": "uYxK4wmcPqA"
+        }
+      ]
+    }
+  ]
+}
