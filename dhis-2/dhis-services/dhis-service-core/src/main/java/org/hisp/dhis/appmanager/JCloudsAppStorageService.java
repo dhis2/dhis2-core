@@ -32,21 +32,13 @@ package org.hisp.dhis.appmanager;
 import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -93,34 +85,52 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final FileResourceContentStore fileResourceContentStore;
 
   private void discoverInstalledApps(Consumer<App> handler) {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     log.info("Starting JClouds discovery");
     for (StorageMetadata resource :
         jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"))) {
       log.info("Found potential app: {}", resource.getName());
 
       // Found potential app
-      Blob manifest = jCloudsStore.getBlob(resource.getName() + "manifest.webapp");
+      Blob manifest =
+          jCloudsStore.getBlob(resource.getName() + AppStorageService.MANIFEST_FILENAME);
+      Blob manifestTranslationsFile =
+          jCloudsStore.getBlob(
+              resource.getName() + AppStorageService.MANIFEST_TRANSLATION_FILENAME);
 
       if (manifest == null) {
         log.warn("Could not find manifest file of {}", resource.getName());
         continue;
       }
 
-      try {
-        InputStream inputStream = manifest.getPayload().openStream();
-        App app = mapper.readValue(inputStream, App.class);
-        inputStream.close();
-
+      try (InputStream inputStream = manifest.getPayload().openStream()) {
+        App app = App.MAPPER.readValue(inputStream, App.class);
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
+        List<AppManifestTranslation> manifestTranslations =
+            readAppManifestTranslations(manifestTranslationsFile);
+        app.setManifestTranslations(manifestTranslations);
         handler.accept(app);
       } catch (IOException ex) {
-        log.error("Could not read manifest file of " + resource.getName(), ex);
+        log.error("Could not read manifest file of {}", resource.getName(), ex);
       }
+    }
+  }
+
+  private List<AppManifestTranslation> readAppManifestTranslations(Blob manifestTranslationsFile) {
+    try {
+      if (manifestTranslationsFile == null) {
+        return Collections.emptyList();
+      }
+
+      try (InputStream inputStream = manifestTranslationsFile.getPayload().openStream()) {
+        return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+      }
+    } catch (Exception e) {
+      log.warn(
+          "An error occurred trying to read the app manifest translations {}",
+          e.getLocalizedMessage());
+      return Collections.emptyList();
     }
   }
 
