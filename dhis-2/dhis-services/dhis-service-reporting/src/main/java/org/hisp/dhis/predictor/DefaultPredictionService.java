@@ -575,10 +575,7 @@ public class DefaultPredictionService implements PredictionService {
 
     for (Period period : periods) {
       Period existingPeriod =
-          period.getId() != 0
-              ? period
-              : periodService.getPeriod(
-                  period.getStartDate(), period.getEndDate(), period.getPeriodType());
+          period.getId() != 0 ? period : periodService.getPeriod(period.getIsoDate());
 
       if (existingPeriod != null) {
         existingPeriods.add(existingPeriod);

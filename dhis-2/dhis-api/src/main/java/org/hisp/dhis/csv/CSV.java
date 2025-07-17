@@ -31,6 +31,7 @@ package org.hisp.dhis.csv;
 
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
 
@@ -122,6 +124,14 @@ public final class CSV {
     addDeserializer(Boolean.class, Boolean::parseBoolean);
     addDeserializer(boolean.class, Boolean::parseBoolean);
     addDeserializer(UID.class, UID::of);
+    addDeserializer(
+        Map.class,
+        map ->
+            Stream.of(map.split("\\s+"))
+                .collect(
+                    toMap(
+                        kv -> kv.substring(0, kv.indexOf('=')),
+                        kv -> kv.substring(kv.indexOf('=') + 1))));
   }
 
   private record Column<T>(String name, boolean required, Function<String, T> deserializer) {}
@@ -222,7 +232,10 @@ public final class CSV {
     Function<String, ?> deserializer = DESERIALIZERS.get(type);
     if (deserializer == null)
       throw new UnsupportedOperationException("%s is not supported".formatted(type));
-    boolean required = type.isPrimitive() || c.isAnnotationPresent(Nonnull.class);
+    boolean required =
+        type.isPrimitive()
+            || c.isAnnotationPresent(Nonnull.class)
+            || c.isAnnotationPresent(OpenApi.Required.class);
     return new Column<>(c.getName(), required, deserializer);
   }
 

@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.feedback;
 
+import java.util.Map;
+import org.hisp.dhis.commons.util.TextUtils;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -572,6 +575,7 @@ public enum ErrorCode {
   E7602("A valid dataset is required"),
   E7603("Org unit not found or not accessible: `{0}`"),
   E7604("Attribute option combo not found or not accessible: `{0}`"),
+
   // Data Value validation
   E7610("Data element not found or not accessible: `{0}`"),
   E7611("Period not valid: `{0}`"),
@@ -586,6 +590,7 @@ public enum ErrorCode {
   E7620("Invalid comment: {0}"),
   E7621("Data value is not a valid option of the data element option set: `{0}`"),
   E7622("Current user `{0}` has no access to any organisation unit data"),
+
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),
   E7631("Attribute option combo is required but is not specified"),
@@ -627,12 +632,46 @@ public enum ErrorCode {
   E7710("User is not allowed to update the target organisation unit"),
   E7711("Organisation unit cannot be uniquely identified by its name"),
   E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
+
+  /* New data entry validations */
+  E7801("Data set ${ds:{0}} is not connected to data element(s): `${de_ids:{1}}`"),
+  E7802("Data set connection is ambitious for data element(s): `${de_ids:{0}}`"),
+  E7803("No data set for data element(s): `${de_ids:{0}}`"),
+  E7804("Data set ${ds:{0}} incompatible with ISO period(s): `${periods:{1}}`"),
+  E7805("Org unit(s) not valid for data set {0}: `{1}`"),
+  E7806("Attribute option combo(s) not valid for data set {0}: `{1}`"),
+  E7807("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),
+  E7808("Atomic mode requires all values to be valid but only {0}/{1} were."),
+  E7809(
+      "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
+  E7810("Current user cannot enter data for category option(s): `{0}`"),
+  E7811("Attribute option combo {0} not connected to org unit(s): `{1}`"),
+  E7812("Period(s) are not open for data entry in data set {0}: `{1}`"),
+  E7813("Org units not operational during entered period(s): `{0}`"),
+  E7814("Current user cannot enter data for org unit(s): `{0}`"),
+  E7815("Current user cannot enter data for data set: `{0}`"),
+  E7816("Data set not found: `{0}`"),
+  E7817("Data set UID not valid: `{0}`"),
+  E7818("Value ${index:{0}} period not defined in group or value: `${dv:{1}}`"),
+  E7819("Value ${index:{0}} data element not defined in group or value: `${dv:{1}}`"),
+  E7820("Value ${index:{0}} org unit not defined in group or value: `${dv:{1}}`"),
+  E7821("Value ${index:{0}} data element UID not valid: `${uid:{1}}`"),
+  E7822("Value ${index:{0}} org unit UID is not valid: `${uid:{1}}`"),
+  E7823("Value ${index:{0}} category option combo not found: `${id:{1}}`"),
+  E7824("Value ${index:{0}} category option combo UID is not valid: `${uid:{1}}`"),
+  E7825("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
+  E7826("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
+  E7827("Value ${index:{0}} org unit not found: `${id:{1}}`"),
+  E7828("Value ${index:{0}} data element not found: `${id:{1}}`"),
   ;
 
-  private String message;
+  private final String message;
 
   ErrorCode(String message) {
-    this.message = message;
+    // this is a little trick that allows to name the placeholders (optional)
+    // using ${name:default} syntax where the "default" picked
+    // is always the {index} syntax originally used by the message template
+    this.message = TextUtils.replace(message, Map.of());
   }
 
   public String getMessage() {

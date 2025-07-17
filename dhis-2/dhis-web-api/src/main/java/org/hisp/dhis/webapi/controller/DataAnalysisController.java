@@ -74,6 +74,7 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -413,7 +414,8 @@ public class DataAnalysisController {
 
   @PostMapping(value = "/followup/mark", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public @ResponseBody void markDataValues(@RequestBody UpdateFollowUpForDataValuesRequest params) {
+  public @ResponseBody void markDataValues(@RequestBody UpdateFollowUpForDataValuesRequest params)
+      throws ConflictException {
     log.info("markDataValues from DataAnalysisController input " + params);
 
     List<DataValue> dataValues = new ArrayList<>();

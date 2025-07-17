@@ -291,11 +291,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       dv.setLastUpdated(new java.util.Date());
       dv.setStoredBy(storedBy);
 
-      if (newDataValue) {
-        dataValueService.addDataValue(dv);
-      } else {
-        dataValueService.updateDataValue(dv);
-      }
+      dataValueService.addDataValue(dv);
     }
 
     if (code.getFormula() != null) {
