@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import static org.hisp.dhis.util.TextUtils.EMPTY;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;

@@ -30,7 +30,7 @@
 package org.hisp.dhis.feedback;
 
 import java.util.Map;
-import org.hisp.dhis.util.TextUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

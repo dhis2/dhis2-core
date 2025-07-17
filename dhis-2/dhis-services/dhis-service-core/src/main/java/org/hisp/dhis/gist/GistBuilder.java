@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.collection.CollectionUtils.merge;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
@@ -51,7 +52,6 @@ import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.isStringLengthFilter;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
-import static org.hisp.dhis.util.TextUtils.replace;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Method;

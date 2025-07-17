@@ -30,12 +30,12 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.resourcetable.util.ColumnNameUtils.toValidColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.util.TextUtils.replace;
 
 import com.google.common.collect.Lists;
 import java.util.List;

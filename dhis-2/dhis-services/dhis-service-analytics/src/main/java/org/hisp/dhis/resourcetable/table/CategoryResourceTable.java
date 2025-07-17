@@ -30,10 +30,10 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.resourcetable.util.ColumnNameUtils.toValidColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.TextUtils.replace;
 
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -42,6 +42,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -50,7 +51,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
-import org.hisp.dhis.util.TextUtils;
 
 /**
  * @author Lars Helge Overland

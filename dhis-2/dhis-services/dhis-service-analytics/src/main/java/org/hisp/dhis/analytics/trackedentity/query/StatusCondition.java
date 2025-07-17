@@ -30,7 +30,7 @@
 package org.hisp.dhis.analytics.trackedentity.query;
 
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
-import static org.hisp.dhis.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;

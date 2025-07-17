@@ -32,7 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.util.TextUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.mapstruct.Mapper;
 
 @Mapper

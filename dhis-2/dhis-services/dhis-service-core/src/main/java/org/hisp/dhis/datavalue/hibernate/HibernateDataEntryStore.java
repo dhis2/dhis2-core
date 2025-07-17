@@ -55,9 +55,10 @@ import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
-import org.hisp.dhis.common.InputId;
+import org.hisp.dhis.common.IdBy;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
@@ -68,7 +69,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.util.TextUtils;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -101,7 +101,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, String> mapToUid(KeyTable table, InputId id, Stream<String> identifiers) {
+  public Map<String, String> mapToUid(KeyTable table, IdBy id, Stream<String> identifiers) {
     @Language("sql")
     String sqlTemplate =
         """

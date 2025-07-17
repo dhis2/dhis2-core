@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.db.setting;
 
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
-import static org.hisp.dhis.util.TextUtils.format;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;

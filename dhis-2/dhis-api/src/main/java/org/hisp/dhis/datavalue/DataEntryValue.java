@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -40,6 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /** A single data value in the data entry service API. */
 public record DataEntryValue(
     int index,
+    // names are chosen to be aligned with web API input
     @Nonnull UID dataElement,
     @Nonnull UID orgUnit,
     @CheckForNull UID categoryOptionCombo,
@@ -51,12 +55,10 @@ public record DataEntryValue(
     Boolean deleted)
     implements DataEntryId {
 
-  @SuppressWarnings("ConstantConditions")
   public DataEntryValue {
-    // ensure null safety by design:
-    if (dataElement == null) throw new NullPointerException("dataElement must not be null");
-    if (orgUnit == null) throw new NullPointerException("orgUnit must not be null");
-    if (period == null) throw new NullPointerException("period must not be null");
+    requireNonNull(dataElement);
+    requireNonNull(orgUnit);
+    requireNonNull(period);
   }
 
   /**
@@ -68,14 +70,22 @@ public record DataEntryValue(
    */
   @OpenApi.Shared(name = "DataEntryValue")
   public record Input(
+      // names are chosen to be aligned with web API input
       @CheckForNull @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
       @CheckForNull @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String categoryOptionCombo,
+      @OpenApi.Description(
+              """
+        An alternative to `categoryOptionCombo` defining which category option (value) is chosen for which category (key)
+        for the category combination used for the target data set.""")
+          @CheckForNull
+          Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,
       @CheckForNull String period,
       @CheckForNull String value,
       @CheckForNull String comment,
-      @CheckForNull Boolean followUp) {}
+      @CheckForNull Boolean followUp,
+      @CheckForNull Boolean deleted) {}
 }

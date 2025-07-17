@@ -29,33 +29,36 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.Objects.requireNonNull;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
- * Input identifiers that can be used as an alternative to {@link UID}s.
+ * How to identify objects, or what kind of identifier is used (alternative to {@link UID}s).
  *
  * @param type the property used to identify an object
  * @param attributeId the attribute UID in case an attribute is used, otherwise always null
  */
-public record InputId(@Nonnull Type type, @CheckForNull UID attributeId) {
+public record IdBy(@Nonnull Type type, @CheckForNull UID attributeId) {
 
-  public InputId {
+  public IdBy {
+    requireNonNull(type);
     if (type == Type.ATTR && attributeId == null)
       throw new IllegalArgumentException("When type is ATTR the attribute ID must be non-null");
     if (type != Type.ATTR && attributeId != null)
       throw new IllegalArgumentException("When type is not ATTR the attribute ID must be null");
   }
 
-  public static InputId of(IdScheme scheme) {
-    if (scheme == null) return new InputId(Type.ID, null);
+  public static IdBy of(IdScheme scheme) {
+    if (scheme == null) return new IdBy(Type.ID, null);
     IdentifiableProperty property = scheme.getIdentifiableProperty();
-    if (property == null) return new InputId(Type.ID, null);
+    if (property == null) return new IdBy(Type.ID, null);
     return switch (property) {
-      case ID, UID -> new InputId(Type.ID, null);
-      case CODE -> new InputId(Type.CODE, null);
-      case NAME -> new InputId(Type.NAME, null);
-      case ATTRIBUTE -> new InputId(Type.ATTR, UID.of(scheme.getAttribute()));
+      case ID, UID -> new IdBy(Type.ID, null);
+      case CODE -> new IdBy(Type.CODE, null);
+      case NAME -> new IdBy(Type.NAME, null);
+      case ATTRIBUTE -> new IdBy(Type.ATTR, UID.of(scheme.getAttribute()));
       case UUID ->
           throw new UnsupportedOperationException("UUID is not supported for this operation");
     };

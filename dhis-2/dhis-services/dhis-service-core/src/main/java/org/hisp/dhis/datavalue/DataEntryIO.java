@@ -39,12 +39,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.csv.CSV;
+import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -77,36 +79,90 @@ public class DataEntryIO {
 
   private final DataEntryService service;
 
+  public ImportSummary importAdx(InputStream in, ImportOptions options, JobProgress progress) {
+
+    progress.startingStage("Deserializing ADX data");
+    List<DataEntryGroup.Input> inputs =
+        progress.runStage(
+            () -> {
+              XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
+              String ns = "urn:ihe:qrph:adx:2015";
+              dvs.moveToStartElement("adx", ns);
+              List<DataEntryGroup.Input> res = new ArrayList<>();
+              while (dvs.moveToStartElement("group", ns)) {
+                Map<String, String> group = dvs.readAttributes();
+                // keys common for all values in group
+                String ou = group.get("orgUnit");
+                String pe = AdxPeriod.parse(group.get("period")).getIsoDate();
+                String ds = group.get("dataSet");
+                String aoc = group.get("attributeOptionCombo");
+                Map<String, String> aco = null;
+                if (!group.containsKey("attributeOptionCombo")) {
+                  aco = group;
+                  List.of("orgUnit", "period", "dataSet").forEach(aco::remove);
+                }
+                List<DataEntryValue.Input> values = new ArrayList<>();
+                while (dvs.moveToStartElement("dataValue", "group")) {
+                  Map<String, String> dv = dvs.readAttributes();
+                  String de = dv.get("dataElement");
+                  String value = dv.get("value");
+                  String comment = dv.get("comment");
+                  String followupStr = dv.get("followup");
+                  String deletedStr = dv.get("deleted");
+                  String coc = dv.get("categoryOptionCombo");
+                  Map<String, String> co = null;
+                  if (!dv.containsKey("categoryOptionCombo")) {
+                    co = dv;
+                    List.of("dataElement", "value", "comment", "followup").forEach(co::remove);
+                  }
+                  Boolean followup =
+                      followupStr == null ? null : "true".equalsIgnoreCase(followupStr);
+                  Boolean deleted = deletedStr == null ? null : "true".equalsIgnoreCase(deletedStr);
+                  if (dvs.moveToStartElement("annotation", "dataValue"))
+                    value = dvs.getElementValue();
+                  values.add(
+                      new DataEntryValue.Input(
+                          de, null, coc, co, null, null, value, comment, followup, deleted));
+                }
+                DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
+                res.add(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, aco, values));
+              }
+              return res;
+            });
+    return null;
+  }
+
   public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress) {
 
     progress.startingStage("Deserializing PDF data");
     DataEntryGroup.Input input =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () -> {
-                  PdfReader dvs = new PdfReader(in);
-                  AcroFields form = dvs.getAcroFields();
-                  if (form == null) throw new IllegalArgumentException("PDF has no Acro fields");
-                  String ou = form.getField("TXFD_OrgID").trim();
-                  String pe = form.getField("TXFD_PeriodID").trim();
-                  Set<String> fields = form.getAllFields().keySet();
-                  List<DataEntryValue.Input> values = new ArrayList<>();
-                  for (String field : fields) {
-                    if (field.startsWith("TXFDDV_")) {
-                      String[] parts = field.split("_");
-                      String de = parts[1];
-                      String coc = parts[2];
-                      String value = form.getField(field);
-                      if (parts.length >= 4 && parts[3].startsWith("T4")) { // T4=checkbox
-                        if ("On".equalsIgnoreCase(value)) value = "true";
-                        if ("Off".equalsIgnoreCase(value)) value = "false";
-                      }
-                      values.add(
-                          new DataEntryValue.Input(de, null, coc, null, null, value, null, null));
-                    }
+        progress.runStage(
+            () -> {
+              PdfReader dvs = new PdfReader(in);
+              AcroFields form = dvs.getAcroFields();
+              if (form == null) throw new IllegalArgumentException("PDF has no Acro fields");
+              String ou = form.getField("TXFD_OrgID").trim();
+              String pe = form.getField("TXFD_PeriodID").trim();
+              Set<String> fields = form.getAllFields().keySet();
+              List<DataEntryValue.Input> values = new ArrayList<>();
+              for (String field : fields) {
+                if (field.startsWith("TXFDDV_")) {
+                  String[] parts = field.split("_");
+                  String de = parts[1];
+                  String coc = parts[2];
+                  String value = form.getField(field);
+                  if (parts.length >= 4 && parts[3].startsWith("T4")) { // T4=checkbox
+                    if ("On".equalsIgnoreCase(value)) value = "true";
+                    if ("Off".equalsIgnoreCase(value)) value = "false";
                   }
-                  return new DataEntryGroup.Input(null, null, ou, pe, null, values);
-                }));
+                  values.add(
+                      new DataEntryValue.Input(
+                          de, null, coc, null, null, null, value, null, null, null));
+                }
+              }
+              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
+              return new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values);
+            });
     return importRaw(input, options, progress);
   }
 
@@ -114,34 +170,37 @@ public class DataEntryIO {
 
     progress.startingStage("Deserializing CVS data");
     DataEntryGroup.Input input =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () -> {
-                  XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
-                  dvs.moveToStartElement("dataValueSet");
-                  String ds = dvs.getAttributeValue("dataSet");
-                  String ou = dvs.getAttributeValue("orgUnit");
-                  String pe = dvs.getAttributeValue("period");
-                  String aoc = dvs.getAttributeValue("attributeOptionCombo");
-                  String dryRun = dvs.getAttributeValue("dryRun");
-                  if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
-                  // TODO ID scheme
-                  List<DataEntryValue.Input> values = new ArrayList<>();
-                  while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
-                    String followUp = dvs.getAttributeValue("followUp");
-                    values.add(
-                        new DataEntryValue.Input(
-                            dvs.getAttributeValue("dataElement"),
-                            dvs.getAttributeValue("orgUnit"),
-                            dvs.getAttributeValue("categoryOptionCombo"),
-                            dvs.getAttributeValue("attributeOptionCombo"),
-                            dvs.getAttributeValue("period"),
-                            dvs.getAttributeValue("value"),
-                            dvs.getAttributeValue("comment"),
-                            followUp == null ? null : parseBoolean(followUp)));
-                  }
-                  return new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
-                }));
+        progress.runStage(
+            () -> {
+              XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
+              dvs.moveToStartElement("dataValueSet");
+              String ds = dvs.getAttributeValue("dataSet");
+              String ou = dvs.getAttributeValue("orgUnit");
+              String pe = dvs.getAttributeValue("period");
+              String aoc = dvs.getAttributeValue("attributeOptionCombo");
+              String dryRun = dvs.getAttributeValue("dryRun");
+              if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
+              // TODO ID scheme
+              List<DataEntryValue.Input> values = new ArrayList<>();
+              while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
+                String followUp = dvs.getAttributeValue("followUp");
+                String deleted = dvs.getAttributeValue("deleted");
+                values.add(
+                    new DataEntryValue.Input(
+                        dvs.getAttributeValue("dataElement"),
+                        dvs.getAttributeValue("orgUnit"),
+                        dvs.getAttributeValue("categoryOptionCombo"),
+                        null,
+                        dvs.getAttributeValue("attributeOptionCombo"),
+                        dvs.getAttributeValue("period"),
+                        dvs.getAttributeValue("value"),
+                        dvs.getAttributeValue("comment"),
+                        followUp == null ? null : parseBoolean(followUp),
+                        deleted == null ? null : parseBoolean(deleted)));
+              }
+              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
+              return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
+            });
     return importRaw(input, options, progress);
   }
 
@@ -150,14 +209,11 @@ public class DataEntryIO {
     // TODO maybe handle firstRowIsHeader=false by specifying a default header?
     progress.startingStage("Deserializing CVS data");
     List<DataEntryValue.Input> values =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () ->
-                    CSV.of(wrapAndCheckCompressionFormat(in))
-                        .as(DataEntryValue.Input.class)
-                        .list()));
+        progress.runStage(
+            () -> CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list());
     String ds = options.getDataSet();
-    DataEntryGroup.Input input = new DataEntryGroup.Input(ds, null, null, null, null, values);
+    DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
+    DataEntryGroup.Input input = new DataEntryGroup.Input(ids, ds, values);
 
     return importRaw(input, options, progress);
   }
@@ -166,41 +222,42 @@ public class DataEntryIO {
 
     progress.startingStage("Deserializing JSON data");
     DataEntryGroup.Input input =
-        progress.nonNullStagePostCondition(
-            progress.runStage(
-                () -> {
-                  JsonObject dvs =
-                      JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in)))
-                          .asObject();
-                  String ds = dvs.getString("dataSet").string();
-                  String ou = dvs.getString("orgUnit").string();
-                  String pe = dvs.getString("period").string();
-                  String aoc = dvs.getString("attributeOptionCombo").string();
-                  Boolean dryRun = dvs.getBoolean("dryRun").bool();
-                  if (dryRun != null) options.setDryRun(dryRun);
-                  // TODO ID scheme
-                  List<DataEntryValue.Input> values = new ArrayList<>();
-                  // this uses JsonNode API to iterate without indexing
-                  // to make the memory footprint smaller
-                  dvs.get("dataValues")
-                      .node()
-                      .elements(false)
-                      .forEachRemaining(
-                          node -> {
-                            JsonObject dv = JsonMixed.of(node);
-                            values.add(
-                                new DataEntryValue.Input(
-                                    dv.getString("dataElement").string(),
-                                    dv.getString("orgUnit").string(),
-                                    dv.getString("categoryOptionCombo").string(),
-                                    dv.getString("attributeOptionCombo").string(),
-                                    dv.getString("period").string(),
-                                    dv.getString("value").string(),
-                                    dv.getString("comment").string(),
-                                    dv.getBoolean("followUp").bool()));
-                          });
-                  return new DataEntryGroup.Input(ds, null, ou, pe, aoc, values);
-                }));
+        progress.runStage(
+            () -> {
+              JsonObject dvs =
+                  JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in))).asObject();
+              String ds = dvs.getString("dataSet").string();
+              String ou = dvs.getString("orgUnit").string();
+              String pe = dvs.getString("period").string();
+              String aoc = dvs.getString("attributeOptionCombo").string();
+              Boolean dryRun = dvs.getBoolean("dryRun").bool();
+              if (dryRun != null) options.setDryRun(dryRun);
+              // TODO ID scheme
+              List<DataEntryValue.Input> values = new ArrayList<>();
+              // this uses JsonNode API to iterate without indexing
+              // to make the memory footprint smaller
+              dvs.get("dataValues")
+                  .node()
+                  .elements(false)
+                  .forEachRemaining(
+                      node -> {
+                        JsonObject dv = JsonMixed.of(node);
+                        values.add(
+                            new DataEntryValue.Input(
+                                dv.getString("dataElement").string(),
+                                dv.getString("orgUnit").string(),
+                                dv.getString("categoryOptionCombo").string(),
+                                null,
+                                dv.getString("attributeOptionCombo").string(),
+                                dv.getString("period").string(),
+                                dv.getString("value").string(),
+                                dv.getString("comment").string(),
+                                dv.getBoolean("followUp").bool(),
+                                dv.getBoolean("deleted").bool()));
+                      });
+              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
+              return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
+            });
     return importRaw(input, options, progress);
   }
 
@@ -225,12 +282,9 @@ public class DataEntryIO {
       DataEntryGroup.Input input, ImportOptions options, JobProgress progress)
       throws BadRequestException {
 
-    DataEntryGroup.Identifiers identifiers = DataEntryGroup.Identifiers.of(options.getIdSchemes());
-
     progress.startingStage("Resolving %d data values".formatted(input.values().size()));
     DataEntryGroup group =
-        progress.runStageAndRethrow(
-            BadRequestException.class, () -> service.decode(input, identifiers));
+        progress.runStageAndRethrow(BadRequestException.class, () -> service.decode(input));
 
     DataEntryGroup.Options opt =
         new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());

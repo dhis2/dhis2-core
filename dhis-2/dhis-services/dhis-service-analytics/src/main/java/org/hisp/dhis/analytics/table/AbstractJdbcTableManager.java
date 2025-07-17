@@ -32,10 +32,10 @@ package org.hisp.dhis.analytics.table;
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-import static org.hisp.dhis.util.TextUtils.format;
 
 import java.util.Collection;
 import java.util.Collections;

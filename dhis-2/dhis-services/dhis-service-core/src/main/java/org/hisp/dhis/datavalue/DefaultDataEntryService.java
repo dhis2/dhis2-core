@@ -87,8 +87,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataEntryGroup decode(DataEntryGroup.Input group, DataEntryGroup.Identifiers ids)
-      throws BadRequestException {
+  public DataEntryGroup decode(DataEntryGroup.Input group) throws BadRequestException {
     UnaryOperator<String> isoOf = UnaryOperator.identity();
     UnaryOperator<String> dsOf = UnaryOperator.identity();
     UnaryOperator<String> deOf = UnaryOperator.identity();
@@ -96,6 +95,7 @@ public class DefaultDataEntryService implements DataEntryService {
     UnaryOperator<String> cocOf = UnaryOperator.identity();
     UnaryOperator<String> aocOf = UnaryOperator.identity();
 
+    DataEntryGroup.Ids ids = group.ids();
     String isoGroup = group.period();
     if (isoGroup != null) isoOf = iso -> iso != null ? iso : isoGroup;
     List<DataEntryValue.Input> values = group.values();

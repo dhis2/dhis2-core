@@ -31,9 +31,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-import static org.hisp.dhis.util.TextUtils.getCommaDelimitedString;
 
 import com.google.common.base.Preconditions;
 import java.io.OutputStream;
@@ -47,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -58,7 +59,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.TextUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;

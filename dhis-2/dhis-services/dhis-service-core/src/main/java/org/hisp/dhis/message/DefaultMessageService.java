@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.message;
 
+import static org.hisp.dhis.commons.util.TextUtils.LN;
+import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.util.TextUtils.LN;
-import static org.hisp.dhis.util.TextUtils.removeAnyTrailingSlash;
 
 import java.util.Collection;
 import java.util.Collections;

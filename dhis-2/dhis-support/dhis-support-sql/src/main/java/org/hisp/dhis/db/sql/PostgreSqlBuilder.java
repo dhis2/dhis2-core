@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.hisp.dhis.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import org.hisp.dhis.analytics.DataType;

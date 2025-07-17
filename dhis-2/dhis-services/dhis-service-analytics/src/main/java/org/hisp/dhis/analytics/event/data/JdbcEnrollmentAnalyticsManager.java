@@ -46,9 +46,9 @@ import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
-import static org.hisp.dhis.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.TextUtils.removeLastOr;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;

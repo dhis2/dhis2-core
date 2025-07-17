@@ -50,12 +50,9 @@ public interface DataEntryService {
    * Resolves any valid input ID to UIDs.
    *
    * @param group the group data as submitted by a user
-   * @param identifiers the type of identifiers used or expected in the input
-   * @return The group with all IDs resolved to UIDs
    * @throws BadRequestException in case required IDs are missing, IDs not being found or invalid
    */
-  DataEntryGroup decode(DataEntryGroup.Input group, DataEntryGroup.Identifiers identifiers)
-      throws BadRequestException;
+  DataEntryGroup decode(DataEntryGroup.Input group) throws BadRequestException;
 
   List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed);
 

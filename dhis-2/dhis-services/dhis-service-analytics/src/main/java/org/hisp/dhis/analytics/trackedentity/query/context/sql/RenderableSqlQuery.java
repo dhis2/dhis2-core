@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.sql;
 
-import static org.hisp.dhis.util.TextUtils.SPACE;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import java.util.Arrays;
 import java.util.HashMap;

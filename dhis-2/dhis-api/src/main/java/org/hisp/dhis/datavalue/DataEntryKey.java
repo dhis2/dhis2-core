@@ -29,10 +29,13 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.util.Objects.requireNonNull;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 
+/** A record of the ID combination that points to a unique aggregate data value row. */
 public record DataEntryKey(
     @Nonnull UID dataElement,
     @Nonnull UID orgUnit,
@@ -41,12 +44,10 @@ public record DataEntryKey(
     @Nonnull String period)
     implements DataEntryId {
 
-  @SuppressWarnings("ConstantConditions")
   public DataEntryKey {
-    // ensure null safety by design:
-    if (dataElement == null) throw new NullPointerException("dataElement must not be null");
-    if (orgUnit == null) throw new NullPointerException("orgUnit must not be null");
-    if (period == null) throw new NullPointerException("period must not be null");
+    requireNonNull(dataElement);
+    requireNonNull(orgUnit);
+    requireNonNull(period);
   }
 
   @Nonnull

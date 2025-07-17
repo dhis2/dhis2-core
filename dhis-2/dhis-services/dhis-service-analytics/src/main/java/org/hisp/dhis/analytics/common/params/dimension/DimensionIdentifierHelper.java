@@ -44,7 +44,7 @@ import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextCo
 import static org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
-import static org.hisp.dhis.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Map;

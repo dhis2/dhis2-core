@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
-import static org.hisp.dhis.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;

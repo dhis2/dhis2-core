@@ -35,8 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.util.TextUtils;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 

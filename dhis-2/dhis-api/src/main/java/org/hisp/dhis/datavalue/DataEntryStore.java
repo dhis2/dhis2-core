@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.InputId;
+import org.hisp.dhis.common.IdBy;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
@@ -58,7 +58,7 @@ public interface DataEntryStore {
     COC
   }
 
-  Map<String, String> mapToUid(KeyTable table, InputId scheme, Stream<String> identifiers);
+  Map<String, String> mapToUid(KeyTable table, IdBy scheme, Stream<String> identifiers);
 
   /**
    * Find the datasets a data element can be used with to allow grouping data values into groups of

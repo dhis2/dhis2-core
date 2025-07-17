@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static org.hisp.dhis.util.TextUtils.LN;
+import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

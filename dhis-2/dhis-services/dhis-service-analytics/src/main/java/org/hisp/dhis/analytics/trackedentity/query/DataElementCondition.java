@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
-import static org.hisp.dhis.util.TextUtils.EMPTY;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;

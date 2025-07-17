@@ -29,13 +29,18 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.util.Objects.requireNonNull;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdBy;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.InputId;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,8 +61,20 @@ public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
     @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
 
+  public DataEntryGroup {
+    requireNonNull(values);
+  }
+
   public DataEntryGroup(List<DataEntryValue> values) {
     this(null, values);
+  }
+
+  public String describe() {
+    // Needs to use HashMap because of null values
+    Map<String, String> vars = new HashMap<>();
+    vars.put("ds", dataSet == null ? null : dataSet.getValue());
+    vars.put("count", "" + values.size());
+    return replace("ds=${ds:?) (${count:0} values)", vars);
   }
 
   /**
@@ -68,6 +85,7 @@ public record DataEntryGroup(
    */
   @OpenApi.Shared(name = "DataEntryGroup")
   public record Input(
+      Ids ids,
       @OpenApi.Property({UID.class, DataSet.class}) @CheckForNull String dataSet,
       // common dimensions (optional)
       @OpenApi.Property({UID.class, DataElement.class}) @CheckForNull String dataElement,
@@ -75,7 +93,26 @@ public record DataEntryGroup(
       @CheckForNull String period,
       @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @CheckForNull
           String attrOptionCombo,
-      @JsonAlias("dataValues") List<DataEntryValue.Input> values) {}
+      @CheckForNull Map<String, String> attrOptions,
+      @JsonAlias("dataValues") List<DataEntryValue.Input> values) {
+
+    public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
+      this(ids, dataSet, null, null, null, null, null, values);
+    }
+
+    public String describe() {
+      // Needs to use HashMap because of null values
+      Map<String, String> vars = new HashMap<>();
+      vars.put("ds", dataSet);
+      vars.put("de", dataElement);
+      vars.put("ou", orgUnit);
+      vars.put("pe", period);
+      vars.put("aoc", attrOptionCombo);
+      vars.put("count", values == null ? null : "" + values.size());
+      return replace(
+          "ds=${ds:?} [de=${de:?} ou=${ou:?} pe=${pe:?} aoc=${aoc:?}](${count:0} values)", vars);
+    }
+  }
 
   /**
    * Options for the import. By default, all are {@code false}.
@@ -95,23 +132,27 @@ public record DataEntryGroup(
     }
   }
 
-  /** The identifiers supported for {@link Input}. */
-  public record Identifiers(
-      @Nonnull InputId dataSets,
-      @Nonnull InputId dataElements,
-      @Nonnull InputId orgUnits,
-      @Nonnull InputId categoryOptionCombos,
-      @Nonnull InputId attributeOptionCombos) {
+  /** The identifiers supported for {@link DataEntryGroup.Input}. */
+  public record Ids(
+      @Nonnull IdBy dataSets,
+      @Nonnull IdBy dataElements,
+      @Nonnull IdBy orgUnits,
+      @Nonnull IdBy categoryOptionCombos,
+      @Nonnull IdBy attributeOptionCombos,
+      @Nonnull IdBy categoryOptions,
+      @Nonnull IdBy categories) {
 
-    public static Identifiers of(IdSchemes schemes) {
+    public static Ids of(IdSchemes schemes) {
       return schemes == null
           ? null
-          : new DataEntryGroup.Identifiers(
-              InputId.of(schemes.getDataSetIdScheme()),
-              InputId.of(schemes.getDataElementIdScheme()),
-              InputId.of(schemes.getOrgUnitIdScheme()),
-              InputId.of(schemes.getCategoryOptionComboIdScheme()),
-              InputId.of(schemes.getAttributeOptionComboIdScheme()));
+          : new Ids(
+              IdBy.of(schemes.getDataSetIdScheme()),
+              IdBy.of(schemes.getDataElementIdScheme()),
+              IdBy.of(schemes.getOrgUnitIdScheme()),
+              IdBy.of(schemes.getCategoryOptionComboIdScheme()),
+              IdBy.of(schemes.getAttributeOptionComboIdScheme()),
+              IdBy.of(schemes.getCategoryOptionIdScheme()),
+              IdBy.of(schemes.getCategoryIdScheme()));
     }
   }
 }
