@@ -602,7 +602,7 @@ class TrackerObjectsMapperTest extends TestBase {
       case PROGRAM_INSTANCE ->
           assertEqualUids(relationship.getFrom().getEnrollment(), actual.getFrom().getEnrollment());
       case PROGRAM_STAGE_INSTANCE ->
-          assertEqualUids(relationship.getFrom().getEvent(), actual.getFrom().getEvent());
+          assertEqualUids(relationship.getFrom().getEvent(), actual.getFrom().getTrackerEvent());
     }
 
     switch (actual.getRelationshipType().getToConstraint().getRelationshipEntity()) {
@@ -612,7 +612,7 @@ class TrackerObjectsMapperTest extends TestBase {
       case PROGRAM_INSTANCE ->
           assertEqualUids(relationship.getTo().getEnrollment(), actual.getTo().getEnrollment());
       case PROGRAM_STAGE_INSTANCE ->
-          assertEqualUids(relationship.getTo().getEvent(), actual.getTo().getEvent());
+          assertEqualUids(relationship.getTo().getEvent(), actual.getTo().getTrackerEvent());
     }
 
     RelationshipKey relationshipKey =

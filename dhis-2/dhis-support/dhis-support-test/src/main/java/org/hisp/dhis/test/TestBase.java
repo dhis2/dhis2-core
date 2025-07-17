@@ -2066,7 +2066,7 @@ public abstract class TestBase {
     RelationshipItem riTo = new RelationshipItem();
 
     riFrom.setTrackedEntity(from);
-    riTo.setEvent(to);
+    riTo.setTrackerEvent(to);
 
     relationship.setRelationshipType(relationshipType);
     relationship.setFrom(riFrom);

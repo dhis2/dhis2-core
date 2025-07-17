@@ -501,7 +501,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     fromC.setRelationship(relationshipC);
     relationshipC.setFrom(fromC);
     RelationshipItem toC = new RelationshipItem();
-    toC.setEvent(eventA);
+    toC.setTrackerEvent(eventA);
     toC.setRelationship(relationshipC);
     relationshipC.setTo(toC);
     relationshipC.setKey(RelationshipUtils.generateRelationshipKey(relationshipC));
@@ -553,7 +553,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     fromE.setRelationship(relationshipE);
     relationshipE.setFrom(fromE);
     RelationshipItem toE = new RelationshipItem();
-    toE.setEvent(eventC);
+    toE.setTrackerEvent(eventC);
     toE.setRelationship(relationshipE);
     relationshipE.setTo(toE);
     relationshipE.setKey(RelationshipUtils.generateRelationshipKey(relationshipE));
@@ -1797,7 +1797,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Relationship actual = relOpt.get().getRelationship();
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
-        () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+        () -> assertEquals(eventA.getUid(), actual.getTo().getTrackerEvent().getUid()));
   }
 
   @Test

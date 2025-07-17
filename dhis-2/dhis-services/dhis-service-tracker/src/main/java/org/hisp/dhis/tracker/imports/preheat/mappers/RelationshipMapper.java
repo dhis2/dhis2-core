@@ -43,7 +43,7 @@ import org.mapstruct.factory.Mappers;
       RelationshipTypeMapper.class,
       TrackedEntityMapper.class,
       EnrollmentMapper.class,
-      EventMapper.class
+      TrackerEventMapper.class
     })
 public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
@@ -70,6 +70,7 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "id")
   @Mapping(target = "trackedEntity")
   @Mapping(target = "enrollment")
-  @Mapping(target = "event")
+  @Mapping(target = "trackerEvent")
+  @Mapping(target = "singleEvent")
   RelationshipItem mapItem(RelationshipItem relationshipItem);
 }
