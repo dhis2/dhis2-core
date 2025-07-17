@@ -146,6 +146,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @BeforeEach
   void setUp() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
     subject =
         new JdbcEventAnalyticsTableManager(
             idObjectManager,
@@ -159,13 +162,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,
-            new ColumnMapper(sqlBuilder),
+            new ColumnMapper(sqlBuilder, settingsProvider),
             sqlBuilder);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
-    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
-    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
   }
 
   @Test
@@ -268,7 +267,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             CHARACTER_11,
             legendsetAlias.formatted(tea.getUid() + "_" + lsA.getUid()),
             Skip.INCLUDE)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .build()
         .verify();
   }
