@@ -149,7 +149,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
-              .dataType(CHARACTER_32)
+              .dataType(VARCHAR_50)
               .nullable(NULL)
               .selectExpression("ou.code")
               .build(),
