@@ -95,7 +95,7 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public boolean addDataValue(DataValue dataValue) {
     try {
-      dataEntryService.upsertDataValue(false, null, toDataEntryValue(dataValue));
+      dataEntryService.upsertValue(false, null, toDataEntryValue(dataValue));
       return true;
     } catch (ConflictException | BadRequestException ex) {
       return false;
@@ -106,13 +106,13 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public void updateDataValue(DataValue dv) throws ConflictException, BadRequestException {
     if (isNullOrEmpty(dv.getValue()) && isNullOrEmpty(dv.getComment())) dv.setDeleted(true);
-    dataEntryService.upsertDataValue(false, null, toDataEntryValue(dv));
+    dataEntryService.upsertValue(false, null, toDataEntryValue(dv));
   }
 
   @Override
   @IndirectTransactional
   public void updateDataValues(List<DataValue> dataValues) throws ConflictException {
-    dataEntryService.upsertDataValueGroup(
+    dataEntryService.upsertGroup(
         new DataEntryGroup.Options(false, true, false),
         new DataEntryGroup(
             dataValues.stream().map(DefaultDataValueService::toDataEntryValue).toList()),
@@ -129,7 +129,7 @@ public class DefaultDataValueService implements DataValueService {
             UID.of(dataValue.getCategoryOptionCombo()),
             UID.of(dataValue.getAttributeOptionCombo()),
             dataValue.getPeriod().getIsoDate());
-    dataEntryService.deleteDataValue(false, null, key);
+    dataEntryService.deleteValue(false, null, key);
   }
 
   @Override

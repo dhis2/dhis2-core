@@ -87,7 +87,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataEntryGroup decode(DataEntryGroup.Input group) throws BadRequestException {
+  public DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException {
     UnaryOperator<String> isoOf = UnaryOperator.identity();
     UnaryOperator<String> dsOf = UnaryOperator.identity();
     UnaryOperator<String> deOf = UnaryOperator.identity();
@@ -178,7 +178,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed) throws ConflictException {
+  public List<DataEntryGroup> autoGroup(DataEntryGroup mixed) throws ConflictException {
     List<DataEntryValue> values = mixed.values();
 
     Map<String, Set<String>> datasetsByDe =
@@ -204,8 +204,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional
-  public void upsertDataValue(
-      boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
+  public void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
     List<DataEntryValue> validValues = validate(force, dataSet, List.of(value), errors);
@@ -216,8 +215,8 @@ public class DefaultDataEntryService implements DataEntryService {
   @Override
   @Transactional
   @TimeExecution(level = INFO, name = "data value import")
-  public DataEntrySummary upsertDataValueGroup(
-      Options options, DataEntryGroup group, JobProgress progress) throws ConflictException {
+  public DataEntrySummary upsertGroup(Options options, DataEntryGroup group, JobProgress progress)
+      throws ConflictException {
     List<DataEntryValue> values = group.values();
     if (values.isEmpty()) return new DataEntrySummary(0, 0, List.of());
 
@@ -240,7 +239,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional
-  public boolean deleteDataValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
+  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);

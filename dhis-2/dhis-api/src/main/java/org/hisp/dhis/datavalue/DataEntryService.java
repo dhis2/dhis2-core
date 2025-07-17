@@ -52,16 +52,19 @@ public interface DataEntryService {
    * @param group the group data as submitted by a user
    * @throws BadRequestException in case required IDs are missing, IDs not being found or invalid
    */
-  DataEntryGroup decode(DataEntryGroup.Input group) throws BadRequestException;
+  DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException;
 
   /**
+   * Split enter data values into groups, one group for each data set. The data set selected is
+   * based on the data element. In case of ambiguity the most recently created data set is targeted.
+   *
    * @param mixed a group that might contain data that belongs to multiple data sets
    * @return multiple group each having a possible dataset assigned. in case multiple datasets are
    *     possible for a data element it will be in the data set group that has been created most
    *     recently
    * @throws ConflictException in case there are data elements that are not linked to any data set
    */
-  List<DataEntryGroup> groupByDataSet(DataEntryGroup mixed) throws ConflictException;
+  List<DataEntryGroup> autoGroup(DataEntryGroup mixed) throws ConflictException;
 
   /**
    * Data entry of a single value.
@@ -72,7 +75,7 @@ public interface DataEntryService {
    * @throws ConflictException in case of validation errors
    * @throws BadRequestException in case the submitted value is formally invalid
    */
-  void upsertDataValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
+  void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException;
 
   /**
@@ -85,7 +88,7 @@ public interface DataEntryService {
    * @throws ConflictException in case of validation errors
    * @throws BadRequestException in case the submitted key is formally invalid
    */
-  boolean deleteDataValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
+  boolean deleteValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
       throws ConflictException, BadRequestException;
 
   /**
@@ -97,7 +100,7 @@ public interface DataEntryService {
    * @return a summary of the import
    * @throws ConflictException in case of validation errors
    */
-  DataEntrySummary upsertDataValueGroup(
+  DataEntrySummary upsertGroup(
       DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
       throws ConflictException;
 }

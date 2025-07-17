@@ -143,7 +143,7 @@ public class DataValueController {
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
     UID aoc = UID.of(dataValidator.getAndValidateAttributeOptionCombo(cc, cp));
-    dataEntryService.upsertDataValue(
+    dataEntryService.upsertValue(
         force, ds, new DataEntryValue(0, de, ou, co, aoc, pe, value, comment, followUp, null));
   }
 
@@ -210,7 +210,7 @@ public class DataValueController {
     UID aoc =
         UID.of(dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp()));
     String pe = params.getPe();
-    if (!dataEntryService.deleteDataValue(force, ds, new DataEntryKey(de, ou, coc, aoc, pe)))
+    if (!dataEntryService.deleteValue(force, ds, new DataEntryKey(de, ou, coc, aoc, pe)))
       throw new ConflictException("Data value cannot be deleted because it does not exist");
   }
 
