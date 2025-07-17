@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -80,6 +81,7 @@ public class DataEntryIO {
   private final DataEntryService service;
 
   public ImportSummary importAdx(InputStream in, ImportOptions options, JobProgress progress) {
+    DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
 
     progress.startingStage("Deserializing ADX data");
     List<DataEntryGroup.Input> inputs =
@@ -91,16 +93,17 @@ public class DataEntryIO {
               List<DataEntryGroup.Input> res = new ArrayList<>();
               while (dvs.moveToStartElement("group", ns)) {
                 Map<String, String> group = dvs.readAttributes();
+                String ds = group.get("dataSet");
                 // keys common for all values in group
                 String ou = group.get("orgUnit");
                 String pe = AdxPeriod.parse(group.get("period")).getIsoDate();
-                String ds = group.get("dataSet");
                 String aoc = group.get("attributeOptionCombo");
                 Map<String, String> aco = null;
                 if (!group.containsKey("attributeOptionCombo")) {
                   aco = group;
                   List.of("orgUnit", "period", "dataSet").forEach(aco::remove);
                 }
+                // values...
                 List<DataEntryValue.Input> values = new ArrayList<>();
                 while (dvs.moveToStartElement("dataValue", "group")) {
                   Map<String, String> dv = dvs.readAttributes();
@@ -124,7 +127,6 @@ public class DataEntryIO {
                       new DataEntryValue.Input(
                           de, null, coc, co, null, null, value, comment, followup, deleted));
                 }
-                DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
                 res.add(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, aco, values));
               }
               return res;
@@ -133,6 +135,7 @@ public class DataEntryIO {
   }
 
   public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress) {
+    DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
 
     progress.startingStage("Deserializing PDF data");
     DataEntryGroup.Input input =
@@ -141,8 +144,10 @@ public class DataEntryIO {
               PdfReader dvs = new PdfReader(in);
               AcroFields form = dvs.getAcroFields();
               if (form == null) throw new IllegalArgumentException("PDF has no Acro fields");
+              // keys that are common for all values
               String ou = form.getField("TXFD_OrgID").trim();
               String pe = form.getField("TXFD_PeriodID").trim();
+              // values...
               Set<String> fields = form.getAllFields().keySet();
               List<DataEntryValue.Input> values = new ArrayList<>();
               for (String field : fields) {
@@ -160,46 +165,7 @@ public class DataEntryIO {
                           de, null, coc, null, null, null, value, null, null, null));
                 }
               }
-              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
               return new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values);
-            });
-    return importRaw(input, options, progress);
-  }
-
-  public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
-
-    progress.startingStage("Deserializing CVS data");
-    DataEntryGroup.Input input =
-        progress.runStage(
-            () -> {
-              XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
-              dvs.moveToStartElement("dataValueSet");
-              String ds = dvs.getAttributeValue("dataSet");
-              String ou = dvs.getAttributeValue("orgUnit");
-              String pe = dvs.getAttributeValue("period");
-              String aoc = dvs.getAttributeValue("attributeOptionCombo");
-              String dryRun = dvs.getAttributeValue("dryRun");
-              if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
-              // TODO ID scheme
-              List<DataEntryValue.Input> values = new ArrayList<>();
-              while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
-                String followUp = dvs.getAttributeValue("followUp");
-                String deleted = dvs.getAttributeValue("deleted");
-                values.add(
-                    new DataEntryValue.Input(
-                        dvs.getAttributeValue("dataElement"),
-                        dvs.getAttributeValue("orgUnit"),
-                        dvs.getAttributeValue("categoryOptionCombo"),
-                        null,
-                        dvs.getAttributeValue("attributeOptionCombo"),
-                        dvs.getAttributeValue("period"),
-                        dvs.getAttributeValue("value"),
-                        dvs.getAttributeValue("comment"),
-                        followUp == null ? null : parseBoolean(followUp),
-                        deleted == null ? null : parseBoolean(deleted)));
-              }
-              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
-              return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
             });
     return importRaw(input, options, progress);
   }
@@ -218,7 +184,59 @@ public class DataEntryIO {
     return importRaw(input, options, progress);
   }
 
+  public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
+    IdSchemes schemes = options.getIdSchemes();
+
+    progress.startingStage("Deserializing CVS data");
+    DataEntryGroup.Input input =
+        progress.runStage(
+            () -> {
+              XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
+              dvs.moveToStartElement("dataValueSet");
+              String ds = dvs.getAttributeValue("dataSet");
+              // keys that are common for all values
+              String ou = dvs.getAttributeValue("orgUnit");
+              String pe = dvs.getAttributeValue("period");
+              String aoc = dvs.getAttributeValue("attributeOptionCombo");
+              String dryRun = dvs.getAttributeValue("dryRun");
+              if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
+              // ID schemes
+              String scheme = dvs.getAttributeValue("idScheme");
+              if (scheme != null) schemes.setIdScheme(scheme);
+              scheme = dvs.getAttributeValue("dataElementIdScheme");
+              if (scheme != null) schemes.setDataElementIdScheme(scheme);
+              scheme = dvs.getAttributeValue("orgUnitIdScheme");
+              if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
+              scheme = dvs.getAttributeValue("categoryOptionComboIdScheme");
+              if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
+              scheme = dvs.getAttributeValue("dataSetIdScheme");
+              if (scheme != null) schemes.setDataSetIdScheme(scheme);
+              // values...
+              List<DataEntryValue.Input> values = new ArrayList<>();
+              while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
+                String followUp = dvs.getAttributeValue("followUp");
+                String deleted = dvs.getAttributeValue("deleted");
+                values.add(
+                    new DataEntryValue.Input(
+                        dvs.getAttributeValue("dataElement"),
+                        dvs.getAttributeValue("orgUnit"),
+                        dvs.getAttributeValue("categoryOptionCombo"),
+                        null,
+                        dvs.getAttributeValue("attributeOptionCombo"),
+                        dvs.getAttributeValue("period"),
+                        dvs.getAttributeValue("value"),
+                        dvs.getAttributeValue("comment"),
+                        followUp == null ? null : parseBoolean(followUp),
+                        deleted == null ? null : parseBoolean(deleted)));
+              }
+              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
+              return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
+            });
+    return importRaw(input, options, progress);
+  }
+
   public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {
+    IdSchemes schemes = options.getIdSchemes();
 
     progress.startingStage("Deserializing JSON data");
     DataEntryGroup.Input input =
@@ -227,15 +245,28 @@ public class DataEntryIO {
               JsonObject dvs =
                   JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in))).asObject();
               String ds = dvs.getString("dataSet").string();
+              // keys that are common for all values
               String ou = dvs.getString("orgUnit").string();
               String pe = dvs.getString("period").string();
               String aoc = dvs.getString("attributeOptionCombo").string();
               Boolean dryRun = dvs.getBoolean("dryRun").bool();
               if (dryRun != null) options.setDryRun(dryRun);
-              // TODO ID scheme
+              // ID schemes
+              if (!dvs.get("idScheme").isUndefined())
+                schemes.setIdScheme(dvs.getString("idScheme").string());
+              if (!dvs.get("dataElementIdScheme").isUndefined())
+                schemes.setDataSetIdScheme(dvs.getString("dataElementIdScheme").string());
+              if (!dvs.get("orgUnitIdScheme").isUndefined())
+                schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
+              if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
+                schemes.setCategoryOptionComboIdScheme(
+                    dvs.getString("categoryOptionComboIdScheme").string());
+              if (!dvs.get("dataSetIdScheme").isUndefined())
+                schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
+              // values...
               List<DataEntryValue.Input> values = new ArrayList<>();
-              // this uses JsonNode API to iterate without indexing
-              // to make the memory footprint smaller
+              // Note that this uses JsonNode API to iterate without indexing
+              // to make the processing memory footprint smaller
               dvs.get("dataValues")
                   .node()
                   .elements(false)
@@ -255,7 +286,7 @@ public class DataEntryIO {
                                 dv.getBoolean("followUp").bool(),
                                 dv.getBoolean("deleted").bool()));
                       });
-              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
+              DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
               return new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values);
             });
     return importRaw(input, options, progress);
