@@ -112,6 +112,18 @@ class ScheduleEventExecutorTest {
   }
 
   @Test
+  void shouldReturnWarningIfEventAlreadyExists() {
+    when(validationEffect.data()).thenReturn("2025-12-01");
+    when(preheat.hasProgramStageWithEvents(any(MetadataIdentifier.class), anyString()))
+        .thenReturn(true);
+
+    Optional<ProgramRuleIssue> result = executor.executeRuleAction(bundle, inputEvent);
+
+    assertTrue(result.isPresent());
+    verifyIssueCodeAndRule(ValidationCode.E1322, result.get());
+  }
+
+  @Test
   void shouldReturnWarningIfScheduledAtDateIsInvalid() {
     when(validationEffect.data()).thenReturn("invalid-date");
 

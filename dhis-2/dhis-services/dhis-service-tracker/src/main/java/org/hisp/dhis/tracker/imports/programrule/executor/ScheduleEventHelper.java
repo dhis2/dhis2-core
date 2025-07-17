@@ -67,8 +67,14 @@ public class ScheduleEventHelper {
     final UID programRule = validationEffect.rule();
     final UID programStage = validationEffect.field();
 
-    if (!DateUtils.dateIsValid(scheduledAt)) {
-      return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1319, scheduledAt));
+    // check for existing event
+    if (bundle
+        .getPreheat()
+        .hasProgramStageWithEvents(
+            MetadataIdentifier.ofUid(programStage.getValue()), enrollment.getValue())) {
+      return Optional.of(
+          ProgramRuleIssue.warning(
+              programRule, ValidationCode.E1322, programStage.getValue(), enrollment.getValue()));
     }
 
     if (!canWriteToProgramStage) {
@@ -78,6 +84,10 @@ public class ScheduleEventHelper {
               ValidationCode.E1321,
               bundle.getUser().getUsername(),
               programStage.getValue()));
+    }
+
+    if (!DateUtils.dateIsValid(scheduledAt)) {
+      return Optional.of(ProgramRuleIssue.warning(programRule, ValidationCode.E1319, scheduledAt));
     }
 
     LocalDate localDate = LocalDate.parse(scheduledAt);

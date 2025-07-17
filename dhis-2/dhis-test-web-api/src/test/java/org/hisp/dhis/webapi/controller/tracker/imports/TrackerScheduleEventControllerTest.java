@@ -117,6 +117,8 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
         .addUserAccess(new UserAccess(readOnlyUser, AccessStringHelper.READ_ONLY));
 
     manager.update(programStageReadOnly);
+    program.setProgramStages(Set.of(programStageA, programStageB, programStageReadOnly));
+    manager.update(program);
 
     TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);
@@ -149,6 +151,64 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .string());
     assertEquals(2, importReport.getStats().getCreated());
     assertEquals(0, importReport.getStats().getIgnored());
+  }
+
+  @Test
+  void shouldReturnWarningIfEventAlreadyExists() {
+    injectSecurityContextUser(importUser);
+
+    JsonImportReport importReport =
+        POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-11-11"))
+            .content(HttpStatus.OK)
+            .as(JsonImportReport.class);
+
+    assertEquals(
+        "E1320",
+        importReport
+            .getObject("validationReport.warningReports[0]")
+            .getString("warningCode")
+            .string());
+
+    assertEquals(2, importReport.getStats().getCreated());
+
+    String eventUid = importReport.getBundleReport().getEvents().getEntityReport().get(0).getUid();
+
+    importReport =
+        POST(
+                "/tracker?async=false&reportMode=FULL&importStrategy=UPDATE",
+"""
+{"events": [
+                {
+                    "event": "%s",
+                    "enrollment": "%s",
+                    "occurredAt": "%s",
+                    "orgUnit": "%s",
+                    "program": "%s",
+                    "programStage": "%s",
+                    "status": "COMPLETED",
+                    "trackedEntity": "%s"
+                }
+            ]}
+"""
+                    .formatted(
+                        eventUid,
+                        enrollment.getUid(),
+                        "2025-11-11",
+                        enrollment.getOrganisationUnit().getUid(),
+                        enrollment.getProgram().getUid(),
+                        programStageA.getUid(),
+                        enrollment.getTrackedEntity().getUid()))
+            .content(HttpStatus.OK)
+            .as(JsonImportReport.class);
+
+    assertEquals(
+        "E1322",
+        importReport
+            .getObject("validationReport.warningReports[0]")
+            .getString("warningCode")
+            .string());
+    assertEquals(0, importReport.getStats().getCreated());
+    assertEquals(1, importReport.getStats().getUpdated());
   }
 
   @Test
