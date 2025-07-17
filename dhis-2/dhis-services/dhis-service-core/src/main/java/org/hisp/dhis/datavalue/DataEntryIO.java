@@ -323,7 +323,7 @@ public class DataEntryIO {
         if (g.dataSet() == null) {
           progress.startingStage("Grouping " + g.describe());
           dsGroups.addAll(
-              progress.runStageAndRethrow(ConflictException.class, () -> service.autoGroup(g)));
+              progress.runStageAndRethrow(ConflictException.class, () -> service.splitGroup(g)));
         } else {
           dsGroups.add(g);
         }

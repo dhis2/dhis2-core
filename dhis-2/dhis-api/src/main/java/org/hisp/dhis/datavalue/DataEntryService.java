@@ -41,6 +41,9 @@ import org.hisp.dhis.scheduling.JobProgress;
 /**
  * Service for entry of aggregate data.
  *
+ * <p>The service generally operates on the scope of a {@link DataEntryGroup}. This most importantly
+ * means the transaction scope is one group where all values target the same data-set.
+ *
  * @author Jan Bernitt
  * @since 2.43
  */
@@ -50,24 +53,27 @@ public interface DataEntryService {
    * Resolves any valid input ID to UIDs.
    *
    * @param group the group data as submitted by a user
-   * @throws BadRequestException in case required IDs are missing, IDs not being found or invalid
+   * @throws BadRequestException in case required IDs are missing, no object can be found for a
+   *     provided ID or an ID being formally invalid. This should be due to a user input error.
    */
   DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException;
 
   /**
-   * Split enter data values into groups, one group for each data set. The data set selected is
-   * based on the data element. In case of ambiguity the most recently created data set is targeted.
+   * Splits entered data values into groups, one group for each target data set. The data set is
+   * selected based on the data element(s). In case of ambiguity the most recently created suitable
+   * data set is targeted.
    *
    * @param mixed a group that might contain data that belongs to multiple data sets
-   * @return multiple group each having a possible dataset assigned. in case multiple datasets are
-   *     possible for a data element it will be in the data set group that has been created most
-   *     recently
-   * @throws ConflictException in case there are data elements that are not linked to any data set
+   * @return multiple groups each having a target dataset assigned. in case multiple datasets are
+   *     possible for a data element the most recently created data set is targeted
+   * @throws ConflictException in case there are data elements that are not connected to any data
+   *     set
    */
-  List<DataEntryGroup> autoGroup(DataEntryGroup mixed) throws ConflictException;
+  List<DataEntryGroup> splitGroup(DataEntryGroup mixed) throws ConflictException;
 
   /**
-   * Data entry of a single value.
+   * Data entry of a single value. Support for data entry cell by cell as performed in the data
+   * entry app.
    *
    * @param force true to skip timeliness validation as super-user
    * @param dataSet when not provided it must be unique for the key combination
@@ -79,7 +85,8 @@ public interface DataEntryService {
       throws ConflictException, BadRequestException;
 
   /**
-   * Data entry of a single data value deletion.
+   * Data entry of a single data value deletion. Support for data deletion (mark deleted) cell by
+   * cell as performed in the data entry app.
    *
    * @param force true to skip timeliness validation as super-user
    * @param dataSet when not provided it must be unique for the key combination
@@ -92,13 +99,18 @@ public interface DataEntryService {
       throws ConflictException, BadRequestException;
 
   /**
-   * Data entry of many values. Typically, all values belong to the same dataset.
+   * Data entry of a group of values belonging to the same data set. If the group does not
+   * explicitly define that target data set it is automatically resolved. If multiple datasets exist
+   * as possible target for the values based on the data elements this is a conflict.
    *
    * @param options for the entry
    * @param request the data to enter
    * @param progress to track processing progress
    * @return a summary of the import
-   * @throws ConflictException in case of validation errors
+   * @throws ConflictException in case of validation errors, mainly these are: can the current user
+   *     write to the target data set? is the metadata consistent with the references used for the
+   *     data values? is the data reported in time? Are values formally correct and within their
+   *     limits?
    */
   DataEntrySummary upsertGroup(
       DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)

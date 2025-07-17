@@ -167,7 +167,8 @@ public class DefaultDataEntryService implements DataEntryService {
     return new DataEntryGroup(ds, decoded);
   }
 
-  private static UID decodeUID(String uid) {
+  @CheckForNull
+  private static UID decodeUID(@CheckForNull String uid) {
     if (uid == null) return null;
     try {
       return UID.of(uid);
@@ -178,7 +179,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataEntryGroup> autoGroup(DataEntryGroup mixed) throws ConflictException {
+  public List<DataEntryGroup> splitGroup(DataEntryGroup mixed) throws ConflictException {
     List<DataEntryValue> values = mixed.values();
 
     Map<String, Set<String>> datasetsByDe =
@@ -259,9 +260,7 @@ public class DefaultDataEntryService implements DataEntryService {
       List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
       if (dsForDe.isEmpty())
         throw new ConflictException(
-            ErrorCode.E7801,
-            "",
-            values.stream().map(DataEntryValue::dataElement).distinct().toList());
+            ErrorCode.E7803, values.stream().map(DataEntryValue::dataElement).distinct().toList());
       if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7802, dsForDe);
       ds = UID.of(dsForDe.get(0));
     }
