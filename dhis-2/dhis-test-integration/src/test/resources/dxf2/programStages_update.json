@@ -1,0 +1,52 @@
+{
+  "programStages": [
+    {
+      "name": "test ps 4",
+      "id": "oORy3Rg9hLE",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "reportDateToUse": "false",
+      "description": "test ps 4",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "featureType": "NONE",
+      "remindCompleted": false,
+      "displayGenerateEventBox": false,
+      "generatedByEnrollmentDate": false,
+      "sharing": {
+        "external": false,
+        "users": {
+          "userabcdefB" : {
+            "access": "rwrw----",
+            "id": "userabcdefB"
+          }
+        },
+        "userGroups": {
+          "H9XnHoWRKCg": {
+            "access": "r-rw----",
+            "id": "fvz8d3u6jFd"
+          }
+        },
+        "public": "rw------"
+      },
+      "program": {
+        "id": "QIHW6CBdLsP"
+      },
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "style": {
+        "color": "#f57f17"
+      },
+      "notificationTemplates": [],
+      "translations": [],
+      "attributeValues": [],
+      "programStageSections": []
+    }
+    
+  ]
+}
