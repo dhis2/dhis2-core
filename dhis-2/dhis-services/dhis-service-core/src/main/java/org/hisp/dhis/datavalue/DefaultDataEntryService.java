@@ -58,7 +58,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
-import org.hisp.dhis.datavalue.DataEntryStore.KeyTable;
+import org.hisp.dhis.datavalue.DataEntryStore.ObjectType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
@@ -101,23 +101,23 @@ public class DefaultDataEntryService implements DataEntryService {
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
     if (ids != null) {
-      if (dataSet != null && ids.dataSets().isNotUid())
-        dsOf = store.mapToUid(KeyTable.DS, ids.dataSets(), Stream.of(dataSet))::get;
-      if (ids.dataElements().isNotUid()) {
+      if (dataSet != null && ids.dataSets().isNotUID())
+        dsOf = store.getXIdToUid(ObjectType.DS, ids.dataSets(), Stream.of(dataSet))::get;
+      if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
-        deOf = store.mapToUid(KeyTable.DE, ids.dataElements(), deIds)::get;
+        deOf = store.getXIdToUid(ObjectType.DE, ids.dataElements(), deIds)::get;
       }
-      if (ids.orgUnits().isNotUid()) {
+      if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
-        ouOf = store.mapToUid(KeyTable.OU, ids.orgUnits(), ouIds)::get;
+        ouOf = store.getXIdToUid(ObjectType.OU, ids.orgUnits(), ouIds)::get;
       }
-      if (ids.categoryOptionCombos().isNotUid()) {
+      if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
-        cocOf = store.mapToUid(KeyTable.COC, ids.categoryOptionCombos(), cocIds)::get;
+        cocOf = store.getXIdToUid(ObjectType.COC, ids.categoryOptionCombos(), cocIds)::get;
       }
-      if (ids.attributeOptionCombos().isNotUid()) {
+      if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
-        aocOf = store.mapToUid(KeyTable.COC, ids.attributeOptionCombos(), aocIds)::get;
+        aocOf = store.getXIdToUid(ObjectType.COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
     int i = 0;

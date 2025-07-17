@@ -39,7 +39,7 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdBy;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -132,27 +132,27 @@ public record DataEntryGroup(
     }
   }
 
-  /** The identifiers supported for {@link DataEntryGroup.Input}. */
+  /** The identifier properties that can be specified for a {@link DataEntryGroup.Input}. */
   public record Ids(
-      @Nonnull IdBy dataSets,
-      @Nonnull IdBy dataElements,
-      @Nonnull IdBy orgUnits,
-      @Nonnull IdBy categoryOptionCombos,
-      @Nonnull IdBy attributeOptionCombos,
-      @Nonnull IdBy categoryOptions,
-      @Nonnull IdBy categories) {
+      @Nonnull IdProperty dataSets,
+      @Nonnull IdProperty dataElements,
+      @Nonnull IdProperty orgUnits,
+      @Nonnull IdProperty categoryOptionCombos,
+      @Nonnull IdProperty attributeOptionCombos,
+      @Nonnull IdProperty categoryOptions,
+      @Nonnull IdProperty categories) {
 
     public static Ids of(IdSchemes schemes) {
       return schemes == null
           ? null
           : new Ids(
-              IdBy.of(schemes.getDataSetIdScheme()),
-              IdBy.of(schemes.getDataElementIdScheme()),
-              IdBy.of(schemes.getOrgUnitIdScheme()),
-              IdBy.of(schemes.getCategoryOptionComboIdScheme()),
-              IdBy.of(schemes.getAttributeOptionComboIdScheme()),
-              IdBy.of(schemes.getCategoryOptionIdScheme()),
-              IdBy.of(schemes.getCategoryIdScheme()));
+              IdProperty.of(schemes.getDataSetIdScheme()),
+              IdProperty.of(schemes.getDataElementIdScheme()),
+              IdProperty.of(schemes.getOrgUnitIdScheme()),
+              IdProperty.of(schemes.getCategoryOptionComboIdScheme()),
+              IdProperty.of(schemes.getAttributeOptionComboIdScheme()),
+              IdProperty.of(schemes.getCategoryOptionIdScheme()),
+              IdProperty.of(schemes.getCategoryIdScheme()));
     }
   }
 }

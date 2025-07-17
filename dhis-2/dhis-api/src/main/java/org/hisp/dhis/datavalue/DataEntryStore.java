@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.IdBy;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
@@ -47,18 +47,41 @@ import org.hisp.dhis.common.ValueType;
 public interface DataEntryStore {
 
   /*
-  Preparation support
+  Decode support
    */
 
-  /** Tables for which ID scheme values may have to be resolved */
-  enum KeyTable {
+  /** Tables for which ID property values may have to be resolved to UID */
+  enum ObjectType {
     DS,
     DE,
     OU,
     COC
   }
 
-  Map<String, String> mapToUid(KeyTable table, IdBy scheme, Stream<String> identifiers);
+  /**
+   * Fetches a mapping between the ids provided which use/are in the scheme given to the UID of the
+   * same object.
+   *
+   * @param type the target object type or table
+   * @param idsProperty the ID property used (provided)
+   * @param ids the IDs to map from property to UID
+   * @return a map from given ID to the corresponding UID (does not include entries for input IDs
+   *     that do not exist and thus do not have a corresponding UID)
+   */
+  Map<String, String> getXIdToUid(ObjectType type, IdProperty idsProperty, Stream<String> ids);
+
+  /**
+   * Fetches a mapping that allows to map input given in form of category and option to the AOC UID
+   * that belongs to each of the possible combinations.
+   *
+   * @param dataSet the dataset for context
+   * @param categoryOptions the identifier of a category option that is concatenated into a key
+   * @param categories the identifier of a category that is used to sort the options alphabetically
+   * @return A map from a concatenated key to an AOC UID. The key is composed of the options of the
+   *     AOC in alphabetical order of the categories
+   */
+  Map<String, String> getAocByOptionsKey(
+      UID dataSet, IdProperty categoryOptions, IdProperty categories);
 
   /**
    * Find the datasets a data element can be used with to allow grouping data values into groups of

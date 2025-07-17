@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue.hibernate;
 import static java.lang.Math.min;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -55,10 +56,9 @@ import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
-import org.hisp.dhis.common.IdBy;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
@@ -100,8 +100,21 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     this.periodStore = periodStore;
   }
 
+  @Nonnull
+  private static String columnName(String alias, IdProperty id) {
+    return switch (id.name()) {
+      case UID -> alias + ".uid";
+      case NAME -> alias + ".name";
+      case CODE -> alias + ".code";
+      case ATTR ->
+          "jsonb_extract_path_text(%s.attributeValues, '%s', 'value')"
+              .formatted(alias, id.attributeId());
+    };
+  }
+
   @Override
-  public Map<String, String> mapToUid(KeyTable table, IdBy id, Stream<String> identifiers) {
+  public Map<String, String> getXIdToUid(
+      ObjectType type, IdProperty idsProperty, Stream<String> identifiers) {
     @Language("sql")
     String sqlTemplate =
         """
@@ -110,26 +123,55 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       JOIN unnest(:ids) AS input(id) ON ${property} = input.id
       """;
     String tableName =
-        switch (table) {
+        switch (type) {
           case DS -> "datset";
           case DE -> "dataelement";
           case OU -> "organisationunit";
           case COC -> "categoryoptioncombo";
         };
-    String propertyName =
-        switch (id.type()) {
-          case ID -> "t.uid";
-          case NAME -> "t.name";
-          case CODE -> "t.code";
-          case ATTR ->
-              "jsonb_extract_path_text(t.attributeValues, '" + id.attributeId() + "', 'value')";
-        };
     String sql =
-        TextUtils.replace(sqlTemplate, Map.of("table", tableName, "property", propertyName));
+        replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", idsProperty)));
     String[] ids = identifiers.distinct().toArray(String[]::new);
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows = getSession().createNativeQuery(sql).setParameter("ids", ids).stream();
-    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+    return listAsStringsMap(sql, q -> q.setParameter("ids", ids));
+  }
+
+  @Override
+  public Map<String, String> getAocByOptionsKey(
+      UID dataSet, IdProperty categoryOptions, IdProperty categories) {
+    @Language("SQL")
+    String sqlTemplate =
+        """
+        WITH aoc_category_options AS (
+            SELECT
+                c.categoryid,
+                ${c_id} AS sort_name,
+                co.categoryoptionid,
+                ${co_id} AS key_seg
+            FROM dataset ds
+            JOIN categorycombos_categories cc_c ON ds.categorycomboid = cc_c.categorycomboid
+            JOIN category c ON cc_c.categoryid = c.categoryid
+            JOIN categories_categoryoptions c_co ON c.categoryid = c_co.categoryid
+            JOIN categoryoption co ON c_co.categoryoptionid = co.categoryoptionid
+            WHERE ds.uid = :ds
+        )
+        SELECT
+            STRING_AGG(co.key_seg, ' ' ORDER BY co.sort_name) AS key,
+            coc.uid
+        FROM aoc_category_options co
+        JOIN categoryoptioncombos_categoryoptions coc_co ON co.categoryoptionid = coc_co.categoryoptionid
+        JOIN categoryoptioncombo coc ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+        GROUP BY coc.uid;
+        """;
+    Map<String, String> vars =
+        Map.of("co_id", columnName("co", categoryOptions), "c_id", columnName("c", categories));
+    String sql = replace(sqlTemplate, vars);
+    return listAsStringsMap(sql, q -> q.setParameter("ds", dataSet.getValue()));
+  }
+
+  public Map<String, String> getCocByOptionsKey(
+      UID dataSet, IdProperty categoryOptions, Stream<UID> dataElements) {
+
+    return null;
   }
 
   @Override
@@ -705,6 +747,15 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     @SuppressWarnings("unchecked")
     Stream<Object[]> results = (Stream<Object[]>) query.stream();
     return results.collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
+  }
+
+  @Nonnull
+  private Map<String, String> listAsStringsMap(
+      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
+    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> results = (Stream<Object[]>) query.stream();
+    return results.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Nonnull

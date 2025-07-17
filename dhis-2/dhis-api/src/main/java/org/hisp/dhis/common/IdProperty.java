@@ -37,41 +37,43 @@ import javax.annotation.Nonnull;
 /**
  * How to identify objects, or what kind of identifier is used (alternative to {@link UID}s).
  *
- * @param type the property used to identify an object
+ * @param name the property used to identify an object
  * @param attributeId the attribute UID in case an attribute is used, otherwise always null
+ * @author Jan Bernitt
+ * @since 2.43
  */
-public record IdBy(@Nonnull Type type, @CheckForNull UID attributeId) {
+public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
 
-  public IdBy {
-    requireNonNull(type);
-    if (type == Type.ATTR && attributeId == null)
-      throw new IllegalArgumentException("When type is ATTR the attribute ID must be non-null");
-    if (type != Type.ATTR && attributeId != null)
-      throw new IllegalArgumentException("When type is not ATTR the attribute ID must be null");
+  public IdProperty {
+    requireNonNull(name);
+    if (name == Name.ATTR && attributeId == null)
+      throw new IllegalArgumentException("When property is ATTR the attributeId must be non-null");
+    if (name != Name.ATTR && attributeId != null)
+      throw new IllegalArgumentException("When property is not ATTR the attributeId must be null");
   }
 
-  public static IdBy of(IdScheme scheme) {
-    if (scheme == null) return new IdBy(Type.ID, null);
+  public static IdProperty of(IdScheme scheme) {
+    if (scheme == null) return new IdProperty(Name.UID, null);
     IdentifiableProperty property = scheme.getIdentifiableProperty();
-    if (property == null) return new IdBy(Type.ID, null);
+    if (property == null) return new IdProperty(Name.UID, null);
     return switch (property) {
-      case ID, UID -> new IdBy(Type.ID, null);
-      case CODE -> new IdBy(Type.CODE, null);
-      case NAME -> new IdBy(Type.NAME, null);
-      case ATTRIBUTE -> new IdBy(Type.ATTR, UID.of(scheme.getAttribute()));
+      case ID, UID -> new IdProperty(Name.UID, null);
+      case CODE -> new IdProperty(Name.CODE, null);
+      case NAME -> new IdProperty(Name.NAME, null);
+      case ATTRIBUTE -> new IdProperty(Name.ATTR, UID.of(scheme.getAttribute()));
       case UUID ->
           throw new UnsupportedOperationException("UUID is not supported for this operation");
     };
   }
 
-  public enum Type {
-    ID,
+  public enum Name {
+    UID,
     CODE,
     NAME,
     ATTR
   }
 
-  public boolean isNotUid() {
-    return type != Type.ID;
+  public boolean isNotUID() {
+    return name != Name.UID;
   }
 }
