@@ -50,7 +50,7 @@ public class LocaleUtils {
       throw new IllegalArgumentException("localeStr cannot be null or blank");
     }
 
-    if (localeStr.contains("-")) {
+    if (localeStr.contains(SEP)) {
       return Locale.forLanguageTag(localeStr);
     } else {
       return org.apache.commons.lang3.LocaleUtils.toLocale(localeStr);
@@ -72,7 +72,7 @@ public class LocaleUtils {
       locale =
           new Locale.Builder().setLanguage(language).setRegion(country).setScript(script).build();
     } else {
-      locale = new Locale(language, country);
+      locale = new Locale.Builder().setLanguage(language).setRegion(country).build();
     }
 
     return locale.toLanguageTag();
@@ -95,16 +95,16 @@ public class LocaleUtils {
     fallbacks.add(lang);
 
     if (!region.isEmpty()) {
-      fallbacks.add(lang + "_" + region);
+      fallbacks.add(lang + SEP + region);
     }
 
     // Include script fallbacks
     if (!script.isEmpty()) {
-      fallbacks.add(lang + "_" + script);
+      fallbacks.add(lang + SEP + script);
 
       if (!region.isEmpty()) {
-        fallbacks.add(lang + "_" + region + "_" + script);
-        fallbacks.add(lang + "_" + script + "_" + region);
+        fallbacks.add(lang + SEP + region + SEP + script);
+        fallbacks.add(lang + SEP + script + SEP + region);
       }
     }
 
