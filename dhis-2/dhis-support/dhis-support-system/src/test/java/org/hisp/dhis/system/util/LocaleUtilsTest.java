@@ -85,11 +85,8 @@ class LocaleUtilsTest {
   @Test
   void testGetLocaleFallbacksForChineseScripts() {
     // Traditional Chinese (Taiwan)
-    Locale zhHantTW = new Locale.Builder()
-        .setLanguage("zh")
-        .setRegion("TW")
-        .setScript("Hant")
-        .build();
+    Locale zhHantTW =
+        new Locale.Builder().setLanguage("zh").setRegion("TW").setScript("Hant").build();
 
     List<String> fallbacksHant = LocaleUtils.getLocaleFallbacks(zhHantTW);
 
@@ -100,11 +97,8 @@ class LocaleUtilsTest {
     assertTrue(fallbacksHant.contains("zh_Hant_TW"));
 
     // Simplified Chinese (China)
-    Locale zhHansCN = new Locale.Builder()
-        .setLanguage("zh")
-        .setRegion("CN")
-        .setScript("Hans")
-        .build();
+    Locale zhHansCN =
+        new Locale.Builder().setLanguage("zh").setRegion("CN").setScript("Hans").build();
 
     List<String> fallbacksHans = LocaleUtils.getLocaleFallbacks(zhHansCN);
 
@@ -118,11 +112,8 @@ class LocaleUtilsTest {
   @Test
   void testGetLocaleFallbacksForMongolianScripts() {
     // Mongolian Cyrillic (used in Mongolia)
-    Locale mnCyrlMN = new Locale.Builder()
-        .setLanguage("mn")
-        .setRegion("MN")
-        .setScript("Cyrl")
-        .build();
+    Locale mnCyrlMN =
+        new Locale.Builder().setLanguage("mn").setRegion("MN").setScript("Cyrl").build();
 
     List<String> fallbacksCyrl = LocaleUtils.getLocaleFallbacks(mnCyrlMN);
 
@@ -133,11 +124,8 @@ class LocaleUtilsTest {
     assertTrue(fallbacksCyrl.contains("mn_Cyrl_MN"));
 
     // Traditional Mongolian script (used in China)
-    Locale mnMongCN = new Locale.Builder()
-        .setLanguage("mn")
-        .setRegion("CN")
-        .setScript("Mong")
-        .build();
+    Locale mnMongCN =
+        new Locale.Builder().setLanguage("mn").setRegion("CN").setScript("Mong").build();
 
     List<String> fallbacksMong = LocaleUtils.getLocaleFallbacks(mnMongCN);
 
