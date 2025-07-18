@@ -115,7 +115,22 @@ class FieldFilterParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(true, "group.id"),
                 new ExpectField(true, "group.name"),
-                new ExpectField(true, "code"))));
+                new ExpectField(true, "code"))),
+
+        // TODO(ivo) bug or wanted?
+        Arguments.of(
+            " id,name  group ",
+            List.of(new ExpectField(true, "id"), new ExpectField(true, "namegroup"))),
+
+        // TODO(ivo) not sure if code is part of the :owner preset. Figure that out and also how to
+        // test current preset behavior with the new one as this parser does not take care of preset
+        // expansion. The logic is spread into the service or some helper.
+        // testExclude1
+        //        Arguments.of("id,name,!code,:owner",
+        Arguments.of(
+            "id,name,!code",
+            List.of(new ExpectField(true, "id"), new ExpectField(true, "name")),
+            new ExpectField(false, "code")));
   }
 
   @Test
