@@ -154,11 +154,12 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   private <T extends IdentifiableObject> void commitObjectType(
       ObjectBundle bundle, Map<Class<?>, TypeReport> typeReports, Session session, Class<T> klass) {
     List<T> nonPersistedObjects = bundle.getObjects(klass, false);
-    List<T> persistedObjects = bundle.getObjects(klass, true);
 
     List<ObjectBundleHook<? super T>> importHooks = objectBundleHooks.getTypeImportHooks(klass);
     importHooks.forEach(hook -> hook.preTypeImport(klass, nonPersistedObjects, bundle));
 
+    // get persisted objects here as they may have been updated in a previous hook
+    List<T> persistedObjects = bundle.getObjects(klass, true);
     if (bundle.getImportMode().isCreateAndUpdate()) {
       TypeReport typeReport = new TypeReport(klass);
       typeReport.merge(handleCreates(session, klass, nonPersistedObjects, bundle));

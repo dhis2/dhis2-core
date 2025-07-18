@@ -27,31 +27,38 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
-public class PushAnalysisObjectBundleHook extends AbstractObjectBundleHook<PushAnalysis> {
+@RequiredArgsConstructor
+public class DashboardObjectBundleHook extends AbstractObjectBundleHook<Dashboard> {
 
+  /**
+   * In rare occasions, a Dashboard might be seen as non-persisted and put into the non-persisted
+   * list, but it is actually a persisted item. This is most likely due to read permissions. In
+   * these scenarios we want to be able to check if a Dashboard should be considered persisted
+   * instead. Check if it exists in the database and if it does, move it to be seen as persisted.
+   *
+   * @param klass the class type of the objects
+   * @param nonPersistedObjects the objects seen as non persisted
+   * @param bundle the current commit phase bundle
+   */
   @Override
-  public void preUpdate(
-      PushAnalysis pushAnalysisUpdate, PushAnalysis pushAnalysisPersisted, ObjectBundle bundle) {
-    // If the Dashboard in the PushAnalysis update is not in the Dashboard preheat, add it
-    // This eliminates NullPointerExceptions when connecting references
-    Dashboard dashboardUpdate = pushAnalysisUpdate.getDashboard();
-    Dashboard dashboardPersisted = pushAnalysisPersisted.getDashboard();
+  public <E extends Dashboard> void preTypeImport(
+      Class<E> klass, List<E> nonPersistedObjects, ObjectBundle bundle) {
+    List<Dashboard> dashboards =
+        nonPersistedObjects.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
-    if (dashboardUpdate != null
-        && dashboardPersisted != null
-        && dashboardUpdate.getUid().equals(dashboardPersisted.getUid())) {
-      Dashboard dashboardPreheat =
-          bundle.getPreheat().get(bundle.getPreheatIdentifier(), pushAnalysisUpdate.getDashboard());
-      if (dashboardPreheat == null) {
-        bundle.getPreheat().put(bundle.getPreheatIdentifier(), dashboardPersisted);
+    for (Dashboard dashboard : dashboards) {
+      Dashboard existingDashboard = manager.getNoAcl(Dashboard.class, dashboard.getUid());
+      if (existingDashboard != null) {
+        bundle.moveNonPersistedToPersisted(Dashboard.class, existingDashboard);
       }
     }
   }
