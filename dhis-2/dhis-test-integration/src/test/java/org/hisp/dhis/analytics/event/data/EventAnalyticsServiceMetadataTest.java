@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -48,6 +49,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.MetadataOptionSet;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -124,10 +126,13 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
     leD = createLegend('D', 31d, 40d);
     lsA = createLegendSet('A');
     lsA.setLegends(Set.of(leA, leB, leC, leD));
-    opA = createOption('A');
-    opB = createOption('B');
-    opC = createOption('C');
     osA = createOptionSet('A');
+    opA = createOption('A');
+    opA.setOptionSet(osA);
+    opB = createOption('B');
+    opB.setOptionSet(osA);
+    opC = createOption('C');
+    opC.setOptionSet(osA);
     osA.setOptions(List.of(opA, opB, opC));
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deA.setLegendSets(List.of(lsA));
@@ -256,10 +261,36 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
     for (Legend legend : deA.getLegendSet().getLegends()) {
       assertNotNull(itemMap.get(legend.getUid()));
     }
-    for (Option option : deE.getOptionSet().getOptions()) {
-      // Because "aggregate" always returns options and its option set.
-      assertNotNull(itemMap.get(option.getUid()));
-    }
+
+    OptionSet optionSet = deE.getOptionSet();
+    assertNotNull(
+        itemMap.get(optionSet.getUid()),
+        "The metadata map should contain the OptionSet's UID as a key.");
+
+    MetadataItem metadataItemForOptionSet = itemMap.get(optionSet.getUid());
+    assertTrue(
+        metadataItemForOptionSet instanceof MetadataOptionSet,
+        "The item for an OptionSet should be an instance of MetadataOptionSet.");
+
+    MetadataOptionSet metadataOptionSet = (MetadataOptionSet) metadataItemForOptionSet;
+    List<MetadataItem> optionsInMetadata = metadataOptionSet.getOptionItems();
+
+    assertNotNull(optionsInMetadata);
+    assertEquals(
+        optionSet.getOptions().size(),
+        optionsInMetadata.size(),
+        "The number of options in the metadata should match the original OptionSet.");
+
+    Set<String> originalOptionCodes =
+        optionSet.getOptions().stream().map(Option::getCode).collect(Collectors.toSet());
+    Set<String> metadataOptionCodes =
+        optionsInMetadata.stream().map(MetadataItem::getCode).collect(Collectors.toSet());
+
+    assertEquals(
+        originalOptionCodes,
+        metadataOptionCodes,
+        "The codes of the options in the metadata should match the original option codes.");
+
     assertNotNull(itemMap.get(deA.getUid()));
     assertNotNull(itemMap.get(deE.getUid()));
   }

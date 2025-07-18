@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -77,6 +78,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.MetadataOptionSet;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
@@ -360,16 +362,20 @@ public class MetadataItemsHandler {
                         includeDetails ? legend.getUid() : null,
                         legend.getCode())));
 
-    params.getItemOptions().stream()
-        .filter(Objects::nonNull)
-        .forEach(
-            option ->
-                metadataItemMap.put(
-                    option.getUid(),
-                    new MetadataItem(
-                        option.getDisplayName(),
-                        includeDetails ? option.getUid() : null,
-                        option.getCode())));
+    Map<String, List<MetadataItem>> groupedByOptionSet =
+        params.getItemOptions().stream()
+            .filter(option -> option != null && option.getOptionSet() != null)
+            .collect(
+                Collectors.groupingBy(
+                    option -> option.getOptionSet().getUid(), // Key: OptionSet UID
+                    Collectors.mapping(
+                        // Create a standard MetadataItem for each option in the list.
+                        option -> new MetadataItem(option.getDisplayName(), null, option.getCode()),
+                        Collectors.toList())));
+
+    groupedByOptionSet.forEach(
+        (optionSetUid, optionList) ->
+            metadataItemMap.put(optionSetUid, new MetadataOptionSet(optionList)));
 
     params.getItemsAndItemFilters().stream()
         .filter(Objects::nonNull)
