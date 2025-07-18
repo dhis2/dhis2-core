@@ -89,6 +89,16 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testAddLocaleWithScript() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Locale created successfully",
+        POST("/locales/dbLocales?language=uz&country=UZ&script=Cyrl").content(HttpStatus.CREATED));
+  }
+
+  @Test
   void testAddLocale_AlreadyExists() {
     assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=GB"));
     assertWebMessage(
