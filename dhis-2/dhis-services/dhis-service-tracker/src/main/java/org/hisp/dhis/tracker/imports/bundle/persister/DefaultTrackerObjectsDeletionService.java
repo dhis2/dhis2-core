@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import static org.hisp.dhis.audit.AuditOperationType.DELETE;
+import static org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper.map;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
@@ -201,7 +203,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      trackerEventChangeLogService.deleteEventChangeLog(UID.of(event));
+      trackerEventChangeLogService.deleteEventChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
@@ -266,7 +268,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (UID uid : events) {
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
-      Event event = manager.get(Event.class, uid);
+      SingleEvent event = manager.get(SingleEvent.class, uid);
       if (event == null) {
         throw new NotFoundException(Event.class, uid);
       }
@@ -281,11 +283,11 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      singleEventChangeLogService.deleteEventChangeLog(UID.of(event));
+      singleEventChangeLogService.deleteEventChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
-              ProgramNotificationInstanceParam.builder().event(event).build());
+              ProgramNotificationInstanceParam.builder().event(map(event)).build());
 
       notificationInstances.forEach(programNotificationInstanceService::delete);
 

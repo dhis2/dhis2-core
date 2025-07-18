@@ -45,7 +45,7 @@ public class TrackerEventChangeLogService
 
   protected TrackerEventChangeLogService(
       TrackerEventService trackerEventService,
-      HibernateEventChangeLogStore<TrackerEventChangeLog> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<TrackerEventChangeLog, Event> hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     super(trackerEventService, hibernateEventChangeLogStore, config);
   }

@@ -155,11 +155,6 @@ public class SingleEvent extends SoftDeletableObject {
     return completedBy;
   }
 
-  @JsonIgnore
-  public Date getScheduledDate() {
-    return null;
-  }
-
   @JsonProperty
   public Date getOccurredDate() {
     return occurredDate;

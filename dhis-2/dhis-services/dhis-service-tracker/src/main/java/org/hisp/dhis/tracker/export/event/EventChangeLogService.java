@@ -58,12 +58,12 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
 
   private final EventService eventService;
-  private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
+  private final HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
   protected EventChangeLogService(
       EventService eventService,
-      HibernateEventChangeLogStore<T> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     this.eventService = eventService;
     this.hibernateEventChangeLogStore = hibernateEventChangeLogStore;
@@ -93,7 +93,7 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
   }
 
   @Transactional
-  public void deleteEventChangeLog(UID event) {
+  public void deleteEventChangeLog(S event) {
     hibernateEventChangeLogStore.deleteEventChangeLog(event);
   }
 

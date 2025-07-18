@@ -45,7 +45,7 @@ public class SingleEventChangeLogService
 
   protected SingleEventChangeLogService(
       SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent> hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     super(singleEventService, hibernateEventChangeLogStore, config);
   }
