@@ -105,12 +105,13 @@ public class JacksonObjectMapperConfig {
     return hibernateAwareJsonMapper;
   }
 
+  // TODO(ivo) why is this not using the jsonMapper? is it because of the auto-detect getters?
   @Bean
   public ObjectMapper dataValueJsonMapper() {
     return dataValueJsonMapper;
   }
 
-  @Bean("xmlMapper")
+  @Bean
   public ObjectMapper xmlMapper() {
     return xmlMapper;
   }
@@ -129,14 +130,19 @@ public class JacksonObjectMapperConfig {
   }
 
   static {
-    JtsModule jtsModule = new JtsModule(new GeometryFactory(new PrecisionModel(), 4326));
-    jtsModule.addSerializer(Geometry.class, new GeometrySerializer());
+    JtsModule jtsModule = createJtsModule();
     jsonMapper.registerModule(jtsModule);
     dataValueJsonMapper.registerModule(jtsModule);
     xmlMapper.registerModule(new JtsXmlModule());
   }
 
-  private static ObjectMapper configureMapper(ObjectMapper objectMapper) {
+  public static JtsModule createJtsModule() {
+    JtsModule jtsModule = new JtsModule(new GeometryFactory(new PrecisionModel(), 4326));
+    jtsModule.addSerializer(Geometry.class, new GeometrySerializer());
+    return jtsModule;
+  }
+
+  public static ObjectMapper configureMapper(ObjectMapper objectMapper) {
     return configureMapper(objectMapper, false);
   }
 

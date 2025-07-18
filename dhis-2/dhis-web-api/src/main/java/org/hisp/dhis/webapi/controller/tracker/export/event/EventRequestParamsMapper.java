@@ -47,7 +47,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -56,7 +55,6 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -69,8 +67,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
-
-  private final FieldFilterService fieldFilterService;
 
   public EventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
@@ -143,10 +139,7 @@ class EventRequestParamsMapper {
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .fields(
                 EventFields.of(
-                    f ->
-                        fieldFilterService.filterIncludes(
-                            Event.class, eventRequestParams.getFields(), f),
-                    FieldPath.FIELD_PATH_SEPARATOR))
+                    eventRequestParams.getFields()::includes, FieldPath.FIELD_PATH_SEPARATOR))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());

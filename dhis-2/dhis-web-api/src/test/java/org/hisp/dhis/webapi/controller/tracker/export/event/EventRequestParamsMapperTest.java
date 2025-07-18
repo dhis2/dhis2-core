@@ -59,9 +59,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -81,7 +80,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,8 +122,6 @@ class EventRequestParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private DataElementService dataElementService;
-
-  @Mock private FieldFilterService fieldFilterService;
 
   @InjectMocks private EventRequestParamsMapper mapper;
 
@@ -617,12 +613,10 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapEventParamsTrueWhenFieldPathIncludeRelationships() throws BadRequestException {
+  void shouldMapAndIncludeRelationshipsIfInFields() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("relationships");
-    eventRequestParams.setFields(fieldPaths);
-    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, "relationships"))
-        .thenReturn(true);
+    Fields fields = FieldsParser.parse("relationships");
+    eventRequestParams.setFields(fields);
 
     EventOperationParams eventOperationParams = mapper.map(eventRequestParams, idSchemeParams);
 
@@ -630,12 +624,10 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapEventParamsFalseWhenFieldPathIncludeRelationships() throws BadRequestException {
+  void shouldMapAndIncludeRelationshipsIfNotInFields() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("relationships");
-    eventRequestParams.setFields(fieldPaths);
-    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, "relationships"))
-        .thenReturn(false);
+    Fields fields = FieldsParser.parse("event");
+    eventRequestParams.setFields(fields);
 
     EventOperationParams eventOperationParams = mapper.map(eventRequestParams, idSchemeParams);
 
