@@ -46,7 +46,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -184,8 +183,8 @@ public abstract class HibernateEventChangeLogStore<T> {
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
-  public void deleteEventChangeLog(Event event) {
-    String hql = String.format("delete from %s where event = :event", getTableName());
+  public void deleteEventChangeLog(UID event) {
+    String hql = String.format("delete from %s where event.uid = :event", getTableName());
 
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }

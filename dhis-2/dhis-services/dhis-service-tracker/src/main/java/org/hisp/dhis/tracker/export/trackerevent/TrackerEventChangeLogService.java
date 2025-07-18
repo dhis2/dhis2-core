@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.Date;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -61,5 +62,31 @@ public class TrackerEventChangeLogService
       String userName) {
     return new TrackerEventChangeLog(
         event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
+  }
+
+  @Override
+  public void addEntityFieldChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+    logIfChanged(
+        "scheduledAt",
+        Event::getScheduledDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "occurredAt",
+        Event::getOccurredDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "geometry",
+        Event::getGeometry,
+        EventChangeLogService::formatGeometry,
+        currentEvent,
+        event,
+        username);
   }
 }

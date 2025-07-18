@@ -44,18 +44,18 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.ChangeLogableEvent;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class EventChangeLogService<T, S extends ChangeLogableEvent> {
+public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
@@ -93,7 +93,7 @@ public abstract class EventChangeLogService<T, S extends ChangeLogableEvent> {
   }
 
   @Transactional
-  public void deleteEventChangeLog(Event event) {
+  public void deleteEventChangeLog(UID event) {
     hibernateEventChangeLogStore.deleteEventChangeLog(event);
   }
 
@@ -127,29 +127,11 @@ public abstract class EventChangeLogService<T, S extends ChangeLogableEvent> {
     if (config.isDisabled(CHANGELOG_TRACKER)) {
       return;
     }
-
-    logIfChanged(
-        "scheduledAt",
-        ChangeLogableEvent::getScheduledDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "occurredAt",
-        ChangeLogableEvent::getOccurredDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "geometry",
-        ChangeLogableEvent::getGeometry,
-        EventChangeLogService::formatGeometry,
-        currentEvent,
-        event,
-        username);
+    addEntityFieldChangeLog(currentEvent, event, username);
   }
+
+  public abstract void addEntityFieldChangeLog(
+      @Nonnull S currentEvent, @Nonnull S event, @Nonnull String username);
 
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
@@ -160,7 +142,7 @@ public abstract class EventChangeLogService<T, S extends ChangeLogableEvent> {
     return hibernateEventChangeLogStore.getFilterableFields();
   }
 
-  private <V> void logIfChanged(
+  protected <V> void logIfChanged(
       String field,
       Function<S, V> valueExtractor,
       Function<V, String> formatter,
@@ -200,12 +182,12 @@ public abstract class EventChangeLogService<T, S extends ChangeLogableEvent> {
     return originalValue != null && payloadValue != null;
   }
 
-  private static String formatDate(Date date) {
+  public static String formatDate(Date date) {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     return date != null ? formatter.format(date) : null;
   }
 
-  private static String formatGeometry(Geometry geometry) {
+  public static String formatGeometry(Geometry geometry) {
     if (geometry == null) {
       return null;
     }

@@ -201,7 +201,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      trackerEventChangeLogService.deleteEventChangeLog(event);
+      trackerEventChangeLogService.deleteEventChangeLog(UID.of(event));
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
@@ -281,7 +281,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
-      singleEventChangeLogService.deleteEventChangeLog(event);
+      singleEventChangeLogService.deleteEventChangeLog(UID.of(event));
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(

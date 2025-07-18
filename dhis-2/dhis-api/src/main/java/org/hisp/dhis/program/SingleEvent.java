@@ -58,7 +58,7 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class SingleEvent extends SoftDeletableObject implements ChangeLogableEvent {
+public class SingleEvent extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
@@ -155,13 +155,11 @@ public class SingleEvent extends SoftDeletableObject implements ChangeLogableEve
     return completedBy;
   }
 
-  @Override
   @JsonIgnore
   public Date getScheduledDate() {
     return null;
   }
 
-  @Override
   @JsonProperty
   public Date getOccurredDate() {
     return occurredDate;
@@ -215,7 +213,6 @@ public class SingleEvent extends SoftDeletableObject implements ChangeLogableEve
     return relationshipItems;
   }
 
-  @Override
   @JsonProperty
   public Geometry getGeometry() {
     return geometry;

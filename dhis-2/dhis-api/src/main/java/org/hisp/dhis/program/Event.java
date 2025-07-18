@@ -59,7 +59,7 @@ import org.locationtech.jts.geom.Geometry;
  * @author Abyot Asalefew
  */
 @Auditable(scope = AuditScope.TRACKER)
-public class Event extends SoftDeletableObject implements ChangeLogableEvent {
+public class Event extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
