@@ -301,15 +301,15 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
   }
 
   @Test
-  void shouldContainAllowedSearchOperatorsWhenSet() {
-    teaA.setAllowedSearchOperators(Set.of(QueryOperator.LIKE, QueryOperator.NNULL));
+  void shouldContainBlockedSearchOperatorsWhenSet() {
+    teaA.setBlockedSearchOperators(Set.of(QueryOperator.LIKE, QueryOperator.NNULL));
     manager.update(teaA);
 
     JsonObject json =
         GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
             .content(HttpStatus.OK);
 
-    assertAttributeAllowedOperators(json, Set.of("LIKE", "NNULL"));
+    assertAttributeBlockedOperators(json, Set.of("LIKE", "NNULL"));
   }
 
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {
@@ -339,13 +339,13 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
             .collect(Collectors.toSet()));
   }
 
-  private static void assertAttributeAllowedOperators(JsonObject actualJson, Set<String> expected) {
+  private static void assertAttributeBlockedOperators(JsonObject actualJson, Set<String> expected) {
     assertFalse(actualJson.isEmpty());
 
     Set<String> actual =
         actualJson
             .getArray("trackedEntityAttributes")
-            .projectAsList(e -> e.asObject().getArray("allowedSearchOperators"))
+            .projectAsList(e -> e.asObject().getArray("blockedSearchOperators"))
             .stream()
             .flatMap(arr -> arr.stream().map(val -> val.as(JsonString.class).string()))
             .collect(Collectors.toSet());

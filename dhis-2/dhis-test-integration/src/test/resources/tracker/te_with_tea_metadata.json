@@ -57,7 +57,7 @@
       "legendSets": [],
       "minCharactersToSearch": 2,
       "preferredSearchOperator": "LIKE",
-      "allowedSearchOperators": ["LIKE", "EQ", "GT", "LT"],
+      "blockedSearchOperators": ["GE", "LE", "IN", "SW", "EW", "NULL", "NNULL"],
       "sharing": {
         "public": "rw------",
         "external": false,
@@ -93,7 +93,7 @@
       "attributeValues": [],
       "legendSets": [],
       "preferredSearchOperator": "EQ",
-      "allowedSearchOperators": ["ILIKE", "NILIKE", "IEQ", "NIEQ"],
+      "blockedSearchOperators": ["IN", "NNULL", "GT", "LT", "SW", "LE", "EW", "NULL", "GE"],
       "sharing": {
         "public": "rw------",
         "external": false,

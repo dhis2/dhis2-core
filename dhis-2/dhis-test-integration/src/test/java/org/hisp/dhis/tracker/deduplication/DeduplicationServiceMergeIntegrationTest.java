@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -344,7 +343,6 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
         new TrackedEntityAttribute("TEA", "", ValueType.TEXT, false, false);
     trackedEntityAttribute.setShortName("TEA");
     trackedEntityAttribute.setAggregationType(AggregationType.AVERAGE);
-    trackedEntityAttribute.setAllowedSearchOperators(QueryOperator.getTrackerOperators());
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
     return trackedEntityAttribute;

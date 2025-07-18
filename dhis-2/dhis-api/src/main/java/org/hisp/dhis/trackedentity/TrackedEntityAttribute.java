@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -105,7 +106,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private QueryOperator preferredSearchOperator;
 
-  private Set<QueryOperator> allowedSearchOperators;
+  private Set<QueryOperator> blockedSearchOperators = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -399,12 +400,12 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Set<QueryOperator> getAllowedSearchOperators() {
-    return allowedSearchOperators;
+  public Set<QueryOperator> getBlockedSearchOperators() {
+    return blockedSearchOperators;
   }
 
-  public void setAllowedSearchOperators(Set<QueryOperator> preferredSearchOperator) {
-    this.allowedSearchOperators = preferredSearchOperator;
+  public void setBlockedSearchOperators(Set<QueryOperator> preferredSearchOperator) {
+    this.blockedSearchOperators = preferredSearchOperator;
   }
 
   @JsonProperty

@@ -32,9 +32,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
 
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -75,25 +73,26 @@ public class TrackedEntityAttributeObjectBundleHook
                 "Not a valid TextPattern 'TEXT' segment."));
       }
     }
-    // TODO(tracker) Validate the preferred operator is part of the allowed operators
 
-    if (attr.getAllowedSearchOperators() == null || attr.getAllowedSearchOperators().isEmpty()) {
-      attr.setAllowedSearchOperators(getTrackerOperators());
-    } else {
-      attr.setAllowedSearchOperators(
-          attr.getAllowedSearchOperators().stream()
-              .map(QueryOperator::mapToTrackerQueryOperator)
-              .collect(Collectors.toSet()));
-    }
+    if (attr.getPreferredSearchOperator() != null) {
+      if (!getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
+        addReports.accept(
+            new ErrorReport(
+                TrackedEntityAttribute.class,
+                ErrorCode.E4081,
+                attr.getPreferredSearchOperator(),
+                getTrackerOperators()));
+      }
 
-    if (attr.getPreferredSearchOperator() != null
-        && !getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
-      addReports.accept(
-          new ErrorReport(
-              TrackedEntityAttribute.class,
-              ErrorCode.E4081,
-              attr.getPreferredSearchOperator(),
-              getTrackerOperators()));
+      if (attr.getBlockedSearchOperators() != null
+          && attr.getBlockedSearchOperators().contains(attr.getPreferredSearchOperator())) {
+        addReports.accept(
+            new ErrorReport(
+                TrackedEntityAttribute.class,
+                ErrorCode.E4082,
+                attr.getPreferredSearchOperator(),
+                attr.getUid()));
+      }
     }
   }
 

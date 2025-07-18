@@ -40,7 +40,6 @@ import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.common.QueryOperator.NULL;
-import static org.hisp.dhis.common.QueryOperator.SW;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -191,13 +190,12 @@ class TrackedEntityOperationParamsMapperTest {
     tea1.setValueType(ValueType.INTEGER);
     tea1.setUid(TEA_1_UID.getValue());
     tea1.setMinCharactersToSearch(0);
-    tea1.setAllowedSearchOperators(Set.of(LT, GT, EQ, NULL, LIKE));
 
     tea2 = new TrackedEntityAttribute();
     tea2.setValueType(ValueType.TEXT);
     tea2.setUid(TEA_2_UID.getValue());
     tea2.setMinCharactersToSearch(0);
-    tea2.setAllowedSearchOperators(Set.of(LIKE, NNULL, SW));
+    tea2.setBlockedSearchOperators(Set.of(EQ));
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
@@ -642,7 +640,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapAttributeFiltersWhenOperatorsAreAllowed()
+  void shouldMapAttributeFiltersWhenOperatorsAreNotBlocked()
       throws ForbiddenException, BadRequestException {
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
     when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
@@ -668,7 +666,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldNotMapAttributeFiltersWhenOperatorsAreNotAllowed()
+  void shouldNotMapAttributeFiltersWhenOperatorsAreBlocked()
       throws ForbiddenException, BadRequestException {
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
     when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
@@ -687,7 +685,7 @@ class TrackedEntityOperationParamsMapperTest {
         assertThrows(
             BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
     assertStartsWith(
-        "Operators [EQ] are not allowed for attribute 'cy2oRh2sNr6'", exception.getMessage());
+        "Operators [EQ] are blocked for attribute 'cy2oRh2sNr6'", exception.getMessage());
   }
 
   private static void assertQueryFilterValue(

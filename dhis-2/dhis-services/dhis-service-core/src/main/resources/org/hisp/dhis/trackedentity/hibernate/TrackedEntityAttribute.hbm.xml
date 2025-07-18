@@ -99,7 +99,7 @@
       </type>
     </property>
 
-    <property name="allowedSearchOperators" column="allowedsearchoperators" type="jsbAllowedOperators" />
+    <property name="blockedSearchOperators" column="blockedsearchoperators" type="jsbBlockedOperators" />
   </class>
 
 </hibernate-mapping>

@@ -202,18 +202,18 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
-      Set<QueryOperator> disallowedOperators =
+      Set<QueryOperator> blockedUsedOperators =
           attributeFilter.getValue().stream()
               .map(QueryFilter::getOperator)
               .map(QueryOperator::mapToTrackerQueryOperator)
-              .filter(op -> !tea.getAllowedSearchOperators().contains(op))
+              .filter(op -> tea.getBlockedSearchOperators().contains(op))
               .collect(Collectors.toSet());
 
-      if (!disallowedOperators.isEmpty()) {
+      if (!blockedUsedOperators.isEmpty()) {
         throw new BadRequestException(
             String.format(
-                "Operators %s are not allowed for attribute '%s'. Allowed operators are %s",
-                disallowedOperators, attributeFilter.getKey(), tea.getAllowedSearchOperators()));
+                "Operators %s are blocked for attribute '%s'.",
+                blockedUsedOperators, attributeFilter.getKey()));
       }
 
       List<QueryFilter> binaryFilters =

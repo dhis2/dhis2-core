@@ -35,7 +35,6 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
-import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import com.google.common.base.Strings;
@@ -2246,7 +2245,6 @@ public abstract class TestBase {
     attribute.setDescription("Attribute" + uniqueChar);
     attribute.setValueType(ValueType.TEXT);
     attribute.setAggregationType(AggregationType.NONE);
-    attribute.setAllowedSearchOperators(getTrackerOperators());
 
     return attribute;
   }
