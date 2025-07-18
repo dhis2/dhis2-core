@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.tracker.export.fieldfiltering;
 
-import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Component;
 
-/**
- * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
- * specify the exact fields they want in the JSON response.
- */
-public interface FieldsRequestParam {
-  Fields getFields();
+/** {@link Schema} aware implementations of {@link org.hisp.dhis.fieldfiltering.FieldPreset}s. */
+@RequiredArgsConstructor
+@Component
+public class SchemaFieldsPresets {
+  private final SchemaService schemaService;
+
+  @Nonnull
+  public static Set<String> mapSimple(@Nonnull Schema schema) {
+    return schema.getProperties().stream()
+        .filter(p -> p.getPropertyType().isSimple())
+        .map(SchemaFieldsPresets::toFieldName)
+        .collect(Collectors.toSet());
+  }
+
+  @Nullable
+  public Schema getSchema(@Nonnull Schema schema, @Nonnull String field) {
+    Property property = schema.getProperty(field);
+
+    if (property == null) {
+      return null; // invalid field
+    }
+
+    if (property.isCollection()) {
+      return schemaService.getDynamicSchema(property.getItemKlass());
+    }
+    return schemaService.getDynamicSchema(property.getKlass());
+  }
+
+  private static String toFieldName(Property property) {
+    return property.isCollection() ? property.getCollectionName() : property.getName();
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
 import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 
 /**
- * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
- * specify the exact fields they want in the JSON response.
+ * Wrapper that carries both a single entity and the Fields for field filtering. This allows the
+ * FilteredPageHttpMessageConverter to access both the entity data and the fields without using
+ * request attributes or ThreadLocal.
  */
-public interface FieldsRequestParam {
-  Fields getFields();
-}
+public record FilteredEntity<T>(T entity, Fields fields) {}
