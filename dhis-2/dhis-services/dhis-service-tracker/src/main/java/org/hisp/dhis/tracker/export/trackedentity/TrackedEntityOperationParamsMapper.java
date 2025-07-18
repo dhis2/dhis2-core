@@ -41,11 +41,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -198,6 +200,20 @@ class TrackedEntityOperationParamsMapper {
             String.format(
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
                 attributeFilter.getKey()));
+      }
+
+      Set<QueryOperator> blockedUsedOperators =
+          attributeFilter.getValue().stream()
+              .map(QueryFilter::getOperator)
+              .map(QueryOperator::mapToTrackerQueryOperator)
+              .filter(op -> tea.getBlockedSearchOperators().contains(op))
+              .collect(Collectors.toSet());
+
+      if (!blockedUsedOperators.isEmpty()) {
+        throw new BadRequestException(
+            String.format(
+                "Operators %s are blocked for attribute '%s'.",
+                blockedUsedOperators, attributeFilter.getKey()));
       }
 
       List<QueryFilter> binaryFilters =
