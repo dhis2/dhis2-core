@@ -67,7 +67,7 @@ class LocaleUtilsTest {
     assertTrue(cyrlFallbacks.contains("uz_UZ"));
     assertTrue(cyrlFallbacks.contains("uz_Cyrl"));
     assertTrue(cyrlFallbacks.contains("uz_UZ_Cyrl"));
-    assertTrue(cyrlFallbacks.contains("uz_Cyrl_UZ")); // optional order
+    assertTrue(cyrlFallbacks.contains("uz_Cyrl_UZ"));
 
     // Latin version
     Locale latnLocale =
@@ -79,6 +79,6 @@ class LocaleUtilsTest {
     assertTrue(latnFallbacks.contains("uz_UZ"));
     assertTrue(latnFallbacks.contains("uz_Latn"));
     assertTrue(latnFallbacks.contains("uz_UZ_Latn"));
-    assertTrue(latnFallbacks.contains("uz_Latn_UZ")); // optional order
+    assertTrue(latnFallbacks.contains("uz_Latn_UZ"));
   }
 }
