@@ -44,8 +44,7 @@ public interface I18nLocaleService {
   Map<String, String> getAvailableCountries();
 
   I18nLocale addI18nLocale(String language, String country);
-
-  @Transactional
+  
   I18nLocale addI18nLocale(String language, String country, String script);
 
   void saveI18nLocale(I18nLocale locale);
