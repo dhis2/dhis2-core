@@ -30,14 +30,23 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IEQ;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -73,6 +82,8 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private MetadataImportService metadataImportService;
 
   @BeforeAll
   void setUp() throws IOException {
@@ -126,6 +137,35 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
     assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
     assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", null);
+  }
+
+  @Test
+  void shouldFailIfPreferredSearchOperatorIsNotPartOfTrackerOperators() {
+    TrackedEntityAttribute tea =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    tea.setPreferredSearchOperator(IEQ);
+
+    ImportReport report =
+        metadataImportService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
+
+    assertEquals(Status.ERROR, report.getStatus());
+    String message =
+        report.getTypeReports().stream()
+            .findFirst()
+            .flatMap(
+                typeReport ->
+                    typeReport.getObjectReports().stream()
+                        .findFirst()
+                        .flatMap(
+                            objectReport ->
+                                objectReport.getErrorReports().stream()
+                                    .findFirst()
+                                    .map(ErrorReport::getMessage)))
+            .orElseThrow();
+    assertStartsWith(
+        "The provided preferred TEA operator `IEQ` is not part of the tracker operators", message);
   }
 
   private void assertMinCharactersToSearch(

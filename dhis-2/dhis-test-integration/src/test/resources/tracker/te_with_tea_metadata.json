@@ -91,7 +91,7 @@
       "translations": [],
       "attributeValues": [],
       "legendSets": [],
-      "preferredSearchOperator": "IEQ",
+      "preferredSearchOperator": "EQ",
       "sharing": {
         "public": "rw------",
         "external": false,
