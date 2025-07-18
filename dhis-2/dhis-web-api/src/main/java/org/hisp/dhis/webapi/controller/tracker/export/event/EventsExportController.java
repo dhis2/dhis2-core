@@ -67,6 +67,7 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -213,7 +214,7 @@ class EventsExportController {
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       SingleEventOperationParams singleEventOperationParams =
           singleEventParamsMapper.map(requestParams, idSchemeParams);
-      org.hisp.dhis.tracker.Page<Event> eventsPage =
+      org.hisp.dhis.tracker.Page<SingleEvent> eventsPage =
           singleEventService.findEvents(singleEventOperationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -369,7 +370,7 @@ class EventsExportController {
       TrackerIdSchemeParams idSchemeParams)
       throws NotFoundException, WebMessageException {
     MappingErrors errors = new MappingErrors(idSchemeParams);
-    Event event;
+    org.hisp.dhis.webapi.controller.tracker.view.Event eventView;
     Program program = getProgramFromEvent(uid);
     if (program.isRegistration()) {
       org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields eventFields =
@@ -378,7 +379,8 @@ class EventsExportController {
                   fieldFilterService.filterIncludes(
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
-      event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+      Event event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+      eventView = EVENTS_MAPPER.map(idSchemeParams, errors, event);
     } else {
       org.hisp.dhis.tracker.export.singleevent.SingleEventFields eventFields =
           org.hisp.dhis.tracker.export.singleevent.SingleEventFields.of(
@@ -386,11 +388,10 @@ class EventsExportController {
                   fieldFilterService.filterIncludes(
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
-      event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+      SingleEvent event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+      eventView = EVENTS_MAPPER.map(idSchemeParams, errors, event);
     }
 
-    org.hisp.dhis.webapi.controller.tracker.view.Event eventView =
-        EVENTS_MAPPER.map(idSchemeParams, errors, event);
     ensureNoMappingErrors(errors);
 
     return requestHandler.serve(eventView, fields);

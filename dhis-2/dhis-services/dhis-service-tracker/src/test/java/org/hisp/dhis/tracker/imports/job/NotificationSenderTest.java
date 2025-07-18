@@ -43,6 +43,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
@@ -354,10 +355,10 @@ class NotificationSenderTest {
     return event;
   }
 
-  private Event singleEvent() {
+  private SingleEvent singleEvent() {
     Program program = new Program();
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    Event event = new Event();
+    SingleEvent event = new SingleEvent();
     event.setUid(EVENT_UID.getValue());
     event.setEnrollment(enrollment(program));
     return event;

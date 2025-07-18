@@ -84,6 +84,7 @@ import static org.springframework.transaction.annotation.Propagation.REQUIRES_NE
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -1585,6 +1586,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         // For program indicators, use CTE reference
         String piUid = queryItem.getItem().getUid();
         CteDefinition cteDef = cteContext.getDefinitionByItemUid(piUid);
+        if (cteDef == null) {
+          continue;
+        }
         String col =
             cteDef.isRequiresCoalesce()
                 ? "coalesce(%s.value, 0) as %s".formatted(cteDef.getAlias(), piUid)
@@ -1776,16 +1780,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
 
-    if (needsOptimizedCtes(params, cteContext)) {
-      // 3.0: Add shadow CTEs to optimize the query
-      addShadowCtes(params, cteContext);
-    }
-
     // 3.1: Append the WITH clause if needed
     addCteClause(sb, cteContext);
 
     // 3.2: Append the SELECT clause, including columns from the CTE context
     addSelectClause(sb, params, cteContext);
+    // Retain the columns of the main SELECT statement as a hint for the shadow CTEs
+    List<String> selectColumns = sb.getColumnNames();
 
     // 3.3: Append the "FROM" clause (the main enrollment analytics table)
     addFromClause(sb, params);
@@ -1798,6 +1799,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // 3.6: Append ORDER BY and paging
     addSortingAndPaging(sb, params);
+
+    if (needsOptimizedCtes(params, cteContext)) {
+      // 3.7 : Add shadow CTEs for optimized query
+      addShadowCtes(params, cteContext, selectColumns);
+    }
 
     return sb.build();
   }
@@ -1862,10 +1868,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param params The {@link EventQueryParams} driving the query.
    * @param cteContext The {@link CteContext} to which these shadow CTEs will be added.
+   * @param selectColumns The list of columns computed for the main SELECT statement. This is used
+   *     when computing the main {@code top_enrollments} CTE to ensure that any missing column is
+   *     used in the shadow CTEs.
    */
-  void addShadowCtes(EventQueryParams params, CteContext cteContext) {
+  void addShadowCtes(EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
 
-    addTopEnrollmentsCte(params, cteContext);
+    addTopEnrollmentsCte(params, cteContext, selectColumns);
     addShadowEnrollmentTableCte(params, cteContext);
     addShadowEventTableCte(params, cteContext);
   }
@@ -1903,7 +1912,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *     definition will be added. It's added with a specific type ({@code CteType.TOP_ENROLLMENTS})
    *     to ensure correct ordering in the final SQL query.
    */
-  void addTopEnrollmentsCte(EventQueryParams params, CteContext cteContext) {
+  void addTopEnrollmentsCte(
+      EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
     SelectBuilder topEnrollments = new SelectBuilder();
     Map<String, String> formulaAliases = getFormulaColumnAliases();
 
@@ -1919,7 +1929,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
-      topEnrollments.addColumn(
+      topEnrollments.addColumnIfNotExist(
           params
               .getOrgUnitField()
               .withSqlBuilder(sqlBuilder)
@@ -1931,6 +1941,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Set<String> enrollmentColumns = getEnrollmentColumnsFromProgramIndicators(params);
     for (String column : enrollmentColumns) {
       topEnrollments.addColumn(quote(column), "ax");
+    }
+    // Add ORGANISATION_UNIT_GROUP_SET columns
+    List<DimensionalObject> dynamicDimensions =
+        params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
+
+    for (DimensionalObject dim : dynamicDimensions) {
+      if (!dim.isAllItems()) {
+        String col = quoteAlias(dim.getDimensionName());
+        topEnrollments.addColumnIfNotExist(col);
+      }
+    }
+    for (String selectColumn : selectColumns) {
+      topEnrollments.addColumnIfNotExist(selectColumn);
     }
 
     // Build from clause and where clauses

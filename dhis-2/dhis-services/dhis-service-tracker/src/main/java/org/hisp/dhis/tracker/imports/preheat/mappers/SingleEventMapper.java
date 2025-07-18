@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasource.model;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Optional;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.program.SingleEvent;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * Encapsulation of a database connection pool configuration.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Value
-@Builder
-public class DbPoolConfig {
-  private String dbPoolType;
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      ProgramStageMapper.class,
+      OrganisationUnitMapper.class,
+      EnrollmentMapper.class
+    })
+public interface SingleEventMapper extends PreheatMapper<SingleEvent> {
+  SingleEventMapper INSTANCE = Mappers.getMapper(SingleEventMapper.class);
 
-  private DhisConfigurationProvider dhisConfig;
-
-  private String driverClassName;
-
-  private String jdbcUrl;
-
-  private String username;
-
-  private String password;
-
-  private String maxPoolSize;
-
-  @Deprecated(since = "v43", forRemoval = true)
-  private String acquireIncrement;
-
-  @Deprecated(since = "v43", forRemoval = true)
-  private String acquireRetryAttempts;
-
-  @Deprecated(since = "v43", forRemoval = true)
-  private String acquireRetryDelay;
-
-  private String maxIdleTime;
-
-  private ConfigKeyMapper mapper;
-
-  public ConfigKeyMapper getMapper() {
-    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
-  }
+  @Override
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "user")
+  @Mapping(target = "enrollment")
+  @Mapping(target = "programStage")
+  @Mapping(target = "status")
+  @Mapping(target = "organisationUnit")
+  @Mapping(target = "created")
+  @Mapping(target = "eventDataValues")
+  @Mapping(target = "notes")
+  @Mapping(target = "occurredDate")
+  @Mapping(target = "completedDate")
+  @Mapping(target = "completedBy")
+  @Mapping(target = "deleted")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "geometry")
+  SingleEvent map(SingleEvent event);
 }

@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -54,15 +55,15 @@ import org.hisp.dhis.tracker.PageParams;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 
-public abstract class EventChangeLogService<T> {
+public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
 
   private final EventService eventService;
-  private final HibernateEventChangeLogStore<T> hibernateEventChangeLogStore;
+  private final HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore;
   private final DhisConfigurationProvider config;
 
   protected EventChangeLogService(
       EventService eventService,
-      HibernateEventChangeLogStore<T> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     this.eventService = eventService;
     this.hibernateEventChangeLogStore = hibernateEventChangeLogStore;
@@ -70,7 +71,7 @@ public abstract class EventChangeLogService<T> {
   }
 
   public abstract T buildEventChangeLog(
-      Event event,
+      S event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -84,7 +85,7 @@ public abstract class EventChangeLogService<T> {
   public Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
-    if (eventService.findEvent(event).isEmpty()) {
+    if (!eventService.exists(event)) {
       throw new NotFoundException(Event.class, event);
     }
 
@@ -92,7 +93,7 @@ public abstract class EventChangeLogService<T> {
   }
 
   @Transactional
-  public void deleteEventChangeLog(Event event) {
+  public void deleteEventChangeLog(S event) {
     hibernateEventChangeLogStore.deleteEventChangeLog(event);
   }
 
@@ -103,7 +104,7 @@ public abstract class EventChangeLogService<T> {
 
   @Transactional
   public void addEventChangeLog(
-      Event event,
+      S event,
       DataElement dataElement,
       String previousValue,
       String value,
@@ -122,33 +123,15 @@ public abstract class EventChangeLogService<T> {
 
   @Transactional
   public void addFieldChangeLog(
-      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+      @Nonnull S currentEvent, @Nonnull S event, @Nonnull String username) {
     if (config.isDisabled(CHANGELOG_TRACKER)) {
       return;
     }
-
-    logIfChanged(
-        "scheduledAt",
-        Event::getScheduledDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "occurredAt",
-        Event::getOccurredDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "geometry",
-        Event::getGeometry,
-        EventChangeLogService::formatGeometry,
-        currentEvent,
-        event,
-        username);
+    addEntityFieldChangeLog(currentEvent, event, username);
   }
+
+  public abstract void addEntityFieldChangeLog(
+      @Nonnull S currentEvent, @Nonnull S event, @Nonnull String username);
 
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
@@ -159,12 +142,12 @@ public abstract class EventChangeLogService<T> {
     return hibernateEventChangeLogStore.getFilterableFields();
   }
 
-  private <V> void logIfChanged(
+  protected <V> void logIfChanged(
       String field,
-      Function<Event, V> valueExtractor,
+      Function<S, V> valueExtractor,
       Function<V, String> formatter,
-      Event currentEvent,
-      Event event,
+      S currentEvent,
+      S event,
       String userName) {
 
     String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
@@ -199,12 +182,12 @@ public abstract class EventChangeLogService<T> {
     return originalValue != null && payloadValue != null;
   }
 
-  private static String formatDate(Date date) {
+  public static String formatDate(Date date) {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     return date != null ? formatter.format(date) : null;
   }
 
-  private static String formatGeometry(Geometry geometry) {
+  public static String formatGeometry(Geometry geometry) {
     if (geometry == null) {
       return null;
     }

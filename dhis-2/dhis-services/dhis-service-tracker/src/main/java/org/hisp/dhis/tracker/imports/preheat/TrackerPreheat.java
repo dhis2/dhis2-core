@@ -63,6 +63,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -205,6 +206,12 @@ public class TrackerPreheat {
    * used for object merging.
    */
   @Getter private final Map<UID, Event> events = new HashMap<>();
+
+  /**
+   * Internal map of all preheated single events, mainly used for confirming existence for updates,
+   * and used for object merging.
+   */
+  @Getter private final Map<UID, SingleEvent> singleEvents = new HashMap<>();
 
   /**
    * Internal map of all preheated relationships, mainly used for confirming existence for updates,
@@ -465,6 +472,18 @@ public class TrackerPreheat {
     events.put(UID.of(event), event);
   }
 
+  public SingleEvent getSingleEvent(UID uid) {
+    return singleEvents.get(uid);
+  }
+
+  public void putSingleEvents(List<SingleEvent> events) {
+    events.forEach(this::putSingleEvent);
+  }
+
+  public void putSingleEvent(SingleEvent event) {
+    singleEvents.put(UID.of(event), event);
+  }
+
   public void addNotes(Set<UID> notes) {
     this.notes.addAll(notes);
   }
@@ -631,7 +650,7 @@ public class TrackerPreheat {
     return switch (type) {
       case TRACKED_ENTITY -> getTrackedEntity(uid) != null;
       case ENROLLMENT -> getEnrollment(uid) != null;
-      case EVENT -> getEvent(uid) != null;
+      case EVENT -> getEvent(uid) != null || getSingleEvent(uid) != null;
       case RELATIONSHIP -> getRelationship(uid) != null;
     };
   }

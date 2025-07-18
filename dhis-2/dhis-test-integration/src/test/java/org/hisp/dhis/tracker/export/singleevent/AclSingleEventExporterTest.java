@@ -56,8 +56,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
@@ -120,7 +120,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnit(orgUnit).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -144,7 +144,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -163,7 +163,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnit(orgUnit).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -187,7 +187,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -240,7 +240,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnit(orgUnit).orgUnitMode(SELECTED).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -264,7 +264,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("DiszpKrYNg8")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -282,7 +282,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("DiszpKrYNg8")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -304,7 +304,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
@@ -318,7 +318,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program closed");
@@ -341,7 +341,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program open");
@@ -364,7 +364,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(CAPTURE).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode capture and program closed");
@@ -387,7 +387,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -418,7 +418,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
             .events(UID.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), uids(events));
     List<Executable> executables =
@@ -464,7 +464,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
 
     SingleEventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -482,7 +482,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("uoNW0E3xXUy")).orgUnitMode(ALL).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -500,7 +500,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
 
     SingleEventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
