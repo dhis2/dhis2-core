@@ -87,26 +87,30 @@ public class LocaleUtils {
    */
   public static List<String> getLocaleFallbacks(Locale locale) {
     List<String> fallbacks = new ArrayList<>();
-
     String lang = locale.getLanguage();
-    String script = locale.getScript();
     String region = locale.getCountry();
+    String script = locale.getScript();
+    String variant = locale.getVariant();
 
-    if (!lang.isEmpty()) {
-      fallbacks.add(lang);
-    }
-
-    if (!script.isEmpty()) {
-      fallbacks.add(lang + SEP + script);
-    }
+    fallbacks.add(lang);
 
     if (!region.isEmpty()) {
-      fallbacks.add(lang + SEP + region);
+      fallbacks.add(lang + "_" + region);
     }
 
-    if (!script.isEmpty() && !region.isEmpty()) {
-      fallbacks.add(lang + SEP + region + SEP + script);
-      fallbacks.add(lang + SEP + script + SEP + region);
+    // Include script fallbacks
+    if (!script.isEmpty()) {
+      fallbacks.add(lang + "_" + script);
+
+      if (!region.isEmpty()) {
+        fallbacks.add(lang + "_" + region + "_" + script);
+        fallbacks.add(lang + "_" + script + "_" + region);
+      }
+    }
+
+    // Legacy fallback using variant
+    if (!variant.isEmpty()) {
+      fallbacks.add(locale.toString());
     }
 
     return fallbacks;

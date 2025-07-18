@@ -54,4 +54,31 @@ class LocaleUtilsTest {
     assertEquals(2, LocaleUtils.getLocaleFallbacks(l2).size());
     assertEquals(1, LocaleUtils.getLocaleFallbacks(l3).size());
   }
+
+  @Test
+  void testGetLocaleFallbacksWithScript() {
+    // Cyrillic version
+    Locale cyrlLocale =
+        new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Cyrl").build();
+
+    List<String> cyrlFallbacks = LocaleUtils.getLocaleFallbacks(cyrlLocale);
+
+    assertTrue(cyrlFallbacks.contains("uz"));
+    assertTrue(cyrlFallbacks.contains("uz_UZ"));
+    assertTrue(cyrlFallbacks.contains("uz_Cyrl"));
+    assertTrue(cyrlFallbacks.contains("uz_UZ_Cyrl"));
+    assertTrue(cyrlFallbacks.contains("uz_Cyrl_UZ")); // optional order
+
+    // Latin version
+    Locale latnLocale =
+        new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Latn").build();
+
+    List<String> latnFallbacks = LocaleUtils.getLocaleFallbacks(latnLocale);
+
+    assertTrue(latnFallbacks.contains("uz"));
+    assertTrue(latnFallbacks.contains("uz_UZ"));
+    assertTrue(latnFallbacks.contains("uz_Latn"));
+    assertTrue(latnFallbacks.contains("uz_UZ_Latn"));
+    assertTrue(latnFallbacks.contains("uz_Latn_UZ")); // optional order
+  }
 }
