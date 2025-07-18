@@ -153,25 +153,6 @@ public enum QueryOperator {
   private static final Set<QueryOperator> TRACKER_OPERATORS =
       EnumSet.of(EQ, GT, GE, LT, LE, LIKE, IN, SW, EW, NULL, NNULL);
 
-  /**
-   * Case‑insensitive operators are analytics specific and should not be used in tracker, because
-   * the values there, are already converted to lowercase before comparison. For now, we are not
-   * enforcing this rule in the API, so those operators can still be used. Adding such validation
-   * would be a breaking change, and we are not ready for that yet.
-   *
-   * <p>This method should therefore be used to map case‑insensitive operators, which are analytics
-   * specific, to their case‑sensitive equivalents.
-   */
-  public QueryOperator mapToTrackerQueryOperator() {
-    return switch (this) {
-      case IEQ -> EQ;
-      case NIEQ -> NEQ;
-      case ILIKE -> LIKE;
-      case NILIKE -> NLIKE;
-      default -> this;
-    };
-  }
-
   public static Set<QueryOperator> getTrackerOperators() {
     return Collections.unmodifiableSet(TRACKER_OPERATORS);
   }
