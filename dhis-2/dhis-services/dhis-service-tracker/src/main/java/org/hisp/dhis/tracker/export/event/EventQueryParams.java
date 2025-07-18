@@ -379,6 +379,10 @@ class EventQueryParams {
     return accessiblePrograms != null && accessibleProgramStages != null;
   }
 
+  public Set<UID> getEnrollments() {
+    return enrollments;
+  }
+
   public EventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
