@@ -62,7 +62,7 @@ class TrackerSideValidationEffectDataBundleTest {
     assertEquals(enrollmentUid.getValue(), bundle.getObject());
     assertEquals(Enrollment.class, bundle.getKlass());
     assertTrue(bundle.getEnrollmentNotifications().isEmpty());
-    assertTrue(bundle.getEventNotifications().isEmpty());
+    assertTrue(bundle.getTrackerEventNotifications().isEmpty());
     assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
     assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
   }
@@ -73,13 +73,13 @@ class TrackerSideValidationEffectDataBundleTest {
     expected.setAutoFields();
     TrackerNotificationDataBundle bundle =
         TrackerNotificationDataBundle.builder()
-            .eventNotifications(List.of())
+            .trackerEventNotifications(List.of())
             .object(expected.getUid())
             .klass(Event.class)
             .build();
     assertEquals(expected.getUid(), bundle.getObject());
     assertEquals(Event.class, bundle.getKlass());
-    assertTrue(bundle.getEventNotifications().isEmpty());
+    assertTrue(bundle.getTrackerEventNotifications().isEmpty());
     assertTrue(bundle.getEnrollmentNotifications().isEmpty());
   }
 }

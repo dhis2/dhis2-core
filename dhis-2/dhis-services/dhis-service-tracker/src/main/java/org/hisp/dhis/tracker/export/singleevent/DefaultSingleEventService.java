@@ -52,7 +52,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -113,7 +113,7 @@ class DefaultSingleEventService implements SingleEventService {
           "Data element " + dataElementUid.getValue() + " is not a file (or image).");
     }
 
-    Page<Event> events;
+    Page<SingleEvent> events;
     try {
       SingleEventOperationParams operationParams =
           SingleEventOperationParams.builder()
@@ -134,10 +134,9 @@ class DefaultSingleEventService implements SingleEventService {
               + dataElementUid.getValue()
               + " could not be found.");
     }
-    Event event = events.getItems().get(0);
+    SingleEvent event = events.getItems().get(0);
 
-    List<String> errors =
-        trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement, false);
+    List<String> errors = trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement);
     if (!errors.isEmpty()) {
       throw new NotFoundException(DataElement.class, dataElementUid.getValue());
     }
@@ -158,9 +157,14 @@ class DefaultSingleEventService implements SingleEventService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
+  @Override
+  public boolean exists(@Nonnull UID event) {
+    return findEvent(event).isPresent();
+  }
+
   @Nonnull
   @Override
-  public Optional<Event> findEvent(@Nonnull UID event) {
+  public Optional<SingleEvent> findEvent(@Nonnull UID event) {
     try {
       return Optional.of(getEvent(event));
     } catch (NotFoundException e) {
@@ -170,18 +174,18 @@ class DefaultSingleEventService implements SingleEventService {
 
   @Nonnull
   @Override
-  public Event getEvent(@Nonnull UID event) throws NotFoundException {
+  public SingleEvent getEvent(@Nonnull UID event) throws NotFoundException {
     return getEvent(event, TrackerIdSchemeParams.builder().build(), SingleEventFields.none());
   }
 
   @Nonnull
   @Override
-  public Event getEvent(
+  public SingleEvent getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
       @Nonnull SingleEventFields fields)
       throws NotFoundException {
-    Page<Event> events;
+    Page<SingleEvent> events;
     try {
       SingleEventOperationParams operationParams =
           SingleEventOperationParams.builder()
@@ -197,9 +201,9 @@ class DefaultSingleEventService implements SingleEventService {
     }
 
     if (events.getItems().isEmpty()) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
+      throw new NotFoundException(SingleEvent.class, eventUid.getValue());
     }
-    Event event = events.getItems().get(0);
+    SingleEvent event = events.getItems().get(0);
 
     Set<EventDataValue> dataValues = new HashSet<>(event.getEventDataValues().size());
     for (EventDataValue dataValue : event.getEventDataValues()) {
@@ -233,12 +237,12 @@ class DefaultSingleEventService implements SingleEventService {
 
   @Nonnull
   @Override
-  public List<Event> findEvents(@Nonnull SingleEventOperationParams operationParams)
+  public List<SingleEvent> findEvents(@Nonnull SingleEventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-    List<Event> events = eventStore.getEvents(queryParams);
+    List<SingleEvent> events = eventStore.getEvents(queryParams);
     if (operationParams.getFields().isIncludesRelationships()) {
-      for (Event event : events) {
+      for (SingleEvent event : events) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,
@@ -252,13 +256,13 @@ class DefaultSingleEventService implements SingleEventService {
 
   @Nonnull
   @Override
-  public Page<Event> findEvents(
+  public Page<SingleEvent> findEvents(
       @Nonnull SingleEventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     SingleEventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-    Page<Event> events = eventStore.getEvents(queryParams, pageParams);
+    Page<SingleEvent> events = eventStore.getEvents(queryParams, pageParams);
     if (operationParams.getFields().isIncludesRelationships()) {
-      for (Event event : events.getItems()) {
+      for (SingleEvent event : events.getItems()) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,

@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
+
 import java.util.function.Consumer;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.common.ValueType;
@@ -71,6 +73,18 @@ public class TrackedEntityAttributeObjectBundleHook
                 "Not a valid TextPattern 'TEXT' segment."));
       }
     }
+
+    if (attr.getPreferredSearchOperator() != null
+        && !getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
+      addReports.accept(
+          new ErrorReport(
+              TrackedEntityAttribute.class,
+              ErrorCode.E4081,
+              attr.getPreferredSearchOperator(),
+              getTrackerOperators()));
+    }
+
+    // TODO(tracker) Validate the preferred operator is part of the allowed operators
   }
 
   @Override

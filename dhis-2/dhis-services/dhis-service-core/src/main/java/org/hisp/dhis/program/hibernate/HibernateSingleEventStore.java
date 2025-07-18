@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasource.model;
+package org.hisp.dhis.program.hibernate;
 
-import java.util.Optional;
-import lombok.Builder;
-import lombok.Value;
-import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-/**
- * Encapsulation of a database connection pool configuration.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Value
-@Builder
-public class DbPoolConfig {
-  private String dbPoolType;
+@Slf4j
+@Repository("org.hisp.dhis.program.SingleEventStore")
+public class HibernateSingleEventStore extends SoftDeleteHibernateObjectStore<SingleEvent> {
 
-  private DhisConfigurationProvider dhisConfig;
-
-  private String driverClassName;
-
-  private String jdbcUrl;
-
-  private String username;
-
-  private String password;
-
-  private String maxPoolSize;
-
-  @Deprecated(since = "v43", forRemoval = true)
-  private String acquireIncrement;
-
-  @Deprecated(since = "v43", forRemoval = true)
-  private String acquireRetryAttempts;
-
-  @Deprecated(since = "v43", forRemoval = true)
-  private String acquireRetryDelay;
-
-  private String maxIdleTime;
-
-  private ConfigKeyMapper mapper;
-
-  public ConfigKeyMapper getMapper() {
-    return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
+  public HibernateSingleEventStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, SingleEvent.class, aclService, false);
   }
 }

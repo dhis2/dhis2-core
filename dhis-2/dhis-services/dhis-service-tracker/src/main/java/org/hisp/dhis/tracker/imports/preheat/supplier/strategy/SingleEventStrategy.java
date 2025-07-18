@@ -34,9 +34,9 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.EventMapper;
+import org.hisp.dhis.tracker.imports.preheat.mappers.SingleEventMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,27 +46,29 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor(value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = EventMapper.class)
-public class EventStrategy extends HibernateGenericStore<Event>
+@StrategyFor(
+    value = org.hisp.dhis.tracker.imports.domain.SingleEvent.class,
+    mapper = SingleEventMapper.class)
+public class SingleEventStrategy extends HibernateGenericStore<SingleEvent>
     implements ClassBasedSupplierStrategy {
-  public EventStrategy(
+  public SingleEventStrategy(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, Event.class, false);
+    super(entityManager, jdbcTemplate, publisher, SingleEvent.class, false);
   }
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
-      List<Event> trackerEvents = getTrackerEventsIncludingDeleted(ids);
+      List<SingleEvent> singleEvents = getSingleEventsIncludingDeleted(ids);
 
-      preheat.putEvents(
+      preheat.putSingleEvents(
           DetachUtils.detach(
-              this.getClass().getAnnotation(StrategyFor.class).mapper(), trackerEvents));
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), singleEvents));
     }
   }
 
-  private List<Event> getTrackerEventsIncludingDeleted(List<String> uids) {
-    List<Event> events = new ArrayList<>();
+  private List<SingleEvent> getSingleEventsIncludingDeleted(List<String> uids) {
+    List<SingleEvent> events = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
     for (List<String> uidsPartition : uidsPartitions) {
@@ -76,13 +78,13 @@ public class EventStrategy extends HibernateGenericStore<Event>
                 .createQuery(
                     """
                         select ev
-                        from Event as ev
+                        from SingleEvent as ev
                         join ev.programStage as ps
                         join ps.program as p
                         where ev.uid in (:uids)
-                        and p.programType = 'WITH_REGISTRATION'
+                        and p.programType = 'WITHOUT_REGISTRATION'
                         """,
-                    Event.class)
+                    SingleEvent.class)
                 .setParameter("uids", uidsPartition)
                 .list());
       }

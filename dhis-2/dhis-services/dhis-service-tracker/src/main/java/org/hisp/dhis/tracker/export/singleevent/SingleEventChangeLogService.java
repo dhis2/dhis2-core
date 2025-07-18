@@ -30,27 +30,29 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import java.util.Date;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.springframework.stereotype.Service;
 
 @Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-public class SingleEventChangeLogService extends EventChangeLogService<SingleEventChangeLog> {
+public class SingleEventChangeLogService
+    extends EventChangeLogService<SingleEventChangeLog, SingleEvent> {
 
   protected SingleEventChangeLogService(
       SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent> hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     super(singleEventService, hibernateEventChangeLogStore, config);
   }
 
   @Override
   public SingleEventChangeLog buildEventChangeLog(
-      Event event,
+      SingleEvent event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -60,5 +62,24 @@ public class SingleEventChangeLogService extends EventChangeLogService<SingleEve
       String userName) {
     return new SingleEventChangeLog(
         event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
+  }
+
+  @Override
+  public void addEntityFieldChangeLog(
+      @Nonnull SingleEvent currentEvent, @Nonnull SingleEvent event, @Nonnull String username) {
+    logIfChanged(
+        "occurredAt",
+        SingleEvent::getOccurredDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "geometry",
+        SingleEvent::getGeometry,
+        EventChangeLogService::formatGeometry,
+        currentEvent,
+        event,
+        username);
   }
 }

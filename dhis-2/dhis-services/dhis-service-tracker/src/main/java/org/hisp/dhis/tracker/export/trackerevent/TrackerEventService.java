@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -62,6 +63,15 @@ public interface TrackerEventService extends EventService {
    */
   FileResourceStream getFileResourceImage(UID event, UID dataElement, ImageFileDimension dimension)
       throws NotFoundException, ForbiddenException;
+
+  /**
+   * Finds the event that matches the given {@code UID} based on the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
+   *
+   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
+   */
+  @Nonnull
+  Optional<Event> findEvent(@Nonnull UID uid);
 
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.

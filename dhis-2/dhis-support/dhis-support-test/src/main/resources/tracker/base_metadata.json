@@ -1474,6 +1474,33 @@
             "id": "fRGt4l6yIRb"
           },
           "valueType": "TEXT"
+        },
+        {
+          "id": "r56Tmr3PnWE",
+          "access": {
+            "delete": true,
+            "externalize": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2019-04-25T11:04:29.212",
+          "displayInList": true,
+          "displayName": "TA Tracker_program TA Test",
+          "displayShortName": "TA Tracker_program TA Test",
+          "lastUpdated": "2022-01-07T12:45:47.386",
+          "name": "TA Tracker_program TA Test",
+          "program": {
+            "id": "BFcipDERJnf"
+          },
+          "searchable": true,
+          "sharing": {},
+          "sortOrder": 2,
+          "trackedEntityAttribute": {
+            "id": "multitxtAtr"
+          },
+          "valueType": "MULTI_TEXT"
         }
       ],
       "programType": "WITH_REGISTRATION",
@@ -2022,6 +2049,32 @@
         "id": "tTgjgobT1oS"
       },
       "valueType": "INTEGER"
+    },
+    {
+      "id": "multitxtAtr",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "attribute multitxtAtr"
+        }
+      ],
+      "aggregationType": "NONE",
+      "code": "multitxtAtr code",
+      "created": "2020-05-31T09:00:51.347",
+      "formName": "multitxtAtr-attribute",
+      "lastUpdated": "2020-05-31T11:41:22.414",
+      "lastUpdatedBy": {
+        "id": "tTgjgobT1oS"
+      },
+      "name": "multitxtAtr-attribute",
+      "pattern": "",
+      "shortName": "multitxtAtr-attribute",
+      "user": {
+        "id": "tTgjgobT1oS"
+      },
+      "valueType": "MULTI_TEXT"
     },
     {
       "id": "V66aa7a2122",
