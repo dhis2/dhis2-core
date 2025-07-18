@@ -82,6 +82,10 @@
       <artifactId>spring-beans</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
@@ -130,6 +134,10 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.graphhopper.external</groupId>
+      <artifactId>jackson-datatype-jts</artifactId>
     </dependency>
     <dependency>
       <groupId>org.locationtech.jts</groupId>
@@ -194,6 +202,11 @@
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-field-filtering</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

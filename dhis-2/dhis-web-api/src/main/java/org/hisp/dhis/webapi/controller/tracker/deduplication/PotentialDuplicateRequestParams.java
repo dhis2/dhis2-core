@@ -35,9 +35,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
+import org.hisp.dhis.tracker.export.fieldfiltering.FieldsParser;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
@@ -112,5 +112,5 @@ unnecessary fields from the JSON response and in some cases decrease the respons
 on how to use it.
 """)
   @OpenApi.Property(value = String[].class)
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+  private Fields fields = FieldsParser.parse(DEFAULT_FIELDS_PARAM);
 }

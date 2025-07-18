@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -81,7 +80,8 @@ class PageTest {
             exportPage,
             "http://localhost/organisationUnits?page=1&pageSize=3&fields=displayName");
 
-    assertEquals(Map.of("fruits", fruits), page.getItems());
+    assertEquals("fruits", page.getKey());
+    assertEquals(fruits, page.getItems());
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
@@ -105,7 +105,8 @@ class PageTest {
             exportPage,
             "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
 
-    assertEquals(Map.of("fruits", fruits), page.getItems());
+    assertEquals("fruits", page.getKey());
+    assertEquals(fruits, page.getItems());
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
@@ -134,7 +135,8 @@ class PageTest {
             exportPage,
             "http://localhost/organisationUnits?page=1&pageSize=3&fields=displayName");
 
-    assertEquals(Map.of("fruits", List.of("apple", "banana", "cherry")), page.getItems());
+    assertEquals("fruits", page.getKey());
+    assertEquals(List.of("apple", "banana", "cherry"), page.getItems());
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());

@@ -30,8 +30,8 @@
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -55,11 +55,10 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,8 +70,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
+@OpenApi.EntityType(PotentialDuplicate.class)
 @OpenApi.Document(
-    entity = TrackedEntity.class,
+    entity = PotentialDuplicate.class,
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/potentialDuplicates")
@@ -81,15 +81,13 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class DeduplicationController {
   private final DeduplicationService deduplicationService;
 
-  private final RequestHandler requestHandler;
-
   private final TrackedEntityService trackedEntityService;
 
   private final IdentifiableObjectManager manager;
 
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
-  ResponseEntity<Page<ObjectNode>> getPotentialDuplicates(
+  FilteredPage<PotentialDuplicate> getPotentialDuplicates(
       PotentialDuplicateRequestParams requestParams, HttpServletRequest request)
       throws BadRequestException {
     validatePaginationParameters(requestParams);
@@ -105,11 +103,14 @@ public class DeduplicationController {
       org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
           deduplicationService.getPotentialDuplicates(criteria, pageParams);
 
-      return requestHandler.serve(request, "potentialDuplicates", page, requestParams);
+      return new FilteredPage<>(
+          Page.withPager("potentialDuplicates", page, getRequestURL(request)),
+          requestParams.getFields());
     }
 
     List<PotentialDuplicate> items = deduplicationService.getPotentialDuplicates(criteria);
-    return requestHandler.serve("potentialDuplicates", items, requestParams);
+    return new FilteredPage<>(
+        Page.withoutPager("potentialDuplicates", items), requestParams.getFields());
   }
 
   @GetMapping(value = "/{uid}")

@@ -39,15 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
@@ -55,33 +54,38 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link TrackedEntitiesExportController} stored in {@link
  * TrackedEntityRequestParams} to {@link TrackedEntityOperationParams} which is used to fetch
  * tracked entities.
  */
-@Component
-@RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
 
-  private final FieldFilterService fieldFilterService;
-
-  public TrackedEntityOperationParams map(
-      TrackedEntityRequestParams trackedEntityRequestParams, UserDetails user)
-      throws BadRequestException {
-    return map(trackedEntityRequestParams, trackedEntityRequestParams.getFields(), user);
+  private TrackedEntityRequestParamsMapper() {
+    throw new IllegalStateException("Utility class");
   }
 
-  public TrackedEntityOperationParams map(
+  public static TrackedEntityOperationParams map(
+      TrackedEntityRequestParams trackedEntityRequestParams, UserDetails user)
+      throws BadRequestException {
+    return mapCommon(
+        trackedEntityRequestParams, trackedEntityRequestParams.getFields()::includes, user);
+  }
+
+  public static TrackedEntityOperationParams map(
+      TrackedEntityRequestParams trackedEntityRequestParams, Fields fields, UserDetails user)
+      throws BadRequestException {
+    return mapCommon(trackedEntityRequestParams, fields::includes, user);
+  }
+
+  private static TrackedEntityOperationParams mapCommon(
       TrackedEntityRequestParams trackedEntityRequestParams,
-      List<FieldPath> fields,
+      java.util.function.Predicate<String> fieldFilter,
       UserDetails user)
       throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
@@ -145,10 +149,7 @@ class TrackedEntityRequestParamsMapper {
             .trackedEntities(trackedEntityRequestParams.getTrackedEntities())
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
-            .fields(
-                TrackedEntityFields.of(
-                    f -> fieldFilterService.filterIncludes(TrackedEntity.class, fields, f),
-                    FieldPath.FIELD_PATH_SEPARATOR));
+            .fields(TrackedEntityFields.of(fieldFilter, FieldPath.FIELD_PATH_SEPARATOR));
 
     mapOrderParam(builder, trackedEntityRequestParams.getOrder());
     mapFilterParam(builder, filters);
@@ -156,8 +157,8 @@ class TrackedEntityRequestParamsMapper {
     return builder.build();
   }
 
-  private void validateRequestParams(TrackedEntityRequestParams params, Set<UID> trackedEntities)
-      throws BadRequestException {
+  private static void validateRequestParams(
+      TrackedEntityRequestParams params, Set<UID> trackedEntities) throws BadRequestException {
 
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
       throw new BadRequestException(
@@ -228,7 +229,7 @@ class TrackedEntityRequestParamsMapper {
     }
   }
 
-  private void mapOrderParam(
+  private static void mapOrderParam(
       TrackedEntityOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -244,7 +245,7 @@ class TrackedEntityRequestParamsMapper {
     }
   }
 
-  private void mapFilterParam(
+  private static void mapFilterParam(
       TrackedEntityOperationParamsBuilder builder, Map<UID, List<QueryFilter>> filters) {
     if (filters == null || filters.isEmpty()) {
       return;
