@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.Date;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -39,11 +40,12 @@ import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.springframework.stereotype.Service;
 
 @Service("org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService")
-public class TrackerEventChangeLogService extends EventChangeLogService<TrackerEventChangeLog> {
+public class TrackerEventChangeLogService
+    extends EventChangeLogService<TrackerEventChangeLog, Event> {
 
   protected TrackerEventChangeLogService(
       TrackerEventService trackerEventService,
-      HibernateEventChangeLogStore<TrackerEventChangeLog> hibernateEventChangeLogStore,
+      HibernateEventChangeLogStore<TrackerEventChangeLog, Event> hibernateEventChangeLogStore,
       DhisConfigurationProvider config) {
     super(trackerEventService, hibernateEventChangeLogStore, config);
   }
@@ -60,5 +62,31 @@ public class TrackerEventChangeLogService extends EventChangeLogService<TrackerE
       String userName) {
     return new TrackerEventChangeLog(
         event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
+  }
+
+  @Override
+  public void addEntityFieldChangeLog(
+      @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+    logIfChanged(
+        "scheduledAt",
+        Event::getScheduledDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "occurredAt",
+        Event::getOccurredDate,
+        EventChangeLogService::formatDate,
+        currentEvent,
+        event,
+        username);
+    logIfChanged(
+        "geometry",
+        Event::getGeometry,
+        EventChangeLogService::formatGeometry,
+        currentEvent,
+        event,
+        username);
   }
 }

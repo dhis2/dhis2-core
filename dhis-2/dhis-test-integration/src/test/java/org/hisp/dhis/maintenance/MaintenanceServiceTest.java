@@ -305,9 +305,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(event);
     UID idA = UID.of(event);
     programMessageService.saveProgramMessage(message);
-    assertTrue(eventService.findEvent(idA).isPresent());
+    assertTrue(eventService.exists(idA));
     manager.delete(event);
-    assertFalse(eventService.findEvent(idA).isPresent());
+    assertFalse(eventService.exists(idA));
     assertTrue(eventExistsIncludingDeleted(event.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
@@ -392,10 +392,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertTrue(eventService.findEvent(idA).isPresent());
+    assertTrue(eventService.exists(idA));
     assertTrue(relationshipService.findRelationship(UID.of(r)).isPresent());
     manager.delete(eventA);
-    assertFalse(eventService.findEvent(idA).isPresent());
+    assertFalse(eventService.exists(idA));
     manager.delete(r);
     assertFalse(relationshipService.findRelationship(UID.of(r)).isPresent());
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
