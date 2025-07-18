@@ -81,4 +81,37 @@ class LocaleUtilsTest {
     assertTrue(latnFallbacks.contains("uz_UZ_Latn"));
     assertTrue(latnFallbacks.contains("uz_Latn_UZ"));
   }
+
+  @Test
+  void testGetLocaleFallbacksForChineseScripts() {
+    // Traditional Chinese (Taiwan)
+    Locale zhHantTW = new Locale.Builder()
+        .setLanguage("zh")
+        .setRegion("TW")
+        .setScript("Hant")
+        .build();
+
+    List<String> fallbacksHant = LocaleUtils.getLocaleFallbacks(zhHantTW);
+
+    assertTrue(fallbacksHant.contains("zh"));
+    assertTrue(fallbacksHant.contains("zh_TW"));
+    assertTrue(fallbacksHant.contains("zh_Hant"));
+    assertTrue(fallbacksHant.contains("zh_TW_Hant"));
+    assertTrue(fallbacksHant.contains("zh_Hant_TW"));
+
+    // Simplified Chinese (China)
+    Locale zhHansCN = new Locale.Builder()
+        .setLanguage("zh")
+        .setRegion("CN")
+        .setScript("Hans")
+        .build();
+
+    List<String> fallbacksHans = LocaleUtils.getLocaleFallbacks(zhHansCN);
+
+    assertTrue(fallbacksHans.contains("zh"));
+    assertTrue(fallbacksHans.contains("zh_CN"));
+    assertTrue(fallbacksHans.contains("zh_Hans"));
+    assertTrue(fallbacksHans.contains("zh_CN_Hans"));
+    assertTrue(fallbacksHans.contains("zh_Hans_CN"));
+  }
 }
