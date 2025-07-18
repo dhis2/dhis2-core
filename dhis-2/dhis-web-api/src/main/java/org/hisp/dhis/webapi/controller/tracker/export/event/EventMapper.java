@@ -33,6 +33,7 @@ import static java.util.Map.entry;
 
 import java.util.Map;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
@@ -119,4 +120,28 @@ public interface EventMapper {
   @Mapping(target = "notes", source = "notes")
   org.hisp.dhis.webapi.controller.tracker.view.Event map(
       @Context TrackerIdSchemeParams idSchemeParams, @Context MappingErrors errors, Event event);
+
+  @Mapping(target = "event", source = "uid")
+  @Mapping(target = "program", source = "enrollment.program")
+  @Mapping(target = "programStage", source = "programStage")
+  @Mapping(target = "enrollment", source = "enrollment.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit")
+  @Mapping(target = "occurredAt", source = "occurredDate")
+  @Mapping(target = "followUp", source = "enrollment.followup")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo")
+  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  @Mapping(target = "completedAt", source = "completedDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "dataValues", source = "eventDataValues")
+  @Mapping(target = "relationships", source = "relationshipItems")
+  @Mapping(target = "notes", source = "notes")
+  org.hisp.dhis.webapi.controller.tracker.view.Event map(
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      SingleEvent event);
 }

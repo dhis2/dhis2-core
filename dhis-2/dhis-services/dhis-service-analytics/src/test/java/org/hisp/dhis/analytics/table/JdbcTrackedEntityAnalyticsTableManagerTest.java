@@ -117,7 +117,7 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
             trackedEntityAttributeService,
             analyticsTableSettings,
             periodDataProvider,
-            new ColumnMapper(sqlBuilder),
+            new ColumnMapper(sqlBuilder, systemSettingsProvider),
             sqlBuilder);
   }
 

@@ -110,7 +110,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldDeleteCompletedDataWhenUpdatingAnEventWithStatusActive()
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
