@@ -129,10 +129,29 @@ class FieldFilterParserTest {
         //        Arguments.of("id,name,!code,:owner",
         Arguments.of(
             "id,name,!code",
-            List.of(new ExpectField(true, "id"), new ExpectField(true, "name")),
-            new ExpectField(false, "code")));
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(false, "code"))),
+
+        // testExclusionBeforeInclusion
+        Arguments.of(
+            "!code,id,name,code",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(false, "code"))),
+
+        // testExclusionAfterInclusion
+        Arguments.of(
+            "code,id,name,!code",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(false, "code"))));
   }
 
+  // TODO(ivo) double-check my ported tests are equivalent, make them fail, look at assertion errors
   @Test
   void testDepth0Filters() {
     List<FieldPath> fieldPaths = FieldFilterParser.parse("id, name,    abc");
@@ -434,6 +453,8 @@ class FieldFilterParserTest {
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
   }
 
+  // TODO(ivo) I think the assertion is wrong as an excluded field path is in the list but has
+  // excluded false
   private static void assertFieldPathContains(
       boolean expected, String expectedDotPath, List<FieldPath> fieldPaths) {
     Set<String> actual =
