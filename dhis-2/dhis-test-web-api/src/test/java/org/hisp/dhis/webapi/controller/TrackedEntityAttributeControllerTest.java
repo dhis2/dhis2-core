@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -286,6 +287,18 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
     assertAttributeList(json, Set.of());
   }
 
+  @Test
+  void shouldContainPreferredSearchOperatorWhenSet() {
+    teaA.setPreferredSearchOperator(QueryOperator.LIKE);
+    manager.update(teaA);
+
+    JsonObject json =
+        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
+            .content(HttpStatus.OK);
+
+    assertAttributePreferredOperator(json, Set.of("LIKE"));
+  }
+
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {
     assertFalse(actualJson.isEmpty());
     assertEquals(expected.size(), actualJson.getArray("trackedEntityAttributes").size());
@@ -294,6 +307,20 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
         actualJson
             .getArray("trackedEntityAttributes")
             .projectAsList(e -> e.asObject().getString("displayName"))
+            .stream()
+            .map(JsonString::string)
+            .collect(Collectors.toSet()));
+  }
+
+  private static void assertAttributePreferredOperator(
+      JsonObject actualJson, Set<String> expected) {
+    assertFalse(actualJson.isEmpty());
+    assertEquals(expected.size(), actualJson.getArray("trackedEntityAttributes").size());
+    assertEquals(
+        expected,
+        actualJson
+            .getArray("trackedEntityAttributes")
+            .projectAsList(e -> e.asObject().getString("preferredSearchOperator"))
             .stream()
             .map(JsonString::string)
             .collect(Collectors.toSet()));
