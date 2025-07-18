@@ -83,7 +83,7 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
           "sw",
           "tg",
           "uz-UZ-Cyrl",
-          "uz_UZ-Latn",
+          "uz-UZ-Latn",
           "vi",
           "zh");
 
