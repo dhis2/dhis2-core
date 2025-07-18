@@ -58,11 +58,11 @@ public class LocaleUtils {
   }
 
   /**
-   * Createa a locale string based on the given language, country and variant.
+   * Createa a locale string based on the given language, country and script.
    *
    * @param language the language, cannot be null.
    * @param country the country, can be null.
-   * @param variant the variant, can be null.
+   * @param script the script of the language, can be null.
    * @return a locale string.
    */
   public static String getLocaleString(String language, String country, String script) {
@@ -86,18 +86,29 @@ public class LocaleUtils {
    * @return a list of locale strings.
    */
   public static List<String> getLocaleFallbacks(Locale locale) {
-    List<String> locales = new ArrayList<>();
+    List<String> fallbacks = new ArrayList<>();
 
-    locales.add(locale.getLanguage());
+    String lang = locale.getLanguage();
+    String script = locale.getScript();
+    String region = locale.getCountry();
 
-    if (!locale.getCountry().isEmpty()) {
-      locales.add(locale.getLanguage() + SEP + locale.getCountry());
+    if (!lang.isEmpty()) {
+      fallbacks.add(lang);
     }
 
-    if (!locale.getVariant().isEmpty()) {
-      locales.add(locale.toString());
+    if (!script.isEmpty()) {
+      fallbacks.add(lang + SEP + script);
     }
 
-    return locales;
+    if (!region.isEmpty()) {
+      fallbacks.add(lang + SEP + region);
+    }
+
+    if (!script.isEmpty() && !region.isEmpty()) {
+      fallbacks.add(lang + SEP + region + SEP + script);
+      fallbacks.add(lang + SEP + script + SEP + region);
+    }
+
+    return fallbacks;
   }
 }
