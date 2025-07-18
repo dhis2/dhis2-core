@@ -35,7 +35,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 
 /**
  * @author Zubair Asghar
@@ -50,7 +50,7 @@ public class ProgramNotificationInstanceParam extends NotificationPagingParam {
       Integer pageSize,
       boolean paging,
       Enrollment enrollment,
-      Event event,
+      TrackerEvent event,
       Date scheduledAt) {
     super(page, pageSize, paging);
     this.enrollment = enrollment;
@@ -60,7 +60,7 @@ public class ProgramNotificationInstanceParam extends NotificationPagingParam {
 
   private Enrollment enrollment;
 
-  private Event event;
+  private TrackerEvent event;
 
   private Date scheduledAt;
 

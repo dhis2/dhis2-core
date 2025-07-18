@@ -70,7 +70,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -91,7 +91,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service("org.hisp.dhis.program.notification.ProgramNotificationService")
-public class DefaultProgramNotificationService extends HibernateGenericStore<Event>
+public class DefaultProgramNotificationService extends HibernateGenericStore<TrackerEvent>
     implements ProgramNotificationService {
   private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
       (iwt) ->
@@ -116,7 +116,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
   private final NotificationMessageRenderer<Enrollment> programNotificationRenderer;
 
-  private final NotificationMessageRenderer<Event> programStageNotificationRenderer;
+  private final NotificationMessageRenderer<TrackerEvent> programStageNotificationRenderer;
 
   private final ProgramNotificationTemplateService notificationTemplateService;
 
@@ -129,14 +129,14 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
       MessageService messageService,
       IdentifiableObjectManager manager,
       NotificationMessageRenderer<Enrollment> programNotificationRenderer,
-      NotificationMessageRenderer<Event> programStageNotificationRenderer,
+      NotificationMessageRenderer<TrackerEvent> programStageNotificationRenderer,
       ProgramNotificationTemplateService notificationTemplateService,
       NotificationTemplateMapper notificationTemplateMapper,
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       ProgramNotificationInstanceService notificationInstanceService) {
-    super(entityManager, jdbcTemplate, publisher, Event.class, false);
+    super(entityManager, jdbcTemplate, publisher, TrackerEvent.class, false);
     this.programMessageService = programMessageService;
     this.messageService = messageService;
     this.manager = manager;
@@ -298,7 +298,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   @Transactional
   public void sendEventCompletionNotifications(long eventId) {
-    sendEventNotifications(manager.get(Event.class, eventId));
+    sendEventNotifications(manager.get(TrackerEvent.class, eventId));
   }
 
   @Override
@@ -327,13 +327,13 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   @Transactional
   public void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, Event event) {
+      ProgramNotificationTemplate template, TrackerEvent event) {
     MessageBatch messageBatch = createEventMessageBatch(template, Collections.singletonList(event));
     sendAll(messageBatch);
   }
 
   @Override
-  public List<Event> getWithScheduledNotifications(
+  public List<TrackerEvent> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate) {
     if (notificationDate == null
         || !SCHEDULED_EVENT_TRIGGERS.contains(template.getNotificationTrigger())) {
@@ -349,7 +349,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
             notificationDate, template.getRelativeScheduledDays() * -1);
 
     String hql =
-        "select distinct ev from Event as ev "
+        "select distinct ev from TrackerEvent as ev "
             + "inner join ev.programStage as ps "
             + "where :notificationTemplate in elements(ps.notificationTemplates) "
             + "and ev.scheduledDate is not null "
@@ -368,18 +368,18 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   protected void preProcessPredicates(
       CriteriaBuilder builder,
-      List<Function<Root<Event>, jakarta.persistence.criteria.Predicate>> predicates) {
+      List<Function<Root<TrackerEvent>, jakarta.persistence.criteria.Predicate>> predicates) {
     predicates.add(root -> builder.equal(root.get("deleted"), false));
   }
 
   @Override
-  protected Event postProcessObject(Event event) {
+  protected TrackerEvent postProcessObject(TrackerEvent event) {
     return (event == null || event.isDeleted()) ? null : event;
   }
 
   private MessageBatch createScheduledMessageBatchForDay(
       ProgramNotificationTemplate template, Date day) {
-    List<Event> events = getWithScheduledNotifications(template, day);
+    List<TrackerEvent> events = getWithScheduledNotifications(template, day);
 
     List<Enrollment> enrollments = getEnrollmentsWithScheduledNotifications(template, day);
 
@@ -442,7 +442,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         .collect(toList());
   }
 
-  private void sendEventNotifications(Event event) {
+  private void sendEventNotifications(TrackerEvent event) {
     if (event == null) {
       return;
     }
@@ -473,7 +473,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   }
 
   private MessageBatch createEventMessageBatch(
-      ProgramNotificationTemplate template, List<Event> events) {
+      ProgramNotificationTemplate template, List<TrackerEvent> events) {
     MessageBatch batch = new MessageBatch();
 
     if (template.getNotificationRecipient().isExternalRecipient()) {
@@ -510,7 +510,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
     return batch;
   }
 
-  private ProgramMessage createProgramMessage(Event event, ProgramNotificationTemplate template) {
+  private ProgramMessage createProgramMessage(
+      TrackerEvent event, ProgramNotificationTemplate template) {
     NotificationMessage message = programStageNotificationRenderer.render(event, template);
 
     return ProgramMessage.builder()
@@ -543,7 +544,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   private Set<User> resolveDhisMessageRecipients(
       ProgramNotificationTemplate template,
       @Nullable Enrollment enrollment,
-      @Nullable Event event) {
+      @Nullable TrackerEvent event) {
     if (enrollment == null && event == null) {
       throw new IllegalArgumentException(
           "Either of the arguments [enrollment, event] must be non-null");
@@ -607,7 +608,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   }
 
   private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
-      ProgramNotificationTemplate template, OrganisationUnit organisationUnit, Event event) {
+      ProgramNotificationTemplate template, OrganisationUnit organisationUnit, TrackerEvent event) {
     ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
     if (template.getNotificationRecipient() == ProgramNotificationRecipient.DATA_ELEMENT
@@ -675,13 +676,13 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         .collect(Collectors.toSet());
   }
 
-  private Set<ProgramNotificationTemplate> resolveTemplates(Event event) {
+  private Set<ProgramNotificationTemplate> resolveTemplates(TrackerEvent event) {
     return event.getProgramStage().getNotificationTemplates().stream()
         .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
         .collect(Collectors.toSet());
   }
 
-  private DhisMessage createDhisMessage(Event event, ProgramNotificationTemplate template) {
+  private DhisMessage createDhisMessage(TrackerEvent event, ProgramNotificationTemplate template) {
     DhisMessage dhisMessage = new DhisMessage();
 
     dhisMessage.message = programStageNotificationRenderer.render(event, template);

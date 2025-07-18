@@ -58,7 +58,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -117,7 +117,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
   void shouldExportEventMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
-    Event event = get(Event.class, "QRYjLTiJTrA");
+    TrackerEvent event = get(TrackerEvent.class, "QRYjLTiJTrA");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
     List<String> idSchemeRequestParams =
@@ -192,7 +192,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @Test
   void shouldExportEventUsingNonUIDDataElementIdSchemeEvenIfItHasNoDataValues() {
-    Event event = get(Event.class, "jxgFyJEMUPf");
+    TrackerEvent event = get(TrackerEvent.class, "jxgFyJEMUPf");
     assertIsEmpty(event.getEventDataValues(), "test expects an event with no data values");
 
     JsonEvent actual =
@@ -205,7 +205,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @Test
   void shouldExportEventUsingNonUIDDataElementIdSchemeIfItHasRelationships() {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotEmpty(event.getRelationshipItems(), "test expects an event with relationships");
 
     JsonEvent actual =
@@ -220,8 +220,8 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @Test
   void shouldExportEventsUsingNonUIDDataElementIdScheme() {
-    Event event1 = get(Event.class, "QRYjLTiJTrA");
-    Event event2 = get(Event.class, "kWjSezkXHVp");
+    TrackerEvent event1 = get(TrackerEvent.class, "QRYjLTiJTrA");
+    TrackerEvent event2 = get(TrackerEvent.class, "kWjSezkXHVp");
     assertNotEmpty(
         CollectionUtils.intersection(
             event1.getEventDataValues().stream()
@@ -251,7 +251,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   void shouldExportEventDataValuesEquallyWithIdSchemeUIDAndName() {
     // ensure the event data value JSON is identical when idScheme=UID than other idSchemes as
     // different code is used to map it due to it being stored as JSONB
-    Event event = get(Event.class, "QRYjLTiJTrA");
+    TrackerEvent event = get(TrackerEvent.class, "QRYjLTiJTrA");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = get(DataElement.class, dataElementUid);
@@ -301,7 +301,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         "?events={id}&program=iS7eutanDry&paging=false&"
       })
   void shouldReportEventMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
-    Event event = get(Event.class, "QRYjLTiJTrA");
+    TrackerEvent event = get(TrackerEvent.class, "QRYjLTiJTrA");
 
     JsonWebMessage msg =
         assertWebMessage(
@@ -436,7 +436,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   }
 
   private void assertDataValues(
-      JsonEvent actual, Event expected, TrackerIdSchemeParam idSchemeParam) {
+      JsonEvent actual, TrackerEvent expected, TrackerIdSchemeParam idSchemeParam) {
     String field = "dataValues";
     List<String> expectedDataElement =
         expected.getEventDataValues().stream()

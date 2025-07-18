@@ -49,7 +49,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
@@ -152,9 +152,9 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertEquals(
         DateUtils.fromInstant(enTrackerObjects.getEnrollments().get(0).getUpdatedAtClient()),
         enrollment.getLastUpdatedAtClient());
-    Set<Event> events = enrollment.getEvents();
+    Set<TrackerEvent> events = enrollment.getEvents();
     assertEquals(1, events.size());
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
     assertNotNull(event.getCreatedAtClient());
     assertNotNull(event.getLastUpdatedAtClient());
     assertEquals(

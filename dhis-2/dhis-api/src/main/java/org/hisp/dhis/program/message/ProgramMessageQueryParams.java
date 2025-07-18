@@ -34,7 +34,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -48,7 +48,7 @@ public class ProgramMessageQueryParams {
 
   private Enrollment enrollment;
 
-  private Event event;
+  private TrackerEvent event;
 
   private Date afterDate;
 

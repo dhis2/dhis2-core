@@ -49,9 +49,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.imports.domain.Event;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 

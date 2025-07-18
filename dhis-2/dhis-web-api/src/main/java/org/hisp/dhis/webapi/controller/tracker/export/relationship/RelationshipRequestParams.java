@@ -39,7 +39,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
@@ -92,7 +92,7 @@ will take more time to return.**
   @OpenApi.Property({UID.class, Enrollment.class})
   private UID enrollment;
 
-  @OpenApi.Property({UID.class, Event.class})
+  @OpenApi.Property({UID.class, TrackerEvent.class})
   private UID event;
 
   @OpenApi.Property(value = String[].class)

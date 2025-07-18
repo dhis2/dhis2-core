@@ -41,16 +41,15 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -73,11 +72,11 @@ class SecurityTrackerEventValidator
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    if (!(event instanceof TrackerEvent)) {
+    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent)) {
       return;
     }
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
+    TrackerEvent preheatEvent = bundle.getPreheat().getTrackerEvent(event.getEvent());
 
     ProgramStage programStage =
         strategy.isUpdateOrDelete()
@@ -121,7 +120,7 @@ class SecurityTrackerEventValidator
   private void checkCompletablePermission(
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event preheatEvent,
+      TrackerEvent preheatEvent,
       UserDetails user) {
     if (EventStatus.COMPLETED == preheatEvent.getStatus()
         && event.getStatus() != preheatEvent.getStatus()
@@ -135,7 +134,7 @@ class SecurityTrackerEventValidator
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     if (bundle.getStrategy(event).isUpdateOrDelete()) {
       return UID.of(
-          bundle.getPreheat().getEvent(event.getUid()).getEnrollment().getTrackedEntity());
+          bundle.getPreheat().getTrackerEvent(event.getUid()).getEnrollment().getTrackedEntity());
     }
 
     Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());

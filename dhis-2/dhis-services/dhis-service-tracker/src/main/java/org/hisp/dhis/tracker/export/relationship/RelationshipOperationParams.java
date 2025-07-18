@@ -40,7 +40,7 @@ import lombok.ToString;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
@@ -66,7 +66,7 @@ public class RelationshipOperationParams {
     return new RelationshipOperationParamsBuilder().relationships(relationships);
   }
 
-  public static RelationshipOperationParamsBuilder builder(@Nonnull Event event) {
+  public static RelationshipOperationParamsBuilder builder(@Nonnull TrackerEvent event) {
     return new RelationshipOperationParamsBuilder()
         .identifier(UID.of(event))
         .type(TrackerType.EVENT);

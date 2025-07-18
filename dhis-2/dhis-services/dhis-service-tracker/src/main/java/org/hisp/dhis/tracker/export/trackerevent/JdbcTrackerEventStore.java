@@ -72,10 +72,10 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -178,8 +178,8 @@ class JdbcTrackerEventStore {
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
 
   /**
-   * Events can be ordered by given fields which correspond to fields on {@link Event}. Maps fields
-   * to DB columns.
+   * Events can be ordered by given fields which correspond to fields on {@link TrackerEvent}. Maps
+   * fields to DB columns.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
@@ -223,20 +223,21 @@ class JdbcTrackerEventStore {
 
   private final IdentifiableObjectManager manager;
 
-  public List<Event> getEvents(TrackerEventQueryParams queryParams) {
+  public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
 
-  public Page<Event> getEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
-    List<Event> events = fetchEvents(queryParams, pageParams);
+  public Page<TrackerEvent> getEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
+    List<TrackerEvent> events = fetchEvents(queryParams, pageParams);
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
-  private List<Event> fetchEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
+  private List<TrackerEvent> fetchEvents(
+      TrackerEventQueryParams queryParams, PageParams pageParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     setAccessiblePrograms(currentUser, queryParams);
 
-    Map<String, Event> eventsByUid;
+    Map<String, TrackerEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
     } else {
@@ -244,7 +245,7 @@ class JdbcTrackerEventStore {
           new HashMap<>(
               pageParams.getPageSize() + 1); // get extra event to determine if there is a nextPage
     }
-    List<Event> events = new ArrayList<>();
+    List<TrackerEvent> events = new ArrayList<>();
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
     String sql = buildSql(queryParams, pageParams, sqlParameters, currentUser);
@@ -267,11 +268,11 @@ class JdbcTrackerEventStore {
 
             String eventUid = resultSet.getString(COLUMN_EVENT_UID);
 
-            Event event;
+            TrackerEvent event;
             if (eventsByUid.containsKey(eventUid)) {
               event = eventsByUid.get(eventUid);
             } else {
-              event = new Event();
+              event = new TrackerEvent();
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());

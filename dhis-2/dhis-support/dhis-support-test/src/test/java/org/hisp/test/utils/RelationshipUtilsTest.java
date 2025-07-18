@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -57,7 +57,7 @@ class RelationshipUtilsTest {
 
   private Enrollment enrollmentA;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
   private RelationshipType relationshipType;
 
@@ -69,7 +69,7 @@ class RelationshipUtilsTest {
     teB.setUid(TE_B_UID.getValue());
     enrollmentA = new Enrollment();
     enrollmentA.setUid(ENROLLMENT_UID.getValue());
-    eventA = new Event();
+    eventA = new TrackerEvent();
     eventA.setUid(EVENT_UID.getValue());
     relationshipType = new RelationshipType();
     relationshipType.setUid(RELATIONSHIP_TYPE_UID);

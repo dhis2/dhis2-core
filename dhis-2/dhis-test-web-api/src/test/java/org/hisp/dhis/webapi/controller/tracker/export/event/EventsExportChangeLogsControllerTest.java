@@ -56,10 +56,10 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -106,7 +106,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   private TrackedEntityType trackedEntityType;
 
-  private Event event;
+  private TrackerEvent event;
 
   private DataElement dataElement;
 
@@ -437,14 +437,18 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     return enrollment;
   }
 
-  private Event event(Enrollment enrollment) {
-    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(Enrollment enrollment) {
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(programStage);
+    eventA.setOrganisationUnit(enrollment.getOrganisationUnit());
+    eventA.setAttributeOptionCombo(coc);
     eventA.setAutoFields();
     manager.save(eventA);
     return eventA;
   }
 
-  private String createDataValueJson(Event event, String value) {
+  private String createDataValueJson(TrackerEvent event, String value) {
     return """
            {
              "events": [
@@ -485,7 +489,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             value);
   }
 
-  private String createScheduledAtEventFieldJson(Event event, String scheduledAt) {
+  private String createScheduledAtEventFieldJson(TrackerEvent event, String scheduledAt) {
     return """
            {
              "events": [

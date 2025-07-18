@@ -30,7 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
@@ -108,7 +108,7 @@ interface RelationshipItemMapper {
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "dataValues", source = "eventDataValues")
   @Mapping(target = "notes", source = "notes")
-  RelationshipItem.Event map(Event event);
+  RelationshipItem.Event map(TrackerEvent event);
 
   @Mapping(target = "displayName", source = "name")
   User map(org.hisp.dhis.user.User user);

@@ -32,8 +32,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static java.util.Map.entry;
 
 import java.util.Map;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
@@ -59,10 +59,7 @@ import org.mapstruct.Mapping;
     })
 public interface EventMapper {
 
-  /**
-   * Events can be ordered by given fields which correspond to fields on {@link
-   * org.hisp.dhis.program.Event}.
-   */
+  /** Events can be ordered by given fields which correspond to fields on {@link TrackerEvent}. */
   Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("assignedUser", "assignedUser"),
@@ -91,7 +88,7 @@ public interface EventMapper {
           entry("updatedAtClient", "lastUpdatedAtClient"),
           entry("updatedBy", "lastUpdatedBy"));
 
-  default org.hisp.dhis.webapi.controller.tracker.view.Event map(Event event) {
+  default org.hisp.dhis.webapi.controller.tracker.view.Event map(TrackerEvent event) {
     // events as part of enrollments and relationships are always exported using idScheme=UID
     TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     return map(idSchemeParams, new MappingErrors(idSchemeParams), event);
@@ -119,7 +116,9 @@ public interface EventMapper {
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "notes", source = "notes")
   org.hisp.dhis.webapi.controller.tracker.view.Event map(
-      @Context TrackerIdSchemeParams idSchemeParams, @Context MappingErrors errors, Event event);
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      TrackerEvent event);
 
   @Mapping(target = "event", source = "uid")
   @Mapping(target = "program", source = "enrollment.program")

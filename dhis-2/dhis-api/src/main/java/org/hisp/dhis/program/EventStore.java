@@ -39,7 +39,7 @@ import org.hisp.dhis.common.UID;
 /**
  * @author Abyot Asalefew
  */
-public interface EventStore extends IdentifiableObjectStore<Event> {
+public interface EventStore extends IdentifiableObjectStore<TrackerEvent> {
 
   /**
    * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
@@ -60,8 +60,8 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
   void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
 
   /**
-   * Updates all {@link Event}s with references to {@link CategoryOptionCombo}s, to use the coc
-   * reference.
+   * Updates all {@link TrackerEvent}s with references to {@link CategoryOptionCombo}s, to use the
+   * coc reference.
    *
    * @param cocs {@link CategoryOptionCombo}s to update
    * @param coc {@link CategoryOptionCombo} to use as the new value

@@ -58,8 +58,8 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -386,7 +386,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @MethodSource("getEnrollment")
   void shouldGetEnrollmentWithEventsFields(
       BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
     EventDataValue eventDataValue = event.getEventDataValues().iterator().next();
@@ -422,7 +422,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void shouldGetSoftDeletedEnrollmentWithEventsWhenIncludeDeletedIsTrue() {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     manager.delete(get(Enrollment.class, event.getEnrollment().getUid()));
 
@@ -467,7 +467,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void getEnrollmentByIdWithExcludedFields() {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     assertNotNull(
         event.getRelationshipItems(), "test expects an event with at least one relationship");

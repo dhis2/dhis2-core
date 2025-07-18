@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.imports.domain.Event;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -201,7 +202,7 @@ class DefaultSingleEventService implements SingleEventService {
     }
 
     if (events.getItems().isEmpty()) {
-      throw new NotFoundException(SingleEvent.class, eventUid.getValue());
+      throw new NotFoundException(Event.class, eventUid.getValue());
     }
     SingleEvent event = events.getItems().get(0);
 

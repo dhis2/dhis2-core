@@ -46,9 +46,9 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
@@ -342,7 +342,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .storedBy(creatingUser.getUsername())
             .build();
 
-    Event result = TrackerObjectsMapper.map(preheat, event, creatingUser);
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, creatingUser);
 
     assertMappedEvent(event, result, creatingUser, creatingUser);
     assertEquals(defaultCategoryOptionCombo.getUid(), result.getAttributeOptionCombo().getUid());
@@ -350,9 +350,9 @@ class TrackerObjectsMapperTest extends TestBase {
 
   @Test
   void shouldMapEventWithNullCompletedDataWhenStatusIsActive() {
-    Event dbEvent = event(EventStatus.COMPLETED);
+    TrackerEvent dbEvent = event(EventStatus.COMPLETED);
     preheat.putEnrollments(List.of(dbEvent.getEnrollment()));
-    preheat.putEvents(List.of(dbEvent));
+    preheat.putTrackerEvents(List.of(dbEvent));
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
@@ -365,7 +365,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .notes(notes(creatingUser))
             .build();
 
-    Event result = TrackerObjectsMapper.map(preheat, event, updatingUser);
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
 
     assertMappedEvent(event, result, creatingUser, updatingUser);
     assertEquals(defaultCategoryOptionCombo.getUid(), result.getAttributeOptionCombo().getUid());
@@ -375,9 +375,9 @@ class TrackerObjectsMapperTest extends TestBase {
 
   @Test
   void shouldMapEventWhenStatusIsCompleted() {
-    Event dbEvent = event(EventStatus.ACTIVE);
+    TrackerEvent dbEvent = event(EventStatus.ACTIVE);
     preheat.putEnrollments(List.of(dbEvent.getEnrollment()));
-    preheat.putEvents(List.of(dbEvent));
+    preheat.putTrackerEvents(List.of(dbEvent));
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
@@ -391,7 +391,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .notes(notes(creatingUser))
             .build();
 
-    Event result = TrackerObjectsMapper.map(preheat, event, updatingUser);
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
 
     assertMappedEvent(event, result, creatingUser, updatingUser);
     assertEquals(defaultCategoryOptionCombo.getUid(), result.getAttributeOptionCombo().getUid());
@@ -401,9 +401,9 @@ class TrackerObjectsMapperTest extends TestBase {
 
   @Test
   void shouldMapEventWhenAssignedUserIsPresent() {
-    Event dbEvent = event(EventStatus.ACTIVE);
+    TrackerEvent dbEvent = event(EventStatus.ACTIVE);
     preheat.putEnrollments(List.of(dbEvent.getEnrollment()));
-    preheat.putEvents(List.of(dbEvent));
+    preheat.putTrackerEvents(List.of(dbEvent));
 
     org.hisp.dhis.tracker.imports.domain.User user =
         org.hisp.dhis.tracker.imports.domain.User.builder()
@@ -423,7 +423,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .assignedUser(user)
             .build();
 
-    Event result = TrackerObjectsMapper.map(preheat, event, updatingUser);
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
 
     assertMappedEvent(event, result, creatingUser, updatingUser);
     assertEquals(defaultCategoryOptionCombo.getUid(), result.getAttributeOptionCombo().getUid());
@@ -432,9 +432,9 @@ class TrackerObjectsMapperTest extends TestBase {
 
   @Test
   void shouldMapEventWhenCategoryOptionComboIsPresent() {
-    Event dbEvent = event(EventStatus.ACTIVE);
+    TrackerEvent dbEvent = event(EventStatus.ACTIVE);
     preheat.putEnrollments(List.of(dbEvent.getEnrollment()));
-    preheat.putEvents(List.of(dbEvent));
+    preheat.putTrackerEvents(List.of(dbEvent));
 
     org.hisp.dhis.tracker.imports.domain.User user =
         org.hisp.dhis.tracker.imports.domain.User.builder()
@@ -455,7 +455,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .attributeOptionCombo(MetadataIdentifier.ofUid(COC_UID))
             .build();
 
-    Event result = TrackerObjectsMapper.map(preheat, event, updatingUser);
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
 
     assertMappedEvent(event, result, creatingUser, updatingUser);
     assertEquals(
@@ -483,7 +483,7 @@ class TrackerObjectsMapperTest extends TestBase {
   @Test
   void testMapRelationshipFromTEToEvent() {
     preheat.putTrackedEntities(List.of(trackedEntity()));
-    preheat.putEvents(List.of(event(EventStatus.ACTIVE)));
+    preheat.putTrackerEvents(List.of(event(EventStatus.ACTIVE)));
     org.hisp.dhis.tracker.imports.domain.Relationship relationship =
         org.hisp.dhis.tracker.imports.domain.Relationship.builder()
             .relationship(RELATIONSHIP_UID)
@@ -565,7 +565,7 @@ class TrackerObjectsMapperTest extends TestBase {
 
   private void assertMappedEvent(
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event actual,
+      TrackerEvent actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
     assertEqualUids(event.getUid(), actual);
@@ -675,8 +675,8 @@ class TrackerObjectsMapperTest extends TestBase {
     return dbEnrollment;
   }
 
-  private Event event(EventStatus status) {
-    Event dbEvent = new Event();
+  private TrackerEvent event(EventStatus status) {
+    TrackerEvent dbEvent = new TrackerEvent();
     dbEvent.setUid(EVENT_UID.getValue());
     dbEvent.setCreated(NOW);
     dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(creatingUser));

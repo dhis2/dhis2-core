@@ -42,7 +42,7 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -59,7 +59,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
       ENTITY_MAPPER =
           Map.of(
               Enrollment.class, new Enrollment(),
-              Event.class, new Event(),
+              TrackerEvent.class, new TrackerEvent(),
               TrackedEntity.class, new TrackedEntity(),
               Relationship.class, new Relationship());
 
@@ -139,7 +139,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
 
     if (result > 0 && !eventsToDelete.isEmpty()) {
-      auditHardDeletedEntity(eventsToDelete, Event.class);
+      auditHardDeletedEntity(eventsToDelete, TrackerEvent.class);
     }
     return result;
   }
@@ -225,7 +225,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
 
     if (result > 0) {
-      auditHardDeletedEntity(associatedEvents, Event.class);
+      auditHardDeletedEntity(associatedEvents, TrackerEvent.class);
       auditHardDeletedEntity(deletedEnrollments, Enrollment.class);
     }
 
@@ -321,7 +321,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
 
     if (result > 0) {
-      auditHardDeletedEntity(associatedEvents, Event.class);
+      auditHardDeletedEntity(associatedEvents, TrackerEvent.class);
       auditHardDeletedEntity(associatedEnrollments, Enrollment.class);
       auditHardDeletedEntity(deletedTeUids, TrackedEntity.class);
     }

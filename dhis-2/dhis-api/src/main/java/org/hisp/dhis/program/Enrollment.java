@@ -83,7 +83,7 @@ public class Enrollment extends SoftDeletableObject {
 
   @AuditAttribute private Program program;
 
-  private Set<Event> events = new HashSet<>();
+  private Set<TrackerEvent> events = new HashSet<>();
 
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
@@ -303,11 +303,11 @@ public class Enrollment extends SoftDeletableObject {
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "events", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "event", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Event> getEvents() {
+  public Set<TrackerEvent> getEvents() {
     return events;
   }
 
-  public void setEvents(Set<Event> events) {
+  public void setEvents(Set<TrackerEvent> events) {
     this.events = events;
   }
 

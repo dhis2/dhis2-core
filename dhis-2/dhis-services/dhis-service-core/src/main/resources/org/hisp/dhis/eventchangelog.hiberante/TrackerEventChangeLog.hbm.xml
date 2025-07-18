@@ -12,7 +12,7 @@
       </generator>
     </id>
 
-    <many-to-one name="event" class="org.hisp.dhis.program.Event"
+    <many-to-one name="event" class="org.hisp.dhis.program.TrackerEvent"
       column="eventid" foreign-key="fk_eventchangelog_eventid" not-null="true"/>
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"

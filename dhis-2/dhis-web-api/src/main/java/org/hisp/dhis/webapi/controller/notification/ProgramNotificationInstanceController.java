@@ -42,7 +42,7 @@ import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
@@ -89,10 +89,10 @@ public class ProgramNotificationInstanceController {
       throws NotFoundException, BadRequestException {
     validatePaginationParameters(requestParams);
 
-    Event storedEvent = null;
+    TrackerEvent storedEvent = null;
     if (requestParams.getEvent() != null) {
       // TODO(tracker) jdbc-hibernate: check the impact on performance
-      storedEvent = manager.get(Event.class, requestParams.getEvent());
+      storedEvent = manager.get(TrackerEvent.class, requestParams.getEvent());
       if (storedEvent != null) {
         if (storedEvent.getProgramStage().getProgram().isRegistration()) {
           trackerEventService.getEvent(requestParams.getEvent());

@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -57,7 +56,6 @@ import org.locationtech.jts.geom.Geometry;
 @Auditable(scope = AuditScope.TRACKER)
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 public class SingleEvent extends SoftDeletableObject {
   private Date createdAtClient;
 

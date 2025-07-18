@@ -38,9 +38,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
@@ -60,7 +60,7 @@ public class ProgramMessageOperationParamMapper {
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
       throws NotFoundException {
     Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
-    Event event = getEntity(operationParams.getEvent(), Event.class);
+    TrackerEvent event = getEntity(operationParams.getEvent(), TrackerEvent.class);
 
     currentUserHasAccess(enrollment, event);
 
@@ -90,10 +90,10 @@ public class ProgramMessageOperationParamMapper {
                         "%s: %s does not exist.", klass.getSimpleName(), entity.getValue())));
   }
 
-  private void currentUserHasAccess(Enrollment enrollment, Event event) {
+  private void currentUserHasAccess(Enrollment enrollment, TrackerEvent event) {
     Enrollment entity =
         ObjectUtils.firstNonNull(
-            enrollment, Optional.ofNullable(event).map(Event::getEnrollment).orElse(null));
+            enrollment, Optional.ofNullable(event).map(TrackerEvent::getEnrollment).orElse(null));
 
     if (entity == null) {
       throw new IllegalQueryException("Enrollment or Event has to be provided");

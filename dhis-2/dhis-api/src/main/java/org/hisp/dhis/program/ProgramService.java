@@ -58,8 +58,8 @@ public interface ProgramService {
   void updateProgram(Program program);
 
   /**
-   * Deletes a {@link Program}. All {@link ProgramStage}, {@link Enrollment} and {@link Event}
-   * belong to this program are removed
+   * Deletes a {@link Program}. All {@link ProgramStage}, {@link Enrollment} and {@link
+   * TrackerEvent} belong to this program are removed
    *
    * @param program the Program to delete.
    */

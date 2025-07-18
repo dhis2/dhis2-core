@@ -275,7 +275,7 @@ class DataValuesValidatorTest {
     programStage.setProgramStageDataElements(
         Set.of(mandatoryStageElement1, mandatoryStageElement2));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    when(preheat.getEvent(eventUid))
+    when(preheat.getTrackerEvent(eventUid))
         .thenReturn(event(eventUid, savedStatus, Set.of("MANDATORY_DE", DATA_ELEMENT_UID)));
 
     Event event =
@@ -316,7 +316,7 @@ class DataValuesValidatorTest {
     programStage.setProgramStageDataElements(
         Set.of(mandatoryStageElement1, mandatoryStageElement2));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    when(preheat.getEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
+    when(preheat.getTrackerEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
 
     Event event =
         TrackerEvent.builder()
@@ -553,7 +553,7 @@ class DataValuesValidatorTest {
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
-    when(preheat.getEvent(eventUid)).thenReturn(new org.hisp.dhis.program.Event());
+    when(preheat.getTrackerEvent(eventUid)).thenReturn(new org.hisp.dhis.program.TrackerEvent());
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
@@ -1085,8 +1085,9 @@ class DataValuesValidatorTest {
     assertHasError(reporter, event, ValidationCode.E1302);
   }
 
-  private org.hisp.dhis.program.Event event(UID uid, EventStatus status, Set<String> dataElements) {
-    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+  private org.hisp.dhis.program.TrackerEvent event(
+      UID uid, EventStatus status, Set<String> dataElements) {
+    org.hisp.dhis.program.TrackerEvent event = new org.hisp.dhis.program.TrackerEvent();
     event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
@@ -1096,8 +1097,8 @@ class DataValuesValidatorTest {
     return event;
   }
 
-  private org.hisp.dhis.program.Event event(UID uid, EventStatus status) {
-    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+  private org.hisp.dhis.program.TrackerEvent event(UID uid, EventStatus status) {
+    org.hisp.dhis.program.TrackerEvent event = new org.hisp.dhis.program.TrackerEvent();
     event.setUid(uid.getValue());
     event.setStatus(status);
     return event;

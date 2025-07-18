@@ -49,7 +49,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -58,6 +57,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
@@ -120,7 +120,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   private Enrollment enrollmentA;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
   private EventDataValue eventDataValueA;
 

@@ -41,9 +41,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
@@ -110,7 +110,7 @@ class RuleEngineMapper {
     return events.stream().map(e -> mapPayloadEvent(preheat, e)).toList();
   }
 
-  static @Nonnull List<RuleEvent> mapSavedEvents(@Nonnull List<Event> events) {
+  static @Nonnull List<RuleEvent> mapSavedEvents(@Nonnull List<TrackerEvent> events) {
     return events.stream().map(RuleEngineMapper::mapSavedEvent).toList();
   }
 
@@ -160,7 +160,7 @@ class RuleEngineMapper {
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event eventToEvaluate) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
-    Event event = preheat.getEvent(eventToEvaluate.getUid());
+    TrackerEvent event = preheat.getTrackerEvent(eventToEvaluate.getUid());
     Instant createdDate =
         event == null
             ? Clock.System.INSTANCE.now()
@@ -191,7 +191,7 @@ class RuleEngineMapper {
             .toList());
   }
 
-  private static RuleEvent mapSavedEvent(Event eventToEvaluate) {
+  private static RuleEvent mapSavedEvent(TrackerEvent eventToEvaluate) {
     OrganisationUnit organisationUnit = eventToEvaluate.getOrganisationUnit();
     String orgUnit = organisationUnit == null ? "" : organisationUnit.getUid();
     String orgUnitCode = organisationUnit == null ? "" : organisationUnit.getCode();

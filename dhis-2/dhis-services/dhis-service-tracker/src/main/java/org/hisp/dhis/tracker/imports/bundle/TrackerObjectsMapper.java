@@ -42,10 +42,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -62,7 +62,7 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * TrackerObjectsMapper maps tracker domain objects to Hibernate objects so they can be persisted in
  * the DB. This class provides static methods to convert imported domain objects such as {@link
- * TrackedEntity}, {@link Enrollment}, {@link Event}, and {@link Relationship} into their
+ * TrackedEntity}, {@link Enrollment}, {@link TrackerEvent}, and {@link Relationship} into their
  * corresponding database entities. It gets existing records from the database through the preheat
  * and maps the incoming data accordingly, ensuring that all necessary fields are populated
  * correctly. All the values that should be set by the system are set here (eg. createdAt,
@@ -177,16 +177,16 @@ public class TrackerObjectsMapper {
     return dbEnrollment;
   }
 
-  public static @Nonnull Event map(
+  public static @Nonnull TrackerEvent map(
       @Nonnull TrackerPreheat preheat,
       @Nonnull org.hisp.dhis.tracker.imports.domain.Event event,
       @Nonnull UserDetails user) {
-    Event dbEvent = preheat.getEvent(event.getEvent());
+    TrackerEvent dbEvent = preheat.getTrackerEvent(event.getEvent());
 
     Date now = new Date();
 
     if (dbEvent == null) {
-      dbEvent = new Event();
+      dbEvent = new TrackerEvent();
       dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
       dbEvent.setStoredBy(event.getStoredBy());
@@ -348,7 +348,7 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE -> {
-        Event event = preheat.getEvent(relationship.getFrom().getEvent());
+        TrackerEvent event = preheat.getTrackerEvent(relationship.getFrom().getEvent());
         SingleEvent singleEvent = preheat.getSingleEvent(relationship.getFrom().getEvent());
         fromItem.setEvent(event != null ? event : map(singleEvent));
       }
@@ -365,7 +365,7 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE -> {
-        Event event = preheat.getEvent(relationship.getTo().getEvent());
+        TrackerEvent event = preheat.getTrackerEvent(relationship.getTo().getEvent());
         SingleEvent singleEvent = preheat.getSingleEvent(relationship.getTo().getEvent());
         toItem.setEvent(event != null ? event : map(singleEvent));
       }
@@ -403,12 +403,12 @@ public class TrackerObjectsMapper {
   }
 
   // TODO: should we remove this method when we will separate the event tables?
-  public static Event map(SingleEvent singleEvent) {
+  public static TrackerEvent map(SingleEvent singleEvent) {
     if (singleEvent == null) {
       return null;
     }
 
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setId(singleEvent.getId());
     event.setUid(singleEvent.getUid());
     event.setCreated(singleEvent.getCreated());

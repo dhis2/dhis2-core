@@ -36,9 +36,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -82,11 +82,11 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollmentC;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event eventB;
+  private TrackerEvent eventB;
 
-  private Event eventC;
+  private TrackerEvent eventC;
 
   @BeforeAll
   void setUp() {

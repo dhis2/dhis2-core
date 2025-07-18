@@ -56,9 +56,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TestSetup;
@@ -125,7 +125,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -147,7 +147,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -175,7 +175,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -197,7 +197,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -250,7 +250,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -278,7 +278,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -296,7 +296,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("RojfDTBhoGC")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -318,7 +318,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
@@ -330,7 +330,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program closed");
@@ -351,7 +351,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program open");
@@ -372,7 +372,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(CAPTURE).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode capture and program closed");
@@ -403,7 +403,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -434,7 +434,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
             .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "i4Nbp8S2G6A"))
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("H0PbzJY8bJG"), uids(events));
     List<Executable> executables =
@@ -480,7 +480,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
 
     TrackerEventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -504,7 +504,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("uoNW0E3xXUy")).orgUnitMode(ALL).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -528,7 +528,7 @@ class AclTrackerEventExporterTest extends PostgresIntegrationTestBase {
 
     TrackerEventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");

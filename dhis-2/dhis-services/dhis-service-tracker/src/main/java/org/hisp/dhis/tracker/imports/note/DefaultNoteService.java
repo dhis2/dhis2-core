@@ -37,11 +37,12 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
@@ -98,7 +99,7 @@ public class DefaultNoteService implements NoteService {
 
   @Nonnull
   private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
-    Event event = manager.get(Event.class, eventUID);
+    TrackerEvent event = manager.get(TrackerEvent.class, eventUID);
     if (event == null) {
       throw new NotFoundException(Event.class, eventUID);
     }

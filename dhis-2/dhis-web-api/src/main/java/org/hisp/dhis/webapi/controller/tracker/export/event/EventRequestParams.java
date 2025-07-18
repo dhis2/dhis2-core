@@ -48,9 +48,9 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
@@ -165,7 +165,7 @@ will take more time to return.**
 
   private boolean includeDeleted = false;
 
-  @OpenApi.Property({UID[].class, Event.class})
+  @OpenApi.Property({UID[].class, TrackerEvent.class})
   private Set<UID> events = new HashSet<>();
 
   /** Comma separated list of data element filters */

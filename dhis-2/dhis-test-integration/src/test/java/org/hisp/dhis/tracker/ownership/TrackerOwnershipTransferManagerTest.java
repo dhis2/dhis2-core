@@ -59,11 +59,11 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
@@ -128,7 +128,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
   private Program programB;
 
-  private Event event;
+  private TrackerEvent event;
 
   private User userA;
   private User userB;

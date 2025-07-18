@@ -40,10 +40,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
@@ -346,10 +346,10 @@ class NotificationSenderTest {
     return enrollment;
   }
 
-  private Event event() {
+  private TrackerEvent event() {
     Program program = new Program();
     program.setProgramType(ProgramType.WITH_REGISTRATION);
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setUid(EVENT_UID.getValue());
     event.setEnrollment(enrollment());
     return event;

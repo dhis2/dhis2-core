@@ -94,10 +94,10 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -1879,13 +1879,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     ProgramStage stage = createProgramStage('s', 2);
     manager.save(stage);
 
-    Event e1 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e1 = createEvent(stage, enrollment, ou1);
     e1.setAttributeOptionCombo(cocDuplicate);
-    Event e2 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e2 = createEvent(stage, enrollment, ou1);
     e2.setAttributeOptionCombo(cocDuplicate2);
-    Event e3 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e3 = createEvent(stage, enrollment, ou1);
     e3.setAttributeOptionCombo(cocTarget);
-    Event e4 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e4 = createEvent(stage, enrollment, ou1);
     e4.setAttributeOptionCombo(cocRandom);
 
     manager.save(List.of(e1, e2, e3, e4));
@@ -1900,7 +1900,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<Event> allEvents = eventStore.getAll();
+    List<TrackerEvent> allEvents = eventStore.getAll();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 

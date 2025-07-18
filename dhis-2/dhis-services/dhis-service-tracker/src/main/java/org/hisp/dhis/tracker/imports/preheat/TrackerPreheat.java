@@ -60,10 +60,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -205,7 +205,7 @@ public class TrackerPreheat {
    * Internal map of all preheated events, mainly used for confirming existence for updates, and
    * used for object merging.
    */
-  @Getter private final Map<UID, Event> events = new HashMap<>();
+  @Getter private final Map<UID, TrackerEvent> trackerEvents = new HashMap<>();
 
   /**
    * Internal map of all preheated single events, mainly used for confirming existence for updates,
@@ -460,16 +460,16 @@ public class TrackerPreheat {
     enrollments.put(UID.of(enrollment), enrollment);
   }
 
-  public Event getEvent(UID uid) {
-    return events.get(uid);
+  public TrackerEvent getTrackerEvent(UID uid) {
+    return trackerEvents.get(uid);
   }
 
-  public void putEvents(List<Event> events) {
-    events.forEach(this::putEvent);
+  public void putTrackerEvents(List<TrackerEvent> events) {
+    events.forEach(this::putTrackerEvent);
   }
 
-  public void putEvent(Event event) {
-    events.put(UID.of(event), event);
+  public void putTrackerEvent(TrackerEvent event) {
+    trackerEvents.put(UID.of(event), event);
   }
 
   public SingleEvent getSingleEvent(UID uid) {
@@ -650,7 +650,7 @@ public class TrackerPreheat {
     return switch (type) {
       case TRACKED_ENTITY -> getTrackedEntity(uid) != null;
       case ENROLLMENT -> getEnrollment(uid) != null;
-      case EVENT -> getEvent(uid) != null || getSingleEvent(uid) != null;
+      case EVENT -> getTrackerEvent(uid) != null || getSingleEvent(uid) != null;
       case RELATIONSHIP -> getRelationship(uid) != null;
     };
   }

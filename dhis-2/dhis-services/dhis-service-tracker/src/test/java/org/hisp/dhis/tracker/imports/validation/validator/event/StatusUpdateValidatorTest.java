@@ -87,10 +87,10 @@ class StatusUpdateValidatorTest {
   @MethodSource("validTransitions")
   void shouldPassValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
-    org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
+    org.hisp.dhis.program.TrackerEvent savedEvent = new org.hisp.dhis.program.TrackerEvent();
     savedEvent.setUid(EVENT_UID.getValue());
     savedEvent.setStatus(fromStatus);
-    when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
+    when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(savedEvent);
 
     Event event = TrackerEvent.builder().event(EVENT_UID).status(toStatus).build();
 
@@ -103,10 +103,10 @@ class StatusUpdateValidatorTest {
   @MethodSource("invalidTransitions")
   void shouldFailValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
-    org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
+    org.hisp.dhis.program.TrackerEvent savedEvent = new org.hisp.dhis.program.TrackerEvent();
     savedEvent.setUid(EVENT_UID.getValue());
     savedEvent.setStatus(fromStatus);
-    when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
+    when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(savedEvent);
 
     Event event = TrackerEvent.builder().event(EVENT_UID).status(toStatus).build();
 

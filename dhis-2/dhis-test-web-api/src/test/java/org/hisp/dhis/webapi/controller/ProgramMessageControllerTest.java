@@ -38,9 +38,9 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -59,7 +59,7 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
 
   private Enrollment enrollmentA;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
   @BeforeEach
   void setUp() {

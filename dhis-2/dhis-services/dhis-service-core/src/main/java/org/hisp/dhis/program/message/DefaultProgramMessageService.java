@@ -50,7 +50,7 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -228,7 +228,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private ProgramMessage setParameters(ProgramMessage message, BatchResponseStatus status) {
     message.setEnrollment(getEntity(Enrollment.class, message.getEnrollment()));
-    message.setEvent(getEntity(Event.class, message.getEvent()));
+    message.setEvent(getEntity(TrackerEvent.class, message.getEvent()));
     message.setProcessedDate(new Date());
     message.setMessageStatus(
         status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED);

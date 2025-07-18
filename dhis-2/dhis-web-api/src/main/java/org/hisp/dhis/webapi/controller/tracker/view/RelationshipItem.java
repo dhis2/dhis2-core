@@ -46,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -164,9 +165,9 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
-  @OpenApi.Identifiable(as = org.hisp.dhis.program.Event.class)
+  @OpenApi.Identifiable(as = TrackerEvent.class)
   public static class Event {
-    @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
+    @OpenApi.Property({UID.class, TrackerEvent.class})
     @JsonProperty
     private UID event;
 

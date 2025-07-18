@@ -34,7 +34,7 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.EventMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -47,26 +47,26 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @StrategyFor(value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = EventMapper.class)
-public class EventStrategy extends HibernateGenericStore<Event>
+public class EventStrategy extends HibernateGenericStore<TrackerEvent>
     implements ClassBasedSupplierStrategy {
   public EventStrategy(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, Event.class, false);
+    super(entityManager, jdbcTemplate, publisher, TrackerEvent.class, false);
   }
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
-      List<Event> trackerEvents = getTrackerEventsIncludingDeleted(ids);
+      List<TrackerEvent> trackerEvents = getTrackerEventsIncludingDeleted(ids);
 
-      preheat.putEvents(
+      preheat.putTrackerEvents(
           DetachUtils.detach(
               this.getClass().getAnnotation(StrategyFor.class).mapper(), trackerEvents));
     }
   }
 
-  private List<Event> getTrackerEventsIncludingDeleted(List<String> uids) {
-    List<Event> events = new ArrayList<>();
+  private List<TrackerEvent> getTrackerEventsIncludingDeleted(List<String> uids) {
+    List<TrackerEvent> events = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
     for (List<String> uidsPartition : uidsPartitions) {
@@ -76,13 +76,13 @@ public class EventStrategy extends HibernateGenericStore<Event>
                 .createQuery(
                     """
                         select ev
-                        from Event as ev
+                        from TrackerEvent as ev
                         join ev.programStage as ps
                         join ps.program as p
                         where ev.uid in (:uids)
                         and p.programType = 'WITH_REGISTRATION'
                         """,
-                    Event.class)
+                    TrackerEvent.class)
                 .setParameter("uids", uidsPartition)
                 .list());
       }

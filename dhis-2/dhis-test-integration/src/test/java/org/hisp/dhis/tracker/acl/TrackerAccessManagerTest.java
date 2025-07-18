@@ -56,12 +56,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -109,9 +109,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   private TrackedEntityType trackedEntityType;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event eventB;
+  private TrackerEvent eventB;
 
   @BeforeEach
   void setUp() {
@@ -176,7 +176,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntityA, programA, orgUnitA);
 
-    eventA = new Event();
+    eventA = new TrackerEvent();
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA);
     eventA.setOrganisationUnit(orgUnitA);
@@ -185,7 +185,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA, false);
 
-    eventB = new Event();
+    eventB = new TrackerEvent();
     eventB.setEnrollment(enrollmentA);
     eventB.setProgramStage(programStageB);
     eventB.setOrganisationUnit(orgUnitB);

@@ -42,7 +42,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.util.DateUtils;
@@ -50,7 +50,7 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * This class holds the action results from rule-engine organized by effect type ({@link
  * ValidationEffect} and {@link Notification}) and by tracker entity ({@link Enrollment} and {@link
- * Event}
+ * TrackerEvent}
  */
 @Getter
 public class RuleEngineEffects {

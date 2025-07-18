@@ -40,7 +40,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -87,9 +87,9 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
   void testEventDataValue() throws IOException {
     testSetup.importTrackerData("tracker/event_with_data_values.json");
 
-    List<Event> events = manager.getAll(Event.class);
+    List<TrackerEvent> events = manager.getAll(TrackerEvent.class);
     assertEquals(1, events.size());
-    Event event = events.get(0);
+    TrackerEvent event = events.get(0);
     Set<EventDataValue> eventDataValues = event.getEventDataValues();
     assertEquals(4, eventDataValues.size());
   }
@@ -98,9 +98,9 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
   void testEventDataValueUpdate() throws IOException {
     testSetup.importTrackerData("tracker/event_with_data_values.json");
 
-    List<Event> events = manager.getAll(Event.class);
+    List<TrackerEvent> events = manager.getAll(TrackerEvent.class);
     assertEquals(1, events.size());
-    Event event = events.get(0);
+    TrackerEvent event = events.get(0);
     Set<EventDataValue> eventDataValues = event.getEventDataValues();
     assertEquals(4, eventDataValues.size());
     // update
@@ -109,9 +109,9 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     testSetup.importTrackerData("tracker/event_with_updated_data_values.json", params);
 
-    List<Event> updatedEvents = manager.getAll(Event.class);
+    List<TrackerEvent> updatedEvents = manager.getAll(TrackerEvent.class);
     assertEquals(1, updatedEvents.size());
-    Event updatedEvent = manager.get(Event.class, updatedEvents.get(0).getUid());
+    TrackerEvent updatedEvent = manager.get(TrackerEvent.class, updatedEvents.get(0).getUid());
     assertEquals(3, updatedEvent.getEventDataValues().size());
     List<String> values =
         updatedEvent.getEventDataValues().stream()

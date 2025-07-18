@@ -42,10 +42,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -281,7 +281,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canRead(
+      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || event == null) {
       return List.of();
@@ -359,7 +360,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canCreate(
-      @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || event == null) {
       return List.of();
@@ -401,7 +402,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canUpdate(
-      @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || event == null) {
       return List.of();
@@ -441,7 +442,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canDelete(
-      @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || event == null) {
       return List.of();
@@ -478,7 +479,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private void canCreateOrDeleteWithRegistration(
       List<String> errors,
       UserDetails user,
-      Event event,
+      TrackerEvent event,
       boolean skipOwnershipCheck,
       ProgramStage programStage,
       Program program) {
@@ -598,7 +599,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(
-      @Nonnull UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user,
+      TrackerEvent event,
+      DataElement dataElement,
+      boolean skipOwnershipCheck) {
 
     if (user.isSuper()) {
       return List.of();
@@ -634,7 +638,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canWrite(
-      @Nonnull UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user,
+      TrackerEvent event,
+      DataElement dataElement,
+      boolean skipOwnershipCheck) {
 
     if (user.isSuper()) {
       return List.of();
