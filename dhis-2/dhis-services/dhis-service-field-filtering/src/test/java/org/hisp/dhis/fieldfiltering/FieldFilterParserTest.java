@@ -37,12 +37,86 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Morten Olav Hansen
  */
 class FieldFilterParserTest {
+  record ExpectField(boolean expected, String dotPath) {}
+
+  @ParameterizedTest
+  @MethodSource("testParserProvider")
+  void testParser(String input, List<ExpectField> expectFields) {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse(input);
+
+    assertFields(expectFields, fieldPaths);
+  }
+
+  static Stream<Arguments> testParserProvider() {
+    return Stream.of(
+        // testDepth0Filters
+        Arguments.of(
+            "id, name,    abc",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "abc"))),
+
+        // testDepth1Filters
+        Arguments.of(
+            "id,name,group[id,name]",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))),
+
+        // testDepthXFilters
+        Arguments.of(
+            "id,name,group[id,name],group[id,name,group[id,name,group[id,name]]]",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"),
+                new ExpectField(true, "group.group.id"),
+                new ExpectField(true, "group.group.name"),
+                new ExpectField(true, "group.group.group.id"),
+                new ExpectField(true, "group.group.group.name"))),
+
+        // testOnlyBlockFilters
+        Arguments.of(
+            "group[id,name]",
+            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+
+        // testMixedBlockSingleFields
+        Arguments.of(
+            "id,name,group[id,name],code",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"),
+                new ExpectField(true, "code"))),
+
+        // testIgnoreWhitespace
+        Arguments.of(
+            " id,name  , group[ id , name  ], code  ",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"),
+                new ExpectField(true, "code"))));
+  }
 
   @Test
   void testDepth0Filters() {
@@ -311,6 +385,21 @@ class FieldFilterParserTest {
     assertFieldPathContains(fieldPaths, "displayName");
   }
 
+  private static void assertFields(List<ExpectField> expectFields, List<FieldPath> fieldPaths) {
+    for (ExpectField expectField : expectFields) {
+      assertField(expectField.expected, expectField.dotPath, fieldPaths);
+    }
+  }
+
+  /**
+   * Tests if the field represented by the full path as used by the current FieldFilterParser is
+   * included in the parsed fields predicate.
+   */
+  private static void assertField(
+      boolean expected, String expectedDotPath, List<FieldPath> fieldPaths) {
+    assertFieldPathContains(expected, expectedDotPath, fieldPaths);
+  }
+
   private void assertFieldPathContains(
       List<FieldPath> fieldPaths, String expected, boolean isTransformer) {
     boolean condition = false;
@@ -328,6 +417,17 @@ class FieldFilterParserTest {
     Set<String> actual =
         fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
+  }
+
+  private static void assertFieldPathContains(
+      boolean expected, String expectedDotPath, List<FieldPath> fieldPaths) {
+    Set<String> actual =
+        fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
+    String what = expected ? "include" : "exclude";
+    assertEquals(
+        expected,
+        actual.contains(expectedDotPath),
+        () -> actual + " does not " + what + " " + expectedDotPath);
   }
 
   private FieldPath getFieldPath(List<FieldPath> fieldPaths, String path) {
