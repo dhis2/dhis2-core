@@ -40,6 +40,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -223,7 +224,7 @@ class ParamsConverterTest extends TestBase {
   void shouldSuccessToConvertEventsWithDeleteOrUpdateStrategyWhenEventsArePresentInPreheat(
       TrackerImportStrategy importStrategy) {
     trackerPreheat.putEvent(trackerEventFromDB());
-    trackerPreheat.putEvent(singleEventFromDB());
+    trackerPreheat.putSingleEvent(singleEventFromDB());
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(importStrategy).build();
@@ -235,11 +236,11 @@ class ParamsConverterTest extends TestBase {
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
     assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(TRACKER_EVENT_UID));
+        List.of(TRACKER_EVENT_UID),
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList());
     assertContainsOnly(
-        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(SINGLE_EVENT_UID));
+        List.of(SINGLE_EVENT_UID),
+        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList());
   }
 
   @ParameterizedTest
@@ -307,8 +308,8 @@ class ParamsConverterTest extends TestBase {
     return event;
   }
 
-  private Event singleEventFromDB() {
-    Event event = new Event();
+  private SingleEvent singleEventFromDB() {
+    SingleEvent event = new SingleEvent();
     event.setUid(SINGLE_EVENT_UID.getValue());
     event.setProgramStage(programStageWithoutRegistration);
     return event;

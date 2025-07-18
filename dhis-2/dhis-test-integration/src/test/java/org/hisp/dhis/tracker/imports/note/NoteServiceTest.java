@@ -42,6 +42,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -165,7 +166,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    Event dbEvent = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
+    SingleEvent dbEvent = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 
