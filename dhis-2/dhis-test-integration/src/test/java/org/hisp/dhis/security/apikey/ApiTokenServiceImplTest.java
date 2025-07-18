@@ -78,7 +78,7 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
   public ApiToken createAndSaveToken() {
     long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
     ApiKeyTokenGenerator.TokenWrapper apiTokenPair =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
     apiTokenStore.save(apiTokenPair.getApiToken());
     return apiTokenPair.getApiToken();
   }
@@ -105,6 +105,18 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
     final ApiToken tokenA = createAndSaveToken();
     final ApiToken tokenB = apiTokenService.getByKey(tokenA.getKey());
     assertEquals(tokenB.getKey(), tokenA.getKey());
+  }
+
+  @Test
+  void testSaveGetWithCode() {
+    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    ApiKeyTokenGenerator.TokenWrapper apiTokenPair =
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture, "code-1");
+    apiTokenStore.save(apiTokenPair.getApiToken());
+    final ApiToken tokenA = apiTokenPair.getApiToken();
+
+    final ApiToken tokenB = apiTokenService.getByKey(tokenA.getKey());
+    assertEquals("code-1", tokenB.getCode());
   }
 
   @Test
