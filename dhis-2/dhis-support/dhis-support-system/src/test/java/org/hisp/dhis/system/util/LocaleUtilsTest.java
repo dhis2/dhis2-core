@@ -114,4 +114,37 @@ class LocaleUtilsTest {
     assertTrue(fallbacksHans.contains("zh_CN_Hans"));
     assertTrue(fallbacksHans.contains("zh_Hans_CN"));
   }
+
+  @Test
+  void testGetLocaleFallbacksForMongolianScripts() {
+    // Mongolian Cyrillic (used in Mongolia)
+    Locale mnCyrlMN = new Locale.Builder()
+        .setLanguage("mn")
+        .setRegion("MN")
+        .setScript("Cyrl")
+        .build();
+
+    List<String> fallbacksCyrl = LocaleUtils.getLocaleFallbacks(mnCyrlMN);
+
+    assertTrue(fallbacksCyrl.contains("mn"));
+    assertTrue(fallbacksCyrl.contains("mn_MN"));
+    assertTrue(fallbacksCyrl.contains("mn_Cyrl"));
+    assertTrue(fallbacksCyrl.contains("mn_MN_Cyrl"));
+    assertTrue(fallbacksCyrl.contains("mn_Cyrl_MN"));
+
+    // Traditional Mongolian script (used in China)
+    Locale mnMongCN = new Locale.Builder()
+        .setLanguage("mn")
+        .setRegion("CN")
+        .setScript("Mong")
+        .build();
+
+    List<String> fallbacksMong = LocaleUtils.getLocaleFallbacks(mnMongCN);
+
+    assertTrue(fallbacksMong.contains("mn"));
+    assertTrue(fallbacksMong.contains("mn_CN"));
+    assertTrue(fallbacksMong.contains("mn_Mong"));
+    assertTrue(fallbacksMong.contains("mn_CN_Mong"));
+    assertTrue(fallbacksMong.contains("mn_Mong_CN"));
+  }
 }
