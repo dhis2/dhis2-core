@@ -62,14 +62,46 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     List<IdentifiableObject> countrs = new ArrayList<>();
 
     for (String lang : Locale.getISOLanguages()) {
-      langs.add(new BaseIdentifiableObject(lang, lang, new Locale(lang).getDisplayLanguage()));
+      langs.add(new BaseIdentifiableObject(lang, lang, Locale.forLanguageTag(lang).getDisplayLanguage()));
     }
 
+    // Add all ISO countries
     for (String country : Locale.getISOCountries()) {
       countrs.add(
           new BaseIdentifiableObject(
-              country, country, new Locale("en", country).getDisplayCountry()));
+              country,
+              country,
+              new Locale.Builder().setLanguage("en").setRegion(country).build().getDisplayCountry())
+      );
     }
+
+    // Add script variants manually
+    // Add script variants manually without using deprecated Locale constructor
+    langs.add(
+        new BaseIdentifiableObject(
+            "uz_UZ_Cyrl",
+            "uz_UZ_Cyrl",
+            new Locale.Builder()
+                .setLanguage("uz")
+                .setRegion("UZ")
+                .setScript("Cyrl")
+                .build()
+                .getDisplayLanguage(new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Cyrl").build()) + " (Cyrillic)"
+        )
+    );
+
+    langs.add(
+        new BaseIdentifiableObject(
+            "uz_UZ_Latn",
+            "uz_UZ_Latn",
+            new Locale.Builder()
+                .setLanguage("uz")
+                .setRegion("UZ")
+                .setScript("Latn")
+                .build()
+                .getDisplayLanguage(new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Latn").build()) + " (Latin)"
+        )
+    );
 
     Collections.sort(langs);
     Collections.sort(countrs);
