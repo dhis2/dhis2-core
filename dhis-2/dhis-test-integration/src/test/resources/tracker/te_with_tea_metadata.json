@@ -56,6 +56,7 @@
       "attributeValues": [],
       "legendSets": [],
       "minCharactersToSearch": 2,
+      "preferredSearchOperator": "LIKE",
       "allowedSearchOperators": ["LIKE", "EQ", "GT", "LT"],
       "sharing": {
         "public": "rw------",
@@ -91,6 +92,7 @@
       "translations": [],
       "attributeValues": [],
       "legendSets": [],
+      "preferredSearchOperator": "EQ",
       "allowedSearchOperators": ["ILIKE", "NILIKE", "IEQ", "NIEQ"],
       "sharing": {
         "public": "rw------",

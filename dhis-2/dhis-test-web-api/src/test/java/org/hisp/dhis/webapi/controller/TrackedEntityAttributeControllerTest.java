@@ -289,6 +289,18 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
   }
 
   @Test
+  void shouldContainPreferredSearchOperatorWhenSet() {
+    teaA.setPreferredSearchOperator(QueryOperator.LIKE);
+    manager.update(teaA);
+
+    JsonObject json =
+        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
+            .content(HttpStatus.OK);
+
+    assertAttributePreferredOperator(json, Set.of("LIKE"));
+  }
+
+  @Test
   void shouldContainAllowedSearchOperatorsWhenSet() {
     teaA.setAllowedSearchOperators(Set.of(QueryOperator.LIKE, QueryOperator.NNULL));
     manager.update(teaA);
@@ -308,6 +320,20 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
         actualJson
             .getArray("trackedEntityAttributes")
             .projectAsList(e -> e.asObject().getString("displayName"))
+            .stream()
+            .map(JsonString::string)
+            .collect(Collectors.toSet()));
+  }
+
+  private static void assertAttributePreferredOperator(
+      JsonObject actualJson, Set<String> expected) {
+    assertFalse(actualJson.isEmpty());
+    assertEquals(expected.size(), actualJson.getArray("trackedEntityAttributes").size());
+    assertEquals(
+        expected,
+        actualJson
+            .getArray("trackedEntityAttributes")
+            .projectAsList(e -> e.asObject().getString("preferredSearchOperator"))
             .stream()
             .map(JsonString::string)
             .collect(Collectors.toSet()));

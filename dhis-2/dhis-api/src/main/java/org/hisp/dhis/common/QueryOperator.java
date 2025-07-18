@@ -160,6 +160,10 @@ public enum QueryOperator {
     return UNARY_OPERATORS.contains(this);
   }
 
+  public static Set<QueryOperator> getTrackerOperators() {
+    return Collections.unmodifiableSet(TRACKER_OPERATORS);
+  }
+
   /**
    * Case‑insensitive operators are analytics specific and should not be used in tracker, because
    * the values there, are already converted to lowercase before comparison. For now, we are not
@@ -177,9 +181,5 @@ public enum QueryOperator {
       case NILIKE -> NLIKE;
       default -> this;
     };
-  }
-
-  public static Set<QueryOperator> getTrackerOperators() {
-    return Collections.unmodifiableSet(TRACKER_OPERATORS);
   }
 }

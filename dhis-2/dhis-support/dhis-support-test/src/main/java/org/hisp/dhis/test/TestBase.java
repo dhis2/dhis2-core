@@ -35,6 +35,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
+import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import com.google.common.base.Strings;
@@ -89,7 +90,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -2246,7 +2246,7 @@ public abstract class TestBase {
     attribute.setDescription("Attribute" + uniqueChar);
     attribute.setValueType(ValueType.TEXT);
     attribute.setAggregationType(AggregationType.NONE);
-    attribute.setAllowedSearchOperators(QueryOperator.getTrackerOperators());
+    attribute.setAllowedSearchOperators(getTrackerOperators());
 
     return attribute;
   }

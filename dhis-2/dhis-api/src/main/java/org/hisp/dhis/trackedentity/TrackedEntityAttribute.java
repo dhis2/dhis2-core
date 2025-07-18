@@ -103,6 +103,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private int minCharactersToSearch;
 
+  private QueryOperator preferredSearchOperator;
+
   private Set<QueryOperator> allowedSearchOperators;
 
   // -------------------------------------------------------------------------
@@ -383,6 +385,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setMinCharactersToSearch(int minCharactersToSearch) {
     this.minCharactersToSearch = minCharactersToSearch;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public QueryOperator getPreferredSearchOperator() {
+    return preferredSearchOperator;
+  }
+
+  public void setPreferredSearchOperator(QueryOperator preferredSearchOperator) {
+    this.preferredSearchOperator = preferredSearchOperator;
   }
 
   @JsonProperty
