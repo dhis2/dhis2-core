@@ -53,8 +53,6 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
 
   private Map<String, String> countries = new LinkedHashMap<>();
 
-  private Map<String, String> scripts = new LinkedHashMap<>();
-
   private final I18nLocaleStore localeStore;
 
   /** Load all ISO languages and countries into mappings. */
