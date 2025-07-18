@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface I18nLocaleService {
   /** Returns available languages in a mapping between code and name. */
@@ -43,6 +44,9 @@ public interface I18nLocaleService {
   Map<String, String> getAvailableCountries();
 
   I18nLocale addI18nLocale(String language, String country);
+
+  @Transactional
+  I18nLocale addI18nLocale(String language, String country, String script);
 
   void saveI18nLocale(I18nLocale locale);
 

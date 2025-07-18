@@ -61,22 +61,17 @@ public class LocaleUtils {
    * @param variant the variant, can be null.
    * @return a locale string.
    */
-  public static String getLocaleString(String language, String country, String variant) {
-    if (language == null) {
-      return null;
+  public static String getLocaleString(String language, String country, String script) {
+    Locale locale;
+
+    if (script != null && !script.isEmpty()) {
+      locale =
+          new Locale.Builder().setLanguage(language).setRegion(country).setScript(script).build();
+    } else {
+      locale = new Locale(language, country);
     }
 
-    String locale = language;
-
-    if (country != null) {
-      locale += SEP + country;
-    }
-
-    if (variant != null) {
-      locale += SEP + variant;
-    }
-
-    return locale;
+    return locale.toLanguageTag();
   }
 
   /**

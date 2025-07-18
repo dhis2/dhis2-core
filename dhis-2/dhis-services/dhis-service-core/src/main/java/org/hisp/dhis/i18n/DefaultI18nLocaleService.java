@@ -53,6 +53,8 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
 
   private Map<String, String> countries = new LinkedHashMap<>();
 
+  private Map<String, String> scripts = new LinkedHashMap<>();
+
   private final I18nLocaleStore localeStore;
 
   /** Load all ISO languages and countries into mappings. */
@@ -145,6 +147,12 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   @Override
   @Transactional
   public I18nLocale addI18nLocale(String language, String country) {
+    return addI18nLocale(language, country, null);
+  }
+
+  @Override
+  @Transactional
+  public I18nLocale addI18nLocale(String language, String country, String scriptCode) {
     String languageName = languages.get(language);
     String countryName = countries.get(country);
 
@@ -156,7 +164,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
       throw new IllegalArgumentException("Invalid country.");
     }
 
-    String localeStr = LocaleUtils.getLocaleString(language, country, null);
+    String localeStr = LocaleUtils.getLocaleString(language, country, scriptCode);
     Locale locale = LocaleUtils.getLocale(localeStr);
 
     I18nLocale i18nLocale = new I18nLocale(locale);
