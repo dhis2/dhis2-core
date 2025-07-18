@@ -231,6 +231,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
+    <jmh.version>1.37</jmh.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -1724,7 +1725,18 @@
         <artifactId>minio</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-core</artifactId>
+        <version>${jmh.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-generator-annprocess</artifactId>
+        <version>${jmh.version}</version>
+        <scope>test</scope>
+      </dependency>
       <!-- Monitoring -->
       <dependency>
         <groupId>io.prometheus</groupId>

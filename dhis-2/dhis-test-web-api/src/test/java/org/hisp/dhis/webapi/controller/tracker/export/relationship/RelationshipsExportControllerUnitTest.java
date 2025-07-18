@@ -51,8 +51,6 @@ class RelationshipsExportControllerUnitTest {
 
   @Mock private RelationshipService relationshipService;
 
-  @Mock private RelationshipRequestParamsMapper paramsMapper;
-
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
     // pretend the service does not support 2 of the orderable fields the web advocates
@@ -67,7 +65,7 @@ class RelationshipsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () -> new RelationshipsExportController(relationshipService, paramsMapper, null, null));
+            () -> new RelationshipsExportController(relationshipService));
 
     assertAll(
         () ->
