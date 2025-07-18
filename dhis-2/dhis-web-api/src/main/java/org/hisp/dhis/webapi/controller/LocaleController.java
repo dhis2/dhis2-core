@@ -136,19 +136,28 @@ public class LocaleController {
   public WebMessage addLocale(
       @RequestParam String country,
       @RequestParam String language,
-      @RequestParam(required = false) String script)
-      throws NotFoundException {
+      @RequestParam(required = false) String script) {
+
     if (StringUtils.isEmpty(country) || StringUtils.isEmpty(language)) {
       return conflict("Invalid country or language code.");
     }
 
-    Locale.Builder builder = new Locale.Builder().setLanguage(language).setRegion(country);
+    final Locale locale;
+    try {
+      Locale.Builder builder = new Locale.Builder().setLanguage(language).setRegion(country);
 
-    if (script != null && !script.isEmpty()) {
-      builder.setScript(script);
+      if (script != null && !script.trim().isEmpty()) {
+        builder.setScript(script);
+      }
+
+      locale = builder.build();
+    } catch (Exception e) {
+      StringBuilder sb = new StringBuilder(language).append("_").append(country);
+      if (!StringUtils.isEmpty(script)) {
+        sb.append("_").append(script);
+      }
+      return conflict("Invalid locale code: " + sb);
     }
-
-    Locale locale = builder.build();
 
     I18nLocale i18nLocale = localeService.getI18nLocale(locale);
 
@@ -156,7 +165,7 @@ public class LocaleController {
       return conflict("Locale code existed.");
     }
 
-    i18nLocale = localeService.addI18nLocale(language, country);
+    i18nLocale = localeService.addI18nLocale(language, country, script);
 
     return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
   }

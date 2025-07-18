@@ -46,8 +46,12 @@ public class LocaleUtils {
    * @return A locale object or null if not valid
    */
   public static Locale getLocale(String localeStr) {
-    if (localeStr == null || localeStr.isEmpty()) {
-      return null;
+    if (localeStr == null || localeStr.trim().isEmpty()) {
+      throw new IllegalArgumentException("localeStr cannot be null or blank");
+    }
+
+    if (localeStr.contains("-")) {
+      return Locale.forLanguageTag(localeStr);
     } else {
       return org.apache.commons.lang3.LocaleUtils.toLocale(localeStr);
     }
