@@ -124,20 +124,20 @@ class UserControllerTest {
     when(userService.getUser("def2")).thenReturn(user);
 
     if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
-      userController.updateUserGroups("def2", parsedUser, currentUser);
+      userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
     }
 
     verify(userGroupService)
         .updateUserGroups(
             same(user),
             (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
-            same(currentUser));
+            same(UserDetails.fromUser(currentUser)));
   }
 
   @Test
   void updateUserGroupsNotOk() {
     if (isInStatusUpdatedOK(createReportWith(Status.ERROR, report -> report.updatedInc(1)))) {
-      userController.updateUserGroups("def2", parsedUser, currentUser);
+      userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
     }
 
     verifyNoInteractions(userService);
@@ -147,7 +147,7 @@ class UserControllerTest {
   @Test
   void updateUserGroupsNotUpdated() {
     if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.createdInc(1)))) {
-      userController.updateUserGroups("def2", parsedUser, currentUser);
+      userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
     }
 
     verifyNoInteractions(userService);
@@ -167,10 +167,11 @@ class UserControllerTest {
     when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
     if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
-      userController.updateUserGroups("def2", parsedUser, currentUser);
+      userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
     }
 
-    verify(userGroupService).updateUserGroups(user, Set.of("abc1", "abc2"), currentUser2);
+    verify(userGroupService)
+        .updateUserGroups(user, Set.of("abc1", "abc2"), UserDetails.fromUser(currentUser2));
   }
 
   private ImportReport createReportWith(Status status, Consumer<TypeReport> operation) {

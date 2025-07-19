@@ -473,13 +473,13 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups) {
-    return canAddOrUpdateUser(userGroups, getUserByUsername(CurrentUserUtil.getCurrentUsername()));
+    return canAddOrUpdateUser(userGroups, CurrentUserUtil.getCurrentUserDetails());
   }
 
   // TODO: MAS refactor to use user details instead of user
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
+  public boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser) {
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -909,6 +909,17 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsSafe(@Nonnull String userUid) {
+    User user = userStore.getByUid(userUid);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public UserDetails createUserDetails(User user) {
     if (user == null) {
       return null;
@@ -960,7 +971,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canCurrentUserCanModify(
-      User currentUser, User userToModify, Consumer<ErrorReport> errors) {
+      UserDetails currentUser, User userToModify, Consumer<ErrorReport> errors) {
     if (!aclService.canUpdate(currentUser, userToModify)) {
       errors.accept(
           new ErrorReport(
