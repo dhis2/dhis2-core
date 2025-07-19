@@ -50,10 +50,16 @@ public class LocaleUtils {
       throw new IllegalArgumentException("localeStr cannot be null or blank");
     }
 
-    if (localeStr.contains(SEP)) {
-      return Locale.forLanguageTag(localeStr);
-    } else {
-      return org.apache.commons.lang3.LocaleUtils.toLocale(localeStr);
+    try {
+      if (localeStr.contains("-")) {
+        // BCP 47 style: en-US, uz-Cyrl-UZ, zh-Hant-TW
+        return Locale.forLanguageTag(localeStr);
+      } else {
+        // Legacy Java style: en_US, uz_UZ_Cyrl
+        return org.apache.commons.lang3.LocaleUtils.toLocale(localeStr);
+      }
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Failed to parse locale: " + localeStr, e);
     }
   }
 
