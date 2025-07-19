@@ -44,7 +44,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.User;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -59,10 +59,11 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
   @Override
   public void preCreate(IdentifiableObject identifiableObject, ObjectBundle bundle) {
-
     identifiableObject.setAutoFields();
-    identifiableObject.setLastUpdatedBy(bundle.getUser());
-    identifiableObject.setCreatedBy(bundle.getUser());
+    identifiableObject.setLastUpdatedBy(
+        getSession().getReference(User.class, bundle.getUserDetails().getId()));
+    identifiableObject.setCreatedBy(
+        getSession().getReference(User.class, bundle.getUserDetails().getId()));
 
     if (identifiableObject.getSharing().getOwner() == null) {
       identifiableObject.getSharing().setOwner(identifiableObject.getCreatedBy());
@@ -131,7 +132,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   public void preUpdate(
       IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
     object.setAutoFields();
-    object.setLastUpdatedBy(bundle.getUser());
+    object.setLastUpdatedBy(getSession().getReference(User.class, bundle.getUserDetails().getId()));
 
     handleCreatedByProperty(object, persistedObject, bundle);
 
@@ -157,7 +158,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   private void handleCreatedByProperty(
       IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
     if (persistedObject.getCreatedBy() == null) {
-      object.setCreatedBy(object.getCreatedBy() != null ? object.getCreatedBy() : bundle.getUser());
+      object.setCreatedBy(
+          object.getCreatedBy() != null
+              ? object.getCreatedBy()
+              : getSession().getReference(User.class, bundle.getUserDetails().getId()));
     } else if (!IdentifiableObjectUtils.equalsByUid(
         object.getCreatedBy(), persistedObject.getCreatedBy())) {
       object.setCreatedBy(persistedObject.getCreatedBy());
@@ -168,7 +172,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   private void handleSkipSharing(IdentifiableObject identifiableObject, ObjectBundle bundle) {
     if (!bundle.isSkipSharing()) return;
 
-    aclService.clearSharing(identifiableObject, UserDetails.fromUser(bundle.getUser()));
+    aclService.clearSharing(identifiableObject, bundle.getUserDetails());
   }
 
   private void handleSkipTranslation(IdentifiableObject identifiableObject, ObjectBundle bundle) {

@@ -266,10 +266,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
       user.setCreatedBy((User) userReferenceMap.get(BaseIdentifiableObject_.CREATED_BY));
 
       if (user.getCreatedBy() == null) {
-        user.setCreatedBy(bundle.getUser());
+        user.setCreatedBy(getSession().getReference(User.class, bundle.getUserDetails().getId()));
       }
 
-      user.setLastUpdatedBy(bundle.getUser());
+      user.setLastUpdatedBy(getSession().getReference(User.class, bundle.getUserDetails().getId()));
 
       preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
@@ -301,7 +301,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
                   persistedRole = manager.getNoAcl(UserRole.class, role.getUid());
                 }
 
-                if (!aclService.canRead(bundle.getUser(), persistedRole)) {
+                if (!aclService.canRead(bundle.getUserDetails(), persistedRole)) {
                   roles.add(persistedRole);
                 }
               });

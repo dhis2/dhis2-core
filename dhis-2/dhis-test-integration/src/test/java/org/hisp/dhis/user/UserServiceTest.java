@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.auth.oauth2.UserCredentials;
 import com.google.common.collect.Sets;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -238,7 +237,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     addUser("B", unitB);
     User userC = addUser("C", unitC);
     addUser("D", unitD);
-    UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA).setUserDetails(UserDetails.fromUser(userA));
+    UserQueryParams params =
+        getDefaultParams().addOrganisationUnit(unitA).setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA), userService.getUsers(params));
     params =
         getDefaultParams()
@@ -263,7 +263,9 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userD.getDataViewOrganisationUnits().add(unitD);
     userService.updateUser(userD);
     UserQueryParams params =
-        getDefaultParams().addDataViewOrganisationUnit(unitA).setUserDetails(UserDetails.fromUser(userA));
+        getDefaultParams()
+            .addDataViewOrganisationUnit(unitA)
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userB), userService.getUsers(params));
     params =
         getDefaultParams()
@@ -288,7 +290,9 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userD.getTeiSearchOrganisationUnits().add(unitD);
     userService.updateUser(userD);
     UserQueryParams params =
-        getDefaultParams().addTeiSearchOrganisationUnit(unitA).setUserDetails(UserDetails.fromUser(userA));
+        getDefaultParams()
+            .addTeiSearchOrganisationUnit(unitA)
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userB), userService.getUsers(params));
     params =
         getDefaultParams()
@@ -329,7 +333,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     User userC = addUser("C", unitC);
     User userD = addUser("D", unitD);
     addUser("E", unitE);
-    UserQueryParams params = getDefaultParams().setUserDetails(UserDetails.fromUser(currentUser)).setUserOrgUnits(true);
+    UserQueryParams params =
+        getDefaultParams().setUserDetails(UserDetails.fromUser(currentUser)).setUserOrgUnits(true);
     assertContainsOnly(List.of(currentUser, userA, userB), userService.getUsers(params));
     params =
         getDefaultParams()
@@ -487,7 +492,10 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userGroupService.addUserGroup(userGroup1);
     userGroupService.addUserGroup(userGroup2);
     UserQueryParams params =
-        new UserQueryParams().setCanManage(true).setAuthSubset(true).setUserDetails(UserDetails.fromUser(userA));
+        new UserQueryParams()
+            .setCanManage(true)
+            .setAuthSubset(true)
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(
         List.of(userD.getUsername(), userF.getUsername()),
         userService.getUsers(params).stream().map(User::getUsername).toList());

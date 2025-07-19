@@ -79,7 +79,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
@@ -120,16 +119,15 @@ public class DefaultPreheatService implements PreheatService {
     Timer timer = new SystemTimer().start();
 
     Preheat preheat = new Preheat();
-    preheat.setUser(params.getUser());
+    preheat.setUserDetails(params.getUserDetails());
     preheat.setDefaults(manager.getDefaults());
 
-    if (preheat.getUser() == null) {
-      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-      preheat.setUser(currentUser);
+    if (preheat.getUserDetails() == null) {
+      preheat.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
-
-    preheat.put(PreheatIdentifier.UID, preheat.getUser());
-    preheat.put(PreheatIdentifier.CODE, preheat.getUser());
+    User user = userService.getUser(preheat.getUserDetails().getUid());
+    preheat.put(PreheatIdentifier.UID, user);
+    preheat.put(PreheatIdentifier.CODE, user);
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap =
         new HashMap<>();
@@ -153,7 +151,7 @@ public class DefaultPreheatService implements PreheatService {
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
             Query<?> query = Query.of(klass);
-            query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
+            query.setCurrentUserDetails(preheat.getUserDetails());
             query.setSkipSharing(true);
             query.add(Filters.in("id", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
@@ -171,7 +169,7 @@ public class DefaultPreheatService implements PreheatService {
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
             Query<?> query = Query.of(klass);
-            query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
+            query.setCurrentUserDetails(preheat.getUserDetails());
             query.add(Filters.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.CODE, objects);
@@ -185,7 +183,7 @@ public class DefaultPreheatService implements PreheatService {
 
         for (List<String> ids : identifiers) {
           Query<User> query = Query.of(User.class);
-          query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
+          query.setCurrentUserDetails(preheat.getUserDetails());
           query.add(Filters.in("id", ids));
           List<User> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
@@ -198,7 +196,7 @@ public class DefaultPreheatService implements PreheatService {
 
         for (List<String> ids : identifiers) {
           Query<UserRole> query = Query.of(UserRole.class);
-          query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
+          query.setCurrentUserDetails(preheat.getUserDetails());
           query.add(Filters.in("id", ids));
           List<UserRole> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
@@ -873,8 +871,7 @@ public class DefaultPreheatService implements PreheatService {
   @Transactional(readOnly = true)
   public void refresh(IdentifiableObject object) {
     PreheatParams preheatParams = new PreheatParams();
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    preheatParams.setUser(currentUser);
+    preheatParams.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     preheatParams.addObject(object);
 
     Preheat preheat = preheat(preheatParams);

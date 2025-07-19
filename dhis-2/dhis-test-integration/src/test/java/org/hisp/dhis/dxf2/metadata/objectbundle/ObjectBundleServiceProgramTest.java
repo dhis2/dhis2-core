@@ -55,6 +55,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.validation.ValidationRule;
@@ -325,7 +326,7 @@ class ObjectBundleServiceProgramTest extends PostgresIntegrationTestBase {
     params = new ObjectBundleParams();
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
-    params.setUser(testUser);
+    params.setUserDetails(UserDetails.fromUser(testUser));
     params.setObjects(metadata);
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
@@ -376,7 +377,7 @@ class ObjectBundleServiceProgramTest extends PostgresIntegrationTestBase {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
     params.setObjects(metadata);
-    params.setUser(testUser);
+    params.setUserDetails(UserDetails.fromUser(testUser));
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
     assertFalse(validate.hasErrorReports());

@@ -42,7 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -123,7 +123,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
 
   private void validatePotentialMove(
       OrganisationUnit unit, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    User user = bundle.getUser();
+    UserDetails user = bundle.getUserDetails();
     if (user == null || user.isSuper() || !bundle.isPersisted(unit)) {
       return; // not an update or always permitted for superuser
     }
@@ -152,7 +152,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     }
     if (oldParent != null
         && (!aclService.canWrite(user, oldParent)
-            || !organisationUnitService.isInUserHierarchy(user, oldParent))) {
+            || !user.isInUserHierarchy(oldParent.getPath()))) {
       addReports.accept(
           new ErrorReport(
               OrganisationUnit.class,
@@ -163,7 +163,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     }
     if (newParent != null
         && (!aclService.canWrite(user, newParent)
-            || !organisationUnitService.isInUserHierarchy(user, newParent))) {
+            || !user.isInUserHierarchy(newParent.getPath()))) {
       addReports.accept(
           new ErrorReport(
               OrganisationUnit.class,
