@@ -30,13 +30,18 @@
 package org.hisp.dhis.system.util;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * @author Oyvind Brucker
  */
 public class LocaleUtils {
+
+  private LocaleUtils() {}
+
   private static final String SEP = "_";
 
   /**
@@ -46,59 +51,86 @@ public class LocaleUtils {
    * @return A locale object or null if not valid
    */
   public static Locale getLocale(String localeStr) {
-    if (localeStr == null || localeStr.isEmpty()) {
+    if (localeStr == null || localeStr.trim().isEmpty()) {
       return null;
-    } else {
-      return org.apache.commons.lang3.LocaleUtils.toLocale(localeStr);
+    }
+
+    try {
+      if (localeStr.contains(SEP)) {
+        // BCP 47: en-US, uz-Cyrl-UZ
+        return Locale.forLanguageTag(localeStr);
+      }
+
+      // Legacy format: en_US, uz_UZ_Cyrl
+      String[] parts = localeStr.split(SEP);
+      Locale.Builder builder = new Locale.Builder();
+
+      if (parts.length > 0) builder.setLanguage(parts[0]);
+      if (parts.length > 1) builder.setRegion(parts[1]);
+      if (parts.length > 2) builder.setScript(parts[2]);
+
+      return builder.build();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid locale string: " + localeStr, e);
     }
   }
 
   /**
-   * Createa a locale string based on the given language, country and variant.
+   * Createa a locale string based on the given language, country and script.
    *
    * @param language the language, cannot be null.
    * @param country the country, can be null.
-   * @param variant the variant, can be null.
+   * @param script the script of the language, can be null.
    * @return a locale string.
    */
-  public static String getLocaleString(String language, String country, String variant) {
-    if (language == null) {
-      return null;
+  public static String getLocaleString(String language, String country, String script) {
+    Locale locale;
+
+    if (script != null && !script.isEmpty()) {
+      locale =
+          new Locale.Builder().setLanguage(language).setRegion(country).setScript(script).build();
+    } else {
+      locale = new Locale.Builder().setLanguage(language).setRegion(country).build();
     }
 
-    String locale = language;
-
-    if (country != null) {
-      locale += SEP + country;
-    }
-
-    if (variant != null) {
-      locale += SEP + variant;
-    }
-
-    return locale;
+    return locale.toLanguageTag();
   }
 
   /**
    * Creates a list of locales of all possible specifities based on the given Locale. As an example,
-   * for the given locale "en_UK", the locales "en" and "en_UK" are returned.
+   * for the given locale "en_UK", the locales "en" and "en_UK" are returned. Additionally, if the
+   * locale has a script, it will also return "en_Cyrl" if the script is "Cyrl". The order of the
+   * list is from most specific to least specific.
    *
    * @param locale the Locale.
    * @return a list of locale strings.
    */
   public static List<String> getLocaleFallbacks(Locale locale) {
-    List<String> locales = new ArrayList<>();
+    Set<String> fallbacks = new LinkedHashSet<>();
+    String lang = locale.getLanguage();
+    String region = locale.getCountry();
+    String script = locale.getScript();
+    String variant = locale.getVariant();
 
-    locales.add(locale.getLanguage());
-
-    if (!locale.getCountry().isEmpty()) {
-      locales.add(locale.getLanguage() + SEP + locale.getCountry());
+    if (!script.isEmpty() && !region.isEmpty()) {
+      fallbacks.add(lang + SEP + region + SEP + script);
+      fallbacks.add(lang + SEP + script + SEP + region);
     }
 
-    if (!locale.getVariant().isEmpty()) {
-      locales.add(locale.toString());
+    if (!region.isEmpty()) {
+      fallbacks.add(lang + "_" + region);
     }
 
-    return locales;
+    if (!script.isEmpty()) {
+      fallbacks.add(lang + "_" + script);
+    }
+
+    fallbacks.add(lang);
+
+    if (!variant.isEmpty()) {
+      fallbacks.add(locale.toString());
+    }
+
+    return new ArrayList<>(fallbacks);
   }
 }

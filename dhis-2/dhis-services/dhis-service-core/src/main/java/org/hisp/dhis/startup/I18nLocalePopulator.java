@@ -68,7 +68,8 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
     }
 
     for (String locale : DEFAULT_LOCALES) {
-      localeService.saveI18nLocale(new I18nLocale(new Locale(locale)), new SystemUser());
+      Locale javaLocale = Locale.forLanguageTag(locale);
+      localeService.saveI18nLocale(new I18nLocale(javaLocale), new SystemUser());
     }
 
     log.info("Populated default locales");

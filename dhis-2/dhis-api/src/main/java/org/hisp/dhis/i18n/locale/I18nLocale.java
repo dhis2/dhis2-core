@@ -52,7 +52,7 @@ public class I18nLocale extends BaseIdentifiableObject {
 
   public I18nLocale(Locale locale) {
     this.name = locale.getDisplayName();
-    this.locale = locale.toString();
+    this.locale = toUnderscoreFormat(locale);
   }
 
   // -------------------------------------------------------------------------
@@ -66,5 +66,17 @@ public class I18nLocale extends BaseIdentifiableObject {
 
   public void setLocale(String locale) {
     this.locale = locale;
+  }
+
+  private static String toUnderscoreFormat(Locale locale) {
+    StringBuilder sb = new StringBuilder(locale.getLanguage());
+
+    if (!locale.getScript().isEmpty()) {
+      sb.append("_").append(locale.getCountry()).append("_").append(locale.getScript());
+    } else if (!locale.getCountry().isEmpty()) {
+      sb.append("_").append(locale.getCountry());
+    }
+
+    return sb.toString();
   }
 }
