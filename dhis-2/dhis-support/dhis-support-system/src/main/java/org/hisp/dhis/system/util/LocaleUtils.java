@@ -56,13 +56,13 @@ public class LocaleUtils {
     }
 
     try {
-      if (localeStr.contains("-")) {
+      if (localeStr.contains(SEP)) {
         // BCP 47: en-US, uz-Cyrl-UZ
         return Locale.forLanguageTag(localeStr);
       }
 
       // Legacy format: en_US, uz_UZ_Cyrl
-      String[] parts = localeStr.split("_");
+      String[] parts = localeStr.split(SEP);
       Locale.Builder builder = new Locale.Builder();
 
       if (parts.length > 0) builder.setLanguage(parts[0]);
@@ -113,8 +113,8 @@ public class LocaleUtils {
     String variant = locale.getVariant();
 
     if (!script.isEmpty() && !region.isEmpty()) {
-      fallbacks.add(lang + "_" + region + "_" + script);
-      fallbacks.add(lang + "_" + script + "_" + region);
+      fallbacks.add(lang + SEP + region + SEP + script);
+      fallbacks.add(lang + SEP + script + SEP + region);
     }
 
     if (!region.isEmpty()) {
