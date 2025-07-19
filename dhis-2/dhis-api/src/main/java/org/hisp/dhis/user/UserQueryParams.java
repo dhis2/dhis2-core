@@ -55,7 +55,7 @@ public class UserQueryParams {
   @ToString.Include private String phoneNumber;
 
   /** The current user in the context of the user query. */
-  private User user;
+  private UserDetails userDetails;
 
   @ToString.Include private boolean canManage;
 
@@ -105,14 +105,6 @@ public class UserQueryParams {
   @ToString.Include private boolean canSeeOwnRoles = false;
 
   // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public UserQueryParams(User user) {
-    this.user = user;
-  }
-
-  // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
@@ -160,6 +152,6 @@ public class UserQueryParams {
   }
 
   public boolean hasUser() {
-    return user != null;
+    return userDetails != null;
   }
 }
