@@ -42,9 +42,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.user.DefaultUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,7 +56,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
 
   private final OrganisationUnitService organisationUnitService;
   private final AclService aclService;
-  private final DefaultUserService userService;
+  private final UserService userService;
 
   @Override
   public void preCommit(ObjectBundle bundle) {
