@@ -39,33 +39,6 @@ import java.util.Locale;
 public class LocaleUtils {
   private static final String SEP = "_";
 
-  /**
-   * Creates a Locale object based on the input string.
-   *
-   * @param localeStr String to parse
-   * @return A locale object or null if not valid
-   */
-  public static Locale getLocale(String localeStr) {
-    if (localeStr == null || localeStr.trim().isEmpty()) {
-      throw new IllegalArgumentException("localeStr cannot be null or blank");
-    }
-
-    // Try and normalize the input string, which may be in BCP 47 or legacy Java format.
-
-    localeStr = localeStr.trim().replaceAll("\\s+", " ").replace("_", SEP);
-
-    try {
-      if (localeStr.contains("-")) {
-        // BCP 47 style: en-US, uz-Cyrl-UZ, zh-Hant-TW
-        return Locale.forLanguageTag(localeStr);
-      } else {
-        // Legacy Java style: en_US, uz_UZ_Cyrl
-        return org.apache.commons.lang3.LocaleUtils.toLocale(localeStr);
-      }
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Failed to parse locale: " + localeStr, e);
-    }
-  }
 
   /**
    * Createa a locale string based on the given language, country and script.

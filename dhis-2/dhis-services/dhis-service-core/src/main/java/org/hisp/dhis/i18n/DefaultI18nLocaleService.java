@@ -41,6 +41,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.I18nLocale;
+import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -163,7 +164,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     }
 
     String localeStr = LocaleUtils.getLocaleString(language, country, scriptCode);
-    Locale locale = LocaleUtils.getLocale(localeStr);
+    Locale locale = LocaleParsingUtils.parse(localeStr);
 
     I18nLocale i18nLocale = new I18nLocale(locale);
 
@@ -220,7 +221,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     List<Locale> locales = new ArrayList<>();
 
     for (I18nLocale locale : localeStore.getAll()) {
-      locales.add(LocaleUtils.getLocale(locale.getLocale()));
+      locales.add(LocaleParsingUtils.parse(locale.getLocale()));
     }
 
     locales.sort(LocaleNameComparator.INSTANCE);
