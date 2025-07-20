@@ -33,17 +33,18 @@ import java.util.Locale;
 
 public class LocaleParsingUtils {
 
-  private LocaleParsingUtils () {
+  private LocaleParsingUtils() {
     // Utility class, no instantiation
   }
-    /**
-     * Parses a locale string in either legacy underscore format (e.g., "en_US") or BCP 47 format
-     * (e.g., "en-US") and returns a Locale object. If the legacy format is used, it can also
-     * include a script (e.g., "en_US_Latn").
-     *
-     * @param localeStr the locale string to parse
-     * @return a Locale object representing the parsed locale
-     */
+
+  /**
+   * Parses a locale string in either legacy underscore format (e.g., "en_US") or BCP 47 format
+   * (e.g., "en-US") and returns a Locale object. If the legacy format is used, it can also include
+   * a script (e.g., "en_US_Latn").
+   *
+   * @param localeStr the locale string to parse
+   * @return a Locale object representing the parsed locale
+   */
   public static Locale parse(String localeStr) {
     if (localeStr == null || localeStr.isBlank()) {
       return Locale.getDefault();
