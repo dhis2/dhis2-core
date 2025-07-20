@@ -55,7 +55,6 @@ import org.springframework.stereotype.Component;
 public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<OrganisationUnit> {
 
   private final OrganisationUnitService organisationUnitService;
-
   private final AclService aclService;
   private final DefaultUserService userService;
 
