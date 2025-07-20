@@ -34,6 +34,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -193,7 +194,12 @@ class FieldFilterParserTest {
     //      assertTrue(code.isExclude());
     //      assertFalse(code.isPreset());
     //    }
+  }
 
+  // TODO(ivo) this is a bug IMHO as it leads to an HTTP 500 instead of 400
+  @Test
+  void failsOnClosingMoreBrackets() {
+    assertThrows(java.util.EmptyStackException.class, ()->FieldFilterParser.parse("group[name]]"));
   }
 
   // TODO(ivo) parseWithPrefix is only used in tests, remove it when I open up a PR
