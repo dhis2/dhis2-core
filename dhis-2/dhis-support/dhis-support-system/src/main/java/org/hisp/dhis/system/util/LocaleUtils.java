@@ -50,6 +50,10 @@ public class LocaleUtils {
       throw new IllegalArgumentException("localeStr cannot be null or blank");
     }
 
+    // Try and normalize the input string, which may be in BCP 47 or legacy Java format.
+
+    localeStr = localeStr.trim().replaceAll("\\s+", " ").replace("_", SEP);
+
     try {
       if (localeStr.contains("-")) {
         // BCP 47 style: en-US, uz-Cyrl-UZ, zh-Hant-TW
