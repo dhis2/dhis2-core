@@ -73,4 +73,16 @@ public class LocaleParsingUtils {
       throw new IllegalArgumentException("Failed to parse locale: " + localeStr, e);
     }
   }
+
+  public static String toUnderscoreFormat(Locale locale) {
+    StringBuilder sb = new StringBuilder(locale.getLanguage());
+
+    if (!locale.getScript().isEmpty()) {
+      sb.append("_").append(locale.getCountry()).append("_").append(locale.getScript());
+    } else if (!locale.getCountry().isEmpty()) {
+      sb.append("_").append(locale.getCountry());
+    }
+
+    return sb.toString();
+  }
 }

@@ -220,8 +220,42 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Nonnull
   @Override
   public Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue) {
-    if (orDefault(key, defaultValue) instanceof Locale value) return value;
-    return asParseValue(key, defaultValue, LocaleParsingUtils::parse);
+    if (orDefault(key, defaultValue) instanceof Locale value) {
+      return value;
+    }
+
+    return asParseValue(
+        key,
+        defaultValue,
+        raw -> {
+          try {
+            // Use locale builder to parse locale from string
+            // We might have locale in the format "en_US" or "en-US" or "en_US_POSIX"
+            Locale.Builder builder = new Locale.Builder();
+            String[] parts = raw.split("[_-]");
+            if (parts.length >= 1) {
+              builder.setLanguage(parts[0]);
+            }
+            if (parts.length >= 2) {
+              builder.setRegion(parts[1]);
+            }
+            if (parts.length >= 3) {
+              builder.setScript(parts[2]);
+            }
+            return builder.build();
+          } catch (Exception ex) {
+            log.debug("Failed to parse locale with Locale.Builder: {}", raw, ex);
+          }
+
+          try {
+            // Fallback to Apache legacy format (en_US, uz_UZ)
+            return org.apache.commons.lang3.LocaleUtils.toLocale(raw);
+          } catch (Exception ex) {
+            log.debug("Failed to parse locale with Apache LocaleUtils: {}", raw, ex);
+          }
+
+          return defaultValue;
+        });
   }
 
   @Override
@@ -280,7 +314,8 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
-    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
+    if (defaultValue instanceof Locale l)
+      return Json.of(LocaleParsingUtils.toUnderscoreFormat(asLocale(key, l)));
     if (defaultValue instanceof Enum<?> e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type

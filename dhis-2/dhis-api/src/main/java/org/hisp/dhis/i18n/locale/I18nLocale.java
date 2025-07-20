@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.i18n.locale;
 
+import static org.hisp.dhis.i18n.locale.LocaleParsingUtils.toUnderscoreFormat;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Locale;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -66,17 +68,5 @@ public class I18nLocale extends BaseIdentifiableObject {
 
   public void setLocale(String locale) {
     this.locale = locale;
-  }
-
-  private static String toUnderscoreFormat(Locale locale) {
-    StringBuilder sb = new StringBuilder(locale.getLanguage());
-
-    if (!locale.getScript().isEmpty()) {
-      sb.append("_").append(locale.getCountry()).append("_").append(locale.getScript());
-    } else if (!locale.getCountry().isEmpty()) {
-      sb.append("_").append(locale.getCountry());
-    }
-
-    return sb.toString();
   }
 }
