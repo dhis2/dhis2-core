@@ -30,6 +30,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,7 +49,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Morten Olav Hansen
  */
 class FieldFilterParserTest {
-  record ExpectField(boolean expected, String dotPath) {}
+  record ExpectField(boolean included, String dotPath) {}
 
   @ParameterizedTest
   @MethodSource("testParserProvider")
@@ -117,7 +119,19 @@ class FieldFilterParserTest {
                 new ExpectField(true, "group.name"),
                 new ExpectField(true, "code"))),
 
-        // TODO(ivo) bug or wanted?
+        // testBlockSpreadOut
+        Arguments.of(
+            "id,group[id],name,group[name],code",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"),
+                new ExpectField(true, "code"))),
+
+        // TODO(ivo) bug or wanted? this is the behavior of the current FieldFilterParser not sure
+        // if we want to replicate this?
         Arguments.of(
             " id,name  group ",
             List.of(new ExpectField(true, "id"), new ExpectField(true, "namegroup"))),
@@ -149,60 +163,27 @@ class FieldFilterParserTest {
                 new ExpectField(true, "id"),
                 new ExpectField(true, "name"),
                 new ExpectField(false, "code"))));
+
+    // TODO(ivo) not yet sure how to test preset related fixtures as the old parser includes the
+    // presets as fields while the new one does not
+    // I might have to separate the two or create a separate preset test with different assertions
+    //    @Test
+    //    void testParseWithAsterisk1() {
+    //      List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code");
+    //
+    //      FieldPath asterisk = getFieldPath(fieldPaths, "all");
+    //      assertNotNull(asterisk);
+    //      assertFalse(asterisk.isExclude());
+    //      assertTrue(asterisk.isPreset());
+    //      FieldPath code = getFieldPath(fieldPaths, "code");
+    //      assertNotNull(code);
+    //      assertTrue(code.isExclude());
+    //      assertFalse(code.isPreset());
+    //    }
+
   }
 
-  // TODO(ivo) double-check my ported tests are equivalent, make them fail, look at assertion errors
-  @Test
-  void testDepth0Filters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id, name,    abc");
-
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "abc");
-  }
-
-  @Test
-  void testDepth1Filters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,group[id,name]");
-
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-  }
-
-  @Test
-  void testDepthXFilters() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse(
-            "id,name,group[id,name],group[id,name,group[id,name,group[id,name]]]");
-
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-    assertFieldPathContains(fieldPaths, "group.group.id");
-    assertFieldPathContains(fieldPaths, "group.group.name");
-    assertFieldPathContains(fieldPaths, "group.group.group.id");
-    assertFieldPathContains(fieldPaths, "group.group.group.name");
-  }
-
-  @Test
-  void testOnlyBlockFilters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("group[id,name]");
-
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-  }
-
-  @Test
-  void testOnlySpringBlockFilters() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("group[id,name]");
-
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-  }
-
+  // TODO(ivo) parseWithPrefix is only used in tests, remove it when I open up a PR
   @Test
   void testParseWithPrefix1() {
     List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix("a,b", "prefix");
@@ -219,88 +200,7 @@ class FieldFilterParserTest {
     assertFieldPathContains(fieldPaths, "prefix.bbb.b");
   }
 
-  @Test
-  void testParseWithTransformer1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::x(a;b),id~y(a;b;c),code|z(t)");
-
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "code");
-  }
-
-  @Test
-  void testParseWithTransformer2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b)]");
-
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name");
-  }
-
-  @Test
-  void testParseWithTransformer3() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b), code~y(a)]");
-
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name");
-    assertFieldPathContains(fieldPaths, "groups.code");
-  }
-
-  @Test
-  void testParseWithTransformer4() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups[name]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name", false);
-  }
-
-  @Test
-  void testParseWithTransformer5() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("name::rename(n),groups::rename(g)[name::rename(n)]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups", true);
-    assertFieldPathContains(fieldPaths, "groups.name", true);
-  }
-
-  @Test
-  void testParseWithTransformer6() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups::rename(g)[name]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups", true);
-    assertFieldPathContains(fieldPaths, "groups.name", false);
-  }
-
-  @Test
-  void testParseWithTransformer7() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size,group::isEmpty");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "group", true);
-  }
-
-  @Test
-  void testParseWithTransformer8() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n)");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
-    assertEquals("rename", fieldPathTransformer.getName());
-  }
-
-  @Test
-  void testParseWithMultipleTransformers() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size::rename(n)");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
-    assertEquals("size", fieldPathTransformer.getName());
-    fieldPathTransformer = fieldPaths.get(0).getTransformers().get(1);
-    assertEquals("rename", fieldPathTransformer.getName());
-  }
-
+  // TODO(ivo) double-check my ported tests are equivalent, make them fail, look at assertion errors
   @Test
   void testParseWithPresetAndExclude1() {
     List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,!code,:owner");
@@ -407,6 +307,89 @@ class FieldFilterParserTest {
     assertFieldPathContains(fieldPaths, "code");
   }
 
+  // TODO(ivo) need to implement transformers
+  @Test
+  void testParseWithTransformer1() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::x(a;b),id~y(a;b;c),code|z(t)");
+
+    assertFieldPathContains(fieldPaths, "name");
+    assertFieldPathContains(fieldPaths, "id");
+    assertFieldPathContains(fieldPaths, "code");
+  }
+
+  @Test
+  void testParseWithTransformer2() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b)]");
+
+    assertFieldPathContains(fieldPaths, "groups");
+    assertFieldPathContains(fieldPaths, "groups.name");
+  }
+
+  @Test
+  void testParseWithTransformer3() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b), code~y(a)]");
+
+    assertFieldPathContains(fieldPaths, "groups");
+    assertFieldPathContains(fieldPaths, "groups.name");
+    assertFieldPathContains(fieldPaths, "groups.code");
+  }
+
+  @Test
+  void testParseWithTransformer4() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups[name]");
+
+    assertFieldPathContains(fieldPaths, "name", true);
+    assertFieldPathContains(fieldPaths, "groups");
+    assertFieldPathContains(fieldPaths, "groups.name", false);
+  }
+
+  @Test
+  void testParseWithTransformer5() {
+    List<FieldPath> fieldPaths =
+        FieldFilterParser.parse("name::rename(n),groups::rename(g)[name::rename(n)]");
+
+    assertFieldPathContains(fieldPaths, "name", true);
+    assertFieldPathContains(fieldPaths, "groups", true);
+    assertFieldPathContains(fieldPaths, "groups.name", true);
+  }
+
+  @Test
+  void testParseWithTransformer6() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups::rename(g)[name]");
+
+    assertFieldPathContains(fieldPaths, "name", true);
+    assertFieldPathContains(fieldPaths, "groups", true);
+    assertFieldPathContains(fieldPaths, "groups.name", false);
+  }
+
+  @Test
+  void testParseWithTransformer7() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size,group::isEmpty");
+
+    assertFieldPathContains(fieldPaths, "name", true);
+    assertFieldPathContains(fieldPaths, "group", true);
+  }
+
+  @Test
+  void testParseWithTransformer8() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n)");
+
+    assertFieldPathContains(fieldPaths, "name", true);
+    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
+    assertEquals("rename", fieldPathTransformer.getName());
+  }
+
+  @Test
+  void testParseWithMultipleTransformers() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size::rename(n)");
+
+    assertFieldPathContains(fieldPaths, "name", true);
+    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
+    assertEquals("size", fieldPathTransformer.getName());
+    fieldPathTransformer = fieldPaths.get(0).getTransformers().get(1);
+    assertEquals("rename", fieldPathTransformer.getName());
+  }
+
   @Test
   void testMixedBlockWithTransformation() {
     List<FieldPath> fieldPaths =
@@ -421,7 +404,7 @@ class FieldFilterParserTest {
 
   private static void assertFields(List<ExpectField> expectFields, List<FieldPath> fieldPaths) {
     for (ExpectField expectField : expectFields) {
-      assertField(expectField.expected, expectField.dotPath, fieldPaths);
+      assertField(expectField.included, expectField.dotPath, fieldPaths);
     }
   }
 
@@ -430,8 +413,46 @@ class FieldFilterParserTest {
    * included in the parsed fields predicate.
    */
   private static void assertField(
-      boolean expected, String expectedDotPath, List<FieldPath> fieldPaths) {
-    assertFieldPathContains(expected, expectedDotPath, fieldPaths);
+      boolean expectInclusion, String expectedDotPath, List<FieldPath> fieldPaths) {
+    String what = expectInclusion ? "include" : "exclude";
+    List<FieldPath> actual =
+        fieldPaths.stream().filter(fp -> expectedDotPath.equals(fp.toFullPath())).toList();
+    assertNotEmpty(
+        actual,
+        () ->
+            fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+                + " should contain "
+                + expectedDotPath
+                + " and "
+                + what
+                + " it");
+
+    if (expectInclusion) {
+      // exclusion has higher precedence over inclusion, a field can thus only be considered
+      // included if there is not also an exclusion
+      assertFalse(
+          actual.stream().anyMatch(FieldPath::isExclude),
+          () ->
+              fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+                  + " should include "
+                  + expectedDotPath
+                  + " but it contains the path with an exclusion");
+      assertTrue(
+          actual.stream().anyMatch(fp -> !fp.isExclude()),
+          () ->
+              fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+                  + " should include "
+                  + expectedDotPath
+                  + " but it does not contain the path with an inclusion");
+    } else {
+      assertTrue(
+          actual.stream().anyMatch(FieldPath::isExclude),
+          () ->
+              fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+                  + " should exclude "
+                  + expectedDotPath
+                  + " but it does not contain the path with an exclusion");
+    }
   }
 
   private void assertFieldPathContains(
@@ -451,19 +472,6 @@ class FieldFilterParserTest {
     Set<String> actual =
         fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
-  }
-
-  // TODO(ivo) I think the assertion is wrong as an excluded field path is in the list but has
-  // excluded false
-  private static void assertFieldPathContains(
-      boolean expected, String expectedDotPath, List<FieldPath> fieldPaths) {
-    Set<String> actual =
-        fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
-    String what = expected ? "include" : "exclude";
-    assertEquals(
-        expected,
-        actual.contains(expectedDotPath),
-        () -> actual + " does not " + what + " " + expectedDotPath);
   }
 
   private FieldPath getFieldPath(List<FieldPath> fieldPaths, String path) {
