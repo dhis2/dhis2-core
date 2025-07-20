@@ -243,12 +243,14 @@ final class LazySettings implements SystemSettings, UserSettings {
               builder.setScript(parts[2]);
             }
             return builder.build();
-          } catch (Exception ex) {}
+          } catch (Exception ex) {
+          }
 
           try {
             // Fallback to Apache legacy format (en_US, uz_UZ)
             return org.apache.commons.lang3.LocaleUtils.toLocale(raw);
-          } catch (Exception ex) {}
+          } catch (Exception ex) {
+          }
 
           return defaultValue;
         });
