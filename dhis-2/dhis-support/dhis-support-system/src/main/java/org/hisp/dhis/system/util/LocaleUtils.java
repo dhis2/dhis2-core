@@ -39,7 +39,6 @@ import java.util.Locale;
 public class LocaleUtils {
   private static final String SEP = "_";
 
-
   /**
    * Createa a locale string based on the given language, country and script.
    *
