@@ -97,6 +97,11 @@ class FieldFilterParserTest {
             "group[id,name]",
             List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
 
+        // () is treated like [] (might have special meaning in a transformer)
+        Arguments.of(
+            "group(id,name)",
+            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+
         // testMixedBlockSingleFields
         Arguments.of(
             "id,name,group[id,name],code",
