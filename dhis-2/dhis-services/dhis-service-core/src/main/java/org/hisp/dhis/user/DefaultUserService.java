@@ -365,12 +365,12 @@ public class DefaultUserService implements UserService {
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
-    if (!params.hasUser()) {
+    if (!params.hasUserDetails() && CurrentUserUtil.hasCurrentUser()) {
       UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
       params.setUserDetails(currentUserDetails);
     }
 
-    if (params.hasUser() && params.getUserDetails().isSuper()) {
+    if (params.hasUserDetails() && params.getUserDetails().isSuper()) {
       params.setCanManage(false);
       params.setAuthSubset(false);
       params.setDisjointRoles(false);
@@ -382,29 +382,29 @@ public class DefaultUserService implements UserService {
       params.setInactiveSince(cal.getTime());
     }
 
-//    if (params.hasUser()) {
-//      UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
-//      if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
-//        params.setOrganisationUnits(
-//            params.getUserDetails().getUserOrgUnitIds().stream()
-//                .map(organisationUnitService::getOrganisationUnit)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toSet()));
-//        params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
-//      } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
-//        params.setOrganisationUnits(
-//            params.getUserDetails().getUserDataOrgUnitIds().stream()
-//                .map(organisationUnitService::getOrganisationUnit)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toSet()));
-//      } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
-//        params.setOrganisationUnits(
-//            params.getUserDetails().getUserSearchOrgUnitIds().stream()
-//                .map(organisationUnitService::getOrganisationUnit)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toSet()));
-//      }
-//    }
+    if (params.hasUserDetails()) {
+      UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
+      if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
+      } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserDataOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+      } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserSearchOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+      }
+    }
   }
 
   /**
@@ -433,7 +433,7 @@ public class DefaultUserService implements UserService {
   }
 
   private boolean hasManagedGroups(UserDetails userDetails) {
-    return userDetails != null && !userDetails.getUserGroupIds().isEmpty();
+    return userDetails != null && !userDetails.getManagedGroupLongIds().isEmpty();
   }
 
   private boolean hasAuthorities(UserDetails userDetails) {
