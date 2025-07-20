@@ -42,6 +42,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.user.DefaultUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +57,7 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
   private final OrganisationUnitService organisationUnitService;
 
   private final AclService aclService;
+  private final DefaultUserService userService;
 
   @Override
   public void preCommit(ObjectBundle bundle) {
@@ -123,10 +126,13 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
 
   private void validatePotentialMove(
       OrganisationUnit unit, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    UserDetails user = bundle.getUserDetails();
-    if (user == null || user.isSuper() || !bundle.isPersisted(unit)) {
+    UserDetails userDetails = bundle.getUserDetails();
+    if (userDetails == null || userDetails.isSuper() || !bundle.isPersisted(unit)) {
       return; // not an update or always permitted for superuser
     }
+
+    User user = userService.getUser(userDetails.getUid());
+
     OrganisationUnit oldParent =
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), unit).getParent();
     OrganisationUnit newParent = unit.getParent();
@@ -141,34 +147,35 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
     if (Objects.equals(getNullableUid(oldParent), getNullableUid(newParent))) {
       return; // not a move
     }
-    if (!user.isAuthorized("F_ORGANISATIONUNIT_MOVE")) {
-      addReports.accept(new ErrorReport(OrganisationUnit.class, ErrorCode.E1520, user.getUid()));
+    if (!userDetails.isAuthorized("F_ORGANISATIONUNIT_MOVE")) {
+      addReports.accept(
+          new ErrorReport(OrganisationUnit.class, ErrorCode.E1520, userDetails.getUid()));
       return;
     }
-    if (!aclService.canWrite(user, unit)) {
+    if (!aclService.canWrite(userDetails, unit)) {
       addReports.accept(
           new ErrorReport(
-              OrganisationUnit.class, ErrorCode.E1521, user.getUid(), getUidOrName(unit)));
+              OrganisationUnit.class, ErrorCode.E1521, userDetails.getUid(), getUidOrName(unit)));
     }
     if (oldParent != null
-        && (!aclService.canWrite(user, oldParent)
-            || !user.isInUserHierarchy(oldParent.getPath()))) {
+        && (!aclService.canWrite(userDetails, oldParent)
+            || !organisationUnitService.isInUserHierarchy(user, oldParent))) {
       addReports.accept(
           new ErrorReport(
               OrganisationUnit.class,
               ErrorCode.E1522,
-              user.getUid(),
+              userDetails.getUid(),
               getUidOrName(unit),
               getUidOrName(oldParent)));
     }
     if (newParent != null
-        && (!aclService.canWrite(user, newParent)
-            || !user.isInUserHierarchy(newParent.getPath()))) {
+        && (!aclService.canWrite(userDetails, newParent)
+            || !organisationUnitService.isInUserHierarchy(user, newParent))) {
       addReports.accept(
           new ErrorReport(
               OrganisationUnit.class,
               ErrorCode.E1523,
-              user.getUid(),
+              userDetails.getUid(),
               getUidOrName(unit),
               getUidOrName(newParent)));
     }
