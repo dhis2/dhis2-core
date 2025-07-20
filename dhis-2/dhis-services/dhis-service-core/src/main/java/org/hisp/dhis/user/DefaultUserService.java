@@ -365,12 +365,12 @@ public class DefaultUserService implements UserService {
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
-    if (!params.hasUser()) {
+    if (!params.hasUserDetails() && CurrentUserUtil.hasCurrentUser()) {
       UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
       params.setUserDetails(currentUserDetails);
     }
 
-    if (params.hasUser() && params.getUserDetails().isSuper()) {
+    if (params.hasUserDetails() && params.getUserDetails().isSuper()) {
       params.setCanManage(false);
       params.setAuthSubset(false);
       params.setDisjointRoles(false);
@@ -382,7 +382,7 @@ public class DefaultUserService implements UserService {
       params.setInactiveSince(cal.getTime());
     }
 
-    if (params.hasUser()) {
+    if (params.hasUserDetails()) {
       UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
       if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
         params.setOrganisationUnits(
@@ -433,7 +433,7 @@ public class DefaultUserService implements UserService {
   }
 
   private boolean hasManagedGroups(UserDetails userDetails) {
-    return userDetails != null && !userDetails.getUserGroupIds().isEmpty();
+    return userDetails != null && !userDetails.getManagedGroupLongIds().isEmpty();
   }
 
   private boolean hasAuthorities(UserDetails userDetails) {
