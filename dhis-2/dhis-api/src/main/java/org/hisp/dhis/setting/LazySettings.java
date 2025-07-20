@@ -223,37 +223,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (orDefault(key, defaultValue) instanceof Locale value) {
       return value;
     }
-
-    return asParseValue(
-        key,
-        defaultValue,
-        raw -> {
-          try {
-            // Use locale builder to parse locale from string
-            // We might have locale in the format "en_US" or "en-US" or "en_US_POSIX"
-            Locale.Builder builder = new Locale.Builder();
-            String[] parts = raw.split("[_-]");
-            if (parts.length >= 1) {
-              builder.setLanguage(parts[0]);
-            }
-            if (parts.length >= 2) {
-              builder.setRegion(parts[1]);
-            }
-            if (parts.length >= 3) {
-              builder.setScript(parts[2]);
-            }
-            return builder.build();
-          } catch (Exception ex) {
-          }
-
-          try {
-            // Fallback to Apache legacy format (en_US, uz_UZ)
-            return org.apache.commons.lang3.LocaleUtils.toLocale(raw);
-          } catch (Exception ex) {
-          }
-
-          return defaultValue;
-        });
+    return asParseValue(key, defaultValue, LocaleParsingUtils::parse);
   }
 
   @Override
