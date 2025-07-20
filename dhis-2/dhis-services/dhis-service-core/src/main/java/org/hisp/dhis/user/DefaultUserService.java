@@ -382,29 +382,29 @@ public class DefaultUserService implements UserService {
       params.setInactiveSince(cal.getTime());
     }
 
-    if (params.hasUser()) {
-      UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
-      if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
-        params.setOrganisationUnits(
-            params.getUserDetails().getUserOrgUnitIds().stream()
-                .map(organisationUnitService::getOrganisationUnit)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
-        params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
-      } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
-        params.setOrganisationUnits(
-            params.getUserDetails().getUserDataOrgUnitIds().stream()
-                .map(organisationUnitService::getOrganisationUnit)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
-      } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
-        params.setOrganisationUnits(
-            params.getUserDetails().getUserSearchOrgUnitIds().stream()
-                .map(organisationUnitService::getOrganisationUnit)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
-      }
-    }
+//    if (params.hasUser()) {
+//      UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
+//      if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
+//        params.setOrganisationUnits(
+//            params.getUserDetails().getUserOrgUnitIds().stream()
+//                .map(organisationUnitService::getOrganisationUnit)
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toSet()));
+//        params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
+//      } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
+//        params.setOrganisationUnits(
+//            params.getUserDetails().getUserDataOrgUnitIds().stream()
+//                .map(organisationUnitService::getOrganisationUnit)
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toSet()));
+//      } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
+//        params.setOrganisationUnits(
+//            params.getUserDetails().getUserSearchOrgUnitIds().stream()
+//                .map(organisationUnitService::getOrganisationUnit)
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toSet()));
+//      }
+//    }
   }
 
   /**
