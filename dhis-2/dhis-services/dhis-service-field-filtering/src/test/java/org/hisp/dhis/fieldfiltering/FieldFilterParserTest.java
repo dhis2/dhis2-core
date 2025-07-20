@@ -93,7 +93,7 @@ class FieldFilterParserTest {
                 new ExpectField(true, "group.group.group.name"))),
 
         // missing closing brackets are ignored
-        Arguments.of("id,name,group[id,name],group[id,name,group[id,name,group[id,name",
+        Arguments.of("id,name,group[id,name],group[id,name,group[id,name,group[id,name[[[",
             List.of(new ExpectField(true, "id"), new ExpectField(true, "name"),
                 new ExpectField(true, "group.id"), new ExpectField(true, "group.name"),
                 new ExpectField(true, "group.group.id"), new ExpectField(true, "group.group.name"),
