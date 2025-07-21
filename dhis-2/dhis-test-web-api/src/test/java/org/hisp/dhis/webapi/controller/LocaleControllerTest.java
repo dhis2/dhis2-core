@@ -100,7 +100,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, response.size());
     JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
     assertEquals("uz_UZ_Cyrl", firstElement.getLocale());
-    assertEquals("o‘zbek (Oʻzbekiston, Cyrl)", firstElement.getName());
+    assertEquals("ўзбекча (Ўзбекистон, Cyrl)", firstElement.getName());
     assertEquals("Uzbek (Uzbekistan, Cyrl)", firstElement.getDisplayName());
   }
 

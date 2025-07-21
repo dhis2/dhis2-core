@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.webdomain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Locale;
+import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,42 @@ public class WebLocale {
    * @return A WebLocale instance
    */
   public static WebLocale fromLocale(Locale locale, Locale userLocale) {
+    String localeStr = LocaleParsingUtils.toUnderscoreFormat(locale);
+
+    if (!locale.getScript().isEmpty()) {
+      String name = buildLocaleDisplay(locale, locale);
+      String displayName = buildLocaleDisplay(locale, userLocale);
+      return new WebLocale(localeStr, name, displayName);
+    }
+
     return new WebLocale(
-        locale.toString(), locale.getDisplayName(locale), locale.getDisplayName(userLocale));
+        localeStr,
+        locale.getDisplayName(locale),
+        locale.getDisplayName(userLocale)
+    );
+  }
+
+  private static String buildLocaleDisplay(Locale target, Locale displayLocale) {
+    String language = target.getDisplayLanguage(displayLocale);
+    String country = target.getDisplayCountry(displayLocale);
+    String script = target.getScript();
+
+    StringBuilder sb = new StringBuilder(language);
+
+    if (!country.isEmpty() || !script.isEmpty()) {
+      sb.append(" (");
+      if (!country.isEmpty()) {
+        sb.append(country);
+        if (!script.isEmpty()) {
+          sb.append(", ");
+        }
+      }
+      if (!script.isEmpty()) {
+        sb.append(script);
+      }
+      sb.append(")");
+    }
+
+    return sb.toString();
   }
 }
