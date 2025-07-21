@@ -82,7 +82,6 @@ public class LocaleParsingUtils {
     } else if (!locale.getCountry().isEmpty()) {
       sb.append("_").append(locale.getCountry());
     }
-
     return sb.toString();
   }
 }
