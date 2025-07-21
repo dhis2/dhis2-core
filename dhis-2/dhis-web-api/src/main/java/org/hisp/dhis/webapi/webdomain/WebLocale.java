@@ -31,10 +31,10 @@ package org.hisp.dhis.webapi.webdomain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Locale;
-import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
 
 /**
  * Class that represents a Locale for the web
@@ -66,10 +66,7 @@ public class WebLocale {
     }
 
     return new WebLocale(
-        localeStr,
-        locale.getDisplayName(locale),
-        locale.getDisplayName(userLocale)
-    );
+        localeStr, locale.getDisplayName(locale), locale.getDisplayName(userLocale));
   }
 
   private static String buildLocaleDisplay(Locale target, Locale displayLocale) {

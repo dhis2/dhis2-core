@@ -46,7 +46,6 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.IllformedLocaleException;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.commons.util.PathUtils;
@@ -204,7 +203,7 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
       if (parts.length > 1) builder.setRegion(parts[1]);
       if (parts.length > 2) builder.setScript(parts[2]);
       return builder.build();
-    } catch ( IllformedLocaleException | IndexOutOfBoundsException e) {
+    } catch (IllformedLocaleException | IndexOutOfBoundsException e) {
       return LocaleManager.DEFAULT_LOCALE;
     }
   }
