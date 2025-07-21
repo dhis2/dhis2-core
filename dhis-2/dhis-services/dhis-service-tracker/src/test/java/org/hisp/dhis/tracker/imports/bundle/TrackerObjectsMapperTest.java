@@ -330,7 +330,7 @@ class TrackerObjectsMapperTest extends TestBase {
   void shouldMapEventWhenItIsACreation() {
     preheat.putEnrollments(List.of(event(EventStatus.ACTIVE).getEnrollment()));
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
@@ -354,7 +354,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(dbEvent.getEnrollment()));
     preheat.putTrackerEvents(List.of(dbEvent));
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
@@ -379,7 +379,7 @@ class TrackerObjectsMapperTest extends TestBase {
     preheat.putEnrollments(List.of(dbEvent.getEnrollment()));
     preheat.putTrackerEvents(List.of(dbEvent));
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
@@ -411,7 +411,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .username(creatingUser.getUsername())
             .build();
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
@@ -442,7 +442,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .username(creatingUser.getUsername())
             .build();
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(EVENT_UID)
             .enrollment(ENROLLMENT_UID)
@@ -564,7 +564,7 @@ class TrackerObjectsMapperTest extends TestBase {
   }
 
   private void assertMappedEvent(
-      org.hisp.dhis.tracker.imports.domain.Event event,
+      org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       TrackerEvent actual,
       UserDetails createdBy,
       UserDetails updatedBy) {

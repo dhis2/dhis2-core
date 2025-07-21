@@ -43,6 +43,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
@@ -104,10 +105,16 @@ class RuleEngineMapper {
         attributeValues);
   }
 
-  static @Nonnull List<RuleEvent> mapPayloadEvents(
+  static @Nonnull List<RuleEvent> mapPayloadTrackerEvents(
       @Nonnull TrackerPreheat preheat,
-      @Nonnull List<? extends org.hisp.dhis.tracker.imports.domain.Event> events) {
-    return events.stream().map(e -> mapPayloadEvent(preheat, e)).toList();
+      @Nonnull List<? extends org.hisp.dhis.tracker.imports.domain.TrackerEvent> events) {
+    return events.stream().map(e -> mapPayloadTrackerEvent(preheat, e)).toList();
+  }
+
+  static @Nonnull List<RuleEvent> mapPayloadSingleEvents(
+      @Nonnull TrackerPreheat preheat,
+      @Nonnull List<? extends org.hisp.dhis.tracker.imports.domain.SingleEvent> events) {
+    return events.stream().map(e -> mapPayloadSingleEvent(preheat, e)).toList();
   }
 
   static @Nonnull List<RuleEvent> mapSavedEvents(@Nonnull List<TrackerEvent> events) {
@@ -156,8 +163,8 @@ class RuleEngineMapper {
     return "";
   }
 
-  private static RuleEvent mapPayloadEvent(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event eventToEvaluate) {
+  private static RuleEvent mapPayloadTrackerEvent(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent eventToEvaluate) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
     TrackerEvent event = preheat.getTrackerEvent(eventToEvaluate.getUid());
@@ -178,6 +185,37 @@ class RuleEngineMapper {
                 eventToEvaluate.getScheduledAt().toEpochMilli()),
         createdDate,
         eventToEvaluate.getScheduledAt() == null ? null : getDate(eventToEvaluate.getScheduledAt()),
+        eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
+        organisationUnit.getUid(),
+        organisationUnit.getCode(),
+        eventToEvaluate.getDataValues().stream()
+            .filter(Objects::nonNull)
+            .filter(dv -> dv.getValue() != null)
+            .map(
+                dv ->
+                    new RuleDataValue(
+                        preheat.getDataElement(dv.getDataElement()).getUid(), dv.getValue()))
+            .toList());
+  }
+
+  private static RuleEvent mapPayloadSingleEvent(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent eventToEvaluate) {
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
+    ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
+    SingleEvent event = preheat.getSingleEvent(eventToEvaluate.getUid());
+    Instant createdDate =
+        event == null
+            ? Clock.System.INSTANCE.now()
+            : Instant.Companion.fromEpochMilliseconds(event.getCreated().getTime());
+
+    return new RuleEvent(
+        eventToEvaluate.getUid().getValue(),
+        programStage.getUid(),
+        programStage.getName(),
+        RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
+        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredAt().toEpochMilli()),
+        createdDate,
+        null,
         eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
         organisationUnit.getUid(),
         organisationUnit.getCode(),

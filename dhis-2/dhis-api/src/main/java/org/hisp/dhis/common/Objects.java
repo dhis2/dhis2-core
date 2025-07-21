@@ -90,19 +90,21 @@ public enum Objects {
   PROGRAM("program", Program.class),
   TRACKEDENTITY("trackedEntity", TrackedEntity.class),
   ENROLLMENT("enrollment", Enrollment.class),
-  EVENT("event", TrackerEvent.class),
+  EVENT("event", TrackerEvent.class), // Event inclues tracker and single events
   TRACKEDENTITYATTRIBUTE("trackedEntityAttribute", TrackedEntityAttribute.class),
   EXPRESSIONDIMENSIONITEM("expressionDimensionItem", ExpressionDimensionItem.class);
 
   private String value;
 
-  private Class<?> clazz;
+  // This field is only used in tests
+  @Deprecated private Class<?> clazz;
 
   Objects(String value, Class<?> clazz) {
     this.value = value;
     this.clazz = clazz;
   }
 
+  @Deprecated
   public static Objects fromClass(Class<?> clazz) throws IllegalAccessException {
     if (clazz == null) {
       throw new NullPointerException();

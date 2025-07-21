@@ -158,7 +158,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return singleEvents.entrySet().stream()
         .map(
             entry -> {
-              List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
+              List<RuleEvent> events =
+                  RuleEngineMapper.mapPayloadSingleEvents(preheat, entry.getValue());
 
               return programRuleEngine.evaluateSingleEvents(
                   events, entry.getKey(), bundle.getUser());
@@ -228,7 +229,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     }
 
     List<RuleEvent> ruleEvents =
-        RuleEngineMapper.mapPayloadEvents(
+        RuleEngineMapper.mapPayloadTrackerEvents(
             preheat,
             bundle.getTrackerEvents().stream()
                 .filter(e -> e.getEnrollment().equals(enrollmentUid))

@@ -29,21 +29,18 @@
  */
 package org.hisp.dhis.program;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -55,6 +52,7 @@ import org.locationtech.jts.geom.Geometry;
 
 @Auditable(scope = AuditScope.TRACKER)
 @Setter
+@Getter
 @NoArgsConstructor
 public class SingleEvent extends SoftDeletableObject {
   private Date createdAtClient;
@@ -106,114 +104,7 @@ public class SingleEvent extends SoftDeletableObject {
     lastUpdatedAtClient = lastUpdated;
   }
 
-  @JsonIgnore
   public boolean hasAttributeOptionCombo() {
     return attributeOptionCombo != null;
-  }
-
-  @JsonProperty
-  public Date getCreatedAtClient() {
-    return createdAtClient;
-  }
-
-  @JsonProperty
-  public Date getLastUpdatedAtClient() {
-    return lastUpdatedAtClient;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  public Enrollment getEnrollment() {
-    return enrollment;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  public ProgramStage getProgramStage() {
-    return programStage;
-  }
-
-  @JsonProperty
-  public String getStoredBy() {
-    return storedBy;
-  }
-
-  @JsonProperty
-  public UserInfoSnapshot getCreatedByUserInfo() {
-    return createdByUserInfo;
-  }
-
-  @JsonProperty
-  public UserInfoSnapshot getLastUpdatedByUserInfo() {
-    return lastUpdatedByUserInfo;
-  }
-
-  @JsonProperty
-  public String getCompletedBy() {
-    return completedBy;
-  }
-
-  @JsonProperty
-  public Date getOccurredDate() {
-    return occurredDate;
-  }
-
-  @JsonProperty
-  public boolean isCompleted() {
-    return status == EventStatus.COMPLETED;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  public CategoryOptionCombo getAttributeOptionCombo() {
-    return attributeOptionCombo;
-  }
-
-  @JsonProperty
-  public Date getCompletedDate() {
-    return completedDate;
-  }
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  public List<Note> getNotes() {
-    return notes;
-  }
-
-  @JsonProperty
-  public Set<EventDataValue> getEventDataValues() {
-    return eventDataValues;
-  }
-
-  @JsonProperty
-  public EventStatus getStatus() {
-    return status;
-  }
-
-  @JsonIgnore
-  public Date getLastSynchronized() {
-    return lastSynchronized;
-  }
-
-  @JsonProperty
-  public Set<RelationshipItem> getRelationshipItems() {
-    return relationshipItems;
-  }
-
-  @JsonProperty
-  public Geometry getGeometry() {
-    return geometry;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  public User getAssignedUser() {
-    return assignedUser;
   }
 }

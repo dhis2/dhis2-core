@@ -179,7 +179,7 @@ public class TrackerObjectsMapper {
 
   public static @Nonnull TrackerEvent map(
       @Nonnull TrackerPreheat preheat,
-      @Nonnull org.hisp.dhis.tracker.imports.domain.Event event,
+      @Nonnull org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       @Nonnull UserDetails user) {
     TrackerEvent dbEvent = preheat.getTrackerEvent(event.getEvent());
 

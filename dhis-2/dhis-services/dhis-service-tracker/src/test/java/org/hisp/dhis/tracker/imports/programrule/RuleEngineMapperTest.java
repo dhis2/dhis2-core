@@ -118,7 +118,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapPayloadEventsToRuleEvents() {
+  void shouldMapPayloadTrackerEventsToRuleEvents() {
     org.hisp.dhis.tracker.imports.domain.TrackerEvent eventA = payloadEvent();
     org.hisp.dhis.tracker.imports.domain.TrackerEvent eventB = payloadEvent();
 
@@ -128,7 +128,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     trackerPreheat.put(TrackerIdSchemeParam.UID, dataElement);
 
     List<RuleEvent> ruleEvents =
-        RuleEngineMapper.mapPayloadEvents(trackerPreheat, List.of(eventA, eventB));
+        RuleEngineMapper.mapPayloadTrackerEvents(trackerPreheat, List.of(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
     assertEvent(
