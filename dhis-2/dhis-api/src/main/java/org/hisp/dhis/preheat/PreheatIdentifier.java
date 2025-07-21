@@ -81,9 +81,10 @@ public enum PreheatIdentifier {
   public String getIdentifiersWithName(UserDetails userDetails) {
     return userDetails.getFirstName()
         + ""
+        + " "
         + userDetails.getSurname()
         + ""
-        + "["
+        + " ["
         + userDetails.getUid()
         + ""
         + "]"
