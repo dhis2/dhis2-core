@@ -463,15 +463,12 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
     User adminUser = getAdminUser();
-    assertEquals(4, allUsersA.size());
     assertEquals(asList(adminUser, userA, userB, userC), allUsersA);
 
     List<User> allUsersB = userService.getUsers(params, null);
-    assertEquals(4, allUsersA.size());
     assertEquals(asList(userB, userC, getAdminUser(), userA), allUsersB);
 
     List<User> allUserC = userService.getUsers(params, singletonList("firstName:asc"));
-    assertEquals(4, allUsersA.size());
     assertEquals(asList(userA, getAdminUser(), userC, userB), allUserC);
   }
 
