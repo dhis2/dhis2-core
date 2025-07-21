@@ -302,8 +302,8 @@ public class UserController
     }
   }
 
-  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(
-      String pvUid, UserDetails currentUser) throws NotFoundException, ForbiddenException {
+  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(String pvUid, UserDetails currentUser)
+      throws NotFoundException, ForbiddenException {
     User user = userService.getUser(pvUid);
     if (user == null) {
       throw new NotFoundException("User not found: " + pvUid);
