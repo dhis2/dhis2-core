@@ -52,7 +52,7 @@ public class RouteTest extends ApiTest {
     loginActions.loginAsDefaultUser();
   }
 
-  @Test
+  @Disabled("Disabling this test since it uses a live service")
   void testRunRoute() {
     JsonObject routeJsonObject = new JsonObject();
     routeJsonObject.addProperty("name", "route-under-test");
