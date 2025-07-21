@@ -57,6 +57,28 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
   @Autowired private FieldPathHelper helper;
 
   @Test
+  void testApplyPresetHowDoesCollectionNameWork() {
+    Map<String, FieldPath> fieldMapPath = new HashMap<>();
+
+    FieldPath preset = new FieldPath(FieldPreset.PERSISTED.getName(), List.of(), false, true);
+
+    helper.applyPresets(List.of(preset), fieldMapPath, DataElement.class);
+
+    assertPropertyExists("id", fieldMapPath);
+    assertPropertyExists("name", fieldMapPath);
+    assertPropertyExists("shortName", fieldMapPath);
+    assertPropertyExists("description", fieldMapPath);
+    assertPropertyExists("valueType", fieldMapPath);
+    assertPropertyExists("aggregationType", fieldMapPath);
+    assertPropertyExists("domainType", fieldMapPath);
+
+    assertNull(fieldMapPath.get("access"));
+    assertNull(fieldMapPath.get("dataSetElements"));
+    assertNull(fieldMapPath.get("optionSet"));
+    assertNull(fieldMapPath.get("categoryCombo"));
+    assertNull(fieldMapPath.get("translations"));
+  }
+  @Test
   void testApplySimplePreset() {
     Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
