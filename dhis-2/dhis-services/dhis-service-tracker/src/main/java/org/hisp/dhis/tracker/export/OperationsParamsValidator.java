@@ -261,6 +261,11 @@ public class OperationsParamsValidator {
     return orgUnits;
   }
 
+  /**
+   * Validates the specified filter operator(s) are not blocked for the given TEA
+   *
+   * @throws BadRequestException if the operator(s) are blocked
+   */
   public static void validateAttributeOperators(
       Entry<UID, List<QueryFilter>> attributeFilter, TrackedEntityAttribute tea)
       throws BadRequestException {
