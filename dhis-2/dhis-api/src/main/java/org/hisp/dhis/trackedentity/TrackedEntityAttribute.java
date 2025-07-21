@@ -404,8 +404,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
     return blockedSearchOperators;
   }
 
-  public void setBlockedSearchOperators(Set<QueryOperator> preferredSearchOperator) {
-    this.blockedSearchOperators = preferredSearchOperator;
+  public void setBlockedSearchOperators(Set<QueryOperator> blockedSearchOperators) {
+    this.blockedSearchOperators = blockedSearchOperators;
   }
 
   @JsonProperty
