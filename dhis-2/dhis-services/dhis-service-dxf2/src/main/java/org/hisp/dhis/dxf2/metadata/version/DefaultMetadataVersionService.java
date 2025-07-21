@@ -222,7 +222,7 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public String getVersionData(String versionName) {
     DatastoreEntry entry = metaDataDatastoreService.getMetaDataVersion(versionName);
 

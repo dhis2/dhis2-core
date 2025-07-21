@@ -100,7 +100,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   // -------------------------------------------------------------------------
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public SystemInfo getSystemInfo() {
     SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
     TimeZone tz = Calendar.getInstance().getTimeZone();
