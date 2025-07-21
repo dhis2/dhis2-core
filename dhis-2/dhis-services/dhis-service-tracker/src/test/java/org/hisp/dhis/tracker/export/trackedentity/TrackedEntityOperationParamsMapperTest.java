@@ -561,9 +561,9 @@ class TrackedEntityOperationParamsMapperTest {
 
     Exception exception =
         Assertions.assertThrows(
-            IllegalQueryException.class, () -> mapper.map(trackedEntityOperationParams, user));
+            BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
     assertContains(
-        "At least 2 character(s) should be present in the filter to start a search, but the filter for the TEA "
+        "At least 2 character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute "
             + TEA_1_UID,
         exception.getMessage());
   }
@@ -587,9 +587,9 @@ class TrackedEntityOperationParamsMapperTest {
 
     Exception exception =
         Assertions.assertThrows(
-            IllegalQueryException.class, () -> mapper.map(trackedEntityOperationParams, user));
+            BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
     assertContains(
-        "At least 2 character(s) should be present in the filter to start a search, but the filter for the TEA "
+        "At least 2 character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute "
             + TEA_1_UID,
         exception.getMessage());
   }
