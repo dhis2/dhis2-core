@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
@@ -37,8 +39,6 @@ import org.hisp.dhis.test.e2e.actions.RouteActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RouteTest extends ApiTest {
 
