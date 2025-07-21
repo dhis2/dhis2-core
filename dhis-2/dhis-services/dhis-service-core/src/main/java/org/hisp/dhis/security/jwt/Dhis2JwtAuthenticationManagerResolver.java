@@ -41,9 +41,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.user.DefaultUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -86,7 +86,7 @@ public class Dhis2JwtAuthenticationManagerResolver
 
   @Autowired private UserStore userStore;
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
-  @Autowired private DefaultUserService userService;
+  @Autowired private UserService userService;
 
   private final Map<String, AuthenticationManager> authenticationManagers =
       new ConcurrentHashMap<>();
