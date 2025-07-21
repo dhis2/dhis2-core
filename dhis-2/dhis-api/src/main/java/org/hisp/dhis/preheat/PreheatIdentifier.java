@@ -78,7 +78,15 @@ public enum PreheatIdentifier {
     return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
   }
 
-  public String getIdentifiersWithName(UserDetails object) {
-    return object.getUid() + " ( User )";
+  public String getIdentifiersWithName(UserDetails userDetails) {
+    return userDetails.getFirstName()
+        + ""
+        + userDetails.getSurname()
+        + ""
+        + "["
+        + userDetails.getUid()
+        + ""
+        + "]"
+        + " (User)";
   }
 }
