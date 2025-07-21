@@ -116,8 +116,6 @@ class TrackerEventOperationParamsMapperTest {
 
   private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-  private static final UID TRACKED_ENTITY_TYPE_UID = UID.of("Dp8baZYrLtr");
-
   @Mock private ProgramStageService programStageService;
 
   @Mock private OrganisationUnitService organisationUnitService;
