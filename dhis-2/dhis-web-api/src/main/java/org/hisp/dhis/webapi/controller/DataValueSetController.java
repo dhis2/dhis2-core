@@ -109,14 +109,22 @@ public class DataValueSetController {
   // Get
   // -------------------------------------------------------------------------
 
-  @OpenApi.Ignore
-  @GetMapping(params = {"format"})
+  @OpenApi.Response(DataValueSet.class)
+  @GetMapping
   public void getDataValueSet(
       DataValueSetQueryParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       @RequestParam(required = false) String format,
+      HttpServletRequest request,
       HttpServletResponse response) {
+    if (format == null) {
+      String path = request.getPathInfo();
+      format = "json";
+      if (path.endsWith(".adx+xml")) format = "adx+xml";
+      if (path.endsWith(".xml")) format = "xml";
+      if (path.endsWith(".csv")) format = "csv";
+    }
     switch (format) {
       case "xml" -> getDataValueSetXml(params, attachment, compression, response);
       case "adx+xml" -> getDataValueSetXmlAdx(params, attachment, compression, response);
@@ -125,9 +133,7 @@ public class DataValueSetController {
     }
   }
 
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_XML)
-  public void getDataValueSetXml(
+  private void getDataValueSetXml(
       DataValueSetQueryParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
@@ -142,9 +148,7 @@ public class DataValueSetController {
         dataValueSetService::exportDataValueSetXml);
   }
 
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_XML_ADX)
-  public void getDataValueSetXmlAdx(
+  private void getDataValueSetXmlAdx(
       DataValueSetQueryParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
@@ -166,9 +170,7 @@ public class DataValueSetController {
         });
   }
 
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_JSON)
-  public void getDataValueSetJson(
+  private void getDataValueSetJson(
       DataValueSetQueryParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
@@ -183,9 +185,7 @@ public class DataValueSetController {
         dataValueSetService::exportDataValueSetJson);
   }
 
-  @OpenApi.Response(String.class)
-  @GetMapping(produces = {CONTENT_TYPE_CSV, "text/csv"})
-  public void getDataValueSetCsv(
+  private void getDataValueSetCsv(
       DataValueSetQueryParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,

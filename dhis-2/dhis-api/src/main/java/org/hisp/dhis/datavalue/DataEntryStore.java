@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
@@ -59,8 +60,15 @@ public interface DataEntryStore {
   }
 
   /**
-   * Fetches a mapping between the ids provided which use/are in the scheme given to the UID of the
-   * same object.
+   * Fetches a mapping between the provided IDs (that used the provided {@code idsProperty}) and the
+   * UID of the same object.
+   *
+   * <p>For example, when {@code idsProperty} is CODE, the result looks like:
+   *
+   * <pre>
+   * {code1} => {uid1}
+   * {code2} => {uid2}
+   * </pre>
    *
    * @param type the target object type or table
    * @param idsProperty the ID property used (provided)
@@ -68,20 +76,73 @@ public interface DataEntryStore {
    * @return a map from given ID to the corresponding UID (does not include entries for input IDs
    *     that do not exist and thus do not have a corresponding UID)
    */
-  Map<String, String> getXIdToUid(ObjectType type, IdProperty idsProperty, Stream<String> ids);
+  Map<String, String> getIdMapping(
+      @Nonnull ObjectType type, @Nonnull IdProperty idsProperty, @Nonnull Stream<String> ids);
+
+  /**
+   * Fetches the IDs of the categories of the DS's CC (as used for AOCs).
+   *
+   * @param dataSet the target DS (for scope)
+   * @param categories the ID property of categories to fetch
+   * @return the IDs for the categories used by the AOC of the provided DS in alphabetical order
+   */
+  List<String> getDataSetAocCategories(@Nonnull UID dataSet, @Nonnull IdProperty categories);
 
   /**
    * Fetches a mapping that allows to map input given in form of category and option to the AOC UID
    * that belongs to each of the possible combinations.
    *
+   * <p>For example, when using CODE for categories and category options and the codes for the
+   * categories would be A, B and C and the codes for the options would be A1, A2, B1, B2, C1, C2
+   * then the map would be:
+   *
+   * <pre>
+   *   A1 B1 C1 => {aoc-uid1}
+   *   A2 B1 C1 => {aoc-uid2}
+   *   A1 B2 C1 => {aoc-uid3}
+   *   ...
+   * </pre>
+   *
+   * The parts of the key are ordered A,B,C because that is the alphabetical order of the category
+   * codes. This allows the caller to take input in form of C=CO (codes) and do the same
+   * alphabetically ordered concatenation to get a lookup key for the result map.
+   *
    * @param dataSet the dataset for context
-   * @param categoryOptions the identifier of a category option that is concatenated into a key
    * @param categories the identifier of a category that is used to sort the options alphabetically
+   * @param attributeOptions the identifier of a category option that is concatenated into a key
    * @return A map from a concatenated key to an AOC UID. The key is composed of the options of the
    *     AOC in alphabetical order of the categories
    */
-  Map<String, String> getAocByOptionsKey(
-      UID dataSet, IdProperty categoryOptions, IdProperty categories);
+  Map<String, String> getDataSetAocIdMapping(
+      @Nonnull UID dataSet, @Nonnull IdProperty categories, @Nonnull IdProperty attributeOptions);
+
+  /**
+   * Fetches the category IDs of the effective category combo for each provided data element.
+   *
+   * <p>For example, assuming self-explanatory codes are used for both data elements and categories
+   *
+   * <pre>
+   *   DE1 => [C1, C2, C3],
+   *   DE2 => [C4, C5, C6],
+   *   ...
+   * </pre>
+   *
+   * @param dataSet to check for CC override possible on DE-DS mapping
+   * @param categories ID property used for categories
+   * @param dataElements ID property used for data elements
+   * @param dataElementIds data element IDs for the {@code dataElements} property
+   * @return a mapping that for each data element (key) holds a list of the category IDs sorted
+   *     alphabetically
+   */
+  Map<String, List<String>> getDataElementCocCategories(
+      UID dataSet, IdProperty categories, IdProperty dataElements, Stream<String> dataElementIds);
+
+  Map<String, String> getDataElementCocIdMapping(
+      @Nonnull UID dataSet,
+      @Nonnull IdProperty categories,
+      @Nonnull IdProperty categoryOptions,
+      @Nonnull IdProperty dataElements,
+      @Nonnull Stream<String> dataElementIds);
 
   /**
    * Find the datasets a data element can be used with to allow grouping data values into groups of

@@ -105,6 +105,7 @@ public class DataEntryIO {
         aco = group;
         // remove the attributes that are known to not be category=option
         List.of("orgUnit", "period", "dataSet").forEach(aco::remove);
+        if (aco.isEmpty()) aco = null; // if there is no other attr => AOC not used
       }
       // values...
       List<DataEntryValue.Input> values = new ArrayList<>();
@@ -177,7 +178,6 @@ public class DataEntryIO {
   @Nonnull
   private static List<DataEntryGroup.Input> parseCsv(InputStream in, ImportOptions options)
       throws IOException {
-    // TODO maybe handle firstRowIsHeader=false by specifying a default header?
     List<DataEntryValue.Input> values =
         CSV.of(wrapAndCheckCompressionFormat(in)).as(DataEntryValue.Input.class).list();
     String ds = options.getDataSet();
@@ -186,7 +186,7 @@ public class DataEntryIO {
   }
 
   public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
-    progress.startingStage("Deserializing CVS data");
+    progress.startingStage("Deserializing XML data");
     return importRaw(
         progress.runStage(() -> parseXml(in, options, options.getIdSchemes())), options, progress);
   }
@@ -341,7 +341,7 @@ public class DataEntryIO {
   @Nonnull
   private ImportSummary importGroups(
       List<DataEntryGroup> groups, DataEntryGroup.Options options, JobProgress progress) {
-    DataEntrySummary summary = new DataEntrySummary(0, 0, List.of());
+    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
     for (DataEntryGroup g : groups) {
       try {

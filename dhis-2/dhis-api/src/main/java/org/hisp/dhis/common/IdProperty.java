@@ -44,6 +44,8 @@ import javax.annotation.Nonnull;
  */
 public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
 
+  public static final IdProperty UID = new IdProperty(Name.UID, null);
+
   public IdProperty {
     requireNonNull(name);
     if (name == Name.ATTR && attributeId == null)
@@ -60,7 +62,8 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
       case ID, UID -> new IdProperty(Name.UID, null);
       case CODE -> new IdProperty(Name.CODE, null);
       case NAME -> new IdProperty(Name.NAME, null);
-      case ATTRIBUTE -> new IdProperty(Name.ATTR, UID.of(scheme.getAttribute()));
+      case ATTRIBUTE ->
+          new IdProperty(Name.ATTR, org.hisp.dhis.common.UID.of(scheme.getAttribute()));
       case UUID ->
           throw new UnsupportedOperationException("UUID is not supported for this operation");
     };

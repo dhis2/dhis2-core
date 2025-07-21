@@ -92,8 +92,15 @@ public record DataEntryGroup(
       @OpenApi.Property({UID.class, OrganisationUnit.class}) @CheckForNull String orgUnit,
       @CheckForNull String period,
       @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @CheckForNull
-          String attrOptionCombo,
-      @CheckForNull Map<String, String> attrOptions,
+          String attributeOptionCombo,
+      @OpenApi.Description(
+              """
+            Alternative to the `attributeOptionCombo` the defining which category option (value) is chosen for which category (key)
+            for the category combo of the `dataSet`. Can only be used when `dataSet` is provided as well.
+            Will only be considered if `attributeOptionCombo` is not present.
+            """)
+          @CheckForNull
+          Map<String, String> attributeOptions,
       @JsonAlias("dataValues") List<DataEntryValue.Input> values) {
 
     public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
@@ -107,7 +114,7 @@ public record DataEntryGroup(
       vars.put("de", dataElement);
       vars.put("ou", orgUnit);
       vars.put("pe", period);
-      vars.put("aoc", attrOptionCombo);
+      vars.put("aoc", attributeOptionCombo);
       vars.put("count", values == null ? null : "" + values.size());
       return replace(
           "ds=${ds:?} [de=${de:} ou=${ou:} pe=${pe:} aoc=${aoc:}](${count:0} values)", vars);

@@ -78,7 +78,8 @@ public record DataEntryValue(
       @OpenApi.Description(
               """
         An alternative to `categoryOptionCombo` defining which category option (value) is chosen for which category (key)
-        for the category combination used for the target data set.""")
+        for the category combo effective for the `dataElement`.
+        Will only be considered if `categoryOptionCombo` is not present.""")
           @CheckForNull
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})

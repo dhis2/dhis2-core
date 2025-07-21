@@ -33,6 +33,7 @@ import static java.lang.System.Logger.Level.INFO;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -55,6 +56,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
@@ -102,22 +104,22 @@ public class DefaultDataEntryService implements DataEntryService {
     String dataSet = group.dataSet();
     if (ids != null) {
       if (dataSet != null && ids.dataSets().isNotUID())
-        dsOf = store.getXIdToUid(ObjectType.DS, ids.dataSets(), Stream.of(dataSet))::get;
+        dsOf = store.getIdMapping(ObjectType.DS, ids.dataSets(), Stream.of(dataSet))::get;
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
-        deOf = store.getXIdToUid(ObjectType.DE, ids.dataElements(), deIds)::get;
+        deOf = store.getIdMapping(ObjectType.DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
-        ouOf = store.getXIdToUid(ObjectType.OU, ids.orgUnits(), ouIds)::get;
+        ouOf = store.getIdMapping(ObjectType.OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
-        cocOf = store.getXIdToUid(ObjectType.COC, ids.categoryOptionCombos(), cocIds)::get;
+        cocOf = store.getIdMapping(ObjectType.COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
-        aocOf = store.getXIdToUid(ObjectType.COC, ids.attributeOptionCombos(), aocIds)::get;
+        aocOf = store.getIdMapping(ObjectType.COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
     int i = 0;
@@ -128,41 +130,71 @@ public class DefaultDataEntryService implements DataEntryService {
     List<DataEntryValue> decoded = new ArrayList<>(values.size());
     String deGroup = group.dataElement();
     String ouGroup = group.orgUnit();
-    String aocGroup = group.attrOptionCombo();
-    for (DataEntryValue.Input e : values) {
-      String pe = isoOf.apply(e.period());
-      if (pe == null) throw new BadRequestException(ErrorCode.E7818, i, e);
-      String deVal = e.dataElement();
-      if (deVal == null && deGroup == null) throw new BadRequestException(ErrorCode.E7819, i, e);
-      String deStr = deOf.apply(deVal == null ? deGroup : deVal);
-      if (deStr == null)
-        throw new BadRequestException(ErrorCode.E7828, i, deVal == null ? deGroup : deVal);
-      UID de = decodeUID(deStr);
-      if (de == null) throw new BadRequestException(ErrorCode.E7821, i, deStr);
-      String ouVal = e.orgUnit();
-      if (ouVal == null && ouGroup == null) throw new BadRequestException(ErrorCode.E7820, i, e);
-      String ouStr = ouOf.apply(ouVal == null ? ouGroup : ouVal);
-      if (ouStr == null)
-        throw new BadRequestException(ErrorCode.E7827, i, ouVal == null ? ouGroup : ouVal);
-      UID ou = decodeUID(ouStr);
-      if (ou == null) throw new BadRequestException(ErrorCode.E7822, i, ouStr);
-      String cocVal = e.categoryOptionCombo();
-      String cocStr = cocOf.apply(cocVal);
-      if (cocStr == null && cocVal != null)
-        throw new BadRequestException(ErrorCode.E7823, i, cocVal);
-      UID coc = decodeUID(cocStr);
-      if (coc == null && cocStr != null) throw new BadRequestException(ErrorCode.E7824, i, cocStr);
-      String aocVal = e.attributeOptionCombo();
+    String aocGroup = group.attributeOptionCombo();
+    Map<String, String> aoGroup = group.attributeOptions();
+    IdProperty categories = ids == null ? IdProperty.UID : ids.categories();
+    IdProperty categoryOptions = ids == null ? IdProperty.UID : ids.categoryOptions();
+    if (aocGroup == null && aoGroup != null && !aoGroup.isEmpty()) {
+      if (ds == null) throw new BadRequestException(ErrorCode.E7830, aoGroup);
+      List<String> aocKeyOrder = store.getDataSetAocCategories(ds, categories);
+      String aocKey = aocKeyOrder.stream().map(aoGroup::get).collect(joining(" "));
+      Map<String, String> aocByKey = store.getDataSetAocIdMapping(ds, categories, categoryOptions);
+      aocGroup = aocByKey.get(aocKey);
+    }
+    Map<String, List<String>> cocKeyOrderByDe = null;
+    Map<String, String> cocByKey = null;
+    for (DataEntryValue.Input dv : values) {
+      String pe = isoOf.apply(dv.period());
+      if (pe == null) throw new BadRequestException(ErrorCode.E7818, i, dv);
+      String deVal = dv.dataElement();
+      if (deVal == null) deVal = deGroup;
+      if (deVal == null) throw new BadRequestException(ErrorCode.E7819, i, dv);
+      String deUID = deOf.apply(deVal);
+      if (deUID == null) throw new BadRequestException(ErrorCode.E7828, i, deVal);
+      UID de = decodeUID(deUID);
+      if (de == null) throw new BadRequestException(ErrorCode.E7821, i, deUID);
+      String ouVal = dv.orgUnit();
+      if (ouVal == null) ouVal = ouGroup;
+      if (ouVal == null) throw new BadRequestException(ErrorCode.E7820, i, dv);
+      String ouUID = ouOf.apply(ouVal);
+      if (ouUID == null) throw new BadRequestException(ErrorCode.E7827, i, ouVal);
+      UID ou = decodeUID(ouUID);
+      if (ou == null) throw new BadRequestException(ErrorCode.E7822, i, ouUID);
+      String cocVal = dv.categoryOptionCombo();
+      Map<String, String> co = dv.categoryOptions();
+      if (cocVal == null && co != null) {
+        if (cocKeyOrderByDe == null) {
+          if (ds == null) throw new BadRequestException(ErrorCode.E7830, aoGroup);
+          IdProperty dataElements = ids == null ? IdProperty.UID : ids.dataElements();
+          List<String> dataElementIds =
+              values.stream().map(DataEntryValue.Input::dataElement).toList();
+          cocKeyOrderByDe =
+              store.getDataElementCocCategories(
+                  ds, categories, dataElements, dataElementIds.stream());
+          cocByKey =
+              store.getDataElementCocIdMapping(
+                  ds, categories, categoryOptions, dataElements, dataElementIds.stream());
+        }
+        String cocKey =
+            deVal + " " + cocKeyOrderByDe.get(deVal).stream().map(co::get).collect(joining(" "));
+        cocVal = cocByKey.get(cocKey);
+      }
+      if (cocVal == null) throw new BadRequestException(ErrorCode.E7829, i, dv);
+      String cocUID = cocOf.apply(cocVal);
+      if (cocUID == null) throw new BadRequestException(ErrorCode.E7823, i, cocVal);
+      UID coc = decodeUID(cocUID);
+      if (coc == null) throw new BadRequestException(ErrorCode.E7824, i, cocUID);
+      String aocVal = dv.attributeOptionCombo();
       if (aocVal == null) aocVal = aocGroup;
-      String aocStr = aocOf.apply(aocVal);
-      if (aocStr == null && aocVal != null)
+      String aocUID = aocOf.apply(aocVal);
+      if (aocUID == null && aocVal != null)
         throw new BadRequestException(ErrorCode.E7825, i, aocVal);
-      UID aoc = decodeUID(aocStr);
-      if (aoc == null && aocStr != null) throw new BadRequestException(ErrorCode.E7826, i, aocStr);
+      UID aoc = decodeUID(aocUID);
+      if (aoc == null && aocUID != null) throw new BadRequestException(ErrorCode.E7826, i, aocUID);
 
       decoded.add(
           new DataEntryValue(
-              i++, de, ou, coc, aoc, pe, e.value(), e.comment(), e.followUp(), null));
+              i++, de, ou, coc, aoc, pe, dv.value(), dv.comment(), dv.followUp(), null));
     }
     return new DataEntryGroup(ds, decoded);
   }

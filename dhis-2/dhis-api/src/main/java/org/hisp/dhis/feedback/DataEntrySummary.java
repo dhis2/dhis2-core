@@ -61,7 +61,7 @@ public record DataEntrySummary(
       @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 
   public int ignored() {
-    return attempted - succeeded;
+    return (attempted - succeeded) + errors.size();
   }
 
   public DataEntrySummary add(DataEntrySummary other) {
@@ -84,8 +84,8 @@ public record DataEntrySummary(
       summary.addConflict(toConflict(error));
     }
     ImportStatus status = ImportStatus.SUCCESS;
-    if (ignored > 0) status = ImportStatus.WARNING;
     if (!errors.isEmpty()) status = ImportStatus.ERROR;
+    if (succeeded > 0) status = ImportStatus.WARNING;
     summary.setStatus(status);
     return summary;
   }

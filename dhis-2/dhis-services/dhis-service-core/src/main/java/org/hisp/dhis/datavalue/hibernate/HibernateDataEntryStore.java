@@ -113,8 +113,12 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, String> getXIdToUid(
-      ObjectType type, IdProperty idsProperty, Stream<String> identifiers) {
+  public Map<String, String> getIdMapping(
+      @Nonnull ObjectType type,
+      @Nonnull IdProperty idsProperty,
+      @Nonnull Stream<String> identifiers) {
+    String[] ids = identifiers.distinct().toArray(String[]::new);
+    if (ids.length == 0) return Map.of();
     @Language("sql")
     String sqlTemplate =
         """
@@ -124,26 +128,40 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       """;
     String tableName =
         switch (type) {
-          case DS -> "datset";
+          case DS -> "dataset";
           case DE -> "dataelement";
           case OU -> "organisationunit";
           case COC -> "categoryoptioncombo";
         };
     String sql =
         replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", idsProperty)));
-    String[] ids = identifiers.distinct().toArray(String[]::new);
     return listAsStringsMap(sql, q -> q.setParameter("ids", ids));
   }
 
   @Override
-  public Map<String, String> getAocByOptionsKey(
-      UID dataSet, IdProperty categoryOptions, IdProperty categories) {
+  public List<String> getDataSetAocCategories(
+      @Nonnull UID dataSet, @Nonnull IdProperty categories) {
+    @Language("SQL")
+    String sqlTemplate =
+        """
+      SELECT ${c_id} AS sort_name
+      FROM dataset ds
+      JOIN categorycombos_categories cc_c ON ds.categorycomboid = cc_c.categorycomboid
+      JOIN category c ON cc_c.categoryid = c.categoryid
+      ORDER BY sort_name
+      """;
+    String sql = replace(sqlTemplate, Map.of("c_id", columnName("c", categories)));
+    return listAsStrings(sql, q -> q.setParameter("ds", dataSet.getValue()));
+  }
+
+  @Override
+  public Map<String, String> getDataSetAocIdMapping(
+      @Nonnull UID dataSet, @Nonnull IdProperty categories, @Nonnull IdProperty attributeOptions) {
     @Language("SQL")
     String sqlTemplate =
         """
         WITH aoc_category_options AS (
             SELECT
-                c.categoryid,
                 ${c_id} AS sort_name,
                 co.categoryoptionid,
                 ${co_id} AS key_seg
@@ -163,15 +181,94 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         GROUP BY coc.uid;
         """;
     Map<String, String> vars =
-        Map.of("co_id", columnName("co", categoryOptions), "c_id", columnName("c", categories));
+        Map.of("co_id", columnName("co", attributeOptions), "c_id", columnName("c", categories));
     String sql = replace(sqlTemplate, vars);
     return listAsStringsMap(sql, q -> q.setParameter("ds", dataSet.getValue()));
   }
 
-  public Map<String, String> getCocByOptionsKey(
-      UID dataSet, IdProperty categoryOptions, Stream<UID> dataElements) {
+  @Override
+  public Map<String, List<String>> getDataElementCocCategories(
+      UID dataSet, IdProperty categories, IdProperty dataElements, Stream<String> dataElementIds) {
+    @Language("SQL")
+    String sqlTemplate =
+        """
+      -- effective data-element view
+      WITH data_elements AS (
+          SELECT ${de_id} AS de_id, coalesce(dse.categorycomboid, de.categorycomboid) AS categorycomboid
+          FROM dataset ds
+          JOIN datasetelement dse ON ds.datasetid = dse.datasetid
+          JOIN dataelement de ON dse.dataelementid = de.dataelementid
+          JOIN unnest(:de) AS dex(id) ON ${de_id} = dex.id
+          WHERE ds.uid = :ds
+      ),
+      data_element_categories AS (
+        SELECT de.de_id, ${c_id} as c_id
+        FROM data_elements de
+        JOIN categorycombos_categories cc_c ON de.categorycomboid = cc_c.categorycomboid
+        JOIN category c ON cc_c.categoryid = c.categoryid
+      )
+      SELECT de_c.de_id, array_agg(de_c.c_id ORDER BY de_c.c_id)
+      FROM data_element_categories de_c
+      GROUP BY de_c.de_id
+      """;
+    Map<String, String> vars =
+        Map.ofEntries(
+            Map.entry("c_id", columnName("c", categories)),
+            Map.entry("de_id", columnName("de", dataElements)));
+    String sql = replace(sqlTemplate, vars);
+    String[] de = dataElementIds.distinct().toArray(String[]::new);
+    return listAsStringsMapOfList(
+        sql, q -> q.setParameter("ds", dataSet.getValue()).setParameter("de", de));
+  }
 
-    return null;
+  @Override
+  public Map<String, String> getDataElementCocIdMapping(
+      @Nonnull UID dataSet,
+      @Nonnull IdProperty categories,
+      @Nonnull IdProperty categoryOptions,
+      @Nonnull IdProperty dataElements,
+      @Nonnull Stream<String> dataElementIds) {
+    @Language("SQL")
+    String sqlTemplate =
+        """
+      -- effective data-element view
+        WITH data_elements AS (
+          SELECT ${de_id} AS de_id, coalesce(dse.categorycomboid, de.categorycomboid) AS categorycomboid
+          FROM dataset ds
+          JOIN datasetelement dse ON ds.datasetid = dse.datasetid
+          JOIN dataelement de ON dse.dataelementid = de.dataelementid
+          JOIN unnest(:de) AS dex(id) ON ${de_id} = dex.id
+          WHERE ds.uid = :ds
+        ),
+        coc_category_options AS (
+            SELECT
+                de_cc.de_id,
+                ${c_id} AS sort_name,
+                co.categoryoptionid,
+                ${co_id} AS key_seg
+            FROM data_elements de_cc
+            JOIN categorycombos_categories cc_c ON de_cc.categorycomboid = cc_c.categorycomboid
+            JOIN category c ON cc_c.categoryid = c.categoryid
+            JOIN categories_categoryoptions c_co ON c.categoryid = c_co.categoryid
+            JOIN categoryoption co ON c_co.categoryoptionid = co.categoryoptionid
+        )
+        SELECT
+            concat(co.de_id, ' ', string_agg(co.key_seg, ' ' ORDER BY co.sort_name)) AS key,
+            coc.uid
+        FROM coc_category_options co
+        JOIN categoryoptioncombos_categoryoptions coc_co ON co.categoryoptionid = coc_co.categoryoptionid
+        JOIN categoryoptioncombo coc ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+        GROUP BY co.de_id, coc.uid;
+        """;
+    Map<String, String> vars =
+        Map.ofEntries(
+            Map.entry("de_id", columnName("de", dataElements)),
+            Map.entry("co_id", columnName("co", categoryOptions)),
+            Map.entry("c_id", columnName("c", categories)));
+    String sql = replace(sqlTemplate, vars);
+    String[] de = dataElementIds.distinct().toArray(String[]::new);
+    return listAsStringsMap(
+        sql, q -> q.setParameter("ds", dataSet.getValue()).setParameter("de", de));
   }
 
   @Override
@@ -262,7 +359,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           SELECT m.categoryoptioncomboid
           FROM categorycombos_optioncombos m
           WHERE m.categorycomboid = (
-              SELECT COALESCE(dse.categorycomboid, de.categorycomboid)
+              SELECT coalesce(dse.categorycomboid, de.categorycomboid)
               FROM datasetelement dse
               JOIN dataelement de ON de.dataelementid = dse.dataelementid
               JOIN dataset ds ON ds.datasetid = dse.datasetid
@@ -338,8 +435,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         """
         SELECT
             de.uid,
-            COALESCE(
-                ARRAY_AGG(ds.uid ORDER BY ds.created DESC) FILTER (WHERE ds.uid IS NOT NULL),
+            coalesce(
+                array_agg(ds.uid ORDER BY ds.created DESC) FILTER (WHERE ds.uid IS NOT NULL),
                 '{}'
             ) AS dataset_uids
         FROM dataelement de
@@ -373,7 +470,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public Map<String, Set<String>> getOptionsByDataElements(Stream<UID> dataElements) {
     String sql =
         """
-      SELECT de.uid, ARRAY_AGG(ov.code)
+      SELECT de.uid, array_agg(ov.code)
       FROM dataelement de
       JOIN optionvalue ov ON de.optionsetid = ov.optionsetid
       WHERE de.uid IN (:de)
@@ -386,7 +483,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public Map<String, Set<String>> getCommentOptionsByDataElements(Stream<UID> dataElements) {
     String sql =
         """
-      SELECT de.uid, ARRAY_AGG(ov.code)
+      SELECT de.uid, array_agg(ov.code)
       FROM dataelement de
       JOIN optionvalue ov ON de.commentoptionsetid = ov.optionsetid
       WHERE de.uid IN (:de)
@@ -743,10 +840,24 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   @Nonnull
   private Map<String, Set<String>> listAsStringsMapOfSet(
       @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
+    return listAsStringsMapOfArray(sql, setParameters, Set::of);
+  }
+
+  @Nonnull
+  private Map<String, List<String>> listAsStringsMapOfList(
+      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
+    return listAsStringsMapOfArray(sql, setParameters, List::of);
+  }
+
+  @Nonnull
+  private <C> Map<String, C> listAsStringsMapOfArray(
+      @Language("sql") String sql,
+      UnaryOperator<NativeQuery<?>> setParameters,
+      Function<String[], C> f) {
     NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
     @SuppressWarnings("unchecked")
     Stream<Object[]> results = (Stream<Object[]>) query.stream();
-    return results.collect(toMap(row -> (String) row[0], row -> Set.of((String[]) row[1])));
+    return results.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
   }
 
   @Nonnull

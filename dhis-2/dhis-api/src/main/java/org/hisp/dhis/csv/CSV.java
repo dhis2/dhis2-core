@@ -65,7 +65,8 @@ import org.intellij.lang.annotations.Language;
  *
  * <p>This assumes all properties of the constructed POJOs are simple in nature.
  *
- * <p>Required properties either use a primitive type or are annotated with {@link Nonnull}.
+ * <p>Required properties either use a primitive type or are annotated with {@link Nonnull} or
+ * {@link org.hisp.dhis.common.OpenApi.Required}.
  *
  * @author Jan Bernitt
  * @since 2.43
@@ -124,6 +125,9 @@ public final class CSV {
     addDeserializer(Boolean.class, Boolean::parseBoolean);
     addDeserializer(boolean.class, Boolean::parseBoolean);
     addDeserializer(UID.class, UID::of);
+    // TODO maybe also support that when a map is found it can be marked as target to gobble up all
+    // column values that are not mapped otherwise?
+    // could that be used for the C=CO thing?
     addDeserializer(
         Map.class,
         map ->
