@@ -736,7 +736,10 @@ public class DefaultUserService implements UserService {
   private void checkIsInOrgUnitHierarchy(
       Set<OrganisationUnit> organisationUnits, UserDetails currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = currentUser.isInUserHierarchy(orgUnit.getPath());
+      // We have to fetch the org unit in order to get the full path
+      OrganisationUnit fetchedOrgUnit =
+          organisationUnitService.getOrganisationUnit(orgUnit.getUid());
+      boolean inUserHierarchy = fetchedOrgUnit.isDescendant(currentUser.getUserOrgUnitIds());
       if (!inUserHierarchy) {
         errors.add(
             new ErrorReport(

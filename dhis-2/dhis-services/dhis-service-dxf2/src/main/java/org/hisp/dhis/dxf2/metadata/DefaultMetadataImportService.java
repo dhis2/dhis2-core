@@ -212,8 +212,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
   public ObjectBundleParams toObjectBundleParams(MetadataImportParams importParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    // TODO: MAS: Refactor to use userDetails
-
     ObjectBundleParams params = new ObjectBundleParams();
     params.setUserOverrideMode(importParams.getUserOverrideMode());
     params.setSkipSharing(importParams.isSkipSharing());
