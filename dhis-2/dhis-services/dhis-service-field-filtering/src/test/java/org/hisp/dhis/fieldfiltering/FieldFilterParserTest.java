@@ -196,6 +196,8 @@ class FieldFilterParserTest {
     //    }
   }
 
+  // TODO(ivo): this is a bug IMHO opening a group without a field http://localhost:8080/api/organisationUnits?pageSize=1&fields=[id]
+  // I get empty objects
   // TODO(ivo) this is a bug IMHO as it leads to an HTTP 500 instead of 400
   @Test
   void failsOnClosingMoreBrackets() {
