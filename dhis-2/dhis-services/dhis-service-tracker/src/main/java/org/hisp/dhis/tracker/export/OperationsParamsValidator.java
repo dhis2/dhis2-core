@@ -33,10 +33,15 @@ import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -46,6 +51,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
@@ -253,5 +259,23 @@ public class OperationsParamsValidator {
     }
 
     return orgUnits;
+  }
+
+  public static void validateAttributeOperators(
+      Entry<UID, List<QueryFilter>> attributeFilter, TrackedEntityAttribute tea)
+      throws BadRequestException {
+    Set<QueryOperator> blockedUsedOperators =
+        attributeFilter.getValue().stream()
+            .map(QueryFilter::getOperator)
+            .map(QueryOperator::mapToTrackerQueryOperator)
+            .filter(op -> tea.getBlockedSearchOperators().contains(op))
+            .collect(Collectors.toSet());
+
+    if (!blockedUsedOperators.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "Operators %s are blocked for attribute '%s'.",
+              blockedUsedOperators, attributeFilter.getKey()));
+    }
   }
 }

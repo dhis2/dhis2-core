@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.ArrayList;
@@ -41,13 +42,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -202,19 +201,7 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
-      Set<QueryOperator> blockedUsedOperators =
-          attributeFilter.getValue().stream()
-              .map(QueryFilter::getOperator)
-              .map(QueryOperator::mapToTrackerQueryOperator)
-              .filter(op -> tea.getBlockedSearchOperators().contains(op))
-              .collect(Collectors.toSet());
-
-      if (!blockedUsedOperators.isEmpty()) {
-        throw new BadRequestException(
-            String.format(
-                "Operators %s are blocked for attribute '%s'.",
-                blockedUsedOperators, attributeFilter.getKey()));
-      }
+      validateAttributeOperators(attributeFilter, tea);
 
       List<QueryFilter> binaryFilters =
           attributeFilter.getValue().stream().filter(qf -> qf.getOperator().isBinary()).toList();

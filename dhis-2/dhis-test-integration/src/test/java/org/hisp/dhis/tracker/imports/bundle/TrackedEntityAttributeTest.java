@@ -185,7 +185,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetBlockedOperatorsFromImportOrAllowAllIfNotSpecified() {
+  void shouldSetBlockedOperatorsFromImportOrEmptyListIfNotSpecified() {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 

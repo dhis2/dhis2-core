@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -106,7 +106,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private QueryOperator preferredSearchOperator;
 
-  private Set<QueryOperator> blockedSearchOperators = new HashSet<>();
+  private Set<QueryOperator> blockedSearchOperators = EnumSet.noneOf(QueryOperator.class);
 
   // -------------------------------------------------------------------------
   // Constructors
