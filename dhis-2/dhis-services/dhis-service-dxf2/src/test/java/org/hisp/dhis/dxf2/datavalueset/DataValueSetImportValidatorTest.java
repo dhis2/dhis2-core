@@ -295,7 +295,7 @@ class DataValueSetImportValidatorTest {
     DataValueContext valueContext = createDataValueContext(dataValue).build();
     DataSetContext dataSetContext = createMinimalDataSetContext().build();
     ImportContext context =
-        createMinimalImportContext(valueContext).currentOrgUnits(emptySet()).build();
+        createMinimalImportContext(valueContext).currentOrgUnitUids(emptySet()).build();
     assertTrue(validator.skipDataValue(dataValue, context, dataSetContext, valueContext));
     String currentUserId = context.getCurrentUser().getUid();
     assertConflict(
@@ -852,7 +852,7 @@ class DataValueSetImportValidatorTest {
         .importOptions(new ImportOptions())
         .currentUser(currentUser)
         .i18n(i18n)
-        .currentOrgUnits(valueContext == null ? null : singleton(valueContext.getOrgUnit()))
+        .currentOrgUnitUids(valueContext == null ? null : singleton(valueContext.getOrgUnit()))
         .singularNameForType(DataValueSetImportValidatorTest::getSingularNameForType);
   }
 

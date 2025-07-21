@@ -233,7 +233,7 @@ class JdbcTrackerEventStore {
   }
 
   private List<Event> fetchEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, Event> eventsByUid;
@@ -499,7 +499,7 @@ class JdbcTrackerEventStore {
   }
 
   private long getEventCount(TrackerEventQueryParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, params);
 
     String sql;
@@ -540,7 +540,7 @@ class JdbcTrackerEventStore {
       TrackerEventQueryParams queryParams,
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
-      User user) {
+      UserDetails user) {
     StringBuilder sqlBuilder = new StringBuilder("select *");
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
@@ -640,7 +640,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getEventSelectQuery(
-      TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      TrackerEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource,
+      UserDetails user) {
     SqlHelper hlp = new SqlHelper(true);
 
     StringBuilder selectBuilder =
@@ -768,7 +770,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private StringBuilder getFromWhereClause(
       TrackerEventQueryParams params,
       MapSqlParameterSource sqlParameters,
-      User user,
+      UserDetails user,
       SqlHelper hlp) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
@@ -1099,7 +1101,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *   <li>A user must have access to all COs of the events COC to have access to an event.
    * </ul>
    */
-  private String getCategoryOptionComboQuery(User user) {
+  private String getCategoryOptionComboQuery(UserDetails user) {
     String joinCondition =
 """
  inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,\
@@ -1123,7 +1125,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
+                  "co.sharing", user, AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 
@@ -1170,7 +1172,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private boolean isNotSuperUser(User user) {
+  private boolean isNotSuperUser(UserDetails user) {
     return user != null && !user.isSuper();
   }
 
@@ -1184,7 +1186,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private void setAccessiblePrograms(User user, TrackerEventQueryParams params) {
+  private void setAccessiblePrograms(UserDetails user, TrackerEventQueryParams params) {
     if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));

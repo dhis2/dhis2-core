@@ -446,9 +446,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       MetadataCaches mdCaches,
       BatchHandler<CompleteDataSetRegistration> batchHandler) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    //    User currentUser = userService.createUserDetails()
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     final String currentUserName = currentUser.getUsername();
-    final Set<OrganisationUnit> userOrgUnits = currentUser.getOrganisationUnits();
     final I18n i18n = i18nManager.getI18n();
 
     batchHandler.init();
@@ -482,7 +482,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         // Validate CDSR meta-data properties
 
         mdProps.validate(cdsr, config);
-        validateOrgUnitInUserHierarchy(mdCaches, mdProps, userOrgUnits, currentUserName);
+        validateOrgUnitInUserHierarchy(
+            mdCaches, mdProps, currentUser.getUserOrgUnitIds(), currentUserName);
 
         // Constraints validation
 
@@ -660,24 +661,22 @@ public class DefaultCompleteDataSetRegistrationExchangeService
    * @param user currently logged-in user
    * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
    */
-  private List<String> validateDataAccess(User user, MetadataProperties metaDataProperties) {
-    List<String> errors =
-        accessManager.canWrite(UserDetails.fromUser(user), metaDataProperties.dataSet);
-    errors.addAll(
-        accessManager.canWrite(UserDetails.fromUser(user), metaDataProperties.attrOptCombo));
+  private List<String> validateDataAccess(UserDetails user, MetadataProperties metaDataProperties) {
+    List<String> errors = accessManager.canWrite(user, metaDataProperties.dataSet);
+    errors.addAll(accessManager.canWrite(user, metaDataProperties.attrOptCombo));
     return errors;
   }
 
   private void validateOrgUnitInUserHierarchy(
       MetadataCaches mdCaches,
       MetadataProperties mdProps,
-      final Set<OrganisationUnit> userOrgUnits,
+      final Set<String> userOrgUnitUids,
       String currentUsername)
       throws ImportConflictException {
     boolean inUserHierarchy =
         mdCaches
             .getOrgUnitInHierarchyMap()
-            .get(mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant(userOrgUnits));
+            .get(mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant(userOrgUnitUids));
 
     if (!inUserHierarchy) {
       throw new ImportConflictException(

@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.user.DefaultUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserStore;
@@ -85,6 +86,7 @@ public class Dhis2JwtAuthenticationManagerResolver
 
   @Autowired private UserStore userStore;
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
+  @Autowired private DefaultUserService userService;
 
   private final Map<String, AuthenticationManager> authenticationManagers =
       new ConcurrentHashMap<>();
@@ -172,7 +174,7 @@ public class Dhis2JwtAuthenticationManagerResolver
                 mappingClaimKey, mappingValue));
       }
 
-      UserDetails currentUserDetails = UserDetails.fromUser(user);
+      UserDetails currentUserDetails = userService.createUserDetails(user);
       Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 
       return new DhisJwtAuthenticationToken(

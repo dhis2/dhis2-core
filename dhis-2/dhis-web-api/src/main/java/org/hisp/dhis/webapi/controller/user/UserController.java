@@ -111,7 +111,6 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -303,8 +302,8 @@ public class UserController
     }
   }
 
-  private @NotNull ResponseEntity<ObjectNode> getDataApprovalWorkflows(
-      String pvUid, UserDetails currentUser) throws NotFoundException, ForbiddenException {
+  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(String pvUid, UserDetails currentUser)
+      throws NotFoundException, ForbiddenException {
     User user = userService.getUser(pvUid);
     if (user == null) {
       throw new NotFoundException("User not found: " + pvUid);
