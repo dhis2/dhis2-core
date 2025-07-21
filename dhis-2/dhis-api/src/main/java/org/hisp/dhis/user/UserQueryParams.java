@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,7 +56,7 @@ public class UserQueryParams {
   @ToString.Include private String phoneNumber;
 
   /** The current user in the context of the user query. */
-  private UserDetails userDetails;
+  @CheckForNull private UserDetails userDetails;
 
   @ToString.Include private boolean canManage;
 
@@ -151,7 +152,7 @@ public class UserQueryParams {
     return !userGroups.isEmpty();
   }
 
-  public boolean hasUser() {
+  public boolean hasUserDetails() {
     return userDetails != null;
   }
 }

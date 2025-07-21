@@ -125,6 +125,7 @@ public class DefaultPreheatService implements PreheatService {
     if (preheat.getUserDetails() == null) {
       preheat.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
+
     User user = userService.getUser(preheat.getUserDetails().getUid());
     preheat.put(PreheatIdentifier.UID, user);
     preheat.put(PreheatIdentifier.CODE, user);

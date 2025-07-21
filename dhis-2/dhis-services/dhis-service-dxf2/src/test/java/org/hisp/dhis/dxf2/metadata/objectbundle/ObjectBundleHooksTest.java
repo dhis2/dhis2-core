@@ -62,7 +62,7 @@ class ObjectBundleHooksTest {
   private final ObjectBundleHooks hooks =
       new ObjectBundleHooks(
           asList(
-              new OrganisationUnitObjectBundleHook(null, null),
+              new OrganisationUnitObjectBundleHook(null, null, null),
               new UserObjectBundleHook(null, null, null, null, null),
               new IdentifiableObjectBundleHook(null),
               new VersionedObjectObjectBundleHook(),
