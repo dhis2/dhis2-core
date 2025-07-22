@@ -47,7 +47,6 @@ import org.hisp.dhis.schema.annotation.Property;
  */
 @Getter
 @Setter
-@Builder(toBuilder = true)
 @JacksonXmlRootElement(localName = "apiToken", namespace = DxfNamespaces.DXF_2_0)
 public class ApiToken extends BaseIdentifiableObject implements MetadataObject {
   public ApiToken() {}
@@ -84,6 +83,22 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private List<ApiTokenAttribute> attributes = new ArrayList<>();
+
+  @Builder
+  public ApiToken(
+      String key,
+      Integer version,
+      ApiTokenType type,
+      Long expire,
+      List<ApiTokenAttribute> attributes,
+      String code) {
+    this.key = key;
+    this.version = version;
+    this.type = type;
+    this.expire = expire;
+    this.attributes = attributes;
+    this.code = code;
+  }
 
   private ApiTokenAttribute findApiTokenAttribute(
       Class<? extends ApiTokenAttribute> attributeClass) {

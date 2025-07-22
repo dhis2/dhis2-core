@@ -74,14 +74,6 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     super.setup();
   }
 
-  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
-    ApiKeyTokenGenerator.TokenWrapper wrapper =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
-    apiTokenService.save(wrapper.getApiToken());
-    return wrapper;
-  }
-
   @Test
   void testInvalidKeyTypeNotResolvable() {
     String errorMessage =
@@ -245,5 +237,13 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     assertEquals(
         "The API token does not exists",
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
+
+  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
+    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    ApiKeyTokenGenerator.TokenWrapper wrapper =
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
+    apiTokenService.save(wrapper.getApiToken());
+    return wrapper;
   }
 }

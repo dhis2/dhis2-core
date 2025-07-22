@@ -262,7 +262,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   void testPersonalAccessTokensIsPresent() {
     long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
     ApiKeyTokenGenerator.TokenWrapper wrapper =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
     apiTokenStore.save(wrapper.getApiToken());
 
     JsonObject response = GET("/me?fields=patTokens").content();
