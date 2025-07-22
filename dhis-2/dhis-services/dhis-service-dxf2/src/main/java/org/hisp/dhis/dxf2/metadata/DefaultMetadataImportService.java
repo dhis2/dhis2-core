@@ -32,6 +32,7 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
 
 import com.google.common.base.Enums;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
@@ -39,6 +40,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -62,6 +64,7 @@ import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,6 +81,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
   private final ObjectBundleValidationService objectBundleValidationService;
   private final UserService userService;
   private final AclService aclService;
+  private final EntityManager entityManager;
 
   @Override
   @Transactional
@@ -207,9 +211,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
   // -----------------------------------------------------------------------------------
 
   public ObjectBundleParams toObjectBundleParams(MetadataImportParams importParams) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    // TODO: MAS: Refactor to use userDetails
-
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     ObjectBundleParams params = new ObjectBundleParams();
     params.setUserOverrideMode(importParams.getUserOverrideMode());
     params.setSkipSharing(importParams.isSkipSharing());
@@ -223,14 +225,16 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setFlushMode(importParams.getFlushMode());
     params.setImportReportMode(importParams.getImportReportMode());
     params.setMetadataSyncImport(importParams.isMetadataSyncImport());
-    params.setUser(
+    params.setUserDetails(
         importParams.getUser() == null
             ? currentUser
-            : userService.getUser(importParams.getUser().getValue()));
+            : userService.createUserDetails(
+                userService.getUser(importParams.getUser().getValue())));
     params.setOverrideUser(
         importParams.getOverrideUser() == null
             ? null
-            : userService.getUser(importParams.getOverrideUser().getValue()));
+            : userService.createUserDetails(
+                userService.getUser(importParams.getOverrideUser().getValue())));
     if (params.getUserOverrideMode() == UserOverrideMode.CURRENT) {
       params.setOverrideUser(currentUser);
     }
@@ -260,7 +264,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
   }
 
   private void preCreateBundle(ObjectBundleParams params) {
-    if (params.getUser() == null) {
+    if (params.getUserDetails() == null) {
       return;
     }
 
@@ -271,14 +275,14 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
   private void preCreateBundleObject(IdentifiableObject object, ObjectBundleParams params) {
     if (StringUtils.isEmpty(object.getSharing().getPublicAccess())) {
-      aclService.resetSharing(object, params.getUser());
+      aclService.resetSharing(object, params.getUserDetails());
     }
-
-    object.setLastUpdatedBy(params.getUser());
+    Session session = entityManager.unwrap(Session.class);
+    object.setLastUpdatedBy(session.getReference(User.class, params.getUserDetails().getId()));
   }
 
   private void postCreateBundle(@CheckForNull ObjectBundle bundle, ObjectBundleParams params) {
-    if (bundle == null || bundle.getUser() == null) {
+    if (bundle == null || bundle.getUserDetails() == null) {
       return;
     }
 
