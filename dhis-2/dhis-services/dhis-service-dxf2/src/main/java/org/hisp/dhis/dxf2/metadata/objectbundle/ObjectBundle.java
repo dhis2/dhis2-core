@@ -459,6 +459,11 @@ public class ObjectBundle implements ObjectIndexProvider {
       Class<T> klass, @Nonnull IdentifiableObject existingObject) {
     List<IdentifiableObject> objects = nonPersistedObjects.get(klass);
     boolean removed = objects.remove(existingObject);
+    log.debug(
+        "{} removed: {}, from non persisted {} objects",
+        existingObject.getUid(),
+        removed,
+        klass.getSimpleName());
     if (removed && objects.isEmpty()) {
       nonPersistedObjects.remove(klass);
     }

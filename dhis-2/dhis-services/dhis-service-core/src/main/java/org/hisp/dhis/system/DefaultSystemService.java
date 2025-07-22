@@ -99,6 +99,13 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   // SystemService implementation
   // -------------------------------------------------------------------------
 
+  /**
+   * This method uses `@Transactional`. It looks like it should be marked read-only however, it has
+   * been seen that Hibernate triggers updates sometimes for this method, which can result in very
+   * vague errors. Do not mark as read-only.
+   *
+   * @return system info
+   */
   @Override
   @Transactional
   public SystemInfo getSystemInfo() {

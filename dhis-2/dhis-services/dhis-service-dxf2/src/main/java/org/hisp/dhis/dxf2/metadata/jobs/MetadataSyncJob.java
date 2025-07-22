@@ -122,7 +122,6 @@ public class MetadataSyncJob implements Job {
       MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
       retryTemplate.execute(
           retryCallback -> {
-            log.info("RETRY: Metadata Sync!");
             metadataRetryContext.setRetryContext(retryCallback);
             clearFailedVersionSettings();
             runSyncTask(metadataRetryContext, params, progress);
