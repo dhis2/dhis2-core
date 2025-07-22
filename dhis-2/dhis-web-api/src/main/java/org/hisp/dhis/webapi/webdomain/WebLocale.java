@@ -46,6 +46,8 @@ import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
 public class WebLocale {
   @JsonProperty private final String locale;
 
+  @JsonProperty private final String languageTag;
+
   @JsonProperty private final String name;
 
   @JsonProperty private final String displayName;
@@ -58,15 +60,16 @@ public class WebLocale {
    */
   public static WebLocale fromLocale(Locale locale, Locale userLocale) {
     String localeStr = LocaleParsingUtils.toUnderscoreFormat(locale);
+    String languageTag = locale.toLanguageTag();
 
     if (!locale.getScript().isEmpty()) {
       String name = buildLocaleDisplay(locale, locale);
       String displayName = buildLocaleDisplay(locale, userLocale);
-      return new WebLocale(localeStr, name, displayName);
+      return new WebLocale(localeStr, languageTag, name, displayName);
     }
 
     return new WebLocale(
-        localeStr, locale.getDisplayName(locale), locale.getDisplayName(userLocale));
+        localeStr, languageTag, locale.getDisplayName(locale), locale.getDisplayName(userLocale));
   }
 
   private static String buildLocaleDisplay(Locale target, Locale displayLocale) {
