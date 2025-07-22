@@ -105,7 +105,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken, GetObje
     }
 
     ApiKeyTokenGenerator.TokenWrapper apiTokenPair =
-        generatePersonalAccessToken(inputToken.getAttributes(), inputToken.getExpire());
+        generatePersonalAccessToken(
+            inputToken.getAttributes(), inputToken.getExpire(), inputToken.getCode());
 
     MetadataImportParams params =
         importService
