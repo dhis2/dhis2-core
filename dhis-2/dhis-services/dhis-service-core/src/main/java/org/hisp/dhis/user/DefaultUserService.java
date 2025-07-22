@@ -733,6 +733,7 @@ public class DefaultUserService implements UserService {
     return errors;
   }
 
+  // TODO: MAS. This needs refactoring, can be unnecessary expensive, can be moved to the DB
   private void checkIsInOrgUnitHierarchy(
       Set<OrganisationUnit> organisationUnits, UserDetails currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {

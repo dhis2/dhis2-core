@@ -235,9 +235,6 @@ public class TwoFactorAuthService {
         || !userService.canCurrentUserCanModify(currentUser, user, errors)) {
       throw new ForbiddenException(ErrorCode.E3021);
     }
-    if (currentUser == null) {
-      throw new NotFoundException(ErrorCode.E6201);
-    }
     reset2FA(user.getUsername(), currentUser);
   }
 

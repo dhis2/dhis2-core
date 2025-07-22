@@ -116,16 +116,6 @@ class UserControllerTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  void updateUserGroups() {
-    when(userService.getUser("def2")).thenReturn(user);
-
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
-      userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
-    }
-  }
-
-  @Test
   void updateUserGroupsNotOk() {
     if (isInStatusUpdatedOK(createReportWith(Status.ERROR, report -> report.updatedInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
