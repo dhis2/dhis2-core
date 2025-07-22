@@ -53,6 +53,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 
 /**
@@ -60,7 +61,7 @@ import org.hisp.dhis.user.UserRole;
  */
 public class Preheat {
   /** User to use for import job (important for threaded imports). */
-  private User user;
+  private UserDetails userDetails;
 
   /** Internal map of all objects mapped by identifier => class type => uid. */
   private final Map<
@@ -104,16 +105,16 @@ public class Preheat {
     }
   }
 
-  public User getUser() {
-    return user;
+  public UserDetails getUserDetails() {
+    return userDetails;
   }
 
   public String getUsername() {
-    return user != null ? user.getUsername() : "system-process";
+    return userDetails != null ? userDetails.getUsername() : "system-process";
   }
 
-  public void setUser(User user) {
-    this.user = user;
+  public void setUserDetails(UserDetails userDetails) {
+    this.userDetails = userDetails;
   }
 
   public <T extends IdentifiableObject> T get(

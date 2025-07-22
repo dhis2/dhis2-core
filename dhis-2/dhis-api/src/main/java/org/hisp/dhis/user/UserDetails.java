@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
@@ -284,6 +286,15 @@ public interface UserDetails
     if (hasAnyAuthorities(List.of(Authorities.ALL))) return true;
     if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) return false;
     return getAllAuthorities().containsAll(role.getAuthorities());
+  }
+
+  default boolean canManage(UserGroup userGroup) {
+    return userGroup != null
+        && CollectionUtils.containsAny(
+            getUserGroupIds(),
+            userGroup.getManagedByGroups().stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()));
   }
 
   default boolean isInUserHierarchy(String orgUnitPath) {

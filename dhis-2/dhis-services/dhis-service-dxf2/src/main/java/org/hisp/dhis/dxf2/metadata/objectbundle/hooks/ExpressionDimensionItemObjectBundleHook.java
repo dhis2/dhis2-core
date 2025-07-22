@@ -73,12 +73,12 @@ public class ExpressionDimensionItemObjectBundleHook
       Consumer<ErrorReport> addReports) {
     PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-    if (!aclService.canRead(bundle.getUser(), expressionDimensionItem)) {
+    if (!aclService.canRead(bundle.getUserDetails(), expressionDimensionItem)) {
       addReports.accept(
           new ErrorReport(
               ExpressionDimensionItem.class,
               ErrorCode.E3012,
-              identifier.getIdentifiersWithName(bundle.getUser()),
+              identifier.getIdentifiersWithName(bundle.getUserDetails()),
               identifier.getIdentifiersWithName(expressionDimensionItem)));
     }
   }

@@ -87,12 +87,12 @@ public class SecurityCheck implements ObjectValidationCheck {
 
     for (T object : objects) {
       if (importMode.isCreate()) {
-        if (!ctx.getAclService().canCreate(bundle.getUser(), klass)) {
+        if (!ctx.getAclService().canCreate(bundle.getUserDetails(), klass)) {
           ErrorReport errorReport =
               new ErrorReport(
                   klass,
                   ErrorCode.E3000,
-                  identifier.getIdentifiersWithName(bundle.getUser()),
+                  identifier.getIdentifiersWithName(bundle.getUserDetails()),
                   identifier.getIdentifiersWithName(object));
 
           addReports.accept(createObjectReport(errorReport, object, bundle));
@@ -103,12 +103,12 @@ public class SecurityCheck implements ObjectValidationCheck {
         T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
 
         if (importMode.isUpdate()) {
-          if (!ctx.getAclService().canUpdate(bundle.getUser(), persistedObject)) {
+          if (!ctx.getAclService().canUpdate(bundle.getUserDetails(), persistedObject)) {
             ErrorReport errorReport =
                 new ErrorReport(
                     klass,
                     ErrorCode.E3001,
-                    identifier.getIdentifiersWithName(bundle.getUser()),
+                    identifier.getIdentifiersWithName(bundle.getUserDetails()),
                     identifier.getIdentifiersWithName(object));
 
             addReports.accept(createObjectReport(errorReport, object, bundle));
@@ -116,12 +116,12 @@ public class SecurityCheck implements ObjectValidationCheck {
             continue;
           }
         } else if (importMode.isDelete()
-            && !ctx.getAclService().canDelete(bundle.getUser(), persistedObject)) {
+            && !ctx.getAclService().canDelete(bundle.getUserDetails(), persistedObject)) {
           ErrorReport errorReport =
               new ErrorReport(
                   klass,
                   ErrorCode.E3002,
-                  identifier.getIdentifiersWithName(bundle.getUser()),
+                  identifier.getIdentifiersWithName(bundle.getUserDetails()),
                   identifier.getIdentifiersWithName(object));
 
           addReports.accept(createObjectReport(errorReport, object, bundle));
@@ -133,7 +133,7 @@ public class SecurityCheck implements ObjectValidationCheck {
       if (object instanceof User) {
         User user = (User) object;
         List<ErrorReport> errorReports =
-            ctx.getUserService().validateUserCreateOrUpdateAccess(user, bundle.getUser());
+            ctx.getUserService().validateUserCreateOrUpdateAccess(user, bundle.getUserDetails());
 
         if (!errorReports.isEmpty()) {
           addReports.accept(createObjectReport(errorReports, object, bundle));
@@ -144,7 +144,7 @@ public class SecurityCheck implements ObjectValidationCheck {
       if (object instanceof UserRole) {
         UserRole userRole = (UserRole) object;
         List<ErrorReport> errorReports =
-            ctx.getUserService().validateUserRoleCreateOrUpdate(userRole, bundle.getUser());
+            ctx.getUserService().validateUserRoleCreateOrUpdate(userRole, bundle.getUserDetails());
 
         if (!errorReports.isEmpty()) {
           addReports.accept(createObjectReport(errorReports, object, bundle));
@@ -154,7 +154,7 @@ public class SecurityCheck implements ObjectValidationCheck {
 
       if (!bundle.isSkipSharing()) {
         List<ErrorReport> sharingErrorReports =
-            ctx.getAclService().verifySharing(object, bundle.getUser());
+            ctx.getAclService().verifySharing(object, bundle.getUserDetails());
         if (!sharingErrorReports.isEmpty()) {
           addReports.accept(createObjectReport(sharingErrorReports, object, bundle));
           ctx.markForRemoval(object);
