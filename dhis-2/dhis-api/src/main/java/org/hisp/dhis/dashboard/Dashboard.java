@@ -39,6 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Cacheable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -48,6 +49,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -132,6 +134,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
               foreignKey = @ForeignKey(name = "fk_dashboard_items_dashboarditemid")))
   @OrderColumn(name = "sort_order")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   private List<DashboardItem> items = new ArrayList<>();
 
   @Type(type = "jblDashboardLayout")
