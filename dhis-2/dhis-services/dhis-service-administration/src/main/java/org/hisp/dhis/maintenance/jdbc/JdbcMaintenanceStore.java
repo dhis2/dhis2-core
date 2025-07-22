@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+// TODO(DHIS2-19702): Delete single events
 public class JdbcMaintenanceStore implements MaintenanceStore {
   private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject>
       ENTITY_MAPPER =

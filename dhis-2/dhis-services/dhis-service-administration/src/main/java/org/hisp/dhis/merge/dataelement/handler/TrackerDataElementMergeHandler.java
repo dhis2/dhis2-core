@@ -221,6 +221,7 @@ public class TrackerDataElementMergeHandler {
     Set<UID> sourceDeUids = UID.of(sources.toArray(new DataElement[0]));
     DataMergeStrategy mergeStrategy = request.getDataMergeStrategy();
 
+    // TODO(DHIS2-19702): Should we consider single events
     if (DataMergeStrategy.DISCARD == mergeStrategy) {
       log.info(mergeStrategy + " dataMergeStrategy being used, deleting source event data values");
       eventStore.deleteEventDataValuesWithDataElement(sourceDeUids);

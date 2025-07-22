@@ -47,7 +47,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.statistics.StatisticsProvider;
@@ -238,23 +237,16 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     dataValueCount.put(30, dataValueService.getDataValueCount(30));
     statistics.setDataValueCount(dataValueCount);
 
+    // TODO(DHIS2-19702): Should we consider single events?
     Map<Integer, Long> eventCount = new HashMap<>();
     eventCount.put(
-        0,
-        (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(0))
-            + (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(0)));
+        0, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(0)));
     eventCount.put(
-        1,
-        (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(1))
-            + (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(1)));
+        1, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(1)));
     eventCount.put(
-        7,
-        (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(7))
-            + (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(7)));
+        7, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(7)));
     eventCount.put(
-        30,
-        (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(30))
-            + (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(30)));
+        30, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(30)));
     statistics.setEventCount(eventCount);
 
     Map<Integer, Long> enrollmentCount = new HashMap<>();

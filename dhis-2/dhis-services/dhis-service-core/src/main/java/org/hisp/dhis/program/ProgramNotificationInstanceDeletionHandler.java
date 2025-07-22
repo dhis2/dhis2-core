@@ -53,6 +53,7 @@ public class ProgramNotificationInstanceDeletionHandler
   protected void registerHandler() {
     whenVetoing(Enrollment.class, this::allowDeleteEnrollment);
     whenVetoing(TrackerEvent.class, this::allowDeleteEvent);
+    // TODO(DHIS2-19702): Consider single events
   }
 
   private DeletionVeto allowDeleteEnrollment(Enrollment enrollment) {

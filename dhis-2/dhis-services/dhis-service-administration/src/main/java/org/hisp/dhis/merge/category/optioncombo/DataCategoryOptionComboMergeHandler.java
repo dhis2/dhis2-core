@@ -182,7 +182,7 @@ public class DataCategoryOptionComboMergeHandler {
           "delete from event where attributeoptioncomboid in (%s)".formatted(aocIds));
     } else {
       log.info("Merging source events as dataMergeStrategy is LAST_UPDATED");
-
+      // TODO(DHIS2-19702): Should we consider single events?
       eventStore.setAttributeOptionCombo(
           sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
           target.getId());

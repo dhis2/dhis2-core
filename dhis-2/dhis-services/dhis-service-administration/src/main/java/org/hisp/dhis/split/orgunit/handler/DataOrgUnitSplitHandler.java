@@ -64,6 +64,7 @@ public class DataOrgUnitSplitHandler {
     migrate(request, "ProgramMessage", "recipients." + PARAM_ORG_UNIT);
     migrate(request, "TrackerEvent", PARAM_ORG_UNIT);
     migrate(request, "Enrollment", PARAM_ORG_UNIT);
+    // TODO(DHIS2-19702): should we consider single events?
     migrate(request, "ProgramOwnershipHistory", PARAM_ORG_UNIT);
     migrate(request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT);
     migrate(request, "TrackedEntity", PARAM_ORG_UNIT);
