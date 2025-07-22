@@ -139,16 +139,6 @@ public non-sealed interface UserSettings extends Settings {
     return asLocale("keyDbLocale", LocaleManager.DEFAULT_LOCALE);
   }
 
-  default String getUserUiLanguageTag() {
-    Locale locale = getUserUiLocale();
-    return locale != null ? locale.toLanguageTag() : LocaleManager.DEFAULT_LOCALE.toLanguageTag();
-  }
-
-    default String getUserDbLanguageTag() {
-        Locale locale = evalUserLocale();
-        return locale != null ? locale.toLanguageTag() : LocaleManager.DEFAULT_LOCALE.toLanguageTag();
-    }
-
   default DisplayProperty getUserAnalysisDisplayProperty() {
     return asEnum("keyAnalysisDisplayProperty", DisplayProperty.NAME);
   }

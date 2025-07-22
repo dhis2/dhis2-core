@@ -276,6 +276,13 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Nonnull
   private JsonValue asJson(String key) {
     Serializable defaultValue = getDefault(key);
+    // Special handling for proxy keys that are not stored in the DB
+    if ("keyUiLanguageTag".equals(key)) {
+      return Json.of(getUserUiLocale().toLanguageTag());
+    }
+    if ("keyDbLanguageTag".equals(key)) {
+      return Json.of(getUserDbLocale().toLanguageTag());
+    }
     if (defaultValue instanceof String s) return Json.of(asString(key, s));
     if (defaultValue instanceof Date d)
       return Json.of(ISO_DATE_TIME.format(asDate(key, d).toInstant()));
@@ -402,7 +409,26 @@ final class LazySettings implements SystemSettings, UserSettings {
         }
       }
     }
+
+    handleDefaultProxyKeys(type, defaults);
+
     return Map.copyOf(defaults);
+  }
+
+  private static void handleDefaultProxyKeys(
+      Class<? extends Settings> type, Map<String, Serializable> defaults) {
+    // Read only proxy keys
+    if (type == UserSettings.class) {
+      Serializable uiLocale = defaults.get("keyUiLocale");
+      if (uiLocale instanceof Locale uiLoc) {
+        defaults.put("keyUiLanguageTag", uiLoc.toLanguageTag());
+      }
+
+      Serializable dbLocale = defaults.get("keyDbLocale");
+      if (dbLocale instanceof Locale dbLoc) {
+        defaults.put("keyDbLanguageTag", dbLoc.toLanguageTag());
+      }
+    }
   }
 
   private static MethodHandle getDefaultMethodHandle(Method method) {
