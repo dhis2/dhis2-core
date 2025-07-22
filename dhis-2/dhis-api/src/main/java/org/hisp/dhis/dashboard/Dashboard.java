@@ -39,25 +39,24 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Cacheable;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
@@ -81,6 +80,7 @@ import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -91,6 +91,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  *
  * @author Lars Helge Overland
  */
+@Setter
 @Entity
 @Table(name = "dashboard")
 @Cacheable
@@ -110,17 +111,19 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
 
   @Column(name = "name", nullable = false, length = 230)
   private String name;
-  
-  private String description;
+
+  @Setter private String description;
 
   @JoinTable(
       name = "dashboard_items",
-      joinColumns = @JoinColumn(
-          name = "dashboardid", 
-          foreignKey = @ForeignKey(name = "fk_dashboard_items_dashboardid")),
-      inverseJoinColumns = @JoinColumn(
-          name = "dashboarditemid", 
-          foreignKey = @ForeignKey(name = "fk_dashboard_items_dashboarditemid")))
+      joinColumns =
+          @JoinColumn(
+              name = "dashboardid",
+              foreignKey = @ForeignKey(name = "fk_dashboard_items_dashboardid")),
+      inverseJoinColumns =
+          @JoinColumn(
+              name = "dashboarditemid",
+              foreignKey = @ForeignKey(name = "fk_dashboard_items_dashboarditemid")))
   @OrderColumn(name = "sort_order")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<DashboardItem> items = new ArrayList<>();
@@ -152,10 +155,15 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
 
+  @Type(type = "jbSet")
+  private Set<String> favorites = new HashSet<>();
+
   // ----------------------------------------------------------------
   // Transient properties
   // ----------------------------------------------------------------
-  private transient String href;
+  @Transient private transient String href;
+
+  @Transient private transient Access access;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -358,28 +366,42 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "favorites", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "favorite", namespace = DxfNamespaces.DXF_2_0)
   public Set<String> getFavorites() {
-    return Set.of();
+    return favorites;
   }
 
   @Override
   public boolean isFavorite() {
-    return false;
+    if (favorites == null || !CurrentUserUtil.hasCurrentUser()) {
+      return false;
+    }
+    return favorites.contains(CurrentUserUtil.getCurrentUserDetails().getUid());
   }
 
   @Override
   public boolean setAsFavorite(UserDetails user) {
-    return false;
+    if (this.favorites == null) {
+      this.favorites = new HashSet<>();
+    }
+
+    return this.favorites.add(user.getUid());
   }
 
   @Override
   public boolean removeAsFavorite(UserDetails user) {
-    return false;
+    if (this.favorites == null) {
+      return false;
+    }
+
+    return this.favorites.remove(user.getUid());
   }
 
   @Override
   public Access getAccess() {
-    return null;
+    return access;
   }
 
   @Override
@@ -497,5 +519,11 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     }
 
     sharing.setPublicAccess(access);
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
   }
 }
