@@ -30,8 +30,19 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.EW;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
+import static org.hisp.dhis.common.QueryOperator.SW;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -151,21 +162,38 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
             new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
 
     assertEquals(Status.ERROR, report.getStatus());
-    String message =
-        report.getTypeReports().stream()
-            .findFirst()
-            .flatMap(
-                typeReport ->
-                    typeReport.getObjectReports().stream()
-                        .findFirst()
-                        .flatMap(
-                            objectReport ->
-                                objectReport.getErrorReports().stream()
-                                    .findFirst()
-                                    .map(ErrorReport::getMessage)))
-            .orElseThrow();
     assertStartsWith(
-        "The provided preferred TEA operator `IEQ` is not part of the tracker operators", message);
+        "The preferred search operator `IEQ` provided for the tracked entity attribute",
+        getErrorMessage(report));
+  }
+
+  @Test
+  void shouldFailIfPreferredOperatorIsBlocked() {
+    TrackedEntityAttribute tea =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    tea.setPreferredSearchOperator(IN);
+
+    ImportReport report =
+        metadataImportService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
+
+    assertEquals(Status.ERROR, report.getStatus());
+    assertStartsWith(
+        "The preferred search operator `IN` is blocked for the selected tracked entity attribute",
+        getErrorMessage(report));
+  }
+
+  @Test
+  void shouldSetBlockedOperatorsFromImportOrEmptyListIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertBlockedOperators(
+        trackedEntityAttributes, "sTGqP5JNy6E", List.of(LE, GE, EW, IN, SW, NULL, NNULL));
+    assertBlockedOperators(
+        trackedEntityAttributes, "sYn3tkL3XKa", List.of(IN, NNULL, GT, LT, SW, LE, EW, NULL, GE));
+    assertIsEmpty(getAttribute(trackedEntityAttributes, "TsfP85GKsU5").getBlockedSearchOperators());
   }
 
   @Test
@@ -206,6 +234,36 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         expected,
         tea.getPreferredSearchOperator(),
         "Expected preferredSearchOperator for UID " + uid + " to be " + expected);
+  }
+
+  private void assertBlockedOperators(
+      List<TrackedEntityAttribute> teas, String uid, List<QueryOperator> expectedOperators) {
+    TrackedEntityAttribute tea = getAttribute(teas, uid);
+
+    assertContainsOnly(expectedOperators, tea.getBlockedSearchOperators());
+  }
+
+  private TrackedEntityAttribute getAttribute(List<TrackedEntityAttribute> teas, String uid) {
+    return teas.stream()
+        .filter(t -> t.getUid().equals(uid))
+        .findFirst()
+        .orElseThrow(
+            () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+  }
+
+  private String getErrorMessage(ImportReport report) {
+    return report.getTypeReports().stream()
+        .findFirst()
+        .flatMap(
+            typeReport ->
+                typeReport.getObjectReports().stream()
+                    .findFirst()
+                    .flatMap(
+                        objectReport ->
+                            objectReport.getErrorReports().stream()
+                                .findFirst()
+                                .map(ErrorReport::getMessage)))
+        .orElseThrow();
   }
 
   private void assertTrigramIndexableFlag(

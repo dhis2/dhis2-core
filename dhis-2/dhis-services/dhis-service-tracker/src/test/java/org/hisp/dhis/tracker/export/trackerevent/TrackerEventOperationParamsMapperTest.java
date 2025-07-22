@@ -38,7 +38,9 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.ILIKE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
@@ -523,6 +525,49 @@ class TrackerEventOperationParamsMapperTest {
     TrackerEventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenOperatorsAreNotBlocked()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
+    tea2.setUid(TEA_2_UID);
+    tea2.setValueType(ValueType.TEXT);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
+
+    TrackerEventOperationParams trackerEventOperationParams =
+        TrackerEventOperationParams.builder()
+            .filterByAttribute(
+                UID.of(TEA_2_UID),
+                List.of(
+                    new QueryFilter(LIKE, "12"),
+                    new QueryFilter(NNULL),
+                    new QueryFilter(ILIKE, "0")))
+            .build();
+
+    TrackerEventQueryParams queryParams = mapper.map(trackerEventOperationParams, user);
+    assertContainsOnly(List.of(TEA_2_UID), UID.toUidValueSet(queryParams.getAttributes().keySet()));
+  }
+
+  @Test
+  void shouldFailToMapAttributeFiltersWhenOperatorsAreBlocked() {
+    TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
+    tea2.setUid(TEA_2_UID);
+    tea2.setValueType(ValueType.TEXT);
+    tea2.setBlockedSearchOperators(Set.of(EQ));
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
+
+    TrackerEventOperationParams trackerEventOperationParams =
+        TrackerEventOperationParams.builder()
+            .filterByAttribute(
+                UID.of(TEA_2_UID), List.of(new QueryFilter(LIKE, "12"), new QueryFilter(EQ, "0")))
+            .build();
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(trackerEventOperationParams, user));
+    assertStartsWith(
+        "Operators [EQ] are blocked for attribute 'cy2oRh2sNr6'", exception.getMessage());
   }
 
   @Test

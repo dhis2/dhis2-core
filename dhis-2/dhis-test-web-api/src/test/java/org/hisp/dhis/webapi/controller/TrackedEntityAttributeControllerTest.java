@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -293,10 +294,22 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
+        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
             .content(HttpStatus.OK);
 
     assertAttributePreferredOperator(json, Set.of("LIKE"));
+  }
+
+  @Test
+  void shouldContainBlockedSearchOperatorsWhenSet() {
+    teaA.setBlockedSearchOperators(Set.of(QueryOperator.LIKE, QueryOperator.NNULL));
+    manager.update(teaA);
+
+    JsonObject json =
+        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
+            .content(HttpStatus.OK);
+
+    assertAttributeBlockedOperators(json, Set.of("LIKE", "NNULL"));
   }
 
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {
@@ -324,5 +337,19 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
             .stream()
             .map(JsonString::string)
             .collect(Collectors.toSet()));
+  }
+
+  private static void assertAttributeBlockedOperators(JsonObject actualJson, Set<String> expected) {
+    assertFalse(actualJson.isEmpty());
+
+    Set<String> actual =
+        actualJson
+            .getArray("trackedEntityAttributes")
+            .projectAsList(e -> e.asObject().getArray("blockedSearchOperators"))
+            .stream()
+            .flatMap(arr -> arr.stream().map(val -> val.as(JsonString.class).string()))
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(expected, actual);
   }
 }
