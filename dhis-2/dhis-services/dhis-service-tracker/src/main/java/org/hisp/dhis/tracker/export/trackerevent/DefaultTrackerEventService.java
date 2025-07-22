@@ -158,6 +158,11 @@ class DefaultTrackerEventService implements TrackerEventService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
+  @Override
+  public boolean exists(@Nonnull UID event) {
+    return findEvent(event).isPresent();
+  }
+
   @Nonnull
   @Override
   public Optional<Event> findEvent(@Nonnull UID event) {

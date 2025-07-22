@@ -43,16 +43,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 
-public abstract class HibernateEventChangeLogStore<T> {
+public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObject> {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
@@ -184,7 +184,7 @@ public abstract class HibernateEventChangeLogStore<T> {
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
-  public void deleteEventChangeLog(Event event) {
+  public void deleteEventChangeLog(S event) {
     String hql = String.format("delete from %s where event = :event", getTableName());
 
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();

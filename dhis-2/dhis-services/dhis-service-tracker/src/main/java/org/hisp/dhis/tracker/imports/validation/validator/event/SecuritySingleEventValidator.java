@@ -38,7 +38,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
@@ -67,7 +66,8 @@ class SecuritySingleEventValidator
     }
 
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
+    org.hisp.dhis.program.SingleEvent preheatEvent =
+        bundle.getPreheat().getSingleEvent(event.getEvent());
 
     OrganisationUnit organisationUnit =
         strategy.isUpdateOrDelete()
@@ -92,7 +92,7 @@ class SecuritySingleEventValidator
   private void checkCompletablePermission(
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event preheatEvent,
+      org.hisp.dhis.program.SingleEvent preheatEvent,
       UserDetails user) {
     if (EventStatus.COMPLETED == preheatEvent.getStatus()
         && event.getStatus() != preheatEvent.getStatus()

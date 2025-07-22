@@ -103,6 +103,7 @@ class TrackerProgramRuleBundleServiceTest extends PostgresIntegrationTestBase {
     TrackerBundle trackerBundle =
         trackerBundleService.create(new TrackerImportParams(), trackerObjects, new SystemUser());
     trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
-    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventNotifications().size());
+    assertEquals(
+        trackerBundle.getEvents().size(), trackerBundle.getTrackerEventNotifications().size());
   }
 }

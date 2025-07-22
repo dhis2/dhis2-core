@@ -60,9 +60,7 @@ class DatastoreControllerAppAdditionalNamespacesTest extends H2ControllerIntegra
     assertEquals(
         AppStatus.OK,
         appManager
-            .installApp(
-                new ClassPathResource("app/test-app-with-additional-ns.zip").getFile(),
-                "test-app-with-additional-ns.zip")
+            .installApp(new ClassPathResource("app/test-app-with-additional-ns.zip").getFile())
             .getAppState());
   }
 
