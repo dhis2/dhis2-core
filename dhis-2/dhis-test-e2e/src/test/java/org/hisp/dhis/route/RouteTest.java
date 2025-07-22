@@ -38,7 +38,7 @@ import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RouteActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class RouteTest extends ApiTest {
 
@@ -54,7 +54,7 @@ public class RouteTest extends ApiTest {
     loginActions.loginAsDefaultUser();
   }
 
-  @Disabled("Disabling this test since it uses a live service")
+  @Test
   void testRunRoute() {
     JsonObject routeJsonObject = new JsonObject();
     routeJsonObject.addProperty("name", "route-under-test");
