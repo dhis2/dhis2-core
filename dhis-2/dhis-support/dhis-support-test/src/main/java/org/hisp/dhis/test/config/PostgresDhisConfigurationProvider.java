@@ -50,7 +50,7 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
   private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
 
   private static final DockerImageName POSTGIS_IMAGE_NAME =
-      DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
+      DockerImageName.parse("imresamu/postgis").asCompatibleSubstituteFor("postgres");
   private static final String POSTGRES_DATABASE_NAME = "dhis";
   private static final String POSTGRES_USERNAME = "dhis";
   private static final String POSTGRES_PASSWORD = "dhis";

@@ -237,13 +237,14 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     addUser("B", unitB);
     User userC = addUser("C", unitC);
     addUser("D", unitD);
-    UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA).setUser(userA);
+    UserQueryParams params =
+        getDefaultParams().addOrganisationUnit(unitA).setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA), userService.getUsers(params));
     params =
         getDefaultParams()
             .addOrganisationUnit(unitA)
             .setIncludeOrgUnitChildren(true)
-            .setUser(userA);
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userC), userService.getUsers(params));
   }
 
@@ -261,13 +262,16 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     User userD = addUser("D", unitD);
     userD.getDataViewOrganisationUnits().add(unitD);
     userService.updateUser(userD);
-    UserQueryParams params = getDefaultParams().addDataViewOrganisationUnit(unitA).setUser(userA);
+    UserQueryParams params =
+        getDefaultParams()
+            .addDataViewOrganisationUnit(unitA)
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userB), userService.getUsers(params));
     params =
         getDefaultParams()
             .addDataViewOrganisationUnit(unitA)
             .setIncludeOrgUnitChildren(true)
-            .setUser(userA);
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userB, userC), userService.getUsers(params));
   }
 
@@ -285,13 +289,16 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     User userD = addUser("D", unitD);
     userD.getTeiSearchOrganisationUnits().add(unitD);
     userService.updateUser(userD);
-    UserQueryParams params = getDefaultParams().addTeiSearchOrganisationUnit(unitA).setUser(userA);
+    UserQueryParams params =
+        getDefaultParams()
+            .addTeiSearchOrganisationUnit(unitA)
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userB), userService.getUsers(params));
     params =
         getDefaultParams()
             .addTeiSearchOrganisationUnit(unitA)
             .setIncludeOrgUnitChildren(true)
-            .setUser(userA);
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(List.of(userA, userB, userC), userService.getUsers(params));
   }
 
@@ -326,15 +333,19 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     User userC = addUser("C", unitC);
     User userD = addUser("D", unitD);
     addUser("E", unitE);
-    UserQueryParams params = getDefaultParams().setUser(currentUser).setUserOrgUnits(true);
-    assertContainsOnly(List.of(currentUser, userA, userB), userService.getUsers(params));
+    UserQueryParams params =
+        getDefaultParams().setUserDetails(UserDetails.fromUser(currentUser)).setUserOrgUnits(true);
+    List<User> users1 = userService.getUsers(params);
+    assertEquals(3, users1.size());
+    assertContainsOnly(List.of(currentUser, userA, userB), users1);
     params =
         getDefaultParams()
-            .setUser(currentUser)
+            .setUserDetails(UserDetails.fromUser(currentUser))
             .setUserOrgUnits(true)
             .setIncludeOrgUnitChildren(true);
-    assertContainsOnly(
-        List.of(currentUser, userA, userB, userC, userD), userService.getUsers(params));
+    List<User> users2 = userService.getUsers(params);
+    assertEquals(5, users2.size());
+    assertContainsOnly(List.of(currentUser, userA, userB, userC, userD), users2);
   }
 
   @Test
@@ -451,7 +462,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
             });
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
-    assertEquals(asList(getAdminUser(), userA, userB, userC), allUsersA);
+    User adminUser = getAdminUser();
+    assertEquals(asList(adminUser, userA, userB, userC), allUsersA);
 
     List<User> allUsersB = userService.getUsers(params, null);
     assertEquals(asList(userB, userC, getAdminUser(), userA), allUsersB);
@@ -484,15 +496,18 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userGroupService.addUserGroup(userGroup1);
     userGroupService.addUserGroup(userGroup2);
     UserQueryParams params =
-        new UserQueryParams().setCanManage(true).setAuthSubset(true).setUser(userA);
+        new UserQueryParams()
+            .setCanManage(true)
+            .setAuthSubset(true)
+            .setUserDetails(UserDetails.fromUser(userA));
     assertContainsOnly(
         List.of(userD.getUsername(), userF.getUsername()),
         userService.getUsers(params).stream().map(User::getUsername).toList());
     assertEquals(2, userService.getUserCount(params));
-    params.setUser(userB);
+    params.setUserDetails(UserDetails.fromUser(userB));
     assertIsEmpty(userService.getUsers(params));
     assertEquals(0, userService.getUserCount(params));
-    params.setUser(userC);
+    params.setUserDetails(UserDetails.fromUser(userC));
     assertIsEmpty(userService.getUsers(params));
     assertEquals(0, userService.getUserCount(params));
   }

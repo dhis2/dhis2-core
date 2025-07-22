@@ -360,19 +360,12 @@ public class DefaultUserService implements UserService {
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
-    if (!params.hasUser()) {
-      // TODO: MAS: Refactor to use userDetails instead of User in params
-      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
-      if (!hasCurrentUser) {
-        params.setUser(null);
-      } else {
-        String currentUsername = CurrentUserUtil.getCurrentUsername();
-        User currentUser = getUserByUsername(currentUsername);
-        params.setUser(currentUser);
-      }
+    if (!params.hasUserDetails() && CurrentUserUtil.hasCurrentUser()) {
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+      params.setUserDetails(currentUserDetails);
     }
 
-    if (params.hasUser() && params.getUser().isSuper()) {
+    if (params.hasUserDetails() && params.getUserDetails().isSuper()) {
       params.setCanManage(false);
       params.setAuthSubset(false);
       params.setDisjointRoles(false);
@@ -384,34 +377,59 @@ public class DefaultUserService implements UserService {
       params.setInactiveSince(cal.getTime());
     }
 
-    if (params.hasUser()) {
+    if (params.hasUserDetails()) {
       UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
       if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
-        params.setOrganisationUnits(params.getUser().getOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
         params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
       } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
-        params.setOrganisationUnits(params.getUser().getDataViewOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserDataOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
       } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
-        params.setOrganisationUnits(params.getUser().getTeiSearchOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserSearchOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
       }
     }
   }
 
   private void validateUserQueryParams(UserQueryParams params) throws ConflictException {
     if (params.isCanManage()
-        && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
+        && (params.getUserDetails() == null || !hasManagedGroups(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get managed users as user does not have any managed groups");
     }
-    if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
+    if (params.isAuthSubset()
+        && (params.getUserDetails() == null || !hasAuthorities(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get users with authority subset as user does not have any authorities");
     }
     if (params.isDisjointRoles()
-        && (params.getUser() == null || !params.getUser().hasUserRoles())) {
+        && (params.getUserDetails() == null || !hasUserRoles(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get users with disjoint roles as user does not have any user roles");
     }
+  }
+
+  private boolean hasManagedGroups(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getManagedGroupLongIds().isEmpty();
+  }
+
+  private boolean hasAuthorities(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getAllAuthorities().isEmpty();
+  }
+
+  private boolean hasUserRoles(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getUserRoleIds().isEmpty();
   }
 
   @Override
@@ -881,7 +899,8 @@ public class DefaultUserService implements UserService {
         enabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
       log.info(
           String.format(
-              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
+              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b,"
+                  + " user non-expired: %b, account non-locked: %b",
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
@@ -1317,7 +1336,8 @@ public class DefaultUserService implements UserService {
 
     if (!validToken) {
       log.warn(
-          "Could not verify restore token; error=restore_token_does_not_match_supplied_token; username: {}",
+          "Could not verify restore token; error=restore_token_does_not_match_supplied_token;"
+              + " username: {}",
           user.getUsername());
       return ErrorCode.E6208;
     }
