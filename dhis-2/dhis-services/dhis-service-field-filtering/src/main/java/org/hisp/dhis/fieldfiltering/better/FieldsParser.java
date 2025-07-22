@@ -46,23 +46,25 @@ public class FieldsParser {
     int i = 0;
     int fieldStart = i;
     boolean inField = false;
+    boolean isFieldWithWhitespace = false;
     boolean isExclusion = false;
     while (i < input.length()) {
-      if ((input.charAt(i) == ',' || Character.isWhitespace(input.charAt(i)))) {
+      if ((input.charAt(i) == ',')) {
         if (inField) {
           if (isExclusion) {
-            stack.peek().exclude(input.substring(fieldStart, i));
+            stack.peek().exclude(parseField(input, fieldStart, i, isFieldWithWhitespace));
           } else {
-            stack.peek().include(input.substring(fieldStart, i));
+            stack.peek().include(parseField(input, fieldStart, i, isFieldWithWhitespace));
           }
 
           inField = false;
+          isFieldWithWhitespace = false;
           isExclusion = false;
         }
       } else if (input.charAt(i) == '[' || input.charAt(i) == '(') {
         // TODO fail if we are not inField? old parser allows this but the result makes no sense
         if (inField) {
-          String parent = input.substring(fieldStart, i);
+          String parent = parseField(input, fieldStart, i, isFieldWithWhitespace);
           if (isExclusion) {
             stack.peek().exclude(parent);
           } else {
@@ -80,6 +82,7 @@ public class FieldsParser {
 
           stack.push(child);
           inField = false;
+          isFieldWithWhitespace = false;
           isExclusion = false;
         }
       } else if (input.charAt(i) == ']' || input.charAt(i) == ')') {
@@ -89,14 +92,15 @@ public class FieldsParser {
 
         if (inField) {
           if (isExclusion) {
-            stack.peek().exclude(input.substring(fieldStart, i));
+            stack.peek().exclude(parseField(input, fieldStart, i, isFieldWithWhitespace));
           } else {
-            stack.peek().include(input.substring(fieldStart, i));
+            stack.peek().include(parseField(input, fieldStart, i, isFieldWithWhitespace));
           }
         }
 
         stack.pop();
         inField = false;
+        isFieldWithWhitespace = false;
         isExclusion = false;
       } else if (input.charAt(i) == '*' && !inField) {
         stack.peek().includeAll();
@@ -104,8 +108,11 @@ public class FieldsParser {
         inField = true;
         isExclusion = true;
         fieldStart = i + 1; // do not include ! in field name
+      } else if (Character.isWhitespace(input.charAt(i)) && inField) {
+        isFieldWithWhitespace = true;
       } else if (!Character.isWhitespace(input.charAt(i)) && !inField) {
         inField = true;
+        isFieldWithWhitespace = false;
         isExclusion = false;
         fieldStart = i;
       }
@@ -114,14 +121,36 @@ public class FieldsParser {
 
     if (inField) {
       if (isExclusion) {
-        stack.peek().exclude(input.substring(fieldStart, i));
+        stack.peek().exclude(parseField(input, fieldStart, i, isFieldWithWhitespace));
       } else {
-        stack.peek().include(input.substring(fieldStart, i));
+        stack.peek().include(parseField(input, fieldStart, i, isFieldWithWhitespace));
       }
     }
     // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
     // "group[name" was not closed
 
     return root;
+  }
+
+  /**
+   * The current {@code FieldFilterParser} has this behavior. We try to avoid building a string for
+   * every field name as most will not have any whitespace inside of a field name. Ideally we would
+   * not support this and only ignore leading and trailing whitespace.
+   */
+  private static String parseField(String input, int start, int end, boolean hasWhitespace) {
+    String field = input.substring(start, end);
+
+    if (!hasWhitespace) {
+      return field;
+    }
+
+    StringBuilder sb = new StringBuilder(field.length());
+    for (int j = 0; j < field.length(); j++) {
+      char c = field.charAt(j);
+      if (!Character.isWhitespace(c)) {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
   }
 }

@@ -107,7 +107,10 @@ class FieldFilterParserTest {
         // testOnlyBlockFilters
         Arguments.of(
             "group[id,name]",
-            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+            List.of(
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))),
 
         // missing closing brackets are ignored
         Arguments.of(
@@ -122,18 +125,28 @@ class FieldFilterParserTest {
                 new ExpectField(true, "group.group.group.id"),
                 new ExpectField(true, "group.group.group.name"))),
 
-        // () is treated like [] (might have special meaning in a transformer)
+        // () is treated like [] (might have special meaning in a transformer waiting on answer from
+        // platform)
         Arguments.of(
             "group(id,name)",
-            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+            List.of(
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))),
 
         // brackets and parentheses can be mixed :joy:
         Arguments.of(
             "group(id,name]",
-            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+            List.of(
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))),
         Arguments.of(
             "group[id,name)",
-            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+            List.of(
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))),
 
         // testMixedBlockSingleFields
         Arguments.of(
@@ -178,11 +191,15 @@ class FieldFilterParserTest {
                 new ExpectField(true, "code"))),
 
         // TODO(ivo) bug or wanted? this is the behavior of the current FieldFilterParser not sure
-        // if we want to replicate this?
-        // I will need to replicate this if it has to be backwards compatible :sad:
+        // I replicated it for backwards compatibility but am unsure if we want this
         Arguments.of(
-            " id,name  group ",
-            List.of(new ExpectField(true, "id"), new ExpectField(true, "namegroup"))),
+            " id  ,name  code, gro  up [ id , name  ]  ",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "namecode"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"))),
 
         // TODO(ivo) not sure if code is part of the :owner preset. Figure that out and also how to
         // test current preset behavior with the new one as this parser does not take care of preset
@@ -260,10 +277,10 @@ class FieldFilterParserTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "]",
-        "group[name]]",
+        "]", ")",
+        "group[name]]", "group[name))",
         // TODO old parser throws EmptyStackException which leads to a 500 error
-        "group[name],id]",
+        "group[name],id]", "group[name],id)",
       })
   void betterParserFailsOnUnbalancedClosingParen(String input) {
     assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
