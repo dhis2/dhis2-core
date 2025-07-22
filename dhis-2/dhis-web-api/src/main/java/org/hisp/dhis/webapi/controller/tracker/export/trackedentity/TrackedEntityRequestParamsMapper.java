@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrderCriteria;
@@ -249,6 +250,15 @@ class TrackedEntityRequestParamsMapper {
     if (filters == null || filters.isEmpty()) {
       return;
     }
+
+    filters.replaceAll(
+        (uid, f) ->
+            f.stream()
+                .map(
+                    qf ->
+                        new QueryFilter(
+                            qf.getOperator().mapToTrackerQueryOperator(), qf.getFilter()))
+                .collect(Collectors.toList()));
 
     for (Entry<UID, List<QueryFilter>> entry : filters.entrySet()) {
       if (entry.getValue().isEmpty()) {

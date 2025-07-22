@@ -550,7 +550,7 @@ class TrackerEventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldNotMapAttributeFiltersWhenOperatorsAreBlocked() {
+  void shouldFailToMapAttributeFiltersWhenOperatorsAreBlocked() {
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
     tea2.setValueType(ValueType.TEXT);

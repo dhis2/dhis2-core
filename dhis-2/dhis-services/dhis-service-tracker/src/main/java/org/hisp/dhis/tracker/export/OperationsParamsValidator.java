@@ -272,7 +272,6 @@ public class OperationsParamsValidator {
     Set<QueryOperator> blockedUsedOperators =
         attributeFilter.getValue().stream()
             .map(QueryFilter::getOperator)
-            .map(QueryOperator::mapToTrackerQueryOperator)
             .filter(op -> tea.getBlockedSearchOperators().contains(op))
             .collect(Collectors.toSet());
 

@@ -163,7 +163,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(Status.ERROR, report.getStatus());
     assertStartsWith(
-        "The TrackedEntityAttribute preferred operator `IEQ` is not part of the supported tracker operators",
+        "The preferred search operator `IEQ` provided for the tracked entity attribute",
         getErrorMessage(report));
   }
 
@@ -180,7 +180,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(Status.ERROR, report.getStatus());
     assertStartsWith(
-        "The TrackedEntityAttribute preferred operator `IN` is blocked for the selected TrackedEntityAttribute",
+        "The preferred search operator `IN` is blocked for the selected tracked entity attribute",
         getErrorMessage(report));
   }
 

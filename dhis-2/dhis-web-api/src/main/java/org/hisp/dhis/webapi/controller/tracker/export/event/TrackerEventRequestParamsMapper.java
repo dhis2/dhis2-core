@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrderCriteria;
@@ -199,6 +200,15 @@ public class TrackerEventRequestParamsMapper {
     if (attributeFilters == null || attributeFilters.isEmpty()) {
       return;
     }
+
+    attributeFilters.replaceAll(
+        (uid, filters) ->
+            filters.stream()
+                .map(
+                    qf ->
+                        new QueryFilter(
+                            qf.getOperator().mapToTrackerQueryOperator(), qf.getFilter()))
+                .collect(Collectors.toList()));
 
     for (Entry<UID, List<QueryFilter>> entry : attributeFilters.entrySet()) {
       if (entry.getValue().isEmpty()) {

@@ -294,7 +294,7 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
+        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
             .content(HttpStatus.OK);
 
     assertAttributePreferredOperator(json, Set.of("LIKE"));
@@ -306,7 +306,7 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeA]&fields=*")
+        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
             .content(HttpStatus.OK);
 
     assertAttributeBlockedOperators(json, Set.of("LIKE", "NNULL"));

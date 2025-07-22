@@ -666,7 +666,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldNotMapAttributeFiltersWhenOperatorsAreBlocked()
+  void shouldFailToMapAttributeFiltersWhenOperatorsAreBlocked()
       throws ForbiddenException, BadRequestException {
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
     when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
