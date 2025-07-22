@@ -57,6 +57,7 @@
       "legendSets": [],
       "minCharactersToSearch": 2,
       "preferredSearchOperator": "LIKE",
+      "trigramIndexable": true,
       "sharing": {
         "public": "rw------",
         "external": false,
@@ -92,6 +93,7 @@
       "attributeValues": [],
       "legendSets": [],
       "preferredSearchOperator": "EQ",
+      "trigramIndexable": false,
       "sharing": {
         "public": "rw------",
         "external": false,
