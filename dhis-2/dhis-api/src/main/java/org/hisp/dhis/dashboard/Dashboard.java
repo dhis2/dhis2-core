@@ -40,6 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -68,17 +69,22 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dashboard.design.ItemConfig;
 import org.hisp.dhis.dashboard.design.Layout;
 import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -158,6 +164,8 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   @Type(type = "jbSet")
   private Set<String> favorites = new HashSet<>();
 
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
   // ----------------------------------------------------------------
   // Transient properties
   // ----------------------------------------------------------------
@@ -182,15 +190,39 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     return items != null && !items.isEmpty();
   }
 
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @Description("The Unique Identifier for this Object.")
+  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getItemCount() {
     return items == null ? 0 : items.size();
   }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
+
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return translations.getTranslation("DESCRIPTION", description);
+  }
 
   @JsonProperty("dashboardItems")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
@@ -200,18 +232,10 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     return items;
   }
 
-  public void setItems(List<DashboardItem> items) {
-    this.items = items;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Layout getLayout() {
     return layout;
-  }
-
-  public void setLayout(Layout layout) {
-    this.layout = layout;
   }
 
   @JsonProperty
@@ -220,18 +244,10 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     return itemConfig;
   }
 
-  public void setItemConfig(ItemConfig itemConfig) {
-    this.itemConfig = itemConfig;
-  }
-
   @JsonProperty
   @JacksonXmlProperty
   public boolean isRestrictFilters() {
     return restrictFilters;
-  }
-
-  public void setRestrictFilters(boolean restrictFilters) {
-    this.restrictFilters = restrictFilters;
   }
 
   @JsonProperty
@@ -241,18 +257,10 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     return allowedFilters;
   }
 
-  public void setAllowedFilters(List<String> allowedFilters) {
-    this.allowedFilters = allowedFilters;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public EmbeddedDashboard getEmbedded() {
     return embedded;
-  }
-
-  public void setEmbedded(EmbeddedDashboard embedded) {
-    this.embedded = embedded;
   }
 
   @Override
@@ -264,10 +272,6 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     return code;
   }
 
-  public void setCode(String code) {
-    this.code = code;
-  }
-
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -277,15 +281,11 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDisplayName() {
-    return name;
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
@@ -346,26 +346,6 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
-  public AttributeValues getAttributeValues() {
-    return AttributeValues.empty();
-  }
-
-  @Override
-  public void setAttributeValues(AttributeValues attributeValues) {
-    // Do nothing, not supported
-  }
-
-  @Override
-  public void addAttributeValue(String attributeUid, String value) {
-    // Do nothing, not supported
-  }
-
-  @Override
-  public void removeAttributeValue(String attributeId) {
-    // Do nothing, not supported
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "favorites", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "favorite", namespace = DxfNamespaces.DXF_2_0)
@@ -400,13 +380,17 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
   public Access getAccess() {
     return access;
   }
 
   @Override
   public void setAccess(Access access) {
-    // Do nothing, not supported
+    this.access = access;
   }
 
   @Override
@@ -434,7 +418,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
 
   @Override
   public void setTranslations(Set<Translation> translations) {
-    // Do nothing, not supported
+    this.translations.setTranslations(translations);
   }
 
   @Override
@@ -466,21 +450,6 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   @JsonIgnore
   public long getId() {
     return id;
-  }
-
-  @Override
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @Description("The Unique Identifier for this Object.")
-  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
   }
 
   @Override
@@ -521,9 +490,23 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
     sharing.setPublicAccess(access);
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getDescription() {
-    return description;
+  @Override
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Do nothing, not supported
+  }
+
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {
+    // Do nothing, not supported
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    // Do nothing, not supported
   }
 }
