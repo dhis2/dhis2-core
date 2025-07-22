@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -102,5 +104,19 @@ class SystemControllerTest extends H2ControllerIntegrationTestBase {
     // testing one sensitive and one non-sensitive property
     assertNull(info.getString("javaVersion").string());
     assertNotNull(info.getString("serverDate").string());
+  }
+
+  @Test
+  void testGetFlags_NoDuplicates() {
+    JsonArray flags = GET("/system/flags").content(HttpStatus.OK);
+    assertTrue(flags.isArray());
+    assertTrue(flags.size() > 0);
+
+    Set<String> flagKeys = new HashSet<>();
+    for (int i = 0; i < flags.size(); i++) {
+      JsonObject flag = flags.getObject(i);
+      String key = flag.getString("key").string();
+      assertTrue(flagKeys.add(key), "Duplicate flag found: " + key);
+    }
   }
 }
