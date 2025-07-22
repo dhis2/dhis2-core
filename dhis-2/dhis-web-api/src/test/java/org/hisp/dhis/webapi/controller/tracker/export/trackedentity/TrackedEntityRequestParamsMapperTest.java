@@ -33,6 +33,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -46,7 +48,6 @@ import java.util.Map;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -349,9 +350,25 @@ class TrackedEntityRequestParamsMapperTest {
     assertEquals(
         Map.of(
             TEA_1_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "value1")),
+            List.of(new QueryFilter(LIKE, "value1")),
             TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "value2"))),
+            List.of(new QueryFilter(LIKE, "value2"))),
+        filters);
+  }
+
+  @Test
+  void shouldMapFiltersWithIVariantOperatorsToTrackerOperators() throws BadRequestException {
+    trackedEntityRequestParams.setFilter(TEA_1_UID + ":ilike:value1," + TEA_2_UID + ":ieq:value2");
+    trackedEntityRequestParams.setProgram(PROGRAM_UID);
+
+    Map<UID, List<QueryFilter>> filters = mapper.map(trackedEntityRequestParams, user).getFilters();
+
+    assertEquals(
+        Map.of(
+            TEA_1_UID,
+            List.of(new QueryFilter(LIKE, "value1")),
+            TEA_2_UID,
+            List.of(new QueryFilter(EQ, "value2"))),
         filters);
   }
 }
