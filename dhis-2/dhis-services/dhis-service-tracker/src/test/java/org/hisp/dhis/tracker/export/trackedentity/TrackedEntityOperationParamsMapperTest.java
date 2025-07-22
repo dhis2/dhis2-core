@@ -595,7 +595,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapTeaWhenTeaMinCharactersSetAndNotReachedButOperatorIsUnary()
+  void shouldMapTeaWhenTeaMinCharactersSetButOperatorIsUnary()
       throws ForbiddenException, BadRequestException {
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))

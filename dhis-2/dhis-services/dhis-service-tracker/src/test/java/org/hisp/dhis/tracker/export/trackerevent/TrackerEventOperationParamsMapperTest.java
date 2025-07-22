@@ -565,7 +565,7 @@ class TrackerEventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapTeaWhenTeaMinCharactersSetAndNotReachedButOperatorIsUnary()
+  void shouldMapTeaWhenTeaMinCharactersSetButOperatorIsUnary()
       throws ForbiddenException, BadRequestException {
     tea1.setMinCharactersToSearch(1);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);

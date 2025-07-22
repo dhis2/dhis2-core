@@ -265,7 +265,7 @@ public class OperationsParamsValidator {
    *
    * @throws BadRequestException if the filter doesn't contain enough characters
    */
-  public static void validateMinCharactersToSearch(
+  public static void validateMinimumCharactersToSearch(
       Map.Entry<UID, List<QueryFilter>> attributeFilter, TrackedEntityAttribute tea)
       throws BadRequestException {
     List<QueryFilter> binaryFilters =
