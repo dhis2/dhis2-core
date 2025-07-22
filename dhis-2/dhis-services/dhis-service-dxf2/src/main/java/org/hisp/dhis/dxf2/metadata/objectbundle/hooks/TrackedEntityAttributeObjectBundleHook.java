@@ -74,17 +74,26 @@ public class TrackedEntityAttributeObjectBundleHook
       }
     }
 
-    if (attr.getPreferredSearchOperator() != null
-        && !getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
-      addReports.accept(
-          new ErrorReport(
-              TrackedEntityAttribute.class,
-              ErrorCode.E4081,
-              attr.getPreferredSearchOperator(),
-              getTrackerOperators()));
-    }
+    if (attr.getPreferredSearchOperator() != null) {
+      if (!getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
+        addReports.accept(
+            new ErrorReport(
+                TrackedEntityAttribute.class,
+                ErrorCode.E4081,
+                attr.getPreferredSearchOperator(),
+                getTrackerOperators()));
+      }
 
-    // TODO(tracker) Validate the preferred operator is part of the allowed operators
+      if (attr.getBlockedSearchOperators() != null
+          && attr.getBlockedSearchOperators().contains(attr.getPreferredSearchOperator())) {
+        addReports.accept(
+            new ErrorReport(
+                TrackedEntityAttribute.class,
+                ErrorCode.E4082,
+                attr.getPreferredSearchOperator(),
+                attr.getUid()));
+      }
+    }
   }
 
   @Override
