@@ -376,7 +376,7 @@ public class MetadataItemsHandler {
         .forEach(
             item ->
                 metadataItemMap.put(
-                    resolveItemId(item),
+                    getItemIdWithProgramStageIdPrefix(item),
                     new MetadataItem(
                         item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
 
@@ -485,18 +485,5 @@ public class MetadataItemsHandler {
         }
       }
     }
-  }
-
-  /**
-   * Resolves the item identifier, may have a program stage prefix.
-   *
-   * @param item {@link QueryItem}.
-   * @return the resolved item identifier.
-   */
-  private String resolveItemId(QueryItem item) {
-    if (item.hasProgramStage()) {
-      return item.getProgramStage().getUid() + "." + item.getItemId();
-    }
-    return item.getItemId();
   }
 }
