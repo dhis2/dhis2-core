@@ -389,11 +389,10 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
-  public void setAccess(Access access) {
-    this.access = access;
-  }
-
-  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Sharing getSharing() {
     if (sharing == null) {
       sharing = new Sharing();
@@ -402,18 +401,18 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
-  public void setSharing(Sharing sharing) {
-    this.sharing = sharing;
-  }
-
-  @Override
   public void setOwner(String owner) {
     getSharing().setOwner(owner);
   }
 
+  @Gist(included = Include.FALSE)
   @Override
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    return Set.of();
+    return translations.getTranslations();
   }
 
   @Override
@@ -453,33 +452,12 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
-  public void setUid(String uid) {
-    this.uid = uid;
-  }
-
-  @Override
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  @Override
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  @Override
-  public void setLastUpdatedBy(User user) {
-    this.lastUpdatedBy = user;
-  }
-
-  @Override
+  @Sortable(value = false)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.URL)
   public String getHref() {
     return href;
-  }
-
-  @Override
-  public void setHref(String href) {
-    this.href = href;
   }
 
   public void setPublicAccess(String access) {
