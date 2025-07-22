@@ -59,7 +59,6 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
@@ -1350,30 +1349,40 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPartialPutObjectWithCollection() {
-    DataElement de1 = createDataElement('A');
-    manager.save(de1);
-    DataElement de2 = createDataElement('B');
-    manager.save(de2);
-    PeriodType monthly = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
-    DataSet ds = createDataSet('A', monthly);
-    ds.setShortName("DataSet");
-    ds.addDataSetElement(de1);
-    ds.addDataSetElement(de2);
-    manager.save(ds);
+    // create dataElementA
+    POST(
+            "/dataElements/",
+            "{'id': 'UrOQCA6mDnV', 'name':'DataElementA', 'shortName':'DataElementA', 'valueType':'TEXT', 'aggregationType':'SUM', 'domainType':'AGGREGATE'}")
+        .content(HttpStatus.CREATED);
+    // create dataElementB
+    POST(
+            "/dataElements/",
+            "{'id': 'wUiitGXPrjQ', 'name':'DataElementB', 'shortName':'DataElementB', 'valueType':'TEXT', 'aggregationType':'SUM', 'domainType':'AGGREGATE'}")
+        .content(HttpStatus.CREATED);
 
-    assertEquals(2, ds.getDataSetElements().size());
+    // create a new DataSet
+    POST(
+            "/dataSets/",
+            """
+          {'name':'DataSetA', 'id': 'e72qfplRKtY','shortName':'DataSetA', 'periodType':'Monthly'
+          , 'dataSetElements': [
+              {'dataElement': {'id': 'UrOQCA6mDnV'}},
+              {'dataElement': {'id': 'wUiitGXPrjQ'}}
+          ]}""")
+        .content(HttpStatus.CREATED);
+
     assertWebMessage(
         "OK",
         200,
         "OK",
         null,
-        PUT("/dataSets/" + ds.getUid(), "{'shortName':'DataSet Updated'}").content(HttpStatus.OK));
+        PUT("/dataSets/e72qfplRKtY", "{'shortName':'DataSet Updated'}").content(HttpStatus.OK));
 
-    DataSet updatedDs = manager.get(DataSet.class, ds.getUid());
+    DataSet updatedDs = manager.get(DataSet.class, "e72qfplRKtY");
     assertEquals(2, updatedDs.getDataSetElements().size());
 
     // Verify that the shortName was updated, but the name remains unchanged
-    JsonObject updated = GET("/dataSets/{id}", ds.getUid()).content().as(JsonObject.class);
+    JsonObject updated = GET("/dataSets/{id}", "e72qfplRKtY").content().as(JsonObject.class);
 
     assertEquals("DataSet Updated", updated.getString("shortName").string());
     assertEquals("DataSetA", updated.getString("name").string());

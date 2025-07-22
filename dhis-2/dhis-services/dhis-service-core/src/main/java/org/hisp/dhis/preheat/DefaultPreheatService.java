@@ -30,6 +30,7 @@
 package org.hisp.dhis.preheat;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -51,6 +52,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.DefaultObjectsService;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -114,6 +116,8 @@ public class DefaultPreheatService implements PreheatService {
 
   private final UserService userService;
 
+  private final DefaultObjectsService defaultObjectsService;
+
   @Override
   @Transactional(readOnly = true)
   public Preheat preheat(PreheatParams params) {
@@ -121,7 +125,7 @@ public class DefaultPreheatService implements PreheatService {
 
     Preheat preheat = new Preheat();
     preheat.setUser(params.getUser());
-    preheat.setDefaults(manager.getDefaults());
+    preheat.setDefaults(defaultObjectsService.getDefaults());
 
     if (preheat.getUser() == null) {
       User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
@@ -770,7 +774,7 @@ public class DefaultPreheatService implements PreheatService {
               o -> {
                 Collection<Object> propertyValue =
                     ReflectionUtils.invokeMethod(o, property.getGetterMethod());
-                if (!org.apache.commons.collections4.CollectionUtils.isEmpty(propertyValue)) {
+                if (!isEmpty(propertyValue)) {
                   list.addAll(propertyValue);
                 }
               });

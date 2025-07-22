@@ -133,23 +133,11 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
           continue;
         }
         Collection<?> collection = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
-
-        if (collection != null && isNewCollection(collection)) collection.clear();
+        if (collection != null) collection.clear();
       } else {
         ReflectionUtils.invokeMethod(object, property.getSetterMethod(), (Object) null);
       }
     }
-  }
-
-  private boolean isNewCollection(Collection<?> collection) {
-    // check if each item in the collection is a new object
-    // object is considered new if its ID is 0
-    
-    return collection.stream()
-        .allMatch(
-            item ->
-                item instanceof EmbeddedObject embeddedObject
-                    && embeddedObject.getId() == 0);
   }
 
   private void handleEmbeddedObjects(

@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +43,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -363,4 +366,7 @@ public interface IdentifiableObjectManager {
   void persist(Object userAdmin);
 
   User find(Class<User> userClass, long id);
+
+  <T extends IdentifiableObject> T patchObject(T existed, InputStream inputStream, Class<T> clazz)
+      throws IOException;
 }

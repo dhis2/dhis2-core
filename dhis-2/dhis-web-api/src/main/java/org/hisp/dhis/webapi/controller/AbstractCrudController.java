@@ -731,7 +731,7 @@ public abstract class AbstractCrudController<
   }
 
   protected T patchJsonToEntity(HttpServletRequest request, T existed) throws IOException {
-    return jsonMapper.readerForUpdating(existed).readValue(request.getInputStream(), getEntityClass());
+    return manager.patchObject(existed, request.getInputStream(), getEntityClass());
   }
 
   protected T deserializeXmlEntity(HttpServletRequest request) throws IOException {

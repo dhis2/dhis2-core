@@ -39,6 +39,4 @@ package org.hisp.dhis.common;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface EmbeddedObject {
-  int getId();
-}
+public interface EmbeddedObject {}

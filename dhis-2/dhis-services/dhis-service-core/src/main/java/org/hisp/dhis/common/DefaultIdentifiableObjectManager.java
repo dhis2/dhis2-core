@@ -34,11 +34,14 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.gson.internal.Primitives;
 import jakarta.persistence.EntityManager;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -77,8 +80,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.SharingUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation classes, not
@@ -113,13 +118,17 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
           Class<? extends DimensionalObject>,
           GenericDimensionalObjectStore<? extends DimensionalObject>>
       dimensionalObjectStoreCache = new ConcurrentHashMap<>();
+  private final ObjectMapper objectMapper;
+  private final TransactionTemplate transactionTemplate;
 
   public DefaultIdentifiableObjectManager(
       Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
       Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
       EntityManager entityManager,
       SchemaService schemaService,
-      CacheProvider cacheProvider) {
+      CacheProvider cacheProvider,
+      @Qualifier("jsonMapper") ObjectMapper objectMapper,
+      TransactionTemplate transactionTemplate) {
     checkNotNull(identifiableObjectStores);
     checkNotNull(dimensionalObjectStores);
     checkNotNull(entityManager);
@@ -131,6 +140,8 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     this.entityManager = entityManager;
     this.schemaService = schemaService;
     this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
+    this.objectMapper = objectMapper;
+    this.transactionTemplate = transactionTemplate;
   }
 
   // --------------------------------------------------------------------------
@@ -970,12 +981,13 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults() {
     ToLongFunction<Class<? extends IdentifiableObject>> getIdCachedByName =
         type ->
-            defaultObjectCache.get(
+            defaultObjectCache.get( 
                 type.getName(),
-                t -> {
-                  IdentifiableObject obj = getByName(type, "default");
-                  return obj == null ? -1 : obj.getId();
-                });
+                t ->
+                         {
+                          IdentifiableObject obj = getByName(type, "default");
+                          return obj == null ? -1 : obj.getId();
+                        });
 
     return Map.of(
         Category.class,
@@ -1036,6 +1048,14 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     IdentifiableObjectStore<?> store = getIdentifiableObjectStore(UserGroup.class);
     schemas.forEach(
         schema -> store.removeUserGroupFromSharing(userGroupUid, schema.getTableName()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public <T extends IdentifiableObject> T patchObject(
+      T existed, InputStream inputStream, Class<T> clazz) throws IOException {
+    entityManager.detach(existed);
+    return objectMapper.readerForUpdating(existed).readValue(inputStream);
   }
 
   /**
