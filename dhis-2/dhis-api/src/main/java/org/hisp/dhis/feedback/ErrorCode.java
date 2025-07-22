@@ -666,7 +666,7 @@ public enum ErrorCode {
   E7829(
       "Value ${index:{0}} category option combo not defined directly or as category + category option set: `${dv:{1}}`"),
   E7830(
-      "Data set cannot be undefined when using categories and category options to refer to the category option combo: `${options:{1}}`"),
+      "Value ${index:{0}} data set cannot be undefined when using categories and category options to refer to the category option combo: `${options:{1}}`"),
   ;
 
   private final String message;

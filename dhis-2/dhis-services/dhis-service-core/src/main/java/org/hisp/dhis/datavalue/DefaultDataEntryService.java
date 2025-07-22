@@ -35,6 +35,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
@@ -135,14 +136,14 @@ public class DefaultDataEntryService implements DataEntryService {
     IdProperty categories = ids == null ? IdProperty.UID : ids.categories();
     IdProperty categoryOptions = ids == null ? IdProperty.UID : ids.categoryOptions();
     if (aocGroup == null && aoGroup != null && !aoGroup.isEmpty()) {
-      if (ds == null) throw new BadRequestException(ErrorCode.E7830, aoGroup);
+      if (ds == null) throw new BadRequestException(ErrorCode.E7830, "*", aoGroup);
       List<String> aocKeyOrder = store.getDataSetAocCategories(ds, categories);
       String aocKey = aocKeyOrder.stream().map(aoGroup::get).collect(joining(" "));
       Map<String, String> aocByKey = store.getDataSetAocIdMapping(ds, categories, categoryOptions);
       aocGroup = aocByKey.get(aocKey);
     }
-    Map<String, List<String>> cocKeyOrderByDe = null;
-    Map<String, String> cocByKey = null;
+    Map<String, List<String>> categoriesByDe = null;
+    Map<String, Map<Set<String>, String>> cocByOptionsByDe = null;
     for (DataEntryValue.Input dv : values) {
       String pe = isoOf.apply(dv.period());
       if (pe == null) throw new BadRequestException(ErrorCode.E7818, i, dv);
@@ -162,25 +163,26 @@ public class DefaultDataEntryService implements DataEntryService {
       if (ou == null) throw new BadRequestException(ErrorCode.E7822, i, ouUID);
       String cocVal = dv.categoryOptionCombo();
       Map<String, String> co = dv.categoryOptions();
+      String cocUID = null;
       if (cocVal == null && co != null) {
-        if (cocKeyOrderByDe == null) {
-          if (ds == null) throw new BadRequestException(ErrorCode.E7830, aoGroup);
+        if (categoriesByDe == null) {
+          if (ds == null) throw new BadRequestException(ErrorCode.E7830, i, co);
           IdProperty dataElements = ids == null ? IdProperty.UID : ids.dataElements();
           List<String> dataElementIds =
               values.stream().map(DataEntryValue.Input::dataElement).toList();
-          cocKeyOrderByDe =
+          categoriesByDe =
               store.getDataElementCocCategories(
                   ds, categories, dataElements, dataElementIds.stream());
-          cocByKey =
+          cocByOptionsByDe =
               store.getDataElementCocIdMapping(
-                  ds, categories, categoryOptions, dataElements, dataElementIds.stream());
+                  ds, categoryOptions, dataElements, dataElementIds.stream());
         }
-        String cocKey =
-            deVal + " " + cocKeyOrderByDe.get(deVal).stream().map(co::get).collect(joining(" "));
-        cocVal = cocByKey.get(cocKey);
+        Set<String> key = categoriesByDe.get(deVal).stream().map(co::get).collect(toSet());
+        cocVal = cocUID = cocByOptionsByDe.get(deVal).get(key);
+      } else {
+        if (cocVal == null) throw new BadRequestException(ErrorCode.E7829, i, dv);
+        cocUID = cocOf.apply(cocVal);
       }
-      if (cocVal == null) throw new BadRequestException(ErrorCode.E7829, i, dv);
-      String cocUID = cocOf.apply(cocVal);
       if (cocUID == null) throw new BadRequestException(ErrorCode.E7823, i, cocVal);
       UID coc = decodeUID(cocUID);
       if (coc == null) throw new BadRequestException(ErrorCode.E7824, i, cocUID);

@@ -137,9 +137,8 @@ public interface DataEntryStore {
   Map<String, List<String>> getDataElementCocCategories(
       UID dataSet, IdProperty categories, IdProperty dataElements, Stream<String> dataElementIds);
 
-  Map<String, String> getDataElementCocIdMapping(
+  Map<String, Map<Set<String>, String>> getDataElementCocIdMapping(
       @Nonnull UID dataSet,
-      @Nonnull IdProperty categories,
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty dataElements,
       @Nonnull Stream<String> dataElementIds);

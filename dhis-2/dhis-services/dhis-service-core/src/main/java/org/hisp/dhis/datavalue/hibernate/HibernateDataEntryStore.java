@@ -222,53 +222,72 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, String> getDataElementCocIdMapping(
+  public Map<String, Map<Set<String>, String>> getDataElementCocIdMapping(
       @Nonnull UID dataSet,
-      @Nonnull IdProperty categories,
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty dataElements,
       @Nonnull Stream<String> dataElementIds) {
     @Language("SQL")
     String sqlTemplate =
         """
-      -- effective data-element view
-        WITH data_elements AS (
-          SELECT ${de_id} AS de_id, coalesce(dse.categorycomboid, de.categorycomboid) AS categorycomboid
-          FROM dataset ds
-          JOIN datasetelement dse ON ds.datasetid = dse.datasetid
-          JOIN dataelement de ON dse.dataelementid = de.dataelementid
-          JOIN unnest(:de) AS dex(id) ON ${de_id} = dex.id
-          WHERE ds.uid = :ds
-        ),
-        coc_category_options AS (
-            SELECT
-                de_cc.de_id,
-                ${c_id} AS sort_name,
-                co.categoryoptionid,
-                ${co_id} AS key_seg
-            FROM data_elements de_cc
-            JOIN categorycombos_categories cc_c ON de_cc.categorycomboid = cc_c.categorycomboid
-            JOIN category c ON cc_c.categoryid = c.categoryid
-            JOIN categories_categoryoptions c_co ON c.categoryid = c_co.categoryid
-            JOIN categoryoption co ON c_co.categoryoptionid = co.categoryoptionid
-        )
         SELECT
-            concat(co.de_id, ' ', string_agg(co.key_seg, ' ' ORDER BY co.sort_name)) AS key,
-            coc.uid
-        FROM coc_category_options co
-        JOIN categoryoptioncombos_categoryoptions coc_co ON co.categoryoptionid = coc_co.categoryoptionid
-        JOIN categoryoptioncombo coc ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
-        GROUP BY co.de_id, coc.uid;
-        """;
+          co_coc.de_ids,
+          (
+            -- 3. translate option ids (PK) to external ID property used
+            SELECT array_agg(${co_id})
+            FROM unnest(co_coc.categoryoptionids) AS options(categoryoptionid)
+            INNER JOIN categoryoption co ON options.categoryoptionid = co.categoryoptionid
+          ) AS category_option_ids,
+          coc.uid
+        FROM (
+        -- 2. expand effective CCs used to a mapping of options IDs as array for each COC
+        -- the first column has all DEs (of the scope) that use the same CC
+          SELECT
+           array_agg(cc.de_id) AS de_ids,
+           array_agg(distinct coc_co.categoryoptionid) AS categoryoptionids,
+           coc_co.categoryoptioncomboid
+          FROM (
+            -- 1. expand the DE list (+DS) into effective CCs used
+            SELECT
+              ${de_id} AS de_id,
+              coalesce(dse.categorycomboid, de.categorycomboid) AS categorycomboid
+            FROM dataset ds
+            JOIN datasetelement dse ON ds.datasetid = dse.datasetid
+            JOIN dataelement de ON dse.dataelementid = de.dataelementid
+            JOIN unnest(:de) AS dex(id) ON ${de_id} = dex.id
+            WHERE ds.uid = :ds
+          ) cc
+          JOIN categorycombos_optioncombos cc_coc ON cc.categorycomboid = cc_coc.categorycomboid
+          JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          GROUP BY coc_co.categoryoptioncomboid, cc.categorycomboid
+        ) co_coc
+        JOIN categoryoptioncombo coc ON co_coc.categoryoptioncomboid = coc.categoryoptioncomboid""";
     Map<String, String> vars =
         Map.ofEntries(
             Map.entry("de_id", columnName("de", dataElements)),
-            Map.entry("co_id", columnName("co", categoryOptions)),
-            Map.entry("c_id", columnName("c", categories)));
+            Map.entry("co_id", columnName("co", categoryOptions)));
     String sql = replace(sqlTemplate, vars);
     String[] de = dataElementIds.distinct().toArray(String[]::new);
-    return listAsStringsMap(
-        sql, q -> q.setParameter("ds", dataSet.getValue()).setParameter("de", de));
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .setParameter("de", de)
+            .stream();
+    Map<String, Map<Set<String>, String>> res = new HashMap<>(de.length);
+    rows.forEach(
+        row -> {
+          Set<String> ccOptions = Set.of((String[]) row[1]);
+          String coc = (String) row[2];
+          String[] ccDataElements = (String[]) row[0];
+          for (String ccDe : ccDataElements) {
+            Map<Set<String>, String> mapping =
+                res.computeIfAbsent(ccDe, key -> new HashMap<>(de.length));
+            mapping.put(ccOptions, coc);
+          }
+        });
+    return res;
   }
 
   @Override
@@ -399,7 +418,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
               m.categoryoptioncomboid IS NULL
           )""";
     String ds = dataSet.getValue();
-    String[] aoc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    // needs null filter here because AOC is allowed to be null to mean "default"
+    // TODO do we need to replace null AOC with default to do the check correct?
+    String[] aoc =
+        optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameterList("aoc", aoc).setParameter("ds", ds));
   }
 
@@ -412,7 +434,13 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
       JOIN categoryoption_organisationunits co_ou ON aoc_co.categoryoptionid = co_ou.categoryoptionid
       WHERE aoc.uid IN (:aoc)""";
-    String[] aoc = attrOptionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    // filter nulls to ignore "default" AOC
+    String[] aoc =
+        attrOptionCombos
+            .filter(Objects::nonNull)
+            .map(UID::getValue)
+            .distinct()
+            .toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameterList("aoc", aoc));
   }
 
@@ -565,7 +593,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       WHERE coc.uid IN (:coc)
       AND NOT (%s);
       """;
-    String[] coc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    // needs null filtering here because AOC are allowed to be null to mean "default"
+    String[] coc =
+        optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("coc", coc));
   }
 

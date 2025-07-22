@@ -335,7 +335,27 @@ public class DataEntryIO {
     DataEntryGroup.Options opt =
         new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
 
-    return importGroups(dsGroups, opt, progress);
+    return importGroups(mergeGroups(dsGroups), opt, progress);
+  }
+
+  /** Merges groups of same dataset for best performance (bulk as much as possible) */
+  private List<DataEntryGroup> mergeGroups(List<DataEntryGroup> groups) {
+    if (groups.size() < 2) return groups;
+    List<DataEntryGroup> merged = new ArrayList<>(groups.size()); // assume no merge
+    DataEntryGroup g1 = groups.get(0);
+    for (int i = 1; i < groups.size(); i++) {
+      DataEntryGroup g2 = groups.get(i);
+      if (g1.dataSet() != null && g1.dataSet().equals(g2.dataSet())) {
+        if (!(g1.values() instanceof ArrayList<DataEntryValue>))
+          g1 = new DataEntryGroup(g1.dataSet(), new ArrayList<>(g1.values()));
+        g1.values().addAll(g2.values());
+      } else {
+        merged.add(g1);
+        g1 = g2;
+      }
+    }
+    merged.add(g1);
+    return merged;
   }
 
   @Nonnull
