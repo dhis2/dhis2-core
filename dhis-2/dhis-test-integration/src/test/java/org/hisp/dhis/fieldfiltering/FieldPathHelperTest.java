@@ -78,6 +78,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     assertNull(fieldMapPath.get("categoryCombo"));
     assertNull(fieldMapPath.get("translations"));
   }
+
   @Test
   void testApplySimplePreset() {
     Map<String, FieldPath> fieldMapPath = new HashMap<>();

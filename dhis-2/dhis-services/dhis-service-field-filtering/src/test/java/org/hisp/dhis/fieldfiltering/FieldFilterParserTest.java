@@ -41,10 +41,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.fieldfiltering.better.FieldsParser;
+import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Morten Olav Hansen
@@ -53,14 +56,22 @@ class FieldFilterParserTest {
   record ExpectField(boolean included, String dotPath) {}
 
   @ParameterizedTest
-  @MethodSource("testParserProvider")
-  void testParser(String input, List<ExpectField> expectFields) {
+  @MethodSource("providerEqualBehavior")
+  void testBetterParser(String input, List<ExpectField> expectFields) {
+    FieldsPredicate predicates = FieldsParser.parse(input);
+
+    assertFields(expectFields, predicates);
+  }
+
+  @ParameterizedTest
+  @MethodSource("providerEqualBehavior")
+  void testCurrentParser(String input, List<ExpectField> expectFields) {
     List<FieldPath> fieldPaths = FieldFilterParser.parse(input);
 
     assertFields(expectFields, fieldPaths);
   }
 
-  static Stream<Arguments> testParserProvider() {
+  static Stream<Arguments> providerEqualBehavior() {
     return Stream.of(
         // testDepth0Filters
         Arguments.of(
@@ -93,22 +104,35 @@ class FieldFilterParserTest {
                 new ExpectField(true, "group.group.group.id"),
                 new ExpectField(true, "group.group.group.name"))),
 
-        // missing closing brackets are ignored
-        Arguments.of("id,name,group[id,name],group[id,name,group[id,name,group[id,name[[[",
-            List.of(new ExpectField(true, "id"), new ExpectField(true, "name"),
-                new ExpectField(true, "group.id"), new ExpectField(true, "group.name"),
-                new ExpectField(true, "group.group.id"), new ExpectField(true, "group.group.name"),
-                new ExpectField(true, "group.group.group.id"),
-                new ExpectField(true, "group.group.group.name"))),
-
         // testOnlyBlockFilters
         Arguments.of(
             "group[id,name]",
             List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
 
+        // missing closing brackets are ignored
+        Arguments.of(
+            "id,name,group[id,name],group[id,name,group[id,name,group[id,name[[[",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "group.name"),
+                new ExpectField(true, "group.group.id"),
+                new ExpectField(true, "group.group.name"),
+                new ExpectField(true, "group.group.group.id"),
+                new ExpectField(true, "group.group.group.name"))),
+
         // () is treated like [] (might have special meaning in a transformer)
         Arguments.of(
             "group(id,name)",
+            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+
+        // brackets and parentheses can be mixed :joy:
+        Arguments.of(
+            "group(id,name]",
+            List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
+        Arguments.of(
+            "group[id,name)",
             List.of(new ExpectField(true, "group.id"), new ExpectField(true, "group.name"))),
 
         // testMixedBlockSingleFields
@@ -133,6 +157,15 @@ class FieldFilterParserTest {
                 new ExpectField(true, "group.name"),
                 new ExpectField(true, "code"))),
 
+        // ignore empty fields and blocks
+        Arguments.of(
+            " id, ,, group[ , , id ,  ], code  ,",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "group"),
+                new ExpectField(true, "group.id"),
+                new ExpectField(true, "code"))),
+
         // testBlockSpreadOut
         Arguments.of(
             "id,group[id],name,group[name],code",
@@ -146,6 +179,7 @@ class FieldFilterParserTest {
 
         // TODO(ivo) bug or wanted? this is the behavior of the current FieldFilterParser not sure
         // if we want to replicate this?
+        // I will need to replicate this if it has to be backwards compatible :sad:
         Arguments.of(
             " id,name  group ",
             List.of(new ExpectField(true, "id"), new ExpectField(true, "namegroup"))),
@@ -154,6 +188,7 @@ class FieldFilterParserTest {
         // test current preset behavior with the new one as this parser does not take care of preset
         // expansion. The logic is spread into the service or some helper.
         // testExclude1
+        // TODO(ivo) create extra tests for presets even like :all and *
         //        Arguments.of("id,name,!code,:owner",
         Arguments.of(
             "id,name,!code",
@@ -176,7 +211,21 @@ class FieldFilterParserTest {
             List.of(
                 new ExpectField(true, "id"),
                 new ExpectField(true, "name"),
-                new ExpectField(false, "code"))));
+                new ExpectField(false, "code"))),
+
+        // based on testParseWithPresetAndExclude (TODO removed the preset: need to figure out how
+        // to reconcile my preset handling with old parser in tests)
+        //
+        // FieldFilterParser.parse("id,name,!code,:owner,group[:owner,:all,!code,hello]");
+        Arguments.of(
+            "code,id,name,!code,group[!code,hello,code]",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "name"),
+                new ExpectField(false, "code"),
+                new ExpectField(true, "group"),
+                new ExpectField(false, "group.code"),
+                new ExpectField(true, "group.hello"))));
 
     // TODO(ivo) not yet sure how to test preset related fixtures as the old parser includes the
     // presets as fields while the new one does not
@@ -196,14 +245,58 @@ class FieldFilterParserTest {
     //    }
   }
 
-  // TODO(ivo): this is a bug IMHO opening a group without a field http://localhost:8080/api/organisationUnits?pageSize=1&fields=[id]
+  // TODO(ivo): this is a bug IMHO opening a group without a field
+  // http://localhost:8080/api/organisationUnits?pageSize=1&fields=[id]
   // I get empty objects
+
   // TODO(ivo) this is a bug IMHO as it leads to an HTTP 500 instead of 400
   @Test
-  void failsOnClosingMoreBrackets() {
-    assertThrows(java.util.EmptyStackException.class, ()->FieldFilterParser.parse("group[name]]"));
+  void bugInCurrentParserUnbalancedClosingParen() {
+    assertThrows(
+        java.util.EmptyStackException.class, () -> FieldFilterParser.parse("group[name]]"));
   }
 
+  // TODO(ivo) add tests for () once that is supported
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "]",
+        "group[name]]",
+        // TODO old parser throws EmptyStackException which leads to a 500 error
+        "group[name],id]",
+      })
+  void betterParserFailsOnUnbalancedClosingParen(String input) {
+    assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
+  }
+
+  // TODO research: fields=parent gives the parent[id] only in the output, who is responsible for
+  // this behaviour?
+  // test fields=parent on orgUnits only shows the parent.id and fields=parent[:all] shows all
+  // fields
+  // TODO finalize *
+  // TODO implement: group(id) is equivalent to group[id] but () is also used for transformers
+  // TODO presets: org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets does rely on the
+  // schema. Make a provision for this that allows passing in a Map<String, Set<String>> presets
+  // into the parser.
+  // :all should be a preset mapped to * (maybe a default preset that users of the parser cannot
+  // override)
+  // on the other hand FieldPreset is a static mapping of presets to fields. Why do we still need
+  // the schema then? Is it due to his approach of computing all paths of an object instead of only
+  // what we need to know?
+  // TODO add test for negating presets which is ignored so leads to preset inclusion
+  // TODO API: improve the API with regards to only calculating the effective set of fields once and
+  // expose that for testing/debugging
+  // idea: what if the parser is stateful? containing what FieldsPredicate contains now and
+  // FieldsPredicate is immutable with only the test method?
+  // TODO API: can I improve the API with regards to getting the child predicate? and maybe disallow
+  // mutation :joy:
+  // TODO how to best test behavior of the Jackson integration:
+  //       String json = objectMapper.writer(filters)
+  //          .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, predicate)
+  //          .writeValueAsString(comments);
+  // TODO support transformers: I think I first need to investigate all their intricacies and what a
+  // more efficient way is for Jackson
+  // TODO parse transformers
   // TODO(ivo) parseWithPrefix is only used in tests, remove it when I open up a PR
   @Test
   void testParseWithPrefix1() {
@@ -421,6 +514,39 @@ class FieldFilterParserTest {
     assertFieldPathContains(fieldPaths, "categoryCombo");
     assertFieldPathContains(fieldPaths, "categoryCombo.categoryOptionCombos");
     assertFieldPathContains(fieldPaths, "displayName");
+  }
+
+  private static void assertFields(List<ExpectField> expectFields, FieldsPredicate predicates) {
+    for (ExpectField expectField : expectFields) {
+      assertField(expectField.included, expectField.dotPath, predicates);
+    }
+  }
+
+  /**
+   * Tests if the field represented by the full path as used by the current FieldFilterParser is
+   * included in the parsed fields predicate.
+   */
+  private static void assertField(
+      boolean expected, String expectedDotPath, FieldsPredicate predicate) {
+    FieldsPredicate current = predicate;
+    String[] segments = expectedDotPath.split("\\.");
+    for (int i = 0; i < segments.length; i++) {
+      if (i < segments.length - 1) {
+        current = current.getChildren().get(segments[i]);
+      } else {
+        // TODO(ivo) expose a view or so of the effective set
+        String what = expected ? "include" : "exclude";
+        assertEquals(
+            expected,
+            current.test(segments[i]),
+            "predicate with fields "
+                + current.getIncludes()
+                + " does not "
+                + what
+                + " "
+                + expectedDotPath);
+      }
+    }
   }
 
   private static void assertFields(List<ExpectField> expectFields, List<FieldPath> fieldPaths) {
