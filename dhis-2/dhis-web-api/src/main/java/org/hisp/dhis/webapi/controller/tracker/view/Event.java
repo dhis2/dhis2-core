@@ -50,7 +50,6 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(name = "TrackerEvent")
 @OpenApi.Identifiable(as = TrackerEvent.class)
 @Data
 @Builder
