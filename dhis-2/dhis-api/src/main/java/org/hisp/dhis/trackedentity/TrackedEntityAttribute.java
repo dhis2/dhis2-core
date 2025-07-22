@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
@@ -100,6 +101,10 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   private Boolean skipSynchronization = false;
 
   private int minCharactersToSearch;
+
+  private QueryOperator preferredSearchOperator;
+
+  private Boolean trigramIndexable = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -383,12 +388,32 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public QueryOperator getPreferredSearchOperator() {
+    return preferredSearchOperator;
+  }
+
+  public void setPreferredSearchOperator(QueryOperator preferredSearchOperator) {
+    this.preferredSearchOperator = preferredSearchOperator;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFieldMask() {
     return fieldMask;
   }
 
   public void setFieldMask(String fieldMask) {
     this.fieldMask = fieldMask;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getTrigramIndexable() {
+    return trigramIndexable;
+  }
+
+  public void setTrigramIndexable(Boolean trigramIndexable) {
+    this.trigramIndexable = trigramIndexable;
   }
 
   @Override
