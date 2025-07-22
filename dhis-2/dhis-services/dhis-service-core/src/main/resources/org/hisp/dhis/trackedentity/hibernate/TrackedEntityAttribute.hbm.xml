@@ -100,6 +100,9 @@
     </property>
 
     <property name="blockedSearchOperators" column="blockedsearchoperators" type="jsbBlockedOperators" />
+
+    <property name="trigramIndexable" column="trigramindexable" not-null="true" />
+
   </class>
 
 </hibernate-mapping>

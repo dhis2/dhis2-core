@@ -173,7 +173,7 @@ public enum QueryOperator {
    * <p>This method should therefore be used to map case‑insensitive operators, which are analytics
    * specific, to their case‑sensitive equivalents.
    */
-  public QueryOperator mapToTrackerQueryOperator() {
+  public QueryOperator stripCaseVariant() {
     return switch (this) {
       case IEQ -> EQ;
       case NIEQ -> NEQ;

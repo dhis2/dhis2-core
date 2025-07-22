@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARC
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -280,6 +281,29 @@ public class OperationsParamsValidator {
           String.format(
               "Operators %s are blocked for attribute '%s'.",
               blockedUsedOperators, attributeFilter.getKey()));
+    }
+  }
+
+  /**
+   * Validates the specified filter contains at least the minimum number of characters to start the
+   * search
+   *
+   * @throws BadRequestException if the filter doesn't contain enough characters
+   */
+  public static void validateMinimumCharactersToSearch(
+      Map.Entry<UID, List<QueryFilter>> attributeFilter, TrackedEntityAttribute tea)
+      throws BadRequestException {
+    List<QueryFilter> binaryFilters =
+        attributeFilter.getValue().stream().filter(qf -> qf.getOperator().isBinary()).toList();
+    for (QueryFilter queryFilter : binaryFilters) {
+      if (tea.getMinCharactersToSearch() > 0
+          && (queryFilter.getFilter() == null
+              || queryFilter.getFilter().length() < tea.getMinCharactersToSearch())) {
+        throw new BadRequestException(
+            String.format(
+                "At least %d character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute %s doesn't contain enough.",
+                tea.getMinCharactersToSearch(), tea.getUid()));
+      }
     }
   }
 }

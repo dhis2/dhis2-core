@@ -108,6 +108,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Set<QueryOperator> blockedSearchOperators = EnumSet.noneOf(QueryOperator.class);
 
+  private Boolean trigramIndexable = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -416,6 +418,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setFieldMask(String fieldMask) {
     this.fieldMask = fieldMask;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getTrigramIndexable() {
+    return trigramIndexable;
+  }
+
+  public void setTrigramIndexable(Boolean trigramIndexable) {
+    this.trigramIndexable = trigramIndexable;
   }
 
   @Override

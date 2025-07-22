@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.ILIKE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
@@ -93,6 +94,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -140,6 +142,8 @@ class TrackerEventOperationParamsMapperTest {
 
   private TrackerEventOperationParams.TrackerEventOperationParamsBuilder eventBuilder;
 
+  private TrackedEntityAttribute tea1;
+
   @BeforeEach
   void setUp() {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
@@ -155,6 +159,10 @@ class TrackerEventOperationParamsMapperTest {
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
+
+    tea1 = new TrackedEntityAttribute();
+    tea1.setUid(TEA_1_UID);
+    tea1.setValueType(ValueType.INTEGER);
   }
 
   @Test
@@ -247,9 +255,6 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void shouldMapAttributeFilters() throws BadRequestException, ForbiddenException {
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    tea1.setValueType(ValueType.INTEGER);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
     tea2.setValueType(ValueType.TEXT);
@@ -299,14 +304,11 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
-    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
-
     DataElement de1 = new DataElement();
     de1.setUid(DE_1_UID);
     when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
     when(dataElementService.getDataElement(TEA_1_UID)).thenReturn(null);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams operationParams =
         eventBuilder
@@ -331,8 +333,6 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void shouldFailToMapOrderIfUIDIsNeitherDataElementNorAttribute() {
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
-    tea1.setUid(TEA_1_UID);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
 
     DataElement de1 = new DataElement();
@@ -568,6 +568,75 @@ class TrackerEventOperationParamsMapperTest {
             BadRequestException.class, () -> mapper.map(trackerEventOperationParams, user));
     assertStartsWith(
         "Operators [EQ] are blocked for attribute 'cy2oRh2sNr6'", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenTeaMinCharactersSetAndNotReached() {
+    tea1.setMinCharactersToSearch(2);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+
+    TrackerEventOperationParams trackerEventOperationParams =
+        TrackerEventOperationParams.builder()
+            .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "1")))
+            .build();
+
+    Exception exception =
+        Assertions.assertThrows(
+            BadRequestException.class, () -> mapper.map(trackerEventOperationParams, user));
+    assertContains(
+        "At least 2 character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute "
+            + TEA_1_UID,
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenTeaMinCharactersSetWithMultipleFiltersAndNotAllReachTheMinimum() {
+    tea1.setMinCharactersToSearch(2);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+
+    TrackerEventOperationParams trackerEventOperationParams =
+        TrackerEventOperationParams.builder()
+            .filterByAttribute(
+                UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "12"), new QueryFilter(LIKE, "1")))
+            .build();
+
+    Exception exception =
+        Assertions.assertThrows(
+            BadRequestException.class, () -> mapper.map(trackerEventOperationParams, user));
+    assertContains(
+        "At least 2 character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute "
+            + TEA_1_UID,
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapTeaWhenTeaMinCharactersSetButOperatorIsUnary()
+      throws ForbiddenException, BadRequestException {
+    tea1.setMinCharactersToSearch(1);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+
+    TrackerEventOperationParams trackerEventOperationParams =
+        TrackerEventOperationParams.builder()
+            .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(NULL)))
+            .build();
+
+    TrackerEventQueryParams queryParams = mapper.map(trackerEventOperationParams, user);
+    assertContainsOnly(List.of(TEA_1_UID), UID.toUidValueSet(queryParams.getAttributes().keySet()));
+  }
+
+  @Test
+  void shouldMapTeaWhenTeaMinCharactersSetAndReached()
+      throws ForbiddenException, BadRequestException {
+    tea1.setMinCharactersToSearch(2);
+    when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
+
+    TrackerEventOperationParams trackerEventOperationParams =
+        TrackerEventOperationParams.builder()
+            .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "12")))
+            .build();
+
+    TrackerEventQueryParams queryParams = mapper.map(trackerEventOperationParams, user);
+    assertContainsOnly(List.of(TEA_1_UID), UID.toUidValueSet(queryParams.getAttributes().keySet()));
   }
 
   private User createUserWithAuthority(Authorities authority) {
