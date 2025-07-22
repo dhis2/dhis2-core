@@ -168,6 +168,16 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         "The provided preferred TEA operator `IEQ` is not part of the tracker operators", message);
   }
 
+  @Test
+  void shouldSetIndexableFlagFromImportOrDefaultToFalseIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertTrigramIndexableFlag(trackedEntityAttributes, "sTGqP5JNy6E", true);
+    assertTrigramIndexableFlag(trackedEntityAttributes, "sYn3tkL3XKa", false);
+    assertTrigramIndexableFlag(trackedEntityAttributes, "TsfP85GKsU5", false);
+  }
+
   private void assertMinCharactersToSearch(
       List<TrackedEntityAttribute> teas, String uid, int expected) {
     TrackedEntityAttribute tea =
@@ -196,5 +206,20 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         expected,
         tea.getPreferredSearchOperator(),
         "Expected preferredSearchOperator for UID " + uid + " to be " + expected);
+  }
+
+  private void assertTrigramIndexableFlag(
+      List<TrackedEntityAttribute> teas, String uid, boolean expected) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.getTrigramIndexable(),
+        "Expected trigram indexable flag for UID " + uid + " to be " + expected);
   }
 }

@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
@@ -56,12 +58,21 @@ public class RouteTest extends ApiTest {
   void testRunRoute() {
     JsonObject routeJsonObject = new JsonObject();
     routeJsonObject.addProperty("name", "route-under-test");
-    routeJsonObject.addProperty("url", "https://dhis2.org/");
+    routeJsonObject.addProperty("url", "http://web:8080/api/system/info");
+
+    JsonObject authJsonObject = new JsonObject();
+    authJsonObject.addProperty("type", "http-basic");
+    authJsonObject.addProperty("username", "admin");
+    authJsonObject.addProperty("password", "district");
+
+    routeJsonObject.add("auth", authJsonObject);
 
     ApiResponse postApiResponse = routeActions.post(routeJsonObject);
+    postApiResponse.validate().statusCode(201);
     String id = postApiResponse.getBody().getAsJsonObject("response").get("uid").getAsString();
 
     ApiResponse runApiResponse = routeActions.get(id + "/run");
     runApiResponse.validate().statusCode(200);
+    assertNotNull(runApiResponse.getBody().get("version").getAsString());
   }
 }
