@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -72,7 +73,10 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
@@ -953,9 +957,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
+    } else if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE && item.getValueType() == ORGANISATION_UNIT){
+      return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
     }
+  }
+
+  /*
+  protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
+    if (item.isProgramIndicator()) {
+      return getColumnAndAlias(item, params, false, false).getColumn();
+    } else if (params.getEndpointAction() == QUERY) {
+      return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
+    } else {
+      return getQuotedColumn(item);
+    }
+  }
+   */
+
+  private String getQuotedColumn(QueryItem item) {
+    return quoteAlias(item.getItemName());
   }
 
   /**
@@ -1064,27 +1086,50 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
-    String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
+    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
     String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
 
-    String columns =
-        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
-            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
-            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
+    String orgUnitColumns = EMPTY;
+    if (params.getEndpointAction() == QUERY) {
+      orgUnitColumns = !isBlank(orgUnitLevels) ? orgUnitLevels : ORGUNIT_DIM_ID;
+    }
 
-    sql =
-        "select count("
-            + OUTER_SQL_ALIAS
-            + ".enrollment) as "
-            + COL_VALUE
-            + ", "
-            + columns
-            + " from ("
-            + sql
-            + ") "
-            + OUTER_SQL_ALIAS
-            + " group by "
-            + columns;
+    List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
+    String columns =
+        list.stream()
+            .filter(StringUtils::isNotBlank)
+            .map(col -> col.replace("t1.", "ev."))
+            .collect(Collectors.joining(", "));
+
+    if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE) {
+      sql = "select count(distinct ax.enrollment) as "
+          + COL_VALUE
+          + ", "
+          + columns.replace("t1.", "ev.")
+          + " from analytics_enrollment_" + params.getProgram().getUid() + " ax"
+          + " join analytics_event_" + params.getProgram().getUid() + " ev on ev.enrollment = ax.enrollment "
+          + whereClause
+          + " and ev.eventstatus != 'SCHEDULE'";
+
+      String groupByColumns = columns.replace("t1.", "ev.");
+      groupByColumns = StringUtils.substringBeforeLast(groupByColumns, " as ");
+
+      sql += " group by " + groupByColumns;
+    } else {
+      sql =
+          "select count("
+              + OUTER_SQL_ALIAS
+              + ".enrollment) as "
+              + COL_VALUE
+              + ", "
+              + columns
+              + " from ("
+              + sql
+              + ") "
+              + OUTER_SQL_ALIAS
+              + " group by "
+              + columns;
+    }
 
     return sql;
   }
@@ -1272,7 +1317,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 groupingBy(
                     queryItem ->
                         queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem() == ENROLLMENT));
+                            && params.getEndpointItem() == ENROLLMENT
+                            && params.isComingFromQuery()));
 
     // Groups repeatable conditions based on PSI.DEID
     Map<String, List<String>> repeatableConditionsByIdentifier =
@@ -1346,6 +1392,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+    Map<UUID, String> sqlConditionByGroup = getUuidConditionMap(params);
+
+    if (sqlConditionByGroup.values().isEmpty()) {
+      return "";
+    }
+
+    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+  }
+
+  protected Map<UUID, String> getUuidConditionMap(EventQueryParams params) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1353,12 +1409,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 groupingBy(
                     QueryItem::getGroupUUID,
                     mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
-
-    if (sqlConditionByGroup.values().isEmpty()) {
-      return "";
-    }
-
-    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+    return sqlConditionByGroup;
   }
 
   /**
@@ -2132,7 +2183,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(columnMapper::getColumnsForAttribute)
             .flatMap(Collection::stream)
             .map(AnalyticsTableColumn::getName)
-            .collect(Collectors.toSet());
+            .collect(toSet());
 
     String expressions =
         params.getItems().stream()

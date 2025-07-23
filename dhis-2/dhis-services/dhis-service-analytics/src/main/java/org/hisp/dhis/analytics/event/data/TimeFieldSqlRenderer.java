@@ -166,10 +166,10 @@ public abstract class TimeFieldSqlRenderer {
     List<String> sqlConditions = conditions.get(columnWithDateRange.column);
     if (sqlConditions == null) {
       sqlConditions = new ArrayList<>();
-      sqlConditions.add(getDateRangeCondition(columnWithDateRange));
+      sqlConditions.add(getDateRangeCondition(columnWithDateRange, eventQueryParams));
       conditions.put(columnWithDateRange.column, sqlConditions);
     } else {
-      sqlConditions.add(getDateRangeCondition(columnWithDateRange));
+      sqlConditions.add(getDateRangeCondition(columnWithDateRange, eventQueryParams));
     }
   }
 
@@ -179,12 +179,17 @@ public abstract class TimeFieldSqlRenderer {
    * @param dateRangeColumn the {@link ColumnWithDateRange}
    * @return the SQL statement
    */
-  private String getDateRangeCondition(ColumnWithDateRange dateRangeColumn) {
-    return "("
+  private String getDateRangeCondition(ColumnWithDateRange dateRangeColumn, EventQueryParams params) {
+    String prefix = EMPTY;
+    if (params.hasOrgUnitFilter()) {
+      prefix = "ax.";
+    }
+
+    return "(" + prefix
         + dateRangeColumn.getColumn()
         + " >= '"
         + toMediumDate(dateRangeColumn.getDateRange().getStartDate())
-        + "' and "
+        + "' and " + prefix
         + dateRangeColumn.getColumn()
         + " < '"
         + toMediumDate(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
@@ -205,7 +210,7 @@ public abstract class TimeFieldSqlRenderer {
             .dateRange(new DateRange(params.getStartDate(), params.getEndDate()))
             .build();
     List<String> dateRangeConditions = new ArrayList<>();
-    dateRangeConditions.add(getDateRangeCondition(defaultDateRangeColumn));
+    dateRangeConditions.add(getDateRangeCondition(defaultDateRangeColumn, params));
     conditions.put(defaultDateRangeColumn.column, dateRangeConditions);
   }
 

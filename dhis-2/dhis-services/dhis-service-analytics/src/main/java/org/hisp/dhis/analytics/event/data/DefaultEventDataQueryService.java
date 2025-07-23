@@ -80,6 +80,8 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -324,8 +326,20 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             params.addItem((QueryItem) groupableItem);
           }
 
+          addStageToParams(params, request, groupableItem);
+
           groupableItem.setGroupUUID(groupUUID);
         }
+      }
+    }
+  }
+
+  private void addStageToParams(EventQueryParams.Builder paramsBuilder, EventDataQueryRequest request, GroupableItem groupableItem) {
+    if (request.getEndpointItem() == EndpointItem.ENROLLMENT && request.getEndpointAction() == EndpointAction.AGGREGATE) {
+      if (groupableItem instanceof DimensionalObject dim) {
+        paramsBuilder.withProgramStage(dim.getProgramStage());
+      } else if (groupableItem instanceof QueryItem item) {
+        paramsBuilder.withProgramStage(item.getProgramStage());
       }
     }
   }
