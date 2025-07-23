@@ -42,8 +42,8 @@ import org.mapstruct.factory.Mappers;
       OrganisationUnitMapper.class,
       EnrollmentMapper.class
     })
-public interface EventMapper extends PreheatMapper<TrackerEvent> {
-  EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
+public interface TrackerEventMapper extends PreheatMapper<TrackerEvent> {
+  TrackerEventMapper INSTANCE = Mappers.getMapper(TrackerEventMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")

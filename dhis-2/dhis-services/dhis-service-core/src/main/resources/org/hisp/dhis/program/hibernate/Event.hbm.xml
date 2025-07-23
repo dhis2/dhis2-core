@@ -75,7 +75,7 @@ fields=!notes. reconsider this if we do implement that optimization -->
     </list>
 
     <set name="relationshipItems" inverse="true">
-      <key column="eventid" />
+      <key column="trackereventid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 

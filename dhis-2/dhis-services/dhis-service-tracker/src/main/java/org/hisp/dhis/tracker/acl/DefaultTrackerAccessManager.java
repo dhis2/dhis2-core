@@ -300,28 +300,20 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       errors.add("User has no data read access to program: " + program.getUid());
     }
 
-    if (program.isRegistration()) {
-      if (!aclService.canDataRead(user, programStage)) {
-        errors.add("User has no data read access to program stage: " + programStage.getUid());
-      }
+    if (!aclService.canDataRead(user, programStage)) {
+      errors.add("User has no data read access to program stage: " + programStage.getUid());
+    }
 
-      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
-        errors.add(
-            "User has no data read access to tracked entity type: "
-                + program.getTrackedEntityType().getUid());
-      }
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      errors.add(
+          "User has no data read access to tracked entity type: "
+              + program.getTrackedEntityType().getUid());
+    }
 
-      if (!skipOwnershipCheck
-          && !ownershipAccessManager.hasAccess(
-              user, event.getEnrollment().getTrackedEntity(), program)) {
-        errors.add(OWNERSHIP_ACCESS_DENIED);
-      }
-    } else {
-      OrganisationUnit orgUnit = event.getOrganisationUnit();
-
-      if (!canAccess(user, program, orgUnit)) {
-        errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + orgUnit.getUid());
-      }
+    if (!skipOwnershipCheck
+        && !ownershipAccessManager.hasAccess(
+            user, event.getEnrollment().getTrackedEntity(), program)) {
+      errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
     errors.addAll(canRead(user, event.getAttributeOptionCombo()));
@@ -403,7 +395,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canUpdate(
       @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || event == null) {
       return List.of();
     }
@@ -416,23 +407,41 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
-    if (program.isWithoutRegistration()) {
-      if (!aclService.canDataWrite(user, program)) {
-        errors.add("User has no data write access to program: " + program.getUid());
-      }
-    } else {
-      canManageWithRegistration(errors, user, programStage, program);
 
-      OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getStoredPath())) {
-        errors.add("User has no update access to organisation unit: " + ou.getUid());
-      }
+    canManageWithRegistration(errors, user, programStage, program);
 
-      if (!skipOwnershipCheck
-          && !ownershipAccessManager.hasAccess(
-              user, event.getEnrollment().getTrackedEntity(), program)) {
-        errors.add(OWNERSHIP_ACCESS_DENIED);
-      }
+    OrganisationUnit ou = event.getOrganisationUnit();
+    if (ou != null && !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getStoredPath())) {
+      errors.add("User has no update access to organisation unit: " + ou.getUid());
+    }
+
+    if (!skipOwnershipCheck
+        && !ownershipAccessManager.hasAccess(
+            user, event.getEnrollment().getTrackedEntity(), program)) {
+      errors.add(OWNERSHIP_ACCESS_DENIED);
+    }
+
+    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canUpdate(@Nonnull UserDetails user, SingleEvent event) {
+    if (user.isSuper() || event == null) {
+      return List.of();
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+
+    if (isNull(programStage)) {
+      return List.of();
+    }
+
+    Program program = programStage.getProgram();
+    List<String> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
     }
 
     errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
@@ -527,11 +536,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     errors.addAll(canRead(user, from.getTrackedEntity()));
     errors.addAll(canRead(user, from.getEnrollment(), false));
-    errors.addAll(canRead(user, from.getEvent(), false));
+    errors.addAll(canRead(user, from.getTrackerEvent(), false));
+    errors.addAll(canRead(user, from.getSingleEvent()));
 
     errors.addAll(canRead(user, to.getTrackedEntity()));
     errors.addAll(canRead(user, to.getEnrollment(), false));
-    errors.addAll(canRead(user, to.getEvent(), false));
+    errors.addAll(canRead(user, to.getTrackerEvent(), false));
+    errors.addAll(canRead(user, to.getSingleEvent()));
 
     return errors;
   }
@@ -557,16 +568,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     errors.addAll(canWrite(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
-    errors.addAll(canUpdate(user, from.getEvent(), false));
+    errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
+    errors.addAll(canUpdate(user, from.getSingleEvent()));
 
     if (isBidirectional) {
       errors.addAll(canWrite(user, to.getTrackedEntity()));
       errors.addAll(canUpdate(user, to.getEnrollment(), false));
-      errors.addAll(canUpdate(user, to.getEvent(), false));
+      errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
+      errors.addAll(canUpdate(user, to.getSingleEvent()));
     } else {
       errors.addAll(canRead(user, to.getTrackedEntity()));
       errors.addAll(canRead(user, to.getEnrollment(), false));
-      errors.addAll(canRead(user, to.getEvent(), false));
+      errors.addAll(canRead(user, to.getTrackerEvent(), false));
+      errors.addAll(canRead(user, to.getSingleEvent()));
     }
     return errors;
   }
@@ -587,12 +601,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     errors.addAll(canWrite(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
-    errors.addAll(canUpdate(user, from.getEvent(), false));
+    errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
+    errors.addAll(canUpdate(user, from.getSingleEvent()));
 
     if (isBidirectional) {
       errors.addAll(canWrite(user, to.getTrackedEntity()));
       errors.addAll(canUpdate(user, to.getEnrollment(), false));
-      errors.addAll(canUpdate(user, to.getEvent(), false));
+      errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
+      errors.addAll(canUpdate(user, to.getSingleEvent()));
     }
     return errors;
   }

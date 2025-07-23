@@ -82,7 +82,7 @@ class RelationshipUtilsTest {
     RelationshipItem itemC = new RelationshipItem();
     itemA.setTrackedEntity(teA);
     itemB.setEnrollment(enrollmentA);
-    itemC.setEvent(eventA);
+    itemC.setTrackerEvent(eventA);
     assertEquals(teA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemA));
     assertEquals(enrollmentA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemB));
     assertEquals(eventA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemC));
@@ -168,7 +168,7 @@ class RelationshipUtilsTest {
     RelationshipItem from = new RelationshipItem();
     RelationshipItem to = new RelationshipItem();
     from.setTrackedEntity(teA);
-    to.setEvent(eventA);
+    to.setTrackerEvent(eventA);
 
     return relationship(from, to);
   }
@@ -177,7 +177,7 @@ class RelationshipUtilsTest {
     RelationshipItem from = new RelationshipItem();
     RelationshipItem to = new RelationshipItem();
     from.setEnrollment(enrollmentA);
-    to.setEvent(eventA);
+    to.setTrackerEvent(eventA);
 
     return relationship(from, to);
   }

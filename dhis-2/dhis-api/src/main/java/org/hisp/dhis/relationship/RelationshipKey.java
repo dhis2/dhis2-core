@@ -32,6 +32,7 @@ package org.hisp.dhis.relationship;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.UID;
 
 @Data
@@ -62,30 +63,18 @@ public class RelationshipKey {
 
     private final UID enrollment;
 
-    private final UID event;
+    private final UID trackerEvent;
+
+    private final UID singleEvent;
 
     public String asString() {
-      if (isTrackedEntity()) {
-        return trackedEntity.getValue();
-      } else if (isEnrollment()) {
-        return enrollment.getValue();
-      } else if (isEvent()) {
-        return event.getValue();
+      UID uid = ObjectUtils.firstNonNull(trackedEntity, enrollment, trackerEvent, singleEvent);
+
+      if (uid != null) {
+        return uid.getValue();
       }
 
       return "ERROR";
-    }
-
-    public boolean isTrackedEntity() {
-      return trackedEntity != null;
-    }
-
-    public boolean isEnrollment() {
-      return enrollment != null;
-    }
-
-    public boolean isEvent() {
-      return event != null;
     }
   }
 }

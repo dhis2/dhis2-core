@@ -36,7 +36,7 @@ import java.util.List;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.EventMapper;
+import org.hisp.dhis.tracker.imports.preheat.mappers.TrackerEventMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,10 +46,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor(value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = EventMapper.class)
-public class EventStrategy extends HibernateGenericStore<TrackerEvent>
+@StrategyFor(
+    value = org.hisp.dhis.tracker.imports.domain.TrackerEvent.class,
+    mapper = TrackerEventMapper.class)
+public class TrackerEventStrategy extends HibernateGenericStore<TrackerEvent>
     implements ClassBasedSupplierStrategy {
-  public EventStrategy(
+  public TrackerEventStrategy(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, TrackerEvent.class, false);
   }

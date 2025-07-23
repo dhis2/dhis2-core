@@ -391,7 +391,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     UID idA = UID.of(eventA);
     Relationship r = new Relationship();
     RelationshipItem rItem1 = new RelationshipItem();
-    rItem1.setEvent(eventA);
+    rItem1.setTrackerEvent(eventA);
     RelationshipItem rItem2 = new RelationshipItem();
     rItem2.setTrackedEntity(trackedEntity);
     r.setFrom(rItem1);

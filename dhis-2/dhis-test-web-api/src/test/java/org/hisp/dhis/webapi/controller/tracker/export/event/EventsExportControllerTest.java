@@ -406,8 +406,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
 
     JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
-    assertEquals(relationship.getFrom().getEvent().getUid(), event.getEvent());
-    assertEquals(relationship.getFrom().getEvent().getEnrollment().getUid(), event.getEnrollment());
+    assertEquals(relationship.getFrom().getTrackerEvent().getUid(), event.getEvent());
+    assertEquals(
+        relationship.getFrom().getTrackerEvent().getEnrollment().getUid(), event.getEnrollment());
 
     JsonRelationshipItem.JsonTrackedEntity trackedEntity =
         jsonRelationship.getTo().getTrackedEntity();
@@ -463,8 +464,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
 
     JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
-    assertEquals(relationship.getFrom().getEvent().getUid(), event.getEvent());
-    assertEquals(relationship.getFrom().getEvent().getEnrollment().getUid(), event.getEnrollment());
+    assertEquals(relationship.getFrom().getTrackerEvent().getUid(), event.getEvent());
+    assertEquals(
+        relationship.getFrom().getTrackerEvent().getEnrollment().getUid(), event.getEnrollment());
 
     JsonRelationshipItem.JsonTrackedEntity trackedEntity =
         jsonRelationship.getTo().getTrackedEntity();
@@ -1153,7 +1155,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setEvent(from);
+    fromItem.setTrackerEvent(from);
     from.getRelationshipItems().add(fromItem);
     fromItem.setRelationship(r);
     r.setFrom(fromItem);
@@ -1183,7 +1185,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     fromItem.setRelationship(r);
 
     RelationshipItem toItem = new RelationshipItem();
-    toItem.setEvent(to);
+    toItem.setTrackerEvent(to);
     to.getRelationshipItems().add(toItem);
     r.setTo(toItem);
     toItem.setRelationship(r);

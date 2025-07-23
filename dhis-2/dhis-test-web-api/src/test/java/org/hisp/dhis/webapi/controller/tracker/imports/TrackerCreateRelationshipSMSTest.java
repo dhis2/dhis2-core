@@ -206,8 +206,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
                   UID.of(relationshipUid), RelationshipFields.all());
           assertAll(
               () -> assertEquals(relationshipUid, relationship.getUid()),
-              () -> assertEquals(event1, relationship.getFrom().getEvent()),
-              () -> assertEquals(event2, relationship.getTo().getEvent()));
+              () -> assertEquals(event1, relationship.getFrom().getTrackerEvent()),
+              () -> assertEquals(event2, relationship.getTo().getTrackerEvent()));
         });
   }
 
