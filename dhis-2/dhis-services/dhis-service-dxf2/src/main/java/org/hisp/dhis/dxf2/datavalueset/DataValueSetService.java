@@ -29,12 +29,10 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -42,7 +40,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Lars Helge Overland
@@ -95,32 +92,5 @@ public interface DataValueSetService {
       String ouScheme,
       String deScheme);
 
-  ImportSummary importDataValueSetXml(InputStream in);
-
-  ImportSummary importDataValueSetJson(InputStream in);
-
-  ImportSummary importDataValueSetXml(InputStream in, ImportOptions importOptions);
-
-  ImportSummary importDataValueSetJson(InputStream in, ImportOptions importOptions);
-
-  ImportSummary importDataValueSetCsv(InputStream in, ImportOptions importOptions);
-
-  ImportSummary importDataValueSetPdf(InputStream in, ImportOptions importOptions);
-
   ImportSummary importDataValueSet(DataValueSet dataValueSet, ImportOptions importOptions);
-
-  ImportSummary importDataValueSetXml(
-      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress);
-
-  ImportSummary importDataValueSetJson(
-      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress);
-
-  ImportSummary importDataValueSetCsv(
-      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress);
-
-  ImportSummary importDataValueSetPdf(
-      InputStream in, ImportOptions importOptions, @Nonnull JobProgress progress);
-
-  ImportSummary importDataValueSetAdx(
-      DataValueSetReader reader, ImportOptions importOptions, @Nonnull JobProgress progress);
 }

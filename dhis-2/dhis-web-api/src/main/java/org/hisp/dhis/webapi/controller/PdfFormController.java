@@ -44,8 +44,8 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryIO;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormService;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
@@ -84,7 +84,7 @@ public class PdfFormController {
 
   @Autowired private Notifier notifier;
 
-  @Autowired private DataValueSetService dataValueSetService;
+  @Autowired private DataEntryIO dataEntryIO;
 
   @Autowired private DataSetService dataSetService;
 
@@ -154,7 +154,7 @@ public class PdfFormController {
     in = StreamUtils.wrapAndCheckCompressionFormat(in);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetPdf(
+        dataEntryIO.importPdf(
             in,
             ImportOptions.getDefaultImportOptions(),
             RecordingJobProgress.transitory(jobId, notifier));

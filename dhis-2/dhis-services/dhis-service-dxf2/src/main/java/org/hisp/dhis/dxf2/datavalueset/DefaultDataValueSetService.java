@@ -31,13 +31,11 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.commons.util.StreamUtils.wrapAndCheckCompressionFormat;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.time.LocalDate;
@@ -107,7 +105,6 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.callable.PeriodCallable;
-import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -117,7 +114,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -536,91 +532,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
 
   @Override
   @Transactional
-  public ImportSummary importDataValueSetXml(InputStream in) {
-    return importDataValueSetXml(in, ImportOptions.getDefaultImportOptions(), JobProgress.noop());
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetJson(InputStream in) {
-    return importDataValueSetJson(in, ImportOptions.getDefaultImportOptions(), JobProgress.noop());
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetXml(InputStream in, ImportOptions options) {
-    return importDataValueSetXml(in, options, JobProgress.noop());
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetJson(InputStream in, ImportOptions options) {
-    return importDataValueSetJson(in, options, JobProgress.noop());
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetCsv(InputStream in, ImportOptions options) {
-    return importDataValueSetCsv(in, options, JobProgress.noop());
-  }
-
-  @Override
-  @Transactional
   public ImportSummary importDataValueSet(DataValueSet dataValueSet, ImportOptions options) {
     return importDataValueSet(
         options, JobProgress.noop(), () -> new SimpleDataValueSetReader(dataValueSet));
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetXml(
-      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
-    return importDataValueSet(
-        options,
-        progress,
-        () ->
-            new XmlDataValueSetReader(XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in))));
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetJson(
-      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
-    return importDataValueSet(
-        options,
-        progress,
-        () -> new JsonDataValueSetReader(wrapAndCheckCompressionFormat(in), jsonMapper));
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetCsv(
-      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
-    return importDataValueSet(
-        options,
-        progress,
-        () ->
-            new CsvDataValueSetReader(
-                CsvUtils.getReader(wrapAndCheckCompressionFormat(in)), options));
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetPdf(
-      InputStream in, ImportOptions options, @Nonnull JobProgress progress) {
-    return importDataValueSet(options, progress, () -> new PdfDataValueSetReader(in));
-  }
-
-  @Override
-  @Transactional
-  public ImportSummary importDataValueSetPdf(InputStream in, ImportOptions options) {
-    return importDataValueSetPdf(in, options, JobProgress.noop());
-  }
-
-  @Override
-  public ImportSummary importDataValueSetAdx(
-      DataValueSetReader reader, ImportOptions options, @Nonnull JobProgress progress) {
-    return importDataValueSet(options, progress, () -> reader);
   }
 
   private ImportSummary importDataValueSet(
