@@ -92,6 +92,7 @@ public class DataEntryIO {
     XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
     String ns = "urn:ihe:qrph:adx:2015";
     dvs.moveToStartElement("adx", ns);
+    DataEntryGroup.Input last = null;
     List<DataEntryGroup.Input> res = new ArrayList<>();
     while (dvs.moveToStartElement("group", ns)) {
       Map<String, String> group = dvs.readAttributes();
@@ -126,11 +127,24 @@ public class DataEntryIO {
         Boolean followup = followupStr == null ? null : "true".equalsIgnoreCase(followupStr);
         Boolean deleted = deletedStr == null ? null : "true".equalsIgnoreCase(deletedStr);
         if (dvs.moveToStartElement("annotation", "dataValue")) value = dvs.getElementValue();
+        // values also get group ou, pe set because of potential merge
         values.add(
-            new DataEntryValue.Input(
-                de, null, coc, co, null, null, value, comment, followup, deleted));
+            new DataEntryValue.Input(de, ou, coc, co, null, pe, value, comment, followup, deleted));
       }
-      res.add(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, aco, values));
+      DataEntryGroup.Input adxGroup =
+          new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, aco, values);
+      // if this ADX group has same DS group properties...
+      if (last != null && last.isSameDsAoc(adxGroup)) {
+        // auto-merge ADX group into a DS group purely for faster decode
+        // (less DB queries due to fewer groups)
+        // but only merge in-order to maintain value order
+        res.remove(res.size() - 1); // old last
+        last = last.mergedSameDsAoc(adxGroup);
+        res.add(last);
+      } else {
+        res.add(adxGroup);
+        last = adxGroup;
+      }
     }
     return res;
   }
@@ -298,7 +312,7 @@ public class DataEntryIO {
     progress.nonNullStagePostCondition(inputs);
 
     try {
-      ImportSummary summary = importRawUnsafe(inputs, options, progress);
+      ImportSummary summary = importAutoSplitAndMerge(inputs, options, progress);
       summary.setImportOptions(options);
       return summary;
     } catch (BadRequestException | ConflictException ex) {
@@ -308,37 +322,55 @@ public class DataEntryIO {
     }
   }
 
-  private ImportSummary importRawUnsafe(
+  /**
+   * Values not belonging to a single DS must be split into groups per DS but groups belonging to
+   * the same DS should be merged into a single group.
+   */
+  private ImportSummary importAutoSplitAndMerge(
       List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress)
       throws BadRequestException, ConflictException {
     List<DataEntryGroup> groups = new ArrayList<>();
     for (DataEntryGroup.Input input : inputs) {
-      progress.startingStage("Resolving " + input.describe());
-      groups.add(
-          progress.runStageAndRethrow(BadRequestException.class, () -> service.decodeGroup(input)));
+      progress.startingStage("Decoding " + input.describe());
+      progress.nonNullStagePostCondition(
+          groups.add(
+              progress.runStageAndRethrow(
+                  BadRequestException.class, () -> service.decodeGroup(input))));
     }
 
-    List<DataEntryGroup> dsGroups = groups;
+    List<DataEntryGroup> splitGroups = groups;
     if (options.isGroup()) {
-      dsGroups = new ArrayList<>();
+      splitGroups = new ArrayList<>();
       for (DataEntryGroup g : groups) {
         if (g.dataSet() == null) {
-          progress.startingStage("Grouping " + g.describe());
-          dsGroups.addAll(
-              progress.runStageAndRethrow(ConflictException.class, () -> service.splitGroup(g)));
+          progress.startingStage("Splitting " + g.describe());
+          splitGroups.addAll(
+              progress.nonNullStagePostCondition(
+                  progress.runStageAndRethrow(
+                      ConflictException.class, () -> service.splitGroup(g))));
         } else {
-          dsGroups.add(g);
+          splitGroups.add(g);
         }
       }
     }
 
+    List<DataEntryGroup> mergedGroups = splitGroups;
+    if (mergedGroups.size() > 1) {
+      List<DataEntryGroup> preMerge = splitGroups;
+      progress.startingStage("Merging same dataset groups");
+      mergedGroups =
+          progress.nonNullStagePostCondition(progress.runStage(() -> mergeGroups(preMerge)));
+    }
+
     DataEntryGroup.Options opt =
         new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-
-    return importGroups(mergeGroups(dsGroups), opt, progress);
+    return importGroups(mergedGroups, opt, progress);
   }
 
-  /** Merges groups of same dataset for best performance (bulk as much as possible) */
+  /**
+   * Merges groups of same dataset for best performance (fewer larger groups are faster) but only
+   * merge in-order to maintain overall order of values
+   */
   private List<DataEntryGroup> mergeGroups(List<DataEntryGroup> groups) {
     if (groups.size() < 2) return groups;
     List<DataEntryGroup> merged = new ArrayList<>(groups.size()); // assume no merge

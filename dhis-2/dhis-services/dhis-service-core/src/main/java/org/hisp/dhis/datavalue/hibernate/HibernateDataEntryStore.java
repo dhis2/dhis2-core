@@ -244,7 +244,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         -- the first column has all DEs (of the scope) that use the same CC
           SELECT
            array_agg(cc.de_id) AS de_ids,
-           array_agg(distinct coc_co.categoryoptionid) AS categoryoptionids,
+           ARRAY(SELECT DISTINCT unnest(array_agg(coc_co.categoryoptionid))) AS categoryoptionids,
            coc_co.categoryoptioncomboid
           FROM (
             -- 1. expand the DE list (+DS) into effective CCs used

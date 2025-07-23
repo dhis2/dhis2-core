@@ -183,7 +183,7 @@ public class RecordingJobProgress implements JobProgress {
       @Nonnull ErrorCode code,
       @CheckForNull String uid,
       @Nonnull String type,
-      @Nonnull List<String> args) {
+      @CheckForNull List<String> args) {
     addError(code.name(), uid, type, args);
   }
 
@@ -192,7 +192,7 @@ public class RecordingJobProgress implements JobProgress {
       @Nonnull ValidationCode code,
       @CheckForNull String uid,
       @Nonnull String type,
-      @Nonnull List<String> args) {
+      @CheckForNull List<String> args) {
     addError(code.name(), uid, type, args);
   }
 
@@ -200,10 +200,11 @@ public class RecordingJobProgress implements JobProgress {
       @Nonnull String code,
       @CheckForNull String uid,
       @Nonnull String type,
-      @Nonnull List<String> args) {
+      @CheckForNull List<String> args) {
     try {
       // Note: we use empty string in case the UID is not known/defined yet to allow use in maps
-      progress.addError(new Error(code, uid == null ? "" : uid, type, args));
+      progress.addError(
+          new Error(code, uid == null ? "" : uid, type, args == null ? List.of() : args));
     } catch (Exception ex) {
       log.error(format("Failed to add error: {} {} {} {}", code, uid, type, args), ex);
     }

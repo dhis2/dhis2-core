@@ -391,6 +391,8 @@ public class DefaultDataEntryService implements DataEntryService {
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E7811, aoc, ouNotInAoc);
       }
     }
+    // TODO make skipping this check a setting for easier transition
+    if (true) return;
 
     // - require: PEs must be within the OU's operational span
     List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
@@ -408,9 +410,7 @@ public class DefaultDataEntryService implements DataEntryService {
                     DateRange operational = ouOpSpan.get(dv.orgUnit().getValue());
                     if (operational == null) return false; // null => no issue with the timeframe
                     Period pe = peByIso.get(dv.period());
-                    if (operational.getStartDate().after(pe.getStartDate())) return true;
-                    Date endDate = operational.getEndDate();
-                    return endDate != null && pe.getEndDate().after(endDate);
+                    return !operational.includes(pe.getStartDate());
                   })
               .map(dv -> dv.period() + "-" + dv.orgUnit())
               .distinct()

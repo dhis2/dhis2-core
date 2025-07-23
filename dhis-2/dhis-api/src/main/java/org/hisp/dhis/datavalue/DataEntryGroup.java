@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -118,6 +119,18 @@ public record DataEntryGroup(
       vars.put("count", values == null ? null : "" + values.size());
       return replace(
           "ds=${ds:?} [de=${de:} ou=${ou:} pe=${pe:} aoc=${aoc:}](${count:0} values)", vars);
+    }
+
+    public boolean isSameDsAoc(Input other) {
+      return dataSet != null
+          && dataSet.equals(other.dataSet)
+          && Objects.equals(attributeOptionCombo, other.attributeOptionCombo)
+          && Objects.equals(attributeOptions, other.attributeOptions);
+    }
+
+    public Input mergedSameDsAoc(Input other) {
+      values.addAll(other.values);
+      return new Input(ids, dataSet, values);
     }
   }
 
