@@ -238,6 +238,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     statistics.setDataValueCount(dataValueCount);
 
     // TODO(DHIS2-19702): Should we consider single events?
+    // TODO(DHIS2-19702): Also create separate statistics for trackerEvent and SingleEvent
     Map<Integer, Long> eventCount = new HashMap<>();
     eventCount.put(
         0, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(0)));

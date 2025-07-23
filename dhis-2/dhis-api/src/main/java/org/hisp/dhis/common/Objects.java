@@ -90,7 +90,7 @@ public enum Objects {
   PROGRAM("program", Program.class),
   TRACKEDENTITY("trackedEntity", TrackedEntity.class),
   ENROLLMENT("enrollment", Enrollment.class),
-  EVENT("event", TrackerEvent.class), // Event inclues tracker and single events
+  EVENT("event", TrackerEvent.class), // Event includes tracker and single events
   TRACKEDENTITYATTRIBUTE("trackedEntityAttribute", TrackedEntityAttribute.class),
   EXPRESSIONDIMENSIONITEM("expressionDimensionItem", ExpressionDimensionItem.class);
 
