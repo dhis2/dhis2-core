@@ -279,14 +279,22 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202208\":{\"name\":\"August 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"202209\":{\"name\":\"September 2022\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ww8JVblo4SI\":{\"code\":\"Others\",\"name\":\"Others\"},\"202212\":{\"name\":\"December 2022\"},\"Cd0gtHGmlwS\":{\"code\":\"NVP only\",\"name\":\"NVP only\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"202210\":{\"name\":\"October 2022\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"wQLfBvPrXqq\":{\"name\":\"MCH ARV at birth\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"pe\":{\"name\":\"Period\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"jUb8gELQApl\",\"TEQlaapDQoK\",\"eIQbndfxQMb\",\"Vth0fbpFcsO\",\"PMa2VCrupOd\",\"O6uvpzGd5pu\",\"bL4ooGhyHRQ\",\"kJq2mPyFEHo\",\"fdc6uOvgoji\",\"at6UHUQatSo\",\"lc3eMKXaEfw\",\"qhqAxPSTUXp\",\"jmIPBj66vD6\"],\"wQLfBvPrXqq\":[\"Cd0gtHGmlwS\",\"ww8JVblo4SI\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202208\":{\"name\":\"August 2022\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"202209\":{\"name\":\"September 2022\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ww8JVblo4SI\":{\"code\":\"Others\",\"name\":\"Others\"},\"202212\":{\"name\":\"December 2022\"},\"Cd0gtHGmlwS\":{\"code\":\"NVP only\",\"name\":\"NVP only\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"202210\":{\"name\":\"October 2022\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"pe\":{\"name\":\"Period\"},\"A03MvHHogjR.cejWyOfXge6\":{\"name\":\"Gender\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"A03MvHHogjR.wQLfBvPrXqq\":{\"name\":\"MCH ARV at birth\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"ou\":[\"jUb8gELQApl\",\"TEQlaapDQoK\",\"eIQbndfxQMb\",\"Vth0fbpFcsO\",\"PMa2VCrupOd\",\"O6uvpzGd5pu\",\"bL4ooGhyHRQ\",\"kJq2mPyFEHo\",\"fdc6uOvgoji\",\"at6UHUQatSo\",\"lc3eMKXaEfw\",\"qhqAxPSTUXp\",\"jmIPBj66vD6\"],\"wQLfBvPrXqq\":[\"Cd0gtHGmlwS\",\"ww8JVblo4SI\"],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
-    validateHeader(response, 0, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 1, "wQLfBvPrXqq", "MCH ARV at birth", "TEXT", "java.lang.String", false, true);
+        response, 0, "A03MvHHogjR.cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "A03MvHHogjR.wQLfBvPrXqq",
+        "MCH ARV at birth",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeader(response, 2, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 3, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 4, "value", "Value", "NUMBER", "java.lang.Double", false, false);
@@ -637,17 +645,24 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"sXfZuRdvhl5\":{\"code\":\"0\",\"name\":\"Dose 0\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"VBGXfSXgJzv\":{\"code\":\"3\",\"name\":\"Dose 3\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"FqlgKAG8HOu\":{\"name\":\"MCH Measles dose\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"},\"vTUhAUZFoys\":{\"name\":\"MCH Penta dose\"},\"Xr0M5yEhtpT\":{\"code\":\"2\",\"name\":\"Dose 2\"},\"lFFqylGiWLk\":{\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"vTUhAUZFoys\":[\"sXfZuRdvhl5\",\"lFFqylGiWLk\",\"Xr0M5yEhtpT\",\"VBGXfSXgJzv\"],\"ou\":[\"ImspTQPwCqd\"],\"ZzYYXq4fJie.FqlgKAG8HOu\":[]}}";
+        "{\"items\":{\"sXfZuRdvhl5\":{\"code\":\"0\",\"name\":\"Dose 0\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ZzYYXq4fJie.vTUhAUZFoys\":{\"name\":\"MCH Penta dose\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"VBGXfSXgJzv\":{\"code\":\"3\",\"name\":\"Dose 3\"},\"ou\":{\"name\":\"Organisation unit\"},\"202208\":{\"name\":\"August 2022\"},\"202209\":{\"name\":\"September 2022\"},\"202305\":{\"name\":\"May 2023\"},\"202207\":{\"name\":\"July 2022\"},\"202306\":{\"name\":\"June 2023\"},\"202303\":{\"name\":\"March 2023\"},\"202304\":{\"name\":\"April 2023\"},\"202301\":{\"name\":\"January 2023\"},\"ZzYYXq4fJie.FqlgKAG8HOu\":{\"name\":\"MCH Measles dose\"},\"202302\":{\"name\":\"February 2023\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202211\":{\"name\":\"November 2022\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202212\":{\"name\":\"December 2022\"},\"202210\":{\"name\":\"October 2022\"},\"pe\":{\"name\":\"Period\"},\"Xr0M5yEhtpT\":{\"code\":\"2\",\"name\":\"Dose 2\"},\"lFFqylGiWLk\":{\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[\"202207\",\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\"],\"vTUhAUZFoys\":[\"sXfZuRdvhl5\",\"lFFqylGiWLk\",\"Xr0M5yEhtpT\",\"VBGXfSXgJzv\"],\"ou\":[\"ImspTQPwCqd\"],\"ZzYYXq4fJie.FqlgKAG8HOu\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
     validateHeader(
-        response, 0, "vTUhAUZFoys", "MCH Penta dose", "TEXT", "java.lang.String", false, true);
+        response,
+        0,
+        "ZzYYXq4fJie.vTUhAUZFoys",
+        "MCH Penta dose",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeader(
         response,
         1,
-        "FqlgKAG8HOu",
+        "ZzYYXq4fJie.FqlgKAG8HOu",
         "MCH Measles dose",
         "BOOLEAN",
         "java.lang.Boolean",
@@ -747,14 +762,22 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"ou\":{\"name\":\"Organisation unit\"},\"Fhbf4aKpZmZ\":{\"code\":\"MODABSC\",\"name\":\"Absconded\"},\"fWIAEtYVEGk\":{\"name\":\"Mode of Discharge\"},\"vV9UWAZohSf\":{\"code\":\"DE_240795\",\"name\":\"Weight in kg\"},\"gj2fKKyp8OH\":{\"code\":\"MODDIED\",\"name\":\"Died\"},\"2022Q3\":{\"name\":\"July - September 2022\"},\"2023Q2\":{\"name\":\"April - June 2023\"},\"2022Q4\":{\"name\":\"October - December 2022\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"2023Q1\":{\"name\":\"January - March 2023\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"pe\":{\"name\":\"Period\"},\"LAST_4_QUARTERS\":{\"name\":\"Last 4 quarters\"},\"oZg33kd9taw\":{\"name\":\"Gender\"},\"fShHdgT7XGb\":{\"code\":\"MODTRANS\",\"name\":\"Transferred\"},\"yeod5tOXpkP\":{\"code\":\"MODDISCH\",\"name\":\"Discharged\"}},\"dimensions\":{\"pe\":[\"2022Q3\",\"2022Q4\",\"2023Q1\",\"2023Q2\"],\"ou\":[\"ImspTQPwCqd\"],\"fWIAEtYVEGk\":[\"yeod5tOXpkP\",\"gj2fKKyp8OH\",\"fShHdgT7XGb\",\"Fhbf4aKpZmZ\"],\"oZg33kd9taw\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"Zj7UnCAulEk.oZg33kd9taw\":{\"name\":\"Gender\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"ou\":{\"name\":\"Organisation unit\"},\"Fhbf4aKpZmZ\":{\"code\":\"MODABSC\",\"name\":\"Absconded\"},\"vV9UWAZohSf\":{\"code\":\"DE_240795\",\"name\":\"Weight in kg\"},\"gj2fKKyp8OH\":{\"code\":\"MODDIED\",\"name\":\"Died\"},\"2022Q3\":{\"name\":\"July - September 2022\"},\"2023Q2\":{\"name\":\"April - June 2023\"},\"2022Q4\":{\"name\":\"October - December 2022\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"2023Q1\":{\"name\":\"January - March 2023\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Zj7UnCAulEk.fWIAEtYVEGk\":{\"name\":\"Mode of Discharge\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"pe\":{\"name\":\"Period\"},\"LAST_4_QUARTERS\":{\"name\":\"Last 4 quarters\"},\"fShHdgT7XGb\":{\"code\":\"MODTRANS\",\"name\":\"Transferred\"},\"yeod5tOXpkP\":{\"code\":\"MODDISCH\",\"name\":\"Discharged\"}},\"dimensions\":{\"pe\":[\"2022Q3\",\"2022Q4\",\"2023Q1\",\"2023Q2\"],\"ou\":[\"ImspTQPwCqd\"],\"fWIAEtYVEGk\":[\"yeod5tOXpkP\",\"gj2fKKyp8OH\",\"fShHdgT7XGb\",\"Fhbf4aKpZmZ\"],\"oZg33kd9taw\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
     validateHeader(
-        response, 0, "fWIAEtYVEGk", "Mode of Discharge", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 1, "oZg33kd9taw", "Gender", "TEXT", "java.lang.String", false, true);
+        response,
+        0,
+        "Zj7UnCAulEk.fWIAEtYVEGk",
+        "Mode of Discharge",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(
+        response, 1, "Zj7UnCAulEk.oZg33kd9taw", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 3, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 4, "value", "Value", "NUMBER", "java.lang.Double", false, false);
