@@ -38,6 +38,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -45,11 +46,14 @@ import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -125,10 +129,9 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
   @ValueSource(
       strings = {
         "*",
-        "event",
-        "event[dataValues]",
-        "event[dataValues[dataElement,value]]",
-        "event[dataValues[*,!storedBy]]",
+        "event,dataValues",
+        "event,dataValues[dataElement,value]",
+        "event,dataValues[*,!storedBy]",
         "*,!enrollment",
       })
   void betterFilterShouldMatchCurrentFilter(String fields) throws JsonProcessingException {
@@ -136,6 +139,17 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
     String actualBetter = serializeUsingBetterFilter(events, fields);
 
     assertEquals(actualCurrent, actualBetter);
+  }
+
+  @Test
+  void debugPager() throws BadRequestException, JsonProcessingException {
+    System.out.println(
+        serializeUsingBetterFilter(
+            Page.withPager(
+                "events",
+                new org.hisp.dhis.tracker.Page(events, PageParams.of(1, 2, false)),
+                "http://localhost:8080/api/events"),
+            "event,dataValues[dataElement,value]"));
   }
 
   private String serializeUsingCurrentFilter(List<Event> events, String fields)
@@ -152,5 +166,21 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
         .writer()
         .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, fieldsPredicate)
         .writeValueAsString(events);
+  }
+
+  private String serializeUsingBetterFilter(Page<Event> page, String fields)
+      throws JsonProcessingException {
+    FieldsPredicate fieldsPredicate = FieldsParser.parse(fields);
+    FieldsPredicate pagePredicate = new FieldsPredicate();
+    pagePredicate.include("pager");
+    FieldsPredicate pagerPredicate = new FieldsPredicate();
+    pagerPredicate.includeAll();
+    pagePredicate.getChildren().put("pager", pagerPredicate);
+    pagePredicate.include(page.getKey());
+    pagePredicate.getChildren().put(page.getKey(), fieldsPredicate);
+    return filterMapper
+        .writer()
+        .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, pagePredicate)
+        .writeValueAsString(page);
   }
 }

@@ -29,13 +29,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializable;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -51,12 +50,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Getter
 @ToString
 @EqualsAndHashCode
-public class Page<T>
-    implements JsonSerializable { // JsonSerializable chosen over StdSerializer for zero
-  // configuration
+public class Page<T> {
 
   private final String key;
 
+  /** Is serialized under the dynamic {@link #key} using {@link #getDynamicItems}. */
+  @JsonIgnore // is serialized under dynamic key
   @OpenApi.Property(value = OpenApi.EntityType[].class)
   private final List<T> items;
 
@@ -101,26 +100,9 @@ public class Page<T>
     return new Page<>(key, items, null);
   }
 
-  @Override
-  public void serialize(JsonGenerator gen, SerializerProvider serializers) throws IOException {
-    serializeWithType(gen, serializers, null);
-  }
-
-  @Override
-  public void serializeWithType(
-      JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer)
-      throws IOException {
-    gen.writeStartObject();
-
-    if (pager != null) {
-      gen.writeFieldName("pager");
-      serializers.defaultSerializeValue(pager, gen);
-    }
-
-    gen.writeFieldName(key);
-    serializers.defaultSerializeValue(items, gen);
-
-    gen.writeEndObject();
+  @JsonAnyGetter
+  public Map<String, List<T>> getDynamicItems() {
+    return Collections.singletonMap(key, items);
   }
 
   @OpenApi.Shared(name = "TrackerPager")

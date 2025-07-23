@@ -133,12 +133,22 @@ public class RequestHandler {
 
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
+    // TODO(ivo) I need to find a cleaner solution for this. The items for which the users fields is
+    // for is now embedded into a different object.
+    FieldsPredicate pagePredicate = new FieldsPredicate();
+    pagePredicate.include("pager");
+    FieldsPredicate pagerPredicate = new FieldsPredicate();
+    pagerPredicate.includeAll();
+    pagePredicate.getChildren().put("pager", pagerPredicate);
+    pagePredicate.include(key);
+    pagePredicate.getChildren().put(key, fieldsPredicate);
+
     // TODO(ivo) can we encapsulate this into a Spring mechanism like a converter? Or is it good
     // enough to have this here in the handler?
     ObjectWriter objectWriter =
         filterMapper
             .writer()
-            .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, fieldsPredicate);
+            .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, pagePredicate);
 
     try (JsonGenerator generator =
         objectWriter.getFactory().createGenerator(response.getOutputStream())) {
