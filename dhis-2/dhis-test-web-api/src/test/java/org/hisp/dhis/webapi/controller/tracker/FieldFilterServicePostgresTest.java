@@ -31,20 +31,15 @@ package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldFilterService.IgnoreJsonSerializerRefinementAnnotationInspector;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
@@ -62,6 +57,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -74,18 +70,23 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private FieldFilterService fieldFilterService;
 
+  // use primary ObjectMapper from JacksonObjectMapperConfig to serialize the current ObjectNode to
+  // a JSON string
   @Autowired private ObjectMapper objectMapper;
 
-  private List<Event> events;
+  // use the filter ObjectMapper from JacksonObjectMapperConfig to serialize, filter and transform
+  // an Object to a JSON string
+  @Qualifier("jsonFilterMapper")
+  @Autowired
+  private ObjectMapper filterMapper;
 
-  // ObjectMapper used for the better filter, which is a copy of the default ObjectMapper with a
-  // custom mixin and annotation introspector
-  private ObjectMapper betterObjectMapper;
+  private List<Event> events;
 
   @BeforeAll
   void setUp() {
     Point point = geometryFactory.createPoint(new Coordinate(4, 12));
 
+    // TODO(ivo) add relationships so we get deeper nesting to play with
     events =
         List.of(
             Event.builder()
@@ -100,7 +101,6 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
                 .storedBy("fred")
                 .followUp(true)
                 .createdAt(Instant.now())
-                .updatedAt(Instant.now())
                 .attributeOptionCombo(UID.generate().getValue())
                 .attributeCategoryOptions(UID.generate().getValue())
                 .geometry(point)
@@ -109,7 +109,6 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
                         .uid(UID.generate().getValue())
                         .username("fred")
                         .displayName("Freddy")
-                        .firstName("fred")
                         .build())
                 .dataValues(
                     Set.of(
@@ -120,19 +119,7 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
                             .build()))
                 .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
                 .build());
-
-    // TODO(ivo) this replicates what we do in FieldFilterService#configureFieldFilterObjectMapper
-    // in the end we should create a fieldsObjectMapper bean in JacksonObjectMapperConfig
-    betterObjectMapper = objectMapper.copy();
-    SimpleModule module = new SimpleModule();
-    module.setMixInAnnotation(Object.class, FieldFilterMixin.class);
-    betterObjectMapper.registerModule(module);
-    betterObjectMapper.setAnnotationIntrospector(
-        new IgnoreJsonSerializerRefinementAnnotationInspector());
   }
-
-  @JsonFilter(FieldsPropertyFilter.FILTER_ID)
-  public interface FieldFilterMixin {}
 
   @ParameterizedTest
   @ValueSource(
@@ -160,13 +147,10 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
 
   private String serializeUsingBetterFilter(List<Event> events, String fields)
       throws JsonProcessingException {
-    FieldsPredicate filter = FieldsParser.parse(fields);
-    FilterProvider filters =
-        new SimpleFilterProvider()
-            .addFilter(FieldsPropertyFilter.FILTER_ID, new FieldsPropertyFilter());
-    return betterObjectMapper
-        .writer(filters)
-        .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, filter)
+    FieldsPredicate fieldsPredicate = FieldsParser.parse(fields);
+    return filterMapper
+        .writer()
+        .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, fieldsPredicate)
         .writeValueAsString(events);
   }
 }

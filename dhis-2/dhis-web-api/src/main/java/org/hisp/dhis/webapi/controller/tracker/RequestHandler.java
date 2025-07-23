@@ -33,8 +33,13 @@ import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestH
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -43,11 +48,15 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
+import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -81,6 +90,9 @@ public class RequestHandler {
 
   private final FieldFilterService fieldFilterService;
 
+  @Qualifier("jsonFilterMapper")
+  private final ObjectMapper filterMapper;
+
   public ResponseEntity<InputStreamResource> serve(
       HttpServletRequest request, FileResourceStream file)
       throws ConflictException, BadRequestException {
@@ -111,6 +123,29 @@ public class RequestHandler {
         .body(new InputStreamResource(content.stream()));
   }
 
+  public <T> void serve(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      String key,
+      org.hisp.dhis.tracker.Page<Event> page,
+      FieldsPredicate fieldsPredicate)
+      throws IOException {
+
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+    // TODO(ivo) can we encapsulate this into a Spring mechanism like a converter? Or is it good
+    // enough to have this here in the handler?
+    ObjectWriter objectWriter =
+        filterMapper
+            .writer()
+            .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, fieldsPredicate);
+
+    try (JsonGenerator generator =
+        objectWriter.getFactory().createGenerator(response.getOutputStream())) {
+      objectWriter.writeValue(generator, Page.withPager(key, page, getRequestURL(request)));
+    }
+  }
+
   public <T> ResponseEntity<Page<ObjectNode>> serve(
       HttpServletRequest request,
       String key,
@@ -124,6 +159,25 @@ public class RequestHandler {
                 page.withMappedItems(
                     i -> fieldFilterService.toObjectNode(i, fieldParams.getFields())),
                 getRequestURL(request)));
+  }
+
+  public <T> void serve(
+      HttpServletResponse response, String key, List<Event> items, FieldsPredicate fieldsPredicate)
+      throws IOException {
+
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+    // TODO(ivo) can we encapsulate this into a Spring mechanism like a converter? Or is it good
+    // enough to have this here in the handler?
+    ObjectWriter objectWriter =
+        filterMapper
+            .writer()
+            .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, fieldsPredicate);
+
+    try (JsonGenerator generator =
+        objectWriter.getFactory().createGenerator(response.getOutputStream())) {
+      objectWriter.writeValue(generator, Page.withoutPager(key, items));
+    }
   }
 
   public <T> ResponseEntity<Page<ObjectNode>> serve(

@@ -29,12 +29,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.LinkedHashMap;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializable;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -50,30 +51,21 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Getter
 @ToString
 @EqualsAndHashCode
-public class Page<T> {
+public class Page<T>
+    implements JsonSerializable { // JsonSerializable chosen over StdSerializer for zero
+  // configuration
+
+  private final String key;
+
   @OpenApi.Property(value = OpenApi.EntityType[].class)
-  @JsonIgnore
-  @JsonAnyGetter
-  private final Map<String, List<T>> items = new LinkedHashMap<>();
+  private final List<T> items;
 
-  @JsonProperty private final Pager pager;
+  private final Pager pager;
 
-  private Page(String key, List<T> values) {
-    this.items.put(key, values);
-    this.pager = null;
-  }
-
-  private Page(String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
-    this.items.put(key, pager.getItems());
-    Integer pageCount = null;
-    if (pager.getTotal() != null) {
-      pageCount = (int) Math.ceil(pager.getTotal() / (double) pager.getPageSize());
-    }
-    String prevPage = getPageLink(requestURL, pager.getPrevPage());
-    String nextPage = getPageLink(requestURL, pager.getNextPage());
-    this.pager =
-        new Pager(
-            pager.getPage(), pager.getPageSize(), pager.getTotal(), pageCount, prevPage, nextPage);
+  private Page(String key, List<T> items, Pager pager) {
+    this.key = key;
+    this.items = items;
+    this.pager = pager;
   }
 
   /**
@@ -86,7 +78,19 @@ public class Page<T> {
       @Nonnull String key,
       @Nonnull org.hisp.dhis.tracker.Page<T> pager,
       @Nonnull String requestURL) {
-    return new Page<>(key, pager, requestURL);
+
+    Integer pageCount = null;
+    if (pager.getTotal() != null) {
+      pageCount = (int) Math.ceil(pager.getTotal() / (double) pager.getPageSize());
+    }
+    String prevPage = getPageLink(requestURL, pager.getPrevPage());
+    String nextPage = getPageLink(requestURL, pager.getNextPage());
+
+    Pager pagerObj =
+        new Pager(
+            pager.getPage(), pager.getPageSize(), pager.getTotal(), pageCount, prevPage, nextPage);
+
+    return new Page<>(key, pager.getItems(), pagerObj);
   }
 
   /**
@@ -94,7 +98,29 @@ public class Page<T> {
    * All other fields will be omitted from the JSON.
    */
   public static <T> Page<T> withoutPager(String key, List<T> items) {
-    return new Page<>(key, items);
+    return new Page<>(key, items, null);
+  }
+
+  @Override
+  public void serialize(JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    serializeWithType(gen, serializers, null);
+  }
+
+  @Override
+  public void serializeWithType(
+      JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer)
+      throws IOException {
+    gen.writeStartObject();
+
+    if (pager != null) {
+      gen.writeFieldName("pager");
+      serializers.defaultSerializeValue(pager, gen);
+    }
+
+    gen.writeFieldName(key);
+    serializers.defaultSerializeValue(items, gen);
+
+    gen.writeEndObject();
   }
 
   @OpenApi.Shared(name = "TrackerPager")

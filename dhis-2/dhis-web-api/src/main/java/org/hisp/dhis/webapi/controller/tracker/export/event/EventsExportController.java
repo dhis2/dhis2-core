@@ -62,6 +62,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.FieldsParser;
+import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.PageParams;
@@ -153,12 +155,15 @@ class EventsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getEvents(
+  void getEvents(
       EventRequestParams requestParams,
+      @RequestParam(name = "fields", defaultValue = DEFAULT_FIELDS_PARAM) String fieldsRaw,
       TrackerIdSchemeParams idSchemeParams,
-      HttpServletRequest request)
-      throws BadRequestException, ForbiddenException, WebMessageException {
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws BadRequestException, ForbiddenException, WebMessageException, IOException {
     validatePaginationParameters(requestParams);
+    FieldsPredicate fieldsPredicate = FieldsParser.parse(fieldsRaw);
 
     if (requestParams.isPaging()) {
       PageParams pageParams =
@@ -174,13 +179,14 @@ class EventsExportController {
           eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
       ensureNoMappingErrors(errors);
 
-      return requestHandler.serve(request, EVENTS, page, requestParams);
+      // TODO(ivo) create Spring converter so parsing is done automatically
+      requestHandler.serve(request, response, EVENTS, page, fieldsPredicate);
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    return requestHandler.serve(EVENTS, events, requestParams);
+    requestHandler.serve(response, EVENTS, events, fieldsPredicate);
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
