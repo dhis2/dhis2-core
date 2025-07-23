@@ -97,12 +97,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   public ObjectBundle create(ObjectBundleParams params) {
     PreheatParams preheatParams = params.getPreheatParams();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (params.getUser() == null) {
-      params.setUser(currentUser);
+    if (params.getUserDetails() == null) {
+      params.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
-    preheatParams.setUser(params.getUser());
+    preheatParams.setUserDetails(params.getUserDetails());
     preheatParams.setObjects(params.getObjects());
 
     Preheat preheat = preheatService.preheat(preheatParams);
@@ -227,10 +226,11 @@ public class DefaultObjectBundleService implements ObjectBundleService {
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
           if (bundle.getOverrideUser() != null) {
-            object.setCreatedBy(bundle.getOverrideUser());
+            object.setCreatedBy(session.getReference(User.class, bundle.getOverrideUser().getId()));
 
             if (object instanceof User) {
-              (object).setCreatedBy(bundle.getOverrideUser());
+              (object)
+                  .setCreatedBy(session.getReference(User.class, bundle.getOverrideUser().getId()));
             }
           }
 
@@ -312,10 +312,12 @@ public class DefaultObjectBundleService implements ObjectBundleService {
                   .setSkipTranslation(bundle.isSkipTranslation()));
 
           if (bundle.getOverrideUser() != null) {
-            persistedObject.setCreatedBy(bundle.getOverrideUser());
+            persistedObject.setCreatedBy(
+                session.getReference(User.class, bundle.getOverrideUser().getId()));
 
             if (object instanceof User) {
-              (object).setCreatedBy(bundle.getOverrideUser());
+              (object)
+                  .setCreatedBy(session.getReference(User.class, bundle.getOverrideUser().getId()));
             }
           }
 

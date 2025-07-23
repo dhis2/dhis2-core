@@ -710,7 +710,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
@@ -734,9 +734,12 @@ public class DefaultUserService implements UserService {
   }
 
   private void checkIsInOrgUnitHierarchy(
-      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+      Set<OrganisationUnit> organisationUnits, UserDetails currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      // We have to fetch the org unit in order to get the full path
+      OrganisationUnit fetchedOrgUnit =
+          organisationUnitService.getOrganisationUnit(orgUnit.getUid());
+      boolean inUserHierarchy = fetchedOrgUnit.isDescendant(currentUser.getUserOrgUnitIds());
       if (!inUserHierarchy) {
         errors.add(
             new ErrorReport(
@@ -756,7 +759,8 @@ public class DefaultUserService implements UserService {
    * @param currentUser the user performing the action.
    * @param errors the list of error reports to add to.
    */
-  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserGroups(
+      User user, UserDetails currentUser, List<ErrorReport> errors) {
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
       return;
@@ -786,7 +790,8 @@ public class DefaultUserService implements UserService {
    * @param currentUser the user performing the action.
    * @param errors the list of error reports to add to.
    */
-  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserRoles(
+      User user, UserDetails currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
@@ -812,7 +817,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, UserDetails currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 

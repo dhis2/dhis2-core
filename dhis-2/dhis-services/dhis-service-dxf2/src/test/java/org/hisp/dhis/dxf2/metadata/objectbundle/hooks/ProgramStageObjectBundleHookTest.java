@@ -45,6 +45,7 @@ import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,7 +96,7 @@ class ProgramStageObjectBundleHookTest {
   void testValidateDataElementAcl() {
     ObjectBundleParams objectBundleParams = new ObjectBundleParams();
     objectBundleParams.setPreheatIdentifier(PreheatIdentifier.UID);
-    objectBundleParams.setUser(user);
+    objectBundleParams.setUserDetails(UserDetails.fromUser(user));
     ObjectBundle bundle =
         new ObjectBundle(
             objectBundleParams,
