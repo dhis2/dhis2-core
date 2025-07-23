@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.List;
 import java.util.Objects;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -42,16 +43,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a List of all Program Stages UIDs that have at least
- * ONE event that is not logically deleted ('deleted = true') and the status is not 'SKIPPED' among
- * the Program Stages and the enrollments present in the payload.
- *
- * @author Luciano Fiandesio
+ * @author Zubair Asghar
  */
 @Component
-public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
+public class ScheduledEventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
   private static final String PS_UID = "programStageUid";
-
   private static final String PI_UID = "enrollmentUid";
 
   private static final String SQL =
@@ -69,7 +65,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           + " and ps.uid in (:programStageUids) "
           + " and en.uid in (:enrollmentUids) ";
 
-  protected EventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
+  protected ScheduledEventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
@@ -79,14 +75,16 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
       return;
     }
 
-    List<String> notRepeatableProgramStageUids =
+    List<String> programStageUids =
         trackerObjects.getEvents().stream()
             .map(Event::getProgramStage)
             .filter(Objects::nonNull)
             .map(preheat::getProgramStage)
             .filter(Objects::nonNull)
-            .filter(ps -> ps.getProgram().isRegistration())
-            .filter(ps -> !ps.getRepeatable())
+            .map(ProgramStage::getProgram)
+            .filter(Objects::nonNull)
+            .filter(Program::isRegistration)
+            .flatMap(program -> program.getProgramStages().stream())
             .map(ProgramStage::getUid)
             .distinct()
             .toList();
@@ -98,9 +96,9 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
             .distinct()
             .toList();
 
-    if (!notRepeatableProgramStageUids.isEmpty() && !enrollmentUids.isEmpty()) {
+    if (!programStageUids.isEmpty() && !enrollmentUids.isEmpty()) {
       MapSqlParameterSource parameters = new MapSqlParameterSource();
-      parameters.addValue("programStageUids", notRepeatableProgramStageUids);
+      parameters.addValue("programStageUids", programStageUids);
       parameters.addValue("enrollmentUids", UID.toValueList(enrollmentUids));
       jdbcTemplate.query(
           SQL,
