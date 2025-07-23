@@ -68,7 +68,7 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
@@ -505,7 +505,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   private static Locale toLocale(Object value) {
     if (value == null) return null;
     if (value instanceof Locale l) return l;
-    return LocaleParsingUtils.parse(value.toString());
+    return LocaleUtils.parse(value.toString());
   }
 
   @Override

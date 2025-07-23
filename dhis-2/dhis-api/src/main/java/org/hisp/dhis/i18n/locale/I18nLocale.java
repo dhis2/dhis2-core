@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.i18n.locale;
 
-import static org.hisp.dhis.i18n.locale.LocaleParsingUtils.toUnderscoreFormat;
+import static org.hisp.dhis.i18n.locale.LocaleUtils.toUnderscoreFormat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Locale;

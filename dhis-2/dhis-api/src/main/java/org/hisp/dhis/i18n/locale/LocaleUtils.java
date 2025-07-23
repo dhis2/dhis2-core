@@ -29,12 +29,75 @@
  */
 package org.hisp.dhis.i18n.locale;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-public class LocaleParsingUtils {
+public class LocaleUtils {
 
-  private LocaleParsingUtils() {
+  private LocaleUtils() {
     // Utility class, no instantiation
+  }
+
+  private static final String SEP = "_";
+
+  /**
+   * Create a locale string based on the given language, country and script.
+   *
+   * @param language the language, cannot be null.
+   * @param country the country, can be null.
+   * @param script the script of the language, can be null.
+   * @return a locale string.
+   */
+  public static String getLocaleString(String language, String country, String script) {
+    Locale locale;
+
+    if (script != null && !script.isEmpty()) {
+      locale =
+          new Locale.Builder().setLanguage(language).setRegion(country).setScript(script).build();
+    } else {
+      locale = new Locale.Builder().setLanguage(language).setRegion(country).build();
+    }
+
+    return locale.toLanguageTag();
+  }
+
+  /**
+   * Creates a list of locales of all possible specifities based on the given Locale. As an example,
+   * for the given locale "en_UK", the locales "en" and "en_UK" are returned.
+   *
+   * @param locale the Locale.
+   * @return a list of locale strings.
+   */
+  public static List<String> getLocaleFallbacks(Locale locale) {
+    List<String> fallbacks = new ArrayList<>();
+    String lang = locale.getLanguage();
+    String region = locale.getCountry();
+    String script = locale.getScript();
+    String variant = locale.getVariant();
+
+    fallbacks.add(lang);
+
+    if (!region.isEmpty()) {
+      fallbacks.add(lang + SEP + region);
+    }
+
+    // Include script fallbacks
+    if (!script.isEmpty()) {
+      fallbacks.add(lang + SEP + script);
+
+      if (!region.isEmpty()) {
+        fallbacks.add(lang + SEP + region + SEP + script);
+        fallbacks.add(lang + SEP + script + SEP + region);
+      }
+    }
+
+    // Legacy fallback using variant
+    if (!variant.isEmpty()) {
+      fallbacks.add(locale.toString());
+    }
+
+    return fallbacks;
   }
 
   /**

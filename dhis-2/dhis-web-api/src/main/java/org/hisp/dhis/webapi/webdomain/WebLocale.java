@@ -34,7 +34,7 @@ import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.i18n.locale.LocaleParsingUtils;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 
 /**
  * Class that represents a Locale for the web
@@ -59,7 +59,7 @@ public class WebLocale {
    * @return A WebLocale instance
    */
   public static WebLocale fromLocale(Locale locale, Locale userLocale) {
-    String localeStr = LocaleParsingUtils.toUnderscoreFormat(locale);
+    String localeStr = LocaleUtils.toUnderscoreFormat(locale);
     String languageTag = locale.toLanguageTag();
 
     if (!locale.getScript().isEmpty()) {
