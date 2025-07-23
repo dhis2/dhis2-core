@@ -61,10 +61,10 @@ import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
@@ -116,7 +116,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Mock private NotificationMessageRenderer<Enrollment> programNotificationRenderer;
 
-  @Mock private NotificationMessageRenderer<Event> programStageNotificationRenderer;
+  @Mock private NotificationMessageRenderer<TrackerEvent> programStageNotificationRenderer;
 
   @Mock private ProgramNotificationTemplateService notificationTemplateService;
 
@@ -135,7 +135,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   private final Set<Enrollment> enrollments = new HashSet<>();
 
-  private final Set<Event> events = new HashSet<>();
+  private final Set<TrackerEvent> events = new HashSet<>();
 
   private final List<ProgramMessage> sentProgramMessages = new ArrayList<>();
 
@@ -215,7 +215,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testIfEventIsNull() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(null);
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(null);
 
     programNotificationService.sendEventCompletionNotifications(0);
 
@@ -397,7 +397,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testDataElementRecipientWithSMS() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(events.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -406,7 +406,8 @@ class ProgramNotificationServiceTest extends TestBase {
               return new BatchResponseStatus(Collections.emptyList());
             });
 
-    when(programStageNotificationRenderer.render(any(Event.class), any(NotificationTemplate.class)))
+    when(programStageNotificationRenderer.render(
+            any(TrackerEvent.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
@@ -414,7 +415,7 @@ class ProgramNotificationServiceTest extends TestBase {
     programNotificationTemplate.setRecipientDataElement(dataElement);
     programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
 
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
 
     programNotificationService.sendEventCompletionNotifications(event.getId());
 
@@ -430,7 +431,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testDataElementRecipientWithEmail() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(events.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -439,7 +440,8 @@ class ProgramNotificationServiceTest extends TestBase {
               return new BatchResponseStatus(Collections.emptyList());
             });
 
-    when(programStageNotificationRenderer.render(any(Event.class), any(NotificationTemplate.class)))
+    when(programStageNotificationRenderer.render(
+            any(TrackerEvent.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
@@ -447,7 +449,7 @@ class ProgramNotificationServiceTest extends TestBase {
     programNotificationTemplate.setRecipientDataElement(dataElementEmail);
     programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
 
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
 
     programNotificationService.sendEventCompletionNotifications(event.getId());
 
@@ -463,7 +465,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testDataElementRecipientWithInternalRecipientsWithOneDisabledUser() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -472,14 +474,15 @@ class ProgramNotificationServiceTest extends TestBase {
               return 40L;
             });
 
-    when(programStageNotificationRenderer.render(any(Event.class), any(NotificationTemplate.class)))
+    when(programStageNotificationRenderer.render(
+            any(TrackerEvent.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
     programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
 
     programNotificationService.sendEventCompletionNotifications(event.getId());
 
@@ -497,7 +500,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testSendToParent() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -506,7 +509,8 @@ class ProgramNotificationServiceTest extends TestBase {
               return 40L;
             });
 
-    when(programStageNotificationRenderer.render(any(Event.class), any(NotificationTemplate.class)))
+    when(programStageNotificationRenderer.render(
+            any(TrackerEvent.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
@@ -514,7 +518,7 @@ class ProgramNotificationServiceTest extends TestBase {
     programNotificationTemplate.setRecipientUserGroup(userGroupBasedOnParent);
     programNotificationTemplate.setNotifyParentOrganisationUnitOnly(true);
 
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
     event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
 
     programNotificationService.sendEventCompletionNotifications(event.getId());
@@ -529,7 +533,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testSendToHierarchy() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -538,7 +542,8 @@ class ProgramNotificationServiceTest extends TestBase {
               return 40L;
             });
 
-    when(programStageNotificationRenderer.render(any(Event.class), any(NotificationTemplate.class)))
+    when(programStageNotificationRenderer.render(
+            any(TrackerEvent.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
@@ -547,7 +552,7 @@ class ProgramNotificationServiceTest extends TestBase {
     programNotificationTemplate.setNotifyUsersInHierarchyOnly(true);
     programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
 
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
     event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
 
     programNotificationService.sendEventCompletionNotifications(event.getId());
@@ -567,7 +572,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testSendToUsersAtOu() {
-    when(manager.get(eq(Event.class), anyLong())).thenReturn(events.iterator().next());
+    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(events.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -576,7 +581,8 @@ class ProgramNotificationServiceTest extends TestBase {
               return 40L;
             });
 
-    when(programStageNotificationRenderer.render(any(Event.class), any(NotificationTemplate.class)))
+    when(programStageNotificationRenderer.render(
+            any(TrackerEvent.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(
@@ -585,7 +591,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
     lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftRight);
 
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
     event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
 
     programNotificationService.sendEventCompletionNotifications(event.getId());
@@ -768,7 +774,7 @@ class ProgramNotificationServiceTest extends TestBase {
     enrollment.setOrganisationUnit(lvlTwoLeftLeft);
     enrollment.setTrackedEntity(te);
 
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setAutoFields();
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(lvlTwoLeftLeft);

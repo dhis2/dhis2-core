@@ -37,8 +37,8 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -126,7 +126,7 @@ public interface RelationshipItemMapper {
       @Context RelationshipItemFields.EnrollmentFields fields, Set<Enrollment> enrollments);
 
   // these are needed to make mapstruct map these collections using the entity @Mappers
-  Set<Event> mapEvents(Set<Event> events);
+  Set<TrackerEvent> mapEvents(Set<TrackerEvent> events);
 
   default TrackedEntity map(
       @Context RelationshipItemFields.TrackedEntityFields fields, TrackedEntity trackedEntity) {
@@ -255,7 +255,7 @@ public interface RelationshipItemMapper {
   @Mapping(target = "completedBy")
   @Mapping(target = "assignedUser")
   @Mapping(target = "geometry")
-  Event map(Event event);
+  TrackerEvent map(TrackerEvent event);
 
   // relationshipItem.event.enrollment is only exported as UID
   @Named("mapEnrollmentForEvent")

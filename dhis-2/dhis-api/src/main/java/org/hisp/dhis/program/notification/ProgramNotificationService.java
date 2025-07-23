@@ -32,7 +32,7 @@ package org.hisp.dhis.program.notification;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -92,7 +92,7 @@ public interface ProgramNotificationService {
    * @param event the event.
    */
   void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, Event event);
+      ProgramNotificationTemplate template, TrackerEvent event);
 
   /**
    * Send completion notifications for the Enrollment. If the Program is not configured with
@@ -119,7 +119,7 @@ public interface ProgramNotificationService {
    * @return a list of Event.
    */
   @Deprecated
-  List<Event> getWithScheduledNotifications(
+  List<TrackerEvent> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
 
   /**

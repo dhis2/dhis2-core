@@ -54,8 +54,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -127,7 +127,7 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
     TrackerEventOperationParams params =
         operationParamsBuilder.assignedUsers(Set.of(UID.of("M5zQapPyTZI"))).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertNotNull(events.get(0).getAssignedUser());
     assertEquals("M5zQapPyTZI", events.get(0).getAssignedUser().getUid());
@@ -141,7 +141,7 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
             .fields(TrackerEventFields.all())
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Relationship> relationships =
@@ -153,11 +153,11 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent pTzf9KYMk72 = get(TrackerEvent.class, "pTzf9KYMk72");
     TrackerEventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("pTzf9KYMk72"))).build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     assertNotes(pTzf9KYMk72.getNotes(), events.get(0).getNotes());
@@ -297,9 +297,9 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
             .events(Set.of(UID.of("pTzf9KYMk72")))
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
-    Event event = events.get(0);
+    TrackerEvent event = events.get(0);
 
     assertAll(
         "All dates should include timestamp",
@@ -332,7 +332,7 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
             .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertContainsOnly(List.of("jxgFyJEMUPf"), uids(events));
     List<Executable> executables =

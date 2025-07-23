@@ -30,8 +30,8 @@
 package org.hisp.dhis.tracker.imports.preprocess;
 
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -94,7 +94,7 @@ public class StrategyPreProcessor implements BundlePreProcessor {
     for (org.hisp.dhis.tracker.imports.domain.TrackerEvent event : bundle.getTrackerEvents()) {
       TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-      Event existingEvent = bundle.getPreheat().getEvent(event.getEvent());
+      TrackerEvent existingEvent = bundle.getPreheat().getTrackerEvent(event.getEvent());
 
       if (importStrategy.isCreateAndUpdate()) {
         if (existingEvent == null) {

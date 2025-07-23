@@ -52,7 +52,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -73,7 +72,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackerEventPersister
-    extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.TrackerEvent, Event> {
+    extends AbstractTrackerPersister<
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent, TrackerEvent> {
   private final TrackerEventChangeLogService eventChangeLogService;
 
   public TrackerEventPersister(
@@ -85,16 +85,16 @@ public class TrackerEventPersister
   }
 
   @Override
-  protected void updatePreheat(TrackerPreheat preheat, Event event) {
-    preheat.putEvents(Collections.singletonList(event));
+  protected void updatePreheat(TrackerPreheat preheat, TrackerEvent event) {
+    preheat.putTrackerEvents(Collections.singletonList(event));
   }
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, Event event, List<NotificationTrigger> triggers) {
+      TrackerBundle bundle, TrackerEvent event, List<NotificationTrigger> triggers) {
 
     return TrackerNotificationDataBundle.builder()
-        .klass(Event.class)
+        .klass(TrackerEvent.class)
         .trackerEventNotifications(bundle.getTrackerEventNotifications().get(UID.of(event)))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
@@ -108,7 +108,7 @@ public class TrackerEventPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent entity) {
-    Event persistedEvent = preheat.getEvent(entity.getUid());
+    TrackerEvent persistedEvent = preheat.getTrackerEvent(entity.getUid());
     List<NotificationTrigger> triggers = new ArrayList<>();
     // If the event is new and has been completed
     if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
@@ -128,21 +128,21 @@ public class TrackerEventPersister
   }
 
   @Override
-  protected Event convert(
+  protected TrackerEvent convert(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
     return TrackerObjectsMapper.map(bundle.getPreheat(), event, bundle.getUser());
   }
 
   @Override
-  protected Event cloneEntityProperties(
+  protected TrackerEvent cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
-    Event originalEvent = preheat.getEvent(event.getUid());
+    TrackerEvent originalEvent = preheat.getTrackerEvent(event.getUid());
 
     if (originalEvent == null) {
-      return new Event();
+      return new TrackerEvent();
     }
 
-    Event clonedEvent = new Event();
+    TrackerEvent clonedEvent = new TrackerEvent();
     clonedEvent.setUid(originalEvent.getUid());
     clonedEvent.setOccurredDate(originalEvent.getOccurredDate());
     clonedEvent.setScheduledDate(originalEvent.getScheduledDate());
@@ -157,7 +157,8 @@ public class TrackerEventPersister
   }
 
   @Override
-  protected List<TrackerEvent> getByType(TrackerBundle bundle) {
+  protected List<org.hisp.dhis.tracker.imports.domain.TrackerEvent> getByType(
+      TrackerBundle bundle) {
     return bundle.getTrackerEvents();
   }
 
@@ -166,7 +167,7 @@ public class TrackerEventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
-      Event hibernateEntity,
+      TrackerEvent hibernateEntity,
       UserDetails user) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
@@ -176,8 +177,8 @@ public class TrackerEventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
-      Event payloadEntity,
-      Event currentEntity,
+      TrackerEvent payloadEntity,
+      TrackerEvent currentEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
     eventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
@@ -187,7 +188,7 @@ public class TrackerEventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
-      Event event,
+      TrackerEvent event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(event)
@@ -227,7 +228,7 @@ public class TrackerEventPersister
 
   private void saveDataValue(
       DataValue dv,
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       UserDetails user,
       EntityManager entityManager,
@@ -254,7 +255,7 @@ public class TrackerEventPersister
   private void updateDataValue(
       EventDataValue eventDataValue,
       DataValue dv,
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       UserDetails user,
       EntityManager entityManager,
@@ -273,7 +274,7 @@ public class TrackerEventPersister
 
   private void deleteDataValue(
       EventDataValue eventDataValue,
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       EntityManager entityManager,
       TrackerPreheat preheat) {
@@ -288,12 +289,12 @@ public class TrackerEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerDto,
-      Event entity) {
+      TrackerEvent entity) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntities(Event entity) {
+  protected Set<UID> getUpdatedTrackedEntities(TrackerEvent entity) {
     return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
         .map(e -> UID.of(e.getTrackedEntity()))

@@ -47,7 +47,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -67,7 +67,7 @@ public class ProgramMessage extends BaseIdentifiableObject implements Serializab
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  private Event event;
+  private TrackerEvent event;
 
   @JsonProperty private ProgramMessageRecipients recipients;
 

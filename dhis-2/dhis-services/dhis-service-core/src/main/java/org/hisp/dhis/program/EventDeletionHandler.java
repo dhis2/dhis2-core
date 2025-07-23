@@ -41,7 +41,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
+// TODO(DHIS2-19702): should we create the handler for single events?
+public class EventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> {
   @Override
   protected void registerHandler() {
     whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
