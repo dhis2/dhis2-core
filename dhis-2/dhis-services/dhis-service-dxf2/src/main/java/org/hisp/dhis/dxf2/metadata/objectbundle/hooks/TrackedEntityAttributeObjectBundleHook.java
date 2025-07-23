@@ -79,7 +79,7 @@ public class TrackedEntityAttributeObjectBundleHook
         addReports.accept(
             new ErrorReport(
                 TrackedEntityAttribute.class,
-                ErrorCode.E4083,
+                ErrorCode.E4081,
                 attr.getPreferredSearchOperator(),
                 getTrackerOperators()));
       }
@@ -89,7 +89,7 @@ public class TrackedEntityAttributeObjectBundleHook
         addReports.accept(
             new ErrorReport(
                 TrackedEntityAttribute.class,
-                ErrorCode.E4084,
+                ErrorCode.E4082,
                 attr.getPreferredSearchOperator(),
                 attr.getUid()));
       }
