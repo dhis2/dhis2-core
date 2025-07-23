@@ -313,7 +313,7 @@ public class DefaultDataEntryService implements DataEntryService {
   /** Is the user allowed to write (capture) the data values? */
   private void validateUserAccess(UID ds, List<DataEntryValue> values) throws ConflictException {
     UserDetails user = getCurrentUserDetails();
-    if (user.isSuper()) return; // super always can
+    if (user.isSuper()) return; // super can always write
 
     // - require: DS ACL check canDataWrite
     boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
