@@ -34,6 +34,8 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateMinimumCharactersToSearch;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.ArrayList;
@@ -200,18 +202,9 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
-      List<QueryFilter> binaryFilters =
-          attributeFilter.getValue().stream().filter(qf -> qf.getOperator().isBinary()).toList();
-      for (QueryFilter queryFilter : binaryFilters) {
-        if (tea.getMinCharactersToSearch() > 0
-            && (queryFilter.getFilter() == null
-                || queryFilter.getFilter().length() < tea.getMinCharactersToSearch())) {
-          throw new IllegalQueryException(
-              String.format(
-                  "At least %d character(s) should be present in the filter to start a search, but the filter for the TEA %s doesn't contain enough.",
-                  tea.getMinCharactersToSearch(), tea.getUid()));
-        }
-      }
+      validateAttributeOperators(attributeFilter, tea);
+
+      validateMinimumCharactersToSearch(attributeFilter, tea);
 
       params.filterBy(tea, attributeFilter.getValue());
     }

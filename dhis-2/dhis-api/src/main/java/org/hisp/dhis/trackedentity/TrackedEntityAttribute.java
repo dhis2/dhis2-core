@@ -36,6 +36,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.EnumSet;
+import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -103,6 +105,10 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   private int minCharactersToSearch;
 
   private QueryOperator preferredSearchOperator;
+
+  private Set<QueryOperator> blockedSearchOperators = EnumSet.noneOf(QueryOperator.class);
+
+  private Boolean trigramIndexable = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -396,12 +402,32 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<QueryOperator> getBlockedSearchOperators() {
+    return blockedSearchOperators;
+  }
+
+  public void setBlockedSearchOperators(Set<QueryOperator> blockedSearchOperators) {
+    this.blockedSearchOperators = blockedSearchOperators;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFieldMask() {
     return fieldMask;
   }
 
   public void setFieldMask(String fieldMask) {
     this.fieldMask = fieldMask;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getTrigramIndexable() {
+    return trigramIndexable;
+  }
+
+  public void setTrigramIndexable(Boolean trigramIndexable) {
+    this.trigramIndexable = trigramIndexable;
   }
 
   @Override

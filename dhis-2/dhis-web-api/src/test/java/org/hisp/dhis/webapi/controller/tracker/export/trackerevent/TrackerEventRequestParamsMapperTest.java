@@ -31,6 +31,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -443,9 +445,9 @@ class TrackerEventRequestParamsMapperTest {
     Map<UID, List<QueryFilter>> expected =
         Map.of(
             DE_1_UID,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            List.of(new QueryFilter(EQ, "2")),
             DE_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+            List.of(new QueryFilter(LIKE, "foo")));
     assertEquals(expected, dataElementFilters);
   }
 
@@ -508,9 +510,9 @@ class TrackerEventRequestParamsMapperTest {
     Map<UID, List<QueryFilter>> expected =
         Map.of(
             TEA_1_UID,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            List.of(new QueryFilter(EQ, "2")),
             TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
+            List.of(new QueryFilter(LIKE, "foo")));
     assertEquals(expected, attributeFilters);
   }
 
@@ -545,6 +547,20 @@ class TrackerEventRequestParamsMapperTest {
     Map<UID, List<QueryFilter>> expected =
         Map.of(TEA_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)));
     assertEquals(expected, attributeFilters);
+  }
+
+  @Test
+  void shouldMapAttributesWithIVariantOperatorsToTrackerOperators() throws BadRequestException {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
+    eventRequestParams.setFilterAttributes(TEA_1_UID + ":ieq:1:ilike:2");
+
+    TrackerEventOperationParams eventOperationParams =
+        mapper.map(eventRequestParams, idSchemeParams);
+
+    assertEquals(
+        Map.of(TEA_1_UID, List.of(new QueryFilter(EQ, "1"), new QueryFilter(LIKE, "2"))),
+        eventOperationParams.getAttributeFilters());
   }
 
   @Test

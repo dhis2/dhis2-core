@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tracker.export.trackerevent;
 
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateMinimumCharactersToSearch;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
@@ -230,6 +232,10 @@ class TrackerEventOperationParamsMapper {
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
                 attributeFilter.getKey()));
       }
+
+      validateAttributeOperators(attributeFilter, tea);
+
+      validateMinimumCharactersToSearch(attributeFilter, tea);
 
       if (attributeFilter.getValue().isEmpty()) {
         params.filterBy(tea);
