@@ -72,9 +72,9 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -366,7 +366,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
     manager.delete(r);
-    Event to = r.getTo().getEvent();
+    TrackerEvent to = r.getTo().getEvent();
 
     JsonList<JsonRelationship> rels =
         GET(
@@ -410,7 +410,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
-    Event to = r.getTo().getEvent();
+    TrackerEvent to = r.getTo().getEvent();
 
     JsonList<JsonRelationship> rels =
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
@@ -701,7 +701,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             .findFirst()
             .get();
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
-    Event event = enrollment.getEvents().iterator().next();
+    TrackerEvent event = enrollment.getEvents().iterator().next();
     assertIsEmpty(event.getRelationshipItems(), "test expects an event with no relationships");
 
     JsonList<JsonEnrollment> json =
@@ -719,7 +719,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
     Enrollment enrollment = get(Enrollment.class, "nxP7UnKhomJ");
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
-    Event event = enrollment.getEvents().iterator().next();
+    TrackerEvent event = enrollment.getEvents().iterator().next();
     assertNotEmpty(
         event.getRelationshipItems(), "test expects an event with at least one relationship");
     RelationshipItem relItem = te.getRelationshipItems().iterator().next();
@@ -754,7 +754,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
     Enrollment enrollment = get(Enrollment.class, "nxP7UnKhomJ");
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
-    Event event = enrollment.getEvents().iterator().next();
+    TrackerEvent event = enrollment.getEvents().iterator().next();
     assertNotEmpty(
         event.getRelationshipItems(), "test expects an event with at least one relationship");
 
@@ -1236,7 +1236,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertHasMember(jsonEnrollment, "followUp");
   }
 
-  private JsonEvent assertDefaultEventResponse(JsonEnrollment enrollment, Event event) {
+  private JsonEvent assertDefaultEventResponse(JsonEnrollment enrollment, TrackerEvent event) {
     assertTrue(enrollment.isObject());
     assertFalse(enrollment.isEmpty());
 
@@ -1408,7 +1408,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     // relationships
   }
 
-  private void assertTrackedEntityWithinRelationship(Event expected, JsonRelationshipItem json) {
+  private void assertTrackedEntityWithinRelationship(
+      TrackerEvent expected, JsonRelationshipItem json) {
     JsonRelationshipItem.JsonEvent jsonEvent = json.getEvent();
     assertFalse(jsonEvent.isEmpty(), "event should not be empty");
     assertEquals(expected.getUid(), jsonEvent.getEvent());

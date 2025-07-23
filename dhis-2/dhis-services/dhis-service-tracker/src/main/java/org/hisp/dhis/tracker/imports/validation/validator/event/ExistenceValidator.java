@@ -69,7 +69,7 @@ class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.doma
   private SoftDeletableObject getExistingEvent(
       org.hisp.dhis.tracker.imports.domain.Event event, TrackerPreheat preheat) {
     if (event instanceof TrackerEvent) {
-      return preheat.getEvent(event.getEvent());
+      return preheat.getTrackerEvent(event.getEvent());
     } else if (event instanceof SingleEvent) {
       return preheat.getSingleEvent(event.getEvent());
     }

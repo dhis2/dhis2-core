@@ -101,11 +101,6 @@ public class SingleEvent implements Event {
   }
 
   @Override
-  public Instant getScheduledAt() {
-    return null;
-  }
-
-  @Override
   public void setEnrollment(UID enrollment) {
     this.enrollment = enrollment;
   }

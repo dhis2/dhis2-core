@@ -45,7 +45,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -56,7 +56,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
@@ -380,7 +379,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     Enrollment enrollmentBeforeDeletion = getEnrollment();
 
-    Event eventBeforeDeletion = getEvent();
+    TrackerEvent eventBeforeDeletion = getEvent();
     injectAdminIntoSecurityContext();
     User user = createAndAddUser("userDelete", organisationUnit, "F_ENROLLMENT_CASCADE_DELETE");
     injectSecurityContextUser(user);
@@ -399,7 +398,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     TrackedEntity entityAfterDeletion = getTrackedEntity();
     Enrollment enrollmentAfterDeletion = getEnrollment();
-    Event eventAfterDeletion = getEvent();
+    TrackerEvent eventAfterDeletion = getEvent();
 
     assertAll(
         () ->
@@ -460,7 +459,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     Enrollment enrollmentBeforeDeletion = getEnrollment();
 
-    Event eventBeforeDeletion = getEvent();
+    TrackerEvent eventBeforeDeletion = getEvent();
 
     User user = user();
 
@@ -478,7 +477,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     TrackedEntity entityAfterDeletion = getTrackedEntity();
     Enrollment enrollmentAfterDeletion = getEnrollment();
 
-    Event eventAfterDeletion = getEvent();
+    TrackerEvent eventAfterDeletion = getEvent();
 
     assertAll(
         () ->
@@ -536,7 +535,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
     org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
 
-    Event eventBeforeDeletion = getEvent(ev.getUid());
+    TrackerEvent eventBeforeDeletion = getEvent(ev.getUid());
 
     User user = user();
 
@@ -551,7 +550,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     clearSession();
 
-    Event eventAfterDeletion = getEvent(ev.getUid());
+    TrackerEvent eventAfterDeletion = getEvent(ev.getUid());
 
     assertAll(
         () -> assertTrue(eventAfterDeletion.isDeleted()),
@@ -617,7 +616,8 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
     org.hisp.dhis.tracker.imports.domain.Event ev =
-        TrackerEvent.builderFromEvent(trackerObjects.getEvents().get(0))
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(
+                trackerObjects.getEvents().get(0))
             .enrollment(null)
             .event(UID.generate())
             .programStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null))
@@ -653,12 +653,12 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getUid().getValue());
   }
 
-  Event getEvent() {
-    return getEntityJpql(Event.class.getSimpleName(), event.getUid().getValue());
+  TrackerEvent getEvent() {
+    return getEntityJpql(TrackerEvent.class.getSimpleName(), event.getUid().getValue());
   }
 
-  Event getEvent(UID uid) {
-    return getEntityJpql(Event.class.getSimpleName(), uid.getValue());
+  TrackerEvent getEvent(UID uid) {
+    return getEntityJpql(TrackerEvent.class.getSimpleName(), uid.getValue());
   }
 
   TrackedEntity getTrackedEntity() {

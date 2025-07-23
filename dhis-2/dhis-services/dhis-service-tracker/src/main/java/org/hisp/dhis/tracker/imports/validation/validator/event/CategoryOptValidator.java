@@ -44,6 +44,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -71,16 +72,15 @@ class CategoryOptValidator implements Validator<Event> {
       categoryOptionCombo = preheat.getCategoryOptionCombo(event.getAttributeOptionCombo());
     }
     Date eventDate;
-    try {
+    if (event instanceof TrackerEvent trackerEvent) {
       eventDate =
           DateUtils.fromInstant(
               ObjectUtils.firstNonNull(
-                  event.getOccurredAt(), event.getScheduledAt(), Instant.now()));
-    } catch (IllegalArgumentException e) {
-      log.debug("Failed to parse dates, an error should already be reported.");
-      return;
+                  trackerEvent.getOccurredAt(), trackerEvent.getScheduledAt(), Instant.now()));
+    } else {
+      eventDate =
+          DateUtils.fromInstant(ObjectUtils.firstNonNull(event.getOccurredAt(), Instant.now()));
     }
-
     I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
     for (CategoryOption option : categoryOptionCombo.getCategoryOptions()) {
