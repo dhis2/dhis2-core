@@ -72,7 +72,7 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
     if (!program.isRegistration()) {
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
-          .errorReport(new ErrorReport(Program.class, ErrorCode.E4081, rule.getUid()))
+          .errorReport(new ErrorReport(Program.class, ErrorCode.E4083, rule.getUid()))
           .build();
     }
 
@@ -81,7 +81,7 @@ public class ScheduleEventProgramRuleActionValidator implements ProgramRuleActio
           .valid(false)
           .errorReport(
               new ErrorReport(
-                  ProgramStage.class, ErrorCode.E4082, programStage.getUid(), program.getUid()))
+                  ProgramStage.class, ErrorCode.E4084, programStage.getUid(), program.getUid()))
           .build();
     }
 
