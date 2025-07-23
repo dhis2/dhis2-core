@@ -36,6 +36,7 @@ node_modules
 **/rebel.xml
 .vscode
 .cursor
+.claude
 # ignore generated artifact directory
 docker/artifacts
 # ignore local docker override files

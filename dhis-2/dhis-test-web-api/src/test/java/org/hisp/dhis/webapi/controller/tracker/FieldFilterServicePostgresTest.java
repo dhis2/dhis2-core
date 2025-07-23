@@ -40,8 +40,8 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService.IgnoreJsonSerializerRefinementAnnotationInspector;
@@ -50,11 +50,17 @@ import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Note;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +70,8 @@ import org.springframework.transaction.annotation.Transactional;
 // the service(s) and the ObjectMapper. As soon as we test metadata as well we should switch to
 // PostgresControllerIntegrationTestBase
 class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
+  private static final GeometryFactory geometryFactory = new GeometryFactory();
+
   @Autowired private FieldFilterService fieldFilterService;
 
   @Autowired private ObjectMapper objectMapper;
@@ -76,12 +84,12 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    // TODO(ivo) add all properties
+    Point point = geometryFactory.createPoint(new Coordinate(4, 12));
+
     events =
         List.of(
             Event.builder()
                 .event(UID.generate())
-                .status(EventStatus.COMPLETED)
                 .program(UID.generate().getValue())
                 .programStage(UID.generate().getValue())
                 .enrollment(UID.generate())
@@ -89,6 +97,28 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
                 .orgUnit(UID.generate().getValue())
                 .occurredAt(Instant.now())
                 .scheduledAt(Instant.now())
+                .storedBy("fred")
+                .followUp(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .attributeOptionCombo(UID.generate().getValue())
+                .attributeCategoryOptions(UID.generate().getValue())
+                .geometry(point)
+                .createdBy(
+                    User.builder()
+                        .uid(UID.generate().getValue())
+                        .username("fred")
+                        .displayName("Freddy")
+                        .firstName("fred")
+                        .build())
+                .dataValues(
+                    Set.of(
+                        DataValue.builder()
+                            .dataElement(UID.generate().getValue())
+                            .value("78")
+                            .storedBy("alice")
+                            .build()))
+                .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
                 .build());
 
     // TODO(ivo) this replicates what we do in FieldFilterService#configureFieldFilterObjectMapper
@@ -109,6 +139,9 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
       strings = {
         "*",
         "event",
+        "event[dataValues]",
+        "event[dataValues[dataElement,value]]",
+        "event[dataValues[*,!storedBy]]",
         "*,!enrollment",
       })
   void betterFilterShouldMatchCurrentFilter(String fields) throws JsonProcessingException {
