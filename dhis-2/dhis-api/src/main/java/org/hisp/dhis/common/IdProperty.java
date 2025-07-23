@@ -45,6 +45,7 @@ import javax.annotation.Nonnull;
 public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
 
   public static final IdProperty UID = new IdProperty(Name.UID, null);
+  public static final IdProperty CODE = new IdProperty(Name.CODE, null);
 
   public IdProperty {
     requireNonNull(name);
@@ -59,8 +60,8 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
     IdentifiableProperty property = scheme.getIdentifiableProperty();
     if (property == null) return new IdProperty(Name.UID, null);
     return switch (property) {
-      case ID, UID -> new IdProperty(Name.UID, null);
-      case CODE -> new IdProperty(Name.CODE, null);
+      case ID, UID -> UID;
+      case CODE -> CODE;
       case NAME -> new IdProperty(Name.NAME, null);
       case ATTRIBUTE ->
           new IdProperty(Name.ATTR, org.hisp.dhis.common.UID.of(scheme.getAttribute()));

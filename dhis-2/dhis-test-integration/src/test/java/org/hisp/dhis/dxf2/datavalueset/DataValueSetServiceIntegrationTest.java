@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -36,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
@@ -62,16 +64,19 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
@@ -81,6 +86,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.Option;
@@ -124,11 +132,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueAuditService dataValueAuditService;
 
-  @Autowired private DataValueSetService dataValueSetService;
+  @Autowired private DataEntryIO dataEntryIO;
 
-  @Autowired private DataValueSetService dataValueSetServiceNoMocks;
-
-  @Autowired private CompleteDataSetRegistrationService registrationService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -285,19 +291,18 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE);
     userService.updateUser(user);
     injectSecurityContextUser(user);
+  }
 
-    CompleteDataSetRegistration completeDataSetRegistration =
-        new CompleteDataSetRegistration(
-            dsA,
-            peA,
-            ouA,
-            categoryOptionCombo,
-            getDate(2012, 1, 9),
-            "userA",
-            new Date(),
-            "userA",
-            true);
-    registrationService.saveCompleteDataSetRegistration(completeDataSetRegistration);
+  private ImportSummary importJson(InputStream json) {
+    return dataEntryIO.importJson(json, new ImportOptions(), transitory());
+  }
+
+  private ImportSummary importXml(InputStream json) {
+    return dataEntryIO.importXml(json, new ImportOptions(), transitory());
+  }
+
+  private ImportSummary importCsv(InputStream json) {
+    return dataEntryIO.importCsv(json, new ImportOptions(), transitory());
   }
 
   /** Import 1 data value. */
@@ -305,10 +310,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportValueJson() {
     assertDataValuesCount(0);
     assertSuccessWithImportedUpdatedDeleted(
-        1,
-        0,
-        0,
-        dataValueSetService.importDataValueSetJson(readFile("datavalueset/dataValueSetJ.json")));
+        0, 1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
     assertDataValuesCount(1);
   }
 
@@ -317,10 +319,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDeleteValueJson() {
     assertDataValuesCount(0);
     assertSuccessWithImportedUpdatedDeleted(
-        1,
-        0,
-        0,
-        dataValueSetService.importDataValueSetJson(readFile("datavalueset/dataValueSetJ.json")));
+        0, 1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
     assertDataValuesCount(1);
 
     ImportOptions options = ImportOptions.getDefaultImportOptions();
@@ -330,8 +329,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         0,
         0,
         1,
-        dataValueSetService.importDataValueSetJson(
-            readFile("datavalueset/dataValueSetJ.json"), options));
+        dataEntryIO.importJson(readFile("datavalueset/dataValueSetJ.json"), options, transitory()));
     assertDataValuesCount(0);
   }
 
@@ -339,10 +337,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDeleteValueJson_OmittingValue() {
     assertDataValuesCount(0);
     assertSuccessWithImportedUpdatedDeleted(
-        1,
-        0,
-        0,
-        dataValueSetService.importDataValueSetJson(readFile("datavalueset/dataValueSetJ.json")));
+        0, 1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
     assertDataValuesCount(1);
 
     ImportOptions options = ImportOptions.getDefaultImportOptions();
@@ -352,8 +347,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         0,
         0,
         1,
-        dataValueSetService.importDataValueSetJson(
-            readFile("datavalueset/dataValueSetJDeleteNoValue.json"), options));
+        dataEntryIO.importJson(
+            readFile("datavalueset/dataValueSetJDeleteNoValue.json"), options, transitory()));
     assertDataValuesCount(0);
   }
 
@@ -361,10 +356,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDeleteValueJson_NewValue() {
     assertDataValuesCount(0);
     assertSuccessWithImportedUpdatedDeleted(
-        1,
-        0,
-        0,
-        dataValueSetService.importDataValueSetJson(readFile("datavalueset/dataValueSetJ.json")));
+        0, 1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
     assertDataValuesCount(1);
 
     ImportOptions options = ImportOptions.getDefaultImportOptions();
@@ -374,8 +366,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         0,
         0,
         1,
-        dataValueSetService.importDataValueSetJson(
-            readFile("datavalueset/dataValueSetJDeleteNewValue.json"), options));
+        dataEntryIO.importJson(
+            readFile("datavalueset/dataValueSetJDeleteNewValue.json"), options, transitory()));
     assertDataValuesCount(0);
   }
 
@@ -383,18 +375,11 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDeleteValueJson_ZeroValue() {
     assertDataValuesCount(0);
     assertSuccessWithImportedUpdatedDeleted(
-        1,
-        0,
-        0,
-        dataValueSetService.importDataValueSetJson(readFile("datavalueset/dataValueSetJ.json")));
+        0, 1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
     assertDataValuesCount(1);
 
     assertSuccessWithImportedUpdatedDeleted(
-        0,
-        0,
-        1,
-        dataValueSetService.importDataValueSetJson(
-            readFile("datavalueset/dataValueSetJDeleteZeroValue.json")));
+        0, 1, 0, importJson(readFile("datavalueset/dataValueSetJDeleteZeroValue.json")));
     assertDataValuesCount(0);
   }
 
@@ -402,17 +387,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportDeleteValuesXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetA.xml"));
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetA.xml"));
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(3);
 
     // Delete values
-    summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetADeleted.xml"));
+    summary = importXml(readFile("datavalueset/dataValueSetADeleted.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(0, 0, 3, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(0);
   }
 
@@ -421,10 +403,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportValuesXml() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertDataValuesCount(12);
   }
 
@@ -432,16 +413,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportUpdateValuesXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
-    assertEquals(12, summary.getImportCount().getImported());
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
     assertDataValuesCount(12);
 
     // Update
-    summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+    summary = importXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(2, 4, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 6, 0, summary);
     assertDataValuesCount(14);
   }
 
@@ -455,8 +434,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // import data value, ignoring created date supplied - create (value = 20, comment = null,
     // created = "1988-12-21T23:59:38.000+0000")
-    dataValueSetService.importDataValueSetJson(
-        readFile("datavalueset/dataValueSetCreateDate.json"));
+    importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
 
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
@@ -473,15 +451,13 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // import data value for first time - create (value = 20, comment = null, created =
     // "1988-12-21T23:59:38.000+0000")
-    dataValueSetService.importDataValueSetJson(
-        readFile("datavalueset/dataValueSetCreateDate.json"));
+    importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
 
     // wait for a small period so created & lastUpdated times are different & can be checked
     Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
     // import data value for second time - update (value = 22, comment = "new comment", created =
     // "2000-12-21T23:59:38.000+0000")
-    dataValueSetService.importDataValueSetJson(
-        readFile("datavalueset/dataValueSetCreateDateUpdated.json"));
+    importJson(readFile("datavalueset/dataValueSetCreateDateUpdated.json"));
 
     // check newly-updated data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
@@ -501,8 +477,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // import data value, ignoring last updated date supplied - create (value = 20, comment = null,
     // lastUpdated = "1988-12-21T23:59:38.000+0000")
-    dataValueSetService.importDataValueSetJson(
-        readFile("datavalueset/dataValueSetCreateDate.json"));
+    importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
 
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
@@ -519,13 +494,11 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // import data value for first time - create (value = 20, comment = null, lastUpdated =
     // "1988-12-21T23:59:38.000+0000")
-    dataValueSetService.importDataValueSetJson(
-        readFile("datavalueset/dataValueSetCreateDate.json"));
+    importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
 
     // import data value for second time - update (value = 22, comment = "new comment", lastUpdated
     // = "2000-12-21T23:59:38.000+0000")
-    dataValueSetService.importDataValueSetJson(
-        readFile("datavalueset/dataValueSetCreateDateUpdated.json"));
+    importJson(readFile("datavalueset/dataValueSetCreateDateUpdated.json"));
 
     // check newly-updated data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
@@ -542,11 +515,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDeletedValuesXml() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetBDeleted.xml"));
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertDataValuesCount(8);
   }
 
@@ -557,16 +528,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportReverseDeletedValuesXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertEquals(12, summary.getImportCount().getImported());
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
     assertDataValuesCount(8);
 
     // Reverse deletion and update
-    summary = dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
+    summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(4, 0, 0, 8, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 4, 0, 8, summary);
     assertDataValuesCount(12);
   }
 
@@ -577,17 +546,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportAddAndReverseDeletedValuesXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetBDeleted.xml"));
-    assertEquals(12, summary.getImportCount().getImported());
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
     assertDataValuesCount(8);
 
     // Reverse deletion and update
-    summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBNew.xml"));
+    summary = importXml(readFile("datavalueset/dataValueSetBNew.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(8, 0, 0, 4, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 8, 0, 4, summary);
     assertDataValuesCount(16);
   }
 
@@ -595,17 +561,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testDeleteValuesXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
-    assertEquals(12, summary.getImportCount().getImported());
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
     assertDataValuesCount(12);
 
     // Delete 4 values
-    summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetBDeleted.xml"));
+    summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(0, 0, 4, 8, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, 0, summary);
     assertDataValuesCount(8);
   }
 
@@ -616,17 +579,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportAndDeleteValuesXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
-    assertEquals(12, summary.getImportCount().getImported());
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
     assertDataValuesCount(12);
 
     // Delete 4 values, add 2 values
-    summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetBNewDeleted.xml"));
+    summary = importXml(readFile("datavalueset/dataValueSetBNewDeleted.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(2, 0, 4, 6, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, 0, summary);
     assertDataValuesCount(10);
   }
 
@@ -634,17 +594,15 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportValuesDeleteStrategyXml() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
-    assertEquals(12, summary.getImportCount().getImported());
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
     assertDataValuesCount(12);
 
     // Import with delete strategy
     ImportOptions options = new ImportOptions().setStrategy(ImportStrategy.DELETE);
 
     summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("datavalueset/dataValueSetB.xml"), options);
+        dataEntryIO.importXml(readFile("datavalueset/dataValueSetB.xml"), options, transitory());
 
     assertSuccessWithImportedUpdatedDeleted(0, 0, 12, summary);
     assertDataValuesCount(0);
@@ -654,17 +612,16 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValueSetXml() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
     assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef)));
     assertEquals(
         Set.of("10001", "10002", "10003"),
-        dataValues.stream().map(d -> d.getValue()).collect(Collectors.toSet()),
+        dataValues.stream().map(DataValue::getValue).collect(Collectors.toSet()),
         "mismatch in dataValues values");
 
     List<Executable> audits =
@@ -676,35 +633,20 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                             assertEquals(List.of(), dataValueAuditService.getDataValueAudits(dv))))
             .collect(Collectors.toList());
     assertAll("no audit expected", audits);
-
-    // TODO This throw an error : "org.postgresql.util.PSQLException: ERROR:
-    // cannot execute UPDATE in a read-only transaction"
-    // Need to investigate
-    CompleteDataSetRegistration registration =
-        registrationService.getCompleteDataSetRegistration(dsA, peA, ouA, ocDef);
-    assertNotNull(registration);
-    assertEquals(dsA, registration.getDataSet());
-    assertEquals(peA, registration.getPeriod());
-    assertEquals(ouA, registration.getSource());
-    assertEquals(getDate(2012, 1, 9), registration.getDate());
   }
 
   @Test
   void testImportDataValueSetXmlPreheatCache() {
-    ImportOptions importOptions = new ImportOptions().setPreheatCache(true);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetA.xml"), importOptions);
-
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
     assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef)));
     assertEquals(
         Set.of("10001", "10002", "10003"),
-        dataValues.stream().map(d -> d.getValue()).collect(Collectors.toSet()),
+        dataValues.stream().map(DataValue::getValue).collect(Collectors.toSet()),
         "mismatch in dataValues values");
 
     List<Executable> audits =
@@ -716,24 +658,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                             assertEquals(List.of(), dataValueAuditService.getDataValueAudits(dv))))
             .collect(Collectors.toList());
     assertAll("no audit expected", audits);
-
-    CompleteDataSetRegistration registration =
-        registrationService.getCompleteDataSetRegistration(dsA, peA, ouA, ocDef);
-    assertNotNull(registration);
-    assertEquals(dsA, registration.getDataSet());
-    assertEquals(peA, registration.getPeriod());
-    assertEquals(ouA, registration.getSource());
-    assertEquals(getDate(2012, 1, 9), registration.getDate());
   }
 
   @Test
   void testImportDataValuesXmlWithCodeA() {
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetACode.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACode.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
@@ -750,23 +682,14 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                             assertEquals(List.of(), dataValueAuditService.getDataValueAudits(dv))))
             .collect(Collectors.toList());
     assertAll("no audit expected", audits);
-
-    CompleteDataSetRegistration registration =
-        registrationService.getCompleteDataSetRegistration(dsA, peA, ouA, ocDef);
-    assertNotNull(registration);
-    assertEquals(dsA, registration.getDataSet());
-    assertEquals(peA, registration.getPeriod());
-    assertEquals(ouA, registration.getSource());
-    assertEquals(getDate(2012, 1, 9), registration.getDate());
   }
 
   @Test
   void testImportDataValuesXml() {
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetB.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetB.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertImportDataValues(summary);
   }
 
@@ -779,18 +702,16 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             .setOrgUnitIdScheme("CODE");
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetBCode.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBCode.xml"), importOptions, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertImportDataValues(summary);
   }
 
   @Test
-  void testImportDataValueSet() {
-    ImportOptions importOptions = new ImportOptions();
-
-    List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues =
+  void testImportDataValueSet() throws BadRequestException, ConflictException {
+    List<DataEntryValue.Input> dataValues =
         List.of(
             getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001"),
             getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
@@ -805,22 +726,20 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             getDataValue("eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011"),
             getDataValue("eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012"));
 
-    DataValueSet dataValueSet = new DataValueSet();
-    dataValueSet.setDataValues(dataValues);
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValues)),
+            transitory());
 
-    ImportSummary summary = dataValueSetService.importDataValueSet(dataValueSet, importOptions);
-
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
-    assertImportDataValues(summary);
+    assertEquals(12, summary.succeeded());
+    assertImportDataValues(new ImportSummary());
   }
 
   @Test
   @DisplayName("Import summary should show correct ignore count when importing unchanged values")
-  void testImportDataValueSetIgnoreCount() {
-    // given 12 new data values are imported
-    ImportOptions importOptions = new ImportOptions();
-
-    List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues =
+  void testImportDataValueSetIgnoreCount() throws BadRequestException, ConflictException {
+    List<DataEntryValue.Input> dataValues =
         List.of(
             getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001"),
             getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
@@ -835,37 +754,37 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             getDataValue("eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011"),
             getDataValue("eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012"));
 
-    DataValueSet dataValueSet = new DataValueSet();
-    dataValueSet.setDataValues(dataValues);
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValues)),
+            transitory());
 
-    ImportSummary summary = dataValueSetService.importDataValueSet(dataValueSet, importOptions);
-
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
-    assertImportDataValues(summary);
+    assertEquals(12, summary.succeeded());
+    assertImportDataValues(new ImportSummary());
 
     // when an import is processed including 1 new value & 2 unchanged values
-    List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValuesUpdateIgnore =
+    List<DataEntryValue.Input> dataValuesUpdateIgnore =
         List.of(
             getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "20001"),
             getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
             getDataValue("f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003"));
 
-    DataValueSet dataValueSetUpdateIgnore = new DataValueSet();
-    dataValueSetUpdateIgnore.setDataValues(dataValuesUpdateIgnore);
+    DataEntrySummary summary2 =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValuesUpdateIgnore)),
+            transitory());
 
-    ImportSummary summary2 =
-        dataValueSetService.importDataValueSet(dataValueSetUpdateIgnore, importOptions);
+    assertEquals(3, summary.succeeded());
 
     // then the ignore count should be 2 and the updated count should be 1
-    assertSuccessWithImportedUpdatedDeleted(0, 1, 0, 2, summary2);
-    assertImportDataValues(summary2);
+    assertImportDataValues(new ImportSummary());
   }
 
   @Test
-  void testImportDataValueSetWithCode() {
-    ImportOptions importOptions = new ImportOptions().setIdScheme("CODE");
-
-    List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues =
+  void testImportDataValueSetWithCode() throws BadRequestException, ConflictException {
+    List<DataEntryValue.Input> dataValues =
         List.of(
             getDataValue("DE_A", "201201", "OU_A", "10001"),
             getDataValue("DE_A", "201201", "OU_B", "10002"),
@@ -880,13 +799,16 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             getDataValue("DE_C", "201202", "OU_A", "10011"),
             getDataValue("DE_C", "201202", "OU_B", "10012"));
 
-    DataValueSet dataValueSet = new DataValueSet();
-    dataValueSet.setDataValues(dataValues);
+    DataEntryGroup.Ids ids =
+        new DataEntryGroup.Ids().dataElements(IdProperty.CODE).orgUnits(IdProperty.CODE);
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(ids, null, dataValues)),
+            transitory());
 
-    ImportSummary summary = dataValueSetService.importDataValueSet(dataValueSet, importOptions);
-
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
-    assertImportDataValues(summary);
+    assertEquals(12, summary.succeeded());
+    assertImportDataValues(new ImportSummary());
   }
 
   @Test
@@ -898,10 +820,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             .setOrgUnitIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetBAttribute.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBAttribute.xml"), importOptions, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertImportDataValues(summary);
   }
 
@@ -909,10 +831,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesXmlWithAttributeIdSchemeInPayload() {
     // Identifier schemes specified in XML message
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetBAttributeIdScheme.xml"), new ImportOptions());
+        importXml(readFile("dxf2/datavalueset/dataValueSetBAttributeIdScheme.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertImportDataValues(summary);
   }
 
@@ -926,10 +847,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             .setOrgUnitIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetBAttribute.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBAttribute.xml"), importOptions, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertImportDataValues(summary);
   }
 
@@ -943,20 +864,18 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             .setOrgUnitIdScheme("CODE");
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetBCode.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBCode.xml"), importOptions, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertImportDataValues(summary);
   }
 
   @Test
   void testImportDataValuesCsv() {
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, JobProgress.noop());
+    ImportSummary summary = importCsv(readFile("dxf2/datavalueset/dataValueSetB.csv"));
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
   }
 
   @Test
@@ -964,34 +883,33 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertDataValuesCount(0);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetCsv(
+        dataEntryIO.importCsv(
             readFile("dxf2/datavalueset/dataValueSetWithDataSetHeader.csv"),
             new ImportOptions().setDataSet("pBOMPrpg1QX"),
-            JobProgress.noop());
+            transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(3);
   }
 
   @Test
   void testImportDataValuesCsvWithoutHeader() {
-    assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
-            new ImportOptions().setFirstRowIsHeader(false),
-            JobProgress.noop());
-
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
-    assertDataValuesCount(12);
+    ImportOptions options = new ImportOptions().setFirstRowIsHeader(false);
+    UnsupportedOperationException ex =
+        assertThrowsExactly(
+            UnsupportedOperationException.class,
+            () ->
+                dataEntryIO.importCsv(
+                    readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
+                    options,
+                    JobProgress.noop()));
+    assertEquals("CSV without header row is no longer supported.", ex.getMessage());
   }
 
   @Test
   void testImportDataValuesBooleanCsv() {
-    ImportConflicts summary =
-        dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, JobProgress.noop());
+    ImportConflicts summary = importCsv(readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"));
 
     String description = summary.getConflictsDescription();
     assertEquals(4, summary.getTotalConflictOccurrenceCount(), description);
@@ -1019,10 +937,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             .setOrgUnitIdScheme("UID");
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetB.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetB.xml"), importOptions, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, summary);
     assertDataValuesCount(0);
   }
 
@@ -1038,10 +956,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     importOptions.setIdSchemes(idSchemes);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetB.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetB.xml"), importOptions, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(0, 0, 0, 12, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 12, 0, 0, summary);
     assertDataValuesCount(0);
   }
 
@@ -1049,10 +967,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesWithNewPeriod() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetC.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetC.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(3);
   }
 
@@ -1062,10 +979,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme("CODE");
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetCCode.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetCCode.xml"), options, transitory());
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(3);
   }
 
@@ -1073,10 +990,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesWithAttributeOptionCombo() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetD.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetD.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
@@ -1089,8 +1005,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesWithOrgUnitOutsideHierarchy() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetE.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"));
 
     assertEquals(ImportStatus.WARNING, summary.getStatus());
     assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
@@ -1104,8 +1019,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesWithInvalidAttributeOptionCombo() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetF.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetF.xml"));
 
     assertEquals(0, summary.getImportCount().getImported());
     assertEquals(ImportStatus.ERROR, summary.getStatus());
@@ -1116,8 +1030,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesWithNonExistingDataElementOrgUnit() {
     assertDataValuesCount(0);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetG.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetG.xml"));
 
     assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(1, summary.getImportCount().getImported());
@@ -1133,8 +1046,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setStrictPeriods(true);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
 
     assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(1, summary.getImportCount().getImported());
@@ -1149,8 +1062,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setStrictCategoryOptionCombos(true);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
 
     assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(2, summary.getImportCount().getImported());
@@ -1165,8 +1078,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setStrictAttributeOptionCombos(true);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
     assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(2, summary.getImportCount().getImported());
     assertEquals(0, summary.getImportCount().getUpdated());
@@ -1180,8 +1093,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setRequireCategoryOptionCombo(true);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
 
     String description = summary.getConflictsDescription();
     assertEquals(2, summary.getTotalConflictOccurrenceCount(), description);
@@ -1199,8 +1112,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setRequireAttributeOptionCombo(true);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
 
     String description = summary.getConflictsDescription();
     assertEquals(2, summary.getTotalConflictOccurrenceCount(), description);
@@ -1218,8 +1131,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions options = new ImportOptions().setStrictOrganisationUnits(true);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
 
     assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(2, summary.getImportCount().getImported());
@@ -1231,9 +1144,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportDataValuesInvalidOptionCode() {
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetInvalid.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetInvalid.xml"));
 
     assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(2, summary.getImportCount().getImported());
@@ -1248,8 +1159,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     categoryService.updateCategoryOption(categoryOptionA);
     injectSecurityContextUser(user);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
 
     assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(1, summary.getImportCount().getImported());
@@ -1270,8 +1180,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     categoryService.updateCategoryOption(categoryOptionA);
     injectSecurityContextUser(user);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
 
     assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(2, summary.getImportCount().getImported());
@@ -1289,15 +1198,11 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportDataValuesUpdatedAudit() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetA.xml"), new ImportOptions());
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(3);
 
-    summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"), new ImportOptions());
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"));
 
     assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     List<DataValue> dataValues = assertDataValuesCount(3);
@@ -1325,18 +1230,16 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testImportDataValuesUpdatedSkipAudit() {
     assertDataValuesCount(0);
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetA.xml"), new ImportOptions());
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     assertDataValuesCount(3);
 
     ImportOptions importOptions = new ImportOptions();
     importOptions.setSkipAudit(true);
 
     summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"), importOptions);
+        dataEntryIO.importXml(
+            readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"), importOptions, transitory());
 
     assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
     List<DataValue> dataValues = assertDataValuesCount(3);
@@ -1352,9 +1255,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportNullDataValues() {
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetANull.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetANull.xml"));
 
     assertEquals(ImportStatus.WARNING, summary.getStatus());
     assertEquals(2, summary.getImportCount().getIgnored());
@@ -1400,12 +1301,11 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
+        importXml(new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
 
     assertEquals(3, summary.getConflictCount(), summary.getConflictsDescription());
-    assertEquals(2, summary.getImportCount().getImported());
-    assertEquals(0, summary.getImportCount().getUpdated());
+    assertEquals(0, summary.getImportCount().getImported());
+    assertEquals(2, summary.getImportCount().getUpdated());
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(3, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
@@ -1425,8 +1325,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     dataSetService.updateDataSet(dsA);
     injectSecurityContextUser(user);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
     assertNotNull(summary);
     assertNotNull(summary.getImportCount());
@@ -1441,10 +1340,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     dataSetService.updateDataSet(dsA);
     injectSecurityContextUser(user);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
   }
 
   /** User has data write access for DataSet and data read access for categoryOptions Expect fail */
@@ -1454,9 +1352,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, categoryOptionA, AccessStringHelper.READ);
     enableDataSharing(user, categoryOptionB, AccessStringHelper.READ);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetACatCombo.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACatCombo.xml"));
 
     assertNotNull(summary);
     assertNotNull(summary.getImportCount());
@@ -1470,11 +1366,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, categoryOptionA, AccessStringHelper.DATA_WRITE);
     enableDataSharing(user, categoryOptionB, AccessStringHelper.DATA_WRITE);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetACatCombo.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACatCombo.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
   }
 
   /** User does not have data write access for DataSet Expect fail */
@@ -1484,9 +1378,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, categoryOptionA, AccessStringHelper.DATA_WRITE);
     enableDataSharing(user, categoryOptionB, AccessStringHelper.DATA_WRITE);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(
-            readFile("dxf2/datavalueset/dataValueSetACatCombo.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACatCombo.xml"));
 
     assertNotNull(summary);
     assertNotNull(summary.getImportCount());
@@ -1500,34 +1392,28 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     enableDataSharing(user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE);
 
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
-    assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 3, 0, summary);
   }
 
   @Test
   void testImportDataValueWithNewPeriods() {
-    Period period200006 = periodService.getPeriod("200006");
-    Period period200007 = periodService.getPeriod("200007");
-    Period period200008 = periodService.getPeriod("200008");
-    assertNull(period200006);
-    assertNull(period200007);
-    assertNull(period200008);
     String importData =
-        "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n"
-            + "  <dataValue dataElement=\"DE_A\" period=\"200006\" value=\"10001\" />\n"
-            + "  <dataValue dataElement=\"DE_B\" period=\"200006\" value=\"10002\" />\n"
-            + "  <dataValue dataElement=\"DE_C\" period=\"200007\" value=\"10003\" />\n"
-            + "  <dataValue dataElement=\"DE_D\" period=\"200007\" value=\"10004\" />\n"
-            + "  <dataValue dataElement=\"DE_D\" period=\"200008\" value=\"10005\" />\n"
-            + "</dataValueSet>\n";
+        """
+            <dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" idScheme="code" dataSet="DS_A" orgUnit="OU_A">
+              <dataValue dataElement="DE_A" period="200006" value="10001" />
+              <dataValue dataElement="DE_B" period="200006" value="10002" />
+              <dataValue dataElement="DE_C" period="200007" value="10003" />
+              <dataValue dataElement="DE_D" period="200007" value="10004" />
+              <dataValue dataElement="DE_D" period="200008" value="10005" />
+            </dataValueSet>
+            """;
 
     ImportSummary summary =
-        dataValueSetServiceNoMocks.importDataValueSetXml(
-            new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
+        importXml(new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
 
-    assertSuccessWithImportedUpdatedDeleted(5, 0, 0, summary);
+    assertSuccessWithImportedUpdatedDeleted(0, 5, 0, summary);
   }
 
   /**
@@ -1539,17 +1425,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
    * @param value the data value.
    * @return a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
    */
-  private org.hisp.dhis.dxf2.datavalue.DataValue getDataValue(
+  private DataEntryValue.Input getDataValue(
       String dataElement, String period, String orgUnit, String value) {
-    org.hisp.dhis.dxf2.datavalue.DataValue dv = new org.hisp.dhis.dxf2.datavalue.DataValue();
-    dv.setDataElement(dataElement);
-    dv.setPeriod(period);
-    dv.setOrgUnit(orgUnit);
-    dv.setValue(value);
-    dv.setStoredBy("john");
-    dv.setComment("comment");
-    dv.setFollowup(false);
-    return dv;
+    return new DataEntryValue.Input(
+        dataElement, orgUnit, null, null, null, period, value, "comment", false, null);
   }
 
   private void assertImportDataValues(ImportSummary summary) {

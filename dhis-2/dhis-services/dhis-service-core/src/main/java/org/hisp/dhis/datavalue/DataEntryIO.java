@@ -50,6 +50,7 @@ import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -185,6 +186,8 @@ public class DataEntryIO {
   }
 
   public ImportSummary importCsv(InputStream in, ImportOptions options, JobProgress progress) {
+    if (!options.isFirstRowIsHeader())
+      throw new UnsupportedOperationException("CSV without header row is no longer supported.");
     progress.startingStage("Deserializing CVS data");
     return importRaw(progress.runStage(() -> parseCsv(in, options)), options, progress);
   }
@@ -306,7 +309,7 @@ public class DataEntryIO {
   }
 
   @Nonnull
-  public ImportSummary importRaw(
+  private ImportSummary importRaw(
       List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress) {
     // when parsing fails the input is null, this forces abort because of failed stage before
     progress.nonNullStagePostCondition(inputs);
@@ -364,7 +367,7 @@ public class DataEntryIO {
 
     DataEntryGroup.Options opt =
         new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-    return importGroups(mergedGroups, opt, progress);
+    return importGroups(mergedGroups, opt, progress, options.getImportStrategy().isDelete());
   }
 
   /**
@@ -392,13 +395,20 @@ public class DataEntryIO {
 
   @Nonnull
   private ImportSummary importGroups(
-      List<DataEntryGroup> groups, DataEntryGroup.Options options, JobProgress progress) {
+      List<DataEntryGroup> groups,
+      DataEntryGroup.Options options,
+      JobProgress progress,
+      boolean delete) {
     DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
     for (DataEntryGroup g : groups) {
       try {
         // further stages happen within the service method...
-        summary = summary.add(service.upsertGroup(options, g, progress));
+        DataEntrySummary res =
+            delete
+                ? service.deleteGroup(options, g, progress)
+                : service.upsertGroup(options, g, progress);
+        summary = summary.add(res);
       } catch (ConflictException ex) {
         conflicts.add(
             toConflict(
@@ -406,6 +416,11 @@ public class DataEntryIO {
       }
     }
     ImportSummary res = summary.toImportSummary();
+    if (delete) {
+      ImportCount counts = res.getImportCount();
+      counts.setDeleted(counts.getUpdated());
+      counts.setUpdated(0);
+    }
     if (!conflicts.isEmpty()) {
       res.setStatus(ImportStatus.ERROR);
       conflicts.forEach(res::addConflict);

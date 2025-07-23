@@ -62,6 +62,22 @@ public record DataEntryValue(
     requireNonNull(period);
   }
 
+  public DataEntryValue toDeleted() {
+    return deleted == Boolean.TRUE
+        ? this
+        : new DataEntryValue(
+            index,
+            dataElement,
+            orgUnit,
+            categoryOptionCombo,
+            attributeOptionCombo,
+            period,
+            value,
+            comment,
+            followUp,
+            true);
+  }
+
   /**
    * How a {@link DataEntryValue} is provided as user input in the web API.
    *

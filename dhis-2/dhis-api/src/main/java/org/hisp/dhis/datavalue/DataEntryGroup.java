@@ -104,6 +104,10 @@ public record DataEntryGroup(
           Map<String, String> attributeOptions,
       @JsonAlias("dataValues") List<DataEntryValue.Input> values) {
 
+    public Input(List<DataEntryValue.Input> values) {
+      this(null, null, values);
+    }
+
     public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
       this(ids, dataSet, null, null, null, null, null, values);
     }
@@ -162,6 +166,17 @@ public record DataEntryGroup(
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty categories) {
 
+    public Ids() {
+      this(
+          IdProperty.UID,
+          IdProperty.UID,
+          IdProperty.UID,
+          IdProperty.UID,
+          IdProperty.UID,
+          IdProperty.UID,
+          IdProperty.UID);
+    }
+
     public static Ids of(IdSchemes schemes) {
       return schemes == null
           ? null
@@ -173,6 +188,28 @@ public record DataEntryGroup(
               IdProperty.of(schemes.getAttributeOptionComboIdScheme()),
               IdProperty.of(schemes.getCategoryOptionIdScheme()),
               IdProperty.of(schemes.getCategoryIdScheme()));
+    }
+
+    public Ids dataElements(IdProperty dataElements) {
+      return new Ids(
+          dataSets,
+          dataElements,
+          orgUnits,
+          categoryOptionCombos,
+          attributeOptionCombos,
+          categoryOptions,
+          categories);
+    }
+
+    public Ids orgUnits(IdProperty orgUnits) {
+      return new Ids(
+          dataSets,
+          dataElements,
+          orgUnits,
+          categoryOptionCombos,
+          attributeOptionCombos,
+          categoryOptions,
+          categories);
     }
   }
 }

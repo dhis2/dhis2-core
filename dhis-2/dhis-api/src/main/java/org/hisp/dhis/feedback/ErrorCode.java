@@ -663,8 +663,6 @@ public enum ErrorCode {
   E7826("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
   E7827("Value ${index:{0}} org unit not found: `${id:{1}}`"),
   E7828("Value ${index:{0}} data element not found: `${id:{1}}`"),
-  E7829(
-      "Value ${index:{0}} category option combo not defined directly or as category + category option set: `${dv:{1}}`"),
   E7830(
       "Value ${index:{0}} data set cannot be undefined when using categories and category options to refer to the category option combo: `${options:{1}}`"),
   E7831("Attribute option combo(s) not open for data entry during period(s): `${periods:{0}}`"),

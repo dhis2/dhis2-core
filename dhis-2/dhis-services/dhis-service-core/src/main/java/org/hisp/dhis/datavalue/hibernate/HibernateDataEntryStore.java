@@ -390,7 +390,13 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         AND excluded.categoryoptioncomboid IS NULL""";
     String ds = dataSet.getValue();
     String de = dataElement.getValue();
-    String[] coc = optionCombos.map(UID::getValue).distinct().toArray(String[]::new);
+    UID defaultCoc = getDefaultCategoryOptionComboUid();
+    String[] coc =
+        optionCombos
+            .map(id -> id == null ? defaultCoc : id)
+            .map(UID::getValue)
+            .distinct()
+            .toArray(String[]::new);
     return listAsStrings(
         sql, q -> q.setParameterList("coc", coc).setParameter("ds", ds).setParameter("de", de));
   }

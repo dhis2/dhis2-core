@@ -115,4 +115,8 @@ public interface DataEntryService {
   DataEntrySummary upsertGroup(
       DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
       throws ConflictException;
+
+  DataEntrySummary deleteGroup(
+      DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
+      throws ConflictException;
 }

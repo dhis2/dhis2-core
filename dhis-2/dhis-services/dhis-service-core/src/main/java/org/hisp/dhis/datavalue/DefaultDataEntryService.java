@@ -179,14 +179,15 @@ public class DefaultDataEntryService implements DataEntryService {
                   ds, categoryOptions, dataElements, dataElementIds.stream());
         }
         Set<String> key = categoriesByDe.get(deVal).stream().map(co::get).collect(toSet());
-        cocVal = cocUID = cocByOptionsByDe.get(deVal).get(key);
+        cocUID = cocByOptionsByDe.get(deVal).get(key);
+        if (cocUID == null) throw new BadRequestException(ErrorCode.E7823, i, co);
       } else {
-        if (cocVal == null) throw new BadRequestException(ErrorCode.E7829, i, dv);
-        cocUID = cocOf.apply(cocVal);
+        cocUID = cocVal == null ? null : cocOf.apply(cocVal);
+        if (cocUID == null && cocVal != null)
+          throw new BadRequestException(ErrorCode.E7823, i, cocVal);
       }
-      if (cocUID == null) throw new BadRequestException(ErrorCode.E7823, i, cocVal);
       UID coc = decodeUID(cocUID);
-      if (coc == null) throw new BadRequestException(ErrorCode.E7824, i, cocUID);
+      if (coc == null && cocUID != null) throw new BadRequestException(ErrorCode.E7824, i, cocUID);
       String aocVal = dv.attributeOptionCombo();
       if (aocVal == null) aocVal = aocGroup;
       String aocUID = aocOf.apply(aocVal);
@@ -250,7 +251,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional
-  @TimeExecution(level = INFO, name = "data value import")
+  @TimeExecution(level = INFO, name = "data value upsert")
   public DataEntrySummary upsertGroup(Options options, DataEntryGroup group, JobProgress progress)
       throws ConflictException {
     List<DataEntryValue> values = group.values();
@@ -267,12 +268,25 @@ public class DefaultDataEntryService implements DataEntryService {
     if (options.atomic() && entered > attempted)
       throw new ConflictException(ErrorCode.E7808, attempted, entered);
 
-    progress.startingStage("Writing %s".formatted(valid.describe()));
+    String verb = "Upserting";
+    if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
+    progress.startingStage("%s %s".formatted(verb, valid.describe()));
     int imported =
         progress.runStage(
             0, () -> options.dryRun() ? attempted : store.upsertValues(valid.values()));
 
     return new DataEntrySummary(entered, attempted, imported, errors);
+  }
+
+  @Override
+  @Transactional
+  @TimeExecution(level = INFO, name = "data value deletion")
+  public DataEntrySummary deleteGroup(Options options, DataEntryGroup group, JobProgress progress)
+      throws ConflictException {
+    DataEntryGroup deleted =
+        new DataEntryGroup(
+            group.dataSet(), group.values().stream().map(DataEntryValue::toDeleted).toList());
+    return upsertGroup(options, deleted, progress);
   }
 
   @Override
