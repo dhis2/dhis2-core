@@ -63,7 +63,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
@@ -159,14 +158,12 @@ class EventsExportController {
       )
   ResponseEntity<FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event>> getEvents(
       EventRequestParams requestParams,
-      @RequestParam(name = "fields", defaultValue = DEFAULT_FIELDS_PARAM) String fieldsRaw,
+      @RequestParam(name = "fields", defaultValue = DEFAULT_FIELDS_PARAM)
+          FieldsPredicate fieldsPredicate,
       TrackerIdSchemeParams idSchemeParams,
       HttpServletRequest request)
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
-    // TODO(ivo) I cannot yet rely on the new converter as all other endpoints still use the
-    // EventRequestParams.fields of the old representation. I have to explicitly parse until then.
-    FieldsPredicate fieldsPredicate = FieldsParser.parse(fieldsRaw);
 
     if (requestParams.isPaging()) {
       PageParams pageParams =

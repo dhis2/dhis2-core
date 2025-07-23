@@ -105,6 +105,7 @@ public class FilteredPageHttpMessageConverter
 
   private void writePageToStream(FilteredPage<?> filteredPage, OutputStream outputStream)
       throws IOException {
+    // TODO(ivo) will this properly set the content type?
     Page<?> page = filteredPage.getPage();
     FieldsPredicate pagePredicate = createPagePredicate(page.getKey(), filteredPage.getPredicate());
 
