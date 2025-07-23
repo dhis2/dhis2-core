@@ -48,6 +48,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -400,7 +401,7 @@ public class DefaultDataEntryService implements DataEntryService {
     Map<String, Period> peByIso =
         isoPeriods.stream().collect(toMap(identity(), type::createPeriod));
     Map<String, DateRange> ouOpSpan =
-        store.getOrgUnitOperationalSpan(
+        store.getEntrySpanByOrgUnit(
             values.stream().map(DataEntryValue::orgUnit), timeframeOf(peByIso.values()));
     if (!ouOpSpan.isEmpty()) {
       List<String> peNotInOuSpan =
@@ -597,7 +598,36 @@ public class DefaultDataEntryService implements DataEntryService {
       }
     }
 
-    // - require: PE must be within AOC "date range" (range super complicated to find)
+    // - require: PE must be within AOC "date range" (timeframe from AOC => COs)
+    Map<String, DateRange> entrySpanByAoc =
+        store.getEntrySpanByAoc(values.stream().map(DataEntryValue::attributeOptionCombo));
+    if (!entrySpanByAoc.isEmpty()) {
+      int openPeriodsAfterCoEndDate = store.getDataSetOpenPeriodsAfterCoEndDate(ds);
+      List<String> isoNotInAocRange =
+          values.stream()
+              .filter(dv -> dv.attributeOptionCombo() != null)
+              .map(
+                  dv -> {
+                    DateRange span = entrySpanByAoc.get(dv.attributeOptionCombo().getValue());
+                    if (span == null) return null;
+                    Period p = PeriodType.getPeriodFromIsoString(dv.period());
+                    Date start = p.getStartDate();
+                    Date end = p.getEndDate();
+                    if (span.includes(start) && span.includes(end)) return null;
+                    if (openPeriodsAfterCoEndDate == 0) return dv;
+                    // instead of moving range forward we move period backwards
+                    // and check against the unchanged span
+                    PeriodType type = p.getPeriodType();
+                    end = type.getRewindedDate(end, openPeriodsAfterCoEndDate);
+                    start = type.getRewindedDate(start, openPeriodsAfterCoEndDate);
+                    return span.includes(start) && span.includes(end) ? null : dv;
+                  })
+              .filter(Objects::nonNull)
+              .map(DataEntryValue::period)
+              .toList();
+      if (!isoNotInAocRange.isEmpty())
+        throw new ConflictException(ErrorCode.E7831, isoNotInAocRange);
+    }
   }
 
   private DateRange timeframeOf(Collection<Period> isoPeriods) {

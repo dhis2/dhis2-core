@@ -646,7 +646,7 @@ public enum ErrorCode {
       "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
   E7810("Current user cannot enter data for category option(s): `{0}`"),
   E7811("Attribute option combo {0} not connected to org unit(s): `{1}`"),
-  E7812("Period(s) are not open for data entry in data set {0}: `{1}`"),
+  E7812("Data set ${ds:{0}} not open for data entry during period(s): `${periods:{1}}`"),
   E7813("Org units not operational during entered period(s): `{0}`"),
   E7814("Current user cannot enter data for org unit(s): `{0}`"),
   E7815("Current user cannot enter data for data set: `{0}`"),
@@ -667,6 +667,7 @@ public enum ErrorCode {
       "Value ${index:{0}} category option combo not defined directly or as category + category option set: `${dv:{1}}`"),
   E7830(
       "Value ${index:{0}} data set cannot be undefined when using categories and category options to refer to the category option combo: `${options:{1}}`"),
+  E7831("Attribute option combo(s) not open for data entry during period(s): `${periods:{0}}`"),
   ;
 
   private final String message;

@@ -418,10 +418,13 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
               m.categoryoptioncomboid IS NULL
           )""";
     String ds = dataSet.getValue();
-    // needs null filter here because AOC is allowed to be null to mean "default"
-    // TODO do we need to replace null AOC with default to do the check correct?
+    UID defaultAoc = getDefaultCategoryOptionComboUid();
     String[] aoc =
-        optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
+        optionCombos
+            .map(id -> id == null ? defaultAoc : id)
+            .map(UID::getValue)
+            .distinct()
+            .toArray(String[]::new);
     return listAsStrings(sql, q -> q.setParameterList("aoc", aoc).setParameter("ds", ds));
   }
 
@@ -434,7 +437,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
       JOIN categoryoption_organisationunits co_ou ON aoc_co.categoryoptionid = co_ou.categoryoptionid
       WHERE aoc.uid IN (:aoc)""";
-    // filter nulls to ignore "default" AOC
+    // filter nulls to ignore "default" AOC assuming they never have a hierarchy limitation
     String[] aoc =
         attrOptionCombos
             .filter(Objects::nonNull)
@@ -579,6 +582,17 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
+  public int getDataSetOpenPeriodsAfterCoEndDate(UID dataSet) {
+    String sql = "SELECT ds.openperiodsaftercoenddate FROM dataset ds WHERE ds.uid = :ds";
+    Object res =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("ds", dataSet.getValue())
+            .getSingleResult();
+    return res instanceof Number n ? n.intValue() : 0;
+  }
+
+  @Override
   public List<String> getCategoryOptionsCanNotDataWrite(Stream<UID> optionCombos) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
@@ -593,7 +607,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       WHERE coc.uid IN (:coc)
       AND NOT (%s);
       """;
-    // needs null filtering here because AOC are allowed to be null to mean "default"
+    // ignore nulls (default COC) assuming that it does not have special user restrictions
     String[] coc =
         optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("coc", coc));
@@ -723,6 +737,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return ((Number) getSession().createNativeQuery(sql).getSingleResult()).longValue();
   }
 
+  private UID getDefaultCategoryOptionComboUid() {
+    String sql = "select uid from categoryoptioncombo where name = 'default'";
+    return UID.of((String) getSession().createNativeQuery(sql).getSingleResult());
+  }
+
   private Map<String, Long> getOptionComboIdMap(List<DataEntryValue> values) {
     return getOptionComboIdMap(
         Stream.concat(
@@ -846,8 +865,31 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, DateRange> getOrgUnitOperationalSpan(
-      Stream<UID> orgUnits, DateRange timeframe) {
+  public Map<String, DateRange> getEntrySpanByAoc(Stream<UID> attributeOptionCombos) {
+    // ignoring nulls (default AOC) assuming it does not have a limited entry span
+    String[] aoc =
+        attributeOptionCombos
+            .filter(Objects::nonNull)
+            .map(UID::getValue)
+            .distinct()
+            .toArray(String[]::new);
+    if (aoc.length == 0) return Map.of();
+    String sql =
+        """
+      SELECT
+        aoc.uid,
+        MAX(co.startdate) AS startdate,  -- Latest start (ignores NULLs)
+        MIN(co.enddate) AS enddate       -- Earliest end (ignores NULLs)
+      FROM categoryoptioncombo aoc
+      JOIN categoryoptioncombos_categoryoptions aoc_co ON aoc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+      JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
+      WHERE aoc.uid IN (:aoc)
+      GROUP BY aoc.uid""";
+    return listAsMapOfDateRange(sql, q -> q.setParameterList("aoc", aoc));
+  }
+
+  @Override
+  public Map<String, DateRange> getEntrySpanByOrgUnit(Stream<UID> orgUnits, DateRange timeframe) {
     String sql =
         """
       SELECT ou.uid, ou.openingdate, ou.closeddate
@@ -855,14 +897,19 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       WHERE (ou.openingdate > :start OR (ou.closeddate is not null and ou.closeddate < :end))
         AND ou.uid IN (:ou)""";
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
+    return listAsMapOfDateRange(
+        sql,
+        q ->
+            q.setParameter("start", timeframe.getStartDate())
+                .setParameter("end", timeframe.getEndDate())
+                .setParameterList("ou", ou));
+  }
+
+  private Map<String, DateRange> listAsMapOfDateRange(
+      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
+    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
     @SuppressWarnings("unchecked")
-    Stream<Object[]> rows =
-        getSession()
-            .createNativeQuery(sql)
-            .setParameter("start", timeframe.getStartDate())
-            .setParameter("end", timeframe.getEndDate())
-            .setParameterList("ou", ou)
-            .stream();
+    Stream<Object[]> rows = (Stream<Object[]>) query.stream();
     return rows.collect(
         toMap(row -> (String) row[0], row -> new DateRange((Date) row[1], (Date) row[2])));
   }
@@ -886,8 +933,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       Function<String[], C> f) {
     NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
     @SuppressWarnings("unchecked")
-    Stream<Object[]> results = (Stream<Object[]>) query.stream();
-    return results.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
+    Stream<Object[]> rows = (Stream<Object[]>) query.stream();
+    return rows.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
   }
 
   @Nonnull
@@ -895,8 +942,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
     NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
     @SuppressWarnings("unchecked")
-    Stream<Object[]> results = (Stream<Object[]>) query.stream();
-    return results.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+    Stream<Object[]> rows = (Stream<Object[]>) query.stream();
+    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Nonnull

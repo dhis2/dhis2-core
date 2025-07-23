@@ -186,6 +186,8 @@ public interface DataEntryStore {
 
   int getDataSetOpenPeriodsOffset(UID dataSet);
 
+  int getDataSetOpenPeriodsAfterCoEndDate(UID dataSet);
+
   /**
    * Checks if the current user has data write access to the provided AOC/COCs.
    *
@@ -361,6 +363,16 @@ public interface DataEntryStore {
   Map<String, List<DateRange>> getEntrySpansByIsoPeriod(UID dataSet);
 
   /**
+   * Fetches the entry span for each given AOC which is defined by the most restrictive timeframe of
+   * all its COs start and end date. AOCs not contained in the result should be assumed to have an
+   * infinite or unrestricted entry span.
+   *
+   * @param attributeOptionCombos the AOCs for scope
+   * @return a map containing the entry span (value) for each given AOC (key)
+   */
+  Map<String, DateRange> getEntrySpanByAoc(Stream<UID> attributeOptionCombos);
+
+  /**
    * Fetches the span in time when each OU is operational only for those OUs in the provided list
    * that do not fully include the start-end range.
    *
@@ -369,5 +381,5 @@ public interface DataEntryStore {
    *     most future end of any used period for the given OUs
    * @return for each OU (UID as key) the span in which it is operational (a.k.a. "open")
    */
-  Map<String, DateRange> getOrgUnitOperationalSpan(Stream<UID> orgUnits, DateRange timeframe);
+  Map<String, DateRange> getEntrySpanByOrgUnit(Stream<UID> orgUnits, DateRange timeframe);
 }
