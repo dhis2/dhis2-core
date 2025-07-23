@@ -44,8 +44,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
@@ -97,7 +97,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
             calculateSingleEventRuleEffects(bundle, preheat));
 
     bundle.setEnrollmentNotifications(ruleEffects.getEnrollmentNotifications());
-    bundle.setEventNotifications(ruleEffects.getEventNotifications());
+    bundle.setTrackerEventNotifications(ruleEffects.getEventNotifications());
     bundle.setEnrollmentRuleActionExecutors(
         ruleActionEnrollmentMapper.mapRuleEffects(
             ruleEffects.getEnrollmentValidationEffects(), bundle));
@@ -158,7 +158,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return singleEvents.entrySet().stream()
         .map(
             entry -> {
-              List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
+              List<RuleEvent> events =
+                  RuleEngineMapper.mapPayloadSingleEvents(preheat, entry.getValue());
 
               return programRuleEngine.evaluateSingleEvents(
                   events, entry.getKey(), bundle.getUser());
@@ -211,7 +212,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
   @Nonnull
   private List<RuleEvent> getEventsFromEnrollment(
       UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
-    Stream<Event> events;
+    Stream<TrackerEvent> events;
     try {
       events =
           trackerEventService
@@ -228,7 +229,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     }
 
     List<RuleEvent> ruleEvents =
-        RuleEngineMapper.mapPayloadEvents(
+        RuleEngineMapper.mapPayloadTrackerEvents(
             preheat,
             bundle.getTrackerEvents().stream()
                 .filter(e -> e.getEnrollment().equals(enrollmentUid))

@@ -77,6 +77,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
@@ -156,7 +157,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -166,6 +166,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
@@ -275,7 +276,7 @@ public abstract class TestBase {
   private static Date date;
 
   protected static final double DELTA = 0.01;
-  private static int categoryCounter = 1;
+  private int categoryCounter = 1;
 
   // -------------------------------------------------------------------------
   // Service references
@@ -289,6 +290,9 @@ public abstract class TestBase {
 
   @Autowired(required = false)
   protected CategoryService internalCategoryService;
+
+  @Autowired(required = false)
+  protected CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired protected HibernateService hibernateService;
 
@@ -1705,9 +1709,9 @@ public abstract class TestBase {
     return enrollment;
   }
 
-  public static Event createEvent(
+  public static TrackerEvent createEvent(
       ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setAutoFields();
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
@@ -1718,12 +1722,12 @@ public abstract class TestBase {
     return event;
   }
 
-  public static Event createEvent(
+  public static TrackerEvent createEvent(
       Enrollment enrollment,
       ProgramStage programStage,
       OrganisationUnit organisationUnit,
       Set<EventDataValue> dataValues) {
-    Event event = createEvent(programStage, enrollment, organisationUnit);
+    TrackerEvent event = createEvent(programStage, enrollment, organisationUnit);
     event.setOccurredDate(new Date());
     event.setStatus(EventStatus.ACTIVE);
     event.setEventDataValues(dataValues);
@@ -2056,7 +2060,7 @@ public abstract class TestBase {
   }
 
   public static Relationship createTeToEventRelationship(
-      TrackedEntity from, Event to, RelationshipType relationshipType) {
+      TrackedEntity from, TrackerEvent to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
     RelationshipItem riTo = new RelationshipItem();
@@ -3102,7 +3106,7 @@ public abstract class TestBase {
    * @param identifier unique identifier to create different objects
    * @return record of created category types
    */
-  protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
+  protected TestCategoryMetadata setupCategoryMetadata(String identifier) {
     // 4 category options
     CategoryOption co1 =
         createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
@@ -3129,7 +3133,7 @@ public abstract class TestBase {
     categoryService.addCategoryCombo(cc1);
 
     // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
-    categoryService.addAndPruneOptionCombos(cc1);
+    categoryOptionComboGenerateService.addAndPruneOptionCombos(cc1);
 
     CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
     CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());

@@ -52,7 +52,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.imports.domain.Event;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,7 +114,7 @@ class DefaultTrackerEventService implements TrackerEventService {
           "Data element " + dataElementUid.getValue() + " is not a file (or image).");
     }
 
-    Page<Event> events;
+    Page<TrackerEvent> events;
     try {
       TrackerEventOperationParams operationParams =
           TrackerEventOperationParams.builder()
@@ -134,7 +135,7 @@ class DefaultTrackerEventService implements TrackerEventService {
               + dataElementUid.getValue()
               + " could not be found.");
     }
-    Event event = events.getItems().get(0);
+    TrackerEvent event = events.getItems().get(0);
 
     List<String> errors =
         trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement, false);
@@ -158,9 +159,14 @@ class DefaultTrackerEventService implements TrackerEventService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
+  @Override
+  public boolean exists(@Nonnull UID event) {
+    return findEvent(event).isPresent();
+  }
+
   @Nonnull
   @Override
-  public Optional<Event> findEvent(@Nonnull UID event) {
+  public Optional<TrackerEvent> findEvent(@Nonnull UID event) {
     try {
       return Optional.of(getEvent(event));
     } catch (NotFoundException e) {
@@ -170,18 +176,18 @@ class DefaultTrackerEventService implements TrackerEventService {
 
   @Nonnull
   @Override
-  public Event getEvent(@Nonnull UID event) throws NotFoundException {
+  public TrackerEvent getEvent(@Nonnull UID event) throws NotFoundException {
     return getEvent(event, TrackerIdSchemeParams.builder().build(), TrackerEventFields.none());
   }
 
   @Nonnull
   @Override
-  public Event getEvent(
+  public TrackerEvent getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
       @Nonnull TrackerEventFields fields)
       throws NotFoundException {
-    Page<Event> events;
+    Page<TrackerEvent> events;
     try {
       TrackerEventOperationParams operationParams =
           TrackerEventOperationParams.builder()
@@ -199,7 +205,7 @@ class DefaultTrackerEventService implements TrackerEventService {
     if (events.getItems().isEmpty()) {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
-    Event event = events.getItems().get(0);
+    TrackerEvent event = events.getItems().get(0);
 
     Set<EventDataValue> dataValues = new HashSet<>(event.getEventDataValues().size());
     for (EventDataValue dataValue : event.getEventDataValues()) {
@@ -233,13 +239,13 @@ class DefaultTrackerEventService implements TrackerEventService {
 
   @Nonnull
   @Override
-  public List<Event> findEvents(@Nonnull TrackerEventOperationParams operationParams)
+  public List<TrackerEvent> findEvents(@Nonnull TrackerEventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     TrackerEventQueryParams queryParams =
         paramsMapper.map(operationParams, getCurrentUserDetails());
-    List<Event> events = eventStore.getEvents(queryParams);
+    List<TrackerEvent> events = eventStore.getEvents(queryParams);
     if (operationParams.getFields().isIncludesRelationships()) {
-      for (Event event : events) {
+      for (TrackerEvent event : events) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,
@@ -253,14 +259,14 @@ class DefaultTrackerEventService implements TrackerEventService {
 
   @Nonnull
   @Override
-  public Page<Event> findEvents(
+  public Page<TrackerEvent> findEvents(
       @Nonnull TrackerEventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     TrackerEventQueryParams queryParams =
         paramsMapper.map(operationParams, getCurrentUserDetails());
-    Page<Event> events = eventStore.getEvents(queryParams, pageParams);
+    Page<TrackerEvent> events = eventStore.getEvents(queryParams, pageParams);
     if (operationParams.getFields().isIncludesRelationships()) {
-      for (Event event : events.getItems()) {
+      for (TrackerEvent event : events.getItems()) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,

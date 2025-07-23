@@ -61,7 +61,7 @@ public interface UserService {
 
   String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
-  String RESTORE_PATH = "/dhis-web-login/index.html#/";
+  String RESTORE_PATH = "/login/#/";
 
   String TBD_NAME = "(TBD)";
 
@@ -473,7 +473,7 @@ public interface UserService {
    * @param currentUser the current User.
    * @return a list of ErrorReport.
    */
-  List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser);
+  List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser);
 
   /**
    * Validate that the current user are allowed to create or modify properties of the given user
@@ -483,7 +483,7 @@ public interface UserService {
    * @param currentUser the current User.
    * @return a list of ErrorReport.
    */
-  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, UserDetails currentUser);
 
   /**
    * @param inDays number of days to include

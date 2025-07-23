@@ -48,14 +48,15 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.joda.time.LocalDateTime;
@@ -75,7 +76,9 @@ import org.springframework.transaction.annotation.Transactional;
 class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
-  @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
+
+  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -112,19 +115,20 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   @ParameterizedTest
   @MethodSource("provideDateAndUsernameOrderParams")
-  void shouldSortChangeLogsByCreatedAtDescWhenOrderingByDateOrUsername(
+  void shouldSortChangeLogsForSingleEventByCreatedAtDescWhenOrderingByDateOrUsername(
       String field, SortDirection sortDirection) throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = getFirstDataElement(event);
 
     updateDataValues(event, dataElementUid, "20", "25");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), params, defaultPageParams),
+            dataElementUid);
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
@@ -134,19 +138,20 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByCreatedAtAsc() throws NotFoundException {
+  void shouldSortChangeLogsForSingleEventWhenOrderingByCreatedAtAsc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.ASC).build();
 
-    Event event = getEvent("OTmjvJDn0Fu");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = getFirstDataElement(event);
 
     updateDataValues(event, dataElementUid, "20", "25");
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
-            eventChangeLogService.getEventChangeLog(
-                UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), params, defaultPageParams),
+            dataElementUid);
 
     assertNumberOfChanges(3, changeLogs);
     assertAll(
@@ -156,15 +161,241 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByDataElementAsc() throws NotFoundException {
+  void shouldSortChangeLogsForSingleEventWhenOrderingByDataElementAsc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
-    Event event = getEvent("D9PbzJY8bJM");
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
     List<EventChangeLog> changeLogs =
-        eventChangeLogService
+        singleEventChangeLogService
+            .getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams)
+            .getItems();
+
+    assertNumberOfChanges(5, changeLogs);
+    assertAll(
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(0)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(1)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "13", "20", changeLogs.get(2)),
+        () -> assertDataElementCreate("GieVkTxp4HH", "13", changeLogs.get(3)),
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(4)));
+  }
+
+  @Test
+  void shouldSortChangeLogsForSingleEventWhenOrderingByChangeDesc() throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+
+    updateDataValues(event, "GieVkTxp4HH", "20", "25");
+
+    List<EventChangeLog> changeLogs =
+        singleEventChangeLogService
+            .getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams)
+            .getItems();
+
+    assertNumberOfChanges(5, changeLogs);
+    assertAll(
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(0)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "20", "25", changeLogs.get(1)),
+        () -> assertDataElementUpdate("GieVkTxp4HH", "13", "20", changeLogs.get(2)),
+        () -> assertDataElementCreate("GieVkTxp4HH", "13", changeLogs.get(3)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(4)));
+  }
+
+  @Test
+  void shouldSortChangeLogsForSingleEventWhenOrderingByChangeAscAndChangesOnlyToEventFields()
+      throws NotFoundException, IOException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
+    UID event = UID.of("OTmjvJDn0Fu");
+
+    LocalDateTime currentTime = LocalDateTime.now();
+    updateEventDates(event, currentTime.toDate().toInstant());
+
+    List<EventChangeLog> changeLogs =
+        getAllFieldChangeLogs(
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(0)),
+        () ->
+            assertFieldUpdate(
+                "occurredAt",
+                "2022-04-23 06:00:38.343",
+                currentTime.toString(formatter),
+                changeLogs.get(1)),
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldSortChangeLogsForSingleEventWhenOrderingByChangeDescAndChangesOnlyToEventFields()
+      throws NotFoundException, IOException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
+    UID event = UID.of("OTmjvJDn0Fu");
+
+    LocalDateTime currentTime = LocalDateTime.now();
+    updateEventDates(event, currentTime.toDate().toInstant());
+
+    List<EventChangeLog> changeLogs =
+        getAllFieldChangeLogs(
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), params, defaultPageParams));
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () ->
+            assertFieldUpdate(
+                "occurredAt",
+                "2022-04-23 06:00:38.343",
+                currentTime.toString(formatter),
+                changeLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", changeLogs.get(1)),
+        () -> assertFieldCreate("geometry", "(-11.419700, 8.103900)", changeLogs.get(2)));
+  }
+
+  @Test
+  void
+      shouldSortChangeLogsForSingleEventByNameWhenOrderingByChangeAndDataElementDoesNotHaveFormName()
+          throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
+    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+
+    updateDataValues(event, "DATAEL00001", "value00002", "value00003");
+
+    List<String> changeLogs =
+        singleEventChangeLogService
+            .getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams)
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
+
+    assertEquals(List.of("occurredAt", "height in cm", "height in cm", "geometry"), changeLogs);
+  }
+
+  @Test
+  void shouldFilterChangeLogsForSingleEventWhenFilteringByUser() throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("username", new QueryFilter(QueryOperator.EQ, importUser.getUsername()))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
+
+    Set<String> changeLogUsers =
+        changeLogs.getItems().stream()
+            .map(cl -> cl.createdBy().getUsername())
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of(importUser.getUsername()), changeLogUsers);
+  }
+
+  @Test
+  void shouldFilterChangeLogsForSingleEventWhenFilteringByDataElement() throws NotFoundException {
+    TrackerEvent event = getEvent("kWjSezkXHVp");
+    String dataElement = getFirstDataElement(event);
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("dataElement", new QueryFilter(QueryOperator.EQ, dataElement))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of(event.getUid()), params, defaultPageParams);
+
+    Set<String> changeLogDataElements =
+        changeLogs.getItems().stream()
+            .map(cl -> cl.dataElement().getUid())
+            .collect(Collectors.toSet());
+    assertContainsOnly(List.of(dataElement), changeLogDataElements);
+  }
+
+  private Stream<Arguments> provideSingleEventField() {
+    return Stream.of(Arguments.of("occurredAt"), Arguments.of("geometry"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideSingleEventField")
+  void shouldFilterChangeLogsForSingleEventWhenFilteringByField(String filterValue)
+      throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder()
+            .filterBy("field", new QueryFilter(QueryOperator.EQ, filterValue))
+            .build();
+
+    Page<EventChangeLog> changeLogs =
+        singleEventChangeLogService.getEventChangeLog(
+            UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
+
+    Set<String> changeLogOccurredAtFields =
+        changeLogs.getItems().stream().map(EventChangeLog::eventField).collect(Collectors.toSet());
+    assertContainsOnly(List.of(filterValue), changeLogOccurredAtFields);
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideDateAndUsernameOrderParams")
+  void shouldSortChangeLogsForTrackerEventByCreatedAtDescWhenOrderingByDateOrUsername(
+      String field, SortDirection sortDirection) throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
+    TrackerEvent event = getEvent("pTzf9KYMk72");
+    String dataElementUid = "DATAEL00001";
+
+    updateDataValues(event, dataElementUid, "20", "25");
+
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            trackerEventChangeLogService.getEventChangeLog(
+                UID.of("pTzf9KYMk72"), params, defaultPageParams),
+            dataElementUid);
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertDataElementUpdate(dataElementUid, "20", "25", changeLogs.get(0)),
+        () -> assertDataElementUpdate(dataElementUid, "value00001", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElementUid, "value00001", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldSortChangeLogsForTrackerEventWhenOrderingByCreatedAtAsc() throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.ASC).build();
+
+    TrackerEvent event = getEvent("pTzf9KYMk72");
+    String dataElementUid = "DATAEL00001";
+
+    updateDataValues(event, dataElementUid, "20", "25");
+
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            trackerEventChangeLogService.getEventChangeLog(
+                UID.of("pTzf9KYMk72"), params, defaultPageParams),
+            dataElementUid);
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertDataElementCreate(dataElementUid, "value00001", changeLogs.get(0)),
+        () -> assertDataElementUpdate(dataElementUid, "value00001", "20", changeLogs.get(1)),
+        () -> assertDataElementUpdate(dataElementUid, "20", "25", changeLogs.get(2)));
+  }
+
+  @Test
+  void shouldSortChangeLogsForTrackerEventWhenOrderingByDataElementAsc() throws NotFoundException {
+    EventChangeLogOperationParams params =
+        EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
+    TrackerEvent event = getEvent("D9PbzJY8bJM");
+
+    updateDataValues(event, "GieVkTxp4HH", "20", "25");
+
+    List<EventChangeLog> changeLogs =
+        trackerEventChangeLogService
             .getEventChangeLog(UID.of("D9PbzJY8bJM"), params, defaultPageParams)
             .getItems();
 
@@ -184,15 +415,15 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByChangeDesc() throws NotFoundException {
+  void shouldSortChangeLogsForTrackerEventWhenOrderingByChangeDesc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("D9PbzJY8bJM");
+    TrackerEvent event = getEvent("D9PbzJY8bJM");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
     List<EventChangeLog> changeLogs =
-        eventChangeLogService
+        trackerEventChangeLogService
             .getEventChangeLog(UID.of("D9PbzJY8bJM"), params, defaultPageParams)
             .getItems();
 
@@ -212,7 +443,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByChangeAscAndChangesOnlyToEventFields()
+  void shouldSortChangeLogsForTrackerEventWhenOrderingByChangeAscAndChangesOnlyToEventFields()
       throws NotFoundException, IOException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
@@ -223,7 +454,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getAllFieldChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of("D9PbzJY8bJM"), params, defaultPageParams));
 
     assertNumberOfChanges(5, changeLogs);
@@ -246,7 +477,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSortChangeLogsWhenOrderingByChangeDescAndChangesOnlyToEventFields()
+  void shouldSortChangeLogsForTrackerEventWhenOrderingByChangeDescAndChangesOnlyToEventFields()
       throws NotFoundException, IOException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
@@ -257,7 +488,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
     List<EventChangeLog> changeLogs =
         getAllFieldChangeLogs(
-            eventChangeLogService.getEventChangeLog(
+            trackerEventChangeLogService.getEventChangeLog(
                 UID.of("D9PbzJY8bJM"), params, defaultPageParams));
 
     assertNumberOfChanges(5, changeLogs);
@@ -280,16 +511,17 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSortChangeLogsByNameWhenOrderingByChangeAndDataElementDoesNotHaveFormName()
-      throws NotFoundException {
+  void
+      shouldSortChangeLogsForTrackerEventByNameWhenOrderingByChangeAndDataElementDoesNotHaveFormName()
+          throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    Event event = getEvent("pTzf9KYMk72");
+    TrackerEvent event = getEvent("pTzf9KYMk72");
 
     updateDataValues(event, "DATAEL00001", "value00002", "value00003");
 
     List<String> changeLogs =
-        eventChangeLogService
+        trackerEventChangeLogService
             .getEventChangeLog(UID.of("pTzf9KYMk72"), params, defaultPageParams)
             .getItems()
             .stream()
@@ -309,25 +541,26 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFilterChangeLogsWhenFilteringByUser() throws NotFoundException {
+  void shouldFilterChangeLogsForTrackerEventWhenFilteringByUser() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
             .filterBy("username", new QueryFilter(QueryOperator.EQ, importUser.getUsername()))
             .build();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("OTmjvJDn0Fu"), params, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            UID.of("pTzf9KYMk72"), params, defaultPageParams);
 
     Set<String> changeLogUsers =
         changeLogs.getItems().stream()
-            .map(cl -> cl.getCreatedBy().getUsername())
+            .map(cl -> cl.createdBy().getUsername())
             .collect(Collectors.toSet());
     assertContainsOnly(List.of(importUser.getUsername()), changeLogUsers);
   }
 
   @Test
-  void shouldFilterChangeLogsWhenFilteringByDataElement() throws NotFoundException {
-    Event event = getEvent("kWjSezkXHVp");
+  void shouldFilterChangeLogsForTrackerEventWhenFilteringByDataElement() throws NotFoundException {
+    TrackerEvent event = getEvent("pTzf9KYMk72");
     String dataElement = getFirstDataElement(event);
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
@@ -335,35 +568,36 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             .build();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of(event.getUid()), params, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            UID.of(event.getUid()), params, defaultPageParams);
 
     Set<String> changeLogDataElements =
         changeLogs.getItems().stream()
-            .map(cl -> cl.getDataElement().getUid())
+            .map(cl -> cl.dataElement().getUid())
             .collect(Collectors.toSet());
     assertContainsOnly(List.of(dataElement), changeLogDataElements);
   }
 
-  private Stream<Arguments> provideEventField() {
+  private Stream<Arguments> provideTrackerEventField() {
     return Stream.of(
         Arguments.of("occurredAt"), Arguments.of("scheduledAt"), Arguments.of("geometry"));
   }
 
   @ParameterizedTest
-  @MethodSource("provideEventField")
-  void shouldFilterChangeLogsWhenFilteringByField(String filterValue) throws NotFoundException {
+  @MethodSource("provideTrackerEventField")
+  void shouldFilterChangeLogsForTrackerEventWhenFilteringByField(String filterValue)
+      throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
             .filterBy("field", new QueryFilter(QueryOperator.EQ, filterValue))
             .build();
 
     Page<EventChangeLog> changeLogs =
-        eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), params, defaultPageParams);
+        trackerEventChangeLogService.getEventChangeLog(
+            UID.of("D9PbzJY8bJM"), params, defaultPageParams);
 
     Set<String> changeLogOccurredAtFields =
-        changeLogs.getItems().stream()
-            .map(EventChangeLog::getEventField)
-            .collect(Collectors.toSet());
+        changeLogs.getItems().stream().map(EventChangeLog::eventField).collect(Collectors.toSet());
     assertContainsOnly(List.of(filterValue), changeLogOccurredAtFields);
   }
 
@@ -395,7 +629,10 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
         .ifPresent(
             e -> {
               org.hisp.dhis.tracker.imports.domain.Event ev =
-                  TrackerEvent.builderFromEvent(e).occurredAt(newDate).scheduledAt(newDate).build();
+                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
+                      .occurredAt(newDate)
+                      .scheduledAt(newDate)
+                      .build();
 
               assertNoErrors(
                   trackerImportService.importTracker(
@@ -404,8 +641,8 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
             });
   }
 
-  private Event getEvent(String uid) {
-    Event event = manager.get(Event.class, uid);
+  private TrackerEvent getEvent(String uid) {
+    TrackerEvent event = manager.get(TrackerEvent.class, uid);
     assertNotNull(event);
     return event;
   }
@@ -424,14 +661,14 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       String dataElement, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertDataElementChange(dataElement, null, currentValue, changeLog));
   }
 
   private void assertFieldCreate(String field, String currentValue, EventChangeLog changeLog) {
     assertAll(
         () -> assertUser(importUser, changeLog),
-        () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("CREATE", changeLog.changeLogType().name()),
         () -> assertFieldChange(field, null, currentValue, changeLog));
   }
 
@@ -455,7 +692,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     assertAll(
         "asserting update to field " + field,
         () -> assertUser(user, changeLog),
-        () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
+        () -> assertEquals("UPDATE", changeLog.changeLogType().name()),
         () -> {
           if (dataElement != null) {
             assertDataElementChange(dataElement, previousValue, currentValue, changeLog);
@@ -468,61 +705,64 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   private static void assertDataElementChange(
       String dataElement, String previousValue, String currentValue, EventChangeLog changeLog) {
     assertEquals(
-        dataElement,
-        changeLog.getDataElement() != null ? changeLog.getDataElement().getUid() : null);
-    assertEquals(previousValue, changeLog.getPreviousValue());
-    assertEquals(currentValue, changeLog.getCurrentValue());
+        dataElement, changeLog.dataElement() != null ? changeLog.dataElement().getUid() : null);
+    assertEquals(previousValue, changeLog.previousValue());
+    assertEquals(currentValue, changeLog.currentValue());
   }
 
   private static void assertFieldChange(
       String field, String previousValue, String currentValue, EventChangeLog changeLog) {
-    assertEquals(field, changeLog.getEventField());
-    assertEquals(previousValue, changeLog.getPreviousValue());
-    assertEquals(currentValue, changeLog.getCurrentValue());
+    assertEquals(field, changeLog.eventField());
+    assertEquals(previousValue, changeLog.previousValue());
+    assertEquals(currentValue, changeLog.currentValue());
   }
 
   private static void assertUser(User user, EventChangeLog changeLog) {
     assertAll(
-        () -> assertEquals(user.getUsername(), changeLog.getCreatedBy().getUsername()),
+        () -> assertEquals(user.getUsername(), changeLog.createdBy().getUsername()),
         () ->
             assertEquals(
                 user.getFirstName(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getFirstName()),
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getFirstName()),
         () ->
             assertEquals(
                 user.getSurname(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getSurname()),
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getSurname()),
         () ->
             assertEquals(
                 user.getUid(),
-                changeLog.getCreatedBy() == null ? null : changeLog.getCreatedBy().getUid()));
+                changeLog.createdBy() == null ? null : changeLog.createdBy().getUid()));
   }
 
-  private List<EventChangeLog> getDataElementChangeLogs(Page<EventChangeLog> changeLogs) {
-    return changeLogs.getItems().stream().filter(cl -> cl.getDataElement() != null).toList();
+  private List<EventChangeLog> getDataElementChangeLogs(
+      Page<EventChangeLog> changeLogs, String dataElementUid) {
+    return changeLogs.getItems().stream()
+        .filter(cl -> cl.dataElement() != null)
+        .filter(cl -> cl.dataElement().getUid().equals(dataElementUid))
+        .toList();
   }
 
   private List<EventChangeLog> getAllFieldChangeLogs(Page<EventChangeLog> changeLogs) {
-    return changeLogs.getItems().stream().filter(cl -> cl.getEventField() != null).toList();
+    return changeLogs.getItems().stream().filter(cl -> cl.eventField() != null).toList();
   }
 
-  private void updateDataValues(Event event, String dataElementUid, String... values) {
+  private void updateDataValues(TrackerEvent event, String dataElementUid, String... values) {
     for (String value : values) {
       updateDataValue(event.getUid(), dataElementUid, value);
     }
   }
 
-  private String getFirstDataElement(Event event) {
+  private String getFirstDataElement(TrackerEvent event) {
     return event.getEventDataValues().iterator().next().getDataElement();
   }
 
   private String getDisplayName(EventChangeLog cl) {
-    if (cl.getEventField() != null) {
-      return cl.getEventField();
-    } else if (cl.getDataElement().getFormName() != null) {
-      return cl.getDataElement().getFormName();
+    if (cl.eventField() != null) {
+      return cl.eventField();
+    } else if (cl.dataElement().getFormName() != null) {
+      return cl.dataElement().getFormName();
     } else {
-      return cl.getDataElement().getName();
+      return cl.dataElement().getName();
     }
   }
 }

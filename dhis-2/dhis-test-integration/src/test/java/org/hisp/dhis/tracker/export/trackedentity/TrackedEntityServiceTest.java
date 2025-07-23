@@ -89,11 +89,11 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -175,9 +175,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramStage programStageA1;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event eventB;
+  private TrackerEvent eventB;
 
   private TrackedEntity trackedEntityA;
 
@@ -357,7 +357,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.getEnrollments().add(enrollmentA);
     manager.update(trackedEntityA);
 
-    eventA = new Event();
+    eventA = new TrackerEvent();
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
@@ -382,7 +382,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.getEnrollments().add(enrollmentB);
     manager.update(trackedEntityA);
 
-    eventB = new Event();
+    eventB = new TrackerEvent();
     eventB.setEnrollment(enrollmentB);
     eventB.setProgramStage(programStageB1);
     eventB.setOrganisationUnit(orgUnitA);
@@ -399,7 +399,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.getEnrollments().add(enrollmentC);
     manager.update(trackedEntityB);
 
-    Event eventC = new Event();
+    TrackerEvent eventC = new TrackerEvent();
     eventC.setEnrollment(enrollmentC);
     eventC.setProgramStage(programStageB1);
     eventC.setOrganisationUnit(orgUnitB);
@@ -1201,7 +1201,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Set<String> deletedEvents =
         trackedEntity.getEnrollments().stream()
             .flatMap(enrollment -> enrollment.getEvents().stream())
-            .filter(Event::isDeleted)
+            .filter(TrackerEvent::isDeleted)
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertIsEmpty(deletedEvents);
@@ -1223,14 +1223,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(enrollmentA.getUid()), deletedEnrollments);
 
-    Set<Event> events =
+    Set<TrackerEvent> events =
         trackedEntity.getEnrollments().stream()
             .flatMap(e -> e.getEvents().stream())
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(eventA.getUid(), eventB.getUid()), uids(events));
     deletedEvents =
         events.stream()
-            .filter(Event::isDeleted)
+            .filter(TrackerEvent::isDeleted)
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(eventA.getUid()), deletedEvents);
@@ -1329,7 +1329,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         enrollments.stream()
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
-    Set<Event> events = enrollmentA.get().getEvents();
+    Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
     assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
   }
@@ -1560,9 +1560,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .findFirst();
     assertTrue(enrollmentOpt.isPresent());
     Enrollment enrollment = enrollmentOpt.get();
-    Optional<Event> eventOpt = enrollment.getEvents().stream().findFirst();
+    Optional<TrackerEvent> eventOpt = enrollment.getEvents().stream().findFirst();
     assertTrue(eventOpt.isPresent());
-    Event event = eventOpt.get();
+    TrackerEvent event = eventOpt.get();
     assertAll(
         () -> assertEquals(eventA.getUid(), event.getUid()),
         () -> assertEquals(EventStatus.ACTIVE, event.getStatus()),
@@ -2236,7 +2236,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         enrollments.stream()
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
-    Set<Event> events = enrollmentA.get().getEvents();
+    Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA.getUid()), uids(events));
   }
 

@@ -35,6 +35,7 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,5 +76,18 @@ public enum PreheatIdentifier {
     }
 
     return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
+  }
+
+  public String getIdentifiersWithName(UserDetails userDetails) {
+    return userDetails.getFirstName()
+        + ""
+        + " "
+        + userDetails.getSurname()
+        + ""
+        + " ["
+        + userDetails.getUid()
+        + ""
+        + "]"
+        + " (User)";
   }
 }

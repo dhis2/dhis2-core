@@ -224,7 +224,7 @@ public class LoginTest extends BaseE2ETest {
             String.class);
     assertEquals(HttpStatus.FOUND, response.getStatusCode());
     List<String> location = response.getHeaders().get("Location");
-    assertEquals(serverHostUrl + "dhis-web-login/#/email-verification-failure", location.get(0));
+    assertEquals(serverHostUrl + "login/#/email-verification-failure", location.get(0));
   }
 
   @Test
@@ -472,7 +472,7 @@ public class LoginTest extends BaseE2ETest {
             getRestTemplateNoRedirects(), "/account/verifyEmail?token=" + verifyToken, cookie);
     assertEquals(HttpStatus.FOUND, verifyEmailResp.getStatusCode());
     List<String> location = verifyEmailResp.getHeaders().get("Location");
-    assertEquals(serverHostUrl + "dhis-web-login/#/email-verification-success", location.get(0));
+    assertEquals(serverHostUrl + "login/#/email-verification-success", location.get(0));
   }
 
   public static void testRedirectWhenLoggedIn(String url, String redirectUrl) {

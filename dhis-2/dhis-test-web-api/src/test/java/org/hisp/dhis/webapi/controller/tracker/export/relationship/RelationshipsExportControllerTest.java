@@ -248,7 +248,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     Relationship relationship = getRelationship(UID.of("x8919212736"));
 
-    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "QRYjLTiJTrA");
+    org.hisp.dhis.program.SingleEvent to =
+        manager.get(org.hisp.dhis.program.SingleEvent.class, "QRYjLTiJTrA");
     assertHasSize(
         1,
         to.getRelationshipItems(),

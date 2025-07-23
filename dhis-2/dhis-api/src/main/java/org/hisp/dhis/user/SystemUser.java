@@ -139,6 +139,16 @@ public class SystemUser implements UserDetails {
     return Set.of();
   }
 
+  @Override
+  public @Nonnull Set<Long> getManagedGroupLongIds() {
+    return Set.of();
+  }
+
+  @Override
+  public @Nonnull Set<Long> getUserRoleLongIds() {
+    return Set.of();
+  }
+
   @Nonnull
   @Override
   public Set<String> getUserSearchOrgUnitIds() {

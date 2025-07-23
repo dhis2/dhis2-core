@@ -33,7 +33,9 @@ import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
@@ -54,6 +56,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -69,9 +72,9 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -103,11 +106,20 @@ import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String TEA_MULTI_TEXT = "multitxtAtr";
+  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red,blue,Green" as multi text value
+  private static final String TE_UID_RWY = "QS6w44flWTT"; // "red,white,yellow" as multi text value
+  private static final String TE_UID_EMPTY_STRING = "QS6w44flWUU"; // "" as multi text value
+  public static final List<String> TE_UID_NULL =
+      List.of("mHWCacsGYYn", "dUE514NMOlo", "QS6w44flWAf"); // no value or null as multi text value
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -131,6 +143,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     injectSecurityContextUser(importUser);
 
     trackerObjects = testSetup.importTrackerData();
+    testSetup.importTrackerData("tracker/tracker_multi_text_attribute_data.json");
 
     manager.flush();
     manager.clear();
@@ -353,7 +366,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
     manager.delete(r);
-    Event to = r.getTo().getEvent();
+    TrackerEvent to = r.getTo().getEvent();
 
     JsonList<JsonRelationship> rels =
         GET(
@@ -397,7 +410,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
-    Event to = r.getTo().getEvent();
+    TrackerEvent to = r.getTo().getEvent();
 
     JsonList<JsonRelationship> rels =
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
@@ -688,7 +701,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             .findFirst()
             .get();
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
-    Event event = enrollment.getEvents().iterator().next();
+    TrackerEvent event = enrollment.getEvents().iterator().next();
     assertIsEmpty(event.getRelationshipItems(), "test expects an event with no relationships");
 
     JsonList<JsonEnrollment> json =
@@ -706,7 +719,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
     Enrollment enrollment = get(Enrollment.class, "nxP7UnKhomJ");
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
-    Event event = enrollment.getEvents().iterator().next();
+    TrackerEvent event = enrollment.getEvents().iterator().next();
     assertNotEmpty(
         event.getRelationshipItems(), "test expects an event with at least one relationship");
     RelationshipItem relItem = te.getRelationshipItems().iterator().next();
@@ -741,7 +754,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
     Enrollment enrollment = get(Enrollment.class, "nxP7UnKhomJ");
     assertHasSize(1, enrollment.getEvents(), "test expects an enrollment with one event");
-    Event event = enrollment.getEvents().iterator().next();
+    TrackerEvent event = enrollment.getEvents().iterator().next();
     assertNotEmpty(
         event.getRelationshipItems(), "test expects an event with at least one relationship");
 
@@ -1111,6 +1124,71 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertEquals("file content", response.content("image/png"));
   }
 
+  @ParameterizedTest
+  @MethodSource("provideMultiTextFilterTestCases")
+  void shouldReturnExpectedTrackedEntitiesForMultiTextFilter(
+      String filter, List<String> expectedDataValues, List<String> expectedTrackedEntities) {
+    switchContextToUser(get(User.class, "tTgjgobT1oS"));
+
+    JsonList<JsonTrackedEntity> jsonTrackedEntities =
+        GET(
+                "/tracker/trackedEntities?filter={attr}:{filter}&program={program}&fields=trackedEntity,attributes",
+                TEA_MULTI_TEXT,
+                filter,
+                "BFcipDERJnf")
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    assertContainsOnly(
+        expectedTrackedEntities,
+        jsonTrackedEntities.stream().map(JsonTrackedEntity::getTrackedEntity).toList());
+    assertContainsOnly(
+        expectedDataValues,
+        jsonTrackedEntities.stream()
+            .map(
+                te ->
+                    te.getAttributes().stream()
+                        .filter(attr -> "multitxtAtr".equals(attr.getAttribute()))
+                        .findFirst()
+                        .map(JsonAttribute::getValue)
+                        .orElse(null))
+            .toList());
+  }
+
+  @Test
+  void shouldReturnWhenFetchingTrackedEntitiesUsingNullOperators() {
+    switchContextToUser(get(User.class, "tTgjgobT1oS"));
+
+    JsonList<JsonTrackedEntity> jsonTrackedEntities =
+        GET(
+                "/tracker/trackedEntities?filter={attr}:null&program={program}&fields=trackedEntity,attributes",
+                TEA_MULTI_TEXT,
+                "BFcipDERJnf")
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    assertContainsAll(
+        Stream.concat(Stream.of(TE_UID_EMPTY_STRING), TE_UID_NULL.stream()).toList(),
+        jsonTrackedEntities,
+        JsonTrackedEntity::getTrackedEntity);
+  }
+
+  @Test
+  void shouldReturnErrorWhenFetchingTrackedEntitiesUsingUnsupportedOperators() {
+    switchContextToUser(get(User.class, "tTgjgobT1oS"));
+
+    assertEquals(
+        String.format(
+            "Invalid filter: Operator 'GT' is not supported for multi-text TrackedEntityAttribute : '%s'.",
+            TEA_MULTI_TEXT),
+        GET(
+                "/tracker/trackedEntities?filter={attribute}:GT:bl&program={program}&fields=trackedEntity,attributes",
+                TEA_MULTI_TEXT,
+                "BFcipDERJnf")
+            .error(BAD_REQUEST)
+            .getMessage());
+  }
+
   private TrackedEntity deleteTrackedEntity(UID uid) {
     TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
     org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
@@ -1158,7 +1236,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertHasMember(jsonEnrollment, "followUp");
   }
 
-  private JsonEvent assertDefaultEventResponse(JsonEnrollment enrollment, Event event) {
+  private JsonEvent assertDefaultEventResponse(JsonEnrollment enrollment, TrackerEvent event) {
     assertTrue(enrollment.isObject());
     assertFalse(enrollment.isEmpty());
 
@@ -1330,7 +1408,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     // relationships
   }
 
-  private void assertTrackedEntityWithinRelationship(Event expected, JsonRelationshipItem json) {
+  private void assertTrackedEntityWithinRelationship(
+      TrackerEvent expected, JsonRelationshipItem json) {
     JsonRelationshipItem.JsonEvent jsonEvent = json.getEvent();
     assertFalse(jsonEvent.isEmpty(), "event should not be empty");
     assertEquals(expected.getUid(), jsonEvent.getEvent());
@@ -1440,5 +1519,32 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         expected.getRelationshipType().getUid(),
         actual.getRelationshipType(),
         "relationshipType UID");
+  }
+
+  /**
+   * Provides test cases for multi-text tracked entity attribute filtering using different
+   * operators. Each test case defines: - The filter expression to be tested - The expected matching
+   * multi-text tracked entity attribute values - The expected matching TrackedEntity UIDs
+   */
+  private static Stream<Arguments> provideMultiTextFilterTestCases() {
+    return Stream.of(
+        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
+        Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
+        Arguments.of("ew:bl", List.of(), List.of()), // no match
+        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of(
+            "in:red",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
+        Arguments.of(
+            "like:red",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
+        Arguments.of(
+            "!null",
+            List.of("red,blue,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)));
   }
 }

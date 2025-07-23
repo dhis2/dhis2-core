@@ -39,6 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.*;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -127,7 +128,7 @@ public class App implements Serializable {
    *
    * @param contextPath the context path of this instance.
    */
-  public void init(String contextPath) {
+  public void init(@CheckForNull String contextPath) {
     String prefix =
         this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
     this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");

@@ -52,7 +52,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -118,7 +119,7 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
     SingleEventOperationParams params =
         operationParamsBuilder.assignedUsers(Set.of(UID.of("lPaILkLkgOM"))).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertNotNull(events.get(0).getAssignedUser());
     assertEquals("lPaILkLkgOM", events.get(0).getAssignedUser().getUid());
@@ -132,7 +133,7 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
             .fields(org.hisp.dhis.tracker.export.singleevent.SingleEventFields.all())
             .build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertContainsOnly(List.of("QRYjLTiJTrA"), uids(events));
     List<Relationship> relationships =
@@ -144,11 +145,11 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    Event event = get(Event.class, "QRYjLTiJTrA");
+    TrackerEvent event = get(TrackerEvent.class, "QRYjLTiJTrA");
     SingleEventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertContainsOnly(List.of("QRYjLTiJTrA"), uids(events));
     assertNotes(event.getNotes(), events.get(0).getNotes());
@@ -234,8 +235,8 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
             .events(Set.of(UID.of("cadc5eGj0j7")))
             .build();
 
-    List<Event> events = singleEventService.findEvents(params);
-    Event event = events.get(0);
+    List<SingleEvent> events = singleEventService.findEvents(params);
+    SingleEvent event = events.get(0);
 
     assertAll(
         "All dates should include timestamp",
@@ -267,7 +268,7 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
             .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    List<Event> events = singleEventService.findEvents(params);
+    List<SingleEvent> events = singleEventService.findEvents(params);
 
     assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
     List<Executable> executables =

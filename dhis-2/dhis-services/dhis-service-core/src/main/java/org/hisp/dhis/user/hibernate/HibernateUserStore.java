@@ -265,11 +265,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       hql += hlp.whereAnd() + " u.phoneNumber = :phoneNumber ";
     }
 
-    if (params.isCanManage() && params.getUser() != null) {
+    if (params.isCanManage() && params.getUserDetails() != null) {
       hql += hlp.whereAnd() + " g.id in (:ids) ";
     }
 
-    if (params.isAuthSubset() && params.getUser() != null) {
+    if (params.isAuthSubset() && params.getUserDetails() != null) {
       hql +=
           hlp.whereAnd()
               + " not exists ("
@@ -282,7 +282,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     // TODO handle users with no user roles
 
-    if (params.isDisjointRoles() && params.getUser() != null) {
+    if (params.isDisjointRoles() && params.getUserDetails() != null) {
       hql +=
           hlp.whereAnd()
               + " not exists ("
@@ -344,10 +344,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       query.setParameter("phoneNumber", params.getPhoneNumber());
     }
 
-    if (params.isCanManage() && params.getUser() != null) {
-      Collection<Long> managedGroups =
-          IdentifiableObjectUtils.getIdentifiers(params.getUser().getManagedGroups());
-
+    if (params.isCanManage() && params.getUserDetails() != null) {
+      Collection<Long> managedGroups = params.getUserDetails().getManagedGroupLongIds();
       query.setParameterList("ids", managedGroups);
     }
 
@@ -355,16 +353,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       query.setParameter(DISABLED_COLUMN, params.getDisabled());
     }
 
-    if (params.isAuthSubset() && params.getUser() != null) {
-      Set<String> auths = params.getUser().getAllAuthorities();
-
+    if (params.isAuthSubset() && params.getUserDetails() != null) {
+      Set<String> auths = params.getUserDetails().getAllAuthorities();
       query.setParameterList("auths", auths);
     }
 
-    if (params.isDisjointRoles() && params.getUser() != null) {
-      Collection<Long> roles =
-          IdentifiableObjectUtils.getIdentifiers(params.getUser().getUserRoles());
-
+    if (params.isDisjointRoles() && params.getUserDetails() != null) {
+      Collection<Long> roles = params.getUserDetails().getUserRoleLongIds();
       query.setParameterList("roles", roles);
     }
 

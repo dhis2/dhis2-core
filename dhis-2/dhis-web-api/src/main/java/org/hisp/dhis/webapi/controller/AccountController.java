@@ -580,10 +580,10 @@ public class AccountController {
       throws IOException {
     if (userService.verifyEmail(token)) {
       response.sendRedirect(
-          ContextUtils.getRootPath(request) + "/dhis-web-login/#/email-verification-success");
+          ContextUtils.getRootPath(request) + "/login/#/email-verification-success");
     } else {
       response.sendRedirect(
-          ContextUtils.getRootPath(request) + "/dhis-web-login/#/email-verification-failure");
+          ContextUtils.getRootPath(request) + "/login/#/email-verification-failure");
     }
   }
 

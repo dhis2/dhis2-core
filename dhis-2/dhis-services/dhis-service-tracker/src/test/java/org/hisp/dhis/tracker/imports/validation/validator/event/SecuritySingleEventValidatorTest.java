@@ -43,10 +43,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -178,8 +178,8 @@ class SecuritySingleEventValidatorTest extends TestBase {
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    SingleEvent preheatEvent = getEvent();
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
 
     validator.validate(reporter, bundle, event);
 
@@ -234,8 +234,8 @@ class SecuritySingleEventValidatorTest extends TestBase {
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    SingleEvent preheatEvent = getEvent();
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(false);
 
@@ -298,8 +298,8 @@ class SecuritySingleEventValidatorTest extends TestBase {
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    SingleEvent preheatEvent = getEvent();
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
 
@@ -330,9 +330,9 @@ class SecuritySingleEventValidatorTest extends TestBase {
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    Event preheatEvent = getEvent();
+    SingleEvent preheatEvent = getEvent();
 
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
 
@@ -362,8 +362,8 @@ class SecuritySingleEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    SingleEvent preheatEvent = getEvent();
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
@@ -392,8 +392,8 @@ class SecuritySingleEventValidatorTest extends TestBase {
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    SingleEvent preheatEvent = getEvent();
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
 
     when(aclService.canDataWrite(user, program)).thenReturn(true);
 
@@ -402,8 +402,8 @@ class SecuritySingleEventValidatorTest extends TestBase {
     assertHasError(reporter, event, E1083);
   }
 
-  private Event getEvent() {
-    Event event = new Event();
+  private SingleEvent getEvent() {
+    SingleEvent event = new SingleEvent();
     event.setProgramStage(programStage);
     event.setOrganisationUnit(organisationUnit);
     event.setStatus(EventStatus.COMPLETED);

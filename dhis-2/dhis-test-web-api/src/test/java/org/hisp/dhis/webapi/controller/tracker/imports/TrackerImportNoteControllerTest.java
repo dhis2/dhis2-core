@@ -41,9 +41,9 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -66,7 +66,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
   @Autowired TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
   private User importUser;
 
-  private Event event;
+  private TrackerEvent event;
 
   private Enrollment enrollment;
 
@@ -226,8 +226,13 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     assertEquals(noteUid.getValue(), note.getNote());
   }
 
-  private Event event(Enrollment enrollment, ProgramStage programStage, CategoryOptionCombo coc) {
-    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(
+      Enrollment enrollment, ProgramStage programStage, CategoryOptionCombo coc) {
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(programStage);
+    eventA.setOrganisationUnit(enrollment.getOrganisationUnit());
+    eventA.setAttributeOptionCombo(coc);
     eventA.setAutoFields();
     manager.save(eventA);
     return eventA;

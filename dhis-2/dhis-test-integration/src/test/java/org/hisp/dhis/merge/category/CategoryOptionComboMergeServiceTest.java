@@ -46,6 +46,7 @@ import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
@@ -93,14 +94,13 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -126,6 +126,7 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
   @Autowired private CategoryOptionComboStore categoryOptionComboStore;
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
@@ -163,7 +164,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void setUp() {
-    categoryMetadata = TestBase.setupCategoryMetadata("cocm " + ++catCounter);
+    categoryMetadata = setupCategoryMetadata("cocm " + ++catCounter);
     cocTarget = categoryMetadata.coc3();
     cocRandom = categoryMetadata.coc4();
 
@@ -377,7 +378,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private void assertCocCountAfterAutoGenerate(int expectedCocCount) {
     entityManager.flush();
     entityManager.clear();
-    categoryService.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
     assertEquals(expectedCocCount, allCategoryOptionCombos.size());
@@ -1878,13 +1879,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     ProgramStage stage = createProgramStage('s', 2);
     manager.save(stage);
 
-    Event e1 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e1 = createEvent(stage, enrollment, ou1);
     e1.setAttributeOptionCombo(cocDuplicate);
-    Event e2 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e2 = createEvent(stage, enrollment, ou1);
     e2.setAttributeOptionCombo(cocDuplicate2);
-    Event e3 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e3 = createEvent(stage, enrollment, ou1);
     e3.setAttributeOptionCombo(cocTarget);
-    Event e4 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e4 = createEvent(stage, enrollment, ou1);
     e4.setAttributeOptionCombo(cocRandom);
 
     manager.save(List.of(e1, e2, e3, e4));
@@ -1899,7 +1900,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<Event> allEvents = eventStore.getAll();
+    List<TrackerEvent> allEvents = eventStore.getAll();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 

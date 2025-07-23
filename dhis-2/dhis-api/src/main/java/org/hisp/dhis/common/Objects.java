@@ -49,8 +49,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -90,19 +90,21 @@ public enum Objects {
   PROGRAM("program", Program.class),
   TRACKEDENTITY("trackedEntity", TrackedEntity.class),
   ENROLLMENT("enrollment", Enrollment.class),
-  EVENT("event", Event.class),
+  EVENT("event", TrackerEvent.class), // Event includes tracker and single events
   TRACKEDENTITYATTRIBUTE("trackedEntityAttribute", TrackedEntityAttribute.class),
   EXPRESSIONDIMENSIONITEM("expressionDimensionItem", ExpressionDimensionItem.class);
 
   private String value;
 
-  private Class<?> clazz;
+  // This field is only used in tests
+  @Deprecated private Class<?> clazz;
 
   Objects(String value, Class<?> clazz) {
     this.value = value;
     this.clazz = clazz;
   }
 
+  @Deprecated
   public static Objects fromClass(Class<?> clazz) throws IllegalAccessException {
     if (clazz == null) {
       throw new NullPointerException();
