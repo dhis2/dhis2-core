@@ -53,6 +53,7 @@ import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonDataElement;
@@ -597,6 +598,94 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
             .map(JsonIdentifiableObject::getId)
             .collect(Collectors.toSet()),
         "Returned cat combo IDs equal custom cat combos Ids only");
+  }
+
+  @Test
+  @DisplayName("Importing Map with MapView with pre-existing OrgUnitGroupSetDimensions succeeds")
+  void importingMapWithMapViewAndOrgUnitGroupSetDimensionsExistingTest() {
+    // Given org unit metadata exists
+    JsonImportSummary report1 =
+        POST("/metadata", WebClient.Body("metadata/metadata_org_unit_group.json"))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals("OK", report1.getStatus());
+
+    // When importing a Map with MapView that references an existing OrgUnitGroupSetDimension
+    JsonImportSummary report2 =
+        POST("/metadata", WebClient.Body("metadata/metadata_map_mapview.json"))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the OrgUnitGroupSetDimension is present when retrieved
+    assertEquals("OK", report2.getStatus());
+
+    JsonResponse content = GET("/maps/d7x2WOLhCA8").content(HttpStatus.OK);
+
+    assertEquals(
+        "J5jldMd8OHv",
+        content
+            .getArray("mapViews")
+            .getObject(0)
+            .getArray("organisationUnitGroupSetDimensions")
+            .getObject(0)
+            .getObject("organisationUnitGroupSet")
+            .getString("id")
+            .string());
+
+    assertEquals(
+        "uYxK4wmcPqA",
+        content
+            .getArray("mapViews")
+            .getObject(0)
+            .getArray("organisationUnitGroupSetDimensions")
+            .getObject(0)
+            .getArray("organisationUnitGroups")
+            .getObject(0)
+            .getString("id")
+            .string());
+  }
+
+  @Test
+  @DisplayName("Importing Map with MapView with OrgUnitGroupSetDimensions in same import succeeds")
+  void importingMapWithMapViewAndOrgUnitGroupSetDimensionsPayloadTest() {
+    // When importing a Map with MapView that references OrgUnitGroupSet data in the same import
+    JsonImportSummary report =
+        POST(
+                "/metadata",
+                WebClient.Body("metadata/metadata_map_mapview_with_org_unit_group_dimension.json"))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the OrgUnitGroupSetDimension is present when retrieved
+    assertEquals("OK", report.getStatus());
+
+    JsonResponse content = GET("/maps/A7x2WOLhCA8").content(HttpStatus.OK);
+
+    assertEquals(
+        "A5jldMd8OHv",
+        content
+            .getArray("mapViews")
+            .getObject(0)
+            .getArray("organisationUnitGroupSetDimensions")
+            .getObject(0)
+            .getObject("organisationUnitGroupSet")
+            .getString("id")
+            .string());
+
+    assertEquals(
+        "AYxK4wmcPqA",
+        content
+            .getArray("mapViews")
+            .getObject(0)
+            .getArray("organisationUnitGroupSetDimensions")
+            .getObject(0)
+            .getArray("organisationUnitGroups")
+            .getObject(0)
+            .getString("id")
+            .string());
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {

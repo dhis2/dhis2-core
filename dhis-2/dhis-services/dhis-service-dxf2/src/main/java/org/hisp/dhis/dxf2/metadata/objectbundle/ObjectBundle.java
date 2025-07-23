@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
@@ -57,6 +58,7 @@ import org.hisp.dhis.user.User;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public class ObjectBundle implements ObjectIndexProvider {
   /** User to use for import job (important for threaded imports). */
   private final User user;
@@ -442,5 +444,33 @@ public class ObjectBundle implements ObjectIndexProvider {
   public boolean isPersisted(IdentifiableObject object) {
     IdentifiableObject cachedObject = preheat.get(preheatIdentifier, object);
     return !(cachedObject == null || cachedObject.getId() == 0);
+  }
+
+  /**
+   * In rare occasions, an object might be seen as non-persisted and put into the non-persisted
+   * list, but it is actually a persisted item. This is most likely due to read permissions. In
+   * these scenarios, calling this method allows moving a non-persisted object to the persisted
+   * list.
+   *
+   * @param klass klass to check
+   * @param existingObject object to move
+   */
+  public <T extends IdentifiableObject> void moveNonPersistedToPersisted(
+      Class<T> klass, @Nonnull IdentifiableObject existingObject) {
+    List<IdentifiableObject> objects = nonPersistedObjects.get(klass);
+    boolean removed = objects.remove(existingObject);
+    log.debug(
+        "{} removed: {}, from non persisted {} objects",
+        existingObject.getUid(),
+        removed,
+        klass.getSimpleName());
+    if (removed && objects.isEmpty()) {
+      nonPersistedObjects.remove(klass);
+    }
+
+    // replace in preheat
+    preheat.replace(preheatIdentifier, existingObject);
+    // now that preheat has appropriate persisted object, it will be added to persisted list
+    addObject(existingObject);
   }
 }

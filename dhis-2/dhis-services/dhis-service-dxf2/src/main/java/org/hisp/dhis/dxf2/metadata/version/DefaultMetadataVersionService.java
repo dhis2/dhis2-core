@@ -221,8 +221,15 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
     return true;
   }
 
+  /**
+   * This method uses `@Transactional`. It looks like it should be marked read-only however, it has
+   * been seen that Hibernate triggers updates sometimes for this method, which can result in very
+   * vague errors. Do not mark as read-only.
+   *
+   * @return system info
+   */
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public String getVersionData(String versionName) {
     DatastoreEntry entry = metaDataDatastoreService.getMetaDataVersion(versionName);
 
