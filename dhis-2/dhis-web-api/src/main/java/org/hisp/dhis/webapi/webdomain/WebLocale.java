@@ -75,20 +75,20 @@ public class WebLocale {
   private static String buildLocaleDisplay(Locale target, Locale displayLocale) {
     String language = target.getDisplayLanguage(displayLocale);
     String country = target.getDisplayCountry(displayLocale);
-    String script = target.getScript();
+    String variant = target.getVariant();
 
     StringBuilder sb = new StringBuilder(language);
 
-    if (!country.isEmpty() || !script.isEmpty()) {
+    if (!country.isEmpty() || !variant.isEmpty()) {
       sb.append(" (");
       if (!country.isEmpty()) {
         sb.append(country);
-        if (!script.isEmpty()) {
+        if (!variant.isEmpty()) {
           sb.append(", ");
         }
       }
-      if (!script.isEmpty()) {
-        sb.append(script);
+      if (!variant.isEmpty()) {
+        sb.append(variant);
       }
       sb.append(")");
     }

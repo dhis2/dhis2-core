@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.IllformedLocaleException;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -46,6 +45,8 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.commons.util.PathUtils;
@@ -186,26 +187,31 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
    * @return a {@link Locale}.
    */
   private Locale getLocaleFromName(String name) {
-    String prefix = "i18n_global_";
-    String suffix = ".properties";
+    Pattern pattern =
+        Pattern.compile(
+            "^"
+                + GLOBAL_RESOURCE_BUNDLE_NAME
+                + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?"
+                + EXT_RESOURCE_BUNDLE
+                + "$");
 
-    if (!name.startsWith(prefix) || !name.endsWith(suffix)) {
-      return LocaleManager.DEFAULT_LOCALE;
+    Matcher matcher = pattern.matcher(name);
+
+    if (matcher.matches()) {
+      if (matcher.group(1) != null) {
+        if (matcher.group(2) != null) {
+          if (matcher.group(3) != null) {
+            return new Locale(matcher.group(1), matcher.group(2), matcher.group(3));
+          }
+
+          return new Locale(matcher.group(1), matcher.group(2));
+        }
+
+        return new Locale(matcher.group(1));
+      }
     }
 
-    String localePart = name.substring(prefix.length(), name.length() - suffix.length());
-
-    String[] parts = localePart.split("_");
-
-    try {
-      Locale.Builder builder = new Locale.Builder();
-      if (parts.length > 0) builder.setLanguage(parts[0]);
-      if (parts.length > 1) builder.setRegion(parts[1]);
-      if (parts.length > 2) builder.setScript(parts[2]);
-      return builder.build();
-    } catch (IllformedLocaleException | IndexOutOfBoundsException e) {
-      return LocaleManager.DEFAULT_LOCALE;
-    }
+    return LocaleManager.DEFAULT_LOCALE;
   }
 
   // -------------------------------------------------------------------------
