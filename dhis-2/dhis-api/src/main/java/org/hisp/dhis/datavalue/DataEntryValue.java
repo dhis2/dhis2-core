@@ -37,6 +37,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -73,7 +74,7 @@ public record DataEntryValue(
       // names are chosen to be aligned with web API input
       @CheckForNull @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
       @CheckForNull @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
-      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @OpenApi.Required
+      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String categoryOptionCombo,
       @OpenApi.Description(
               """
@@ -81,6 +82,7 @@ public record DataEntryValue(
         for the category combo effective for the `dataElement`.
         Will only be considered if `categoryOptionCombo` is not present.""")
           @CheckForNull
+          @CSV.Any
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,

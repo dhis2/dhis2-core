@@ -32,6 +32,7 @@ package org.hisp.dhis.csv;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,20 +40,29 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -73,6 +83,14 @@ import org.intellij.lang.annotations.Language;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CSV {
+
+  /**
+   * Can be put on a {@link Map} component that will receive all colum values in the input that are
+   * not mapped otherwise
+   */
+  @Target(ElementType.RECORD_COMPONENT)
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface Any {}
 
   @FunctionalInterface
   public interface CsvReader<T> extends Iterable<T> {
@@ -111,6 +129,7 @@ public final class CSV {
   }
 
   static {
+    // "primitive" types supported
     addDeserializer(String.class, Function.identity());
     addDeserializer(Character.class, str -> str.isEmpty() ? null : str.charAt(0));
     addDeserializer(char.class, str -> str.charAt(0));
@@ -125,22 +144,65 @@ public final class CSV {
     addDeserializer(Boolean.class, Boolean::parseBoolean);
     addDeserializer(boolean.class, Boolean::parseBoolean);
     addDeserializer(UID.class, UID::of);
-    // TODO maybe also support that when a map is found it can be marked as target to gobble up all
-    // column values that are not mapped otherwise?
-    // could that be used for the C=CO thing?
-    addDeserializer(
-        Map.class,
-        map ->
-            Stream.of(map.split("\\s+"))
-                .collect(
-                    toMap(
-                        kv -> kv.substring(0, kv.indexOf('=')),
-                        kv -> kv.substring(kv.indexOf('=') + 1))));
+    // TODO add period + locale + date types
   }
 
-  private record Column<T>(String name, boolean required, Function<String, T> deserializer) {}
+  private static Function<String, ?> getDeserializer(RecordComponent c) {
+    Class<?> rawType = c.getType();
+    Type type = c.getGenericType();
+    if (type instanceof ParameterizedType pt) {
+      if (rawType == Map.class)
+        return getMapDeserializer((Class<?>) pt.getActualTypeArguments()[1]);
+      if (rawType == Set.class)
+        return getSetDeserializer((Class<?>) pt.getActualTypeArguments()[0]);
+      if (rawType == List.class || rawType == Collection.class)
+        return getListDeserializer((Class<?>) pt.getActualTypeArguments()[0]);
+    }
+    return getDeserializer(rawType);
+  }
 
-  private record Columns<T extends Record>(Class<T> type, List<Column<?>> columns) {
+  @CheckForNull
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private static <E> Function<String, E> getDeserializer(Class<E> rawType) {
+    if (rawType.isEnum()) return getEnumDeserializer((Class) rawType);
+    return (Function<String, E>) DESERIALIZERS.get(rawType);
+  }
+
+  private static <E extends Enum<E>> Function<String, E> getEnumDeserializer(Class<E> valueType) {
+    return enumValue -> Enum.valueOf(valueType, enumValue);
+  }
+
+  private static <E> Function<String, Map<String, E>> getMapDeserializer(Class<E> valueType) {
+    Function<String, E> valueDeserializer = getDeserializer(valueType);
+    if (valueDeserializer == null) return null;
+    return mapValue ->
+        Stream.of(mapValue.split("\\s+"))
+            .collect(
+                toMap(
+                    kv -> kv.substring(0, Math.max(0, kv.indexOf('='))),
+                    kv -> valueDeserializer.apply(kv.substring(kv.indexOf('=') + 1))));
+  }
+
+  private static <E> Function<String, List<E>> getListDeserializer(Class<E> valueType) {
+    Function<String, E> valueDeserializer = getDeserializer(valueType);
+    if (valueDeserializer == null) return null;
+    return listValue -> Stream.of(listValue.split("\\s+")).map(valueDeserializer).toList();
+  }
+
+  private static <E> Function<String, Set<E>> getSetDeserializer(Class<E> valueType) {
+    Function<String, E> valueDeserializer = getDeserializer(valueType);
+    if (valueDeserializer == null) return null;
+    return setValue -> Stream.of(setValue.split("\\s+")).map(valueDeserializer).collect(toSet());
+  }
+
+  private record Column<T>(
+      String name, boolean required, boolean any, Function<String, T> deserializer) {}
+
+  private record Columns<T extends Record>(Class<T> type, boolean any, List<Column<?>> columns) {
+
+    Columns(Class<T> type, List<Column<?>> columns) {
+      this(type, columns.stream().anyMatch(Column::any), columns);
+    }
 
     Function<List<String>, T> from(List<String> header) {
       int[] compIdxByColIdx = compIdxByColIdx(header);
@@ -150,15 +212,26 @@ public final class CSV {
         Constructor<T> c = type.getDeclaredConstructor(types);
         return values -> {
           Object[] args = new Object[types.length];
-          for (int i = 0; i < values.size(); i++) {
+          Map<String, String> anyValues = null;
+          int maxColumns = Math.min(compIdxByColIdx.length, values.size());
+          for (int i = 0; i < maxColumns; i++) {
             int compIdx = compIdxByColIdx[i];
             if (compIdx >= 0) {
-              Column<?> column = columns.get(compIdx);
               String value = values.get(i);
-              if (column.required && value == null)
-                throw new IllegalArgumentException(
-                    "Column %s is required and cannot be empty".formatted(column.name));
-              args[compIdx] = value == null ? null : column.deserializer.apply(value);
+              Column<?> column = columns.get(compIdx);
+              if (column.any) {
+                if (anyValues == null) {
+                  anyValues = new HashMap<>(header.size());
+                  args[compIdx] = anyValues;
+                }
+                anyValues.put(header.get(i), value);
+              } else {
+                if (column.required && value == null)
+                  throw new IllegalArgumentException(
+                      "Column %s is required and cannot be empty".formatted(column.name));
+                args[compIdx] =
+                    value == null || "null".equals(value) ? null : column.deserializer.apply(value);
+              }
             }
           }
           try {
@@ -196,6 +269,7 @@ public final class CSV {
         String name = columns.get(i);
         Integer compIdx = compIdxByName.get(name);
         if (compIdx == null) compIdx = compIdxByName.get(name.toLowerCase());
+        if (compIdx == null) compIdx = compIdxByName.get("*");
         if (compIdx == null) compIdx = -1;
         res[i] = compIdx;
       }
@@ -208,11 +282,19 @@ public final class CSV {
       Map<String, Integer> res = new HashMap<>();
       for (int i = 0; i < components.length; i++) {
         RecordComponent c = components[i];
-        res.put(c.getName(), i);
-        res.put(c.getName().toLowerCase(), i);
+        if (isAnyTarget(c)) {
+          res.put("*", i);
+        } else {
+          res.put(c.getName(), i);
+          res.put(c.getName().toLowerCase(), i);
+        }
       }
       return res;
     }
+  }
+
+  private static boolean isAnyTarget(RecordComponent c) {
+    return c.getType() == Map.class && c.isAnnotationPresent(Any.class);
   }
 
   private static Class<?>[] getComponentTypes(Class<? extends Record> type) {
@@ -232,15 +314,15 @@ public final class CSV {
 
   @Nonnull
   private static Column<?> toColumn(RecordComponent c) {
-    Class<?> type = c.getType();
-    Function<String, ?> deserializer = DESERIALIZERS.get(type);
+    if (isAnyTarget(c)) return new Column<>("*", false, true, null);
+    Function<String, ?> deserializer = getDeserializer(c);
     if (deserializer == null)
-      throw new UnsupportedOperationException("%s is not supported".formatted(type));
+      throw new UnsupportedOperationException("%s is not supported".formatted(c.getGenericType()));
     boolean required =
-        type.isPrimitive()
+        c.getType().isPrimitive()
             || c.isAnnotationPresent(Nonnull.class)
             || c.isAnnotationPresent(OpenApi.Required.class);
-    return new Column<>(c.getName(), required, deserializer);
+    return new Column<>(c.getName(), required, false, deserializer);
   }
 
   private record Config(BufferedReader csv) implements CsvConfig {
@@ -266,7 +348,7 @@ public final class CSV {
       }
       if (header == null) throw new IllegalArgumentException("No header line provided.");
       List<String> columns = List.of(header.split(","));
-      Function<List<String>, T> creator = as.from(columns);
+      Function<List<String>, T> newRecord = as.from(columns);
       LineBuffer buf = LineBuffer.of(columns);
       return new Iterator<>() {
         Boolean next;
@@ -285,7 +367,7 @@ public final class CSV {
         public T next() {
           if (next == null) next = hasNext();
           if (!next) throw new NoSuchElementException("No more rows in the CSV.");
-          return creator.apply(buf.split());
+          return newRecord.apply(buf.split());
         }
       };
     }
