@@ -56,8 +56,7 @@ class LocaleUtilsTest {
   @Test
   void testGetLocaleFallbacksWithScript() {
     // Cyrillic version
-    Locale cyrlLocale =
-        new Locale("uz", "UZ", "Cyrl");
+    Locale cyrlLocale = new Locale("uz", "UZ", "Cyrl");
 
     List<String> cyrlFallbacks = LocaleUtils.getLocaleFallbacks(cyrlLocale);
 
@@ -66,7 +65,7 @@ class LocaleUtilsTest {
     assertTrue(cyrlFallbacks.contains("uz_UZ_Cyrl"));
 
     // Latin version
-    Locale latnLocale = new Locale( "uz", "UZ", "Latn");
+    Locale latnLocale = new Locale("uz", "UZ", "Latn");
 
     List<String> latnFallbacks = LocaleUtils.getLocaleFallbacks(latnLocale);
 
@@ -78,8 +77,7 @@ class LocaleUtilsTest {
   @Test
   void testGetLocaleFallbacksForMongolianScripts() {
     // Mongolian Cyrillic (used in Mongolia)
-    Locale mnCyrlMN =
-        new Locale("mn", "MN", "Cyrl");
+    Locale mnCyrlMN = new Locale("mn", "MN", "Cyrl");
 
     List<String> fallbacksCyrl = LocaleUtils.getLocaleFallbacks(mnCyrlMN);
 
@@ -88,8 +86,7 @@ class LocaleUtilsTest {
     assertTrue(fallbacksCyrl.contains("mn_MN_Cyrl"));
 
     // Traditional Mongolian script (used in China)
-    Locale mnMongCN =
-        new Locale("mn", "CN", "Mong");
+    Locale mnMongCN = new Locale("mn", "CN", "Mong");
 
     List<String> fallbacksMong = LocaleUtils.getLocaleFallbacks(mnMongCN);
 
@@ -111,7 +108,6 @@ class LocaleUtilsTest {
     assertEquals("uz", locale.getLanguage());
     assertEquals("UZ", locale.getCountry());
     assertEquals("Cyrl", locale.getVariant());
-    assertEquals( "uz_UZ_Cyrl", locale.toString() );
-
+    assertEquals("uz_UZ_Cyrl", locale.toString());
   }
 }

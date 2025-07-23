@@ -53,13 +53,12 @@ public class LocaleUtils {
     Locale locale;
 
     if (variant != null && !variant.isEmpty()) {
-      locale =
-          new Locale(language, country, variant);
+      locale = new Locale(language, country, variant);
     } else {
       locale = new Locale(language, country);
     }
 
-    return toUnderscoreFormat( locale );
+    return toUnderscoreFormat(locale);
   }
 
   /**
@@ -114,22 +113,22 @@ public class LocaleUtils {
     }
     try {
       // Legacy style with underscores
-        String[] parts = localeStr.split("_");
-        if (parts.length == 3) {
-          return new Locale(parts[0], parts[1], parts[2]);
-        } else if (parts.length == 2) {
-          return new Locale(parts[0], parts[1]);
-        } else {
-          return new Locale(parts[0]);
-        }
+      String[] parts = localeStr.split("_");
+      if (parts.length == 3) {
+        return new Locale(parts[0], parts[1], parts[2]);
+      } else if (parts.length == 2) {
+        return new Locale(parts[0], parts[1]);
+      } else {
+        return new Locale(parts[0]);
+      }
     } catch (Exception e) {
       throw new IllegalArgumentException("Failed to parse locale: " + localeStr, e);
     }
   }
 
-  //Note that in the context of DHIS2, the underscore format is used for locale strings.
-  //It may be the same as Locale.toString() for some locales, but it is not guaranteed.
-  //For supported locales, (language + country + variant) is used.
+  // Note that in the context of DHIS2, the underscore format is used for locale strings.
+  // It may be the same as Locale.toString() for some locales, but it is not guaranteed.
+  // For supported locales, (language + country + variant) is used.
   public static String toUnderscoreFormat(Locale locale) {
     StringBuilder sb = new StringBuilder(locale.getLanguage());
 

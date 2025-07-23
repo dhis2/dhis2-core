@@ -145,9 +145,9 @@ public class LocaleController {
 
     final Locale locale;
     try {
-        locale = LocaleUtils.parse( LocaleUtils.getLocaleString(language, country, variant));
-        } catch (IllegalArgumentException e) {
-        return conflict("Invalid locale format: " + e.getMessage());
+      locale = LocaleUtils.parse(LocaleUtils.getLocaleString(language, country, variant));
+    } catch (IllegalArgumentException e) {
+      return conflict("Invalid locale format: " + e.getMessage());
     }
 
     I18nLocale i18nLocale = localeService.getI18nLocale(locale);
