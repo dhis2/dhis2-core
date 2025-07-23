@@ -54,7 +54,7 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @NoArgsConstructor
-public class SingleEvent extends SoftDeletableObject {
+public class TrackerEvent extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
@@ -68,6 +68,8 @@ public class SingleEvent extends SoftDeletableObject {
   private UserInfoSnapshot createdByUserInfo;
 
   private UserInfoSnapshot lastUpdatedByUserInfo;
+
+  private Date scheduledDate;
 
   private Date occurredDate;
 
@@ -106,5 +108,11 @@ public class SingleEvent extends SoftDeletableObject {
 
   public boolean hasAttributeOptionCombo() {
     return attributeOptionCombo != null;
+  }
+
+  public boolean isCreatableInSearchScope() {
+    return this.getStatus() == EventStatus.SCHEDULE
+        && this.getEventDataValues().isEmpty()
+        && this.getOccurredDate() == null;
   }
 }

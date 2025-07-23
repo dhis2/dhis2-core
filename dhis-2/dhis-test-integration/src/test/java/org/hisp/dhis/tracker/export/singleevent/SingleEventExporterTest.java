@@ -52,8 +52,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -145,7 +145,7 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    Event event = get(Event.class, "QRYjLTiJTrA");
+    TrackerEvent event = get(TrackerEvent.class, "QRYjLTiJTrA");
     SingleEventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
 

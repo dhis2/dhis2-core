@@ -54,6 +54,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -149,8 +150,8 @@ public class ValidationUtils {
     Stream<MetadataIdentifier> payloadDataValues =
         event.getDataValues().stream().map(DataValue::getDataElement);
     Stream<MetadataIdentifier> savedDataValues =
-        Optional.ofNullable(bundle.getPreheat().getEvent(event.getUid()))
-            .map(org.hisp.dhis.program.Event::getEventDataValues)
+        Optional.ofNullable(bundle.getPreheat().getTrackerEvent(event.getUid()))
+            .map(TrackerEvent::getEventDataValues)
             .orElse(Set.of())
             .stream()
             .map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
@@ -226,7 +227,7 @@ public class ValidationUtils {
   }
 
   public static boolean eventExist(TrackerBundle bundle, UID event) {
-    return bundle.getPreheat().getEvent(event) != null
+    return bundle.getPreheat().getTrackerEvent(event) != null
         || bundle.getPreheat().getSingleEvent(event) != null
         || bundle.findTrackerEventByUid(event).isPresent()
         || bundle.findSingleEventByUid(event).isPresent();

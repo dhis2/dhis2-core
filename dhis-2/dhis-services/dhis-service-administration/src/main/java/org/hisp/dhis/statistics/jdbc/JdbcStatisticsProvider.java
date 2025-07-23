@@ -79,6 +79,7 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
 
     map.put(Objects.TRACKEDENTITY, approximateCount("trackedentity"));
     map.put(Objects.ENROLLMENT, approximateCount("enrollment"));
+    // TODO(DHIS2-19702): Calculate event count from separated tables
     map.put(Objects.EVENT, approximateCount("event"));
 
     return map;

@@ -32,8 +32,8 @@ package org.hisp.dhis.tracker.imports.job;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
@@ -70,7 +70,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
     }
 
     for (Notification effect : notificationDataBundle.getTrackerEventNotifications()) {
-      Event event = notificationDataBundle.getEvent();
+      TrackerEvent event = notificationDataBundle.getEvent();
       event.getProgramStage().setProgram(notificationDataBundle.getProgram());
       this.notificationSender.send(effect, event);
     }

@@ -78,7 +78,7 @@ public class ParamsConverter {
     if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
           .filter(e -> preheat.getSingleEvent(e.getUid()) == null)
-          .map(e -> TrackerEvent.builderFromEvent(e).build())
+          .map(e -> (TrackerEvent) e)
           .toList();
     }
     return events.stream()
@@ -90,7 +90,7 @@ public class ParamsConverter {
                   || (programStage != null && programStage.getProgram().isRegistration())
                   || (program == null && programStage == null);
             })
-        .map(e -> TrackerEvent.builderFromEvent(e).build())
+        .map(e -> (TrackerEvent) e)
         .toList();
   }
 

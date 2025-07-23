@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 @NoArgsConstructor
@@ -44,7 +44,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 public class TrackerEventChangeLog {
   private long id;
 
-  private Event event;
+  private TrackerEvent event;
 
   private DataElement dataElement;
 
@@ -63,7 +63,7 @@ public class TrackerEventChangeLog {
   private UserInfoSnapshot createdBy;
 
   public TrackerEventChangeLog(
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -76,7 +76,7 @@ public class TrackerEventChangeLog {
   }
 
   public TrackerEventChangeLog(
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       String eventField,
       String previousValue,
@@ -89,7 +89,7 @@ public class TrackerEventChangeLog {
   }
 
   private TrackerEventChangeLog(
-      Event event,
+      TrackerEvent event,
       DataElement dataElement,
       String eventField,
       String previousValue,
