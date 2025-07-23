@@ -43,18 +43,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore")
-public class HibernateEventChangeLogStore {
+public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObject> {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
   private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
@@ -85,11 +83,13 @@ public class HibernateEventChangeLogStore {
 
   private final EntityManager entityManager;
 
-  public HibernateEventChangeLogStore(EntityManager entityManager) {
+  protected abstract String getTableName();
+
+  protected HibernateEventChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
 
-  public void addEventChangeLog(EventChangeLog eventChangeLog) {
+  public void addEventChangeLog(T eventChangeLog) {
     entityManager.unwrap(Session.class).save(eventChangeLog);
   }
 
@@ -104,9 +104,9 @@ public class HibernateEventChangeLogStore {
     Pair<String, QueryFilter> filter = operationParams.getFilter();
 
     String hql =
-        """
+        String.format(
+            """
         select \
-            ecl.event, \
             ecl.dataElement, \
             ecl.eventField, \
             ecl.previousValue, \
@@ -117,12 +117,13 @@ public class HibernateEventChangeLogStore {
             u.firstName, \
             u.surname, \
             u.uid \
-        from EventChangeLog ecl \
+        from %s ecl \
         join ecl.event e \
         left join ecl.dataElement d \
         left join ecl.createdBy u \
         where e.uid = :eventUid
-        """;
+        """,
+            getTableName());
 
     if (filter != null) {
       String filterField =
@@ -152,20 +153,18 @@ public class HibernateEventChangeLogStore {
         results.stream()
             .map(
                 row -> {
-                  Event e = (Event) row[0];
-                  DataElement dataElement = (DataElement) row[1];
-                  String eventField = (String) row[2];
-                  String previousValue = (String) row[3];
-                  String currentValue = (String) row[4];
-                  ChangeLogType changeLogType = (ChangeLogType) row[5];
-                  Date created = (Date) row[6];
+                  DataElement dataElement = (DataElement) row[0];
+                  String eventField = (String) row[1];
+                  String previousValue = (String) row[2];
+                  String currentValue = (String) row[3];
+                  ChangeLogType changeLogType = (ChangeLogType) row[4];
+                  Date created = (Date) row[5];
 
                   UserInfoSnapshot createdBy =
-                      new UserInfoSnapshot((String) row[7], (String) row[8], (String) row[9]);
-                  createdBy.setUid((String) row[10]);
+                      new UserInfoSnapshot((String) row[6], (String) row[7], (String) row[8]);
+                  createdBy.setUid((String) row[9]);
 
                   return new EventChangeLog(
-                      e,
                       dataElement,
                       eventField,
                       previousValue,
@@ -180,13 +179,13 @@ public class HibernateEventChangeLogStore {
   }
 
   public void deleteEventChangeLog(DataElement dataElement) {
-    String hql = "delete from EventChangeLog where dataElement = :dataElement";
+    String hql = String.format("delete from %s where dataElement = :dataElement", getTableName());
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
-  public void deleteEventChangeLog(Event event) {
-    String hql = "delete from EventChangeLog where event = :event";
+  public void deleteEventChangeLog(S event) {
+    String hql = String.format("delete from %s where event = :event", getTableName());
 
     entityManager.createQuery(hql).setParameter("event", event).executeUpdate();
   }

@@ -122,7 +122,7 @@ public class AnalyticsDatabaseInit {
   }
 
   /**
-   * Creates a ClickHouse named collection with connection information for the DHIS 2 PostgreSQL
+   * Creates a ClickHouse named collection with connection information for the DHIS2 PostgreSQL
    * database.
    */
   private void createClickHouseNamedCollection() {

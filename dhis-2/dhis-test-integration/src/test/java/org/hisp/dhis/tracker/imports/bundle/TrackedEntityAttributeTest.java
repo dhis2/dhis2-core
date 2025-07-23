@@ -29,16 +29,40 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.EW;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.IEQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.QueryOperator.LE;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
+import static org.hisp.dhis.common.QueryOperator.SW;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataObjects;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
@@ -64,17 +88,19 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private User importUser;
+  @Autowired private MetadataImportService metadataImportService;
 
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata("tracker/te_with_tea_metadata.json");
 
-    importUser = userService.getUser("tTgjgobT1oS");
+    User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
   }
 
@@ -102,5 +128,156 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttributeValue> attributeValues =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(3, attributeValues.size());
+  }
+
+  @Test
+  void shouldSetMinCharactersToSearchFromImportOrDefaultToZeroIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertMinCharactersToSearch(trackedEntityAttributes, "sTGqP5JNy6E", 2);
+    assertMinCharactersToSearch(trackedEntityAttributes, "sYn3tkL3XKa", 0);
+    assertMinCharactersToSearch(trackedEntityAttributes, "TsfP85GKsU5", 0);
+  }
+
+  @Test
+  void shouldSetPreferredSearchOperatorFromImportOrNullIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
+    assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
+    assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", null);
+  }
+
+  @Test
+  void shouldFailIfPreferredSearchOperatorIsNotPartOfTrackerOperators() {
+    TrackedEntityAttribute tea =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    tea.setPreferredSearchOperator(IEQ);
+
+    ImportReport report =
+        metadataImportService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
+
+    assertEquals(Status.ERROR, report.getStatus());
+    assertStartsWith(
+        "The preferred search operator `IEQ` provided for the tracked entity attribute",
+        getErrorMessage(report));
+  }
+
+  @Test
+  void shouldFailIfPreferredOperatorIsBlocked() {
+    TrackedEntityAttribute tea =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    tea.setPreferredSearchOperator(IN);
+
+    ImportReport report =
+        metadataImportService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
+
+    assertEquals(Status.ERROR, report.getStatus());
+    assertStartsWith(
+        "The preferred search operator `IN` is blocked for the selected tracked entity attribute",
+        getErrorMessage(report));
+  }
+
+  @Test
+  void shouldSetBlockedOperatorsFromImportOrEmptyListIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertBlockedOperators(
+        trackedEntityAttributes, "sTGqP5JNy6E", List.of(LE, GE, EW, IN, SW, NULL, NNULL));
+    assertBlockedOperators(
+        trackedEntityAttributes, "sYn3tkL3XKa", List.of(IN, NNULL, GT, LT, SW, LE, EW, NULL, GE));
+    assertIsEmpty(getAttribute(trackedEntityAttributes, "TsfP85GKsU5").getBlockedSearchOperators());
+  }
+
+  @Test
+  void shouldSetIndexableFlagFromImportOrDefaultToFalseIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertTrigramIndexableFlag(trackedEntityAttributes, "sTGqP5JNy6E", true);
+    assertTrigramIndexableFlag(trackedEntityAttributes, "sYn3tkL3XKa", false);
+    assertTrigramIndexableFlag(trackedEntityAttributes, "TsfP85GKsU5", false);
+  }
+
+  private void assertMinCharactersToSearch(
+      List<TrackedEntityAttribute> teas, String uid, int expected) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.getMinCharactersToSearch(),
+        "Expected minCharactersToSearch for UID " + uid + " to be " + expected);
+  }
+
+  private void assertPreferredSearchOperator(
+      List<TrackedEntityAttribute> teas, String uid, QueryOperator expected) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.getPreferredSearchOperator(),
+        "Expected preferredSearchOperator for UID " + uid + " to be " + expected);
+  }
+
+  private void assertBlockedOperators(
+      List<TrackedEntityAttribute> teas, String uid, List<QueryOperator> expectedOperators) {
+    TrackedEntityAttribute tea = getAttribute(teas, uid);
+
+    assertContainsOnly(expectedOperators, tea.getBlockedSearchOperators());
+  }
+
+  private TrackedEntityAttribute getAttribute(List<TrackedEntityAttribute> teas, String uid) {
+    return teas.stream()
+        .filter(t -> t.getUid().equals(uid))
+        .findFirst()
+        .orElseThrow(
+            () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+  }
+
+  private String getErrorMessage(ImportReport report) {
+    return report.getTypeReports().stream()
+        .findFirst()
+        .flatMap(
+            typeReport ->
+                typeReport.getObjectReports().stream()
+                    .findFirst()
+                    .flatMap(
+                        objectReport ->
+                            objectReport.getErrorReports().stream()
+                                .findFirst()
+                                .map(ErrorReport::getMessage)))
+        .orElseThrow();
+  }
+
+  private void assertTrigramIndexableFlag(
+      List<TrackedEntityAttribute> teas, String uid, boolean expected) {
+    TrackedEntityAttribute tea =
+        teas.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.getTrigramIndexable(),
+        "Expected trigram indexable flag for UID " + uid + " to be " + expected);
   }
 }

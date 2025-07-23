@@ -33,6 +33,13 @@ import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.ILIKE;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -82,6 +89,7 @@ import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -181,10 +189,13 @@ class TrackedEntityOperationParamsMapperTest {
     tea1 = new TrackedEntityAttribute();
     tea1.setValueType(ValueType.INTEGER);
     tea1.setUid(TEA_1_UID.getValue());
+    tea1.setMinCharactersToSearch(0);
 
     tea2 = new TrackedEntityAttribute();
     tea2.setValueType(ValueType.TEXT);
     tea2.setUid(TEA_2_UID.getValue());
+    tea2.setMinCharactersToSearch(0);
+    tea2.setBlockedSearchOperators(Set.of(EQ));
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
@@ -315,11 +326,7 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .program(program)
-            .filterBy(
-                TEA_1_UID,
-                List.of(
-                    new QueryFilter(QueryOperator.GT, "10"),
-                    new QueryFilter(QueryOperator.LT, "20")))
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(GT, "10"), new QueryFilter(LT, "20")))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -534,6 +541,151 @@ class TrackedEntityOperationParamsMapperTest {
             ForbiddenException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
     assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenTeaMinCharactersSetAndNotReached()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+    tea1.setMinCharactersToSearch(2);
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(EQ, "1")))
+            .build();
+
+    Exception exception =
+        Assertions.assertThrows(
+            BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
+    assertContains(
+        "At least 2 character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute "
+            + TEA_1_UID,
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenTeaMinCharactersSetWithMultipleFiltersAndNotAllReachTheMinimum()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+    tea1.setMinCharactersToSearch(2);
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(EQ, "12"), new QueryFilter(LIKE, "1")))
+            .build();
+
+    Exception exception =
+        Assertions.assertThrows(
+            BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
+    assertContains(
+        "At least 2 character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute "
+            + TEA_1_UID,
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldMapTeaWhenTeaMinCharactersSetButOperatorIsUnary()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+    tea1.setMinCharactersToSearch(1);
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(NULL)))
+            .build();
+
+    TrackedEntityQueryParams queryParams = mapper.map(trackedEntityOperationParams, user);
+    assertContainsOnly(
+        List.of(TEA_1_UID.getValue()), UID.toUidValueSet(queryParams.getFilters().keySet()));
+  }
+
+  @Test
+  void shouldMapTeaWhenTeaMinCharactersSetAndReached()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+    tea1.setMinCharactersToSearch(2);
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(EQ, "12")))
+            .build();
+
+    TrackedEntityQueryParams queryParams = mapper.map(trackedEntityOperationParams, user);
+    assertContainsOnly(
+        List.of(TEA_1_UID.getValue()), UID.toUidValueSet(queryParams.getFilters().keySet()));
+  }
+
+  @Test
+  void shouldMapAttributeFiltersWhenOperatorsAreNotBlocked()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(
+                TEA_2_UID,
+                List.of(
+                    new QueryFilter(LIKE, "12"),
+                    new QueryFilter(NNULL),
+                    new QueryFilter(ILIKE, "0")))
+            .build();
+
+    TrackedEntityQueryParams queryParams = mapper.map(trackedEntityOperationParams, user);
+    assertContainsOnly(
+        List.of(TEA_2_UID.getValue()), UID.toUidValueSet(queryParams.getFilters().keySet()));
+  }
+
+  @Test
+  void shouldFailToMapAttributeFiltersWhenOperatorsAreBlocked()
+      throws ForbiddenException, BadRequestException {
+    when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(UID.of(trackedEntityType), user))
+        .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .filterBy(TEA_2_UID, List.of(new QueryFilter(LIKE, "12"), new QueryFilter(EQ, "0")))
+            .build();
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> mapper.map(trackedEntityOperationParams, user));
+    assertStartsWith(
+        "Operators [EQ] are blocked for attribute 'cy2oRh2sNr6'", exception.getMessage());
   }
 
   private static void assertQueryFilterValue(

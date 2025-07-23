@@ -33,7 +33,9 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_SPEC
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 16.03.17. */
+/**
+ * @author Zubair
+ */
 public class SpecialCharacterValidationRule implements PasswordValidationRule {
   private static final Pattern SPECIAL_CHARACTER = Pattern.compile(".*[^A-Za-z0-9].*");
 

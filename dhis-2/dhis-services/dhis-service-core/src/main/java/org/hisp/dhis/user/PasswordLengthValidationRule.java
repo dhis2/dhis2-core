@@ -31,12 +31,14 @@ package org.hisp.dhis.user;
 
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 
-/** Created by zubair on 08.03.17. */
-@AllArgsConstructor
+/**
+ * @author Zubair
+ */
+@RequiredArgsConstructor
 public class PasswordLengthValidationRule implements PasswordValidationRule {
 
   private final SystemSettingsProvider settingsProvider;

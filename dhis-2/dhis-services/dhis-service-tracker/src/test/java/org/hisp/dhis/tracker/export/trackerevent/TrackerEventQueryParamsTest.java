@@ -42,6 +42,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
@@ -64,7 +65,7 @@ class TrackerEventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() {
+  void shouldKeepExistingAttributeFiltersWhenOrderingByAttribute() throws BadRequestException {
     TrackerEventQueryParams params = new TrackerEventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
@@ -90,7 +91,7 @@ class TrackerEventQueryParamsTest extends TestBase {
   }
 
   @Test
-  void shouldKeepExistingDataElementFiltersWhenOrderingByDataElement() {
+  void shouldKeepExistingDataElementFiltersWhenOrderingByDataElement() throws BadRequestException {
     TrackerEventQueryParams params = new TrackerEventQueryParams();
 
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");

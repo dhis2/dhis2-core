@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -99,7 +100,7 @@ public class TestSetup {
     params.setObjectBundleMode(ObjectBundleMode.COMMIT);
     params.setImportStrategy(ImportStrategy.CREATE);
     params.setObjects(metadata);
-    params.setUser(user);
+    params.setUserDetails(UserDetails.fromUser(user));
     ObjectBundle bundle = objectBundleService.create(params);
     assertNoErrors(objectBundleValidationService.validate(bundle));
     objectBundleService.commit(bundle);

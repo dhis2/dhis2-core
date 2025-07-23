@@ -16,7 +16,7 @@ BUILD_BRANCH=$(git --git-dir "$DIR/../.git" branch --show-current)
 # There might be ways like using https://maven.apache.org/enforcer/enforcer-rules/requireActiveProfile.html
 # to prevent that but they would require more work.
 ARCH=$(mvn help:system | grep "os\.arch")
-JIB_PROFILE="jibDockerBuild"
+JIB_PROFILE="jibDockerBuild,embedded"
 if [[ "$ARCH" == *arm64* || "$ARCH" == *aarch64* ]]; then
   JIB_PROFILE="$JIB_PROFILE,jibBuildArmOnly"
 fi

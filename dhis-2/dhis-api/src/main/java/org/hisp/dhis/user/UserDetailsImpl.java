@@ -128,6 +128,7 @@ public class UserDetailsImpl implements UserDetails {
   private final boolean accountNonExpired;
   private final boolean accountNonLocked;
   private final boolean credentialsNonExpired;
+  private final boolean isSuper;
   @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;
@@ -136,8 +137,9 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userDataOrgUnitIds;
   @Nonnull private final Set<String> userSearchOrgUnitIds;
   @Nonnull private final Set<String> userEffectiveSearchOrgUnitIds;
-  private final boolean isSuper;
   @Nonnull private final Set<String> userRoleIds;
+  @Nonnull private final Set<Long> managedGroupLongIds;
+  @Nonnull private final Set<Long> userRoleLongIds;
 
   @Override
   public boolean canModifyUser(User other) {

@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
@@ -144,7 +146,13 @@ public interface UserDetails
             .isSuper(user.isSuper())
             .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
             .userGroupIds(
-                new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())));
+                new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())))
+            .managedGroupLongIds(
+                new HashSet<>(
+                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getManagedGroups())))
+            .userRoleLongIds(
+                new HashSet<>(
+                    user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
 
     if (loadOrgUnits) {
 
@@ -241,6 +249,12 @@ public interface UserDetails
   @Nonnull
   Set<String> getUserDataOrgUnitIds();
 
+  @Nonnull
+  Set<Long> getManagedGroupLongIds();
+
+  @Nonnull
+  Set<Long> getUserRoleLongIds();
+
   boolean hasAnyAuthority(Collection<String> auths);
 
   boolean hasAnyAuthorities(Collection<Authorities> auths);
@@ -274,6 +288,15 @@ public interface UserDetails
     return getAllAuthorities().containsAll(role.getAuthorities());
   }
 
+  default boolean canManage(UserGroup userGroup) {
+    return userGroup != null
+        && CollectionUtils.containsAny(
+            getUserGroupIds(),
+            userGroup.getManagedByGroups().stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()));
+  }
+
   default boolean isInUserHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserOrgUnitIds());
   }
@@ -303,5 +326,13 @@ public interface UserDetails
     return objects == null || objects.isEmpty()
         ? Set.of()
         : Set.copyOf(objects.stream().map(IdentifiableObject::getUid).toList());
+  }
+
+  @Nonnull
+  private static Set<Long> setOfPrimaryKeys(
+      @CheckForNull Collection<? extends IdentifiableObject> objects) {
+    return objects == null || objects.isEmpty()
+        ? Set.of()
+        : Set.copyOf(objects.stream().map(IdentifiableObject::getId).toList());
   }
 }

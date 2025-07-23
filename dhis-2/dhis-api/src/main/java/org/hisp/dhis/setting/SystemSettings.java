@@ -679,6 +679,13 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
+   * @return The limit of combinations of columns and rows allowed in downloads.
+   */
+  default int getAnalyticsDownloadCombinationLimit() {
+    return asInt("keyAnalyticsDownloadCombinationLimit", 20000);
+  }
+
+  /**
    * @return Max tracked entity records that can be retrieved from database.
    */
   default int getTrackedEntityMaxLimit() {
@@ -783,8 +790,22 @@ public non-sealed interface SystemSettings extends Settings {
     return asInt("notifierCleanAfterIdleTime", 60_0000); // 1 minute
   }
 
+  /**
+   * @since 2.42
+   * @return true if the experimental analytics query engine should be used for analytics queries.
+   *     This engine is only required when using ClickHouse or Doris as the analytics database.
+   */
   default boolean getUseExperimentalAnalyticsQueryEngine() {
     return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
+  }
+
+  /**
+   * @since 2.40
+   * @return if true, the analytics event tables are created with a centroid value for each Data
+   *     Element or TEA of type OU or ougeometry
+   */
+  default boolean getOrgUnitCentroidsInEventsAnalytics() {
+    return asBoolean("orgUnitCentroidsInEventsAnalytics", false);
   }
 
   /**

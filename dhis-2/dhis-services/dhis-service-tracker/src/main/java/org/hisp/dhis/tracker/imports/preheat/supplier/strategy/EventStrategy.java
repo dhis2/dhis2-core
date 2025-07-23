@@ -57,14 +57,15 @@ public class EventStrategy extends HibernateGenericStore<Event>
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
-      List<Event> events = getIncludingDeleted(ids);
+      List<Event> trackerEvents = getTrackerEventsIncludingDeleted(ids);
 
       preheat.putEvents(
-          DetachUtils.detach(this.getClass().getAnnotation(StrategyFor.class).mapper(), events));
+          DetachUtils.detach(
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), trackerEvents));
     }
   }
 
-  private List<Event> getIncludingDeleted(List<String> uids) {
+  private List<Event> getTrackerEventsIncludingDeleted(List<String> uids) {
     List<Event> events = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
@@ -72,7 +73,16 @@ public class EventStrategy extends HibernateGenericStore<Event>
       if (!uidsPartition.isEmpty()) {
         events.addAll(
             getSession()
-                .createQuery("from Event as ev where ev.uid in (:uids)", Event.class)
+                .createQuery(
+                    """
+                        select ev
+                        from Event as ev
+                        join ev.programStage as ps
+                        join ps.program as p
+                        where ev.uid in (:uids)
+                        and p.programType = 'WITH_REGISTRATION'
+                        """,
+                    Event.class)
                 .setParameter("uids", uidsPartition)
                 .list());
       }

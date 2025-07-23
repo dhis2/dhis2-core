@@ -64,14 +64,23 @@ public class ParamsConverter {
         .validationMode(params.getValidationMode())
         .trackedEntities(trackerObjects.getTrackedEntities())
         .enrollments(trackerObjects.getEnrollments())
-        .trackerEvents(buildTrackerEvents(trackerObjects.getEvents(), preheat))
-        .singleEvents(buildSingleEvents(trackerObjects.getEvents(), preheat))
+        .trackerEvents(
+            buildTrackerEvents(trackerObjects.getEvents(), preheat, params.getImportStrategy()))
+        .singleEvents(
+            buildSingleEvents(trackerObjects.getEvents(), preheat, params.getImportStrategy()))
         .relationships(trackerObjects.getRelationships())
         .user(user)
         .build();
   }
 
-  private static List<TrackerEvent> buildTrackerEvents(List<Event> events, TrackerPreheat preheat) {
+  private static List<TrackerEvent> buildTrackerEvents(
+      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+    if (importStrategy.isUpdateOrDelete()) {
+      return events.stream()
+          .filter(e -> preheat.getSingleEvent(e.getUid()) == null)
+          .map(e -> TrackerEvent.builderFromEvent(e).build())
+          .toList();
+    }
     return events.stream()
         .filter(
             e -> {
@@ -85,14 +94,23 @@ public class ParamsConverter {
         .toList();
   }
 
-  private static List<SingleEvent> buildSingleEvents(List<Event> events, TrackerPreheat preheat) {
+  private static List<SingleEvent> buildSingleEvents(
+      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+    if (importStrategy.isUpdateOrDelete()) {
+      return events.stream()
+          .filter(e -> preheat.getSingleEvent(e.getUid()) != null)
+          .map(e -> SingleEvent.builderFromEvent(e).build())
+          .toList();
+    }
     return events.stream()
         .filter(
             e -> {
               Program program = preheat.getProgram(e.getProgram());
               ProgramStage programStage = preheat.getProgramStage(e.getProgramStage());
               return (program != null && program.isWithoutRegistration())
-                  || (programStage != null && programStage.getProgram().isWithoutRegistration());
+                  || (program == null
+                      && programStage != null
+                      && programStage.getProgram().isWithoutRegistration());
             })
         .map(e -> SingleEvent.builderFromEvent(e).build())
         .toList();

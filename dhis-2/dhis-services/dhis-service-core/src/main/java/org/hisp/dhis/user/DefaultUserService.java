@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
@@ -89,6 +90,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -110,7 +112,7 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
-  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
+  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
@@ -146,7 +148,6 @@ public class DefaultUserService implements UserService {
       AclService aclService,
       OrganisationUnitService organisationUnitService,
       SessionRegistry sessionRegistry) {
-
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -171,7 +172,6 @@ public class DefaultUserService implements UserService {
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
     this.sessionRegistry = sessionRegistry;
-
     this.userSettingsService = userSettingsService;
     this.restTemplate = restTemplate;
     this.emailMessageSender = emailMessageSender;
@@ -354,25 +354,23 @@ public class DefaultUserService implements UserService {
     return userStore.getUserCount();
   }
 
+  /**
+   * Handles the user query parameters by setting defaults and processing specific fields.
+   *
+   * @param params the {@link UserQueryParams}.
+   */
   private void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
-    if (!params.hasUser()) {
-      // TODO: MAS: Refactor to use userDetails instead of User in params
-      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
-      if (!hasCurrentUser) {
-        params.setUser(null);
-      } else {
-        String currentUsername = CurrentUserUtil.getCurrentUsername();
-        User currentUser = getUserByUsername(currentUsername);
-        params.setUser(currentUser);
-      }
+    if (!params.hasUserDetails() && CurrentUserUtil.hasCurrentUser()) {
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+      params.setUserDetails(currentUserDetails);
     }
 
-    if (params.hasUser() && params.getUser().isSuper()) {
+    if (params.hasUserDetails() && params.getUserDetails().isSuper()) {
       params.setCanManage(false);
       params.setAuthSubset(false);
       params.setDisjointRoles(false);
@@ -384,34 +382,66 @@ public class DefaultUserService implements UserService {
       params.setInactiveSince(cal.getTime());
     }
 
-    if (params.hasUser()) {
+    if (params.hasUserDetails()) {
       UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
       if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
-        params.setOrganisationUnits(params.getUser().getOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
         params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
       } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
-        params.setOrganisationUnits(params.getUser().getDataViewOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserDataOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
       } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
-        params.setOrganisationUnits(params.getUser().getTeiSearchOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserSearchOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
       }
     }
   }
 
+  /**
+   * Validates the user query parameters to ensure that the user has the necessary permissions to
+   * perform the requested operation.
+   *
+   * @param params the {@link UserQueryParams} to validate.
+   * @throws ConflictException if the user does not have the required permissions.
+   */
   private void validateUserQueryParams(UserQueryParams params) throws ConflictException {
     if (params.isCanManage()
-        && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
+        && (params.getUserDetails() == null || !hasManagedGroups(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get managed users as user does not have any managed groups");
     }
-    if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
+    if (params.isAuthSubset()
+        && (params.getUserDetails() == null || !hasAuthorities(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get users with authority subset as user does not have any authorities");
     }
     if (params.isDisjointRoles()
-        && (params.getUser() == null || !params.getUser().hasUserRoles())) {
+        && (params.getUserDetails() == null || !hasUserRoles(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get users with disjoint roles as user does not have any user roles");
     }
+  }
+
+  private boolean hasManagedGroups(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getManagedGroupLongIds().isEmpty();
+  }
+
+  private boolean hasAuthorities(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getAllAuthorities().isEmpty();
+  }
+
+  private boolean hasUserRoles(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getUserRoleIds().isEmpty();
   }
 
   @Override
@@ -576,16 +606,14 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void encodeAndSetPassword(User user, String rawPassword) {
-    if (StringUtils.isEmpty(rawPassword) && !user.isExternalAuth()) {
-      return; // Leave unchanged if internal authentication and no
-      // password supplied
+    if (isEmpty(rawPassword) && !user.isExternalAuth()) {
+      return; // Leave unchanged if internal authentication and no password supplied
     }
 
     if (user.isExternalAuth()) {
       user.setPassword(UserService.PW_NO_INTERNAL_LOGIN);
 
-      return; // Set unusable, not-encoded password if external
-      // authentication
+      return; // Set unusable, not-encoded password if external authentication
     }
 
     boolean isNewPassword =
@@ -600,7 +628,7 @@ public class DefaultUserService implements UserService {
     Matcher matcher = UserService.BCRYPT_PATTERN.matcher(rawPassword);
     if (matcher.matches()) {
       throw new IllegalArgumentException(
-          "Raw password look like BCrypt encoded password, this is most certainly a bug");
+          "Raw password looks like bcrypt encoded password, this is most likely a bug");
     }
 
     String encode = passwordManager.encode(rawPassword);
@@ -682,7 +710,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
@@ -706,9 +734,12 @@ public class DefaultUserService implements UserService {
   }
 
   private void checkIsInOrgUnitHierarchy(
-      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+      Set<OrganisationUnit> organisationUnits, UserDetails currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      // We have to fetch the org unit in order to get the full path
+      OrganisationUnit fetchedOrgUnit =
+          organisationUnitService.getOrganisationUnit(orgUnit.getUid());
+      boolean inUserHierarchy = fetchedOrgUnit.isDescendant(currentUser.getUserOrgUnitIds());
       if (!inUserHierarchy) {
         errors.add(
             new ErrorReport(
@@ -720,8 +751,16 @@ public class DefaultUserService implements UserService {
     }
   }
 
-  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
-
+  /**
+   * Checks if the current user has access to the user groups of the user being created or updated.
+   * If not, adds an error report to the list of errors.
+   *
+   * @param user the user being created or updated.
+   * @param currentUser the user performing the action.
+   * @param errors the list of error reports to add to.
+   */
+  private void checkHasAccessToUserGroups(
+      User user, UserDetails currentUser, List<ErrorReport> errors) {
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
       return;
@@ -743,7 +782,16 @@ public class DefaultUserService implements UserService {
             });
   }
 
-  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+  /**
+   * Checks if the current user has access to the user roles of the user being created or updated.
+   * If not, adds an error report to the list of errors.
+   *
+   * @param user the user being created or updated.
+   * @param currentUser the user performing the action.
+   * @param errors the list of error reports to add to.
+   */
+  private void checkHasAccessToUserRoles(
+      User user, UserDetails currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
@@ -769,7 +817,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, UserDetails currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
@@ -817,7 +865,7 @@ public class DefaultUserService implements UserService {
     if (ZonedDateTime.ofInstant(inactiveSince.toInstant(), systemDefault())
         .plusMonths(1)
         .isAfter(now())) {
-      // we never disable users that have been active during last month
+      // Never disable users that have been active during last month
       return 0;
     }
     return userStore.disableUsersInactiveSince(inactiveSince);
@@ -871,7 +919,6 @@ public class DefaultUserService implements UserService {
     Objects.requireNonNull(user);
 
     String username = user.getUsername();
-
     boolean enabled = !user.isDisabled();
     boolean accountNonExpired = user.isAccountNonExpired();
     boolean credentialsNonExpired = userNonExpired(user);
@@ -881,7 +928,8 @@ public class DefaultUserService implements UserService {
         enabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
       log.info(
           String.format(
-              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
+              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b,"
+                  + " user non-expired: %b, account non-locked: %b",
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
@@ -1022,49 +1070,31 @@ public class DefaultUserService implements UserService {
   public boolean sendRestoreOrInviteMessage(
       User user, String rootPath, RestoreOptions restoreOptions) {
     User persistedUser = getUser(user.getUid());
-
+    UserSettings userSettings =
+        userSettingsService.getUserSettings(persistedUser.getUsername(), true);
+    I18n i18n = i18nManager.getI18n(userSettings.getUserUiLocale());
     String encodedTokens = generateAndPersistTokens(persistedUser, restoreOptions);
-
     RestoreType restoreType = restoreOptions.getRestoreType();
-
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
+    String restorePath = String.format("%s%s%s", rootPath, RESTORE_PATH, restoreType.getAction());
+    rootPath = rootPath.replace("http://", "").replace("https://", "");
 
-    if (applicationTitle == null || applicationTitle.isEmpty()) {
+    if (isEmpty(applicationTitle)) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
 
     Map<String, Object> vars = new HashMap<>();
     vars.put("applicationTitle", applicationTitle);
-    vars.put("restorePath", rootPath + RESTORE_PATH + restoreType.getAction());
+    vars.put("restorePath", restorePath);
     vars.put("token", encodedTokens);
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
-
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
-
-    I18n i18n =
-        i18nManager.getI18n(
-            userSettingsService
-                .getUserSettings(persistedUser.getUsername(), true)
-                .getUserUiLocale());
-
     vars.put("i18n", i18n);
 
-    rootPath = rootPath.replace("http://", "").replace("https://", "");
-
-    // -------------------------------------------------------------------------
-    // Render emails
-    // -------------------------------------------------------------------------
-
-    VelocityManager vm = new VelocityManager();
-
-    String messageBody = vm.render(vars, restoreType.getEmailTemplate() + "1");
-
+    String messageBody = new VelocityManager().render(vars, restoreType.getEmailTemplate() + "1");
     String messageSubject = i18n.getString(restoreType.getEmailSubject()) + " " + rootPath;
 
-    // -------------------------------------------------------------------------
-    // Send emails
-    // -------------------------------------------------------------------------
     emailMessageSender.sendMessage(
         messageSubject, messageBody, null, null, Set.of(persistedUser), true);
 
@@ -1088,7 +1118,7 @@ public class DefaultUserService implements UserService {
             .add(restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount())
             .time();
 
-    // The id token is not hashed since we use it for lookup.
+    // ID token is not hashed as it is used for lookups
     user.setIdToken(idToken);
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
@@ -1116,10 +1146,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public boolean restore(User user, String token, String newPassword, RestoreType restoreType) {
-    if (user == null
-        || token == null
-        || newPassword == null
-        || !canRestore(user, token, restoreType)) {
+    if (ObjectUtils.anyIsNull(user, token, newPassword) || !canRestore(user, token, restoreType)) {
       return false;
     }
 
@@ -1129,7 +1156,6 @@ public class DefaultUserService implements UserService {
     user.setInvitation(false);
 
     encodeAndSetPassword(user, newPassword);
-
     updateUser(user, new SystemUser());
 
     return true;
@@ -1193,7 +1219,7 @@ public class DefaultUserService implements UserService {
   public void prepareUserForInvite(User user) {
     Objects.requireNonNull(user, "User object can't be null");
 
-    if (user.getUsername() == null || user.getUsername().isEmpty()) {
+    if (isEmpty(user.getUsername())) {
       String username = "invite" + CodeGenerator.generateUid().toLowerCase();
 
       user.setUsername(username);
@@ -1202,10 +1228,9 @@ public class DefaultUserService implements UserService {
     int minPasswordLength = settingsProvider.getCurrentSettings().getMinPasswordLength();
     char[] plaintextPassword = PasswordGenerator.generateValidPassword(minPasswordLength);
 
-    user.setSurname(StringUtils.isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
-    user.setFirstName(StringUtils.isEmpty(user.getFirstName()) ? TBD_NAME : user.getFirstName());
+    user.setSurname(isEmpty(user.getSurname()) ? TBD_NAME : user.getSurname());
+    user.setFirstName(isEmpty(user.getFirstName()) ? TBD_NAME : user.getFirstName());
     user.setInvitation(true);
-
     user.setPassword(new String(plaintextPassword));
   }
 
@@ -1237,9 +1262,7 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean canRestore(User user, String token, RestoreType restoreType) {
     ErrorCode code = validateRestore(user, token, restoreType);
-
     log.info("User account restore outcome: {}", code);
-
     return code == null;
   }
 
@@ -1317,7 +1340,8 @@ public class DefaultUserService implements UserService {
 
     if (!validToken) {
       log.warn(
-          "Could not verify restore token; error=restore_token_does_not_match_supplied_token; username: {}",
+          "Could not verify restore token; error=restore_token_does_not_match_supplied_token;"
+              + " username: {}",
           user.getUsername());
       return ErrorCode.E6208;
     }
@@ -1430,9 +1454,13 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
     String applicationTitle = settingsProvider.getCurrentSettings().getApplicationTitle();
-    if (applicationTitle == null || applicationTitle.isEmpty()) {
+    if (isEmpty(applicationTitle)) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
     }
+
+    I18n i18n =
+        i18nManager.getI18n(
+            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
 
     Map<String, Object> vars = new HashMap<>();
     vars.put("applicationTitle", applicationTitle);
@@ -1440,9 +1468,6 @@ public class DefaultUserService implements UserService {
     vars.put("token", token);
     vars.put("username", user.getUsername());
     vars.put("email", user.getEmail());
-    I18n i18n =
-        i18nManager.getI18n(
-            userSettingsService.getUserSettings(user.getUsername(), true).getUserUiLocale());
     vars.put("i18n", i18n);
 
     VelocityManager vm = new VelocityManager();
@@ -1469,7 +1494,7 @@ public class DefaultUserService implements UserService {
     if (System.currentTimeMillis() > Long.parseLong(tokenParts[1])) {
       return false;
     }
-    // Someone else could have verified the same email with another account in the meantime
+
     if (getUserByVerifiedEmail(user.getEmail()) != null) {
       return false;
     }
