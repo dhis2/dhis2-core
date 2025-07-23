@@ -48,6 +48,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
@@ -136,7 +137,7 @@ public class LocaleController {
   public WebMessage addLocale(
       @RequestParam String country,
       @RequestParam String language,
-      @RequestParam(required = false) String script) {
+      @RequestParam(required = false) String variant) {
 
     if (StringUtils.isEmpty(country) || StringUtils.isEmpty(language)) {
       return conflict("Invalid country or language code.");
@@ -144,19 +145,9 @@ public class LocaleController {
 
     final Locale locale;
     try {
-      Locale.Builder builder = new Locale.Builder().setLanguage(language).setRegion(country);
-
-      if (script != null && !script.trim().isEmpty()) {
-        builder.setScript(script);
-      }
-
-      locale = builder.build();
-    } catch (Exception e) {
-      StringBuilder sb = new StringBuilder(language).append("_").append(country);
-      if (!StringUtils.isEmpty(script)) {
-        sb.append("_").append(script);
-      }
-      return conflict("Invalid locale code: " + sb);
+        locale = LocaleUtils.parse( LocaleUtils.getLocaleString(language, country, variant));
+        } catch (IllegalArgumentException e) {
+        return conflict("Invalid locale format: " + e.getMessage());
     }
 
     I18nLocale i18nLocale = localeService.getI18nLocale(locale);
@@ -165,7 +156,7 @@ public class LocaleController {
       return conflict("Locale code existed.");
     }
 
-    i18nLocale = localeService.addI18nLocale(language, country, script);
+    i18nLocale = localeService.addI18nLocale(language, country, variant);
 
     return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
   }

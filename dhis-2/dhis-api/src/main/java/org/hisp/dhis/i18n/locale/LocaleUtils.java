@@ -46,20 +46,20 @@ public class LocaleUtils {
    *
    * @param language the language, cannot be null.
    * @param country the country, can be null.
-   * @param script the script of the language, can be null.
+   * @param variant , can be null.
    * @return a locale string.
    */
-  public static String getLocaleString(String language, String country, String script) {
+  public static String getLocaleString(String language, String country, String variant) {
     Locale locale;
 
-    if (script != null && !script.isEmpty()) {
+    if (variant != null && !variant.isEmpty()) {
       locale =
-          new Locale.Builder().setLanguage(language).setRegion(country).setScript(script).build();
+          new Locale(language, country, variant);
     } else {
-      locale = new Locale.Builder().setLanguage(language).setRegion(country).build();
+      locale = new Locale(language, country);
     }
 
-    return locale.toLanguageTag();
+    return toUnderscoreFormat( locale );
   }
 
   /**
@@ -114,34 +114,27 @@ public class LocaleUtils {
     }
     try {
       // Legacy style with underscores
-      if (localeStr.contains("_")) {
-        // Try legacy style with script
         String[] parts = localeStr.split("_");
         if (parts.length == 3) {
-          return new Locale.Builder()
-              .setLanguage(parts[0])
-              .setRegion(parts[1])
-              .setScript(parts[2])
-              .build();
+          return new Locale(parts[0], parts[1], parts[2]);
         } else if (parts.length == 2) {
           return new Locale(parts[0], parts[1]);
         } else {
           return new Locale(parts[0]);
         }
-      } else {
-        // BCP 47 style with hyphens
-        return Locale.forLanguageTag(localeStr);
-      }
     } catch (Exception e) {
       throw new IllegalArgumentException("Failed to parse locale: " + localeStr, e);
     }
   }
 
+  //Note that in the context of DHIS2, the underscore format is used for locale strings.
+  //It may be the same as Locale.toString() for some locales, but it is not guaranteed.
+  //For supported locales, (language + country + variant) is used.
   public static String toUnderscoreFormat(Locale locale) {
     StringBuilder sb = new StringBuilder(locale.getLanguage());
 
-    if (!locale.getScript().isEmpty()) {
-      sb.append("_").append(locale.getCountry()).append("_").append(locale.getScript());
+    if (!locale.getVariant().isEmpty()) {
+      sb.append("_").append(locale.getCountry()).append("_").append(locale.getVariant());
     } else if (!locale.getCountry().isEmpty()) {
       sb.append("_").append(locale.getCountry());
     }

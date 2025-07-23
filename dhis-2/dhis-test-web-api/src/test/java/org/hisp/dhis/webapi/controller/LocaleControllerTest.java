@@ -95,12 +95,12 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         201,
         "OK",
         "Locale created successfully",
-        POST("/locales/dbLocales?language=uz&country=UZ&script=Cyrl").content(HttpStatus.CREATED));
+        POST("/locales/dbLocales?language=uz&country=UZ&variant=Cyrl").content(HttpStatus.CREATED));
     JsonArray response = GET("/locales/db").content();
     assertEquals(1, response.size());
     JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
     assertEquals("uz_UZ_Cyrl", firstElement.getLocale());
-    assertEquals("ўзбекча (Ўзбекистон, Cyrl)", firstElement.getName());
+    assertEquals("o‘zbek (Oʻzbekiston, Cyrl)", firstElement.getName());
     assertEquals("Uzbek (Uzbekistan, Cyrl)", firstElement.getDisplayName());
   }
 

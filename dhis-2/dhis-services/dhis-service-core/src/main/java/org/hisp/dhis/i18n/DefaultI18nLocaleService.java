@@ -79,41 +79,6 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
                   .getDisplayCountry()));
     }
 
-    // Add script variants manually
-    langs.add(
-        new BaseIdentifiableObject(
-            "uz_UZ_Cyrl",
-            "uz_UZ_Cyrl",
-            new Locale.Builder()
-                    .setLanguage("uz")
-                    .setRegion("UZ")
-                    .setScript("Cyrl")
-                    .build()
-                    .getDisplayLanguage(
-                        new Locale.Builder()
-                            .setLanguage("uz")
-                            .setRegion("UZ")
-                            .setScript("Cyrl")
-                            .build())
-                + " (Cyrillic)"));
-
-    langs.add(
-        new BaseIdentifiableObject(
-            "uz_UZ_Latn",
-            "uz_UZ_Latn",
-            new Locale.Builder()
-                    .setLanguage("uz")
-                    .setRegion("UZ")
-                    .setScript("Latn")
-                    .build()
-                    .getDisplayLanguage(
-                        new Locale.Builder()
-                            .setLanguage("uz")
-                            .setRegion("UZ")
-                            .setScript("Latn")
-                            .build())
-                + " (Latin)"));
-
     Collections.sort(langs);
     Collections.sort(countrs);
 
