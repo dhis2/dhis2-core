@@ -85,6 +85,7 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -954,6 +955,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @DisplayName(
+      "Should update ProgramStage even if user does not have sharing permission to all ProgramStages of given Program")
   void testUpdateProgramStageWithSharing() throws IOException {
     User user = createUserWithAuth("A", "ALL");
     manager.save(user);
