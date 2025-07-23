@@ -357,6 +357,8 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isFavorite() {
     if (favorites == null || !CurrentUserUtil.hasCurrentUser()) {
       return false;
@@ -376,7 +378,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   @Override
   public boolean removeAsFavorite(UserDetails user) {
     if (this.favorites == null) {
-      return false;
+      this.favorites = new HashSet<>();
     }
 
     return this.favorites.remove(user.getUid());
