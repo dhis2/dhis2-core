@@ -33,7 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class QueryOperatorTest {
   @Test
@@ -57,5 +61,20 @@ class QueryOperatorTest {
   @Test
   void testNull() {
     assertEquals(QueryOperator.NULL, QueryOperator.fromString("null"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideOperatorsForMapping")
+  void shouldMapIVariantOperatorsToTrackerOperators(QueryOperator input, QueryOperator expected) {
+    assertEquals(expected, input.stripCaseVariant());
+  }
+
+  private static Stream<Arguments> provideOperatorsForMapping() {
+    return Stream.of(
+        Arguments.of(QueryOperator.IEQ, QueryOperator.EQ),
+        Arguments.of(QueryOperator.NIEQ, QueryOperator.NEQ),
+        Arguments.of(QueryOperator.ILIKE, QueryOperator.LIKE),
+        Arguments.of(QueryOperator.NILIKE, QueryOperator.NLIKE),
+        Arguments.of(QueryOperator.EQ, QueryOperator.EQ));
   }
 }

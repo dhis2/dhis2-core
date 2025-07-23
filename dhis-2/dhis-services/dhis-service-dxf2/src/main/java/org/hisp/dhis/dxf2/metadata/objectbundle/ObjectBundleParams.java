@@ -47,7 +47,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.preheat.PreheatParams;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,9 +58,9 @@ import org.hisp.dhis.user.User;
 @ToString
 public class ObjectBundleParams {
 
-  @ToString.Exclude private User user;
+  @ToString.Exclude private UserDetails userDetails;
 
-  @ToString.Exclude private User overrideUser;
+  @ToString.Exclude private UserDetails overrideUser;
 
   @ToString.Exclude
   private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =

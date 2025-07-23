@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateMinimumCharactersToSearch;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
@@ -200,6 +201,8 @@ class TrackedEntityOperationParamsMapper {
                 "attribute filters are invalid. Tracked entity attribute '%s' does not exist.",
                 attributeFilter.getKey()));
       }
+
+      validateAttributeOperators(attributeFilter, tea);
 
       validateMinimumCharactersToSearch(attributeFilter, tea);
 
