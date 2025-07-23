@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdSchemes;
@@ -84,7 +85,7 @@ public class DataEntryIO {
   public ImportSummary importAdx(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing ADX data");
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
-    return importRaw(progress.runStage(() -> parseAdx(in, ids)), options, progress);
+    return importData(progress.runStage(() -> parseAdx(in, ids)), options, progress);
   }
 
   @Nonnull
@@ -153,7 +154,7 @@ public class DataEntryIO {
   public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing PDF data");
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
-    return importRaw(progress.runStage(() -> parsePdf(in, ids)), options, progress);
+    return importData(progress.runStage(() -> parsePdf(in, ids)), options, progress);
   }
 
   @Nonnull
@@ -189,7 +190,7 @@ public class DataEntryIO {
     if (!options.isFirstRowIsHeader())
       throw new UnsupportedOperationException("CSV without header row is no longer supported.");
     progress.startingStage("Deserializing CVS data");
-    return importRaw(progress.runStage(() -> parseCsv(in, options)), options, progress);
+    return importData(progress.runStage(() -> parseCsv(in, options)), options, progress);
   }
 
   @Nonnull
@@ -204,7 +205,7 @@ public class DataEntryIO {
 
   public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing XML data");
-    return importRaw(
+    return importData(
         progress.runStage(() -> parseXml(in, options, options.getIdSchemes())), options, progress);
   }
 
@@ -255,7 +256,7 @@ public class DataEntryIO {
 
   public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing JSON data");
-    return importRaw(
+    return importData(
         progress.runStage(() -> parseJson(in, options, options.getIdSchemes())), options, progress);
   }
 
@@ -309,10 +310,12 @@ public class DataEntryIO {
   }
 
   @Nonnull
-  private ImportSummary importRaw(
-      List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress) {
+  public ImportSummary importData(
+      @CheckForNull List<DataEntryGroup.Input> inputs,
+      @Nonnull ImportOptions options,
+      @Nonnull JobProgress progress) {
     // when parsing fails the input is null, this forces abort because of failed stage before
-    progress.nonNullStagePostCondition(inputs);
+    inputs = progress.nonNullStagePostCondition(inputs);
 
     try {
       ImportSummary summary = importAutoSplitAndMerge(inputs, options, progress);

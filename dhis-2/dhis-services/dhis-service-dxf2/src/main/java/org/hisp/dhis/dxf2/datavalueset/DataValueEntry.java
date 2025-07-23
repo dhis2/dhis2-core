@@ -30,8 +30,8 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * An entry in an {@link DataValueSet} while processing it in context of a {@link
- * DataValueSetReader} or {@link DataValueSetWriter}.
+ * An entry in an {@link DataValueSet} while processing it in context of a or {@link
+ * DataValueSetWriter}.
  *
  * @author Jan Bernitt
  */

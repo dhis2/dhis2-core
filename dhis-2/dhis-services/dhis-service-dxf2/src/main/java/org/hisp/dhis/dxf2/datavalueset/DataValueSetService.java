@@ -36,8 +36,6 @@ import java.util.List;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
 
@@ -91,6 +89,4 @@ public interface DataValueSetService {
       boolean writeComments,
       String ouScheme,
       String deScheme);
-
-  ImportSummary importDataValueSet(DataValueSet dataValueSet, ImportOptions importOptions);
 }
