@@ -71,6 +71,11 @@ class DhisConfigurationProviderTest {
   }
 
   @Test
+  void getDefault() {
+    assertEquals("hikari", configProvider.getProperty(ConfigurationKey.DB_POOL_TYPE));
+  }
+
+  @Test
   void isEnabled() {
     assertFalse(configProvider.isEnabled(ConfigurationKey.REDIS_ENABLED));
     assertFalse(configProvider.isEnabled(ConfigurationKey.MONITORING_API_ENABLED));

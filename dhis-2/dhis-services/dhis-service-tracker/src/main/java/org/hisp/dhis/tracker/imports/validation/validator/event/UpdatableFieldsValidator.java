@@ -31,10 +31,13 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1128;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -45,15 +48,24 @@ class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.import
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
-    ProgramStage programStage = preheatEvent.getProgramStage();
+    ProgramStage programStage;
+    Enrollment enrollment;
+    if (event instanceof TrackerEvent) {
 
+      Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
+      programStage = preheatEvent.getProgramStage();
+      enrollment = preheatEvent.getEnrollment();
+    } else {
+      SingleEvent preheatEvent = bundle.getPreheat().getSingleEvent(event.getEvent());
+      programStage = preheatEvent.getProgramStage();
+      enrollment = preheatEvent.getEnrollment();
+    }
     reporter.addErrorIf(
         () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
     reporter.addErrorIf(
         () ->
             event.getEnrollment() != null
-                && !event.getEnrollment().getValue().equals(preheatEvent.getEnrollment().getUid()),
+                && !event.getEnrollment().getValue().equals(enrollment.getUid()),
         event,
         E1128,
         "enrollment");

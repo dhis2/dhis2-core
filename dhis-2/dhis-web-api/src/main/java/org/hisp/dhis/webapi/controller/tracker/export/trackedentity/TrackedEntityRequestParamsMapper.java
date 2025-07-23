@@ -250,6 +250,12 @@ class TrackedEntityRequestParamsMapper {
       return;
     }
 
+    filters.replaceAll(
+        (uid, f) ->
+            f.stream()
+                .map(qf -> new QueryFilter(qf.getOperator().stripCaseVariant(), qf.getFilter()))
+                .toList());
+
     for (Entry<UID, List<QueryFilter>> entry : filters.entrySet()) {
       if (entry.getValue().isEmpty()) {
         builder.filterBy(entry.getKey());

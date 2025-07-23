@@ -151,7 +151,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     JsonErrorReport error =
         POST("/programRuleActions", programRuleAction)
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4081);
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4083);
     assertNotNull(error);
     assertEquals(
         "ProgramRule `%s` must be associated with a Tracker Program (a program with registration)"
@@ -176,7 +176,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     JsonErrorReport error =
         POST("/programRuleActions", programRuleAction)
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4082);
+            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4084);
     assertNotNull(error);
     assertEquals(
         "ProgramStage `%s` is not part of Program `%s`"

@@ -57,3 +57,6 @@ http-client.private.env.json
 
 # optinal integration test file, should not be committed
 /dhis-support/dhis-support-test/src/main/resources/db/init-db.sql
+
+# Bundled apps temporary download folder
+/dhis-web-server/bundled_apps/

@@ -44,11 +44,12 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.event.EventService;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerEventService {
+public interface TrackerEventService extends EventService {
   /**
    * Get a file for an events' data element under the privileges of the currently authenticated
    * user.

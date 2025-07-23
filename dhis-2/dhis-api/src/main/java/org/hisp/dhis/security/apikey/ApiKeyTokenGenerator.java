@@ -56,7 +56,7 @@ public class ApiKeyTokenGenerator {
    * @return a token wrapper containing the plaintext token and the token
    */
   public static TokenWrapper generatePersonalAccessToken(
-      @CheckForNull List<ApiTokenAttribute> attributes, long expire) {
+      @CheckForNull List<ApiTokenAttribute> attributes, long expire, String code) {
     ApiTokenType type = ApiTokenType.getDefaultPatType();
 
     char[] plaintext = ApiKeyTokenGenerator.generatePatToken(type);
@@ -68,6 +68,7 @@ public class ApiKeyTokenGenerator {
             .attributes(attributes == null ? new ArrayList<>() : attributes)
             .expire(expire)
             .key(ApiKeyTokenGenerator.hashToken(plaintext))
+            .code(code)
             .build();
 
     return new TokenWrapper(plaintext, token);

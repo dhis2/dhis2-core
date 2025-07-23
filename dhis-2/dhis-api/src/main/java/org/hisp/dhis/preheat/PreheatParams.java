@@ -38,14 +38,14 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class PreheatParams {
   /** User to use for database queries. */
-  private User user;
+  private UserDetails userDetails;
 
   /** Mode to use for preheating. */
   private PreheatMode preheatMode = PreheatMode.REFERENCE;
@@ -62,12 +62,12 @@ public class PreheatParams {
 
   public PreheatParams() {}
 
-  public User getUser() {
-    return user;
+  public UserDetails getUserDetails() {
+    return userDetails;
   }
 
-  public void setUser(User user) {
-    this.user = user;
+  public void setUserDetails(UserDetails userDetails) {
+    this.userDetails = userDetails;
   }
 
   public PreheatMode getPreheatMode() {
@@ -122,7 +122,7 @@ public class PreheatParams {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("user", user)
+        .add("user", userDetails)
         .add("preheatMode", preheatMode)
         .add("preheatIdentifier", preheatIdentifier)
         .add("classes", classes)

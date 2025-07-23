@@ -69,7 +69,7 @@ public interface EventChangeLogMapper {
   @Named("mapIfDataValueChangeExists")
   default DataValueChange mapIfDataValueChangeExists(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
-    if (eventChangeLog.getDataElement() == null) {
+    if (eventChangeLog.dataElement() == null) {
       return null;
     }
     return mapDataValueChange(eventChangeLog);
@@ -83,7 +83,7 @@ public interface EventChangeLogMapper {
   @Named("mapIfEventFieldChangeExists")
   default FieldChange mapIfEventFieldExists(
       org.hisp.dhis.tracker.export.event.EventChangeLog eventChangeLog) {
-    if (eventChangeLog.getEventField() == null) {
+    if (eventChangeLog.eventField() == null) {
       return null;
     }
     return mapEventFieldChange(eventChangeLog);

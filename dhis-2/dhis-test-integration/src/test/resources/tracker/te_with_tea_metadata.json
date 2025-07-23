@@ -56,6 +56,9 @@
       "attributeValues": [],
       "legendSets": [],
       "minCharactersToSearch": 2,
+      "preferredSearchOperator": "LIKE",
+      "blockedSearchOperators": ["GE", "LE", "IN", "SW", "EW", "NULL", "NNULL"],
+      "trigramIndexable": true,
       "sharing": {
         "public": "rw------",
         "external": false,
@@ -90,6 +93,9 @@
       "translations": [],
       "attributeValues": [],
       "legendSets": [],
+      "preferredSearchOperator": "EQ",
+      "blockedSearchOperators": ["IN", "NNULL", "GT", "LT", "SW", "LE", "EW", "NULL", "GE"],
+      "trigramIndexable": false,
       "sharing": {
         "public": "rw------",
         "external": false,

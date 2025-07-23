@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.tracker.export.event.EventChangeLog" table="eventchangelog">
+  <class name="org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog" table="eventchangelog">
 
     <id name="id" column="eventchangelogid">
       <generator class="sequence">
@@ -12,7 +12,7 @@
       </generator>
     </id>
 
-    <many-to-one name="event" class="org.hisp.dhis.program.Event"
+    <many-to-one name="event" class="org.hisp.dhis.program.SingleEvent"
       column="eventid" foreign-key="fk_eventchangelog_eventid" not-null="true"/>
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
@@ -28,7 +28,6 @@
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.changelog.ChangeLogType</param>
         <param name="useNamed">true</param>
-        <param name="type">12</param>
       </type>
     </property>
 
