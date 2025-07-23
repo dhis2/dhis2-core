@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
+import org.hisp.dhis.fieldfiltering.better.FieldsPredicateConverter;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -56,6 +57,7 @@ import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
+import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
@@ -120,6 +122,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Autowired
   @Qualifier("jsonMapper")
   private ObjectMapper jsonMapper;
+
+  @Qualifier("jsonFilterMapper")
+  @Autowired
+  private ObjectMapper jsonFilterMapper;
 
   @Autowired
   @Qualifier("xmlMapper")
@@ -259,6 +265,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
             compression ->
                 converters.add(
                     new StreamingJsonRootMessageConverter(fieldFilterService, compression)));
+    converters.add(new FilteredPageHttpMessageConverter(jsonFilterMapper));
 
     converters.add(new StringHttpMessageConverter());
     converters.add(new ByteArrayHttpMessageConverter());
@@ -272,6 +279,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Override
   public void addFormatters(FormatterRegistry registry) {
     registry.addConverter(new FieldPathConverter());
+    registry.addConverter(new FieldsPredicateConverter());
   }
 
   @Bean

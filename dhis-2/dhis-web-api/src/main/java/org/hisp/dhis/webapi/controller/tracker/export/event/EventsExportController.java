@@ -34,6 +34,7 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -78,6 +79,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -155,14 +157,15 @@ class EventsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  void getEvents(
+  ResponseEntity<FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event>> getEvents(
       EventRequestParams requestParams,
       @RequestParam(name = "fields", defaultValue = DEFAULT_FIELDS_PARAM) String fieldsRaw,
       TrackerIdSchemeParams idSchemeParams,
-      HttpServletRequest request,
-      HttpServletResponse response)
-      throws BadRequestException, ForbiddenException, WebMessageException, IOException {
+      HttpServletRequest request)
+      throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
+    // TODO(ivo) I cannot yet rely on the new converter as all other endpoints still use the
+    // EventRequestParams.fields of the old representation. I have to explicitly parse until then.
     FieldsPredicate fieldsPredicate = FieldsParser.parse(fieldsRaw);
 
     if (requestParams.isPaging()) {
@@ -179,14 +182,16 @@ class EventsExportController {
           eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
       ensureNoMappingErrors(errors);
 
-      // TODO(ivo) create Spring converter so parsing is done automatically
-      requestHandler.serve(request, response, EVENTS, page, fieldsPredicate);
+      return ResponseEntity.ok(
+          new FilteredPage<>(
+              Page.withPager(EVENTS, page, getRequestURL(request)), fieldsPredicate));
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    requestHandler.serve(response, EVENTS, events, fieldsPredicate);
+    return ResponseEntity.ok(
+        new FilteredPage<>(Page.withoutPager(EVENTS, events), fieldsPredicate));
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)

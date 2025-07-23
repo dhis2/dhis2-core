@@ -77,6 +77,13 @@ public class FieldsParser {
           } else {
             // TODO what if the block is empty? what does that mean
             child = new FieldsPredicate();
+            // TODO(ivo) does includeAll make sense if no fields follow? what about
+            // fields=relationships,relationships[from] is this like :all,code where its already
+            // settled that all is included? but relationships[from] should obviously not includeAll
+            // child.includeAll();
+            // start with tests on the FieldFilterServiceTest level or curl to see how the old
+            // parser/service behaves. Interesting is also relationships[foo] that does not err but
+            // does it count as relationships?
             stack.peek().getChildren().put(parent, child);
           }
 
