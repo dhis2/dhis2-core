@@ -674,12 +674,12 @@ public enum ErrorCode {
   E8110("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
   E8111("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
   // value level, value and comment validity issues
-  E8120("Value ${index:{0}} must define a value`"),
-  E8121("Value ${index:{0}} must define a value or comment`"),
-  E8122("Value ${index:{0}} (`${value:{1}}`) is no valid ${type:{2}}: ${reason:{3}}"),
+  E8120("Value ${index:{0}} value is required`"),
+  E8121("Value ${index:{0}} value or comment is required`"),
+  E8122("Value ${index:{0}} value `${value:{1}}` is no valid ${type:{2}}: ${reason:{3}}"),
   E8123(
-      "Value ${index:{0}} (`${value:{1}}`) is not a valid option for data element ${element:{2}}`"),
-  E8124("Value ${index:{0}} has restricted comment options and does not allow ${comment:{1}}`"),
+      "Value ${index:{0}} value `${value:{1}}` is no valid option for data element ${element:{2}}`"),
+  E8124("Value ${index:{0}} comment is restricted to options and does not allow ${comment:{1}}`"),
   E8125("Value ${index:{0}} comment too long (max ${max:{1}} characters)`"),
   ;
 
