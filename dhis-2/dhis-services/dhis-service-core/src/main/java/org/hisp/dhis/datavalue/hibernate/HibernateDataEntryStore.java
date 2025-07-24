@@ -157,6 +157,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   @Override
   public Map<String, String> getDataSetAocIdMapping(
       @Nonnull UID dataSet, @Nonnull IdProperty categories, @Nonnull IdProperty attributeOptions) {
+    // FIXME
     @Language("SQL")
     String sqlTemplate =
         """

@@ -33,6 +33,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
@@ -118,5 +119,23 @@ public interface DataEntryService {
 
   DataEntrySummary deleteGroup(
       DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
+      throws ConflictException;
+
+  /**
+   * Check if a particular data value could be entered by the current user at the current time.
+   *
+   * <p>This is only dependent on the current user since the special {@link
+   * org.hisp.dhis.security.Authorities#F_EDIT_EXPIRED} allows to enter data that normally would be
+   * locked already.
+   *
+   * @param dataSet target data set (auto-detected when null)
+   * @param key the combination to check, COC is irrelevant here, DE is only relevant when
+   *     auto-detecting the DS
+   * @return OPEN when entry is permitted, APPROVED when blocked by approval, LOCKED when blocked by
+   *     any other restriction
+   * @throws ConflictException when the data set is not provided and a data set cannot be determined
+   *     automatically without ambiguity
+   */
+  LockStatus getEntryStatus(@CheckForNull UID dataSet, @Nonnull DataEntryKey key)
       throws ConflictException;
 }

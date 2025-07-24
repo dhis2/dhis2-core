@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.sms.listener;
 
+import static java.lang.Integer.parseInt;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -41,15 +43,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -73,14 +79,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.sms.listener.DataValueSMSListener")
 @Transactional
 public class DataValueSMSListener extends CommandSMSListener {
-  private static final String DATASET_LOCKED = "Dataset: [%]s is locked for period: [%s]";
-
-  private static final String OU_NOT_IN_DATASET =
-      "Organisation unit [%s] is not assigned to dataSet [%s]";
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CompleteDataSetRegistrationService registrationService;
 
@@ -90,7 +88,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
   private final SMSCommandService smsCommandService;
 
-  private final DataSetService dataSetService;
+  private final DataEntryService dataEntryService;
 
   private final DataElementService dataElementService;
 
@@ -102,14 +100,14 @@ public class DataValueSMSListener extends CommandSMSListener {
       DataValueService dataValueService,
       CategoryService dataElementCategoryService1,
       SMSCommandService smsCommandService,
-      DataSetService dataSetService,
+      DataEntryService dataEntryService,
       DataElementService dataElementService) {
     super(userService, incomingSmsService, smsMessageSender);
     this.registrationService = registrationService;
     this.dataValueService = dataValueService;
     this.dataElementCategoryService = dataElementCategoryService1;
     this.smsCommandService = smsCommandService;
-    this.dataSetService = dataSetService;
+    this.dataEntryService = dataEntryService;
     this.dataElementService = dataElementService;
   }
 
@@ -119,51 +117,6 @@ public class DataValueSMSListener extends CommandSMSListener {
       @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> codeValues) {
-    String message = sms.getText();
-
-    Date date = SmsUtils.lookForDate(message);
-    String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
-
-    OrganisationUnit orgUnit = null;
-
-    if (getOrganisationUnits(sms).iterator().hasNext()) {
-      orgUnit = getOrganisationUnits(sms).iterator().next();
-    }
-
-    Period period = getPeriod(smsCommand, date);
-    DataSet dataSet = smsCommand.getDataset();
-
-    if (orgUnit != null && !dataSet.hasOrganisationUnit(orgUnit)) {
-      sendFeedback(
-          String.format(OU_NOT_IN_DATASET, orgUnit.getUid(), dataSet.getUid()),
-          sms.getOriginator(),
-          ERROR);
-
-      update(sms, SmsMessageStatus.FAILED, false);
-      return;
-    }
-
-    if (!dataSetService
-        .getLockStatus(
-            dataSet, period, orgUnit, dataElementCategoryService.getDefaultCategoryOptionCombo())
-        .isOpen()) {
-      sendFeedback(
-          String.format(DATASET_LOCKED, dataSet.getUid(), period.getName()),
-          sms.getOriginator(),
-          ERROR);
-
-      update(sms, SmsMessageStatus.FAILED, false);
-      return;
-    }
-
-    boolean valueStored = false;
-
-    for (SMSCode code : smsCommand.getCodes()) {
-      if (codeValues.containsKey(code.getCode())) {
-        valueStored =
-            storeDataValue(sms, smsCreatedBy, orgUnit, codeValues, code, smsCommand, date);
-      }
-    }
 
     if (codeValues.isEmpty()) {
       sendFeedback(
@@ -175,19 +128,38 @@ public class DataValueSMSListener extends CommandSMSListener {
 
       update(sms, SmsMessageStatus.FAILED, false);
       return;
-    } else if (!valueStored) {
-      sendFeedback(
-          org.apache.commons.lang3.StringUtils.defaultIfEmpty(
-              smsCommand.getWrongFormatMessage(), SMSCommand.WRONG_FORMAT_MESSAGE),
-          sms.getOriginator(),
-          ERROR);
+    }
 
-      update(sms, SmsMessageStatus.FAILED, false);
-      return;
+    String message = sms.getText();
+
+    Date date = SmsUtils.lookForDate(message);
+    String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
+
+    OrganisationUnit orgUnit = null;
+
+    if (getOrganisationUnits(sms).iterator().hasNext()) {
+      orgUnit = getOrganisationUnits(sms).iterator().next();
+    }
+
+    for (SMSCode code : smsCommand.getCodes()) {
+      if (codeValues.containsKey(code.getCode())) {
+        try {
+          storeDataValue(orgUnit, codeValues, code, smsCommand, date);
+        } catch (Exception ex) {
+          sendFeedback(
+              StringUtils.defaultIfEmpty(
+                  smsCommand.getWrongFormatMessage(), SMSCommand.WRONG_FORMAT_MESSAGE),
+              sms.getOriginator(),
+              ERROR);
+
+          update(sms, SmsMessageStatus.FAILED, false);
+          return;
+        }
+      }
     }
 
     if (markCompleteDataSet(sms, smsCreatedBy, orgUnit, smsCommand, date)) {
-      sendSuccessFeedback(senderPhoneNumber, smsCommand, codeValues, date, orgUnit);
+      sendSuccessFeedback(senderPhoneNumber, smsCommand, date, orgUnit);
 
       update(sms, SmsMessageStatus.PROCESSED, true);
     } else {
@@ -225,34 +197,16 @@ public class DataValueSMSListener extends CommandSMSListener {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  private boolean storeDataValue(
-      IncomingSms sms,
-      UserDetails smsCreatedBy,
-      OrganisationUnit orgunit,
-      Map<String, String> parsedMessage,
+  private void storeDataValue(
+      OrganisationUnit orgUnit,
+      Map<String, String> message,
       SMSCode code,
       SMSCommand command,
-      Date date) {
-    validateUserOrgUnits(smsCreatedBy);
-    String sender = sms.getOriginator();
-    String storedBy = smsCreatedBy.getUsername();
+      Date date)
+      throws ConflictException, BadRequestException {
 
-    if (StringUtils.isBlank(storedBy)) {
-      storedBy = "[unknown] from [" + sender + "]";
-    }
-
-    CategoryOptionCombo optionCombo =
-        dataElementCategoryService.getCategoryOptionCombo(code.getOptionId().getId());
-
-    Period period = getPeriod(command, date);
-
-    DataValue dv =
-        dataValueService.getDataValue(code.getDataElement(), period, orgunit, optionCombo);
-
-    String value = parsedMessage.get(code.getCode());
-
+    String value = message.get(code.getCode());
     Set<SMSSpecialCharacter> specialCharacters = command.getSpecialCharacters();
-
     for (SMSSpecialCharacter each : specialCharacters) {
       if (each.getName().equalsIgnoreCase(value)) {
         value = each.getValue();
@@ -260,100 +214,52 @@ public class DataValueSMSListener extends CommandSMSListener {
       }
     }
 
+    Period period = getPeriod(command, date);
+
     if (!StringUtils.isEmpty(value)) {
-      boolean newDataValue = false;
-
-      if (dv == null) {
-        dv = new DataValue();
-        dv.setCategoryOptionCombo(optionCombo);
-        dv.setSource(orgunit);
-        dv.setDataElement(code.getDataElement());
-        dv.setPeriod(period);
-        dv.setComment("");
-        newDataValue = true;
-      }
-
-      if (ValueType.BOOLEAN == dv.getDataElement().getValueType()) {
-        if ("Y".equals(value.toUpperCase()) || "YES".equals(value.toUpperCase())) {
-          value = "true";
-        } else if ("N".equals(value.toUpperCase()) || "NO".equals(value.toUpperCase())) {
-          value = "false";
-        }
-      } else if (dv.getDataElement().getValueType().isInteger()) {
-        try {
-          Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-          return false;
-        }
-      }
-
-      dv.setValue(value);
-      dv.setLastUpdated(new java.util.Date());
-      dv.setStoredBy(storedBy);
-
-      dataValueService.addDataValue(dv);
+      UID ds = UID.of(command.getDataset());
+      UID de = UID.of(code.getDataElement());
+      UID ou = UID.of(orgUnit);
+      UID coc = UID.of(code.getOptionId());
+      String pe = period.getIsoDate();
+      dataEntryService.upsertValue(
+          false, ds, new DataEntryValue(0, de, ou, coc, null, pe, value, null, null, null));
     }
 
-    if (code.getFormula() != null) {
-      try {
-        String formula = code.getFormula();
+    String formula = code.getFormula();
+    if (formula == null) return;
 
-        String targetDataElementId = formula.substring(1);
-        String operation = String.valueOf(formula.charAt(0));
+    String targetDataElementId = formula.substring(1);
+    String operation = String.valueOf(formula.charAt(0));
 
-        DataElement targetDataElement =
-            dataElementService.getDataElement(Integer.parseInt(targetDataElementId));
+    DataElement targetDataElement =
+        dataElementService.getDataElement(parseInt(targetDataElementId));
 
-        if (targetDataElement == null) {
-          return false;
-        }
-
-        DataValue targetDataValue =
-            dataValueService.getDataValue(
-                targetDataElement,
-                period,
-                orgunit,
-                dataElementCategoryService.getDefaultCategoryOptionCombo());
-
-        int targetValue = 0;
-        boolean newTargetDataValue = false;
-
-        if (targetDataValue == null) {
-          targetDataValue = new DataValue();
-          targetDataValue.setCategoryOptionCombo(
-              dataElementCategoryService.getDefaultCategoryOptionCombo());
-          targetDataValue.setSource(orgunit);
-          targetDataValue.setDataElement(targetDataElement);
-          targetDataValue.setPeriod(period);
-          targetDataValue.setComment("");
-          newTargetDataValue = true;
-        } else {
-          targetValue = Integer.parseInt(targetDataValue.getValue());
-        }
-
-        if (operation.equals("+")) {
-          targetValue = targetValue + Integer.parseInt(value);
-        } else if (operation.equals("-")) {
-          targetValue = targetValue - Integer.parseInt(value);
-        }
-
-        targetDataValue.setValue(String.valueOf(targetValue));
-        targetDataValue.setLastUpdated(new java.util.Date());
-        targetDataValue.setStoredBy(storedBy);
-
-        if (newTargetDataValue) {
-          dataValueService.addDataValue(targetDataValue);
-        } else {
-          dataValueService.updateDataValue(targetDataValue);
-        }
-
-      } catch (Exception e) {
-        e.printStackTrace();
-        return false;
-      }
+    if (targetDataElement == null) {
+      return;
     }
 
-    return true;
+    DataValue dv =
+        dataValueService.getDataValue(
+            targetDataElement,
+            period,
+            orgUnit,
+            dataElementCategoryService.getDefaultCategoryOptionCombo());
+
+    int val = dv == null ? 0 : parseInt(dv.getValue());
+
+    if (operation.equals("+")) {
+      val += parseInt(value);
+    } else if (operation.equals("-")) {
+      val -= parseInt(value);
+    }
+
+    UID ds = UID.of(command.getDataset());
+    UID de = UID.of(targetDataElement);
+    UID ou = UID.of(orgUnit);
+    String pe = period.getIsoDate();
+    dataEntryService.upsertValue(
+        false, ds, new DataEntryValue(0, de, ou, null, null, pe, "" + val, null, null, null));
   }
 
   private boolean markCompleteDataSet(
@@ -395,7 +301,6 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     // Go through the complete process
-    validateUserOrgUnits(smsCreatedBy);
     String storedBy = smsCreatedBy.getUsername();
 
     if (StringUtils.isBlank(storedBy)) {
@@ -410,11 +315,7 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   protected void sendSuccessFeedback(
-      String sender,
-      SMSCommand command,
-      Map<String, String> parsedMessage,
-      Date date,
-      OrganisationUnit orgunit) {
+      String sender, SMSCommand command, Date date, OrganisationUnit orgunit) {
     String reportBack = "Thank you! Values entered: ";
     String notInReport = "Missing values for: ";
 

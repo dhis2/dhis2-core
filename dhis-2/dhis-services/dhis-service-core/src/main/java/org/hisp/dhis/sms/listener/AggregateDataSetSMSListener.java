@@ -129,10 +129,6 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.OU_NOTIN_DATASET.set(ouid, dsid));
     }
 
-    if (!dataSetService.getLockStatus(dataSet, period, orgUnit, aoc).isOpen()) {
-      throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(dsid, per));
-    }
-
     SmsResponse response = importDataValues(subm);
 
     if (response == SmsResponse.SUCCESS && subm.isComplete()) {

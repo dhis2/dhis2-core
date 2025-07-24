@@ -38,7 +38,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,8 +52,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.LockStatus;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.message.MessageSender;
@@ -128,7 +126,7 @@ class DataValueListenerTest extends TestBase {
 
   @Mock private SMSCommandService smsCommandService;
 
-  @Mock private DataSetService dataSetService;
+  @Mock private DataEntryService dataEntryService;
 
   @Mock private DataElementService dataElementService;
 
@@ -203,7 +201,7 @@ class DataValueListenerTest extends TestBase {
             dataValueService,
             dataElementCategoryService,
             smsCommandService,
-            dataSetService,
+            dataEntryService,
             dataElementService);
 
     organisationUnitA = createOrganisationUnit('O');
@@ -345,10 +343,6 @@ class DataValueListenerTest extends TestBase {
     // Mock for smsCommandService
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
 
-    // Mock for dataSetService
-    when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
-        .thenReturn(LockStatus.OPEN);
-
     // Mock for incomingSmsService
     doAnswer(
             invocation -> {
@@ -408,8 +402,6 @@ class DataValueListenerTest extends TestBase {
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
 
     incomingSms.setUser(user);
-    when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
-        .thenReturn(LockStatus.OPEN);
     subject.receive(incomingSms, UserDetails.fromUser(user));
 
     verify(smsCommandService, times(1)).getSMSCommand(anyString(), any());
@@ -431,7 +423,6 @@ class DataValueListenerTest extends TestBase {
 
     assertEquals(SMSCommand.NO_USER_MESSAGE, message);
     assertNull(updatedIncomingSms);
-    verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
   }
 
   @Test
@@ -446,7 +437,6 @@ class DataValueListenerTest extends TestBase {
 
     assertEquals(SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE, message);
     assertNull(updatedIncomingSms);
-    verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
 
     keyValueCommand.setMoreThanOneOrgUnitMessage(MORE_THAN_ONE_OU);
 
@@ -467,7 +457,6 @@ class DataValueListenerTest extends TestBase {
 
     assertEquals(message, SMSCommand.WRONG_FORMAT_MESSAGE);
     assertNull(updatedIncomingSms);
-    verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
 
     keyValueCommand.setWrongFormatMessage(WRONG_FORMAT);
     subject.receive(incomingSmsForCustomSeparator, UserDetails.fromUser(user));
@@ -523,12 +512,6 @@ class DataValueListenerTest extends TestBase {
     assertNotNull(updatedIncomingSms);
     assertEquals(SmsMessageStatus.FAILED, updatedIncomingSms.getStatus());
     assertFalse(updatedIncomingSms.isParsed());
-    verify(dataSetService, times(0))
-        .getLockStatus(
-            any(DataSet.class),
-            any(Period.class),
-            any(OrganisationUnit.class),
-            any(CategoryOptionCombo.class));
   }
 
   @Test

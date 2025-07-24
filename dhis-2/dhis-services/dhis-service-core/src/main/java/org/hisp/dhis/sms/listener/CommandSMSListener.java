@@ -43,7 +43,6 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -197,13 +196,6 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     }
 
     return true;
-  }
-
-  static void validateUserOrgUnits(UserDetails userDetails) {
-    if (userDetails.getUserOrgUnitIds().isEmpty()) {
-      throw new SMSParserException(
-          "User is not associated with any orgunit. Please contact your supervisor.");
-    }
   }
 
   private static boolean hasOrganisationUnit(UserDetails smsCreatedBy) {

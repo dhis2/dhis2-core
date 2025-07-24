@@ -61,6 +61,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
 import org.hisp.dhis.datavalue.DataEntryStore.ObjectType;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -300,21 +301,39 @@ public class DefaultDataEntryService implements DataEntryService {
     return store.deleteByKeys(List.of(key)) > 0;
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataEntryKey key)
+      throws ConflictException {
+    DataEntryValue e = key.toDeletedValue();
+    UID ds = dataSet != null ? dataSet : autoTargetDataSet(List.of(e));
+    try {
+      validateEntryTimeliness(ds, List.of(e));
+      return LockStatus.OPEN;
+    } catch (ConflictException ex) {
+      if (ex.getCode() == ErrorCode.E7809) return LockStatus.APPROVED;
+      return LockStatus.LOCKED;
+    }
+  }
+
+  /**
+   * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
+   * without risk of misinterpretation of the request.
+   */
+  @Nonnull
+  private UID autoTargetDataSet(List<DataEntryValue> values) throws ConflictException {
+    List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
+    if (dsForDe.isEmpty())
+      throw new ConflictException(
+          ErrorCode.E7803, values.stream().map(DataEntryValue::dataElement).distinct().toList());
+    if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7802, dsForDe);
+    return UID.of(dsForDe.get(0));
+  }
+
   private DataEntryGroup validate(
       boolean force, UID ds, List<DataEntryValue> values, List<DataEntryError> errors)
       throws ConflictException {
-    if (ds == null) {
-      /*
-       * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
-       * without risk of misinterpretation of the request.
-       */
-      List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
-      if (dsForDe.isEmpty())
-        throw new ConflictException(
-            ErrorCode.E7803, values.stream().map(DataEntryValue::dataElement).distinct().toList());
-      if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E7802, dsForDe);
-      ds = UID.of(dsForDe.get(0));
-    }
+    if (ds == null) ds = autoTargetDataSet(values);
 
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
@@ -493,11 +512,18 @@ public class DefaultDataEntryService implements DataEntryService {
   }
 
   private static String normalizeValue(DataEntryValue e, ValueType type) {
-    if (type == null || !type.isBoolean()) return e.value();
     String val = e.value();
-    if (val.equalsIgnoreCase("false") || val.equalsIgnoreCase("f") || "0".equals(val))
-      val = "false";
-    if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("t") || "1".equals(val)) val = "true";
+    if (val == null || type == null || !type.isBoolean()) return val;
+    if (val.equalsIgnoreCase("false")
+        || val.equalsIgnoreCase("f")
+        || val.equalsIgnoreCase("no")
+        || val.equalsIgnoreCase("n")
+        || "0".equals(val)) return "false";
+    if (val.equalsIgnoreCase("true")
+        || val.equalsIgnoreCase("t")
+        || val.equalsIgnoreCase("yes")
+        || val.equalsIgnoreCase("y")
+        || "1".equals(val)) return "true";
     return val;
   }
 
