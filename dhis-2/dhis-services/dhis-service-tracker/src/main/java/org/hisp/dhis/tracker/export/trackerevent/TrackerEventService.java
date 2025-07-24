@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -37,7 +38,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -64,13 +65,22 @@ public interface TrackerEventService extends EventService {
       throws NotFoundException, ForbiddenException;
 
   /**
+   * Finds the event that matches the given {@code UID} based on the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
+   *
+   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
+   */
+  @Nonnull
+  Optional<TrackerEvent> findEvent(@Nonnull UID uid);
+
+  /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
    * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
    * #getEvent(UID, TrackerIdSchemeParams, TrackerEventFields)} instead to also get the events
    * relationships and specify different {@code idSchemes}.
    */
   @Nonnull
-  Event getEvent(UID uid) throws NotFoundException;
+  TrackerEvent getEvent(UID uid) throws NotFoundException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
@@ -78,14 +88,15 @@ public interface TrackerEventService extends EventService {
    * TrackerIdSchemeParams}.
    */
   @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, TrackerEventFields fields)
+  TrackerEvent getEvent(
+      UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, TrackerEventFields fields)
       throws NotFoundException;
 
   /**
    * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> findEvents(@Nonnull TrackerEventOperationParams params)
+  List<TrackerEvent> findEvents(@Nonnull TrackerEventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -93,7 +104,7 @@ public interface TrackerEventService extends EventService {
    * user.
    */
   @Nonnull
-  Page<Event> findEvents(
+  Page<TrackerEvent> findEvents(
       @Nonnull TrackerEventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 

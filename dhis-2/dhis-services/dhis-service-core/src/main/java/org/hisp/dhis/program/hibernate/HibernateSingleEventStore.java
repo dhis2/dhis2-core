@@ -27,27 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+package org.hisp.dhis.program.hibernate;
 
-import java.util.Comparator;
-import java.util.Date;
-import org.hisp.dhis.program.Event;
+import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-/**
- * @author Chau Thu Tran
- */
-public class EventVisitDateComparator implements Comparator<Event> {
-  @Override
-  public int compare(Event event1, Event event2) {
-    Date d1 =
-        (event1.getOccurredDate() != null) ? event1.getOccurredDate() : event1.getScheduledDate();
-    Date d2 =
-        (event2.getOccurredDate() != null) ? event2.getOccurredDate() : event2.getScheduledDate();
-    if (d1.before(d2)) {
-      return -1;
-    } else if (d1.after(d2)) {
-      return 1;
-    }
-    return 0;
+@Slf4j
+@Repository("org.hisp.dhis.program.SingleEventStore")
+public class HibernateSingleEventStore extends SoftDeleteHibernateObjectStore<SingleEvent> {
+
+  public HibernateSingleEventStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, SingleEvent.class, aclService, false);
   }
 }

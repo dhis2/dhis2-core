@@ -52,14 +52,14 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ObjectBundle implements ObjectIndexProvider {
   /** User to use for import job (important for threaded imports). */
-  private final User user;
+  private final UserDetails userDetails;
 
   /**
    * How should the user property be handled, by default it is left as is. You can override this to
@@ -68,7 +68,7 @@ public class ObjectBundle implements ObjectIndexProvider {
   private final UserOverrideMode userOverrideMode;
 
   /** User to use for override, can be current or a selected user. */
-  private User overrideUser;
+  private UserDetails overrideUser;
 
   /** Should import be imported or just validated. */
   private final ObjectBundleMode objectBundleMode;
@@ -134,7 +134,7 @@ public class ObjectBundle implements ObjectIndexProvider {
       ObjectBundleParams params,
       Preheat preheat,
       Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap) {
-    this.user = params.getUser();
+    this.userDetails = params.getUserDetails();
     this.userOverrideMode = params.getUserOverrideMode();
     this.overrideUser = params.getOverrideUser();
     this.objectBundleMode = params.getObjectBundleMode();
@@ -153,24 +153,24 @@ public class ObjectBundle implements ObjectIndexProvider {
     addObject(objectMap);
   }
 
-  public User getUser() {
-    return user;
+  public UserDetails getUserDetails() {
+    return userDetails;
   }
 
   public UserOverrideMode getUserOverrideMode() {
     return userOverrideMode;
   }
 
-  public User getOverrideUser() {
+  public UserDetails getOverrideUser() {
     return overrideUser;
   }
 
-  public void setOverrideUser(User overrideUser) {
+  public void setOverrideUser(UserDetails overrideUser) {
     this.overrideUser = overrideUser;
   }
 
   public String getUsername() {
-    return user != null ? user.getUsername() : "system-process";
+    return userDetails != null ? userDetails.getUsername() : "system-process";
   }
 
   public ObjectBundleMode getObjectBundleMode() {

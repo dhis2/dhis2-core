@@ -79,6 +79,7 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
 
     map.put(Objects.TRACKEDENTITY, approximateCount("trackedentity"));
     map.put(Objects.ENROLLMENT, approximateCount("enrollment"));
+    // TODO(DHIS2-19702): Calculate event count from separated tables
     map.put(Objects.EVENT, approximateCount("event"));
 
     return map;
@@ -98,11 +99,12 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
    * Returns the approximate count of rows in the given table.
    *
    * @param table the table name.
-   * @return the approximate count of rows in the given table.
+   * @return the approximate count of rows in the given table. If the table has no rows, 0 is
+   *     returned instead of a negative value.
    */
   private Long approximateCount(final String table) {
-    final String sql = "select reltuples::bigint from pg_class where relname = '%s';";
-
-    return jdbcTemplate.queryForObject(String.format(sql, table), Long.class);
+    final String sql = "SELECT reltuples::bigint FROM pg_class WHERE relname = ?";
+    Long result = jdbcTemplate.queryForObject(sql, Long.class, table);
+    return Math.max(0L, result);
   }
 }

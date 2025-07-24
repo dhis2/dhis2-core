@@ -30,7 +30,8 @@
 package org.hisp.dhis.tracker.imports.preprocess;
 
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -48,7 +49,8 @@ public class StrategyPreProcessor implements BundlePreProcessor {
   public void process(TrackerBundle bundle) {
     preProcessTrackedEntities(bundle);
     preProcessEnrollments(bundle);
-    preProcessEvents(bundle);
+    preProcessTrackerEvents(bundle);
+    preProcessSingleEvents(bundle);
     preProcessRelationships(bundle);
   }
 
@@ -88,11 +90,29 @@ public class StrategyPreProcessor implements BundlePreProcessor {
     }
   }
 
-  public void preProcessEvents(TrackerBundle bundle) {
-    for (org.hisp.dhis.tracker.imports.domain.Event event : bundle.getEvents()) {
+  public void preProcessTrackerEvents(TrackerBundle bundle) {
+    for (org.hisp.dhis.tracker.imports.domain.TrackerEvent event : bundle.getTrackerEvents()) {
       TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-      Event existingEvent = bundle.getPreheat().getEvent(event.getEvent());
+      TrackerEvent existingEvent = bundle.getPreheat().getTrackerEvent(event.getEvent());
+
+      if (importStrategy.isCreateAndUpdate()) {
+        if (existingEvent == null) {
+          bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+        } else {
+          bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+        }
+      } else {
+        bundle.setStrategy(event, importStrategy);
+      }
+    }
+  }
+
+  public void preProcessSingleEvents(TrackerBundle bundle) {
+    for (org.hisp.dhis.tracker.imports.domain.SingleEvent event : bundle.getSingleEvents()) {
+      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+
+      SingleEvent existingEvent = bundle.getPreheat().getSingleEvent(event.getEvent());
 
       if (importStrategy.isCreateAndUpdate()) {
         if (existingEvent == null) {

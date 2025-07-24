@@ -30,12 +30,13 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import jakarta.persistence.EntityManager;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.trackerevent.HibernateTrackerEventChangeLogStore")
 class HibernateTrackerEventChangeLogStore
-    extends HibernateEventChangeLogStore<TrackerEventChangeLog> {
+    extends HibernateEventChangeLogStore<TrackerEventChangeLog, TrackerEvent> {
 
   public HibernateTrackerEventChangeLogStore(EntityManager entityManager) {
     super(entityManager);

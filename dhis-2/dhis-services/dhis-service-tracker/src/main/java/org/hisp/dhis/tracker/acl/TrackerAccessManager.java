@@ -35,8 +35,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
@@ -63,13 +64,15 @@ public interface TrackerAccessManager {
 
   List<String> canDelete(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
-  List<String> canRead(UserDetails user, Event event, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
 
-  List<String> canCreate(UserDetails user, Event event, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, SingleEvent event);
 
-  List<String> canUpdate(UserDetails user, Event event, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
 
-  List<String> canDelete(UserDetails user, Event event, boolean skipOwnershipCheck);
+  List<String> canUpdate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+
+  List<String> canDelete(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
@@ -86,7 +89,17 @@ public interface TrackerAccessManager {
    * @return Empty list if read access allowed, list of errors otherwise.
    */
   List<String> canRead(
-      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
+      UserDetails user, TrackerEvent event, DataElement dataElement, boolean skipOwnershipCheck);
+
+  /**
+   * Checks the sharing read access to EventDataValue
+   *
+   * @param user User validated for write access
+   * @param event SingleEvent under which the EventDataValue belongs
+   * @param dataElement DataElement of EventDataValue
+   * @return Empty list if read access allowed, list of errors otherwise.
+   */
+  List<String> canRead(UserDetails user, SingleEvent event, DataElement dataElement);
 
   /**
    * Checks the sharing write access to EventDataValue
@@ -97,7 +110,7 @@ public interface TrackerAccessManager {
    * @return Empty list if write access allowed, list of errors otherwise.
    */
   List<String> canWrite(
-      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
+      UserDetails user, TrackerEvent event, DataElement dataElement, boolean skipOwnershipCheck);
 
   List<String> canRead(UserDetails user, CategoryOptionCombo categoryOptionCombo);
 

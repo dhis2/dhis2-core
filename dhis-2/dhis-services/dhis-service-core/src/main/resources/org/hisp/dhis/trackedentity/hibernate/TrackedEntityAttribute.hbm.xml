@@ -92,6 +92,17 @@
 
     <property name="minCharactersToSearch" column="mincharacterstosearch" />
 
+    <property name="preferredSearchOperator" column="preferredsearchoperator">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.QueryOperator</param>
+        <param name="useNamed">true</param>
+      </type>
+    </property>
+
+    <property name="blockedSearchOperators" column="blockedsearchoperators" type="jsbBlockedOperators" />
+
+    <property name="trigramIndexable" column="trigramindexable" not-null="true" />
+
   </class>
 
 </hibernate-mapping>

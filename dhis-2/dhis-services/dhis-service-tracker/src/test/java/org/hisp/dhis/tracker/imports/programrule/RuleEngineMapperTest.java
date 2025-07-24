@@ -48,9 +48,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
@@ -108,7 +108,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   void shouldMapEventsToRuleEventWhenOrganisationUnitCodeIsNull() {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setCode(null);
-    Event event = dbEvent();
+    TrackerEvent event = dbEvent();
     event.setOrganisationUnit(orgUnit);
 
     List<RuleEvent> ruleEvent = RuleEngineMapper.mapSavedEvents(List.of(event));
@@ -118,7 +118,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   }
 
   @Test
-  void shouldMapPayloadEventsToRuleEvents() {
+  void shouldMapPayloadTrackerEventsToRuleEvents() {
     org.hisp.dhis.tracker.imports.domain.TrackerEvent eventA = payloadEvent();
     org.hisp.dhis.tracker.imports.domain.TrackerEvent eventB = payloadEvent();
 
@@ -128,7 +128,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     trackerPreheat.put(TrackerIdSchemeParam.UID, dataElement);
 
     List<RuleEvent> ruleEvents =
-        RuleEngineMapper.mapPayloadEvents(trackerPreheat, List.of(eventA, eventB));
+        RuleEngineMapper.mapPayloadTrackerEvents(trackerPreheat, List.of(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
     assertEvent(
@@ -147,8 +147,8 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
 
   @Test
   void shouldMapDBEventsToRuleEvents() {
-    Event eventA = dbEvent();
-    Event eventB = dbEvent();
+    TrackerEvent eventA = dbEvent();
+    TrackerEvent eventB = dbEvent();
 
     List<RuleEvent> ruleEvents = RuleEngineMapper.mapSavedEvents(List.of(eventA, eventB));
 
@@ -244,7 +244,7 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
         ruleAttributes);
   }
 
-  private void assertEvent(Event event, RuleEvent ruleEvent) {
+  private void assertEvent(TrackerEvent event, RuleEvent ruleEvent) {
     assertEquals(event.getUid(), ruleEvent.getEvent());
     assertEquals(event.getProgramStage().getUid(), ruleEvent.getProgramStage());
     assertEquals(event.getProgramStage().getName(), ruleEvent.getProgramStageName());
@@ -353,8 +353,10 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     return enrollment;
   }
 
-  private Event dbEvent() {
-    Event event = new Event(dbEnrollment(), programStage);
+  private TrackerEvent dbEvent() {
+    TrackerEvent event = new TrackerEvent();
+    event.setEnrollment(dbEnrollment());
+    event.setProgramStage(programStage);
     event.setUid(CodeGenerator.generateUid());
     event.setOrganisationUnit(organisationUnit);
     event.setAutoFields();

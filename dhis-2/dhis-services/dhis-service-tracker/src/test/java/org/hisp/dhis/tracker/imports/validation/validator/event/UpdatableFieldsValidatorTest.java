@@ -37,9 +37,9 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -98,7 +98,7 @@ class UpdatableFieldsValidatorTest {
 
     when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
-    when(preheat.getEvent(EVENT_UID)).thenReturn(event());
+    when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(event());
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
@@ -163,11 +163,11 @@ class UpdatableFieldsValidatorTest {
     return enrollment;
   }
 
-  private Event event() {
+  private TrackerEvent event() {
     ProgramStage programStage = new ProgramStage();
     programStage.setUid(PROGRAM_STAGE_ID);
 
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setUid(EVENT_UID.getValue());
     event.setEnrollment(getEnrollment());
     event.setProgramStage(programStage);

@@ -41,9 +41,9 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -70,7 +70,7 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
 
   private Enrollment enrollment;
 
-  private Event event;
+  private TrackerEvent event;
 
   private ProgramNotificationInstance enrollmentNotification1;
 

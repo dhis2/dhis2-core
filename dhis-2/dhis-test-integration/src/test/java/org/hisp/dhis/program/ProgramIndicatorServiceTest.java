@@ -266,13 +266,13 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    Event eventA = createEvent(psA, enrollment, organisationUnit);
+    TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
     eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
-    Event eventB = createEvent(psB, enrollment, organisationUnit);
+    TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
     eventB.setOccurredDate(occurredDate);
     manager.save(eventB);
-    Set<Event> events = new HashSet<>();
+    Set<TrackerEvent> events = new HashSet<>();
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------
