@@ -634,38 +634,44 @@ public enum ErrorCode {
   E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
 
   /* New data entry validations */
-  E7801("Data set ${ds:{0}} is not connected to data element(s): `${de_ids:{1}}`"),
-  E7802("Data set connection is ambitious for data element(s): `${de_ids:{0}}`"),
-  E7803("No data set for data element(s): `${de_ids:{0}}`"),
-  E7804("Data set ${ds:{0}} incompatible with ISO period(s): `${periods:{1}}`"),
-  E7805("Org unit(s) not valid for data set {0}: `{1}`"),
-  E7806("Attribute option combo(s) not valid for data set {0}: `{1}`"),
-  E7807("Category option combo(s) not valid for data set {0} and data element {1}: `{2}`"),
-  E7808("Atomic mode requires all values to be valid but only {0}/{1} were."),
-  E7809(
-      "Data entry block by approval for attribute option combo {0} and org unit - period combinations: `{1}`"),
-  E7810("Current user cannot enter data for category option(s): `{0}`"),
-  E7811("Attribute option combo {0} not connected to org unit(s): `{1}`"),
-  E7812("Data set ${ds:{0}} not open for data entry during period(s): `${periods:{1}}`"),
-  E7813("Org units not operational during entered period(s): `{0}`"),
-  E7814("Current user cannot enter data for org unit(s): `{0}`"),
-  E7815("Current user cannot enter data for data set: `{0}`"),
-  E7816("Data set not found: `{0}`"),
-  E7817("Data set UID not valid: `{0}`"),
-  E7818("Value ${index:{0}} period not defined in group or value: `${dv:{1}}`"),
-  E7819("Value ${index:{0}} data element not defined in group or value: `${dv:{1}}`"),
-  E7820("Value ${index:{0}} org unit not defined in group or value: `${dv:{1}}`"),
-  E7821("Value ${index:{0}} data element UID not valid: `${uid:{1}}`"),
-  E7822("Value ${index:{0}} org unit UID is not valid: `${uid:{1}}`"),
-  E7823("Value ${index:{0}} category option combo not found: `${id:{1}}`"),
-  E7824("Value ${index:{0}} category option combo UID is not valid: `${uid:{1}}`"),
-  E7825("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
-  E7826("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
-  E7827("Value ${index:{0}} org unit not found: `${id:{1}}`"),
-  E7828("Value ${index:{0}} data element not found: `${id:{1}}`"),
-  E7830(
-      "Value ${index:{0}} data set cannot be undefined when using categories and category options to refer to the category option combo: `${options:{1}}`"),
-  E7831("Attribute option combo(s) not open for data entry during period(s): `${periods:{0}}`"),
+  // set level decoding and general input issues
+  E8000("Atomic mode requires all values to be valid but only {0}/{1} were."),
+  E8002("Data set detection failed, found multiple sets: `${datasets:{0}}`"),
+  E8003("Data set detection failed, found no set for data element(s): `${elements:{0}}`"),
+  E8004("Data set UID not valid: `${id:{0}}`"),
+  E8005("Data set not found: `${id:{0}}`"),
+  // set level current user access issues
+  E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
+  E8011("Current user cannot enter data for org unit(s): `${units:{0}}`"),
+  E8012("Current user cannot enter data for category option(s): `${options:{0}}`"),
+  // set level model consistency issues
+  E8020("Data set ${ds:{0}} not usable with data element(s): `${elements:{1}}`"),
+  E8021("Data set ${ds:{0}} not usable with period(s): `${periods:{1}}`"),
+  E8022("Data set ${ds:{0}} not usable with org unit(s): `${units:{1}}`"),
+  E8023("Data set ${ds:{0}} not usable with attribute option combo(s): `${combos:{1}}`"),
+  E8024(
+      "Data set ${ds:{0}} + data element ${de:{1}} not usable with category option combo(s): `${combos:{2}}`"),
+  E8025("Attribute option combo ${combo:{0}} not usable with org unit(s): `${units:{1}}`"),
+  // set level timeliness issues
+  E8030("Data set ${ds:{0}} not open for data entry of period(s): `${periods:{1}}`"),
+  E8031("Org unit ${unit:{0}} not open for data entry of period(s): `${periods:{1}}`"),
+  E8032(
+      "Attribute option combo ${combo:{0}} not open for data entry of period(s): `${periods:{1}}`"),
+  E8033(
+      "Attribute option combo ${combo:{0}} already approved for org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+  // value level decoding and input issues
+  E8100("Value ${index:{0}} period not defined in group or value: `${dv:{1}}`"),
+  E8101("Value ${index:{0}} data set is required to decode category options: `${options:{1}}`"),
+  E8102("Value ${index:{0}} data element not defined in group or value: `${dv:{1}}`"),
+  E8103("Value ${index:{0}} data element not found: `${id:{1}}`"),
+  E8104("Value ${index:{0}} data element UID not valid: `${uid:{1}}`"),
+  E8105("Value ${index:{0}} org unit not defined in group or value: `${dv:{1}}`"),
+  E8106("Value ${index:{0}} org unit UID is not valid: `${uid:{1}}`"),
+  E8107("Value ${index:{0}} org unit not found: `${id:{1}}`"),
+  E8108("Value ${index:{0}} category option combo not found: `${id:{1}}`"),
+  E8109("Value ${index:{0}} category option combo UID is not valid: `${uid:{1}}`"),
+  E8110("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
+  E8111("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
   ;
 
   private final String message;

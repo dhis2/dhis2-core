@@ -183,13 +183,13 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       switch (ex.getCode()) {
         case E7601:
           throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(ds));
-        case E7804:
+        case E8021:
           throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(pe));
-        case E7806:
+        case E8023:
           throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aoc));
-        case E7805, E7811:
+        case E8022, E8025:
           throw new SMSProcessingException(SmsResponse.OU_NOTIN_DATASET.set(ou, ds));
-        case E7812, E7809:
+        case E8030, E8033:
           throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(ds, pe));
         default:
           throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
