@@ -648,7 +648,7 @@ public class DefaultDataEntryService implements DataEntryService {
           List<DataEntryValue> ouPeInApproval =
               e.getValue().stream().filter(dvApproved).distinct().toList();
           if (!ouPeInApproval.isEmpty()) {
-            // this error only indicates issues for the first AOC in conflict
+            // this error only indicates issues for the first AOC+OU in conflict
             // as there is no good way to describe more than one combination
             UID ou = ouPeInApproval.get(0).orgUnit();
             List<String> ouPeriods =

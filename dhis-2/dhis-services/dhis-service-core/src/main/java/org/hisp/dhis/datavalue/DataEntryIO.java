@@ -417,8 +417,15 @@ public class DataEntryIO {
         conflicts.add(
             toConflict(
                 g.values().stream().mapToInt(DataEntryValue::index), ex.getCode(), ex.getArgs()));
+        if (options.atomic()) return toImportSummary(summary, delete, conflicts);
       }
     }
+    return toImportSummary(summary, delete, conflicts);
+  }
+
+  @Nonnull
+  private static ImportSummary toImportSummary(
+      DataEntrySummary summary, boolean delete, List<ImportConflict> conflicts) {
     ImportSummary res = summary.toImportSummary();
     if (delete) {
       ImportCount counts = res.getImportCount();

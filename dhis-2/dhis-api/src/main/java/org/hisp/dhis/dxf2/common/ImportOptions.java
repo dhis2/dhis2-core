@@ -89,11 +89,15 @@ public class ImportOptions implements JobParameters {
     Values are grouped by data set.
     If multiple data sets are available for a data element the most recently created one is used.""")
   @JsonProperty
-  private boolean group;
+  private boolean group; // TODO make a setting instead
 
   @Maturity.Beta
   @OpenApi.Since(43)
-  @OpenApi.Description("Import only if all values are valid. New JSON import only.")
+  @OpenApi.Description(
+      """
+    A data value group is only written when all values are valid.
+    The first group that fails aborts the import.
+    Groups that have been processed successfully thus far are committed.""")
   @JsonProperty
   private boolean atomic;
 

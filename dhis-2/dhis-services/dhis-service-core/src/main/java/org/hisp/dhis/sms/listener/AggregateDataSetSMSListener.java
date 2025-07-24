@@ -181,7 +181,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       return SmsResponse.SUCCESS;
     } catch (ConflictException | BadRequestException ex) {
       switch (ex.getCode()) {
-        case E7601:
+        case E8002, E8003, E8004, E8005:
           throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(ds));
         case E8021:
           throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(pe));

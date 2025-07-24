@@ -29,13 +29,18 @@
  */
 package org.hisp.dhis.feedback;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Map;
+import lombok.Getter;
 import org.hisp.dhis.commons.util.TextUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
 public enum ErrorCode {
+  E0000("Retired error code"),
+
   /* General */
   E1000("API query must be specified"),
   E1001("API query contains an illegal string"),
@@ -568,49 +573,14 @@ public enum ErrorCode {
   E7502("Filter for period is not valid: `{0}`"),
   E7503("Filter for created date period is not valid: `{0}`"),
 
-  /* Data import validation */
-  // Data Set validation
-  E7600("Data set not found or not accessible: `{0}`"),
-  E7601("User does not have write access for DataSet: `{0}`"),
-  E7602("A valid dataset is required"),
-  E7603("Org unit not found or not accessible: `{0}`"),
-  E7604("Attribute option combo not found or not accessible: `{0}`"),
-
-  // Data Value validation
-  E7610("Data element not found or not accessible: `{0}`"),
+  /* (Old) Data import validation */
+  /* E7600-E7610 retired */
   E7611("Period not valid: `{0}`"),
-  E7612("Organisation unit not found or not accessible: `{0}`"),
-  E7613("Category option combo not found or not accessible for writing data: `{0}`"),
-  E7614("Category option combo: `{0}` option not accessible: `{1}`"),
-  E7615("Attribute option combo not found or not accessible for writing data: `{0}`"),
-  E7616("Attribute option combo: `{0}` option not accessible: `{1}`"),
+  /* E7612-E7616 retired */
   E7617("Organisation unit: `{0}` not in hierarchy of current user: `{1}`"),
-  E7618("Data value or comment not specified for data element: `{0}`"),
-  E7619("Value must match value type of data element `{0}`: `{1}`"),
-  E7620("Invalid comment: {0}"),
-  E7621("Data value is not a valid option of the data element option set: `{0}`"),
+  /* E7618-E7621 retired */
   E7622("Current user `{0}` has no access to any organisation unit data"),
-
-  // Data Value constraints
-  E7630("Category option combo is required but is not specified"),
-  E7631("Attribute option combo is required but is not specified"),
-  E7632("Period type of period: `{0}` not valid for data element: `{1}`"),
-  E7633("Data element: `{0}` is not part of dataset(s): `{1}`"),
-  E7634("Category option combo: `{0}` must be part of category combo of data element: `{1}`"),
-  E7635(
-      "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`"),
-  E7636("Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`"),
-  E7637("Invalid storedBy: {0}"),
-  E7638("Period: `{0}` is not within date range of attribute option combo: `{1}`"),
-  E7639("Organisation unit: `{0}` is not valid for attribute option combo: `{1}`"),
-  E7640("Current date is past expiry days for period: `{0}`  and data set: `{1}`"),
-  E7641(
-      "Period: `{0}` is after latest open future period: `{3}` for data element: `{1}` and data set: `{2}`"),
-  E7642(
-      "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`"),
-  E7643("Period: `{0}` is not open for this data set at this time: `{1}`"),
-  E7644("Period: `{0}` does not conform to the open periods of associated data sets"),
-  E7645("No data value for file resource exist for the given combination for data element: `{0}`"),
+  /* E7630-E7645 retired */
 
   /* Data store query validation */
   E7650("Not a valid path: `{0}`"),
@@ -692,8 +662,20 @@ public enum ErrorCode {
     this.message = TextUtils.replace(message, Map.of());
   }
 
-  public String getMessage() {
-    return message;
+  /**
+   * {@link ErrorCode}s are deserialized from DB in a few places, so we have to make sure deleted
+   * codes do not cause a racket. Therefore, any reasonable unknown code maps to {@link
+   * ErrorCode#E0000}.
+   */
+  @JsonCreator
+  public static ErrorCode of(String code) {
+    if (code == null) return null;
+    try {
+      return ErrorCode.valueOf(code);
+    } catch (IllegalArgumentException ex) {
+      if (code.matches("E[1-9][0-9]{3}")) return ErrorCode.E0000;
+      throw ex;
+    }
   }
 
   private static class Constants {

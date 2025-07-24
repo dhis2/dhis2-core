@@ -912,7 +912,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     String description = summary.getConflictsDescription();
     assertEquals(4, summary.getTotalConflictOccurrenceCount(), description);
-    assertEquals(4, summary.getConflictOccurrenceCount(ErrorCode.E7619), description);
+    assertEquals(4, summary.getConflictOccurrenceCount(ErrorCode.E8122), description);
     assertEquals(2, summary.getConflictCount(), description);
     Iterator<ImportConflict> conflicts = summary.getConflicts().iterator();
     assertArrayEquals(new int[] {10, 11}, conflicts.next().getIndexes());
