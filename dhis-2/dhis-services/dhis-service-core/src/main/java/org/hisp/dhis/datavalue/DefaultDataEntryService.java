@@ -266,7 +266,7 @@ public class DefaultDataEntryService implements DataEntryService {
     List<DataEntryValue> values = group.values();
     if (values.isEmpty()) return new DataEntrySummary(0, 0, 0, List.of());
 
-    progress.startingStage("Validating " + group.describe());
+    progress.startingStage("Validating group " + group.describe());
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup valid =
         progress.runStageAndRethrow(
@@ -279,7 +279,7 @@ public class DefaultDataEntryService implements DataEntryService {
 
     String verb = "Upserting";
     if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
-    progress.startingStage("%s %s".formatted(verb, valid.describe()));
+    progress.startingStage("%s group %s".formatted(verb, valid.describe()));
     int imported =
         progress.runStage(
             0, () -> options.dryRun() ? attempted : store.upsertValues(valid.values()));

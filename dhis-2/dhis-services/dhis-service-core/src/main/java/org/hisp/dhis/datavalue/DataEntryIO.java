@@ -340,7 +340,7 @@ public class DataEntryIO {
       throws BadRequestException, ConflictException {
     List<DataEntryGroup> groups = new ArrayList<>();
     for (DataEntryGroup.Input input : inputs) {
-      progress.startingStage("Decoding " + input.describe());
+      progress.startingStage("Decoding group " + input.describe());
       progress.nonNullStagePostCondition(
           groups.add(
               progress.runStageAndRethrow(
@@ -352,7 +352,7 @@ public class DataEntryIO {
       splitGroups = new ArrayList<>();
       for (DataEntryGroup g : groups) {
         if (g.dataSet() == null) {
-          progress.startingStage("Splitting " + g.describe());
+          progress.startingStage("Splitting group " + g.describe());
           splitGroups.addAll(
               progress.nonNullStagePostCondition(
                   progress.runStageAndRethrow(

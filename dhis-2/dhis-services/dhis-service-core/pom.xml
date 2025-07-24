@@ -70,6 +70,14 @@
     </dependency>
     <!-- Other -->
     <dependency>
+      <groupId>org.hisp</groupId>
+      <artifactId>staxwax</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.librepdf</groupId>
+      <artifactId>openpdf</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
     </dependency>
