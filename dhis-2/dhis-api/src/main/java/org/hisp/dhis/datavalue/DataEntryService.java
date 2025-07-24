@@ -51,11 +51,22 @@ import org.hisp.dhis.scheduling.JobProgress;
 public interface DataEntryService {
 
   /**
-   * Resolves any valid input ID to UIDs.
+   * Decodes a single data value for entry.
+   *
+   * @param value as entered by the current user
+   * @return a formally valid value
+   * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
+   *     is missing, a referenced object doesn't exist
+   */
+  DataEntryValue decodeValue(DataEntryValue.Input value) throws BadRequestException;
+
+  /**
+   * Decodes a group of data values as entered by the current user. This mainly entails checking and
+   * converting input ID to UIDs.
    *
    * @param group the group data as submitted by a user
-   * @throws BadRequestException in case required IDs are missing, no object can be found for a
-   *     provided ID or an ID being formally invalid. This should be due to a user input error.
+   * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
+   *     is missing, a referenced object doesn't exist
    */
   DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException;
 
@@ -86,20 +97,6 @@ public interface DataEntryService {
       throws ConflictException, BadRequestException;
 
   /**
-   * Data entry of a single data value deletion. Support for data deletion (mark deleted) cell by
-   * cell as performed in the data entry app.
-   *
-   * @param force true to skip timeliness validation as super-user
-   * @param dataSet when not provided it must be unique for the key combination
-   * @param key of the data value to soft delete
-   * @return true, if a value got soft deleted, false when no such value did exist
-   * @throws ConflictException in case of validation errors
-   * @throws BadRequestException in case the submitted key is formally invalid
-   */
-  boolean deleteValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
-      throws ConflictException, BadRequestException;
-
-  /**
    * Data entry of a group of values belonging to the same data set. If the group does not
    * explicitly define that target data set it is automatically resolved. If multiple datasets exist
    * as possible target for the values based on the data elements this is a conflict.
@@ -116,6 +113,20 @@ public interface DataEntryService {
   DataEntrySummary upsertGroup(
       DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
       throws ConflictException;
+
+  /**
+   * Data entry of a single data value deletion. Support for data deletion (mark deleted) cell by
+   * cell as performed in the data entry app.
+   *
+   * @param force true to skip timeliness validation as super-user
+   * @param dataSet when not provided it must be unique for the key combination
+   * @param key of the data value to soft delete
+   * @return true, if a value got soft deleted, false when no such value did exist
+   * @throws ConflictException in case of validation errors
+   * @throws BadRequestException in case the submitted key is formally invalid
+   */
+  boolean deleteValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
+      throws ConflictException, BadRequestException;
 
   DataEntrySummary deleteGroup(
       DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)

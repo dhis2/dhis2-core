@@ -92,6 +92,12 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
+  public DataEntryValue decodeValue(DataEntryValue.Input value) throws BadRequestException {
+    return decodeGroup(new DataEntryGroup.Input(List.of(value))).values().get(0);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException {
     UnaryOperator<String> isoOf = UnaryOperator.identity();
     UnaryOperator<String> dsOf = UnaryOperator.identity();

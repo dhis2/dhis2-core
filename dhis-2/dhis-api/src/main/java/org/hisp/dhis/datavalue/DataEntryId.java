@@ -29,17 +29,24 @@
  */
 package org.hisp.dhis.datavalue;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 
 public interface DataEntryId {
 
+  @Nonnull
   UID dataElement();
 
+  @Nonnull
   UID orgUnit();
 
+  @CheckForNull
   UID categoryOptionCombo();
 
+  @CheckForNull
   UID attributeOptionCombo();
 
+  @Nonnull
   String period();
 }
