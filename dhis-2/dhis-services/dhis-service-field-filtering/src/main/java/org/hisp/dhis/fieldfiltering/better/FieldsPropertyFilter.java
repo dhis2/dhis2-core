@@ -58,11 +58,11 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     if (current.test(writer.getName())) {
-//      if (current.containsChild(writer.getName())) {
-        // Set the child for nested serialization
-        Fields children = current.getChild(writer.getName());
-        provider.setAttribute(FIELDS_ATTRIBUTE, children);
-//      }
+      //      if (current.containsChild(writer.getName())) {
+      // Set the child for nested serialization
+      Fields children = current.getChild(writer.getName());
+      provider.setAttribute(FIELDS_ATTRIBUTE, children);
+      //      }
 
       writer.serializeAsField(pojo, jgen, provider);
 

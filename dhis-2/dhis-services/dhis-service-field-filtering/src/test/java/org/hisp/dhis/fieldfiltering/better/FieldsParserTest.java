@@ -204,7 +204,6 @@ class FieldsParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(true, "group.id"),
                 new ExpectField(true, "group.name"))),
-
         Arguments.of(
             "id,name,!code",
             List.of(
@@ -239,7 +238,8 @@ class FieldsParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(true, "group.code"))),
 
-        // based on testParseWithPresetAndExclude without the presets as I will need to test them separately
+        // based on testParseWithPresetAndExclude without the presets as I will need to test them
+        // separately
         // FieldFilterParser.parse("id,name,!code,:owner,group[:owner,:all,!code,hello]");
         Arguments.of(
             "code,id,name,!code,group[!code,hello,code]",
@@ -315,12 +315,64 @@ class FieldsParserTest {
   //      assertTrue(code.isExclude());
   //      assertFalse(code.isPreset());
   //    }
+
   @Test
-  void testBetterParserStar() {
+  void testBetterParserGivenRootStar() {
+    Fields fields = FieldsParser.parse("*");
+
+    assertFields(
+        List.of(
+            new ExpectField(true, "code"),
+            new ExpectField(true, "group"),
+            new ExpectField(true, "group.code"),
+            new ExpectField(true, "group.group.code")),
+        fields);
+  }
+
+  @Test
+  void testBetterParserGivenRootStarAndExclusion() {
     Fields fields = FieldsParser.parse("*,!code");
 
     assertFields(
-        List.of(new ExpectField(false, "code"),new ExpectField(true, "group"), new ExpectField(true, "group.code")), fields);
+        List.of(
+            new ExpectField(false, "code"),
+            new ExpectField(true, "group"),
+            new ExpectField(true, "group.code"),
+            new ExpectField(true, "group.group.code")),
+        fields);
+  }
+
+  @Test
+  void testBetterParserGivenRootStarAndChildExclusion() {
+    Fields fields = FieldsParser.parse("*,group[!code]");
+
+    assertFields(
+        List.of(
+            new ExpectField(true, "code"),
+            new ExpectField(true, "code.name"),
+            new ExpectField(true, "group"),
+            new ExpectField(false, "group.code"),
+            new ExpectField(false, "group.code.name")),
+        fields);
+  }
+
+  @Test
+  void testBetterParserGivenChildStarAndChildExclusion() {
+    Fields fields = FieldsParser.parse("code,group[*,!code],names[list[*]],names[list[!first]]");
+
+    assertFields(
+        List.of(
+            new ExpectField(true, "code"),
+            new ExpectField(true, "code.name"),
+            new ExpectField(true, "group"),
+            new ExpectField(true, "group.name"),
+            new ExpectField(false, "group.code"),
+            new ExpectField(false, "group.code.name"),
+            new ExpectField(true, "names"),
+            new ExpectField(true, "names.list"),
+            new ExpectField(true, "names.list.second"),
+            new ExpectField(false, "names.list.first")),
+        fields);
   }
 
   // TODO implement: group(id) is equivalent to group[id] but () is also used for transformers
@@ -333,9 +385,12 @@ class FieldsParserTest {
   // the schema then? Is it due to his approach of computing all paths of an object instead of only
   // what we need to know?
   // TODO(ivo) add test for negating presets which is ignored so leads to preset inclusion
-  // TODO(ivo) only used by metadata: fields=parent on orgUnits only shows the parent.id and fields=parent[:all] shows all. This is done by the FieldFilterService, the FieldFilterParser only parses the presets without expanding them.
+  // TODO(ivo) only used by metadata: fields=parent on orgUnits only shows the parent.id and
+  // fields=parent[:all] shows all. This is done by the FieldFilterService, the FieldFilterParser
+  // only parses the presets without expanding them.
   // fields
-  // TODO(ivo) support transformers: I think I first need to investigate all their intricacies and what a
+  // TODO(ivo) support transformers: I think I first need to investigate all their intricacies and
+  // what a
   // more efficient way is for Jackson
   // TODO(ivo) only used in tests: FieldFilterParser.parseWithPrefix can be removed
   @Test

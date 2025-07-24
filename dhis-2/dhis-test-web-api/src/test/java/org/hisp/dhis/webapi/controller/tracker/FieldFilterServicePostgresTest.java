@@ -63,7 +63,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests that simple POJOs as used by tracker in its view classes can be serialized and filtered to JSON by Jackson and the field filtering implementation.
+ * Tests that simple POJOs as used by tracker in its view classes can be serialized and filtered to
+ * JSON by Jackson and the field filtering implementation.
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -99,12 +100,12 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
       strings = {
         "*",
         "event,dataValues",
-        // TODO(ivo) why would this now include all? I though I prioritize child specs. Also if I get it to work try to figure out if I can move the getChild logic into the contstructor?
         "event,dataValues[dataElement,value]",
         "event,dataValues[*,!storedBy]",
         "*,!enrollment",
       })
-  void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields) throws JsonProcessingException {
+  void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
+      throws JsonProcessingException {
     String actualCurrent = serializeUsingCurrentFilter(events, fields);
     String actualBetter = serializeUsingBetterFilter(events, fields);
 

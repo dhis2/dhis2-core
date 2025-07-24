@@ -46,8 +46,8 @@ import lombok.Getter;
  */
 @EqualsAndHashCode
 public final class Fields implements Predicate<String> {
-  private static final Fields ALL=all();
-  private static final Fields NONE=none();
+  private static final Fields ALL = all();
+  private static final Fields NONE = none();
 
   /** True means "includes all except", whereas false means "includes only specified". */
   private final boolean includesAll;
@@ -127,7 +127,7 @@ public final class Fields implements Predicate<String> {
         return false;
       }
 
-        current = current.getChild(segment);
+      current = current.getChild(segment);
     }
 
     return true;
@@ -156,12 +156,14 @@ public final class Fields implements Predicate<String> {
   @Nonnull
   public Fields getChild(String field) {
     // TODO(ivo) make sure I am not distributing logic now between the parser and this class
-    // specific children specs take precedence as they would for example contain explicit exclusions like fields=program[!name]
+    // specific children specs take precedence as they would for example contain explicit exclusions
+    // like fields=program[!name]
     if (children.containsKey(field)) {
       return children.get(field);
     }
 
-    // TODO(ivo) this is the default behavior for tracker while metadata would do fields=program turns to fields=program[id]
+    // TODO(ivo) this is the default behavior for tracker while metadata would do fields=program
+    // turns to fields=program[id]
     if (test(field)) {
       return ALL;
     }
