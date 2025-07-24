@@ -73,6 +73,14 @@ public interface TrackedEntityAttributeStore
   Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes();
 
   /**
+   * Retrieve all attributes that are either configured as trigram indexable and at least one of the
+   * operators `LIKE` or `EW` is not blocked.
+   *
+   * @return list of TrackedEntityAttribute
+   */
+  Set<TrackedEntityAttribute> getAllTrigramIndexableAttributes();
+
+  /**
    * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
    *
    * @return a Set of {@link TrackedEntityAttribute} UIDs

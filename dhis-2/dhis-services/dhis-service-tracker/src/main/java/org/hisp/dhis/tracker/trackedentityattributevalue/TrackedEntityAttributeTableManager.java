@@ -42,5 +42,7 @@ public interface TrackedEntityAttributeTableManager {
 
   void dropTrigramIndex(Long trackedEntityAttributeId);
 
-  List<Long> getAttributeIdsWithTrigramIndex();
+  List<Long> getAttributesWithTrigramIndex();
+
+  void runAnalyzeOnTrackedEntityAttributeValue();
 }

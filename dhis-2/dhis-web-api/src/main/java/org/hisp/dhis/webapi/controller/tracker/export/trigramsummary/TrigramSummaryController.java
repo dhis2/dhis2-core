@@ -94,7 +94,7 @@ public class TrigramSummaryController {
             .collect(Collectors.toSet());
 
     List<Long> indexedAttributeIds =
-        trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
+        trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
 
     List<TrackedEntityAttribute> allIndexedAttributes;
 

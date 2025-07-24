@@ -185,8 +185,15 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
+  // TODO Should we remove this?
   public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
     return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Set<TrackedEntityAttribute> getAllTrigramIndexableAttributes() {
+    return attributeStore.getAllTrigramIndexableAttributes();
   }
 
   // -------------------------------------------------------------------------

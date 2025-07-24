@@ -29,9 +29,8 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -48,6 +47,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,40 +175,31 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     programService.updateProgram(programB);
   }
 
+  @AfterEach
+  void dropTrigramIndexes() {
+    List<String> indexNames =
+        jdbcTemplate.queryForList(
+            "SELECT indexname FROM pg_indexes WHERE indexname LIKE 'in_gin_teavalue_%'",
+            String.class);
+
+    indexNames.forEach(name -> jdbcTemplate.execute("DROP INDEX IF EXISTS " + name));
+  }
+
   @Test
   void testGetAllIndexableAttributes() {
+    attributeW.setTrigramIndexable(true);
     attributeService.addTrackedEntityAttribute(attributeW);
+    attributeY.setTrigramIndexable(true);
     attributeService.addTrackedEntityAttribute(attributeY);
+    attributeZ.setTrigramIndexable(true);
     attributeService.addTrackedEntityAttribute(attributeZ);
 
     Set<TrackedEntityAttribute> indexableAttributes =
-        attributeService.getAllTrigramIndexableTrackedEntityAttributes();
+        attributeService.getAllTrigramIndexableAttributes();
 
-    assertNotNull(indexableAttributes);
-    assertEquals(indexableAttributes.size(), 9);
+    assertContainsOnly(Set.of(attributeW, attributeY, attributeZ), indexableAttributes);
     assertTrue(indexableAttributes.contains(attributeW));
     assertTrue(indexableAttributes.contains(attributeY));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'A')));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'E')));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'J')));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'N')));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'O')));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'S')));
-    assertTrue(
-        indexableAttributes.contains(
-            attributeService.getTrackedEntityAttributeByName("Attribute" + 'T')));
   }
 
   @Test
@@ -225,13 +216,29 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
   }
 
   @Test
-  void testTrigramIndexDetection() {
-    attributeService.addTrackedEntityAttribute(attributeW);
-    trackedEntityAttributeTableManager.createTrigramIndex(attributeW);
+  void shouldReturnAllTrigramIndexedAttributes() {
+    attributeService.addTrackedEntityAttribute(attributeY);
+    trackedEntityAttributeTableManager.createTrigramIndex(attributeY);
+    attributeService.addTrackedEntityAttribute(attributeZ);
+    createTrigramIndexWithCustomNaming(attributeZ, "trigram_index_name");
 
-    List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
+    List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
 
-    assertNotNull(attributeIds);
-    assertTrue(attributeIds.contains(attributeW.getId()));
+    assertContainsOnly(List.of(attributeY.getId(), attributeZ.getId()), attributeIds);
+  }
+
+  private void createTrigramIndexWithCustomNaming(
+      TrackedEntityAttribute attribute, String indexName) {
+    attributeService.addTrackedEntityAttribute(attributeY);
+
+    String query =
+        String.format(
+            """
+                CREATE INDEX CONCURRENTLY IF NOT EXISTS %s ON trackedentityattributevalue
+                USING gin (trackedentityid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d
+            """,
+            indexName, attribute.getId());
+
+    jdbcTemplate.execute(query);
   }
 }

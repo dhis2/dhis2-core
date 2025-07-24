@@ -133,6 +133,25 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
+  public Set<TrackedEntityAttribute> getAllTrigramIndexableAttributes() {
+    Query<TrackedEntityAttribute> query =
+        getSession()
+            .createNativeQuery(
+                """
+        SELECT tea.trackedentityattributeid, tea.name
+        FROM trackedentityattribute tea
+        WHERE tea.trigramindexable = true
+        AND (
+            NOT tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            OR NOT tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+        """,
+                TrackedEntityAttribute.class);
+
+    return new HashSet<>(query.list());
+  }
+
+  @Override
   public Set<String> getTrackedEntityAttributesInProgram(Program program) {
     TypedQuery<String> query =
         entityManager.createQuery(

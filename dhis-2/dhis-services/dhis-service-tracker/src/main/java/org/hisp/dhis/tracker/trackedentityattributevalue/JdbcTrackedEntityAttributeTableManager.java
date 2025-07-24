@@ -50,10 +50,6 @@ public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttr
 
   private static final String TRIGRAM_INDEX_DROP_QUERY = "DROP INDEX IF EXISTS in_gin_teavalue_%d";
 
-  private static final String LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY =
-      "SELECT cast(substring(indexname from 'in_gin_teavalue_(.*)') as bigint) as teaid FROM  pg_indexes"
-          + " WHERE   indexname like 'in_gin_teavalue_%' and tablename = 'trackedentityattributevalue'";
-
   private final JdbcTemplate jdbcTemplate;
 
   // -------------------------------------------------------------------------
@@ -72,12 +68,33 @@ public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttr
 
   @Override
   public void dropTrigramIndex(Long teaId) {
+    // TODO Would this also delete an index that doesn't follow our naming convention?
     String query = String.format(TRIGRAM_INDEX_DROP_QUERY, teaId);
     jdbcTemplate.execute(query);
   }
 
   @Override
-  public List<Long> getAttributeIdsWithTrigramIndex() {
-    return jdbcTemplate.queryForList(LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY, Long.class);
+  public List<Long> getAttributesWithTrigramIndex() {
+    return jdbcTemplate.queryForList(
+        """
+            select
+                cast(
+                    substring(idx.indexdef from 'trackedentityattributeid\\s*=\\s*(\\d+)')
+              	        as bigint
+              	) as teaid
+            from
+            	  pg_indexes idx
+            where
+            	  idx.tablename = 'trackedentityattributevalue'
+            	  and idx.indexdef ilike '%gin_trgm_ops%'
+            	  and idx.indexdef ilike '%WHERE%'
+            	  and idx.indexdef ~ 'trackedentityattributeid\\s*=\\s*\\d+'
+            """,
+        Long.class);
+  }
+
+  @Override
+  public void runAnalyzeOnTrackedEntityAttributeValue() {
+    jdbcTemplate.execute("ANALYZE trackedentityattributevalue (value)");
   }
 }
