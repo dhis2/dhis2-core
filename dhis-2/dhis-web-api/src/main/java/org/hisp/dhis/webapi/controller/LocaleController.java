@@ -137,7 +137,7 @@ public class LocaleController {
   public WebMessage addLocale(
       @RequestParam String country,
       @RequestParam String language,
-      @RequestParam(required = false) String variant) {
+      @RequestParam(required = false) String script) {
 
     if (StringUtils.isEmpty(country) || StringUtils.isEmpty(language)) {
       return conflict("Invalid country or language code.");
@@ -145,7 +145,7 @@ public class LocaleController {
 
     final Locale locale;
     try {
-      locale = LocaleUtils.parse(LocaleUtils.getLocaleString(language, country, variant));
+      locale = LocaleUtils.parse(LocaleUtils.getLocaleString(language, country, script));
     } catch (IllegalArgumentException e) {
       return conflict("Invalid locale format: " + e.getMessage());
     }
@@ -156,7 +156,7 @@ public class LocaleController {
       return conflict("Locale code existed.");
     }
 
-    i18nLocale = localeService.addI18nLocale(language, country, variant);
+    i18nLocale = localeService.addI18nLocale(language, country, script);
 
     return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
   }

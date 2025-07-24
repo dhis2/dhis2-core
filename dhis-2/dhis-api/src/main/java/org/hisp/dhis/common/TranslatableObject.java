@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
@@ -105,8 +106,8 @@ public class TranslatableObject {
     }
 
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey( locale.toLanguageTag(), translationKey),
+        key -> getTranslationValue(locale.toLanguageTag(), translationKey, defaultTranslation));
   }
 
   /**

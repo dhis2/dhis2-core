@@ -44,6 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 
@@ -109,7 +110,6 @@ public class TranslationProperty implements Serializable {
         return translation.getValue();
       }
     }
-
     return defaultValue;
   }
 
@@ -126,13 +126,14 @@ public class TranslationProperty implements Serializable {
 
     final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(getTranslations())) {
+    if (locale == null || translationKey == null || getTranslations() == null || getTranslations().isEmpty()) {
       return defaultValue;
     }
 
+
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey( locale.toLanguageTag(), translationKey),
+        key -> getTranslationValue(locale.toLanguageTag(), translationKey, defaultTranslation));
   }
 
   /**

@@ -35,6 +35,7 @@ import java.util.Locale;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.i18n.I18nLocaleStore;
 import org.hisp.dhis.i18n.locale.I18nLocale;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -58,6 +59,6 @@ public class HibernateI18nLocaleStore extends HibernateIdentifiableObjectStore<I
     return getSingleResult(
         builder,
         newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("locale"), locale.toString())));
+            .addPredicate(root -> builder.equal(root.get("locale"), locale.toLanguageTag() )));
   }
 }

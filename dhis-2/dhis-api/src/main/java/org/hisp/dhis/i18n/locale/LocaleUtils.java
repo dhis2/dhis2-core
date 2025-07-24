@@ -46,14 +46,24 @@ public class LocaleUtils {
    *
    * @param language the language, cannot be null.
    * @param country the country, can be null.
-   * @param variant , can be null.
+   * @param script , can be null.
    * @return a locale string.
    */
-  public static String getLocaleString(String language, String country, String variant) {
+  public static String getLocaleString(String language, String country, String script) {
+    if (language == null || language.isEmpty()) {
+      throw new IllegalArgumentException("Language must not be null or empty");
+    }
+
     Locale locale;
 
-    if (variant != null && !variant.isEmpty()) {
-      locale = new Locale(language, country, variant);
+    if (script != null && !script.isEmpty()) {
+      locale = new Locale.Builder()
+          .setLanguage(language)
+          .setRegion(country != null ? country : "")
+          .setScript(script)
+          .build();
+    } else if (country == null || country.isEmpty()) {
+      locale = new Locale(language);
     } else {
       locale = new Locale(language, country);
     }
@@ -73,7 +83,6 @@ public class LocaleUtils {
     String lang = locale.getLanguage();
     String region = locale.getCountry();
     String script = locale.getScript();
-    String variant = locale.getVariant();
 
     fallbacks.add(lang);
 
@@ -83,17 +92,7 @@ public class LocaleUtils {
 
     // Include script fallbacks
     if (!script.isEmpty()) {
-      fallbacks.add(lang + SEP + script);
-
-      if (!region.isEmpty()) {
-        fallbacks.add(lang + SEP + region + SEP + script);
-        fallbacks.add(lang + SEP + script + SEP + region);
-      }
-    }
-
-    // Legacy fallback using variant
-    if (!variant.isEmpty()) {
-      fallbacks.add(locale.toString());
+      fallbacks.add(lang + SEP + region + SEP + script);
     }
 
     return fallbacks;
@@ -114,26 +113,26 @@ public class LocaleUtils {
     try {
       // Legacy style with underscores
       String[] parts = localeStr.split("_");
+      String language = parts[0];
+        String country = parts.length > 1 ? parts[1] : "";
+        String script = parts.length > 2 ? parts[2] : "";
       if (parts.length == 3) {
-        return new Locale(parts[0], parts[1], parts[2]);
+        return new Locale.Builder().setLanguage(language).setRegion(country).setScript(script).build();
       } else if (parts.length == 2) {
-        return new Locale(parts[0], parts[1]);
+        return new Locale.Builder().setLanguage(language).setRegion(country).build();
       } else {
-        return new Locale(parts[0]);
+        return new Locale.Builder().setLanguage(language).build();
       }
     } catch (Exception e) {
       throw new IllegalArgumentException("Failed to parse locale: " + localeStr, e);
     }
   }
 
-  // Note that in the context of DHIS2, the underscore format is used for locale strings.
-  // It may be the same as Locale.toString() for some locales, but it is not guaranteed.
-  // For supported locales, (language + country + variant) is used.
+
   public static String toUnderscoreFormat(Locale locale) {
     StringBuilder sb = new StringBuilder(locale.getLanguage());
-
-    if (!locale.getVariant().isEmpty()) {
-      sb.append("_").append(locale.getCountry()).append("_").append(locale.getVariant());
+    if (!locale.getScript().isEmpty()) {
+      sb.append("_").append(locale.getCountry()).append("_").append(locale.getScript());
     } else if (!locale.getCountry().isEmpty()) {
       sb.append("_").append(locale.getCountry());
     }

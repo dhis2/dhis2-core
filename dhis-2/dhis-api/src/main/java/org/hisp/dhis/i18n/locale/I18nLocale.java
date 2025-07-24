@@ -54,7 +54,7 @@ public class I18nLocale extends BaseIdentifiableObject {
 
   public I18nLocale(Locale locale) {
     this.name = locale.getDisplayName();
-    this.locale = toUnderscoreFormat(locale);
+    this.locale = locale.toLanguageTag();
   }
 
   // -------------------------------------------------------------------------

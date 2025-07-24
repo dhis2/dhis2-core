@@ -62,6 +62,7 @@ import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -322,8 +323,8 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     }
 
     return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+        Translation.getCacheKey( locale.toLanguageTag(), translationKey),
+        key -> getTranslationValue(locale.toLanguageTag(), translationKey, defaultTranslation));
   }
 
   @Override

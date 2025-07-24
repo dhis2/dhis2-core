@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.commons.util.PathUtils;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -187,32 +188,49 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
    * @return a {@link Locale}.
    */
   private Locale getLocaleFromName(String name) {
-    Pattern pattern =
-        Pattern.compile(
-            "^"
-                + GLOBAL_RESOURCE_BUNDLE_NAME
-                + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?"
-                + EXT_RESOURCE_BUNDLE
-                + "$");
+
+    if (name.equals("i18n_global.properties")) {
+      log.debug("Detected default resource bundle '{}', treating as 'en'", name);
+      return Locale.forLanguageTag("en");
+    }
+
+    Pattern pattern = Pattern.compile(
+        "^"
+            + GLOBAL_RESOURCE_BUNDLE_NAME
+            + "(?:_([a-z]{2,3})(?:_([A-Z0-9]{2,4})(?:_(.+))?)?)?"
+            + EXT_RESOURCE_BUNDLE
+            + "$");
 
     Matcher matcher = pattern.matcher(name);
 
-    if (matcher.matches()) {
-      if (matcher.group(1) != null) {
-        if (matcher.group(2) != null) {
-          if (matcher.group(3) != null) {
-            return new Locale(matcher.group(1), matcher.group(2), matcher.group(3));
-          }
-
-          return new Locale(matcher.group(1), matcher.group(2));
-        }
-
-        return new Locale(matcher.group(1));
-      }
+    if (!matcher.matches()) {
+      log.warn("Locale pattern did not match resource bundle: {}", name);
+      return LocaleManager.DEFAULT_LOCALE;
     }
 
-    return LocaleManager.DEFAULT_LOCALE;
+    String language = matcher.group(1);
+    String country = matcher.group(2);
+    String script = matcher.group(3);
+
+    if (language == null || language.isEmpty()) {
+      log.warn("Missing language group in locale from resource bundle: {}", name);
+      return LocaleManager.DEFAULT_LOCALE;
+    }
+
+    log.debug("Matched locale parts from bundle '{}': lang='{}', country='{}', script='{}'",
+        name, language, country, script);
+
+    try {
+      String localeStr = LocaleUtils.getLocaleString(language, country, script);
+      log.debug("Built locale string: {}", localeStr);
+      return LocaleUtils.parse(localeStr);
+    } catch (Exception e) {
+      log.warn("Failed to parse locale from name '{}': lang={}, country={}, script={}",
+          name, language, country, script, e);
+      return LocaleManager.DEFAULT_LOCALE;
+    }
   }
+
 
   // -------------------------------------------------------------------------
   // Support method
