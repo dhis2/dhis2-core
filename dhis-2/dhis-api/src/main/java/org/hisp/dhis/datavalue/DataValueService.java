@@ -79,7 +79,7 @@ public interface DataValueService {
    *
    * @param dataValues list of DataValues to update.
    */
-  void updateDataValues(List<DataValue> dataValues) throws ConflictException;
+  void updateDataValues(List<DataValue> dataValues) throws ConflictException, BadRequestException;
 
   /**
    * Deletes a DataValue.

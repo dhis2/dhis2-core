@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -218,12 +219,13 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     if (!StringUtils.isEmpty(value)) {
       UID ds = UID.of(command.getDataset());
-      UID de = UID.of(code.getDataElement());
-      UID ou = UID.of(orgUnit);
-      UID coc = UID.of(code.getOptionId());
+      String de = getUid(code.getDataElement());
+      String ou = getUid(orgUnit);
+      String coc = getUid(code.getOptionId());
       String pe = period.getIsoDate();
-      dataEntryService.upsertValue(
-          false, ds, new DataEntryValue(0, de, ou, coc, null, pe, value, null, null, null));
+      DataEntryValue.Input dv =
+          new DataEntryValue.Input(de, ou, coc, null, null, pe, value, null, null, null);
+      dataEntryService.upsertValue(false, ds, dataEntryService.decodeValue(ds, dv));
     }
 
     String formula = code.getFormula();
@@ -239,14 +241,14 @@ public class DataValueSMSListener extends CommandSMSListener {
       return;
     }
 
-    DataValue dv =
+    DataValue curValue =
         dataValueService.getDataValue(
             targetDataElement,
             period,
             orgUnit,
             dataElementCategoryService.getDefaultCategoryOptionCombo());
 
-    int val = dv == null ? 0 : parseInt(dv.getValue());
+    int val = curValue == null ? 0 : parseInt(curValue.getValue());
 
     if (operation.equals("+")) {
       val += parseInt(value);
@@ -255,11 +257,16 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     UID ds = UID.of(command.getDataset());
-    UID de = UID.of(targetDataElement);
-    UID ou = UID.of(orgUnit);
+    String de = getUid(targetDataElement);
+    String ou = getUid(orgUnit);
     String pe = period.getIsoDate();
-    dataEntryService.upsertValue(
-        false, ds, new DataEntryValue(0, de, ou, null, null, pe, "" + val, null, null, null));
+    DataEntryValue.Input dv =
+        new DataEntryValue.Input(de, ou, null, null, null, pe, "" + val, null, null, null);
+    dataEntryService.upsertValue(false, ds, dataEntryService.decodeValue(ds, dv));
+  }
+
+  private static String getUid(IdentifiableObject object) {
+    return object == null ? null : object.getUid();
   }
 
   private boolean markCompleteDataSet(

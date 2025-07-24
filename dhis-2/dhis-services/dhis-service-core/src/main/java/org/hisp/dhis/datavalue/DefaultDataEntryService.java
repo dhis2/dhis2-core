@@ -92,7 +92,8 @@ public class DefaultDataEntryService implements DataEntryService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataEntryValue decodeValue(DataEntryValue.Input value) throws BadRequestException {
+  public DataEntryValue decodeValue(@CheckForNull UID dataSet, @Nonnull DataEntryValue.Input value)
+      throws BadRequestException {
     return decodeGroup(new DataEntryGroup.Input(List.of(value))).values().get(0);
   }
 
@@ -134,7 +135,7 @@ public class DefaultDataEntryService implements DataEntryService {
     int i = 0;
     String dsStr = dsOf.apply(dataSet);
     if (dataSet != null && dsStr == null) throw new BadRequestException(ErrorCode.E7816, dataSet);
-    UID ds = dsStr == null ? null : decodeUID(dsStr);
+    UID ds = decodeUID(dsStr);
     if (dsStr != null && ds == null) throw new BadRequestException(ErrorCode.E7817, dsStr);
     List<DataEntryValue> decoded = new ArrayList<>(values.size());
     String deGroup = group.dataElement();

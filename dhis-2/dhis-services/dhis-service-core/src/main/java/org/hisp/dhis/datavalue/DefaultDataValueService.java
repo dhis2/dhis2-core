@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
@@ -77,13 +78,13 @@ public class DefaultDataValueService implements DataValueService {
   // -------------------------------------------------------------------------
 
   @Nonnull
-  private static DataEntryValue toDataEntryValue(DataValue dataValue) {
-    return new DataEntryValue(
-        0,
-        UID.of(dataValue.getDataElement()),
-        UID.of(dataValue.getSource()),
-        UID.of(dataValue.getCategoryOptionCombo()),
-        UID.of(dataValue.getAttributeOptionCombo()),
+  private DataEntryValue.Input toDataEntryValue(DataValue dataValue) {
+    return new DataEntryValue.Input(
+        getUid(dataValue.getDataElement()),
+        getUid(dataValue.getSource()),
+        getUid(dataValue.getCategoryOptionCombo()),
+        null,
+        getUid(dataValue.getAttributeOptionCombo()),
         dataValue.getPeriod().getIsoDate(),
         dataValue.getValue(),
         dataValue.getComment(),
@@ -91,11 +92,16 @@ public class DefaultDataValueService implements DataValueService {
         dataValue.isDeleted());
   }
 
+  private static String getUid(IdentifiableObject object) {
+    return object == null ? null : object.getUid();
+  }
+
   @Override
   @IndirectTransactional
   public boolean addDataValue(DataValue dataValue) {
     try {
-      dataEntryService.upsertValue(false, null, toDataEntryValue(dataValue));
+      dataEntryService.upsertValue(
+          false, null, dataEntryService.decodeValue(null, toDataEntryValue(dataValue)));
       return true;
     } catch (ConflictException | BadRequestException ex) {
       return false;
@@ -106,16 +112,18 @@ public class DefaultDataValueService implements DataValueService {
   @IndirectTransactional
   public void updateDataValue(DataValue dv) throws ConflictException, BadRequestException {
     if (isNullOrEmpty(dv.getValue()) && isNullOrEmpty(dv.getComment())) dv.setDeleted(true);
-    dataEntryService.upsertValue(false, null, toDataEntryValue(dv));
+    dataEntryService.upsertValue(
+        false, null, dataEntryService.decodeValue(null, toDataEntryValue(dv)));
   }
 
   @Override
   @IndirectTransactional
-  public void updateDataValues(List<DataValue> dataValues) throws ConflictException {
+  public void updateDataValues(List<DataValue> dataValues)
+      throws ConflictException, BadRequestException {
     dataEntryService.upsertGroup(
         new DataEntryGroup.Options(false, true, false),
-        new DataEntryGroup(
-            dataValues.stream().map(DefaultDataValueService::toDataEntryValue).toList()),
+        dataEntryService.decodeGroup(
+            new DataEntryGroup.Input(dataValues.stream().map(this::toDataEntryValue).toList())),
         transitory());
   }
 

@@ -415,7 +415,7 @@ public class DataAnalysisController {
   @PostMapping(value = "/followup/mark", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public @ResponseBody void markDataValues(@RequestBody UpdateFollowUpForDataValuesRequest params)
-      throws ConflictException {
+      throws ConflictException, BadRequestException {
     log.info("markDataValues from DataAnalysisController input " + params);
 
     List<DataValue> dataValues = new ArrayList<>();
@@ -439,7 +439,7 @@ public class DataAnalysisController {
       }
     }
 
-    if (dataValues.size() > 0) {
+    if (!dataValues.isEmpty()) {
       dataValueService.updateDataValues(dataValues);
     }
   }

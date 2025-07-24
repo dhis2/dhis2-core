@@ -130,21 +130,24 @@ public class DataValueController {
   @PostMapping(params = {"de", "pe", "ou"})
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValue(
-      @OpenApi.Param({UID.class, DataElement.class}) @RequestParam UID de,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID co,
+      @OpenApi.Param({UID.class, DataElement.class}) @RequestParam String de,
+      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
+          String co,
       @OpenApi.Param({UID.class, CategoryCombo.class}) @RequestParam(required = false) String cc,
       @OpenApi.Param({UID.class, CategoryOption.class}) @RequestParam(required = false) String cp,
       @OpenApi.Param(Period.class) @RequestParam String pe,
-      @OpenApi.Param({UID.class, OrganisationUnit.class}) @RequestParam UID ou,
+      @OpenApi.Param({UID.class, OrganisationUnit.class}) @RequestParam String ou,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) UID ds,
       @RequestParam(required = false) String value,
       @RequestParam(required = false) String comment,
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
-    UID aoc = UID.of(dataValidator.getAndValidateAttributeOptionCombo(cc, cp));
-    dataEntryService.upsertValue(
-        force, ds, new DataEntryValue(0, de, ou, co, aoc, pe, value, comment, followUp, null));
+    CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo(cc, cp);
+    String aocId = aoc == null ? null : aoc.getUid();
+    DataEntryValue.Input dv =
+        new DataEntryValue.Input(de, ou, co, null, aocId, pe, value, comment, followUp, null);
+    dataEntryService.upsertValue(force, ds, dataEntryService.decodeValue(ds, dv));
   }
 
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
@@ -153,12 +156,12 @@ public class DataValueController {
   public void saveDataValueWithBody(@RequestBody DataValueDto dv)
       throws ConflictException, BadRequestException {
     UID ds = UID.ofNullable(dv.getDataSet());
-    UID de = UID.ofNullable(dv.getDataElement());
+    String de = dv.getDataElement();
     DataValueCategoryDto attr = dv.getAttribute();
     String cc = attr == null ? null : attr.getCombo();
     String cp = attr == null ? null : String.join(";", attr.getOptions());
-    UID ou = UID.ofNullable(dv.getOrgUnit());
-    UID coc = UID.ofNullable(dv.getCategoryOptionCombo());
+    String ou = dv.getOrgUnit();
+    String coc = dv.getCategoryOptionCombo();
     String pe = dv.getPeriod();
     String value = dv.getValue();
     saveDataValue(
@@ -168,12 +171,13 @@ public class DataValueController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(FILE_PATH)
   public WebMessage saveFileDataValue(
-      @OpenApi.Param({UID.class, DataElement.class}) @RequestParam UID de,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID co,
+      @OpenApi.Param({UID.class, DataElement.class}) @RequestParam String de,
+      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
+          String co,
       @OpenApi.Param({UID.class, CategoryCombo.class}) @RequestParam(required = false) String cc,
       @OpenApi.Param({UID.class, CategoryOption.class}) @RequestParam(required = false) String cp,
       @OpenApi.Param({UID.class, Period.class}) @RequestParam String pe,
-      @OpenApi.Param({UID.class, OrganisationUnit.class}) @RequestParam UID ou,
+      @OpenApi.Param({UID.class, OrganisationUnit.class}) @RequestParam String ou,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) UID ds,
       @RequestParam(required = false) String comment,
       @RequestParam(required = false) Boolean followUp,
@@ -286,7 +290,7 @@ public class DataValueController {
   @PutMapping(value = "/followups")
   @ResponseStatus(value = HttpStatus.OK)
   public void setDataValuesFollowUp(@RequestBody DataValuesFollowUpRequest request)
-      throws ConflictException {
+      throws ConflictException, BadRequestException {
     List<DataValueFollowUpRequest> values = request == null ? null : request.getValues();
     if (values == null
         || values.isEmpty()

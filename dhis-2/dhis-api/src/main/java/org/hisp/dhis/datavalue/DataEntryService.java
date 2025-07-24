@@ -53,12 +53,15 @@ public interface DataEntryService {
   /**
    * Decodes a single data value for entry.
    *
+   * @param dataSet needed to decode C=CO of {@link DataEntryValue.Input#categoryOptions()} when
+   *     used
    * @param value as entered by the current user
    * @return a formally valid value
    * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
    *     is missing, a referenced object doesn't exist
    */
-  DataEntryValue decodeValue(DataEntryValue.Input value) throws BadRequestException;
+  DataEntryValue decodeValue(@CheckForNull UID dataSet, @Nonnull DataEntryValue.Input value)
+      throws BadRequestException;
 
   /**
    * Decodes a group of data values as entered by the current user. This mainly entails checking and
