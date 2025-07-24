@@ -532,16 +532,17 @@ public class DefaultDataEntryService implements DataEntryService {
   private static String normalizeValue(DataEntryValue e, ValueType type) {
     String val = e.value();
     if (val == null || type == null || !type.isBoolean()) return val;
-    if (val.equalsIgnoreCase("false")
-        || val.equalsIgnoreCase("f")
-        || val.equalsIgnoreCase("no")
-        || val.equalsIgnoreCase("n")
-        || "0".equals(val)) return "false";
-    if (val.equalsIgnoreCase("true")
-        || val.equalsIgnoreCase("t")
-        || val.equalsIgnoreCase("yes")
-        || val.equalsIgnoreCase("y")
-        || "1".equals(val)) return "true";
+    int len = val.length();
+    if (len > 5) return val;
+    String lower = val.toLowerCase();
+    if (len == 1) {
+      char c = lower.charAt(0);
+      if (c == 'f' || c == 'n' || c == '0') return "false";
+      if (c == 't' || c == 'y' || c == '1') return "true";
+      return val;
+    }
+    if ("no".equals(lower) || "false".equals(lower)) return "false";
+    if ("yes".equals(lower) || "true".equals(lower)) return "true";
     return val;
   }
 
