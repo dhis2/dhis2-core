@@ -301,7 +301,6 @@ public class AggregateDataExchangeService {
     TargetRequest request = exchange.getTarget().getRequest();
 
     ImportOptions options = new ImportOptions();
-    options.setGroup(true); // split into DSs if needed
 
     if (isNotBlank(request.getDataElementIdScheme())) {
       options.setDataElementIdScheme(request.getDataElementIdScheme());

@@ -62,6 +62,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 import org.springframework.stereotype.Component;
@@ -82,6 +83,7 @@ import org.springframework.stereotype.Component;
 public class DataEntryIO {
 
   private final DataEntryService service;
+  private final SystemSettingsProvider settings;
 
   public ImportSummary importAdx(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing ADX data");
@@ -346,7 +348,7 @@ public class DataEntryIO {
     }
 
     List<DataEntryGroup> splitGroups = groups;
-    if (options.isGroup()) {
+    if (settings.getCurrentSettings().getDataEntryAutoGroup()) {
       splitGroups = new ArrayList<>();
       for (DataEntryGroup g : groups) {
         if (g.dataSet() == null) {

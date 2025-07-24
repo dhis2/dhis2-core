@@ -85,16 +85,6 @@ public class ImportOptions implements JobParameters {
   @OpenApi.Since(43)
   @OpenApi.Description(
       """
-    Opt-in to import data values for potentially multiple data sets.
-    Values are grouped by data set.
-    If multiple data sets are available for a data element the most recently created one is used.""")
-  @JsonProperty
-  private boolean group; // TODO make a setting instead
-
-  @Maturity.Beta
-  @OpenApi.Since(43)
-  @OpenApi.Description(
-      """
     A data value group is only written when all values are valid.
     The first group that fails aborts the import.
     Groups that have been processed successfully thus far are committed.""")

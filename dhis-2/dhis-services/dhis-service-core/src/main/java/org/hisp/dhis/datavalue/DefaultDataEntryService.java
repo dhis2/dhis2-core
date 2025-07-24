@@ -72,6 +72,7 @@ import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -88,6 +89,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataEntryService implements DataEntryService {
 
   private final DataEntryStore store;
+  private final SystemSettingsProvider settings;
 
   @Override
   @Transactional(readOnly = true)
@@ -431,8 +433,7 @@ public class DefaultDataEntryService implements DataEntryService {
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E8025, aoc, ouNotInAoc);
       }
     }
-    // TODO make skipping this check a setting for easier transition
-    if (true) return;
+    if (settings.getCurrentSettings().getDataEntrySkipOrgUnitEntrySpanCheck()) return;
 
     // - require: PEs must be within the OU's operational span
     List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();

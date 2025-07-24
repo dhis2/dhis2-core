@@ -437,12 +437,20 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("keyDataImportStrictPeriods", false);
   }
 
-  default boolean getDataImportStrictDataElements() {
-    return asBoolean("keyDataImportStrictDataElements", false);
+  /**
+   * @since 2.43
+   * @return true, when input groups without DS should be split into groups by DS
+   */
+  default boolean getDataEntryAutoGroup() {
+    return asBoolean("dataEntryAutoGroup", false);
   }
 
-  default boolean getDataImportStrictCategoryOptionCombos() {
-    return asBoolean("keyDataImportStrictCategoryOptionCombos", false);
+  /**
+   * @since 2.43
+   * @return true, to check that data entry falls into the OU's open-close date timeframe
+   */
+  default boolean getDataEntrySkipOrgUnitEntrySpanCheck() {
+    return asBoolean("dataEntrySkipOrgUnitEntrySpanCheck", false);
   }
 
   default boolean getDataImportStrictOrganisationUnits() {
@@ -453,24 +461,8 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("keyDataImportStrictAttributeOptionCombos", false);
   }
 
-  default boolean getDataImportRequireCategoryOptionCombo() {
-    return asBoolean("keyDataImportRequireCategoryOptionCombo", false);
-  }
-
   default boolean getDataImportRequireAttributeOptionCombo() {
     return asBoolean("keyDataImportRequireAttributeOptionCombo", false);
-  }
-
-  default boolean getDataImportStrictDataSetApproval() {
-    return asBoolean("keyDataImportStrictDataSetApproval", true);
-  }
-
-  default boolean getDataImportStrictDataSetLocking() {
-    return asBoolean("keyDataImportStrictDataSetLocking", true);
-  }
-
-  default boolean getDataImportStrictDataSetInputPeriods() {
-    return asBoolean("keyDataImportStrictDataSetInputPeriods", true);
   }
 
   default String getCustomJs() {
