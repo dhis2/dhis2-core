@@ -34,30 +34,29 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 public class FieldsParser {
 
   public static Fields parse(String input) {
     // TODO error handling: white space in a field name, special characters like * or : in a field
     // name, things like ', ,   ' or 'group[ ]' or a block without a name '[]'
-    ParserFields root = new ParserFields();
-    Stack<ParserFields> stack = new Stack<>();
+    FieldsAccumulator root = new FieldsAccumulator();
+    Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
 
     int i = 0;
     int fieldStart = i;
     boolean inField = false;
+    // TODO(ivo) inline this into parseField
     boolean isFieldWithWhitespace = false;
     boolean isExclusion = false;
     while (i < input.length()) {
       if ((input.charAt(i) == ',')) {
         if (inField) {
           if (isExclusion) {
-            stack.peek().exclude(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().excludes(parseField(input, fieldStart, i, isFieldWithWhitespace));
           } else {
-            stack.peek().include(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().includes(parseField(input, fieldStart, i, isFieldWithWhitespace));
           }
 
           inField = false;
@@ -69,26 +68,20 @@ public class FieldsParser {
         if (inField) {
           String parent = parseField(input, fieldStart, i, isFieldWithWhitespace);
           if (isExclusion) {
-            stack.peek().exclude(parent);
+            stack.peek().excludes(parent);
           } else {
-            stack.peek().include(parent);
+            stack.peek().includes(parent);
           }
 
-          ParserFields child;
-          if (stack.peek().getChildren().containsKey(parent)) {
-            child = stack.peek().getChildren().get(parent);
-          } else {
-            // TODO what if the block is empty? what does that mean
-            child = new ParserFields();
-            // TODO(ivo) does includeAll make sense if no fields follow? what about
-            // fields=relationships,relationships[from] is this like :all,code where its already
-            // settled that all is included? but relationships[from] should obviously not includeAll
-            // child.includeAll();
-            // start with tests on the FieldFilterServiceTest level or curl to see how the old
-            // parser/service behaves. Interesting is also relationships[foo] that does not err but
-            // does it count as relationships?
-            stack.peek().getChildren().put(parent, child);
-          }
+          // TODO what if the block is empty? what does that mean
+          // TODO(ivo) does includesAll make sense if no fields follow? what about
+          // fields=relationships,relationships[from] is this like :all,code where its already
+          // settled that all is included? but relationships[from] should obviously not includesAll
+          // child.includesAll();
+          // start with tests on the FieldFilterServiceTest level or curl to see how the old
+          // parser/service behaves. Interesting is also relationships[foo] that does not err but
+          // does it count as relationships?
+          FieldsAccumulator child = stack.peek().getOrCreateChild(parent);
 
           stack.push(child);
           inField = false;
@@ -102,9 +95,9 @@ public class FieldsParser {
 
         if (inField) {
           if (isExclusion) {
-            stack.peek().exclude(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().excludes(parseField(input, fieldStart, i, isFieldWithWhitespace));
           } else {
-            stack.peek().include(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().includes(parseField(input, fieldStart, i, isFieldWithWhitespace));
           }
         }
 
@@ -113,11 +106,11 @@ public class FieldsParser {
         isFieldWithWhitespace = false;
         isExclusion = false;
       } else if (input.charAt(i) == '*' && !inField) {
-        stack.peek().includeAll();
+        stack.peek().includesAll();
       } else if (input.charAt(i) == '!' && !inField) {
         inField = true;
         isExclusion = true;
-        fieldStart = i + 1; // do not include ! in field name
+        fieldStart = i + 1; // do not includes ! in field name
       } else if (Character.isWhitespace(input.charAt(i)) && inField) {
         isFieldWithWhitespace = true;
       } else if (!Character.isWhitespace(input.charAt(i)) && !inField) {
@@ -131,15 +124,15 @@ public class FieldsParser {
 
     if (inField) {
       if (isExclusion) {
-        stack.peek().exclude(parseField(input, fieldStart, i, isFieldWithWhitespace));
+        stack.peek().excludes(parseField(input, fieldStart, i, isFieldWithWhitespace));
       } else {
-        stack.peek().include(parseField(input, fieldStart, i, isFieldWithWhitespace));
+        stack.peek().includes(parseField(input, fieldStart, i, isFieldWithWhitespace));
       }
     }
     // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
     // "group[name" was not closed
 
-    return convertToFields(root);
+    return convert(root);
   }
 
   /**
@@ -164,56 +157,41 @@ public class FieldsParser {
     return sb.toString();
   }
 
-  private static Fields convertToFields(ParserFields predicate) {
+  private static Fields convert(FieldsAccumulator acc) {
     Map<String, Fields> children = new HashMap<>();
-    for (Map.Entry<String, ParserFields> entry : predicate.getChildren().entrySet()) {
-      children.put(entry.getKey(), convertToFields(entry.getValue()));
+    for (Map.Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
+      children.put(entry.getKey(), convert(entry.getValue()));
     }
 
     return new Fields(
-        predicate.isIncludeAll(),
-        predicate.getIncludes(),
-        predicate.getExcludes(),
+        acc.includesAll,
+        acc.includes,
+        acc.excludes,
         children,
         Map.of() // TODO: add transformations when parsing is implemented
         );
   }
 
-  @EqualsAndHashCode
-  private static final class ParserFields {
-    private boolean includesAll = false;
-    @Getter
-    private final Set<String> includes;
-    @Getter
-    private final Set<String> excludes;
-    @Getter
-    private final Map<String, ParserFields> children;
+  private static final class FieldsAccumulator {
+    boolean includesAll = false;
+    final Set<String> includes = new HashSet<>();
+    final Set<String> excludes = new HashSet<>();
+    final Map<String, FieldsAccumulator> children = new HashMap<>();
 
-    public ParserFields() {
-      this.includes = new HashSet<>();
-      this.excludes = new HashSet<>();
-      this.children = new HashMap<>();
-    }
-
-    public void includeAll() {
+    void includesAll() {
       this.includesAll = true;
     }
 
-    public boolean isIncludeAll() {
-      return includesAll;
-    }
-
-    public void include(String field) {
+    void includes(String field) {
       this.includes.add(field);
     }
 
-    public void exclude(String field) {
+    void excludes(String field) {
       this.excludes.add(field);
     }
 
-    @Override
-    public String toString() {
-      return "ParserFields[" + "includes=" + includes + ", " + "children=" + children + ']';
+    FieldsAccumulator getOrCreateChild(String field) {
+      return children.computeIfAbsent(field, k -> new FieldsAccumulator());
     }
   }
 }
