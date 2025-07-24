@@ -30,16 +30,20 @@
 package org.hisp.dhis.fieldfiltering.better;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 public class FieldsParser {
 
   public static Fields parse(String input) {
     // TODO error handling: white space in a field name, special characters like * or : in a field
     // name, things like ', ,   ' or 'group[ ]' or a block without a name '[]'
-    FieldsPredicate root = new FieldsPredicate();
-    Stack<FieldsPredicate> stack = new Stack<>();
+    ParserFields root = new ParserFields();
+    Stack<ParserFields> stack = new Stack<>();
     stack.push(root);
 
     int i = 0;
@@ -70,12 +74,12 @@ public class FieldsParser {
             stack.peek().include(parent);
           }
 
-          FieldsPredicate child;
+          ParserFields child;
           if (stack.peek().getChildren().containsKey(parent)) {
             child = stack.peek().getChildren().get(parent);
           } else {
             // TODO what if the block is empty? what does that mean
-            child = new FieldsPredicate();
+            child = new ParserFields();
             // TODO(ivo) does includeAll make sense if no fields follow? what about
             // fields=relationships,relationships[from] is this like :all,code where its already
             // settled that all is included? but relationships[from] should obviously not includeAll
@@ -160,9 +164,9 @@ public class FieldsParser {
     return sb.toString();
   }
 
-  private static Fields convertToFields(FieldsPredicate predicate) {
+  private static Fields convertToFields(ParserFields predicate) {
     Map<String, Fields> children = new HashMap<>();
-    for (Map.Entry<String, FieldsPredicate> entry : predicate.getChildren().entrySet()) {
+    for (Map.Entry<String, ParserFields> entry : predicate.getChildren().entrySet()) {
       children.put(entry.getKey(), convertToFields(entry.getValue()));
     }
 
@@ -173,5 +177,43 @@ public class FieldsParser {
         children,
         Map.of() // TODO: add transformations when parsing is implemented
         );
+  }
+
+  @EqualsAndHashCode
+  private static final class ParserFields {
+    private boolean includesAll = false;
+    @Getter
+    private final Set<String> includes;
+    @Getter
+    private final Set<String> excludes;
+    @Getter
+    private final Map<String, ParserFields> children;
+
+    public ParserFields() {
+      this.includes = new HashSet<>();
+      this.excludes = new HashSet<>();
+      this.children = new HashMap<>();
+    }
+
+    public void includeAll() {
+      this.includesAll = true;
+    }
+
+    public boolean isIncludeAll() {
+      return includesAll;
+    }
+
+    public void include(String field) {
+      this.includes.add(field);
+    }
+
+    public void exclude(String field) {
+      this.excludes.add(field);
+    }
+
+    @Override
+    public String toString() {
+      return "ParserFields[" + "includes=" + includes + ", " + "children=" + children + ']';
+    }
   }
 }
