@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
 
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.UID;
 
-/**
- * Simple implementation of {@link DataValueSetReader} which wraps an in-memory {@link
- * DataValueSet}.
- *
- * @author Lars Helge Overland
- */
-@AllArgsConstructor
-public class SimpleDataValueSetReader implements DataValueSetReader {
-  @Nonnull private final DataValueSet dataValueSet;
+/** A record of the ID combination that points to a unique aggregate data value row. */
+public record DataEntryKey(
+    @Nonnull UID dataElement,
+    @Nonnull UID orgUnit,
+    @CheckForNull UID categoryOptionCombo,
+    @CheckForNull UID attributeOptionCombo,
+    @Nonnull String period)
+    implements DataEntryId {
 
-  @Override
-  public DataValueSet readHeader() {
-    return dataValueSet;
+  public DataEntryKey {
+    requireNonNull(dataElement);
+    requireNonNull(orgUnit);
+    requireNonNull(period);
   }
 
-  @Override
-  public DataValueEntry readNext() {
-    return null; // Not relevant
-  }
-
-  @Override
-  public void close() {
-    // Not relevant
+  @Nonnull
+  public DataEntryValue toDeletedValue() {
+    return new DataEntryValue(
+        0,
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        attributeOptionCombo,
+        period,
+        null,
+        null,
+        null,
+        true);
   }
 }

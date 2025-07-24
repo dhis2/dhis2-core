@@ -31,9 +31,6 @@ package org.hisp.dhis.feedback;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status.FORBIDDEN;
 
-import java.text.MessageFormat;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
@@ -43,23 +40,10 @@ import org.hisp.dhis.webmessage.WebResponse;
 @Getter
 @Accessors(chain = true)
 @OpenApi.Response(status = FORBIDDEN, value = WebResponse.class)
-public final class ForbiddenException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws ForbiddenException {
-    return Error.rethrow(type, ForbiddenException::new, operation);
-  }
-
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, ForbiddenException> map, Supplier<V> operation)
-      throws ForbiddenException {
-    return Error.rethrowMapped(type, map, operation);
-  }
-
-  private final ErrorCode code;
+public final class ForbiddenException extends FeedbackException {
 
   public ForbiddenException(String message) {
-    super(message);
-    this.code = ErrorCode.E1006;
+    super(message, ErrorCode.E1006);
   }
 
   public ForbiddenException(Class<?> type, String uid) {
@@ -71,7 +55,6 @@ public final class ForbiddenException extends Exception implements Error {
   }
 
   public ForbiddenException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
+    super(code, args);
   }
 }

@@ -163,6 +163,9 @@ public abstract class PeriodType implements Serializable {
   private static final Map<String, PeriodType> PERIOD_TYPE_MAP =
       Maps.uniqueIndex(PERIOD_TYPES, PeriodType::getName);
 
+  private static final Map<Class<? extends PeriodType>, PeriodType> PERIOD_TYPE_BY_CLASS_MAP =
+      Maps.uniqueIndex(PERIOD_TYPES, PeriodType::getClass);
+
   private static final Map<PeriodTypeEnum, PeriodType> PERIOD_TYPE_ENUM_MAP =
       Maps.uniqueIndex(PERIOD_TYPES, PeriodType::getPeriodTypeEnum);
 
@@ -192,6 +195,10 @@ public abstract class PeriodType implements Serializable {
    */
   public static PeriodType getPeriodTypeByName(String name) {
     return PERIOD_TYPE_MAP.get(name);
+  }
+
+  public static PeriodType getPeriodTypeByClass(Class<? extends PeriodType> type) {
+    return PERIOD_TYPE_BY_CLASS_MAP.get(type);
   }
 
   /**

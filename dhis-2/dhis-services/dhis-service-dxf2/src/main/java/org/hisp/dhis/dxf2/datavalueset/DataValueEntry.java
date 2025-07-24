@@ -30,8 +30,8 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * An entry in an {@link DataValueSet} while processing it in context of a {@link
- * DataValueSetReader} or {@link DataValueSetWriter}.
+ * An entry in an {@link DataValueSet} while processing it in context of a or {@link
+ * DataValueSetWriter}.
  *
  * @author Jan Bernitt
  */
@@ -60,30 +60,11 @@ public interface DataValueEntry {
 
   Boolean getDeleted();
 
-  default boolean hasLastUpdated() {
-    String updated = getLastUpdated();
-    return updated != null && !updated.isEmpty();
-  }
-
-  default boolean hasCreated() {
-    String created = getCreated();
-    return created != null && !created.isEmpty();
-  }
-
   default String getPrimaryKey() {
     return getDataElement()
         + getPeriod()
         + getOrgUnit()
         + getCategoryOptionCombo()
         + getAttributeOptionCombo();
-  }
-
-  default boolean isNullValue() {
-    return getValue() == null && getComment() == null;
-  }
-
-  default boolean isDeletedValue() {
-    Boolean deleted = getDeleted();
-    return deleted != null && deleted;
   }
 }

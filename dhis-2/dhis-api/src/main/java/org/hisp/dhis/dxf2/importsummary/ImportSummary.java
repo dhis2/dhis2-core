@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -177,6 +178,10 @@ public class ImportSummary implements WebMessageResponse, ImportConflicts {
 
   public void addRejected(int index) {
     rejectedIndexes.add(index);
+  }
+
+  public void addRejected(int[] indexes) {
+    IntStream.of(indexes).forEach(rejectedIndexes::add);
   }
 
   @Override
