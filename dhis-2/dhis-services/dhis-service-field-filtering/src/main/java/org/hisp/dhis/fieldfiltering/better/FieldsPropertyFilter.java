@@ -37,7 +37,9 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
 
   public static final String FILTER_ID = "better-fields-filter";
-  public static final String PREDICATE_ATTRIBUTE = "fieldsPredicate";
+
+  /** Key under which fields are stored for filtering during serialization. */
+  public static final String FIELDS_ATTRIBUTE = "fields";
 
   public FieldsPropertyFilter() {
     // Stateless filter - relies on provider attributes
@@ -47,30 +49,27 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
   public void serializeAsField(
       Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
       throws Exception {
+    Fields current = (Fields) provider.getAttribute(FIELDS_ATTRIBUTE);
 
-    // Get the current predicate from provider attributes
-    FieldsPredicate currentPredicate = (FieldsPredicate) provider.getAttribute(PREDICATE_ATTRIBUTE);
-
-    if (currentPredicate == null) {
+    if (current == null) {
       throw new IllegalStateException(
-          "No fieldsPredicate attribute found in SerializerProvider. "
+          "No fields attribute found in SerializerProvider. "
               + "Make sure to set it via ObjectWriter.withAttribute()");
     }
 
-    if (currentPredicate.test(writer.getName())) {
-      // Check if this field has children that need filtering
-      if (currentPredicate.getChildren().containsKey(writer.getName())) {
+    if (current.test(writer.getName())) {
+      if (current.containsChild(writer.getName())) {
         // Set the child predicate for nested serialization
-        FieldsPredicate childPredicate = currentPredicate.getChildren().get(writer.getName());
-        provider.setAttribute(PREDICATE_ATTRIBUTE, childPredicate);
+        Fields childPredicate = current.getChild(writer.getName());
+        provider.setAttribute(FIELDS_ATTRIBUTE, childPredicate);
       }
 
       writer.serializeAsField(pojo, jgen, provider);
 
       // Restore the current predicate after serialization
-      provider.setAttribute(PREDICATE_ATTRIBUTE, currentPredicate);
+      provider.setAttribute(FIELDS_ATTRIBUTE, current);
       // TODO(ivo) is this needed? its in the default implementation but feels odd to have an else
-      // on "do not include the property", is this to make sure arrays/objects are closed properly?
+      // on "do not includes the property", is this to make sure arrays/objects are closed properly?
     } else if (!jgen.canOmitFields()) { // since 2.3
       writer.serializeAsOmittedField(pojo, jgen, provider);
     }

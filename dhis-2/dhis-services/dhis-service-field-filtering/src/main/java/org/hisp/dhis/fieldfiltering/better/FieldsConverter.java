@@ -34,21 +34,20 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
 /**
- * Spring converter that converts field filter strings to FieldsPredicate objects. This allows
- * controller methods to directly accept FieldsPredicate parameters from @RequestParam fields
- * values.
+ * Spring converter that converts field filter strings to Fields. This allows controller methods to
+ * directly accept Fields parameters from @RequestParam fields values.
  */
-public class FieldsPredicateConverter implements ConditionalGenericConverter {
+public class FieldsConverter implements ConditionalGenericConverter {
   @Override
   public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-    return FieldsPredicate.class.equals(targetType.getResolvableType().resolve());
+    return Fields.class.equals(targetType.getResolvableType().resolve());
   }
 
   @Override
   public Set<ConvertiblePair> getConvertibleTypes() {
     return Set.of(
-        new ConvertiblePair(String.class, FieldsPredicate.class),
-        new ConvertiblePair(String[].class, FieldsPredicate.class));
+        new ConvertiblePair(String.class, Fields.class),
+        new ConvertiblePair(String[].class, Fields.class));
   }
 
   @Override

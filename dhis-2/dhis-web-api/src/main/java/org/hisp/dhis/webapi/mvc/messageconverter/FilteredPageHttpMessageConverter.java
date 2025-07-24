@@ -34,9 +34,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
+import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -106,13 +108,11 @@ public class FilteredPageHttpMessageConverter
   private void writePageToStream(FilteredPage<?> filteredPage, OutputStream outputStream)
       throws IOException {
     // TODO(ivo) will this properly set the content type?
-    Page<?> page = filteredPage.getPage();
-    FieldsPredicate pagePredicate = createPagePredicate(page.getKey(), filteredPage.getPredicate());
+    Page<?> page = filteredPage.page();
+    Fields pageFields = createPageFields(page.getKey(), filteredPage.fields());
 
     ObjectWriter writer =
-        filterMapper
-            .writer()
-            .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, pagePredicate);
+        filterMapper.writer().withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, pageFields);
 
     try (JsonGenerator generator = writer.getFactory().createGenerator(outputStream)) {
       writer.writeValue(generator, page);
@@ -126,19 +126,19 @@ public class FilteredPageHttpMessageConverter
    * actually an object with a {@code pager} and an {@code events} collection. We thus need to
    * pretend the user sent {@code fields=events[event,orgUnit]}.
    */
-  private FieldsPredicate createPagePredicate(String key, FieldsPredicate fieldsPredicate) {
-    FieldsPredicate pagePredicate = new FieldsPredicate();
-
+  private Fields createPageFields(String key, Fields fields) {
+    // TODO(ivo) improve the Fields API to make this easier. Do I also need to worry about safety?
+    // or not as the effective computation is done internally so "odd/invalid" fields can be put in
+    // but will be handled correctly
     // Include pager field with all sub-properties
-    pagePredicate.include("pager");
-    FieldsPredicate pagerPredicate = new FieldsPredicate();
-    pagerPredicate.includeAll();
-    pagePredicate.getChildren().put("pager", pagerPredicate);
-
     // Include dynamic key (e.g., "events") with user's filtering predicate
-    pagePredicate.include(key);
-    pagePredicate.getChildren().put(key, fieldsPredicate);
-
-    return pagePredicate;
+    Fields pageFields =
+        new Fields(
+            false,
+            Set.of("pager", key),
+            Set.of(),
+            Map.of("pager", Fields.all(), key, fields),
+            Map.of());
+    return pageFields;
   }
 }

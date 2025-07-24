@@ -63,7 +63,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
+import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.PageParams;
@@ -158,8 +158,7 @@ class EventsExportController {
       )
   ResponseEntity<FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event>> getEvents(
       EventRequestParams requestParams,
-      @RequestParam(name = "fields", defaultValue = DEFAULT_FIELDS_PARAM)
-          FieldsPredicate fieldsPredicate,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) Fields fields,
       TrackerIdSchemeParams idSchemeParams,
       HttpServletRequest request)
       throws BadRequestException, ForbiddenException, WebMessageException {
@@ -180,15 +179,13 @@ class EventsExportController {
       ensureNoMappingErrors(errors);
 
       return ResponseEntity.ok(
-          new FilteredPage<>(
-              Page.withPager(EVENTS, page, getRequestURL(request)), fieldsPredicate));
+          new FilteredPage<>(Page.withPager(EVENTS, page, getRequestURL(request)), fields));
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    return ResponseEntity.ok(
-        new FilteredPage<>(Page.withoutPager(EVENTS, events), fieldsPredicate));
+    return ResponseEntity.ok(new FilteredPage<>(Page.withoutPager(EVENTS, events), fields));
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)

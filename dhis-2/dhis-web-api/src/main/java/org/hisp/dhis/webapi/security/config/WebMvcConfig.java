@@ -44,7 +44,7 @@ import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
-import org.hisp.dhis.fieldfiltering.better.FieldsPredicateConverter;
+import org.hisp.dhis.fieldfiltering.better.FieldsConverter;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
@@ -245,7 +245,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   protected void addFormatters(FormatterRegistry registry) {
     registry.addConverter(new FieldPathConverter());
-    registry.addConverter(new FieldsPredicateConverter());
+    registry.addConverter(new FieldsConverter());
   }
 
   @Primary

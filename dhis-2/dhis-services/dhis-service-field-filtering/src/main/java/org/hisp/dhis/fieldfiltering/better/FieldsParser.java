@@ -29,14 +29,13 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 public class FieldsParser {
 
-  public static FieldsPredicate parse(String input) {
-    // TODO should we limit the depth? I think the current FieldFilterParser can cause a
-    // StackOverFlow show that in a test + note stackoverflow possibility in Jackson due to it using
-    // recursion which we could limit
+  public static Fields parse(String input) {
     // TODO error handling: white space in a field name, special characters like * or : in a field
     // name, things like ', ,   ' or 'group[ ]' or a block without a name '[]'
     FieldsPredicate root = new FieldsPredicate();
@@ -136,7 +135,7 @@ public class FieldsParser {
     // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
     // "group[name" was not closed
 
-    return root;
+    return convertToFields(root);
   }
 
   /**
@@ -159,5 +158,20 @@ public class FieldsParser {
       }
     }
     return sb.toString();
+  }
+
+  private static Fields convertToFields(FieldsPredicate predicate) {
+    Map<String, Fields> children = new HashMap<>();
+    for (Map.Entry<String, FieldsPredicate> entry : predicate.getChildren().entrySet()) {
+      children.put(entry.getKey(), convertToFields(entry.getValue()));
+    }
+
+    return new Fields(
+        predicate.isIncludeAll(),
+        predicate.getIncludes(),
+        predicate.getExcludes(),
+        children,
+        Map.of() // TODO: add transformations when parsing is implemented
+        );
   }
 }

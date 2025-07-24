@@ -32,18 +32,18 @@ package org.hisp.dhis.fieldfiltering.better;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import lombok.EqualsAndHashCode;
 
-// TODO(ivo) make sure toString is useful in case of error
+@EqualsAndHashCode
 public final class FieldsPredicate implements Predicate<String> {
   private boolean includesAll = false;
   private final Set<String> includes;
   private final Set<String> excludes;
   private final Map<String, FieldsPredicate> children;
 
-  /** Create FieldsPredicate which do not include any field by default. */
+  /** Create FieldsPredicate which do not includes any field by default. */
   public FieldsPredicate() {
     this.includes = new HashSet<>();
     this.excludes = new HashSet<>();
@@ -58,12 +58,20 @@ public final class FieldsPredicate implements Predicate<String> {
     this.includesAll = true;
   }
 
+  public boolean isIncludeAll() {
+    return includesAll;
+  }
+
   public void include(String field) {
     this.includes.add(field);
   }
 
   public void exclude(String field) {
     this.excludes.add(field);
+  }
+
+  public Set<String> getExcludes() {
+    return excludes;
   }
 
   public Map<String, FieldsPredicate> getChildren() {
@@ -76,28 +84,8 @@ public final class FieldsPredicate implements Predicate<String> {
       return !excludes.contains(field);
     }
 
-    // TODO productionize: obviously only do this once, FieldsPredicate API will likely change a bit
-    // as right now its open for mutation
     includes.removeAll(excludes);
     return includes.contains(field);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    }
-    if (obj == null || obj.getClass() != this.getClass()) {
-      return false;
-    }
-    var that = (FieldsPredicate) obj;
-    return Objects.equals(this.includes, that.includes)
-        && Objects.equals(this.children, that.children);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(includes, children);
   }
 
   @Override

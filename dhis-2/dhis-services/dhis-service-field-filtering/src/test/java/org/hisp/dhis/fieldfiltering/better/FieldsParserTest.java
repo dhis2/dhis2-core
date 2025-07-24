@@ -31,7 +31,11 @@ package org.hisp.dhis.fieldfiltering.better;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -57,9 +61,9 @@ class FieldsParserTest {
   @ParameterizedTest
   @MethodSource("providerEqualBehavior")
   void testBetterParser(String input, List<ExpectField> expectFields) {
-    FieldsPredicate predicates = FieldsParser.parse(input);
+    Fields fields = FieldsParser.parse(input);
 
-    assertFields(expectFields, predicates);
+    assertFields(expectFields, fields);
   }
 
   @ParameterizedTest
@@ -271,6 +275,31 @@ class FieldsParserTest {
     //      assertTrue(code.isExclude());
     //      assertFalse(code.isPreset());
     //    }
+  }
+
+  // The following tests show where the current and better implementations differ. Some differences
+  // are due to an improved API in the better parser, some are due to what I think are bugs in the
+  // current implementation which we need to go through case by case.
+
+  // TODO(ivo) better API compared to current:
+  // /api/organisationUnits?fields=dataSets[name],!dataSets will return an empty object
+  // The better parser clearly shows that negation has precedence over inclusion.
+  // The current parser does not as exclusions are handled in the FieldFilterService. This makes it
+  // confusion to read the expectations of the current parser.
+  @Test
+  void testBetterParserIncludeChildOfExcludedParent() {
+    Fields fields = FieldsParser.parse("group[code],!group");
+
+    assertFields(
+        List.of(new ExpectField(false, "group"), new ExpectField(false, "group.code")), fields);
+  }
+
+  @Test
+  void testCurrentParserIncludeChildOfExcludedParent() {
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("group[code],!group");
+
+    assertFields(
+        List.of(new ExpectField(false, "group"), new ExpectField(true, "group.code")), fieldPaths);
   }
 
   // TODO(ivo): this is a bug IMHO opening a group without a field
@@ -544,9 +573,9 @@ class FieldsParserTest {
     assertFieldPathContains(fieldPaths, "displayName");
   }
 
-  public static void assertFields(List<ExpectField> expectFields, FieldsPredicate predicates) {
+  public static void assertFields(List<ExpectField> expectFields, Fields fields) {
     for (ExpectField expectField : expectFields) {
-      assertField(expectField.included, expectField.dotPath, predicates);
+      assertField(expectField, fields);
     }
   }
 
@@ -554,32 +583,18 @@ class FieldsParserTest {
    * Tests if the field represented by the full path as used by the current FieldFilterParser is
    * included in the parsed fields predicate.
    */
-  private static void assertField(
-      boolean expected, String expectedDotPath, FieldsPredicate predicate) {
-    FieldsPredicate current = predicate;
-    String[] segments = expectedDotPath.split("\\.");
-    for (int i = 0; i < segments.length; i++) {
-      if (i < segments.length - 1) {
-        current = current.getChildren().get(segments[i]);
-      } else {
-        // TODO(ivo) expose a view or so of the effective set
-        String what = expected ? "include" : "exclude";
-        assertEquals(
-            expected,
-            current.test(segments[i]),
-            "predicate with fields "
-                + current.getIncludes()
-                + " does not "
-                + what
-                + " "
-                + expectedDotPath);
-      }
-    }
+  private static void assertField(ExpectField expected, Fields fields) {
+    String what = expected.included ? "includes" : "exclude";
+    assertEquals(
+        expected.included,
+        fields.includes(expected.dotPath),
+        "fields " + fields + " does not " + what + " " + expected.dotPath);
   }
 
-  private static void assertFields(List<ExpectField> expectFields, List<FieldPath> fieldPaths) {
+  private static void assertFields(
+      List<FieldsParserTest.ExpectField> expectFields, List<FieldPath> fieldPaths) {
     for (ExpectField expectField : expectFields) {
-      assertField(expectField.included, expectField.dotPath, fieldPaths);
+      assertField(expectField, fieldPaths);
     }
   }
 
@@ -587,37 +602,36 @@ class FieldsParserTest {
    * Tests if the field represented by the full path as used by the current FieldFilterParser is
    * included in the parsed fields predicate.
    */
-  private static void assertField(
-      boolean expectInclusion, String expectedDotPath, List<FieldPath> fieldPaths) {
-    String what = expectInclusion ? "include" : "exclude";
+  private static void assertField(ExpectField expected, List<FieldPath> fieldPaths) {
+    String what = expected.included ? "includes" : "exclude";
     List<FieldPath> actual =
-        fieldPaths.stream().filter(fp -> expectedDotPath.equals(fp.toFullPath())).toList();
+        fieldPaths.stream().filter(fp -> expected.dotPath.equals(fp.toFullPath())).toList();
     assertNotEmpty(
         actual,
         () ->
             fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
                 + " should contain "
-                + expectedDotPath
+                + expected.dotPath
                 + " and "
                 + what
                 + " it");
 
-    if (expectInclusion) {
+    if (expected.included) {
       // exclusion has higher precedence over inclusion, a field can thus only be considered
       // included if there is not also an exclusion
       assertFalse(
           actual.stream().anyMatch(FieldPath::isExclude),
           () ->
               fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
-                  + " should include "
-                  + expectedDotPath
+                  + " should includes "
+                  + expected.dotPath
                   + " but it contains the path with an exclusion");
       assertTrue(
           actual.stream().anyMatch(fp -> !fp.isExclude()),
           () ->
               fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
-                  + " should include "
-                  + expectedDotPath
+                  + " should includes "
+                  + expected.dotPath
                   + " but it does not contain the path with an inclusion");
     } else {
       assertTrue(
@@ -625,7 +639,7 @@ class FieldsParserTest {
           () ->
               fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
                   + " should exclude "
-                  + expectedDotPath
+                  + expected.dotPath
                   + " but it does not contain the path with an exclusion");
     }
   }

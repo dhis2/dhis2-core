@@ -29,18 +29,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
+import org.hisp.dhis.fieldfiltering.better.Fields;
 
 /**
- * Wrapper that carries both a Page and the FieldsPredicate for field filtering. This allows the
- * HttpMessageConverter to access both the page data and the filtering predicate without using
- * request attributes or ThreadLocal.
+ * Wrapper that carries both a Page and the Fields for field filtering. This allows the
+ * HttpMessageConverter to access both the page data and the fields without using request attributes
+ * or ThreadLocal.
  */
-@Getter
-@RequiredArgsConstructor
-public class FilteredPage<T> {
-  private final Page<T> page;
-  private final FieldsPredicate predicate;
-}
+public record FilteredPage<T>(Page<T> page, Fields fields) {}

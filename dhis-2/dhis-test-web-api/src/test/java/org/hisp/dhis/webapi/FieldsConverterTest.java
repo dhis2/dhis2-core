@@ -35,8 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.fieldfiltering.better.FieldsPredicate;
-import org.hisp.dhis.fieldfiltering.better.FieldsPredicateConverter;
+import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.FieldsConverter;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-class FieldsPredicateConverterTest {
+class FieldsConverterTest {
   private MockMvc mockMvc;
 
   record ExpectField(boolean included, String dotPath) {}
@@ -64,7 +64,7 @@ class FieldsPredicateConverterTest {
 
     DefaultFormattingConversionService formattingConversionService =
         new DefaultFormattingConversionService();
-    formattingConversionService.addConverter(new FieldsPredicateConverter());
+    formattingConversionService.addConverter(new FieldsConverter());
     mockMvc =
         MockMvcBuilders.standaloneSetup(new FieldsPredicateController(expected))
             .setConversionService(formattingConversionService)
@@ -105,15 +105,15 @@ class FieldsPredicateConverterTest {
     private final List<ExpectField> expected;
 
     @GetMapping("/test-fields")
-    public @ResponseBody String get(@RequestParam FieldsPredicate fields) {
+    public @ResponseBody String get(@RequestParam Fields fields) {
       assertFields(expected, fields);
       return "";
     }
   }
 
-  public static void assertFields(List<ExpectField> expectFields, FieldsPredicate predicates) {
+  public static void assertFields(List<ExpectField> expectFields, Fields fields) {
     for (ExpectField expectField : expectFields) {
-      assertField(expectField.included, expectField.dotPath, predicates);
+      assertField(expectField, fields);
     }
   }
 
@@ -121,26 +121,11 @@ class FieldsPredicateConverterTest {
    * Tests if the field represented by the full path as used by the current FieldFilterParser is
    * included in the parsed fields predicate.
    */
-  private static void assertField(
-      boolean expected, String expectedDotPath, FieldsPredicate predicate) {
-    FieldsPredicate current = predicate;
-    String[] segments = expectedDotPath.split("\\.");
-    for (int i = 0; i < segments.length; i++) {
-      if (i < segments.length - 1) {
-        current = current.getChildren().get(segments[i]);
-      } else {
-        // TODO(ivo) expose a view or so of the effective set
-        String what = expected ? "include" : "exclude";
-        assertEquals(
-            expected,
-            current.test(segments[i]),
-            "predicate with fields "
-                + current.getIncludes()
-                + " does not "
-                + what
-                + " "
-                + expectedDotPath);
-      }
-    }
+  private static void assertField(ExpectField expected, Fields fields) {
+    String what = expected.included ? "includes" : "exclude";
+    assertEquals(
+        expected.included,
+        fields.includes(expected.dotPath),
+        "fields " + fields + " does not " + what + " " + expected.dotPath);
   }
 }
