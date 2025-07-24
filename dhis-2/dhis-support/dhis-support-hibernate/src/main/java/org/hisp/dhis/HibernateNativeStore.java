@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toMap;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -135,7 +136,8 @@ public abstract class HibernateNativeStore<T> {
   @SuppressWarnings("unchecked")
   protected final <V> Map<String, V> getUidToAnyMap(
       DbName tableName, DbName columnName, Stream<UID> ids, Function<Object, V> toValue) {
-    String[] uids = ids.map(UID::getValue).distinct().toArray(String[]::new);
+    String[] uids =
+        ids.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
     if (uids.length == 1) {
       @Language("sql")
       String sql =

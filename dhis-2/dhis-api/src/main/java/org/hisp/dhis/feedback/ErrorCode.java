@@ -644,7 +644,7 @@ public enum ErrorCode {
   E8110("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
   E8111("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
   // value level, value and comment validity issues
-  E8120("Value ${index:{0}} value is required`"),
+  E8120("Value ${index:{0}} value is required"),
   E8121("Value ${index:{0}} value or comment is required`"),
   E8122("Value ${index:{0}} value `${value:{1}}` is no valid ${type:{2}}: ${reason:{3}}"),
   E8123(

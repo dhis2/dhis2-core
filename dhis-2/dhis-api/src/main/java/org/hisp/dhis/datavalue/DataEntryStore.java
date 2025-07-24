@@ -113,8 +113,8 @@ public interface DataEntryStore {
    * @return A map from a concatenated key to an AOC UID. The key is composed of the options of the
    *     AOC in alphabetical order of the categories
    */
-  Map<String, String> getDataSetAocIdMapping(
-      @Nonnull UID dataSet, @Nonnull IdProperty categories, @Nonnull IdProperty attributeOptions);
+  Map<Set<String>, String> getDataSetAocIdMapping(
+      @Nonnull UID dataSet, @Nonnull IdProperty attributeOptions);
 
   /**
    * Fetches the category IDs of the effective category combo for each provided data element.

@@ -33,7 +33,6 @@ import static java.lang.System.Logger.Level.INFO;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -147,8 +146,8 @@ public class DefaultDataEntryService implements DataEntryService {
     if (aocGroup == null && aoGroup != null && !aoGroup.isEmpty()) {
       if (ds == null) throw new BadRequestException(ErrorCode.E8101, "*", aoGroup);
       List<String> aocKeyOrder = store.getDataSetAocCategories(ds, categories);
-      String aocKey = aocKeyOrder.stream().map(aoGroup::get).collect(joining(" "));
-      Map<String, String> aocByKey = store.getDataSetAocIdMapping(ds, categories, categoryOptions);
+      Set<String> aocKey = aocKeyOrder.stream().map(aoGroup::get).collect(toSet());
+      Map<Set<String>, String> aocByKey = store.getDataSetAocIdMapping(ds, categoryOptions);
       aocGroup = aocByKey.get(aocKey);
     }
     Map<String, List<String>> categoriesByDe = null;

@@ -155,36 +155,36 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, String> getDataSetAocIdMapping(
-      @Nonnull UID dataSet, @Nonnull IdProperty categories, @Nonnull IdProperty attributeOptions) {
-    // FIXME
+  public Map<Set<String>, String> getDataSetAocIdMapping(
+      @Nonnull UID dataSet, @Nonnull IdProperty attributeOptions) {
     @Language("SQL")
     String sqlTemplate =
         """
-        WITH aoc_category_options AS (
-            SELECT
-                ${c_id} AS sort_name,
-                co.categoryoptionid,
-                ${co_id} AS key_seg
-            FROM dataset ds
-            JOIN categorycombos_categories cc_c ON ds.categorycomboid = cc_c.categorycomboid
-            JOIN category c ON cc_c.categoryid = c.categoryid
-            JOIN categories_categoryoptions c_co ON c.categoryid = c_co.categoryid
-            JOIN categoryoption co ON c_co.categoryoptionid = co.categoryoptionid
-            WHERE ds.uid = :ds
-        )
         SELECT
-            STRING_AGG(co.key_seg, ' ' ORDER BY co.sort_name) AS key,
-            coc.uid
-        FROM aoc_category_options co
-        JOIN categoryoptioncombos_categoryoptions coc_co ON co.categoryoptionid = coc_co.categoryoptionid
-        JOIN categoryoptioncombo coc ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
-        GROUP BY coc.uid;
-        """;
-    Map<String, String> vars =
-        Map.of("co_id", columnName("co", attributeOptions), "c_id", columnName("c", categories));
+          (
+            -- 2. translate CO ids (PK) to external ID property used
+            SELECT array_agg(${co_id})
+            FROM unnest(co_coc.categoryoptionids) AS options(categoryoptionid)
+            INNER JOIN categoryoption co ON options.categoryoptionid = co.categoryoptionid
+          ) AS category_option_ids,
+          coc.uid
+        FROM (
+          -- 1. expand DS => CC to a mapping of CO IDs as array for each COC
+          SELECT
+           ARRAY(SELECT DISTINCT unnest(array_agg(coc_co.categoryoptionid))) AS categoryoptionids,
+           coc_co.categoryoptioncomboid
+          FROM dataset ds
+          JOIN categorycombos_optioncombos cc_coc ON ds.categorycomboid = cc_coc.categorycomboid
+          JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          GROUP BY coc_co.categoryoptioncomboid
+        ) co_coc
+        JOIN categoryoptioncombo coc ON co_coc.categoryoptioncomboid = coc.categoryoptioncomboid""";
+    Map<String, String> vars = Map.of("co_id", columnName("co", attributeOptions));
     String sql = replace(sqlTemplate, vars);
-    return listAsStringsMap(sql, q -> q.setParameter("ds", dataSet.getValue()));
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows =
+        getSession().createNativeQuery(sql).setParameter("ds", dataSet.getValue()).stream();
+    return rows.collect(toMap(row -> Set.of((String[]) row[0]), row -> (String) row[1]));
   }
 
   @Override

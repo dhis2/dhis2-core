@@ -45,9 +45,13 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
+ * Data entry summary in case the import did write data. If a group level validation fails a {@link
+ * ConflictException} is thrown instead.
+ *
  * @param entered number of rows (values) that were decoded from the user input
  * @param attempted number of rows (values) that were attempted to import (entered - errors.size())
  * @param succeeded number of rows (values) affected by the import (ideally same as upserted)
+ * @param errors value level errors that causes individual values to be ignored
  */
 public record DataEntrySummary(
     int entered, int attempted, int succeeded, @Nonnull List<DataEntryError> errors) {
@@ -57,14 +61,31 @@ public record DataEntrySummary(
     return new DataEntryError(value, code, List.of(args));
   }
 
+  /**
+   * Individual data value level errors that do not directly fail the import are collected as this
+   * type.
+   *
+   * @param value having the error
+   * @param code which error
+   * @param args the arguments to the error message template
+   */
   public record DataEntryError(
       @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
 
+  /**
+   * @return computes the most reasonable equivalent of what was previously known as ignored values
+   */
   public int ignored() {
     return (attempted - succeeded) + errors.size();
   }
 
-  public DataEntrySummary add(DataEntrySummary other) {
+  /**
+   * Merges two summaries
+   *
+   * @param other another summary
+   * @return the merged summary
+   */
+  public DataEntrySummary add(@Nonnull DataEntrySummary other) {
     List<DataEntryError> errors = new ArrayList<>(this.errors);
     errors.addAll(other.errors);
     return new DataEntrySummary(
