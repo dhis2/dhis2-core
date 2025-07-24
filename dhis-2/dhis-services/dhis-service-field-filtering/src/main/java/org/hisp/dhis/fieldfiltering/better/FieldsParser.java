@@ -74,14 +74,22 @@ public class FieldsParser {
           }
 
           // TODO what if the block is empty? what does that mean
-          // TODO(ivo) does includesAll make sense if no fields follow? what about
+          // TODO(ivo) does includeAll make sense if no fields follow? what about
           // fields=relationships,relationships[from] is this like :all,code where its already
-          // settled that all is included? but relationships[from] should obviously not includesAll
-          // child.includesAll();
+          // settled that all is included? but relationships[from] should obviously not includeAll
+          // child.includeAll();
           // start with tests on the FieldFilterServiceTest level or curl to see how the old
           // parser/service behaves. Interesting is also relationships[foo] that does not err but
           // does it count as relationships?
           FieldsAccumulator child = stack.peek().getOrCreateChild(parent);
+          if (!isExclusion) {
+            // TODO(ivo) this is not the default behavior for metadata so we might need to pass in an includes behavior or so as for metadata its schema dependent. References like fields=program will turn into fields=program[id].
+
+            // TODO(ivo) this should only be the default for a new accumulator, as soon as we add a field we should set this to false
+            // the difficulty is, what if the user set this to * explicitly? so maybe my approach does not work here
+            // so includesAll should only be set if we actually find `*`. Where does the behavior then live of fields=relationships => fields=relationships[*] vs fields=program => fields=program[id]? Maybe after parsing, before conversion? Ideally it lives in here and not in Fields
+            child.includesAll = true;
+          }
 
           stack.push(child);
           inField = false;
@@ -106,7 +114,8 @@ public class FieldsParser {
         isFieldWithWhitespace = false;
         isExclusion = false;
       } else if (input.charAt(i) == '*' && !inField) {
-        stack.peek().includesAll();
+        // TODO(ivo) fix now: this should then also cause all children to be included
+        stack.peek().includesAll=true;
       } else if (input.charAt(i) == '!' && !inField) {
         inField = true;
         isExclusion = true;
@@ -177,10 +186,6 @@ public class FieldsParser {
     final Set<String> includes = new HashSet<>();
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
-
-    void includesAll() {
-      this.includesAll = true;
-    }
 
     void includes(String field) {
       this.includes.add(field);

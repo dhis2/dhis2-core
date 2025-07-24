@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -45,6 +46,8 @@ import lombok.Getter;
  */
 @EqualsAndHashCode
 public final class Fields implements Predicate<String> {
+  private static final Fields ALL=all();
+  private static final Fields NONE=none();
 
   /** True means "includes all except", whereas false means "includes only specified". */
   private final boolean includesAll;
@@ -60,6 +63,10 @@ public final class Fields implements Predicate<String> {
 
   public static Fields all() {
     return new Fields(true, Set.of(), Set.of(), Map.of(), Map.of());
+  }
+
+  public static Fields none() {
+    return new Fields(false, Set.of(), Set.of(), Map.of(), Map.of());
   }
 
   /**
@@ -120,7 +127,7 @@ public final class Fields implements Predicate<String> {
         return false;
       }
 
-      current = current.getChild(segment);
+        current = current.getChild(segment);
     }
 
     return true;
@@ -146,8 +153,19 @@ public final class Fields implements Predicate<String> {
    * @param field the field name
    * @return Fields specification for the child, or null if no specific rules apply
    */
+  @Nonnull
   public Fields getChild(String field) {
-    return children.get(field);
+    // TODO(ivo) make sure I am not distributing logic now between the parser and this class
+    // specific children specs take precedence as they would for example contain explicit exclusions like fields=program[!name]
+    if (children.containsKey(field)) {
+      return children.get(field);
+    }
+
+    // TODO(ivo) this is the default behavior for tracker while metadata would do fields=program turns to fields=program[id]
+    if (test(field)) {
+      return ALL;
+    }
+    return NONE;
   }
 
   // TODO(ivo) how about returning a noop transformation?

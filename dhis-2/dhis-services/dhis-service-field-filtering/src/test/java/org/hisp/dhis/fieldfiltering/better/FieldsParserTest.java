@@ -205,12 +205,6 @@ class FieldsParserTest {
                 new ExpectField(true, "group.id"),
                 new ExpectField(true, "group.name"))),
 
-        // TODO(ivo) not sure if code is part of the :owner preset. Figure that out and also how to
-        // test current preset behavior with the new one as this parser does not take care of preset
-        // expansion. The logic is spread into the service or some helper.
-        // testExclude1
-        // TODO(ivo) create extra tests for presets even like :all and *
-        //        Arguments.of("id,name,!code,:owner",
         Arguments.of(
             "id,name,!code",
             List.of(
@@ -245,9 +239,7 @@ class FieldsParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(true, "group.code"))),
 
-        // based on testParseWithPresetAndExclude (TODO removed the preset: need to figure out how
-        // to reconcile my preset handling with old parser in tests)
-        //
+        // based on testParseWithPresetAndExclude without the presets as I will need to test them separately
         // FieldFilterParser.parse("id,name,!code,:owner,group[:owner,:all,!code,hello]");
         Arguments.of(
             "code,id,name,!code,group[!code,hello,code]",
@@ -258,23 +250,6 @@ class FieldsParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(false, "group.code"),
                 new ExpectField(true, "group.hello"))));
-
-    // TODO(ivo) not yet sure how to test preset related fixtures as the old parser includes the
-    // presets as fields while the new one does not
-    // I might have to separate the two or create a separate preset test with different assertions
-    //    @Test
-    //    void testParseWithAsterisk1() {
-    //      List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code");
-    //
-    //      FieldPath asterisk = getFieldPath(fieldPaths, "all");
-    //      assertNotNull(asterisk);
-    //      assertFalse(asterisk.isExclude());
-    //      assertTrue(asterisk.isPreset());
-    //      FieldPath code = getFieldPath(fieldPaths, "code");
-    //      assertNotNull(code);
-    //      assertTrue(code.isExclude());
-    //      assertFalse(code.isPreset());
-    //    }
   }
 
   // The following tests show where the current and better implementations differ. Some differences
@@ -313,7 +288,6 @@ class FieldsParserTest {
         java.util.EmptyStackException.class, () -> FieldFilterParser.parse("group[name]]"));
   }
 
-  // TODO(ivo) add tests for () once that is supported
   @ParameterizedTest
   @ValueSource(
       strings = {
@@ -326,13 +300,31 @@ class FieldsParserTest {
     assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
   }
 
-  // TODO research: fields=parent gives the parent[id] only in the output, who is responsible for
-  // this behaviour?
-  // test fields=parent on orgUnits only shows the parent.id and fields=parent[:all] shows all
-  // fields
-  // TODO finalize *
+  // TODO(ivo) create extra tests for * only for my parser?
+  // I might have to separate the two or create a separate preset test with different assertions
+  //    @Test
+  //    void testParseWithAsterisk1() {
+  //      List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code");
+  //
+  //      FieldPath asterisk = getFieldPath(fieldPaths, "all");
+  //      assertNotNull(asterisk);
+  //      assertFalse(asterisk.isExclude());
+  //      assertTrue(asterisk.isPreset());
+  //      FieldPath code = getFieldPath(fieldPaths, "code");
+  //      assertNotNull(code);
+  //      assertTrue(code.isExclude());
+  //      assertFalse(code.isPreset());
+  //    }
+  @Test
+  void testBetterParserStar() {
+    Fields fields = FieldsParser.parse("*,!code");
+
+    assertFields(
+        List.of(new ExpectField(false, "code"),new ExpectField(true, "group"), new ExpectField(true, "group.code")), fields);
+  }
+
   // TODO implement: group(id) is equivalent to group[id] but () is also used for transformers
-  // TODO presets: org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets does rely on the
+  // TODO(ivo) presets: org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets does rely on the
   // schema. Make a provision for this that allows passing in a Map<String, Set<String>> presets
   // into the parser.
   // :all should be a preset mapped to * (maybe a default preset that users of the parser cannot
@@ -340,21 +332,12 @@ class FieldsParserTest {
   // on the other hand FieldPreset is a static mapping of presets to fields. Why do we still need
   // the schema then? Is it due to his approach of computing all paths of an object instead of only
   // what we need to know?
-  // TODO add test for negating presets which is ignored so leads to preset inclusion
-  // TODO API: improve the API with regards to only calculating the effective set of fields once and
-  // expose that for testing/debugging
-  // idea: what if the parser is stateful? containing what FieldsPredicate contains now and
-  // FieldsPredicate is immutable with only the test method?
-  // TODO API: can I improve the API with regards to getting the child predicate? and maybe disallow
-  // mutation :joy:
-  // TODO how to best test behavior of the Jackson integration:
-  //       String json = objectMapper.writer(filters)
-  //          .withAttribute(FieldsPropertyFilter.PREDICATE_ATTRIBUTE, predicate)
-  //          .writeValueAsString(comments);
-  // TODO support transformers: I think I first need to investigate all their intricacies and what a
+  // TODO(ivo) add test for negating presets which is ignored so leads to preset inclusion
+  // TODO(ivo) only used by metadata: fields=parent on orgUnits only shows the parent.id and fields=parent[:all] shows all. This is done by the FieldFilterService, the FieldFilterParser only parses the presets without expanding them.
+  // fields
+  // TODO(ivo) support transformers: I think I first need to investigate all their intricacies and what a
   // more efficient way is for Jackson
-  // TODO parse transformers
-  // TODO(ivo) parseWithPrefix is only used in tests, remove it when I open up a PR
+  // TODO(ivo) only used in tests: FieldFilterParser.parseWithPrefix can be removed
   @Test
   void testParseWithPrefix1() {
     List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix("a,b", "prefix");

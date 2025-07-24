@@ -62,6 +62,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Tests that simple POJOs as used by tracker in its view classes can be serialized and filtered to JSON by Jackson and the field filtering implementation.
+ */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 // TODO(ivo) the tracker view model can be built/tested without a DB. We only need Spring to wire
@@ -95,14 +98,13 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
   @ValueSource(
       strings = {
         "*",
-        //        "event,dataValues", // TODO(ivo) fix this which for tracker will includeAll of
-        // dataValues children that is a todo left in the parser as metadata would then includes
-        // dataValues[id]
+        "event,dataValues",
+        // TODO(ivo) why would this now include all? I though I prioritize child specs. Also if I get it to work try to figure out if I can move the getChild logic into the contstructor?
         "event,dataValues[dataElement,value]",
         "event,dataValues[*,!storedBy]",
         "*,!enrollment",
       })
-  void betterFilterShouldMatchCurrentFilter(String fields) throws JsonProcessingException {
+  void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields) throws JsonProcessingException {
     String actualCurrent = serializeUsingCurrentFilter(events, fields);
     String actualBetter = serializeUsingBetterFilter(events, fields);
 
@@ -116,12 +118,12 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
     return objectMapper.writeValueAsString(objectNodes);
   }
 
-  private String serializeUsingBetterFilter(List<Event> events, String fields)
+  private String serializeUsingBetterFilter(List<Event> events, String fieldsInput)
       throws JsonProcessingException {
-    Fields fieldsPredicate = FieldsParser.parse(fields);
+    Fields fields = FieldsParser.parse(fieldsInput);
     return filterMapper
         .writer()
-        .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fieldsPredicate)
+        .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
         .writeValueAsString(events);
   }
 
