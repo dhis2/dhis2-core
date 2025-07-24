@@ -32,7 +32,6 @@ package org.hisp.dhis.datavalue;
 import static java.util.Objects.requireNonNull;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,10 +65,6 @@ public record DataEntryGroup(
     requireNonNull(values);
   }
 
-  public DataEntryGroup(List<DataEntryValue> values) {
-    this(null, values);
-  }
-
   public String describe() {
     // Needs to use HashMap because of null values
     Map<String, String> vars = new HashMap<>();
@@ -86,23 +81,27 @@ public record DataEntryGroup(
    */
   @OpenApi.Shared(name = "DataEntryGroup")
   public record Input(
-      Ids ids,
-      @OpenApi.Property({UID.class, DataSet.class}) @CheckForNull String dataSet,
+      @CheckForNull Ids ids,
+      @CheckForNull @OpenApi.Property({UID.class, DataSet.class}) String dataSet,
       // common dimensions (optional)
-      @OpenApi.Property({UID.class, DataElement.class}) @CheckForNull String dataElement,
-      @OpenApi.Property({UID.class, OrganisationUnit.class}) @CheckForNull String orgUnit,
+      @CheckForNull @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
+      @CheckForNull @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
       @CheckForNull String period,
-      @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @CheckForNull
+      @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,
-      @OpenApi.Description(
+      @CheckForNull
+          @OpenApi.Description(
               """
             Alternative to the `attributeOptionCombo` the defining which category option (value) is chosen for which category (key)
             for the category combo of the `dataSet`. Can only be used when `dataSet` is provided as well.
             Will only be considered if `attributeOptionCombo` is not present.
             """)
-          @CheckForNull
           Map<String, String> attributeOptions,
-      @JsonAlias("dataValues") List<DataEntryValue.Input> values) {
+      @Nonnull List<DataEntryValue.Input> values) {
+
+    public Input {
+      requireNonNull(values);
+    }
 
     public Input(List<DataEntryValue.Input> values) {
       this(null, null, values);
@@ -120,7 +119,7 @@ public record DataEntryGroup(
       vars.put("ou", orgUnit);
       vars.put("pe", period);
       vars.put("aoc", attributeOptionCombo);
-      vars.put("count", values == null ? null : "" + values.size());
+      vars.put("count", "" + values.size());
       return replace(
           "ds=${ds:?} [de=${de:} ou=${ou:} pe=${pe:} aoc=${aoc:}](${count:0} values)", vars);
     }
