@@ -633,18 +633,19 @@ public enum ErrorCode {
   E7711("Organisation unit cannot be uniquely identified by its name"),
   E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
 
-  /* New data entry validations */
+  /* Data entry (SQL backed implementation) */
   // set level decoding and general input issues
   E8000("Atomic mode requires all values to be valid but only {0}/{1} were."),
+  E8001("PDF input does not support Acro fields"),
   E8002("Data set detection failed, found multiple sets: `${datasets:{0}}`"),
   E8003("Data set detection failed, found no set for data element(s): `${elements:{0}}`"),
   E8004("Data set UID not valid: `${id:{0}}`"),
   E8005("Data set not found: `${id:{0}}`"),
-  // set level current user access issues
+  // set level current user access issues: Current user cannot enter...
   E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
   E8011("Current user cannot enter data for org unit(s): `${units:{0}}`"),
   E8012("Current user cannot enter data for category option(s): `${options:{0}}`"),
-  // set level model consistency issues
+  // set level model consistency issues: X not usable with Y
   E8020("Data set ${ds:{0}} not usable with data element(s): `${elements:{1}}`"),
   E8021("Data set ${ds:{0}} not usable with period(s): `${periods:{1}}`"),
   E8022("Data set ${ds:{0}} not usable with org unit(s): `${units:{1}}`"),
@@ -652,13 +653,13 @@ public enum ErrorCode {
   E8024(
       "Data set ${ds:{0}} + data element ${de:{1}} not usable with category option combo(s): `${combos:{2}}`"),
   E8025("Attribute option combo ${combo:{0}} not usable with org unit(s): `${units:{1}}`"),
-  // set level timeliness issues
-  E8030("Data set ${ds:{0}} not open for data entry of period(s): `${periods:{1}}`"),
-  E8031("Org unit ${unit:{0}} not open for data entry of period(s): `${periods:{1}}`"),
+  // set level timeliness issues: untimely data entry...
+  E8030("Untimely data entry for data set ${ds:{0}} and period(s): `${periods:{1}}`"),
+  E8031("Untimely data entry for org unit ${unit:{0}} and period(s): `${periods:{1}}`"),
   E8032(
-      "Attribute option combo ${combo:{0}} not open for data entry of period(s): `${periods:{1}}`"),
+      "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
-      "Attribute option combo ${combo:{0}} already approved for org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+      "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
   // value level decoding and input issues
   E8100("Value ${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value ${index:{0}} data set is required to decode category options: `${options:{1}}`"),
@@ -672,6 +673,14 @@ public enum ErrorCode {
   E8109("Value ${index:{0}} category option combo UID is not valid: `${uid:{1}}`"),
   E8110("Value ${index:{0}} attribute option combo not found: `${id:{1}}`"),
   E8111("Value ${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
+  // value level, value and comment validity issues
+  E8120("Value ${index:{0}} must define a value`"),
+  E8121("Value ${index:{0}} must define a value or comment`"),
+  E8122("Value ${index:{0}} (`${value:{1}}`) is no valid ${type:{2}}: ${reason:{3}}"),
+  E8123(
+      "Value ${index:{0}} (`${value:{1}}`) is not a valid option for data element ${element:{2}}`"),
+  E8124("Value ${index:{0}} has restricted comment options and does not allow ${comment:{1}}`"),
+  E8125("Value ${index:{0}} comment too long (max ${max:{1}} characters)`"),
   ;
 
   private final String message;

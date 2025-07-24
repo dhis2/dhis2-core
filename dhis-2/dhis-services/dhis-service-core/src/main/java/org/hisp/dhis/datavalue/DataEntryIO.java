@@ -57,6 +57,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -159,10 +160,10 @@ public class DataEntryIO {
 
   @Nonnull
   private static List<DataEntryGroup.Input> parsePdf(InputStream in, DataEntryGroup.Ids ids)
-      throws IOException {
+      throws IOException, BadRequestException {
     PdfReader dvs = new PdfReader(in);
     AcroFields form = dvs.getAcroFields();
-    if (form == null) throw new IllegalArgumentException("PDF has no Acro fields");
+    if (form == null) throw new BadRequestException(ErrorCode.E8001);
     // keys that are common for all values
     String ou = form.getField("TXFD_OrgID").trim();
     String pe = form.getField("TXFD_PeriodID").trim();

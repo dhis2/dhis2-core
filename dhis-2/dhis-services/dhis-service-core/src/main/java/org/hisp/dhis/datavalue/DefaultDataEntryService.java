@@ -496,26 +496,27 @@ public class DefaultDataEntryService implements DataEntryService {
       // - require: value not null/empty (not for delete or deleted value)
       boolean emptyValue = isEmpty(val);
       if (emptyValue && !allowEmptyValue) {
-        errors.add(error(e, ErrorCode.E7618, e.dataElement()));
+        ErrorCode code = commentAllowsEmptyValue ? ErrorCode.E8121 : ErrorCode.E8120;
+        errors.add(error(e, code, e.index()));
       } else {
         // - require: value valid for the DE value type?
         String error = emptyValue ? null : ValidationUtils.valueIsValid(val, type);
         if (error != null) {
-          errors.add(error(e, ErrorCode.E7619, type, val));
+          errors.add(error(e, ErrorCode.E8122, e.index(), val, type, error));
         } else {
           // - require: if DE uses OptionSet - is value a valid option?
           Set<String> options = emptyValue ? null : optionsByDe.get(de);
           if (options != null && !options.contains(val)) {
-            errors.add(error(e, ErrorCode.E7621, de));
+            errors.add(error(e, ErrorCode.E8123, e.index(), val, de));
           } else {
             // - require: if DE uses comment OptionSet - is comment a valid option?
             Set<String> cOptions = commentOptionsByDe.get(de);
             if (cOptions != null && (comment == null || !cOptions.contains(comment))) {
-              errors.add(error(e, ErrorCode.E7620, comment));
+              errors.add(error(e, ErrorCode.E8124, e.index(), comment));
             } else {
               // - require: does the comment not exceed maximum length?
               if (comment != null && comment.length() > 5000) {
-                errors.add(error(e, ErrorCode.E7620, comment));
+                errors.add(error(e, ErrorCode.E8125, e.index(), 5000));
               } else {
                 // finally: all is good, we try to upsert this value
                 res.add(e);
