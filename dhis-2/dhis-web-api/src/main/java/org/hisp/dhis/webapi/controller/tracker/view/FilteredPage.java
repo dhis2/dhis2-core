@@ -33,7 +33,7 @@ import org.hisp.dhis.fieldfiltering.better.Fields;
 
 /**
  * Wrapper that carries both a Page and the Fields for field filtering. This allows the
- * HttpMessageConverter to access both the page data and the fields without using request attributes
- * or ThreadLocal.
+ * FilteredPageHttpMessageConverter to access both the page data and the fields without using
+ * request attributes or ThreadLocal.
  */
 public record FilteredPage<T>(Page<T> page, Fields fields) {}

@@ -147,27 +147,22 @@ public class FieldsParser {
   }
 
   private static Fields map(FieldsAccumulator acc, boolean includesAll) {
-    // TODO what if the block is empty? what does that mean
-    // TODO(ivo) what about
-    // fields=relationships,relationships[from] is this like :all,code where its already
-    // settled that all is included? but relationships[from] should obviously not includeAll
-    // child.includeAll();
-    // start with tests on the FieldFilterServiceTest level or curl to see how the old
-    // parser/service behaves. Interesting is also relationships[foo] that does not err but
-    // does it count as relationships?
-
-    // TODO(ivo) this is not the default behavior for metadata so we might need to pass in an
-    // includes behavior or so as for metadata its schema dependent. References like fields=program
-    // will turn into fields=program[id].
-
-    // so includesAll should only be set if we actually find `*`. Where does the behavior then live
-    // of fields=relationships => fields=relationships[*] vs fields=program => fields=program[id]?
     Map<String, Fields> children = new HashMap<>();
     for (Map.Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
-      // parent which includes all fields propagates to its children
-      children.put(
-          entry.getKey(),
-          map(entry.getValue(), includesAll || entry.getValue().includes.contains("*")));
+      // Inclusion rules
+      // 1. An * from a parent propagates to its children
+      // 2. A * can be encountered deeper in the tree and start to propagate from there
+      // 3. A fields children are automatically all included unless an explicit inclusion is given
+      // TODO(ivo) this last rule is not true (at least for all) metadata. The behavior is schema
+      // dependent. References like fields=program will turn into fields=program[id]. There is more
+      // logic with regards to "complex" objects ... We can come up with a mechanism to override
+      // this behavior with a Function that either gets the field or the full path if necessary.
+      // This function can then be passed into the parser and depend on the schema service.
+      boolean includeChildren =
+          includesAll
+              || entry.getValue().includes.contains("*")
+              || entry.getValue().includes.isEmpty();
+      children.put(entry.getKey(), map(entry.getValue(), includeChildren));
     }
 
     return new Fields(

@@ -37,7 +37,6 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
@@ -56,12 +55,17 @@ import org.springframework.stereotype.Component;
  * JSON pages directly to the HTTPs response body's output stream.
  */
 @Component
-@RequiredArgsConstructor
 public class FilteredPageHttpMessageConverter
     extends AbstractHttpMessageConverter<FilteredPage<?>> {
 
   @Qualifier("jsonFilterMapper")
   private final ObjectMapper filterMapper;
+
+  public FilteredPageHttpMessageConverter(
+      @Qualifier("jsonFilterMapper") ObjectMapper filterMapper) {
+    super(org.springframework.http.MediaType.APPLICATION_JSON);
+    this.filterMapper = filterMapper;
+  }
 
   @Override
   protected boolean supports(@Nonnull Class<?> clazz) {
@@ -80,7 +84,6 @@ public class FilteredPageHttpMessageConverter
   protected void writeInternal(
       @Nonnull FilteredPage<?> filteredPage, @Nonnull HttpOutputMessage outputMessage)
       throws IOException, HttpMessageNotWritableException {
-
     if (outputMessage instanceof StreamingHttpOutputMessage) {
       writeStreaming(filteredPage, (StreamingHttpOutputMessage) outputMessage);
     } else {
@@ -107,7 +110,6 @@ public class FilteredPageHttpMessageConverter
 
   private void writePageToStream(FilteredPage<?> filteredPage, OutputStream outputStream)
       throws IOException {
-    // TODO(ivo) will this properly set the content type?
     Page<?> page = filteredPage.page();
     Fields pageFields = createPageFields(page.getKey(), filteredPage.fields());
 
@@ -132,13 +134,11 @@ public class FilteredPageHttpMessageConverter
     // but will be handled correctly
     // Include pager field with all sub-properties
     // Include dynamic key (e.g., "events") with user's filtering predicate
-    Fields pageFields =
-        new Fields(
-            false,
-            Set.of("pager", key),
-            Set.of(),
-            Map.of("pager", Fields.all(), key, fields),
-            Map.of());
-    return pageFields;
+    return new Fields(
+        false,
+        Set.of("pager", key),
+        Set.of(),
+        Map.of("pager", Fields.all(), key, fields),
+        Map.of());
   }
 }

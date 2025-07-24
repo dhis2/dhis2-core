@@ -57,6 +57,7 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
               + "Make sure to set it via ObjectWriter.withAttribute()");
     }
 
+    // TODO(ivo) clean this up. and is it expensive to setAttribute?
     if (current.test(writer.getName())) {
       //      if (current.containsChild(writer.getName())) {
       // Set the child for nested serialization

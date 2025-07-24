@@ -63,8 +63,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests that simple POJOs as used by tracker in its view classes can be serialized and filtered to
- * JSON by Jackson and the field filtering implementation.
+ * This test ensures that simple POJOs like Tracker view classes can be serialized and field
+ * filtered to JSON by Jackson. The test also ensures the better field filtering is backwards
+ * compatible with the current {@link FieldFilterParser} and {@link FieldFilterService}. Due to how
+ * the current field filtering is built cannot ensure most of this using unit tests.
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -99,10 +101,24 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
   @ValueSource(
       strings = {
         "*",
+        "!event",
         "event,dataValues",
+        "event,!dataValues",
+        "event,!dataValues,*",
+        "dataValues[!value]",
+        "dataValues,dataValues[!value]",
+        "dataValues,dataValues[value]",
+        "dataValues[dataElement,!value]",
+        "event,*,dataValues[!value]",
         "event,dataValues[dataElement,value]",
         "event,dataValues[*,!storedBy]",
         "*,!enrollment",
+        "relationships,relationships[from]",
+        "relationships[]",
+        "relationships[unknownfield]", // TODO(ivo) anyway we can replicate this behavior? I do not
+        // want to know what fields actually exist as this makes
+        // everything complicated
+        "relationships[f rom[trackedEntity[ org Unit ]",
       })
   void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
       throws JsonProcessingException {

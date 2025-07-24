@@ -156,7 +156,7 @@ class EventsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event>> getEvents(
+  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEvents(
       EventRequestParams requestParams,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) Fields fields,
       TrackerIdSchemeParams idSchemeParams,
@@ -178,14 +178,13 @@ class EventsExportController {
           eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
       ensureNoMappingErrors(errors);
 
-      return ResponseEntity.ok(
-          new FilteredPage<>(Page.withPager(EVENTS, page, getRequestURL(request)), fields));
+      return new FilteredPage<>(Page.withPager(EVENTS, page, getRequestURL(request)), fields);
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    return ResponseEntity.ok(new FilteredPage<>(Page.withoutPager(EVENTS, events), fields));
+    return new FilteredPage<>(Page.withoutPager(EVENTS, events), fields);
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)

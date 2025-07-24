@@ -66,20 +66,20 @@ class FieldsConverterTest {
         new DefaultFormattingConversionService();
     formattingConversionService.addConverter(new FieldsConverter());
     mockMvc =
-        MockMvcBuilders.standaloneSetup(new FieldsPredicateController(expected))
+        MockMvcBuilders.standaloneSetup(new FieldsController(expected))
             .setConversionService(formattingConversionService)
             .build();
   }
 
   @Test
-  void shouldConvertFieldsPredicateGivenASingleRequestParameter() throws Exception {
+  void shouldConvertFieldsGivenASingleRequestParameter() throws Exception {
     mockMvc
         .perform(get("/test-fields").param("fields", "attributes[attribute,value],deleted"))
         .andExpect(status().isOk());
   }
 
   @Test
-  void shouldConvertFieldsPredicateGivenMultipleRequestParameters() throws Exception {
+  void shouldConvertFieldsGivenMultipleRequestParameters() throws Exception {
     mockMvc
         .perform(
             get("/test-fields")
@@ -101,7 +101,7 @@ class FieldsConverterTest {
 
   @Controller
   @RequiredArgsConstructor
-  private static class FieldsPredicateController extends CrudControllerAdvice {
+  private static class FieldsController extends CrudControllerAdvice {
     private final List<ExpectField> expected;
 
     @GetMapping("/test-fields")
