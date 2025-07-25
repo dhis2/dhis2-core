@@ -144,7 +144,6 @@ class EventOperationParamsMapper {
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships())
         .setIdSchemeParams(operationParams.getIdSchemeParams());
   }
 

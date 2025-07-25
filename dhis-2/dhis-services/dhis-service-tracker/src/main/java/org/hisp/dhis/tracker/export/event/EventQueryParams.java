@@ -515,18 +515,8 @@ class EventQueryParams {
     return synchronizationQuery;
   }
 
-  public EventQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
-    this.synchronizationQuery = synchronizationQuery;
-    return this;
-  }
-
   public Date getSkipChangedBefore() {
     return skipChangedBefore;
-  }
-
-  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
-    this.skipChangedBefore = skipChangedBefore;
-    return this;
   }
 
   public Set<UID> getEnrollments() {
@@ -536,25 +526,6 @@ class EventQueryParams {
   public EventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
-  }
-
-  public boolean isIncludeRelationships() {
-    return includeRelationships;
-  }
-
-  public EventQueryParams setIncludeRelationships(boolean includeRelationships) {
-    this.includeRelationships = includeRelationships;
-    return this;
-  }
-
-  public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return orgUnitMode != null && orgUnitMode.equals(mode);
-  }
-
-  public boolean isPathOrganisationUnitMode() {
-    return orgUnitMode != null
-        && (OrganisationUnitSelectionMode.DESCENDANTS.equals(orgUnitMode)
-            || OrganisationUnitSelectionMode.CHILDREN.equals(orgUnitMode));
   }
 
   public EventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {

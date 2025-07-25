@@ -52,6 +52,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public final class Fields implements Predicate<String> {
   public static final Fields ALL = all();
+  public static final Fields NONE = none();
 
   /** True means "includes all except", whereas false means "includes only specified". */
   private final boolean includesAll;
@@ -72,9 +73,14 @@ public final class Fields implements Predicate<String> {
     return new Fields(true, except, (field) -> ALL, Map.of());
   }
 
-  /** Creates Fields which include all fields and all of its children with no transformations. */
+  /** Creates Fields which includes all fields and all of its children with no transformations. */
   public static Fields all() {
     return new Fields(true, Set.of(), (field) -> ALL, Map.of());
+  }
+
+  /** Creates Fields which includes no fields. */
+  public static Fields none() {
+    return new Fields(false, Set.of(), (field) -> NONE, Map.of());
   }
 
   /**

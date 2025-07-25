@@ -100,8 +100,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -659,7 +659,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             EventOperationParams.builder()
                 .program(eventProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-                .eventParams(EventParams.FALSE)
+                .fields(EventFields.none())
                 .build());
     assertHasSize(1, events);
     Event actual = events.get(0);
@@ -743,7 +743,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-                .eventParams(EventParams.FALSE)
+                .fields(EventFields.none())
                 .build());
     assertHasSize(1, events);
     Event actualEvent = events.get(0);
@@ -813,7 +813,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-                .eventParams(EventParams.FALSE)
+                .fields(EventFields.none())
                 .build());
     assertHasSize(1, events);
     Event actual = events.get(0);

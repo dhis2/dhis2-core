@@ -146,7 +146,7 @@ public class EventOperationParams {
 
   private Set<UID> enrollments;
 
-  @Builder.Default private EventParams eventParams = EventParams.FALSE;
+  @Builder.Default private EventFields fields = EventFields.none();
 
   @Builder.Default
   private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();

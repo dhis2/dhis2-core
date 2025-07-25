@@ -37,5 +37,6 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  * specify the exact fields they want in the JSON response.
  */
 public interface FieldsRequestParam {
+  // TODO(ivo) change to Fields
   List<FieldPath> getFields();
 }

@@ -56,8 +56,8 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.user.UserDetails;
@@ -167,12 +167,11 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
-  private Set<Event> getEvents(
-      Enrollment enrollment, EventParams eventParams, boolean includeDeleted) {
+  private Set<Event> getEvents(Enrollment enrollment, EventFields fields, boolean includeDeleted) {
     EventOperationParams eventOperationParams =
         EventOperationParams.builder()
             .enrollments(Set.of(UID.of(enrollment)))
-            .eventParams(eventParams)
+            .fields(fields)
             .includeDeleted(includeDeleted)
             .build();
     try {
@@ -220,9 +219,12 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
     if (params.isIncludeEvents()) {
-      result.setEvents(
-          getEvents(
-              enrollment, params.getEnrollmentEventsParams().getEventParams(), includeDeleted));
+      // TODO(ivo) omg this never ends: research how I got rid of this madness in 43
+      //      result.setEvents(
+      //          getEvents(
+      //              enrollment, params.getEnrollmentEventsParams().getEventParams(),
+      // includeDeleted));
+      result.setEvents(getEvents(enrollment, EventFields.all(), includeDeleted));
     }
     if (params.isIncludeRelationships()) {
       result.setRelationshipItems(

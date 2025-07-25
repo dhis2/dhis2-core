@@ -133,7 +133,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
+    eventParamsBuilder = EventOperationParams.builder().fields(EventParams.FALSE);
     eventParamsBuilder.orgUnitMode(SELECTED);
   }
 

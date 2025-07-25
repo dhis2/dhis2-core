@@ -39,6 +39,7 @@ import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams.FAL
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -60,8 +61,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -76,7 +77,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -123,8 +123,6 @@ class EventRequestParamsMapperTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @Mock private DataElementService dataElementService;
-
-  @Mock EventFieldsParamMapper eventFieldsParamMapper;
 
   @InjectMocks private EventRequestParamsMapper mapper;
 
@@ -615,26 +613,24 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapEventParamsTrueWhenFieldPathIncludeRelationships() throws BadRequestException {
+  void shouldMapAndIncludeRelationshipsIfInFields() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
-
-    eventRequestParams.setFields(fieldPaths);
-    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.TRUE);
+    Fields fields = FieldsParser.parse(FIELD_RELATIONSHIPS);
+    eventRequestParams.setFields(fields);
 
     EventOperationParams eventOperationParams = mapper.map(eventRequestParams, idSchemeParams);
-    assertEquals(EventParams.TRUE, eventOperationParams.getEventParams());
+
+    assertTrue(eventOperationParams.getFields().isIncludesRelationships());
   }
 
   @Test
-  void shouldMapEventParamsFalseWhenFieldPathIncludeRelationships() throws BadRequestException {
+  void shouldMapAndIncludeRelationshipsIfNotInFields() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
-
-    eventRequestParams.setFields(fieldPaths);
-    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.FALSE);
+    Fields fields = FieldsParser.parse("event");
+    eventRequestParams.setFields(fields);
 
     EventOperationParams eventOperationParams = mapper.map(eventRequestParams, idSchemeParams);
-    assertEquals(EventParams.FALSE, eventOperationParams.getEventParams());
+
+    assertFalse(eventOperationParams.getFields().isIncludesRelationships());
   }
 }

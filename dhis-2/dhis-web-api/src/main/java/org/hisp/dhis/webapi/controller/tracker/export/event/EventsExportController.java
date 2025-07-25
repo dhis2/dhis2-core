@@ -70,8 +70,8 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
@@ -121,8 +121,6 @@ class EventsExportController {
 
   private final FieldFilterService fieldFilterService;
 
-  private final EventFieldsParamMapper eventsMapper;
-
   private final ObjectMapper objectMapper;
 
   private final EventChangeLogService eventChangeLogService;
@@ -133,7 +131,6 @@ class EventsExportController {
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
       RequestHandler requestHandler,
       FieldFilterService fieldFilterService,
-      EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
       EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
@@ -141,7 +138,6 @@ class EventsExportController {
     this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
     this.fieldFilterService = fieldFilterService;
-    this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
 
@@ -158,7 +154,6 @@ class EventsExportController {
       )
   FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEvents(
       EventRequestParams requestParams,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) Fields fields,
       TrackerIdSchemeParams idSchemeParams,
       HttpServletRequest request)
       throws BadRequestException, ForbiddenException, WebMessageException {
@@ -178,19 +173,21 @@ class EventsExportController {
           eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
       ensureNoMappingErrors(errors);
 
-      return new FilteredPage<>(Page.withPager(EVENTS, page, getRequestURL(request)), fields);
+      return new FilteredPage<>(
+          Page.withPager(EVENTS, page, getRequestURL(request)), requestParams.getFields());
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    return new FilteredPage<>(Page.withoutPager(EVENTS, events), fields);
+    return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
   void getEventsAsJsonGzip(
       EventRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
       HttpServletResponse response)
       throws BadRequestException, IOException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
@@ -202,8 +199,8 @@ class EventsExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(events, requestParams.getFields());
+    // TODO(ivo) can we move the JSON gzip into our http converter?
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(events, fields);
 
     writeGzip(
         response.getOutputStream(), Page.withoutPager(EVENTS, objectNodes), objectMapper.writer());
@@ -213,6 +210,7 @@ class EventsExportController {
   void getEventsAsJsonZip(
       EventRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
       HttpServletResponse response)
       throws BadRequestException, ForbiddenException, IOException, WebMessageException {
     validatePaginationParameters(requestParams);
@@ -224,8 +222,7 @@ class EventsExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
 
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(events, requestParams.getFields());
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(events, fields);
 
     writeZip(
         response.getOutputStream(),
@@ -286,21 +283,27 @@ class EventsExportController {
 
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
-  ResponseEntity<ObjectNode> getEventByUid(
+  void getEventByUid(
+      HttpServletResponse response,
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
-          List<FieldPath> fields,
+          Fields fields,
       TrackerIdSchemeParams idSchemeParams)
-      throws NotFoundException, WebMessageException {
-    EventParams eventParams = eventsMapper.map(fields);
-
+      throws NotFoundException, WebMessageException, IOException {
     MappingErrors errors = new MappingErrors(idSchemeParams);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
         EVENTS_MAPPER.map(
-            idSchemeParams, errors, eventService.getEvent(uid, idSchemeParams, eventParams));
+            idSchemeParams,
+            errors,
+            eventService.getEvent(
+                uid,
+                idSchemeParams,
+                EventFields.of(fields::includes, FieldPath.FIELD_PATH_SEPARATOR)));
     ensureNoMappingErrors(errors);
 
-    return requestHandler.serve(event, fields);
+    // TODO(ivo) oh boy, so here we have a filtered event not a filtered page, can we also handle
+    // this in the converter?
+    requestHandler.serve(response, event, fields);
   }
 
   private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsList(

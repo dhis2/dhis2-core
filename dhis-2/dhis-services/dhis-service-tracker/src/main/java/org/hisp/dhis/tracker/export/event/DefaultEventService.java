@@ -122,7 +122,7 @@ class DefaultEventService implements EventService {
           EventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
-              .eventParams(EventParams.FALSE)
+              .fields(EventFields.none())
               .filterByDataElement(dataElementUid)
               .build();
       events = findEvents(operationParams, PageParams.single());
@@ -175,7 +175,7 @@ class DefaultEventService implements EventService {
   @Nonnull
   @Override
   public Event getEvent(@Nonnull UID event) throws NotFoundException {
-    return getEvent(event, TrackerIdSchemeParams.builder().build(), EventParams.FALSE);
+    return getEvent(event, TrackerIdSchemeParams.builder().build(), EventFields.none());
   }
 
   @Nonnull
@@ -183,7 +183,7 @@ class DefaultEventService implements EventService {
   public Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull EventParams eventParams)
+      @Nonnull EventFields fields)
       throws NotFoundException {
     Page<Event> events;
     try {
@@ -191,7 +191,7 @@ class DefaultEventService implements EventService {
           EventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
-              .eventParams(eventParams)
+              .fields(fields)
               .idSchemeParams(idSchemeParams)
               .build();
       events = findEvents(operationParams, PageParams.single());
@@ -241,7 +241,7 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
-    if (operationParams.getEventParams().isIncludeRelationships()) {
+    if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
@@ -258,7 +258,7 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<Event> events = eventStore.getEvents(queryParams, pageParams);
-    if (operationParams.getEventParams().isIncludeRelationships()) {
+    if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events.getItems()) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(

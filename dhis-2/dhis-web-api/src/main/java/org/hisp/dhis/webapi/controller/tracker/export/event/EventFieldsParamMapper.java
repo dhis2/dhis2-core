@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.springframework.stereotype.Component;
 
+// TODO(ivo) I don't think we need this one
 @Component
 @RequiredArgsConstructor
 class EventFieldsParamMapper {

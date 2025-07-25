@@ -33,9 +33,13 @@ import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestH
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -44,6 +48,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
@@ -141,5 +147,17 @@ public class RequestHandler {
 
   public <T> ResponseEntity<ObjectNode> serve(T item, List<FieldPath> fields) {
     return ResponseEntity.ok(fieldFilterService.toObjectNode(item, fields));
+  }
+
+  public <T> void serve(HttpServletResponse response, T item, Fields fields) throws IOException {
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+    ObjectWriter objectWriter =
+        filterMapper.writer().withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields);
+
+    try (JsonGenerator generator =
+        objectWriter.getFactory().createGenerator(response.getOutputStream())) {
+      objectWriter.writeValue(generator, item);
+    }
   }
 }
