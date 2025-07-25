@@ -131,7 +131,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    operationParamsBuilder = EventOperationParams.builder();
+    operationParamsBuilder = EventOperationParams.builder().fields(EventParams.FALSE);
     operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(SELECTED);
   }
 
@@ -155,7 +155,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .events(Set.of(UID.of("pTzf9KYMk72")))
-            .fields(EventFields.all())
+            .fields(EventParams.TRUE)
             .build();
 
     List<Event> events = eventService.findEvents(params);
@@ -587,7 +587,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .filterByDataElement(
@@ -606,7 +606,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
@@ -643,7 +643,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("DATAEL00002"),
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
@@ -929,7 +929,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByAttribute(
                 UID.of("fRGt4l6yIRb"),
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
@@ -947,7 +947,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByAttribute(
                 UID.of("toUpdate000"),
                 List.of(
@@ -965,7 +965,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
@@ -980,7 +980,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         EventOperationParams.builder()
             .programStage(programStage)
-            .fields(EventFields.none())
+            .fields(EventParams.FALSE)
             .filterByAttribute(UID.of("fRGt4l6yIRb"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
