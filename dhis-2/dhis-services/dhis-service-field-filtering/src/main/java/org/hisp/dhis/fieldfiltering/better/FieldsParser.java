@@ -168,6 +168,8 @@ public class FieldsParser {
       children.put(entry.getKey(), map(entry.getValue(), includeChildren));
     }
 
+    // TODO(ivo) comment on both blocks of code and their responsibility. Double-check the
+    // includeChildren logic above, is there any way we can merge cases?
     // TODO(ivo) * should not be part of the final fields/children
     Set<String> fields;
     Function<String, Fields> childrenFunc;
@@ -185,16 +187,15 @@ public class FieldsParser {
               return Fields.ALL;
             };
       }
-
-      return new Fields(includesAll, fields, childrenFunc, Map.of());
+    } else {
+      fields = new HashSet<>(acc.includes);
+      fields.removeAll(acc.excludes);
+      // 2. rule from above
+      fields.forEach(f -> children.putIfAbsent(f, Fields.ALL));
+      childrenFunc = children::get;
     }
 
-    fields = new HashSet<>(acc.includes);
-    fields.removeAll(acc.excludes);
-    // 2. rule from above
-    fields.forEach(f -> children.putIfAbsent(f, Fields.ALL));
-
-    return new Fields(false, fields, children::get, Map.of());
+    return new Fields(includesAll, fields, childrenFunc, Map.of());
   }
 
   /**
