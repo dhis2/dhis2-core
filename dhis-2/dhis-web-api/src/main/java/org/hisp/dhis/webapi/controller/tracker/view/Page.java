@@ -59,7 +59,7 @@ public class Page<T> {
   @OpenApi.Property(value = OpenApi.EntityType[].class)
   private final List<T> items;
 
-  private final Pager pager;
+  @JsonProperty private final Pager pager;
 
   private Page(String key, List<T> items, Pager pager) {
     this.key = key;
