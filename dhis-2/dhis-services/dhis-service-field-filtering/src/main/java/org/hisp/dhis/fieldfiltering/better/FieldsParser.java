@@ -160,9 +160,9 @@ public class FieldsParser {
       // this behavior with a Function that either gets the field or the full path if necessary.
       // This function can then be passed into the parser and depend on the schema service.
       boolean includeChildren =
-          includesAll
-              || entry.getValue().includes.contains("*")
-              || entry.getValue().includes.isEmpty();
+          (includesAll && entry.getValue().includes.isEmpty())
+              || entry.getValue().includes.isEmpty()
+              || entry.getValue().includes.contains("*");
       children.put(entry.getKey(), map(entry.getValue(), includeChildren));
     }
     // TODO(ivo) * should not be part of the final fields. Debug through on case
@@ -179,7 +179,9 @@ public class FieldsParser {
       } else {
         childrenFunc =
             (field) -> {
-              if (children.containsKey(field)) { // explicit field specification takes precedence
+              if (children.containsKey(
+                  field)) { // explicit field specification takes precedence i.e
+                // fields=*,dataValues[value]
                 return children.get(field);
               }
               // since all of the parents fields are included all of the children are as well
