@@ -28,16 +28,24 @@
 package org.hisp.dhis.metadata.export;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,5 +66,55 @@ class MetadataExportWithDependenciesTest extends SingleSetupIntegrationTestBase 
 
     assertEquals(1, export.get(Program.class).size());
     assertEquals(1, export.get(ProgramSection.class).size());
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramTrackedEntityAttributes and ProgramStageDataElements should not appear at root level in dependency export")
+  void testExportProgramWithProgramStageDataElements() {
+    Program program = setUpProgramAndDependencies();
+    Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> export =
+        metadataExportService.getMetadataWithDependencies(program);
+
+    Set<IdentifiableObject> programs = export.get(Program.class);
+    Set<IdentifiableObject> programStages = export.get(ProgramStage.class);
+    assertEquals(1, programs.size());
+    assertEquals(1, programStages.size());
+
+    Program p = (Program) programs.iterator().next();
+    ProgramStage ps = (ProgramStage) programStages.iterator().next();
+
+    assertEquals(1, p.getProgramAttributes().size());
+    assertEquals(1, ps.getProgramStageDataElements().size());
+    assertNull(export.get(ProgramTrackedEntityAttribute.class));
+    assertNull(export.get(ProgramStageDataElement.class));
+  }
+
+  private Program setUpProgramAndDependencies() {
+    Program program = createProgram('A');
+    entityManager.persist(program);
+    ProgramSection programSection = createProgramSection('A', program);
+    program.getProgramSections().add(programSection);
+    entityManager.persist(programSection);
+    TrackedEntityAttribute trackedEntityAttribute =
+        createTrackedEntityAttribute('A', ValueType.TEXT);
+    entityManager.persist(trackedEntityAttribute);
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
+    program.getProgramAttributes().add(programTrackedEntityAttribute);
+    entityManager.persist(programTrackedEntityAttribute);
+    ProgramStage programStage = createProgramStage('A', program);
+    entityManager.persist(programStage);
+    program.getProgramStages().add(programStage);
+    entityManager.merge(program);
+
+    DataElement dataElement = createDataElement('A');
+    entityManager.persist(dataElement);
+    ProgramStageDataElement programStageDataElement =
+        createProgramStageDataElement(programStage, dataElement, 0);
+    entityManager.persist(programStageDataElement);
+    programStage.getProgramStageDataElements().add(programStageDataElement);
+    entityManager.merge(programStage);
+    return program;
   }
 }
