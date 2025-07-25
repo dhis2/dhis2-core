@@ -105,7 +105,7 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  public Set<TrackedEntityAttribute> getAllTrigramIndexableAttributes() {
+  public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
     Query<TrackedEntityAttribute> query =
         getSession()
             .createNativeQuery(

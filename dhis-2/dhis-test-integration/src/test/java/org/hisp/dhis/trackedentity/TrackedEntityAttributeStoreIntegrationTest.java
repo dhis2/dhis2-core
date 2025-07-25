@@ -71,7 +71,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     // DDL statements like `CREATE INDEX` are not rolled back, so here I'm cleaning up after each
     // use
     List<Long> indexedAttributes =
-        trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
+        trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
     indexedAttributes.forEach(attr -> trackedEntityAttributeTableManager.dropTrigramIndex(attr));
   }
 
@@ -85,7 +85,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     attributeService.addTrackedEntityAttribute(attributeZ);
 
     Set<TrackedEntityAttribute> indexableAttributes =
-        attributeService.getAllTrigramIndexableAttributes();
+        attributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
     assertContainsOnly(Set.of(attributeW, attributeY, attributeZ), indexableAttributes);
     assertTrue(indexableAttributes.contains(attributeW));
@@ -106,7 +106,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     attributeService.addTrackedEntityAttribute(attributeZ);
     createTrigramIndexWithCustomNaming(attributeZ, "trigram_index_name");
 
-    List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
+    List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
 
     assertContainsOnly(List.of(attributeY.getId(), attributeZ.getId()), attributeIds);
   }
@@ -142,6 +142,6 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
   }
 
   private List<Long> getTrigramIndexesInDb() {
-    return trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
+    return trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
   }
 }

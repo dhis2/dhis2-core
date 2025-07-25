@@ -200,7 +200,7 @@ public class TrackedEntityAttributeController
     }
 
     Set<TrackedEntityAttribute> indexableTeas =
-        trackedEntityAttributeService.getAllTrigramIndexableAttributes();
+        trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
     String filter =
         "id:in:"

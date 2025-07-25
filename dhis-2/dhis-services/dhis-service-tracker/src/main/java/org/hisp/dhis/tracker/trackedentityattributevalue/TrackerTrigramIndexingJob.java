@@ -78,11 +78,11 @@ public class TrackerTrigramIndexingJob implements Job {
 
     log.debug("Fetching all trigram indexed attributes from db");
     List<Long> indexedAttributes =
-        trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
+        trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
 
     log.debug("Fetching all indexable attributes from db");
     Set<TrackedEntityAttribute> indexableAttributes =
-        trackedEntityAttributeService.getAllTrigramIndexableAttributes();
+        trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
     boolean indexesWereCreated =
         createTrigramIndexes(progress, indexedAttributes, indexableAttributes);

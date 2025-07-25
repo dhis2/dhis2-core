@@ -68,9 +68,9 @@ class TrackerTrigramIndexingJobTest {
 
   @BeforeEach
   void setUp() {
-    when(trackedEntityAttributeService.getAllTrigramIndexableAttributes())
+    when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(Collections.emptySet());
-    when(trackedEntityAttributeTableManager.getAttributesWithTrigramIndex())
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(Collections.emptyList());
   }
 
@@ -89,7 +89,7 @@ class TrackerTrigramIndexingJobTest {
 
   @Test
   void testRunJobWithoutAnyAttributesInJobParametersButWithObsoleteIndexes() {
-    when(trackedEntityAttributeTableManager.getAttributesWithTrigramIndex())
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(Arrays.asList(12L, 13L));
 
     JobConfiguration jobConfiguration = new JobConfiguration();
@@ -116,7 +116,7 @@ class TrackerTrigramIndexingJobTest {
     indexableAttributes.add(tea2);
     indexableAttributes.add(tea3);
 
-    when(trackedEntityAttributeService.getAllTrigramIndexableAttributes())
+    when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(indexableAttributes);
     doNothing().when(trackedEntityAttributeTableManager).createTrigramIndex(any());
     JobConfiguration jobConfiguration = new JobConfiguration();

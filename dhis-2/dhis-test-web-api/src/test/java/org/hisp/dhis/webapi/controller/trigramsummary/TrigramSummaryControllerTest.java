@@ -200,7 +200,7 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void getTrigramIndexSummaryWhenNoIndexesAreCreated() {
 
-    when(trackedEntityAttributeTableManager.getAttributesWithTrigramIndex())
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(new ArrayList<>());
 
     TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
@@ -216,7 +216,7 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void getTrigramIndexSummaryWithOneIndexAlreadyCreated() {
 
-    when(trackedEntityAttributeTableManager.getAttributesWithTrigramIndex())
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(List.of(teaB.getId()));
 
     TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
@@ -231,7 +231,7 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void getTrigramIndexSummaryWithAnObsoleteIndex() {
 
-    when(trackedEntityAttributeTableManager.getAttributesWithTrigramIndex())
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(List.of(teaB.getId(), teaC.getId()));
     TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
 

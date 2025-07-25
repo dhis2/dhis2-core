@@ -70,7 +70,7 @@ public interface TrackedEntityAttributeStore
    *
    * @return a Set of {@link TrackedEntityAttribute}
    */
-  Set<TrackedEntityAttribute> getAllTrigramIndexableAttributes();
+  Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes();
 
   /**
    * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
