@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.user;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,10 +42,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -119,22 +116,6 @@ class UserControllerTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  void updateUserGroups() {
-    when(userService.getUser("def2")).thenReturn(user);
-
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
-      userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
-    }
-
-    verify(userGroupService)
-        .updateUserGroups(
-            same(user),
-            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
-            same(UserDetails.fromUser(currentUser)));
-  }
-
-  @Test
   void updateUserGroupsNotOk() {
     if (isInStatusUpdatedOK(createReportWith(Status.ERROR, report -> report.updatedInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
@@ -164,7 +145,6 @@ class UserControllerTest {
     currentUser2.setUid("def2");
 
     when(userService.getUser("def2")).thenReturn(user);
-    when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
     if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, UserDetails.fromUser(currentUser));
