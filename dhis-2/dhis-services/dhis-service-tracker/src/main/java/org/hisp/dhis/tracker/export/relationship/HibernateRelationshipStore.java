@@ -51,8 +51,8 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
@@ -127,18 +127,18 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return enrollments.stream().findFirst();
   }
 
-  public Optional<Event> findEvent(UID event, boolean includeDeleted) {
+  public Optional<TrackerEvent> findEvent(UID event, boolean includeDeleted) {
     @Language("hql")
     String hql =
         """
-        from Event e \
+        from TrackerEvent e \
         where e.uid = :event \
         """;
     if (!includeDeleted) {
       hql += "and e.deleted = false";
     }
-    List<Event> events =
-        getQuery(hql, Event.class).setParameter("event", event.getValue()).getResultList();
+    List<TrackerEvent> events =
+        getQuery(hql, TrackerEvent.class).setParameter("event", event.getValue()).getResultList();
     return events.stream().findFirst();
   }
 
@@ -362,7 +362,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   private <T extends IdentifiableObject> String getRelationshipEntityType(T entity) {
     if (entity instanceof TrackedEntity) return TRACKED_ENTITY;
     else if (entity instanceof Enrollment) return ENROLLMENT;
-    else if (entity instanceof Event) return EVENT;
+    else if (entity instanceof TrackerEvent) return EVENT;
     else if (entity instanceof SingleEvent) return EVENT;
     else
       throw new IllegalArgumentException(

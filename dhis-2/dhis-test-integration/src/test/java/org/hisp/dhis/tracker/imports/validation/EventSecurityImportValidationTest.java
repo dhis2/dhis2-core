@@ -48,13 +48,13 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -250,7 +250,7 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     assertNoErrors(importReport);
 
     // Change just inserted Event to status COMPLETED...
-    Event zwwuwNp6gVd = manager.get(Event.class, "ZwwuwNp6gVd");
+    TrackerEvent zwwuwNp6gVd = manager.get(TrackerEvent.class, "ZwwuwNp6gVd");
     zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);
     manager.update(zwwuwNp6gVd);
     programA.setPublicAccess(AccessStringHelper.FULL);

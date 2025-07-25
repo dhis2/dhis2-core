@@ -37,8 +37,8 @@ import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
@@ -89,7 +89,7 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, Event event) {
+  public void send(Notification notification, TrackerEvent event) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
@@ -118,7 +118,7 @@ public class NotificationSender {
   public void send(Notification notification, SingleEvent singleEvent) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
-    Event event = TrackerObjectsMapper.map(singleEvent);
+    TrackerEvent event = TrackerObjectsMapper.map(singleEvent);
 
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =

@@ -43,9 +43,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
@@ -78,7 +78,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   private Enrollment enrollment;
 
-  private Event event;
+  private TrackerEvent event;
 
   private UserDetails user;
 
@@ -188,7 +188,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
-    assertInstanceOf(Event.class, queryParams.getEntity());
+    assertInstanceOf(TrackerEvent.class, queryParams.getEntity());
     assertEquals(EV_UID.getValue(), queryParams.getEntity().getUid());
   }
 
@@ -201,7 +201,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
     RelationshipQueryParams queryParams = mapper.map(params);
 
-    assertInstanceOf(Event.class, queryParams.getEntity());
+    assertInstanceOf(TrackerEvent.class, queryParams.getEntity());
     assertEquals(EV_UID.getValue(), queryParams.getEntity().getUid());
   }
 

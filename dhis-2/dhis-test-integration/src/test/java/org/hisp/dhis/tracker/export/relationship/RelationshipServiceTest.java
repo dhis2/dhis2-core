@@ -44,10 +44,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -84,9 +84,9 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   private TrackedEntity inaccessibleTe;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event inaccessibleEvent;
+  private TrackerEvent inaccessibleEvent;
 
   private final RelationshipType teToTeType = createRelationshipType('A');
 
@@ -463,12 +463,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     return relationship;
   }
 
-  private Relationship relationship(TrackedEntity from, Event to) {
+  private Relationship relationship(TrackedEntity from, TrackerEvent to) {
     return relationship(from, to, teToEvType, new Date());
   }
 
   private Relationship relationship(
-      TrackedEntity from, Event to, RelationshipType type, Date createdAtClient) {
+      TrackedEntity from, TrackerEvent to, RelationshipType type, Date createdAtClient) {
     Relationship relationship = new Relationship();
     relationship.setUid(CodeGenerator.generateUid());
     relationship.setRelationshipType(type);
@@ -483,11 +483,11 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     return relationship;
   }
 
-  private void relationship(Event from, Event to) {
+  private void relationship(TrackerEvent from, TrackerEvent to) {
     relationship(from, to, eventToEventType);
   }
 
-  private void relationship(Event from, Event to, RelationshipType type) {
+  private void relationship(TrackerEvent from, TrackerEvent to, RelationshipType type) {
     Relationship relationship = new Relationship();
     relationship.setUid(CodeGenerator.generateUid());
     relationship.setRelationshipType(type);
@@ -511,7 +511,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     return relationshipItem;
   }
 
-  private RelationshipItem item(Event from) {
+  private RelationshipItem item(TrackerEvent from) {
     RelationshipItem relationshipItem = new RelationshipItem();
     relationshipItem.setEvent(from);
     return relationshipItem;

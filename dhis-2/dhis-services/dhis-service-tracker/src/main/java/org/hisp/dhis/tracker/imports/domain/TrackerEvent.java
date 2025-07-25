@@ -96,6 +96,8 @@ public class TrackerEvent implements Event {
   }
 
   public static TrackerEventBuilder builderFromEvent(Event event, UID eventUid) {
+    Instant scheduledAt =
+        (event instanceof TrackerEvent trackerEvent) ? trackerEvent.getScheduledAt() : null;
     return TrackerEvent.builder()
         .event(eventUid)
         .status(event.getStatus())
@@ -104,7 +106,7 @@ public class TrackerEvent implements Event {
         .enrollment(event.getEnrollment())
         .orgUnit(event.getOrgUnit())
         .occurredAt(event.getOccurredAt())
-        .scheduledAt(event.getScheduledAt())
+        .scheduledAt(scheduledAt)
         .storedBy(event.getStoredBy())
         .createdAtClient(event.getCreatedAtClient())
         .updatedAtClient(event.getUpdatedAtClient())

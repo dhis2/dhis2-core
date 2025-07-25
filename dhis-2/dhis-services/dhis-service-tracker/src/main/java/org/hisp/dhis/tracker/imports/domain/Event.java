@@ -64,8 +64,6 @@ public interface Event extends TrackerDto, Serializable {
 
   Instant getOccurredAt();
 
-  Instant getScheduledAt();
-
   String getStoredBy();
 
   Instant getCreatedAtClient();

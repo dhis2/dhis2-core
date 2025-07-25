@@ -40,9 +40,9 @@ import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
@@ -68,7 +68,7 @@ public class TrackerNotificationDataBundle implements Message {
 
   @JsonProperty private Enrollment enrollment;
 
-  @JsonProperty private Event event;
+  @JsonProperty private TrackerEvent event;
 
   @JsonProperty private SingleEvent singleEvent;
 
