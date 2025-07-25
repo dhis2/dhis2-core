@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
@@ -57,7 +58,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 // TODO(ivo) the tracker view model can be built/tested without a DB. We only need Spring to wire
 // the service(s) and the ObjectMapper. As soon as we test metadata as well we should switch to
 // PostgresControllerIntegrationTestBase
-class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
+class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   private static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory();
   private static final Instant DATE = Instant.parse("2023-03-15T14:30:45Z");
 
@@ -93,8 +93,7 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    Point point = GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12));
-    events = createEvents(point);
+    events = createEvents(2);
   }
 
   // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are. If we
@@ -146,100 +145,107 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
         .writeValueAsString(events);
   }
 
-  private static List<Event> createEvents(Point point) {
-    return List.of(
-        Event.builder()
-            .event(UID.generate())
-            .program(UID.generate().getValue())
-            .programStage(UID.generate().getValue())
-            .enrollment(UID.generate())
-            .trackedEntity(UID.generate())
-            .orgUnit(UID.generate().getValue())
-            .relationships(
-                List.of(
-                    Relationship.builder()
-                        .relationship(UID.generate())
-                        .relationshipName("Mother-Child")
-                        .relationshipType(UID.generate().getValue())
-                        .createdAt(DATE)
-                        .bidirectional(false)
-                        .from(
-                            RelationshipItem.builder()
-                                .trackedEntity(
-                                    RelationshipItem.TrackedEntity.builder()
-                                        .trackedEntity(UID.generate())
-                                        .trackedEntityType(UID.generate().getValue())
-                                        .createdAt(DATE)
-                                        .orgUnit(UID.generate().getValue())
-                                        .build())
-                                .build())
-                        .to(
-                            RelationshipItem.builder()
-                                .trackedEntity(
-                                    RelationshipItem.TrackedEntity.builder()
-                                        .trackedEntity(UID.generate())
-                                        .trackedEntityType(UID.generate().getValue())
-                                        .createdAt(DATE)
-                                        .orgUnit(UID.generate().getValue())
-                                        .build())
-                                .build())
-                        .build(),
-                    Relationship.builder()
-                        .relationship(UID.generate())
-                        .relationshipName("Sibling")
-                        .relationshipType(UID.generate().getValue())
-                        .createdAt(DATE)
-                        .bidirectional(true)
-                        .from(
-                            RelationshipItem.builder()
-                                .event(
-                                    RelationshipItem.Event.builder()
-                                        .event(UID.generate())
-                                        .program(UID.generate().getValue())
-                                        .programStage(UID.generate().getValue())
-                                        .orgUnit(UID.generate().getValue())
-                                        .occurredAt(DATE)
-                                        .createdAt(DATE)
-                                        .build())
-                                .build())
-                        .to(
-                            RelationshipItem.builder()
-                                .enrollment(
-                                    RelationshipItem.Enrollment.builder()
-                                        .enrollment(UID.generate())
-                                        .program(UID.generate().getValue())
-                                        .orgUnit(UID.generate().getValue())
-                                        .enrolledAt(DATE)
-                                        .createdAt(DATE)
-                                        .build())
-                                .build())
-                        .build()))
-            .scheduledAt(DATE)
-            .storedBy("fred")
-            .followUp(true)
-            .createdAt(DATE)
-            .attributeOptionCombo(UID.generate().getValue())
-            .attributeCategoryOptions(UID.generate().getValue())
-            .geometry(point)
-            .createdBy(
-                User.builder()
-                    .uid(UID.generate().getValue())
-                    .username("fred")
-                    .displayName("Freddy")
-                    .build())
-            .dataValues(
-                Set.of(
-                    DataValue.builder()
-                        .dataElement(UID.generate().getValue())
-                        .value("14")
-                        .storedBy("alice")
-                        .build(),
-                    DataValue.builder()
-                        .dataElement(UID.generate().getValue())
-                        .value("78")
-                        .storedBy("bob")
-                        .build()))
-            .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
-            .build());
+  private static List<Event> createEvents(int n) {
+    List<Event> events = new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      events.add(createEvent());
+    }
+    return events;
+  }
+
+  private static Event createEvent() {
+    return Event.builder()
+        .event(UID.generate())
+        .program(UID.generate().getValue())
+        .programStage(UID.generate().getValue())
+        .enrollment(UID.generate())
+        .trackedEntity(UID.generate())
+        .orgUnit(UID.generate().getValue())
+        .relationships(
+            List.of(
+                Relationship.builder()
+                    .relationship(UID.generate())
+                    .relationshipName("Mother-Child")
+                    .relationshipType(UID.generate().getValue())
+                    .createdAt(DATE)
+                    .bidirectional(false)
+                    .from(
+                        RelationshipItem.builder()
+                            .trackedEntity(
+                                RelationshipItem.TrackedEntity.builder()
+                                    .trackedEntity(UID.generate())
+                                    .trackedEntityType(UID.generate().getValue())
+                                    .createdAt(DATE)
+                                    .orgUnit(UID.generate().getValue())
+                                    .build())
+                            .build())
+                    .to(
+                        RelationshipItem.builder()
+                            .trackedEntity(
+                                RelationshipItem.TrackedEntity.builder()
+                                    .trackedEntity(UID.generate())
+                                    .trackedEntityType(UID.generate().getValue())
+                                    .createdAt(DATE)
+                                    .orgUnit(UID.generate().getValue())
+                                    .build())
+                            .build())
+                    .build(),
+                Relationship.builder()
+                    .relationship(UID.generate())
+                    .relationshipName("Sibling")
+                    .relationshipType(UID.generate().getValue())
+                    .createdAt(DATE)
+                    .bidirectional(true)
+                    .from(
+                        RelationshipItem.builder()
+                            .event(
+                                RelationshipItem.Event.builder()
+                                    .event(UID.generate())
+                                    .program(UID.generate().getValue())
+                                    .programStage(UID.generate().getValue())
+                                    .orgUnit(UID.generate().getValue())
+                                    .occurredAt(DATE)
+                                    .createdAt(DATE)
+                                    .build())
+                            .build())
+                    .to(
+                        RelationshipItem.builder()
+                            .enrollment(
+                                RelationshipItem.Enrollment.builder()
+                                    .enrollment(UID.generate())
+                                    .program(UID.generate().getValue())
+                                    .orgUnit(UID.generate().getValue())
+                                    .enrolledAt(DATE)
+                                    .createdAt(DATE)
+                                    .build())
+                            .build())
+                    .build()))
+        .scheduledAt(DATE)
+        .storedBy("fred")
+        .followUp(true)
+        .createdAt(DATE)
+        .attributeOptionCombo(UID.generate().getValue())
+        .attributeCategoryOptions(UID.generate().getValue())
+        .geometry(GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12)))
+        .createdBy(
+            User.builder()
+                .uid(UID.generate().getValue())
+                .username("fred")
+                .displayName("Freddy")
+                .build())
+        .dataValues(
+            Set.of(
+                DataValue.builder()
+                    .dataElement(UID.generate().getValue())
+                    .value("14")
+                    .storedBy("alice")
+                    .build(),
+                DataValue.builder()
+                    .dataElement(UID.generate().getValue())
+                    .value("78")
+                    .storedBy("bob")
+                    .build()))
+        .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
+        .build();
   }
 }
