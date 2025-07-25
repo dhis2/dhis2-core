@@ -50,26 +50,23 @@ public class FieldsParser {
     int i = 0;
     int fieldStart = i;
     boolean inField = false;
-    // TODO(ivo) inline this into parseField
-    boolean isFieldWithWhitespace = false;
     boolean isExclusion = false;
     while (i < input.length()) {
       if ((input.charAt(i) == ',')) {
         if (inField) {
           if (isExclusion) {
-            stack.peek().excludes(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().excludes(parseField(input, fieldStart, i));
           } else {
-            stack.peek().includes(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().includes(parseField(input, fieldStart, i));
           }
 
           inField = false;
-          isFieldWithWhitespace = false;
           isExclusion = false;
         }
       } else if (input.charAt(i) == '[' || input.charAt(i) == '(') {
         // TODO fail if we are not inField? old parser allows this but the result makes no sense
         if (inField) {
-          String parent = parseField(input, fieldStart, i, isFieldWithWhitespace);
+          String parent = parseField(input, fieldStart, i);
           if (isExclusion) {
             stack.peek().excludes(parent);
           } else {
@@ -78,7 +75,6 @@ public class FieldsParser {
 
           stack.push(stack.peek().getOrCreateChild(parent));
           inField = false;
-          isFieldWithWhitespace = false;
           isExclusion = false;
         }
       } else if (input.charAt(i) == ']' || input.charAt(i) == ')') {
@@ -88,25 +84,21 @@ public class FieldsParser {
 
         if (inField) {
           if (isExclusion) {
-            stack.peek().excludes(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().excludes(parseField(input, fieldStart, i));
           } else {
-            stack.peek().includes(parseField(input, fieldStart, i, isFieldWithWhitespace));
+            stack.peek().includes(parseField(input, fieldStart, i));
           }
         }
 
         stack.pop();
         inField = false;
-        isFieldWithWhitespace = false;
         isExclusion = false;
       } else if (input.charAt(i) == '!' && !inField) {
         inField = true;
         isExclusion = true;
         fieldStart = i + 1; // do not includes ! in field name
-      } else if (Character.isWhitespace(input.charAt(i)) && inField) {
-        isFieldWithWhitespace = true;
       } else if (!Character.isWhitespace(input.charAt(i)) && !inField) {
         inField = true;
-        isFieldWithWhitespace = false;
         isExclusion = false;
         fieldStart = i;
       }
@@ -115,9 +107,9 @@ public class FieldsParser {
 
     if (inField) {
       if (isExclusion) {
-        stack.peek().excludes(parseField(input, fieldStart, i, isFieldWithWhitespace));
+        stack.peek().excludes(parseField(input, fieldStart, i));
       } else {
-        stack.peek().includes(parseField(input, fieldStart, i, isFieldWithWhitespace));
+        stack.peek().includes(parseField(input, fieldStart, i));
       }
     }
     // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
@@ -127,12 +119,20 @@ public class FieldsParser {
   }
 
   /**
-   * The current {@code FieldFilterParser} has this behavior. We try to avoid building a string for
-   * every field name as most will not have any whitespace inside of a field name. Ideally we would
-   * not support this and only ignore leading and trailing whitespace.
+   * The current {@code FieldFilterParser} has this behavior. We check for whitespace in the field
+   * and remove it if present. Ideally we would not support this and only ignore leading and
+   * trailing whitespace.
    */
-  private static String parseField(String input, int start, int end, boolean hasWhitespace) {
+  private static String parseField(String input, int start, int end) {
     String field = input.substring(start, end);
+
+    boolean hasWhitespace = false;
+    for (int j = 0; j < field.length(); j++) {
+      if (Character.isWhitespace(field.charAt(j))) {
+        hasWhitespace = true;
+        break;
+      }
+    }
 
     if (!hasWhitespace) {
       return field;
