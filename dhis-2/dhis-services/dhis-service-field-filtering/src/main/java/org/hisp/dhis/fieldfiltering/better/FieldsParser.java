@@ -175,7 +175,8 @@ public class FieldsParser {
     if (includesAll) {
       fields = acc.excludes;
       if (children.isEmpty()) {
-        childrenFunc = Fields.ALL_CHILDREN;
+        // TODO(ivo) could this be a const somewhere? like ALL_CHILDREN?
+        childrenFunc = (field) -> Fields.ALL;
       } else {
         childrenFunc =
             (field) -> {

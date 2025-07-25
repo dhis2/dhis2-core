@@ -52,14 +52,9 @@ import lombok.ToString;
 @EqualsAndHashCode
 public final class Fields implements Predicate<String> {
   public static final Fields ALL = all();
-  public static final Function<String, Fields> ALL_CHILDREN = (field) -> ALL;
   public static final Fields NONE = none();
-  public static final Function<String, Fields> NO_CHILDREN = (field) -> NONE;
 
-  /**
-   * This flag determines the inclusion strategy. True means "include all except", whereas false
-   * means "include only specified". {@link #fields} declares which fields to exclude or include.
-   */
+  /** True means "includes all except", whereas false means "includes only specified". */
   private final boolean includesAll;
 
   /**
@@ -72,14 +67,20 @@ public final class Fields implements Predicate<String> {
 
   private final Map<String, Transformation> transformations;
 
-  /** Creates Fields which includes all fields and all of its children with no transformations. */
-  public static Fields all() {
-    return new Fields(true, Set.of(), ALL_CHILDREN, Map.of());
+  // TODO(ivo) is all(excluding) and only(include) still useful?
+  /** Creates Fields which include all fields and all of its children with no transformations. */
+  public static Fields all(Set<String> except) {
+    return new Fields(true, except, (field) -> ALL, Map.of());
   }
 
-  /** Creates Fields which includes no fields and no children. */
+  /** Creates Fields which includes all fields and all of its children with no transformations. */
+  public static Fields all() {
+    return new Fields(true, Set.of(), (field) -> ALL, Map.of());
+  }
+
+  /** Creates Fields which includes no fields. */
   public static Fields none() {
-    return new Fields(false, Set.of(), NO_CHILDREN, Map.of());
+    return new Fields(false, Set.of(), (field) -> NONE, Map.of());
   }
 
   /**
