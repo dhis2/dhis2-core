@@ -37,6 +37,8 @@ import java.util.Stack;
 import java.util.function.Function;
 
 public class FieldsParser {
+  /** Fields token that includes all fields. */
+  private static final String TOKEN_ALL = "*";
 
   public static Fields parse(String input) {
     // TODO error handling: white space in a field name, special characters like * or : in a field
@@ -121,7 +123,7 @@ public class FieldsParser {
     // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
     // "group[name" was not closed
 
-    return map(root, root.includes.contains("*"));
+    return map(root, root.includes.contains(TOKEN_ALL));
   }
 
   /**
@@ -148,10 +150,14 @@ public class FieldsParser {
 
   /** Maps in depth-first search order each field and its children to {@link Fields}. */
   private static Fields map(FieldsAccumulator acc, boolean includesAll) {
+    // TODO(ivo) comment on all blocks and responsibility. Write down the rules with specific
+    // examples for when they fire
+    // TODO(ivo) mark where metadata behavior might differ
     Map<String, Fields> children = new HashMap<>();
     for (Map.Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
       // Inclusion rules
-      // 1. An * from a parent propagates to its children
+      // 1. An * from a parent propagates to its children if the children do not have an explicit
+      // include
       // 2. All of a fields children are automatically included unless an explicit inclusion or
       // exclusion is given
       // TODO(ivo) this last rule is not true (at least for all) metadata. The behavior is schema
@@ -162,39 +168,25 @@ public class FieldsParser {
       boolean includeChildren =
           (includesAll && entry.getValue().includes.isEmpty())
               || entry.getValue().includes.isEmpty()
-              || entry.getValue().includes.contains("*");
+              || entry.getValue().includes.contains(TOKEN_ALL);
       children.put(entry.getKey(), map(entry.getValue(), includeChildren));
     }
-    // TODO(ivo) * should not be part of the final fields. Debug through on case
-    acc.includes.remove("*");
+    // TODO(ivo) Debug through this case to double-check
+    acc.includes.remove(TOKEN_ALL);
 
-    // TODO(ivo) comment on both blocks of code and their responsibility. Double-check the
-    // includeChildren logic above, is there any way we can merge cases?
-    Set<String> fields;
-    Function<String, Fields> childrenFunc;
-    if (includesAll) {
-      fields = acc.excludes;
-      if (children.isEmpty()) {
-        childrenFunc = (field) -> Fields.ALL;
-      } else {
-        childrenFunc =
-            (field) -> {
-              if (children.containsKey(
-                  field)) { // explicit field specification takes precedence i.e
-                // fields=*,dataValues[value]
-                return children.get(field);
-              }
-              // since all of the parents fields are included all of the children are as well
-              return Fields.ALL;
-            };
-      }
-    } else {
-      fields = new HashSet<>(acc.includes);
+    Set<String> fields = includesAll ? acc.excludes : new HashSet<>(acc.includes);
+    if (!includesAll) {
       fields.removeAll(acc.excludes);
       // 2. rule
       fields.forEach(f -> children.putIfAbsent(f, Fields.ALL));
-      childrenFunc = children::get;
     }
+
+    Function<String, Fields> childrenFunc =
+        includesAll
+            // explicit field specifications take precedence i.e fields=*,dataValues[value] over
+            // including all children
+            ? (field) -> children.getOrDefault(field, Fields.ALL)
+            : children::get;
 
     return new Fields(includesAll, fields, childrenFunc, Map.of());
   }

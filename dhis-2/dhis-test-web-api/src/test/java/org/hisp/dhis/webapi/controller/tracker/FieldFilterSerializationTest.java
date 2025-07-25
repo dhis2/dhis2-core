@@ -109,7 +109,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "dataValues,!dataValues",
         "event,!dataValues,*",
         "dataValues[!value]",
-        "dataValues,dataValues[!value]",
+        "dataValues, ,dataValues[!value], ",
         "dataValues,dataValues[!value,value]",
         "dataValues,dataValues[value]",
         "*,dataValues[value]",
