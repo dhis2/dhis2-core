@@ -53,17 +53,14 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
 
     if (current == null) {
       throw new IllegalStateException(
-          "No fields attribute found in SerializerProvider. "
-              + "Make sure to set it via ObjectWriter.withAttribute()");
+          "No fields attribute found in SerializerProvider there must be a bug in field filtering.");
     }
 
-    // TODO(ivo) clean this up. and is it expensive to setAttribute?
+    // TODO(ivo) is it expensive to setAttribute?
     if (current.test(writer.getName())) {
-      //      if (current.containsChild(writer.getName())) {
       // Set the child for nested serialization
       Fields children = current.getChild(writer.getName());
       provider.setAttribute(FIELDS_ATTRIBUTE, children);
-      //      }
 
       writer.serializeAsField(pojo, jgen, provider);
 

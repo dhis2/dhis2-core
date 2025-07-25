@@ -97,6 +97,9 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
     events = createEvents(point);
   }
 
+  // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are. If we
+  // replace the current field filtering parser we should still keep these to test the combination
+  // of FieldsParser and Jackson FieldsPropertyFilter
   @ParameterizedTest
   @ValueSource(
       strings = {
@@ -116,8 +119,7 @@ class FieldFilterServicePostgresTest extends H2ControllerIntegrationTestBase {
         "relationships,relationships[from]",
         "relationships[]",
         "relationships[unknownfield]", // TODO(ivo) anyway we can replicate this behavior? I do not
-        // want to know what fields actually exist as this makes
-        // everything complicated
+        // want to know what fields actually exist as this makes everything complicated
         "relationships[f rom[trackedEntity[ org Unit ]",
       })
   void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)

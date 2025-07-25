@@ -29,13 +29,15 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
  * Fields represent the fields a user wants to be returned from an API usually specified via the
@@ -44,61 +46,35 @@ import lombok.Getter;
  * <p>The structure is immutable once created, making it safe for concurrent access and caching. Use
  * {@link FieldsParser} to create instances from field expressions.
  */
+// TODO(ivo) create our own constructor which copies?
+@RequiredArgsConstructor
+@ToString
 @EqualsAndHashCode
 public final class Fields implements Predicate<String> {
-  private static final Fields ALL = all();
-  private static final Fields NONE = none();
+  public static final Fields ALL = all();
 
   /** True means "includes all except", whereas false means "includes only specified". */
   private final boolean includesAll;
 
   /**
-   * Effective fields are either fields to be excluded in case {@link #includesAll()} is true or
-   * fields to be included otherwise.
+   * Fields are either fields to be excluded in case {@link #includesAll} is true or included in
+   * case {@link #includesAll} is false.
    */
-  @Getter private final Set<String> effectiveFields;
+  private final Set<String> fields;
 
-  private final Map<String, Fields> children;
+  private final Function<String, Fields> children;
+
   private final Map<String, Transformation> transformations;
 
+  // TODO(ivo) is all(excluding) and only(include) still useful?
+  /** Creates Fields which include all fields and all of its children with no transformations. */
+  public static Fields all(Set<String> except) {
+    return new Fields(true, except, (field) -> ALL, Map.of());
+  }
+
+  /** Creates Fields which include all fields and all of its children with no transformations. */
   public static Fields all() {
-    return new Fields(true, Set.of(), Set.of(), Map.of(), Map.of());
-  }
-
-  public static Fields none() {
-    return new Fields(false, Set.of(), Set.of(), Map.of(), Map.of());
-  }
-
-  /**
-   * Creates Fields by computing effective fields from inclusions and exclusions.
-   *
-   * @param includesAll true for "includes all except" strategy, false for "includes only specified"
-   * @param inclusions set of fields to includes
-   * @param exclusions set of fields to exclude
-   * @param children nested field specifications for child objects
-   * @param transformations field transformations to apply during serialization
-   */
-  public Fields(
-      boolean includesAll,
-      Set<String> inclusions,
-      Set<String> exclusions,
-      Map<String, Fields> children,
-      Map<String, Transformation> transformations) {
-    this.includesAll = includesAll;
-    this.effectiveFields = computeEffectiveFields(includesAll, inclusions, exclusions);
-    this.children = Map.copyOf(children);
-    this.transformations = Map.copyOf(transformations);
-  }
-
-  private static Set<String> computeEffectiveFields(
-      boolean includesAll, Set<String> inclusions, Set<String> exclusions) {
-    if (includesAll) {
-      return Set.copyOf(exclusions);
-    }
-
-    Set<String> result = new HashSet<>(inclusions);
-    result.removeAll(exclusions);
-    return Set.copyOf(result);
+    return new Fields(true, Set.of(), (field) -> ALL, Map.of());
   }
 
   /**
@@ -109,7 +85,7 @@ public final class Fields implements Predicate<String> {
    */
   @Override
   public boolean test(String field) {
-    return includesAll ? !effectiveFields.contains(field) : effectiveFields.contains(field);
+    return includesAll ? !fields.contains(field) : fields.contains(field);
   }
 
   /**
@@ -134,20 +110,6 @@ public final class Fields implements Predicate<String> {
   }
 
   /**
-   * Indicates if this fields has a fields defined for a child field. // TODO(ivo) double-check once
-   * I fixed the remaining tests
-   *
-   * <p>false does not mean that the child is excluded! All fields and thus all children could still
-   * be included.
-   *
-   * @param field the field name
-   * @return Fields true if there fields are defined for the child, or false otherwise
-   */
-  public boolean containsChild(String field) {
-    return children.containsKey(field);
-  }
-
-  /**
    * Returns the fields specification for a child object.
    *
    * @param field the field name
@@ -155,53 +117,7 @@ public final class Fields implements Predicate<String> {
    */
   @Nonnull
   public Fields getChild(String field) {
-    // TODO(ivo) make sure I am not distributing logic now between the parser and this class
-    // specific children specs take precedence as they would for example contain explicit exclusions
-    // like fields=program[!name]
-    if (children.containsKey(field)) {
-      return children.get(field);
-    }
-
-    // TODO(ivo) this is the default behavior for tracker while metadata would do fields=program
-    // turns to fields=program[id]
-    if (test(field)) {
-      return ALL;
-    }
-    return NONE;
-  }
-
-  // TODO(ivo) how about returning a noop transformation?
-  /**
-   * Returns the transformation for a field, if any.
-   *
-   * @param field the field name
-   * @return Transformation for the field, or null if no transformation applies
-   */
-  public Transformation getTransformation(String field) {
-    return transformations.get(field);
-  }
-
-  /**
-   * Returns whether this specification includes all fields except excluded fields specified in
-   * {@link #getEffectiveFields()}.
-   *
-   * @return true if using "includes all except" strategy (e.g., "*,!code")
-   */
-  public boolean includesAll() {
-    return includesAll;
-  }
-
-  @Override
-  public String toString() {
-    return "Fields[includesAll="
-        + includesAll
-        + ", effective="
-        + effectiveFields
-        + ", children="
-        + children.keySet()
-        + ", transformations="
-        + transformations.keySet()
-        + "]";
+    return children.apply(field);
   }
 
   /**

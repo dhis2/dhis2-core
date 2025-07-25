@@ -135,10 +135,6 @@ public class FilteredPageHttpMessageConverter
     // Include pager field with all sub-properties
     // Include dynamic key (e.g., "events") with user's filtering predicate
     return new Fields(
-        false,
-        Set.of("pager", key),
-        Set.of(),
-        Map.of("pager", Fields.all(), key, fields),
-        Map.of());
+        false, Set.of("pager", key), Map.of("pager", Fields.all(), key, fields)::get, Map.of());
   }
 }

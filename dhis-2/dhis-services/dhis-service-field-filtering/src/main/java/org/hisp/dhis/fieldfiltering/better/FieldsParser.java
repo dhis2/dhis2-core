@@ -73,7 +73,6 @@ public class FieldsParser {
             stack.peek().includes(parent);
           }
 
-          // TODO(ivo) do we still need this?
           stack.push(stack.peek().getOrCreateChild(parent));
           inField = false;
           isFieldWithWhitespace = false;
@@ -81,7 +80,7 @@ public class FieldsParser {
         }
       } else if (input.charAt(i) == ']' || input.charAt(i) == ')') {
         if (stack.size() <= 1) {
-          throw new IllegalArgumentException("Unbalanced brackets in input: " + input);
+          throw new IllegalArgumentException("Unbalanced parens/brackets in input: " + input);
         }
 
         if (inField) {
@@ -151,8 +150,8 @@ public class FieldsParser {
     for (Map.Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
       // Inclusion rules
       // 1. An * from a parent propagates to its children
-      // 2. A * can be encountered deeper in the tree and start to propagate from there
-      // 3. A fields children are automatically all included unless an explicit inclusion is given
+      // 2. All of a fields children are automatically included unless an explicit inclusion or
+      // exclusion is given
       // TODO(ivo) this last rule is not true (at least for all) metadata. The behavior is schema
       // dependent. References like fields=program will turn into fields=program[id]. There is more
       // logic with regards to "complex" objects ... We can come up with a mechanism to override
@@ -161,17 +160,52 @@ public class FieldsParser {
       boolean includeChildren =
           includesAll
               || entry.getValue().includes.contains("*")
-              || entry.getValue().includes.isEmpty();
+              || entry
+                  .getValue()
+                  .includes
+                  .isEmpty(); // TODO(ivo) is this one correct? what if it has an exclude only?
       children.put(entry.getKey(), map(entry.getValue(), includeChildren));
     }
 
+    // TODO(ivo) * should not be part of the final fields/children
+    if (includesAll) {
+      if (children.isEmpty()) {
+        return Fields.all(acc.excludes);
+      }
+
+      return new Fields(
+          true,
+          acc.excludes,
+          (field) -> {
+            if (children.containsKey(field)) { // explicit field specification takes precedence
+              return children.get(field);
+            }
+            return Fields
+                .ALL; // since all of the parents fields are included all of the children are as
+            // well
+          },
+          Map.of());
+    }
+
+    Set<String> fields = new HashSet<>(acc.includes);
+    fields.removeAll(acc.excludes);
+    // 2. rule from above
+    fields.forEach(f -> children.putIfAbsent(f, Fields.ALL));
+
     return new Fields(
-        includesAll,
-        acc.includes,
-        acc.excludes,
-        children,
-        Map.of() // TODO: add transformations when parsing is implemented
+        false, fields, children::get, Map.of() // TODO(ivo) transformations
         );
+  }
+
+  private static Set<String> computeEffectiveFields(
+      boolean includesAll, Set<String> inclusions, Set<String> exclusions) {
+    if (includesAll) {
+      return Set.copyOf(exclusions);
+    }
+
+    Set<String> result = new HashSet<>(inclusions);
+    result.removeAll(exclusions);
+    return Set.copyOf(result);
   }
 
   /**
