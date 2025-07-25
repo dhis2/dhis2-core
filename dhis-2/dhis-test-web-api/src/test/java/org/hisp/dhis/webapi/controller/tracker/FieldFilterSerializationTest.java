@@ -96,9 +96,10 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
     events = createEvents(2);
   }
 
-  // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are. If we
+  // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are in
+  // FieldsParserTest. If we
   // replace the current field filtering parser we should still keep these to test the combination
-  // of FieldsParser and Jackson FieldsPropertyFilter
+  // of FieldsParser and Jackson FieldsPropertyFilter using snapshots
   @ParameterizedTest
   @ValueSource(
       strings = {
