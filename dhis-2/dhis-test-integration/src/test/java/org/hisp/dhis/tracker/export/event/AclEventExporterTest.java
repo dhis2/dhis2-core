@@ -110,7 +110,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminIntoSecurityContext();
-    operationParamsBuilder = EventOperationParams.builder().fields(EventParams.FALSE);
+    operationParamsBuilder = EventOperationParams.builder().fields(EventFields.none());
   }
 
   @Test
