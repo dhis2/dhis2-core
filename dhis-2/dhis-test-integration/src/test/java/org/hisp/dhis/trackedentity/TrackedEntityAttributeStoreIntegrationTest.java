@@ -30,23 +30,13 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,22 +53,6 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Autowired private ProgramService programService;
-
-  @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  private static final int A = 65;
-
-  private static final int T = 85;
-
-  private Program programB;
-
   private TrackedEntityAttribute attributeW;
 
   private TrackedEntityAttribute attributeY;
@@ -88,101 +62,17 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
   @BeforeEach
   void setUp() {
     attributeW = createTrackedEntityAttribute('W');
-    attributeW.setUnique(true);
     attributeY = createTrackedEntityAttribute('Y');
-    attributeY.setUnique(true);
-    attributeZ = createTrackedEntityAttribute('Z', ValueType.NUMBER);
-
-    Program program = createProgram('A');
-    programService.addProgram(program);
-
-    TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
-    trackedEntityTypeA.setPublicAccess(AccessStringHelper.FULL);
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeA);
-
-    TrackedEntityType trackedEntityTypeB = createTrackedEntityType('B');
-    trackedEntityTypeB.setPublicAccess(AccessStringHelper.FULL);
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeB);
-
-    // Create 20 Tracked Entity Attributes (named A .. O)
-    IntStream.range(A, T)
-        .mapToObj(i -> Character.toString((char) i))
-        .forEach(
-            c ->
-                attributeService.addTrackedEntityAttribute(
-                    createTrackedEntityAttribute(c.charAt(0), ValueType.TEXT)));
-
-    // Transform the Tracked Entity Attributes into a List of
-    // TrackedEntityTypeAttribute
-    List<TrackedEntityTypeAttribute> teatList =
-        IntStream.range(A, T)
-            .mapToObj(i -> Character.toString((char) i))
-            .map(
-                s ->
-                    new TrackedEntityTypeAttribute(
-                        trackedEntityTypeA,
-                        attributeService.getTrackedEntityAttributeByName("Attribute" + s)))
-            .collect(Collectors.toList());
-
-    // Setting searchable to true for 5 random tracked entity type
-    // attributes
-    TrackedEntityTypeAttribute teta = teatList.get(0);
-    teta.setSearchable(true);
-    teta = teatList.get(4);
-    teta.setSearchable(true);
-    teta = teatList.get(9);
-    teta.setSearchable(true);
-    teta = teatList.get(14);
-    teta.setSearchable(true);
-    teta = teatList.get(19);
-    teta.setSearchable(true);
-
-    // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
-    trackedEntityTypeA.getTrackedEntityTypeAttributes().addAll(teatList.subList(0, 10));
-    trackedEntityTypeService.updateTrackedEntityType(trackedEntityTypeA);
-
-    // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type B
-    trackedEntityTypeB.getTrackedEntityTypeAttributes().addAll(teatList.subList(10, 20));
-    trackedEntityTypeService.updateTrackedEntityType(trackedEntityTypeB);
-
-    programB = createProgram('B');
-    programService.addProgram(programB);
-
-    List<ProgramTrackedEntityAttribute> pteaList =
-        IntStream.range(A, T)
-            .mapToObj(i -> Character.toString((char) i))
-            .map(
-                s ->
-                    new ProgramTrackedEntityAttribute(
-                        programB,
-                        attributeService.getTrackedEntityAttributeByName("Attribute" + s)))
-            .collect(Collectors.toList());
-
-    // Setting searchable to true for 5 random program tracked entity
-    // attributes
-    ProgramTrackedEntityAttribute ptea = pteaList.get(0);
-    ptea.setSearchable(true);
-    ptea = pteaList.get(4);
-    ptea.setSearchable(true);
-    ptea = pteaList.get(9);
-    ptea.setSearchable(true);
-    ptea = pteaList.get(13);
-    ptea.setSearchable(true);
-    ptea = pteaList.get(18);
-    ptea.setSearchable(true);
-
-    programB.getProgramAttributes().addAll(pteaList);
-    programService.updateProgram(programB);
+    attributeZ = createTrackedEntityAttribute('Z');
   }
 
   @AfterEach
-  void dropTrigramIndexes() {
-    List<String> indexNames =
-        jdbcTemplate.queryForList(
-            "SELECT indexname FROM pg_indexes WHERE indexname LIKE 'in_gin_teavalue_%'",
-            String.class);
-
-    indexNames.forEach(name -> jdbcTemplate.execute("DROP INDEX IF EXISTS " + name));
+  void dropAllTrigramIndexes() {
+    // DDL statements like `CREATE INDEX` are not rolled back, so here I'm cleaning up after each
+    // use
+    List<Long> indexedAttributes =
+        trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
+    indexedAttributes.forEach(attr -> trackedEntityAttributeTableManager.dropTrigramIndex(attr));
   }
 
   @Test
@@ -206,13 +96,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
   void testCreateTrigramIndex() {
     attributeService.addTrackedEntityAttribute(attributeW);
     trackedEntityAttributeTableManager.createTrigramIndex(attributeW);
-    assertFalse(
-        jdbcTemplate
-            .queryForList(
-                "select * "
-                    + "from pg_indexes "
-                    + "where tablename= 'trackedentityattributevalue' and indexname like 'in_gin_teavalue_%'; ")
-            .isEmpty());
+    assertHasSize(1, getTrigramIndexesInDb());
   }
 
   @Test
@@ -225,6 +109,21 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
 
     assertContainsOnly(List.of(attributeY.getId(), attributeZ.getId()), attributeIds);
+  }
+
+  @Test
+  void shouldDropTrigramIndexes() {
+    attributeService.addTrackedEntityAttribute(attributeW);
+    trackedEntityAttributeTableManager.createTrigramIndex(attributeW);
+    attributeService.addTrackedEntityAttribute(attributeY);
+    trackedEntityAttributeTableManager.createTrigramIndex(attributeY);
+    attributeService.addTrackedEntityAttribute(attributeZ);
+    createTrigramIndexWithCustomNaming(attributeZ, "trigram_index_name");
+    assertHasSize(3, getTrigramIndexesInDb());
+
+    trackedEntityAttributeTableManager.dropTrigramIndex(attributeW.getId());
+    trackedEntityAttributeTableManager.dropTrigramIndex(attributeZ.getId());
+    assertHasSize(1, getTrigramIndexesInDb());
   }
 
   private void createTrigramIndexWithCustomNaming(
@@ -240,5 +139,9 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
             indexName, attribute.getId());
 
     jdbcTemplate.execute(query);
+  }
+
+  private List<Long> getTrigramIndexesInDb() {
+    return trackedEntityAttributeTableManager.getAttributesWithTrigramIndex();
   }
 }

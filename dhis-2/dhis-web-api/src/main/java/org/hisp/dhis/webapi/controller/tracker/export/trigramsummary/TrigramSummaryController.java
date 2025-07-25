@@ -86,7 +86,7 @@ public class TrigramSummaryController {
     TrigramSummary trigramSummary = new TrigramSummary();
 
     Set<TrackedEntityAttribute> allIndexableAttributes =
-        trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
+        trackedEntityAttributeService.getAllTrigramIndexableAttributes();
 
     Set<String> allIndexableAttributeUids =
         allIndexableAttributes.stream()
