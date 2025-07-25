@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Function;
 
 public class FieldsParser {
 
@@ -168,33 +169,32 @@ public class FieldsParser {
     }
 
     // TODO(ivo) * should not be part of the final fields/children
+    Set<String> fields;
+    Function<String, Fields> childrenFunc;
     if (includesAll) {
+      fields = acc.excludes;
       if (children.isEmpty()) {
-        return new Fields(true, acc.excludes, (field) -> Fields.ALL, Map.of());
+        childrenFunc = (field) -> Fields.ALL;
+      } else {
+        childrenFunc =
+            (field) -> {
+              if (children.containsKey(field)) { // explicit field specification takes precedence
+                return children.get(field);
+              }
+              // since all of the parents fields are included all of the children are as well
+              return Fields.ALL;
+            };
       }
 
-      return new Fields(
-          true,
-          acc.excludes,
-          (field) -> {
-            if (children.containsKey(field)) { // explicit field specification takes precedence
-              return children.get(field);
-            }
-            return Fields
-                .ALL; // since all of the parents fields are included all of the children are as
-            // well
-          },
-          Map.of());
+      return new Fields(includesAll, fields, childrenFunc, Map.of());
     }
 
-    Set<String> fields = new HashSet<>(acc.includes);
+    fields = new HashSet<>(acc.includes);
     fields.removeAll(acc.excludes);
     // 2. rule from above
     fields.forEach(f -> children.putIfAbsent(f, Fields.ALL));
 
-    return new Fields(
-        false, fields, children::get, Map.of() // TODO(ivo) transformations
-        );
+    return new Fields(false, fields, children::get, Map.of());
   }
 
   /**
