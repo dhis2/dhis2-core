@@ -41,8 +41,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
@@ -70,7 +68,6 @@ class TrackerTrigramIndexingJobTest {
 
   @BeforeEach
   void setUp() {
-    // mock normal run conditions
     when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(Collections.emptySet());
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
@@ -80,43 +77,30 @@ class TrackerTrigramIndexingJobTest {
   @Test
   void testRunJobWithoutAnyAttributesInJobParametersAndWithoutAnyObsolete() {
     JobConfiguration jobConfiguration = new JobConfiguration();
-    TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
+    TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters(true);
     jobConfiguration.setJobParameters(jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
     verify(trackedEntityAttributeTableManager, never()).createTrigramIndex(any());
     verify(trackedEntityAttributeTableManager, never()).dropTrigramIndex(any());
+    verify(trackedEntityAttributeTableManager, never()).runAnalyzeOnTrackedEntityAttributeValue();
   }
 
   @Test
   void testRunJobWithoutAnyAttributesInJobParametersButWithObsoleteIndexes() {
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
-        .thenReturn(Arrays.asList(12l, 13l));
+        .thenReturn(Arrays.asList(12L, 13L));
 
     JobConfiguration jobConfiguration = new JobConfiguration();
-    TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
+    TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters(true);
     jobConfiguration.setJobParameters(jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
     verify(trackedEntityAttributeTableManager, never()).createTrigramIndex(any());
     verify(trackedEntityAttributeTableManager, times(2)).dropTrigramIndex(any());
-  }
-
-  @Test
-  void testRunJobWithNonIndexableAttributesInJobParameters() {
-    when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
-        .thenReturn(Collections.singleton(new TrackedEntityAttribute()));
-
-    JobConfiguration jobConfiguration = new JobConfiguration();
-    TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
-    jp.setAttributes(Collections.singleton("aaaa"));
-    jobConfiguration.setJobParameters(jp);
-
-    job.execute(jobConfiguration, JobProgress.noop());
-
-    verify(trackedEntityAttributeTableManager, never()).createTrigramIndex(any());
+    verify(trackedEntityAttributeTableManager, times(1)).runAnalyzeOnTrackedEntityAttributeValue();
   }
 
   @Test
@@ -136,12 +120,10 @@ class TrackerTrigramIndexingJobTest {
         .thenReturn(indexableAttributes);
     doNothing().when(trackedEntityAttributeTableManager).createTrigramIndex(any());
     JobConfiguration jobConfiguration = new JobConfiguration();
-    TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
-    jp.setAttributes(Stream.of("tea2", "tea3").collect(Collectors.toSet()));
-    jobConfiguration.setJobParameters(jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
-    verify(trackedEntityAttributeTableManager, times(2)).createTrigramIndex(any());
+    verify(trackedEntityAttributeTableManager, times(3)).createTrigramIndex(any());
+    verify(trackedEntityAttributeTableManager, never()).runAnalyzeOnTrackedEntityAttributeValue();
   }
 }
