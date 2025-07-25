@@ -165,7 +165,8 @@ public class FieldsParser {
               || entry.getValue().includes.isEmpty();
       children.put(entry.getKey(), map(entry.getValue(), includeChildren));
     }
-    // TODO(ivo) * should not be part of the final fields/children. Remove from includes here?
+    // TODO(ivo) * should not be part of the final fields. Debug through on case
+    acc.includes.remove("*");
 
     // TODO(ivo) comment on both blocks of code and their responsibility. Double-check the
     // includeChildren logic above, is there any way we can merge cases?
