@@ -145,7 +145,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         .writeValueAsString(events);
   }
 
-  private static List<Event> createEvents(int n) {
+  public static List<Event> createEvents(int n) {
     List<Event> events = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
       events.add(createEvent());
@@ -153,7 +153,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
     return events;
   }
 
-  private static Event createEvent() {
+  public static Event createEvent() {
     return Event.builder()
         .event(UID.generate())
         .program(UID.generate().getValue())
