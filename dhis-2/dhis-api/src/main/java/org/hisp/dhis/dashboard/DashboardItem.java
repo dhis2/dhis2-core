@@ -110,9 +110,6 @@ public class DashboardItem extends BaseMetadataObject
   @Column(name = "code")
   private String code;
 
-  @Column(name = "name")
-  private String name;
-
   @ManyToOne
   @JoinColumn(name = "visualizationid")
   private Visualization visualization;
@@ -503,13 +500,6 @@ public class DashboardItem extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getName() {
-    return name;
-  }
-
-  @Override
   @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -591,12 +581,8 @@ public class DashboardItem extends BaseMetadataObject
       return uid;
     } else if (idScheme.is(IdentifiableProperty.CODE)) {
       return code;
-    } else if (idScheme.is(IdentifiableProperty.NAME)) {
-      return name;
     } else if (idScheme.is(IdentifiableProperty.ID)) {
       return id > 0 ? String.valueOf(id) : null;
-    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
-      return null;
     }
     return null;
   }
@@ -670,4 +656,12 @@ public class DashboardItem extends BaseMetadataObject
   public String getAttributeValue(String attributeUid) {
     return null;
   }
+
+  @Override
+  public String getName() {
+    return null;
+  }
+
+  @Override
+  public void setName(String name) {}
 }
