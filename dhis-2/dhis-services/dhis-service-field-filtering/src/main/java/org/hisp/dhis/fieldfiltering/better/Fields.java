@@ -46,7 +46,6 @@ import lombok.ToString;
  * <p>The structure is immutable once created, making it safe for concurrent access and caching. Use
  * {@link FieldsParser} to create instances from field expressions.
  */
-// TODO(ivo) create our own constructor which copies?
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode
