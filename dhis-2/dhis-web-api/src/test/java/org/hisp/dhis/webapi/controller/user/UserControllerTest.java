@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,8 +43,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -289,5 +292,22 @@ class UserControllerTest {
     User credentials = new User();
     credentials.setUser(user);
     credentials.setUid(user.getUid());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void updateUserGroups() {
+    when(userService.getUser("def2")).thenReturn(user);
+    UserDetails currentUserDetails = UserDetails.fromUser(currentUser);
+
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
+      userController.updateUserGroups("def2", parsedUser, currentUserDetails);
+    }
+
+    verify(userGroupService)
+        .updateUserGroups(
+            same(user),
+            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
+            same(currentUserDetails));
   }
 }
