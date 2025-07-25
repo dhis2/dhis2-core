@@ -47,7 +47,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -179,7 +179,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
   }
 
-  private Set<Event> getEvents(
+  private Set<TrackerEvent> getEvents(
       Enrollment enrollment, TrackerEventFields fields, boolean includeDeleted) {
     TrackerEventOperationParams eventOperationParams =
         TrackerEventOperationParams.builder()

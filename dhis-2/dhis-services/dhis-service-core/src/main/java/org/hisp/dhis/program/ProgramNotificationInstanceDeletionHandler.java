@@ -52,7 +52,8 @@ public class ProgramNotificationInstanceDeletionHandler
   @Override
   protected void registerHandler() {
     whenVetoing(Enrollment.class, this::allowDeleteEnrollment);
-    whenVetoing(Event.class, this::allowDeleteEvent);
+    whenVetoing(TrackerEvent.class, this::allowDeleteEvent);
+    // TODO(DHIS2-19702): Consider single events
   }
 
   private DeletionVeto allowDeleteEnrollment(Enrollment enrollment) {
@@ -63,7 +64,7 @@ public class ProgramNotificationInstanceDeletionHandler
     return instances == null || instances.isEmpty() ? ACCEPT : VETO;
   }
 
-  private DeletionVeto allowDeleteEvent(Event event) {
+  private DeletionVeto allowDeleteEvent(TrackerEvent event) {
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().event(event).build());

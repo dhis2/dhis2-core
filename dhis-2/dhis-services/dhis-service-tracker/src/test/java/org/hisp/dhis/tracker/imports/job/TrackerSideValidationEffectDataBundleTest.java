@@ -36,7 +36,7 @@ import java.util.List;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -69,16 +69,16 @@ class TrackerSideValidationEffectDataBundleTest {
 
   @Test
   void testNotificationDataBundleForEvent() {
-    Event expected = new Event();
+    TrackerEvent expected = new TrackerEvent();
     expected.setAutoFields();
     TrackerNotificationDataBundle bundle =
         TrackerNotificationDataBundle.builder()
             .trackerEventNotifications(List.of())
             .object(expected.getUid())
-            .klass(Event.class)
+            .klass(TrackerEvent.class)
             .build();
     assertEquals(expected.getUid(), bundle.getObject());
-    assertEquals(Event.class, bundle.getKlass());
+    assertEquals(TrackerEvent.class, bundle.getKlass());
     assertTrue(bundle.getTrackerEventNotifications().isEmpty());
     assertTrue(bundle.getEnrollmentNotifications().isEmpty());
   }
