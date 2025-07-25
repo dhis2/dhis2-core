@@ -145,7 +145,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         .writeValueAsString(events);
   }
 
-  private static List<Event> createEvents(int n) {
+  static List<Event> createEvents(int n) {
     List<Event> events = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
       events.add(createEvent());

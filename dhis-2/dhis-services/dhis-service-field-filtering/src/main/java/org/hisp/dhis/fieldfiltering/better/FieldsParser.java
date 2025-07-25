@@ -170,7 +170,7 @@ public class FieldsParser {
     // TODO(ivo) * should not be part of the final fields/children
     if (includesAll) {
       if (children.isEmpty()) {
-        return Fields.all(acc.excludes);
+        return new Fields(true, acc.excludes, (field) -> Fields.ALL, Map.of());
       }
 
       return new Fields(
@@ -195,17 +195,6 @@ public class FieldsParser {
     return new Fields(
         false, fields, children::get, Map.of() // TODO(ivo) transformations
         );
-  }
-
-  private static Set<String> computeEffectiveFields(
-      boolean includesAll, Set<String> inclusions, Set<String> exclusions) {
-    if (includesAll) {
-      return Set.copyOf(exclusions);
-    }
-
-    Set<String> result = new HashSet<>(inclusions);
-    result.removeAll(exclusions);
-    return Set.copyOf(result);
   }
 
   /**
