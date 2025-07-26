@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -66,7 +67,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -199,7 +199,7 @@ public class FieldFilterService {
 
   @Transactional(readOnly = true)
   public <T> List<ObjectNode> toObjectNodes(
-      List<T> objects, List<FieldPath> fieldPaths, User user, boolean isSkipSharing) {
+      List<T> objects, List<FieldPath> fieldPaths, UserDetails user, boolean isSkipSharing) {
     List<ObjectNode> objectNodes = new ArrayList<>();
 
     if (objects.isEmpty()) {
@@ -227,7 +227,7 @@ public class FieldFilterService {
   private <T> void toObjectNodes(
       List<T> objects,
       List<FieldPath> filter,
-      User user,
+      UserDetails user,
       boolean isSkipSharing,
       Consumer<ObjectNode> consumer) {
     toObjectNodes(objects, filter, user, isSkipSharing, false, consumer);
@@ -236,17 +236,13 @@ public class FieldFilterService {
   private <T> void toObjectNodes(
       List<T> objects,
       List<FieldPath> filter,
-      User user,
+      UserDetails user,
       boolean isSkipSharing,
       boolean excludeDefaults,
       Consumer<ObjectNode> consumer) {
 
-    UserDetails currentUserDetails = null;
-    if (user == null) {
-      currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    } else {
-      currentUserDetails = UserDetails.fromUser(user);
-    }
+    UserDetails currentUserDetails =
+        Objects.requireNonNullElseGet(user, CurrentUserUtil::getCurrentUserDetails);
 
     // In case we get a proxied object in we can't just use o.getClass(), we
     // need to figure out the real class name by using HibernateProxyUtils.

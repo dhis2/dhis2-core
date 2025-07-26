@@ -70,7 +70,7 @@ import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.CodeList;
@@ -276,7 +276,7 @@ public class SystemController {
       @RequestParam(defaultValue = "*") List<String> fields,
       HttpServletRequest request,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     SystemInfo info =
         systemService.getSystemInfo().toBuilder()
             .contextPath(HttpServletRequestPaths.getContextPath(request))

@@ -290,13 +290,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
           continue;
         }
 
-        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
         FieldFilterParams<?> fieldFilterParams =
             FieldFilterParams.builder()
                 .objects(objects)
                 .filters(params.getFields(klass))
                 .skipSharing(params.getSkipSharing())
-                .user(currentUser)
+                .user(CurrentUserUtil.getCurrentUserDetails())
                 .build();
 
         String plural = schemaService.getDynamicSchema(klass).getPlural();

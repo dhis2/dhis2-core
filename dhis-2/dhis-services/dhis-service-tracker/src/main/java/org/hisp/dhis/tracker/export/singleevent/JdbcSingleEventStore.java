@@ -220,8 +220,7 @@ class JdbcSingleEventStore {
   }
 
   private List<SingleEvent> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    setAccessiblePrograms(currentUser, queryParams);
+    setAccessiblePrograms(CurrentUserUtil.getCurrentUserDetails(), queryParams);
 
     Map<String, SingleEvent> eventsByUid;
     if (pageParams == null) {
@@ -234,7 +233,8 @@ class JdbcSingleEventStore {
     List<SingleEvent> events = new ArrayList<>();
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    String sql = buildSql(queryParams, pageParams, sqlParameters, currentUser);
+    String sql =
+        buildSql(queryParams, pageParams, sqlParameters, CurrentUserUtil.getCurrentUserDetails());
 
     TrackerIdSchemeParam dataElementIdScheme =
         queryParams.getIdSchemeParams().getDataElementIdScheme();
@@ -479,7 +479,7 @@ class JdbcSingleEventStore {
   }
 
   private long getEventCount(SingleEventQueryParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, params);
 
     String sql;
@@ -520,7 +520,7 @@ class JdbcSingleEventStore {
       SingleEventQueryParams queryParams,
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
-      User user) {
+      UserDetails user) {
     StringBuilder sqlBuilder = new StringBuilder("select *");
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
@@ -563,7 +563,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getEventSelectQuery(
-      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      SingleEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource,
+      UserDetails user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -678,7 +680,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private StringBuilder getFromWhereClause(
       SingleEventQueryParams params,
       MapSqlParameterSource sqlParameters,
-      User user,
+      UserDetails user,
       SqlHelper hlp) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
@@ -790,7 +792,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getOrgUnitSql(
-      SingleEventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+      SingleEventQueryParams params,
+      UserDetails user,
+      MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
       case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
       case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
@@ -801,12 +805,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     };
   }
 
-  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
+  private String createCaptureSql(UserDetails user, MapSqlParameterSource mapSqlParameterSource) {
     return createCaptureScopeQuery(user, mapSqlParameterSource, "");
   }
 
   private String createAccessibleSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user,
+      SingleEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource) {
 
     if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
@@ -817,7 +823,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createDescendantsSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user,
+      SingleEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
@@ -830,7 +838,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createChildrenSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user,
+      SingleEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
@@ -853,7 +863,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createSelectedSql(
-      User user, SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user,
+      SingleEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
@@ -879,7 +891,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * @return a getSql clause to add to the main query
    */
   private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
+      UserDetails user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
     return " exists(select cs.organisationunitid "
@@ -925,8 +937,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return program != null && (program.isProtected() || program.isClosed());
   }
 
-  private boolean isUserSearchScopeNotSet(User user) {
-    return user.getTeiSearchOrganisationUnits().isEmpty();
+  private boolean isUserSearchScopeNotSet(UserDetails user) {
+    return user.getUserSearchOrgUnitIds().isEmpty();
   }
 
   private String eventStatusSql(
@@ -1024,7 +1036,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *   <li>A user must have access to all COs of the events COC to have access to an event.
    * </ul>
    */
-  private String getCategoryOptionComboQuery(User user) {
+  private String getCategoryOptionComboQuery(UserDetails user) {
     String joinCondition =
 """
  inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,\
@@ -1048,7 +1060,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
+                  "co.sharing", user, AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 
@@ -1095,7 +1107,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private boolean isNotSuperUser(User user) {
+  private boolean isNotSuperUser(UserDetails user) {
     return user != null && !user.isSuper();
   }
 
@@ -1109,7 +1121,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private void setAccessiblePrograms(User user, SingleEventQueryParams params) {
+  private void setAccessiblePrograms(UserDetails user, SingleEventQueryParams params) {
     if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));

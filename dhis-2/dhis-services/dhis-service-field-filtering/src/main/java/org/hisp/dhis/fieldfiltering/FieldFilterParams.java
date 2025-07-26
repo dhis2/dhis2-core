@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen
@@ -46,7 +46,7 @@ public class FieldFilterParams<T> {
 
   private final String filters;
 
-  private User user;
+  private UserDetails user;
 
   /** Do not include sharing properties (user, sharing, publicAccess, etc). */
   private final boolean skipSharing;
