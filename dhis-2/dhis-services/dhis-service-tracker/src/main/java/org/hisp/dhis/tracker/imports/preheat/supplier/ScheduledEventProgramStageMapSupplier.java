@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.List;
 import java.util.Objects;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -78,12 +77,12 @@ public class ScheduledEventProgramStageMapSupplier extends JdbcAbstractPreheatSu
     List<String> programStageUids =
         trackerObjects.getEvents().stream()
             .map(Event::getProgramStage)
-            .filter(Objects::nonNull)
             .map(preheat::getProgramStage)
             .filter(Objects::nonNull)
             .map(ProgramStage::getProgram)
             .filter(Objects::nonNull)
-            .filter(Program::isRegistration)
+            .map(program -> preheat.getProgram(program.getUid()))
+            .filter(program -> program != null && program.isRegistration())
             .flatMap(program -> program.getProgramStages().stream())
             .map(ProgramStage::getUid)
             .distinct()
