@@ -111,12 +111,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   @Override
-  public void save(@Nonnull T object, @Nonnull User user) {
-    // TODO: MAS: remove this, only in use one place
-    save(object, UserDetails.fromUser(user), true);
-  }
-
-  @Override
   public void save(@Nonnull T object, boolean clearSharing) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     save(object, currentUserDetails, clearSharing);

@@ -149,7 +149,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
     UserDetails user =
         getCurrentUserUid().equals(userUid)
             ? currentUser
-            : UserDetails.fromUser(userService.getUser(userUid));
+            : userService.createUserDetailsSafe(userUid);
     return user != null && aclService.canRead(currentUser, userService.getUser(user.getUid()));
   }
 
