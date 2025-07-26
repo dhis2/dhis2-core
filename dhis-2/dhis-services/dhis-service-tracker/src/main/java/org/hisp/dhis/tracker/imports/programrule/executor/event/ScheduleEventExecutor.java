@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.engine;
+package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import java.util.Arrays;
+import static org.hisp.dhis.tracker.imports.programrule.executor.ScheduleEventHelper.validateAndScheduleEvent;
 
-public enum ValidationAction {
-  ASSIGN("ASSIGN"),
-  SET_MANDATORY_FIELD("SETMANDATORYFIELD"),
-  SHOW_ERROR("SHOWERROR"),
-  SHOW_WARNING("SHOWWARNING"),
-  SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
-  SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
-  RAISE_ERROR("ERROR"),
-  SCHEDULE_EVENT("SCHEDULEEVENT");
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
+import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 
-  public static boolean contains(String ruleEngineName) {
-    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
-  }
+/**
+ * @author Zubair Asghar
+ */
+@RequiredArgsConstructor
+public class ScheduleEventExecutor implements RuleActionExecutor<Event> {
+  private final ValidationEffect validationEffect;
 
-  public static ValidationAction fromName(String ruleEngineName) {
-    return Arrays.stream(values())
-        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
-        .findAny()
-        .orElseThrow();
-  }
+  @Nonnull private final AclService aclService;
 
-  private final String ruleEngineName;
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    ProgramStage ps = bundle.getPreheat().getProgramStage(validationEffect.field().getValue());
 
-  ValidationAction(String ruleEngineName) {
-    this.ruleEngineName = ruleEngineName;
+    return validateAndScheduleEvent(
+        validationEffect,
+        aclService.canWrite(bundle.getUser(), ps),
+        bundle,
+        event.getEnrollment(),
+        event.getAttributeOptionCombo(),
+        event.getProgram(),
+        event.getOrgUnit());
   }
 }

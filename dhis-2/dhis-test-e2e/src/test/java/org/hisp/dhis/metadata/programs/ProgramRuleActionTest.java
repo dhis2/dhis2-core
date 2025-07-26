@@ -57,6 +57,11 @@ class ProgramRuleActionTest extends ApiTest {
   private ProgramRuleActionHandler programRuleActionHandler;
 
   private String programId;
+  private String programId2;
+  private String programStageId;
+  private String programStageId2;
+  private String programStageName1 = "ProgramStage1";
+  private String programStageName2 = "ProgramStage2";
 
   private String programRuleId;
 
@@ -73,6 +78,9 @@ class ProgramRuleActionTest extends ApiTest {
 
     loginActions.loginAsSuperUser();
     programId = programActions.createTrackerProgram(null).extractUid();
+    programId2 = programActions.createTrackerProgram(null).extractUid();
+    programStageId = programActions.createProgramStage(programId, programStageName1);
+    programStageId2 = programActions.createProgramStage(programId2, programStageName2);
     programRuleId = programActions.createProgramRule(programId, "test_rule");
     templateUid = templateActions.createProgramNotificationTemplate();
   }
