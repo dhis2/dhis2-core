@@ -33,8 +33,8 @@ import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
@@ -58,9 +58,10 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option> {
               .get(bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet());
 
       checkDuplicateOption(optionSet, option, addReports);
-      ErrorMessage error = optionService.validateOption(optionSet, option);
-      if (error != null) {
-        addReports.accept(new ErrorReport(OptionSet.class, error));
+      try {
+        optionService.validateOption(optionSet, option);
+      } catch (ConflictException ex) {
+        addReports.accept(new ErrorReport(OptionSet.class, ex.getCode(), ex.getArgs()));
       }
     }
   }

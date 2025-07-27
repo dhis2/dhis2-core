@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.feedback;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import lombok.AllArgsConstructor;
+import java.text.MessageFormat;
+import javax.annotation.Nonnull;
+import lombok.Getter;
 
-/**
- * Reads {@link DataValueSet} from JSON input.
- *
- * @author Jan Bernitt
- */
-@AllArgsConstructor
-final class JsonDataValueSetReader implements DataValueSetReader {
-  final InputStream in;
+@Getter
+public abstract class FeedbackException extends Exception implements Error {
 
-  final ObjectMapper jsonMapper;
+  @Nonnull private final ErrorCode code;
+  @Nonnull private final Object[] args;
 
-  @Override
-  public DataValueSet readHeader() {
-    try {
-      return jsonMapper.readValue(in, DataValueSet.class);
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
+  FeedbackException(String msg, @Nonnull ErrorCode code) {
+    super(msg);
+    this.code = code;
+    this.args = new Object[0];
   }
 
-  @Override
-  public DataValueEntry readNext() {
-    return null; // header contains the values
-  }
-
-  @Override
-  public void close() {
-    try {
-      in.close();
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
+  FeedbackException(@Nonnull ErrorCode code, @Nonnull Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+    this.args = args;
   }
 }

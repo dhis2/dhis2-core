@@ -32,9 +32,14 @@ package org.hisp.dhis.csv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
+import java.lang.annotation.ElementType;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV.CsvReader;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.junit.jupiter.api.Test;
@@ -133,5 +138,58 @@ class CSVTest {
 
     IllegalArgumentException ex = assertThrowsExactly(IllegalArgumentException.class, reader::list);
     assertEquals("Column orgUnit is required and cannot be empty", ex.getMessage());
+  }
+
+  @Test
+  void testAnyProperties() {
+    List<DataEntryValue.Input> actual =
+        CSV.of(
+                """
+        dataelement,period,orgunit,attributeoptioncombo,value,followup,deleted,age,gender
+        CxlYcbqio4v,202506,rZxk3S0qN63,HllvX50cXC0,9,false,null,>15,f
+        CxlYcbqio4v,202506,nX05QLraDhO,HllvX50cXC0,1,false,null,>20,m
+        CxlYcbqio4v,202506,rZxk3S0qN63,HllvX50cXC0,8,false,null,>30,f
+        CxlYcbqio4v,202506,rZxk3S0qN63,HllvX50cXC0,1,false,null,>15,m""")
+            .as(DataEntryValue.Input.class)
+            .list();
+    assertEquals(4, actual.size());
+    DataEntryValue.Input expectedRow1 =
+        new DataEntryValue.Input(
+            "CxlYcbqio4v",
+            "rZxk3S0qN63",
+            null,
+            Map.of("age", ">15", "gender", "f"),
+            "HllvX50cXC0",
+            "202506",
+            "9",
+            null,
+            false,
+            null);
+    assertEquals(expectedRow1, actual.get(0));
+  }
+
+  record CollectionsRecord(
+      List<String> list,
+      Set<Integer> set,
+      Collection<ElementType> collection,
+      Map<String, Long> map) {}
+
+  @Test
+  void testCollections() {
+    List<CollectionsRecord> actual =
+        CSV.of(
+                """
+        list,set,map,collection
+        a b c,1 2 3,a=4 b=2,TYPE FIELD""")
+            .as(CollectionsRecord.class)
+            .list();
+    assertEquals(1, actual.size());
+    assertEquals(
+        new CollectionsRecord(
+            List.of("a", "b", "c"),
+            Set.of(1, 2, 3),
+            List.of(ElementType.TYPE, ElementType.FIELD),
+            Map.of("a", 4L, "b", 2L)),
+        actual.get(0));
   }
 }

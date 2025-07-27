@@ -209,6 +209,15 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceWithIndex() {
+    assertEquals(
+        "Attribute option combo {0} not connected to org unit(s): `{1}`",
+        TextUtils.replace(
+            "Attribute option combo ${aoc:{0}} not connected to org unit(s): `${units:{1}}`",
+            Map.of()));
+  }
+
+  @Test
   void testReplaceMultiple() {
     assertEquals(
         "Hey John, my name is John",

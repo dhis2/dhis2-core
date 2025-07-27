@@ -31,12 +31,10 @@ package org.hisp.dhis.dxf2.datavalueset.tasks;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
-import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dxf2.adx.AdxDataService;
+import org.hisp.dhis.datavalue.DataEntryIO;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -58,9 +56,8 @@ import org.springframework.stereotype.Component;
 public class DataValueSetImportJob implements Job {
 
   private final FileResourceService fileResourceService;
-  private final DataValueSetService dataValueSetService;
-  private final AdxDataService adxDataService;
   private final Notifier notifier;
+  private final DataEntryIO dataEntryIO;
 
   @Override
   public JobType getJobType() {
@@ -82,15 +79,11 @@ public class DataValueSetImportJob implements Job {
       boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" ->
-                dataValueSetService.importDataValueSetJson(input, options, progress);
-            case "application/csv" ->
-                dataValueSetService.importDataValueSetCsv(input, options, progress);
-            case "application/pdf" ->
-                dataValueSetService.importDataValueSetPdf(input, options, progress);
-            case "application/xml" ->
-                dataValueSetService.importDataValueSetXml(input, options, progress);
-            case "application/adx+xml" -> adxDataService.saveDataValueSet(input, options, progress);
+            case "application/json" -> dataEntryIO.importJson(input, options, progress);
+            case "application/csv" -> dataEntryIO.importCsv(input, options, progress);
+            case "application/pdf" -> dataEntryIO.importPdf(input, options, progress);
+            case "application/xml" -> dataEntryIO.importXml(input, options, progress);
+            case "application/adx+xml" -> dataEntryIO.importAdx(input, options, progress);
             default -> {
               unknownFormat = true;
               yield null;
@@ -121,8 +114,9 @@ public class DataValueSetImportJob implements Job {
 
       NotificationLevel level = options == null ? INFO : options.getNotificationLevel(INFO);
       notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       progress.failedProcess(ex);
+      // TODO add error summary
     }
   }
 }

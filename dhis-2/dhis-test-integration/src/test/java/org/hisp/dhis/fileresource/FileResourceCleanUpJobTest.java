@@ -115,7 +115,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testNoRetention() {
+  void testNoRetention() throws Exception {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
     settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
@@ -132,7 +132,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testRetention() {
+  void testRetention() throws Exception {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
     settingsService.put(
