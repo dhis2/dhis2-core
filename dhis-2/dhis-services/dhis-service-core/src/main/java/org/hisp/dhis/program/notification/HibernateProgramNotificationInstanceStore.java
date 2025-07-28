@@ -115,8 +115,12 @@ public class HibernateProgramNotificationInstanceStore
       ProgramNotificationInstanceParam params, CriteriaBuilder builder) {
     List<Function<Root<ProgramNotificationInstance>, Predicate>> predicates = new ArrayList<>();
 
-    if (params.hasEvent()) {
-      predicates.add(root -> builder.equal(root.get("event"), params.getEvent()));
+    if (params.hasTrackerEvent()) {
+      predicates.add(root -> builder.equal(root.get("trackerEvent"), params.getTrackerEvent()));
+    }
+
+    if (params.hasSingleEvent()) {
+      predicates.add(root -> builder.equal(root.get("singleEvent"), params.getSingleEvent()));
     }
 
     if (params.hasEnrollment()) {
