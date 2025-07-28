@@ -27,7 +27,7 @@
 
         <many-to-one name="trackerEvent" class="org.hisp.dhis.program.TrackerEvent"
                      column="trackereventid"
-                     foreign-key="fk_relationshipitem_programstageinstanceid"/>
+                     foreign-key="fk_relationshipitem_trackereventid"/>
 
         <many-to-one name="singleEvent" class="org.hisp.dhis.program.SingleEvent"
                      column="singleeventid"
