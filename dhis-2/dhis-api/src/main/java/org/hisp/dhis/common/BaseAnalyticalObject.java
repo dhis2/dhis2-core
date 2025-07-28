@@ -320,7 +320,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
    */
-  private Set<String> addedElementsProgramStages = new HashSet<>();
+  private final Set<String> addedElementsProgramStages = new HashSet<>();
 
   private Set<Interpretation> interpretations = new HashSet<>();
 
@@ -1372,7 +1372,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   @JsonProperty
-  @JsonIgnore
   @JacksonXmlElementWrapper(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   public List<String> getRawPeriods() {
