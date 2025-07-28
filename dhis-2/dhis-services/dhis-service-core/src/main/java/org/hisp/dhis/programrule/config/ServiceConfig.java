@@ -104,6 +104,9 @@ public class ServiceConfig {
             ProgramRuleActionType.ASSIGN,
             getProgramRuleActionValidatorByClass(AssignProgramRuleActionValidator.class))
         .put(
+            ProgramRuleActionType.CREATEEVENT,
+            getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
+        .put(
             ProgramRuleActionType.HIDEFIELD,
             getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
         .put(
