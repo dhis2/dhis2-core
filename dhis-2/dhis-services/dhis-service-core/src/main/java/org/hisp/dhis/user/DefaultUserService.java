@@ -532,6 +532,12 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
+  public void updateUserRole(UserRole userRole, UserDetails userDetails) {
+    userRoleStore.update(userRole, userDetails);
+  }
+
+  @Override
+  @Transactional
   public void deleteUserRole(UserRole userRole) {
     userRoleStore.delete(userRole);
   }
