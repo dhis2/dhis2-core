@@ -43,6 +43,7 @@ import java.io.Writer;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -1046,7 +1047,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
       BatchHandler<DataValue> dataValueBatchHandler,
       BatchHandler<DataValueAudit> auditBatchHandler) {
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     boolean auditEnabled = config.isEnabled(CHANGELOG_AGGREGATE);
@@ -1077,7 +1080,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .skipLockExceptionCheck(!lockExceptionStore.anyExists())
         .i18n(i18nManager.getI18n())
         .currentUser(currentUser)
-        .currentOrgUnitUids(currentUser.getUserOrgUnitIds())
+        .currentOrgUnits(
+            currentUser != null ? currentUser.getOrganisationUnits() : Collections.emptySet())
         .hasSkipAuditAuth(hasSkipAuditAuth)
         .skipAudit(skipAudit)
         .idScheme(createIdScheme(data.getIdSchemeProperty(), options, IdSchemes::getIdScheme))
@@ -1115,7 +1119,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
         .requireAttrOptionCombo(
             options.isRequireAttributeOptionCombo()
                 || settings.getDataImportRequireAttributeOptionCombo())
-        .forceDataInput(inputUtils.canForceDataInput(currentUser, options.isForce()))
+        .forceDataInput(
+            inputUtils.canForceDataInput(UserDetails.fromUser(currentUser), options.isForce()))
 
         // data fetching state
         .dataElementCallable(

@@ -61,6 +61,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -341,7 +342,7 @@ public class DataValueSetImportValidator {
       ImportContext context,
       DataSetContext dataSetContext,
       DataValueContext valueContext) {
-    UserDetails currentUser = context.getCurrentUser();
+    User currentUser = context.getCurrentUser();
     if (currentUser == null) {
       return;
     }
@@ -350,7 +351,7 @@ public class DataValueSetImportValidator {
             .getOrgUnitInHierarchyMap()
             .get(
                 valueContext.getOrgUnit().getUid(),
-                () -> valueContext.getOrgUnit().isDescendant(context.getCurrentOrgUnitUids()));
+                () -> valueContext.getOrgUnit().isDescendant(context.getCurrentOrgUnits()));
 
     if (!inUserHierarchy) {
       context.addConflict(
@@ -692,7 +693,7 @@ public class DataValueSetImportValidator {
                   key,
                   () ->
                       isLocked(
-                          context.getCurrentUser(),
+                          UserDetails.fromUser(context.getCurrentUser()),
                           dataSet,
                           valueContext.getPeriod(),
                           valueContext.getOrgUnit(),

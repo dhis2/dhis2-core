@@ -62,7 +62,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 
 /**
@@ -81,9 +81,9 @@ public final class ImportContext {
 
   private final ImportOptions importOptions;
 
-  private final UserDetails currentUser;
+  private final User currentUser;
 
-  private final Set<String> currentOrgUnitUids;
+  private final Set<OrganisationUnit> currentOrgUnits;
 
   private final I18n i18n;
 

@@ -446,7 +446,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       MetadataCaches mdCaches,
       BatchHandler<CompleteDataSetRegistration> batchHandler) {
 
-    //    User currentUser = userService.createUserDetails()
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     final String currentUserName = currentUser.getUsername();
     final I18n i18n = i18nManager.getI18n();

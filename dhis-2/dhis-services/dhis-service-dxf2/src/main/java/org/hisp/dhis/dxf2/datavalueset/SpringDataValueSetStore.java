@@ -55,6 +55,7 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
@@ -346,8 +347,8 @@ public class SpringDataValueSetStore implements DataValueSetStore {
               + "' ";
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (!currentUser.isSuper()) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null && !currentUser.isSuper()) {
       sql += getAttributeOptionComboClause(currentUser);
     }
 
@@ -364,10 +365,10 @@ public class SpringDataValueSetStore implements DataValueSetStore {
    * Returns an attribute option combo filter SQL clause. The filter enforces that only attribute
    * option combinations which the given user has access to are returned.
    *
-   * @param userDetails the user.
+   * @param user the user.
    * @return an SQL filter clause.
    */
-  private String getAttributeOptionComboClause(UserDetails userDetails) {
+  private String getAttributeOptionComboClause(User user) {
     return "and dv.attributeoptioncomboid not in ("
         + "select distinct(cocco.categoryoptioncomboid) "
         + "from categoryoptioncombos_categoryoptions as cocco "
@@ -378,7 +379,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
         + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
-            "co.sharing", userDetails, AclService.LIKE_READ_DATA)
+            "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
         + ") )";
   }
 
