@@ -125,8 +125,13 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete related events notes
-          "delete from event_notes where eventid in " + eventSelect,
-          "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
+          "delete from trackerevent_notes where eventid in " + eventSelect,
+          "delete from singleevent_notes where eventid in " + eventSelect,
+          """
+            delete from note where noteid not in
+            (select noteid from trackerevent_notes
+              union all select noteid from singleevent_notes
+              union all select noteid from enrollment_notes)""",
           // delete other objects related to events
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -205,9 +210,14 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete notes linked to both enrollments and events
-          "delete from event_notes where eventid in " + eventSelect,
+          "delete from trackerevent_notes where eventid in " + eventSelect,
+          "delete from singleevent_notes where eventid in " + eventSelect,
           "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
-          "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
+          """
+            delete from note where noteid not in
+            (select noteid from trackerevent_notes
+              union all select noteid from singleevent_notes
+              union all select noteid from enrollment_notes)""",
           // delete other entries linked to events
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
@@ -295,9 +305,14 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + eventPmSelect,
           // delete notes related to any obsolete enrollments or events
-          "delete from event_notes where eventid in " + eventSelect,
+          "delete from trackerevent_notes where eventid in " + eventSelect,
+          "delete from singleevent_notes where eventid in " + eventSelect,
           "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
-          "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
+          """
+              delete from note where noteid not in
+              (select noteid from trackerevent_notes
+                union all select noteid from singleevent_notes
+                union all select noteid from enrollment_notes)""",
           // delete other objects related to obsolete events
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from eventchangelog where eventid in " + eventSelect,
