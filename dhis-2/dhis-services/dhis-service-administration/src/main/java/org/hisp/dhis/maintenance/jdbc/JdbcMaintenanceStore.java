@@ -130,7 +130,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete other objects related to events
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
-          "delete from eventchangelog where eventid in " + eventSelect,
+          "delete from trackereventchangelog where eventid in " + eventSelect,
+          "delete from singleeventchangelog where eventid in " + eventSelect,
           "delete from programmessage where eventid in " + eventSelect,
           "delete from programnotificationinstance where eventid in " + eventSelect,
           // finally delete the events
@@ -211,7 +212,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete other entries linked to events
           "delete from relationshipitem where eventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
-          "delete from eventchangelog where eventid in " + eventSelect,
+          "delete from trackereventchangelog where eventid in " + eventSelect,
+          "delete from singleeventchangelog where eventid in " + eventSelect,
           "delete from programmessage where eventid in " + eventSelect,
           "delete from programnotificationinstance where eventid in " + eventSelect,
           // delete other entries linked to enrollments
@@ -300,7 +302,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from note where noteid not in (select noteid from event_notes union all select noteid from enrollment_notes)",
           // delete other objects related to obsolete events
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
-          "delete from eventchangelog where eventid in " + eventSelect,
+          "delete from trackereventchangelog where eventid in " + eventSelect,
+          "delete from singleeventchangelog where eventid in " + eventSelect,
           // delete other objects related to obsolete enrollments
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
           "delete from event where enrollmentid in " + enrollmentSelect,
