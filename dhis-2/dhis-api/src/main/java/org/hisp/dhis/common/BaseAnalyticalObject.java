@@ -320,7 +320,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
    */
-  private final Set<String> addedElementsProgramStages = new HashSet<>();
+  private Set<String> addedElementsProgramStages = new HashSet<>();
 
   private Set<Interpretation> interpretations = new HashSet<>();
 
