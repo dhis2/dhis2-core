@@ -1,12 +1,13 @@
-alter table if exists relationshipitem add column if not exists trackereventid bigint;
-alter table if exists relationshipitem add column if not exists singleeventid bigint;
-alter table if exists relationshipitem drop constraint if exists fk_relationshipitem_trackereventid;
-alter table if exists relationshipitem drop constraint if exists fk_relationshipitem_singleeventid;
 alter table if exists relationshipitem
-    add constraint fk_relationshipitem_trackereventid FOREIGN KEY (trackereventid) REFERENCES event(eventid);
+    add column if not exists trackereventid bigint,
+    add column if not exists singleeventid bigint;
 alter table if exists relationshipitem
+    drop constraint if exists fk_relationshipitem_trackereventid,
+    drop constraint if exists fk_relationshipitem_singleeventid,
+    drop constraint if exists fk_relationshipitem_programstageinstanceid;
+alter table if exists relationshipitem
+    add constraint fk_relationshipitem_trackereventid FOREIGN KEY (trackereventid) REFERENCES event(eventid),
     add constraint fk_relationshipitem_singleeventid FOREIGN KEY (singleeventid) REFERENCES event(eventid);
-alter table if exists relationshipitem drop constraint if exists fk_relationshipitem_programstageinstanceid;
 
 UPDATE relationshipitem
 SET singleeventid = eventid
