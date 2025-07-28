@@ -27,44 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datasummary;
+package org.hisp.dhis.program;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.Dhis2Info;
+import java.util.Collection;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
-/**
- * DataSummary object to transfer System Statistics
- *
- * @author Joao Antunes
- */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@JacksonXmlRootElement
-public class DataSummary {
-  @JsonProperty private Map<String, Long> objectCounts = new HashMap<>();
+public interface SingleEventStore extends IdentifiableObjectStore<SingleEvent> {
 
-  @JsonProperty private Map<Integer, Integer> activeUsers = new HashMap<>();
+  /**
+   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
+   * used to determine which event data value is kept when merging. Any remaining source
+   * eventDataValues are then deleted.
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to merge
+   * @param targetDataElement dataElement to use when merging source eventDataValues
+   */
+  void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
 
-  @JsonProperty private Map<String, Integer> userInvitations = new HashMap<>();
+  /**
+   * delete all eventDataValues which have any of the sourceDataElements
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to delete
+   */
+  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
 
-  @JsonProperty private Map<Integer, Integer> dataValueCount = new HashMap<>();
-
-  @JsonProperty private Map<Integer, Long> eventCount = new HashMap<>();
-
-  @JsonProperty private Map<Integer, Long> trackerEventCount = new HashMap<>();
-
-  @JsonProperty private Map<Integer, Long> singleEventCount = new HashMap<>();
-
-  @JsonProperty private Map<Integer, Long> enrollmentCount = new HashMap<>();
-
-  @JsonProperty private Dhis2Info system;
+  /**
+   * Updates all {@link SingleEvent}s with references to {@link CategoryOptionCombo}s, to use the
+   * coc reference.
+   *
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
+   */
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

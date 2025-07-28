@@ -45,6 +45,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -535,7 +536,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
     org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
 
-    TrackerEvent eventBeforeDeletion = getEvent(ev.getUid());
+    SingleEvent eventBeforeDeletion = getSingleEvent(ev.getUid());
 
     User user = user();
 
@@ -550,7 +551,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     clearSession();
 
-    TrackerEvent eventAfterDeletion = getEvent(ev.getUid());
+    SingleEvent eventAfterDeletion = getSingleEvent(ev.getUid());
 
     assertAll(
         () -> assertTrue(eventAfterDeletion.isDeleted()),
@@ -659,6 +660,10 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   TrackerEvent getEvent(UID uid) {
     return getEntityJpql(TrackerEvent.class.getSimpleName(), uid.getValue());
+  }
+
+  SingleEvent getSingleEvent(UID uid) {
+    return getEntityJpql(SingleEvent.class.getSimpleName(), uid.getValue());
   }
 
   TrackedEntity getTrackedEntity() {

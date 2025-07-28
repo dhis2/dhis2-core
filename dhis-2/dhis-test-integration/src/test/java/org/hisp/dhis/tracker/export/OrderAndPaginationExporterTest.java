@@ -1263,11 +1263,11 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     List<String> expected =
         Stream.of(
-                get(TrackerEvent.class, "ck7DzdxqLqA"),
-                get(TrackerEvent.class, "kWjSezkXHVp"),
-                get(TrackerEvent.class, "OTmjvJDn0Fu"))
-            .sorted(Comparator.comparing(TrackerEvent::getId).reversed()) // reversed = desc
-            .map(TrackerEvent::getUid)
+                get(SingleEvent.class, "ck7DzdxqLqA"),
+                get(SingleEvent.class, "kWjSezkXHVp"),
+                get(SingleEvent.class, "OTmjvJDn0Fu"))
+            .sorted(Comparator.comparing(SingleEvent::getId).reversed()) // reversed = desc
+            .map(SingleEvent::getUid)
             .toList();
 
     SingleEventOperationParams operationParams =
@@ -1316,12 +1316,12 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderSingleEventsByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException {
-    TrackerEvent qrYjLTiJTrA = get(TrackerEvent.class, "QRYjLTiJTrA");
-    TrackerEvent lumVtWwwy0O = get(TrackerEvent.class, "lumVtWwwy0O");
+    SingleEvent qrYjLTiJTrA = get(SingleEvent.class, "QRYjLTiJTrA");
+    SingleEvent lumVtWwwy0O = get(SingleEvent.class, "lumVtWwwy0O");
     List<String> expected =
         Stream.of(qrYjLTiJTrA, lumVtWwwy0O)
-            .sorted(Comparator.comparing(TrackerEvent::getId).reversed()) // reversed = desc
-            .map(TrackerEvent::getUid)
+            .sorted(Comparator.comparing(SingleEvent::getId).reversed()) // reversed = desc
+            .map(SingleEvent::getUid)
             .toList();
 
     SingleEventOperationParams params =
@@ -1338,15 +1338,15 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderSingleEventsByEnrollmentProgramUIDAsc()
       throws ForbiddenException, BadRequestException {
-    TrackerEvent ck7DzdxqLqA =
-        get(TrackerEvent.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
-    TrackerEvent g9PbzJY8bJG =
-        get(TrackerEvent.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
+    SingleEvent ck7DzdxqLqA =
+        get(SingleEvent.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
+    SingleEvent g9PbzJY8bJG =
+        get(SingleEvent.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
     List<String> expected =
         new java.util.ArrayList<>(
             Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
                 .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-                .map(TrackerEvent::getUid)
+                .map(SingleEvent::getUid)
                 .toList());
 
     SingleEventOperationParams params =
@@ -1364,15 +1364,15 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderSingleEventsByEnrollmentProgramUIDDesc()
       throws ForbiddenException, BadRequestException {
-    TrackerEvent ck7DzdxqLqA =
-        get(TrackerEvent.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
-    TrackerEvent g9PbzJY8bJG =
-        get(TrackerEvent.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
+    SingleEvent ck7DzdxqLqA =
+        get(SingleEvent.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
+    SingleEvent g9PbzJY8bJG =
+        get(SingleEvent.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
     List<String> expected =
         new java.util.ArrayList<>(
             Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
                 .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-                .map(TrackerEvent::getUid)
+                .map(SingleEvent::getUid)
                 .toList());
     Collections.reverse(expected);
 
