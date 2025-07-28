@@ -112,7 +112,7 @@ public class TrackerEventPersister
     List<NotificationTrigger> triggers = new ArrayList<>();
     // If the event is new and has been completed
     if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
-      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      triggers.add(NotificationTrigger.TRACKER_EVENT_COMPLETION);
       return triggers;
     }
 
@@ -120,7 +120,7 @@ public class TrackerEventPersister
     if (persistedEvent != null
         && persistedEvent.getStatus() != entity.getStatus()
         && entity.getStatus() == EventStatus.COMPLETED) {
-      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      triggers.add(NotificationTrigger.TRACKER_EVENT_COMPLETION);
       return triggers;
     }
 

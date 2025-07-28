@@ -109,7 +109,12 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
   @Override
   public int hardDeleteEvents(List<String> eventsToDelete, String eventSelect, String eventDelete) {
-    String pmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
+    String pmSelect =
+        "(select id from programmessage where trackereventid in "
+            + eventSelect
+            + " or singleeventid in "
+            + eventSelect
+            + ")";
 
     /*
      * Delete event values, event value audits, event notes, events
@@ -138,8 +143,10 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from trackereventchangelog where eventid in " + eventSelect,
           "delete from singleeventchangelog where eventid in " + eventSelect,
-          "delete from programmessage where eventid in " + eventSelect,
-          "delete from programnotificationinstance where eventid in " + eventSelect,
+          "delete from programmessage where trackereventid in " + eventSelect,
+          "delete from programmessage where singleeventid in " + eventSelect,
+          "delete from programnotificationinstance where trackereventid in " + eventSelect,
+          "delete from programnotificationinstance where singleeventid in " + eventSelect,
           // finally delete the events
           eventDelete
         };
@@ -226,8 +233,10 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from trackereventchangelog where eventid in " + eventSelect,
           "delete from singleeventchangelog where eventid in " + eventSelect,
-          "delete from programmessage where eventid in " + eventSelect,
-          "delete from programnotificationinstance where eventid in " + eventSelect,
+          "delete from programmessage where trackereventid in " + eventSelect,
+          "delete from programmessage where singleeventid in " + eventSelect,
+          "delete from programnotificationinstance where trackereventid in " + eventSelect,
+          "delete from programnotificationinstance where singleeventid in " + eventSelect,
           // delete other entries linked to enrollments
           "delete from relationshipitem where enrollmentid in " + enrollmentSelect,
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
@@ -277,7 +286,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "(select id from programmessage where trackedentityid in " + teSelect + " )";
     String piPmSelect =
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
-    String eventPmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
+    String eventPmSelect =
+        "(select id from programmessage where trackereventid in " + eventSelect + " )";
 
     /*
      * Delete event values, event audits, event notes, events, enrollment
