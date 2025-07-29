@@ -31,7 +31,11 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
@@ -60,9 +64,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for handling user account related operations such as password reset and
