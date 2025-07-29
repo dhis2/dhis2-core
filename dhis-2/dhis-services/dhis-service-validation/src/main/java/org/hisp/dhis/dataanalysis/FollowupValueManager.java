@@ -41,7 +41,6 @@ import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -112,7 +111,7 @@ public class FollowupValueManager {
    * @return a list if {@link FollowupValue}s.
    */
   public List<FollowupValue> getFollowupDataValues(
-      User currentUser, FollowupAnalysisRequest request) {
+      UserDetails currentUser, FollowupAnalysisRequest request) {
     if (isEmpty(request.getDe()) && !isEmpty(request.getDs())) {
       request.setDe(
           entityManager
@@ -141,8 +140,7 @@ public class FollowupValueManager {
         entityManager.createQuery(
             FOLLOWUP_VALUE_HQL.replace(
                 "<<sharing>>",
-                generateHqlQueryForSharingCheck(
-                    "de", UserDetails.fromUser(currentUser), AclService.LIKE_READ_METADATA)),
+                generateHqlQueryForSharingCheck("de", currentUser, AclService.LIKE_READ_METADATA)),
             FollowupValue.class);
 
     query.setParameter("ou_ids", request.getOu());
