@@ -31,12 +31,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
-
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
@@ -57,6 +52,7 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
+import org.hisp.dhis.user.UserConstants;
 import org.hisp.dhis.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,6 +60,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for handling user account related operations such as password reset and
@@ -209,7 +208,7 @@ public class UserAccountController {
       throw new ForbiddenException(
           "The account recovery operation for the given user is temporarily locked due to too "
               + "many calls to this endpoint in the last '"
-              + RECOVERY_LOCKOUT_MINS
+              + UserConstants.RECOVERY_LOCKOUT_MINS
               + "' minutes. Username:"
               + username);
     } else {
