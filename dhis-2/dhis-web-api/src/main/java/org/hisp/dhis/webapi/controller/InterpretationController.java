@@ -319,7 +319,7 @@ public class InterpretationController
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    if (!currentUser.equals(UserDetails.fromUser(interpretation.getCreatedBy()))
+    if (!currentUser.getUid().equals(interpretation.getCreatedBy().getUid())
         && !currentUser.isSuper()) {
       throw new ForbiddenException("You are not allowed to delete this interpretation.");
     }
