@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 
 import java.io.IOException;
@@ -74,5 +75,10 @@ class RouteServiceTest {
     for (int i = 0; i < RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE; i++) {
       httpClient.execute(httpUriRequest);
     }
+  }
+
+  @Test
+  void testAllowedRequestHeaders() {
+    assertTrue(RouteService.ALLOWED_REQUEST_HEADERS.contains("content-type"));
   }
 }
