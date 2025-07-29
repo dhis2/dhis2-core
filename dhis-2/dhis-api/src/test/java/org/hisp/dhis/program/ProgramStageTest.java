@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Set;
@@ -131,7 +130,7 @@ class ProgramStageTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramStage.class);
-    assertEquals(51, allClassFieldsIncludingInherited.length);
+    assertEquals(48, allClassFieldsIncludingInherited.length);
   }
 
   private ProgramStage getNewProgramStageWithNoNulls(Program program) {
