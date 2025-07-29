@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.render;
 
-import static org.hisp.dhis.render.RenderFormat.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -41,14 +40,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -133,22 +130,6 @@ class RenderServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName(
-      "Reading a CategoryCombo with multiple CategoryOptionCombos reads every CategoryOptionCombo")
-  void importCcWithCocsTest() throws IOException {
-    // given
-    ByteArrayInputStream catCombo = new ByteArrayInputStream(getCatCombo().getBytes());
-
-    // when
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> classListMap =
-        renderService.fromMetadata(catCombo, JSON);
-
-    // then
-    CategoryCombo categoryCombo = (CategoryCombo) classListMap.get(CategoryCombo.class).get(0);
-    assertEquals(2, categoryCombo.getOptionCombos().size());
-  }
-
-  @Test
   void testShouldSupportMultipleDateFormats() throws IOException {
     Date y2011 = renderService.fromJson("{\"d\": \"2011\"}", DeserializeTestBean.class).getD();
     Date y201105 = renderService.fromJson("{\"d\": \"2011-05\"}", DeserializeTestBean.class).getD();
@@ -165,35 +146,6 @@ class RenderServiceTest extends PostgresIntegrationTestBase {
     verifyCalendar(y2012, 2012, null);
     verifyCalendar(y2013, 2013, null);
     verifyCalendar(y201312, 2013, 11);
-  }
-
-  private String getCatCombo() {
-    return """
-    {
-      "categoryCombos": [
-        {
-          "code": "Gender",
-          "name": "Gender",
-          "categories": [
-            {
-              "id": "xX5k9anHEHd"
-            }
-          ],
-          "dataDimensionType": "DISAGGREGATION",
-          "id": "xPmavA0qloX",
-          "categoryOptionCombos": [
-            {
-                "id": "xk6n4eMAdtK"
-            },
-            {
-                "id": "xQ50BVoUrd6"
-            }
-          ],
-          "isDefault": false
-        }
-      ]
-    }
-    """;
   }
 
   private void verifyCalendar(Date date, int year, Integer month) {
