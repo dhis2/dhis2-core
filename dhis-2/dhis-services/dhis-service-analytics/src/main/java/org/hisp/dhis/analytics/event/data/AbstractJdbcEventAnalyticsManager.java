@@ -74,7 +74,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
@@ -527,7 +526,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
       } else {
-        return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
+        if (params.hasOrgUnitFilter()
+            && params.getEndpointAction() == AGGREGATE
+            && params.getEndpointItem() == ENROLLMENT
+            && queryItem.getValueType() == ORGANISATION_UNIT) {
+          return getColumnAndAlias(queryItem, false, EMPTY);
+        } else {
+          return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
+        }
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
@@ -957,27 +963,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
-    } else if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE && item.getValueType() == ORGANISATION_UNIT){
+    } else if (params.hasOrgUnitFilter()
+        && params.getEndpointAction() == AGGREGATE
+        && item.getValueType() == ORGANISATION_UNIT) {
       return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
     }
-  }
-
-  /*
-  protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
-    if (item.isProgramIndicator()) {
-      return getColumnAndAlias(item, params, false, false).getColumn();
-    } else if (params.getEndpointAction() == QUERY) {
-      return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
-    } else {
-      return getQuotedColumn(item);
-    }
-  }
-   */
-
-  private String getQuotedColumn(QueryItem item) {
-    return quoteAlias(item.getItemName());
   }
 
   /**
@@ -1083,53 +1075,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-    sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
-    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
     String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
-
-    String orgUnitColumns = EMPTY;
-    if (params.getEndpointAction() == QUERY) {
-      orgUnitColumns = !isBlank(orgUnitLevels) ? orgUnitLevels : ORGUNIT_DIM_ID;
-    }
+    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
+    String orgUnitColumns = !isBlank(orgUnitLevels) ? orgUnitLevels : ORGUNIT_DIM_ID;
 
     List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
     String columns =
-        list.stream()
-            .filter(StringUtils::isNotBlank)
-            .map(col -> col.replace("t1.", "ev."))
-            .collect(Collectors.joining(", "));
+        list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
 
+    String join = EMPTY;
     if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE) {
-      sql = "select count(distinct ax.enrollment) as "
-          + COL_VALUE
-          + ", "
-          + columns.replace("t1.", "ev.")
-          + " from analytics_enrollment_" + params.getProgram().getUid() + " ax"
-          + " join analytics_event_" + params.getProgram().getUid() + " ev on ev.enrollment = ax.enrollment "
-          + whereClause
-          + " and ev.eventstatus != 'SCHEDULE'";
-
-      String groupByColumns = columns.replace("t1.", "ev.");
-      groupByColumns = StringUtils.substringBeforeLast(groupByColumns, " as ");
-
-      sql += " group by " + groupByColumns;
+      join =
+          " join analytics_event_"
+              + params.getProgram().getUid()
+              + " ev on ev.enrollment = ax.enrollment "
+              + whereClause
+              + " and ev.eventstatus != 'SCHEDULE'"; // We work only with non-scheduled events.
     } else {
-      sql =
-          "select count("
-              + OUTER_SQL_ALIAS
-              + ".enrollment) as "
-              + COL_VALUE
-              + ", "
-              + columns
-              + " from ("
-              + sql
-              + ") "
-              + OUTER_SQL_ALIAS
-              + " group by "
-              + columns;
+      sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
     }
+
+    sql =
+        "select count(distinct "
+            + OUTER_SQL_ALIAS
+            + ".enrollment) as "
+            + COL_VALUE
+            + ", "
+            + columns
+            + " from ("
+            + sql
+            + join
+            + ") "
+            + OUTER_SQL_ALIAS
+            + " group by "
+            + StringUtils.substringBeforeLast(columns, " as ");
 
     return sql;
   }

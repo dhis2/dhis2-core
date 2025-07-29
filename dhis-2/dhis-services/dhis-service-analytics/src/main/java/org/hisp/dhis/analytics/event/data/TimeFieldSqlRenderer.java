@@ -33,6 +33,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -179,18 +181,21 @@ public abstract class TimeFieldSqlRenderer {
    * @param dateRangeColumn the {@link ColumnWithDateRange}
    * @return the SQL statement
    */
-  private String getDateRangeCondition(ColumnWithDateRange dateRangeColumn, EventQueryParams params) {
-    String prefix = EMPTY;
-    if (params.hasOrgUnitFilter()) {
-      prefix = "ax.";
+  private String getDateRangeCondition(
+      ColumnWithDateRange dateRangeColumn, EventQueryParams params) {
+    String dateRangeColumnName = dateRangeColumn.getColumn();
+    if (params.hasOrgUnitFilter()
+        && params.getEndpointAction() == AGGREGATE
+        && params.getEndpointItem() == ENROLLMENT) {
+      dateRangeColumnName = "ax." + dateRangeColumnName;
     }
 
-    return "(" + prefix
-        + dateRangeColumn.getColumn()
+    return "("
+        + dateRangeColumnName
         + " >= '"
         + toMediumDate(dateRangeColumn.getDateRange().getStartDate())
-        + "' and " + prefix
-        + dateRangeColumn.getColumn()
+        + "' and "
+        + dateRangeColumnName
         + " < '"
         + toMediumDate(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
         + "')";

@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -545,7 +546,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
+    if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE) {
+      selectCols = selectCols.stream().map(col -> addEventPrefix(col)).toList();
+    }
+
     return "select " + StringUtils.join(selectCols, ",") + " ";
+  }
+
+  private String addEventPrefix(String column) {
+    if (column.startsWith("ax.")) {
+      column = column.replace("ax.", "ev.");
+    } else if (!column.contains("(")) {
+      column = "ev." + column;
+    }
+
+    return column;
   }
 
   /**

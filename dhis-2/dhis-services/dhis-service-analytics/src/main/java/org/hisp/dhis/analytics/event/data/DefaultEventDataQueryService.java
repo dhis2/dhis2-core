@@ -334,8 +334,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
-  private void addStageToParams(EventQueryParams.Builder paramsBuilder, EventDataQueryRequest request, GroupableItem groupableItem) {
-    if (request.getEndpointItem() == EndpointItem.ENROLLMENT && request.getEndpointAction() == EndpointAction.AGGREGATE) {
+  private void addStageToParams(
+      EventQueryParams.Builder paramsBuilder,
+      EventDataQueryRequest request,
+      GroupableItem groupableItem) {
+    if (request.getEndpointItem() == EndpointItem.ENROLLMENT
+        && request.getEndpointAction() == EndpointAction.AGGREGATE) {
       if (groupableItem instanceof DimensionalObject dim) {
         paramsBuilder.withProgramStage(dim.getProgramStage());
       } else if (groupableItem instanceof QueryItem item) {

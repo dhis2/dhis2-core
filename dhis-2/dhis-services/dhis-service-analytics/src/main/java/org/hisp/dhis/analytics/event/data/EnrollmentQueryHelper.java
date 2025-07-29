@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COL_VALUE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.OUTER_SQL_ALIAS;
@@ -39,19 +38,16 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -81,11 +77,7 @@ public class EnrollmentQueryHelper {
           && !headerName.equalsIgnoreCase(ORGUNIT_DIM_ID)) {
 
         if (sql.contains(headerName)) {
-          if (header.getValueType() == ORGANISATION_UNIT) {
-            headerName = quote(substringAfterLast(headerName,".") + "_name") + " as " + quote(headerName);
-          } else {
-            headerName = quote(headerName);
-          }
+          headerName = quote(headerName);
         } else if (headerName.contains(DOT)) {
           // Gets only the column name from the header in the URL.
           // This has to match the column of the analytics table.
