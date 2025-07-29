@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,34 @@
  */
 package org.hisp.dhis.user;
 
-import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_LOWER;
-
 import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Zubair
- */
-public class LowerCasePatternValidationRule implements PasswordValidationRule {
-  private static final Pattern LOWERCASE_PATTERN = Pattern.compile(".*[a-z].*");
+/** Constants related to users. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class UserConstants {
+  public static final Pattern BCRYPT_PATTERN =
+      Pattern.compile("\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
 
-  @Override
-  public PasswordValidationResult validate(CredentialsInfo credentialsInfo) {
-    return !LOWERCASE_PATTERN.matcher(credentialsInfo.getPassword()).matches()
-        ? new PasswordValidationResult(PASSWORD_MUST_HAVE_LOWER)
-        : PasswordValidationResult.VALID;
-  }
+  public static final String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
+
+  public static final String RESTORE_PATH = "/dhis-web-login/index.html#/";
+
+  public static final String TBD_NAME = "(TBD)";
+
+  public static final String DEFAULT_APPLICATION_TITLE = "DHIS2";
+
+  public static final String RECAPTCHA_VERIFY_URL =
+      "https://www.google.com/recaptcha/api/siteverify";
+
+  public static final int LOGIN_MAX_FAILED_ATTEMPTS = 4;
+
+  public static final int RECOVERY_LOCKOUT_MINS = 15;
+
+  public static final int RECOVER_MAX_ATTEMPTS = 5;
+
+  public static final int MAX_LENGTH_NAME = 80;
+
+  public static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 }
