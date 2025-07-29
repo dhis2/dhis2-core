@@ -513,7 +513,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   private RelationshipItem item(TrackerEvent from) {
     RelationshipItem relationshipItem = new RelationshipItem();
-    relationshipItem.setEvent(from);
+    relationshipItem.setTrackerEvent(from);
     return relationshipItem;
   }
 }
