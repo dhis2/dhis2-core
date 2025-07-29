@@ -97,8 +97,7 @@ public class JsonPatchManager {
 
     node = patch.apply(node);
     return (T)
-        jsonToObject(
-            node, realClass, jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
+        jsonToObject(node, realClass, jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
   }
 
   private <T> void handleCollectionUpdates(T object, Schema schema, ObjectNode node) {
