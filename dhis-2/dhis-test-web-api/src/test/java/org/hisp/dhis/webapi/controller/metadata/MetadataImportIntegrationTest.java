@@ -139,11 +139,7 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
     JsonCategoryCombo jsonCategoryCombo = catCombo.as(JsonCategoryCombo.class);
     assertEquals(4, jsonCategoryCombo.getCategoryOptionCombos().size());
 
-    // and cat combo should have 2 cat opt combos
-
-    // get cat combo (response should include cocs)
-
-    // when importing cat combo with 2 cat opt combos
+    // when importing cat combo with 4 cat opt combos
     @Language("json5")
     String catComboWithCatOptCombos =
         """

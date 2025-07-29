@@ -44,6 +44,9 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -76,6 +79,98 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleProgramIndicatorDimensions(entityManager, schema, analyticalObject, bundle);
     handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
+    handleOrgUnitGroupSetDimensions(entityManager, schema, analyticalObject, bundle);
+  }
+
+  /**
+   * This method implements required custom handling for {@link OrganisationUnitGroupSetDimension}s.
+   * Without it, when importing, these objects throw TransientObjectException.
+   *
+   * <p>There are 2 parts to the handling: <br>
+   * 1. The dimension {@link OrganisationUnitGroupSet}
+   *
+   * <pre>
+   *  a. If available from the bundle preheat, use this instance.
+   *  b. Otherwise use from persisted if it exists, and then add to the bundle for `connectReferences`
+   * </pre>
+   *
+   * 2. The items: List of {@link OrganisationUnitGroup}
+   *
+   * <pre>
+   *  a. If available from the bundle preheat, use this instance.
+   *  b. Otherwise use from persisted if it exists, and then add to the bundle for `connectReferences`
+   * </pre>
+   *
+   * <p>
+   *
+   * @param entityManager entityManager to save object
+   * @param schema schema to check object property
+   * @param analyticalObject object that needs custom handling
+   * @param bundle bundle with preheat objects
+   */
+  private void handleOrgUnitGroupSetDimensions(
+      EntityManager entityManager,
+      Schema schema,
+      BaseAnalyticalObject analyticalObject,
+      ObjectBundle bundle) {
+    if (!schema.hasPersistedProperty("organisationUnitGroupSetDimensions")) return;
+
+    for (OrganisationUnitGroupSetDimension organisationUnitGroupSetDimension :
+        analyticalObject.getOrganisationUnitGroupSetDimensions()) {
+
+      // handle dimension
+      OrganisationUnitGroupSet orgUnitGroupSetBundle =
+          bundle
+              .getPreheat()
+              .get(bundle.getPreheatIdentifier(), organisationUnitGroupSetDimension.getDimension());
+
+      // use from bundle if available
+      if (orgUnitGroupSetBundle != null) {
+        organisationUnitGroupSetDimension.setDimension(orgUnitGroupSetBundle);
+      } else {
+        // use from persisted if available
+        OrganisationUnitGroupSet orgUnitGroupSetPersisted =
+            objectManager.get(
+                OrganisationUnitGroupSet.class,
+                organisationUnitGroupSetDimension.getDimension().getUid());
+
+        if (orgUnitGroupSetPersisted != null) {
+          organisationUnitGroupSetDimension.setDimension(orgUnitGroupSetPersisted);
+
+          bundle
+              .getPreheat()
+              .put(bundle.getPreheatIdentifier(), organisationUnitGroupSetDimension.getDimension());
+        }
+      }
+
+      // handle items
+      List<OrganisationUnitGroup> organisationUnitGroups =
+          new ArrayList<>(organisationUnitGroupSetDimension.getItems());
+      organisationUnitGroupSetDimension.getItems().clear();
+
+      organisationUnitGroups.forEach(
+          oug -> {
+            // use from bundle if available
+            OrganisationUnitGroup orgUnitGroupBundle =
+                bundle.getPreheat().get(bundle.getPreheatIdentifier(), oug);
+            if (orgUnitGroupBundle != null) {
+              organisationUnitGroupSetDimension.getItems().add(orgUnitGroupBundle);
+            } else {
+              // use from persisted if available
+              OrganisationUnitGroup orgUnitGroupPersisted =
+                  objectManager.get(OrganisationUnitGroup.class, oug.getUid());
+              if (orgUnitGroupPersisted != null) {
+                organisationUnitGroupSetDimension.getItems().add(orgUnitGroupPersisted);
+                bundle.getPreheat().put(bundle.getPreheatIdentifier(), orgUnitGroupPersisted);
+              }
+            }
+          });
+
+      preheatService.connectReferences(
+          organisationUnitGroupSetDimension, bundle.getPreheat(), bundle.getPreheatIdentifier());
+
+      entityManager.persist(organisationUnitGroupSetDimension);
+    }
   }
 
   private void handleRelativePeriods(Schema schema, BaseAnalyticalObject analyticalObject) {
