@@ -48,11 +48,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -61,7 +62,6 @@ import java.util.Set;
 import lombok.Setter;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
@@ -98,8 +98,7 @@ import org.hisp.dhis.visualization.Visualization;
 @Entity
 @Setter
 @Table(name = "dashboarditem")
-public class DashboardItem extends BaseMetadataObject
-    implements IdentifiableObject, EmbeddedObject {
+public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   public static final int MAX_CONTENT = 8;
 
   @Id
@@ -127,11 +126,10 @@ public class DashboardItem extends BaseMetadataObject
   private Map map;
 
   @ManyToOne
-  @JoinColumn(name = "eventreportid")
+  @JoinColumn(name = "eventreport")
   private EventReport eventReport;
 
   @Column(name = "textcontent")
-  @Lob
   private String text;
 
   @ManyToMany
@@ -158,29 +156,38 @@ public class DashboardItem extends BaseMetadataObject
   @OrderColumn(name = "sort_order")
   private List<Document> resources = new ArrayList<>();
 
-  @Column(name = "messages")
   private Boolean messages;
 
-  @Column(name = "appkey")
   private String appKey;
 
   @Column(name = "shape", length = 50)
   @Enumerated(EnumType.STRING)
   private DashboardItemShape shape;
 
-  @Column(name = "x")
   private Integer x;
 
-  @Column(name = "y")
   private Integer y;
 
-  @Column(name = "height")
   private Integer height;
 
-  @Column(name = "width")
   private Integer width;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
+
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  protected String uid;
+
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
+  protected User lastUpdatedBy;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -531,26 +538,6 @@ public class DashboardItem extends BaseMetadataObject
 
   @Override
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
-  @Override
-  @Deprecated
-  public User getUser() {
-    return createdBy;
-  }
-
-  @Override
-  @Deprecated
-  public void setUser(User user) {
-    setCreatedBy(createdBy == null ? user : createdBy);
-    setOwner(user != null ? user.getUid() : null);
-  }
-
-  @Override
-  @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
@@ -624,6 +611,7 @@ public class DashboardItem extends BaseMetadataObject
 
   @Override
   @Deprecated
+  @JsonIgnore
   /** DashboardItem does not support sharing. */
   public Sharing getSharing() {
     return null;
@@ -664,4 +652,24 @@ public class DashboardItem extends BaseMetadataObject
 
   @Override
   public void setName(String name) {}
+
+  @Override
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
+  public User getCreatedBy() {
+    return null;
+  }
+
+  @Override
+  @Deprecated
+  public User getUser() {
+    return null;
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {}
+
+  @Override
+  @Deprecated
+  public void setUser(User user) {}
 }
