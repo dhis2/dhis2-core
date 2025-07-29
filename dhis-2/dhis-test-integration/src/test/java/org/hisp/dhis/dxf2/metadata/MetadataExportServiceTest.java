@@ -166,7 +166,7 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  public void testDashboardMetadataExportAsNodeStream() throws IOException {
+  void testDashboardMetadataExportAsNodeStream() throws IOException {
 
     // Setup test data
     DataElement dataElementA = createDataElement('A');
@@ -224,8 +224,7 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "Dashboard lastUpdated should not be empty");
     assertEquals(
         "dashboardA", exportedDashboard.get("name").asText(), "Dashboard name should match");
-    assertEquals(
-        false,
+    assertFalse(
         exportedDashboard.get("restrictFilters").asBoolean(),
         "Dashboard restrictFilters should be false");
     assertNotNull(exportedDashboard.get("id"), "Dashboard id should be present");
@@ -276,7 +275,7 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     JsonNode sharing = exportedDashboard.get("sharing");
     assertNotNull(sharing, "Sharing should exist");
     assertNotNull(sharing.get("owner"), "Sharing owner id should be present");
-    assertEquals(false, sharing.get("external").asBoolean(), "Sharing external should be false");
+    assertFalse(sharing.get("external").asBoolean(), "Sharing external should be false");
     assertEquals("--------", sharing.get("public").asText(), "Sharing public should match");
     assertTrue(sharing.get("users").isObject(), "Sharing users should be an object");
     assertTrue(sharing.get("userGroups").isObject(), "Sharing userGroups should be an object");
@@ -316,8 +315,8 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "DashboardItem interpretationLikeCount should be 0");
     assertEquals(
         1, dashboardItem.get("contentCount").asInt(), "DashboardItem contentCount should be 1");
-    assertEquals(
-        false, dashboardItem.get("favorite").asBoolean(), "DashboardItem favorite should be false");
+    assertFalse(
+        dashboardItem.get("favorite").asBoolean(), "DashboardItem favorite should be false");
 
     // Assert Dashboard Item Visualization
     JsonNode visualization = dashboardItem.get("visualization");
@@ -327,12 +326,12 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     // Assert Dashboard Item Access
     JsonNode access = dashboardItem.get("access");
     assertNotNull(access, "Access should exist");
-    assertEquals(true, access.get("manage").asBoolean(), "Access manage should be true");
-    assertEquals(true, access.get("externalize").asBoolean(), "Access externalize should be true");
-    assertEquals(true, access.get("write").asBoolean(), "Access write should be true");
-    assertEquals(true, access.get("read").asBoolean(), "Access read should be true");
-    assertEquals(true, access.get("update").asBoolean(), "Access update should be true");
-    assertEquals(true, access.get("delete").asBoolean(), "Access delete should be true");
+    assertTrue(access.get("manage").asBoolean(), "Access manage should be true");
+    assertTrue(access.get("externalize").asBoolean(), "Access externalize should be true");
+    assertTrue(access.get("write").asBoolean(), "Access write should be true");
+    assertTrue(access.get("read").asBoolean(), "Access read should be true");
+    assertTrue(access.get("update").asBoolean(), "Access update should be true");
+    assertTrue(access.get("delete").asBoolean(), "Access delete should be true");
 
     // Assert Dashboard Item Arrays
     assertTrue(
@@ -363,10 +362,8 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     // Assert Dashboard Item Sharing
     JsonNode itemSharing = dashboardItem.get("sharing");
     assertNotNull(itemSharing, "DashboardItem sharing should exist");
-    assertEquals(
-        false,
-        itemSharing.get("external").asBoolean(),
-        "DashboardItem sharing external should be false");
+    assertFalse(
+        itemSharing.get("external").asBoolean(), "DashboardItem sharing external should be false");
     assertTrue(
         itemSharing.get("users").isObject(), "DashboardItem sharing users should be an object");
     assertTrue(
@@ -409,10 +406,8 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     // Assert Visualization Sharing
     JsonNode vizSharing = viz.get("sharing");
     assertNotNull(vizSharing, "Visualization sharing should exist");
-    assertEquals(
-        false,
-        vizSharing.get("external").asBoolean(),
-        "Visualization sharing external should be false");
+    assertFalse(
+        vizSharing.get("external").asBoolean(), "Visualization sharing external should be false");
     assertEquals(
         "--------", vizSharing.get("public").asText(), "Visualization sharing public should match");
 
@@ -427,44 +422,36 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     assertEquals("NONE", viz.get("hideEmptyRowItems").asText(), "HideEmptyRowItems should match");
 
     // Assert Visualization Boolean Properties
-    assertEquals(false, viz.get("hideEmptyRows").asBoolean(), "HideEmptyRows should be false");
-    assertEquals(false, viz.get("showHierarchy").asBoolean(), "ShowHierarchy should be false");
-    assertEquals(
-        false, viz.get("userOrganisationUnit").asBoolean(), "UserOrganisationUnit should be false");
-    assertEquals(
-        false,
+    assertFalse(viz.get("hideEmptyRows").asBoolean(), "HideEmptyRows should be false");
+    assertFalse(viz.get("showHierarchy").asBoolean(), "ShowHierarchy should be false");
+    assertFalse(
+        viz.get("userOrganisationUnit").asBoolean(), "UserOrganisationUnit should be false");
+    assertFalse(
         viz.get("userOrganisationUnitChildren").asBoolean(),
         "UserOrganisationUnitChildren should be false");
-    assertEquals(
-        false,
+    assertFalse(
         viz.get("userOrganisationUnitGrandChildren").asBoolean(),
         "UserOrganisationUnitGrandChildren should be false");
-    assertEquals(false, viz.get("completedOnly").asBoolean(), "CompletedOnly should be false");
-    assertEquals(false, viz.get("skipRounding").asBoolean(), "SkipRounding should be false");
-    assertEquals(false, viz.get("hideLegend").asBoolean(), "HideLegend should be false");
-    assertEquals(
-        false,
-        viz.get("noSpaceBetweenColumns").asBoolean(),
-        "NoSpaceBetweenColumns should be false");
-    assertEquals(
-        false, viz.get("cumulativeValues").asBoolean(), "CumulativeValues should be false");
-    assertEquals(
-        false, viz.get("percentStackedValues").asBoolean(), "PercentStackedValues should be false");
-    assertEquals(false, viz.get("showData").asBoolean(), "ShowData should be false");
-    assertEquals(false, viz.get("colTotals").asBoolean(), "ColTotals should be false");
-    assertEquals(false, viz.get("rowTotals").asBoolean(), "RowTotals should be false");
-    assertEquals(false, viz.get("rowSubTotals").asBoolean(), "RowSubTotals should be false");
-    assertEquals(false, viz.get("colSubTotals").asBoolean(), "ColSubTotals should be false");
-    assertEquals(false, viz.get("hideTitle").asBoolean(), "HideTitle should be false");
-    assertEquals(false, viz.get("hideSubtitle").asBoolean(), "HideSubtitle should be false");
-    assertEquals(
-        false, viz.get("showDimensionLabels").asBoolean(), "ShowDimensionLabels should be false");
-    assertEquals(false, viz.get("regression").asBoolean(), "Regression should be false");
-    assertEquals(
-        false, viz.get("hideEmptyColumns").asBoolean(), "HideEmptyColumns should be false");
-    assertEquals(
-        false, viz.get("fixColumnHeaders").asBoolean(), "FixColumnHeaders should be false");
-    assertEquals(false, viz.get("fixRowHeaders").asBoolean(), "FixRowHeaders should be false");
+    assertFalse(viz.get("completedOnly").asBoolean(), "CompletedOnly should be false");
+    assertFalse(viz.get("skipRounding").asBoolean(), "SkipRounding should be false");
+    assertFalse(viz.get("hideLegend").asBoolean(), "HideLegend should be false");
+    assertFalse(
+        viz.get("noSpaceBetweenColumns").asBoolean(), "NoSpaceBetweenColumns should be false");
+    assertFalse(viz.get("cumulativeValues").asBoolean(), "CumulativeValues should be false");
+    assertFalse(
+        viz.get("percentStackedValues").asBoolean(), "PercentStackedValues should be false");
+    assertFalse(viz.get("showData").asBoolean(), "ShowData should be false");
+    assertFalse(viz.get("colTotals").asBoolean(), "ColTotals should be false");
+    assertFalse(viz.get("rowTotals").asBoolean(), "RowTotals should be false");
+    assertFalse(viz.get("rowSubTotals").asBoolean(), "RowSubTotals should be false");
+    assertFalse(viz.get("colSubTotals").asBoolean(), "ColSubTotals should be false");
+    assertFalse(viz.get("hideTitle").asBoolean(), "HideTitle should be false");
+    assertFalse(viz.get("hideSubtitle").asBoolean(), "HideSubtitle should be false");
+    assertFalse(viz.get("showDimensionLabels").asBoolean(), "ShowDimensionLabels should be false");
+    assertFalse(viz.get("regression").asBoolean(), "Regression should be false");
+    assertFalse(viz.get("hideEmptyColumns").asBoolean(), "HideEmptyColumns should be false");
+    assertFalse(viz.get("fixColumnHeaders").asBoolean(), "FixColumnHeaders should be false");
+    assertFalse(viz.get("fixRowHeaders").asBoolean(), "FixRowHeaders should be false");
 
     // Assert Visualization rawPeriods Array
     JsonNode exportedRawPeriods = viz.get("rawPeriods");
