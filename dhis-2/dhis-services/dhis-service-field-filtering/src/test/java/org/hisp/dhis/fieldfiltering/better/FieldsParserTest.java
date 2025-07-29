@@ -375,6 +375,27 @@ class FieldsParserTest {
         fields);
   }
 
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "!group",
+        "!group[]",
+        "!group[code]", // TODO(ivo) bug in old field filter NPE Cannot invoke
+        // "org.hisp.dhis.fieldfiltering.FieldPath.getPath()" because "fieldPath" is
+        // null
+      })
+  void bugInCurrentParserExcludingParent(String input) {
+    Fields fields = FieldsParser.parse(input);
+
+    assertFields(
+        List.of(
+            new ExpectField(false, "none"),
+            new ExpectField(false, "group"),
+            new ExpectField(false, "group.code"),
+            new ExpectField(false, "group.code.name")),
+        fields);
+  }
+
   // TODO implement: group(id) is equivalent to group[id] but () is also used for transformers
   // TODO(ivo) presets: org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets does rely on the
   // schema. Make a provision for this that allows passing in a Map<String, Set<String>> presets

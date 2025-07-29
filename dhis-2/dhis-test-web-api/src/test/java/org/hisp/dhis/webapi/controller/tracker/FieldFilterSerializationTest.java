@@ -106,11 +106,17 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "!event",
         "event,dataValues",
         "event,!dataValues",
+        "!dataValues",
+        // "!dataValues[value]", // TODO(ivo) bug in old field filter NPE Cannot invoke
+        // "org.hisp.dhis.fieldfiltering.FieldPath.getPath()" because "fieldPath" is null
+        "!dataValues[]", // behaves like !dataValues TODO(ivo) this is ok but the above is not
+        // failing with an NPE in the current parser while this returns [{},{}]
         "dataValues,!dataValues",
+        "!dataValues,dataValues",
         "event,!dataValues,*",
         "dataValues[!value]",
         "dataValues, ,dataValues[!value], ",
-        "dataValues,dataValues[!value,value]",
+        "dataValues,dataValues[!value,value)",
         "dataValues,dataValues[value]",
         "*,dataValues[value]",
         "dataValues[dataElement,!value]",
@@ -119,6 +125,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "event,dataValues[*,!storedBy]",
         "*,!enrollment",
         "relationships,relationships[from]",
+        "relationships[!from]",
         "relationships[]",
         "relationships[unknownfield]", // TODO(ivo) anyway we can replicate this behavior? I do not
         // want to know what fields actually exist as this makes everything complicated
