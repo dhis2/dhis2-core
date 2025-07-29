@@ -72,6 +72,8 @@ public interface TrackerAccessManager {
 
   List<String> canUpdate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
 
+  List<String> canUpdate(UserDetails user, SingleEvent event);
+
   List<String> canDelete(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
 
   List<String> canRead(UserDetails user, Relationship relationship);
