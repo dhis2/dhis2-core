@@ -397,6 +397,7 @@ class FieldsParserTest {
         fields);
   }
 
+  // TODO(ivo) add more cases and improve this test, ideally I would be able to test includes/getChildren/test on each of the test cases above
   @Test
   void testGetChildren() {
     Fields fields = FieldsParser.parse("relationships[!from]");

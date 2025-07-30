@@ -31,20 +31,25 @@ package org.hisp.dhis.fieldfiltering.better;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.opengis.referencing.operation.Transformation;
 
 /**
  * Fields represent the fields a user wants to be returned from an API usually specified via the
  * HTTP request parameter {@code fields}.
  *
- * <p>Fields ensures that all children of an excluded field {@code test(field)==false} are excluded
- * as well.
+ * <p>Fields ensures that
+ *
+ * <ul>
+ *   <li>children of an excluded field {@code test(field)==false} are excluded as well
+ *   <li>includesAll automatically includes children unless they are explicitly included/excluded
+ *   <li>Children are automatically included unless they are explicitly included/excluded
+ * </ul>
  */
 @RequiredArgsConstructor
 @ToString
@@ -62,18 +67,18 @@ public final class Fields implements Predicate<String> {
    */
   private final Set<String> fields;
 
-  private final Function<String, Fields> children;
+  private final Map<String, Fields> children;
 
   private final Map<String, Transformation> transformations;
 
   /** Creates Fields which includes all fields and all of its children with no transformations. */
   public static Fields all() {
-    return new Fields(true, Set.of(), (field) -> ALL, Map.of());
+    return new Fields(true, Set.of(), Map.of(), Map.of());
   }
 
   /** Creates Fields which includes no fields. */
   public static Fields none() {
-    return new Fields(false, Set.of(), (field) -> NONE, Map.of());
+    return new Fields(false, Set.of(), Map.of(), Map.of());
   }
 
   /**
@@ -85,6 +90,28 @@ public final class Fields implements Predicate<String> {
   @Override
   public boolean test(String field) {
     return includesAll ? !fields.contains(field) : fields.contains(field);
+  }
+
+  /**
+   * Returns the fields specification for a child object.
+   *
+   * @param field the field name
+   * @return Fields specification for the child
+   */
+  @Nonnull
+  public Fields getChildren(String field) {
+    if (!test(field)) {
+      return Fields.NONE; // children of excluded parent are excluded
+    }
+
+    // explicit specifications take precedence
+    // this handles cases like: fields=dataValues[value], fields=dataValues[!value],
+    // fields=dataValues[*]
+    return children.getOrDefault(field, Fields.ALL);
+    // TODO(ivo) Children are not automatically when it comes to metadata. The behavior is schema
+    // dependent. References like fields=program will turn into fields=program[id]. There is more
+    // logic with regards to "complex" objects ... We can come up with a mechanism to override this
+    // behavior via a Function<String, Fields> for example.
   }
 
   /**
@@ -106,21 +133,6 @@ public final class Fields implements Predicate<String> {
     }
 
     return true;
-  }
-
-  /**
-   * Returns the fields specification for a child object.
-   *
-   * @param field the field name
-   * @return Fields specification for the child
-   */
-  @Nonnull
-  public Fields getChildren(String field) {
-    if (!test(field)) {
-      return Fields.NONE;
-    }
-
-    return children.apply(field);
   }
 
   /**

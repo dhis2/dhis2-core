@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.function.Function;
 
 public class FieldsParser {
   /** Fields token that includes all fields. */
@@ -150,11 +149,6 @@ public class FieldsParser {
 
   /** Maps in depth-first search order each field and its children to {@link Fields}. */
   private static Fields map(FieldsAccumulator acc, boolean includesAll) {
-    // Inclusion rules
-    // 0. Children of excluded parents are automatically excluded (invariant in Fields)
-    // 1. * automatically includes children unless they are explicitly included/excluded
-    // 2. Children are automatically included unless they are explicitly included/excluded
-
     // fields with `[]` i.e. fields=dataValues[value] will have accumulated children processed here
     Map<String, Fields> children = new HashMap<>();
     for (Map.Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
@@ -172,23 +166,9 @@ public class FieldsParser {
     if (!includesAll) {
       // exclusion has precedence over inclusion
       fields.removeAll(acc.excludes);
-      // 2. inclusion rule i.e. fields=dataValues
-      fields.forEach(f -> children.putIfAbsent(f, Fields.ALL));
-      // TODO(ivo) Children are not automatically when it comes to metadata. The behavior is schema
-      // dependent. References like fields=program will turn into fields=program[id]. There is more
-      // logic with regards to "complex" objects ... We can come up with a mechanism to override
-      // this behavior with a Function that either gets the field or the full path if necessary.
-      // This function can then be passed into the parser and depend on the schema service.
     }
 
-    Function<String, Fields> childrenFunc =
-        includesAll
-            // explicit field specifications take precedence i.e fields=*,dataValues[value] or
-            // fields=dataValues[!value] over including all children
-            ? (field) -> children.getOrDefault(field, Fields.ALL)
-            : children::get;
-
-    return new Fields(includesAll, fields, childrenFunc, Map.of());
+    return new Fields(includesAll, fields, children, Map.of());
   }
 
   /**
