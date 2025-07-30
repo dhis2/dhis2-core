@@ -81,6 +81,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -850,7 +851,7 @@ class DataValueSetImportValidatorTest {
         .summary(new ImportSummary())
         .strategy(ImportStrategy.CREATE)
         .importOptions(new ImportOptions())
-        .currentUser(currentUser)
+        .currentUser(UserDetails.fromUser(currentUser))
         .i18n(i18n)
         .currentOrgUnits(valueContext == null ? null : singleton(valueContext.getOrgUnit()))
         .singularNameForType(DataValueSetImportValidatorTest::getSingularNameForType);
