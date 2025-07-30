@@ -547,7 +547,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             getSelectColumns(params, false));
 
     if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE) {
-      selectCols = selectCols.stream().map(col -> addEventPrefix(col)).toList();
+      selectCols = selectCols.stream().map(this::addEventPrefix).toList();
     }
 
     return "select " + StringUtils.join(selectCols, ",") + " ";

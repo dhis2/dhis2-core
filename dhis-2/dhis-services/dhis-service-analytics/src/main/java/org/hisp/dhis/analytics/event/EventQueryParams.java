@@ -1010,13 +1010,13 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   public boolean hasOrgUnitFilter() {
-    Set<QueryItem> items =
+    Set<QueryItem> itemsSet =
         Stream.concat(getItems().stream(), getItemFilters().stream())
             .filter(QueryItem::hasFilter)
             .filter(item -> item.getValueType() == ORGANISATION_UNIT)
             .collect(toSet());
 
-    return isNotEmpty(items);
+    return isNotEmpty(itemsSet);
   }
 
   public boolean hasHeaders() {

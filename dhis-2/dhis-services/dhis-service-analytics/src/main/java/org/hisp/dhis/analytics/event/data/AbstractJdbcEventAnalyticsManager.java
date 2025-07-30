@@ -525,15 +525,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
+      } else if (params.hasOrgUnitFilter()
+          && params.getEndpointAction() == AGGREGATE
+          && params.getEndpointItem() == ENROLLMENT
+          && queryItem.getValueType() == ORGANISATION_UNIT) {
+        return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
-        if (params.hasOrgUnitFilter()
-            && params.getEndpointAction() == AGGREGATE
-            && params.getEndpointItem() == ENROLLMENT
-            && queryItem.getValueType() == ORGANISATION_UNIT) {
-          return getColumnAndAlias(queryItem, false, EMPTY);
-        } else {
-          return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
-        }
+        return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
@@ -1376,7 +1374,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Map<UUID, String> sqlConditionByGroup = getUuidConditionMap(params);
 
     if (sqlConditionByGroup.values().isEmpty()) {
-      return "";
+      return EMPTY;
     }
 
     return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
@@ -1390,6 +1388,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 groupingBy(
                     QueryItem::getGroupUUID,
                     mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
+
     return sqlConditionByGroup;
   }
 
