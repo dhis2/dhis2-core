@@ -32,19 +32,54 @@ package org.hisp.dhis.fieldfiltering.better;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.schema.Schema;
 
 public class FieldsParser {
   /** Fields token that includes all fields. */
   private static final String TOKEN_ALL = "*";
 
-  private static final String TOKEN_PRESET_ALL = ":all";
+  // TODO(ivo) adjust my FieldsParserTests to test the new parse function and pass in PRESET_ALL
+  public static final Function<Schema, Set<String>> PRESET_ALL = (s) -> Set.of(TOKEN_ALL);
 
-  private static final Set<String> UNEXCLUDABLE_TOKENS = Set.of(TOKEN_ALL, TOKEN_PRESET_ALL);
+  /**
+   * Parse fields and expand presets using given {@code presets} functions. Presets cannot be
+   * excluded i.e. fields=!:simple is equivalent to fields=:simple.
+   *
+   * <p>Use {@link #parse(String)} to parse fields without expanding presets.
+   */
+  public static Fields parse(
+      String input,
+      Schema schema,
+      BiFunction<Schema, String, Schema> getSchema,
+      Map<String, Function<Schema, Set<String>>> presets) {
+    FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
+    mapPresets(root, schema, getSchema, presets);
+    return map(root, root.includes.contains(TOKEN_ALL));
+  }
 
+  /**
+   * Parse fields without expanding presets. Presets will be treated like any other field name. The
+   * only exception is that presets cannot be excluded i.e. fields=!:simple is equivalent to
+   * fields=:simple.
+   *
+   * <p>Use {@link #parse(String, Schema, BiFunction, Map)} to register and expand presets.
+   */
   public static Fields parse(String input) {
+    FieldsAccumulator root = parseFields(input, new HashSet<>());
+    return map(root, root.includes.contains(TOKEN_ALL));
+  }
+
+  @Nonnull
+  private static FieldsAccumulator parseFields(String input, Set<String> unexcludableTokens) {
+    unexcludableTokens.add(TOKEN_ALL);
+
     FieldsAccumulator root = new FieldsAccumulator();
     Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
@@ -56,7 +91,7 @@ public class FieldsParser {
     while (i < input.length()) {
       if ((input.charAt(i) == ',')) {
         if (inField) {
-          stack.peek().add(parseField(input, fieldStart, i), isExclusion);
+          stack.peek().add(parseField(input, fieldStart, i), isExclusion, unexcludableTokens);
 
           inField = false;
           isExclusion = false;
@@ -67,7 +102,7 @@ public class FieldsParser {
         }
 
         String parent = parseField(input, fieldStart, i);
-        stack.peek().add(parent, isExclusion);
+        stack.peek().add(parent, isExclusion, unexcludableTokens);
 
         stack.push(stack.peek().getOrCreateChild(parent));
         inField = false;
@@ -78,7 +113,7 @@ public class FieldsParser {
         }
 
         if (inField) {
-          stack.peek().add(parseField(input, fieldStart, i), isExclusion);
+          stack.peek().add(parseField(input, fieldStart, i), isExclusion, unexcludableTokens);
         }
 
         stack.pop();
@@ -97,13 +132,11 @@ public class FieldsParser {
     }
 
     if (inField) {
-      stack.peek().add(parseField(input, fieldStart, i), isExclusion);
+      stack.peek().add(parseField(input, fieldStart, i), isExclusion, unexcludableTokens);
     }
     // this is where we should check if stack size is > 1 and err as a bracket/paren
     // fields="group[name" was not closed
-
-    mapPresets(root);
-    return map(root, root.includes.contains(TOKEN_ALL));
+    return root;
   }
 
   /**
@@ -136,14 +169,23 @@ public class FieldsParser {
     return sb.toString();
   }
 
-  private static void mapPresets(FieldsAccumulator acc) {
+  private static void mapPresets(
+      FieldsAccumulator acc,
+      Schema schema,
+      BiFunction<Schema, String, Schema> getSchema,
+      Map<String, Function<Schema, Set<String>>> presets) {
     acc.includes =
         acc.includes.stream()
-            .map(f -> TOKEN_PRESET_ALL.equals(f) ? TOKEN_ALL : f)
+            .flatMap(
+                field -> presets.getOrDefault(field, (s) -> Set.of(field)).apply(schema).stream())
             .collect(Collectors.toSet());
 
-    for (FieldsAccumulator child : acc.children.values()) {
-      mapPresets(child);
+    for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
+      Schema parent = getSchema.apply(schema, entry.getKey());
+      if (parent == null) {
+        continue; // invalid field
+      }
+      mapPresets(entry.getValue(), parent, getSchema, presets);
     }
   }
 
@@ -151,7 +193,7 @@ public class FieldsParser {
   private static Fields map(FieldsAccumulator acc, boolean includesAll) {
     // fields with `[]` i.e. fields=dataValues[value] will have accumulated children processed here
     Map<String, Fields> children = new HashMap<>();
-    for (Map.Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
+    for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
       boolean includeChildren =
           entry.getValue().includes.contains(TOKEN_ALL) // fields=dataValues[*] all are included
               || entry
@@ -180,8 +222,8 @@ public class FieldsParser {
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
 
-    void add(String field, boolean isExclusion) {
-      if (!isExclusion || UNEXCLUDABLE_TOKENS.contains(field)) {
+    void add(String field, boolean isExclusion, Set<String> unexcludableTokens) {
+      if (!isExclusion || unexcludableTokens.contains(field)) {
         this.includes.add(field);
       } else {
         this.excludes.add(field);

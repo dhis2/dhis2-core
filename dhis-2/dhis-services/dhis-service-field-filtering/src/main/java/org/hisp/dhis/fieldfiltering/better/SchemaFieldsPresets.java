@@ -30,44 +30,50 @@
 package org.hisp.dhis.fieldfiltering.better;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Component;
 
-/**
- * Spring converter that converts field filter strings to Fields. This allows controller methods to
- * directly accept Fields parameters from @RequestParam fields values.
- */
-public class FieldsConverter implements ConditionalGenericConverter {
+/** {@link Schema} aware implementations for {@link org.hisp.dhis.fieldfiltering.FieldPreset}. */
+@RequiredArgsConstructor
+@Component
+public class SchemaFieldsPresets {
+  private final SchemaService schemaService;
 
-  @Override
-  public boolean matches(@Nonnull TypeDescriptor sourceType, TypeDescriptor targetType) {
-    return Fields.class.equals(targetType.getResolvableType().resolve());
+  // TODO(ivo) Spring setup, rethink how we currently use the FieldFilterService as if I get this we
+  // are and have to parse the fields twice?
+  // I need to be careful with :all as right now I moved it out of the default parse(String). So the
+  // simple parse diverges from the schema aware one.
+  //  HibernateProxyUtils.getRealClass(firstObject)
+  //  Schema schema = schemaService.getDynamicSchema(root);
+  @Nonnull
+  public static Set<String> mapSimple(@Nonnull Schema schema) {
+    return schema.getProperties().stream()
+        .filter(p -> p.getPropertyType().isSimple())
+        .map(SchemaFieldsPresets::toFieldName)
+        .collect(Collectors.toSet());
   }
 
-  @Override
-  public Set<ConvertiblePair> getConvertibleTypes() {
-    return Set.of(
-        new ConvertiblePair(String.class, Fields.class),
-        new ConvertiblePair(String[].class, Fields.class));
-  }
+  @Nullable
+  public Schema getSchema(@Nonnull Schema schema, @Nonnull String field) {
+    Property property = schema.getProperty(field);
 
-  @Override
-  public Object convert(
-      Object source, TypeDescriptor sourceType, @Nonnull TypeDescriptor targetType) {
-    if (sourceType.isArray()) {
-      /*
-       * Undo Spring's splitting of
-       * {@code fields=attributes[attribute,value],deleted} into
-       * <ul>
-       * <li>0 = "attributes[attribute"</li>
-       * <li>1 = "value]"</li>
-       * <li>2 = "deleted"</li>
-       * </ul>
-       * separating nested fields attribute and value.
-       */
-      return FieldsParser.parse(String.join(",", (String[]) source));
+    if (property == null) {
+      return null; // invalid field
     }
-    return FieldsParser.parse((String) source);
+
+    if (property.isCollection()) {
+      return schemaService.getDynamicSchema(property.getItemKlass());
+    }
+    return schemaService.getDynamicSchema(property.getKlass());
+  }
+
+  private static String toFieldName(Property property) {
+    return property.isCollection() ? property.getCollectionName() : property.getName();
   }
 }

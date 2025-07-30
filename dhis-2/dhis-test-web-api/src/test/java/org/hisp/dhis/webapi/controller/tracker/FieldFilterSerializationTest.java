@@ -37,7 +37,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -45,6 +47,9 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
+import org.hisp.dhis.fieldfiltering.better.SchemaFieldsPresets;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -53,6 +58,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -83,6 +89,9 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   // a JSON string
   @Autowired private ObjectMapper objectMapper;
 
+  @Autowired private SchemaService schemaService;
+  @Autowired private SchemaFieldsPresets schemaFieldsPresets;
+
   // use the filter ObjectMapper from JacksonObjectMapperConfig to serialize, filter and transform
   // an Object to a JSON string
   @Qualifier("jsonFilterMapper")
@@ -91,9 +100,14 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
 
   private List<Event> events;
 
+  private Schema eventSchema;
+  private Map<String, Function<Schema, Set<String>>> presets;
+
   @BeforeAll
   void setUp() {
     events = createEvents(2);
+    eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
+    presets = Map.of(":all", FieldsParser.PRESET_ALL, ":simple", SchemaFieldsPresets::mapSimple);
   }
 
   // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are. If we
@@ -107,6 +121,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "!*",
         "!:all", // TODO(ivo) should this be invalid? the exclusion is ignored and the preset is
         // applied
+        ":simple",
         "!event",
         "event,dataValues",
         "event,!dataValues",
@@ -164,7 +179,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
 
   private String serializeUsingBetterFilter(List<Event> events, String fieldsInput)
       throws JsonProcessingException {
-    Fields fields = FieldsParser.parse(fieldsInput);
+    Fields fields =
+        FieldsParser.parse(fieldsInput, eventSchema, schemaFieldsPresets::getSchema, presets);
     return filterMapper
         .writer()
         .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
@@ -273,5 +289,17 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                     .build()))
         .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
         .build();
+  }
+
+  @Autowired SchemaFieldsPresets pr;
+
+  @Test
+  void bar() {
+    // TODO(ivo) schema is null for a field that is simple or does not exist, add tests and handle
+    // gracefully (I assume that means ignore)
+    //    pr.foo(List.of("dataValues.dataElement"), Event.class);
+    //    pr.foo(List.of("dataValues.foo"), Event.class);
+    //    Schema schema = schemaService.getDynamicSchema(Event.class);
+    //    pr.mapSimple(schema, "dataValues");
   }
 }
