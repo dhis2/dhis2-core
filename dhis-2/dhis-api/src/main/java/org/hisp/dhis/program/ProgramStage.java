@@ -63,12 +63,6 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 @JacksonXmlRootElement(localName = "programStage", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramStage extends BaseNameableObject implements MetadataObject {
-  private String description;
-
-  /** The i18n variant of the description. Should not be persisted. */
-  protected transient String displayDescription;
-
-  private String formName;
 
   private int minDaysFromStart;
 
@@ -108,10 +102,6 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   private ObjectStyle style;
 
-  /**
-   * Enabled this property to show a pop-up for confirming Complete a program after to complete a
-   * program-stage
-   */
   private Boolean remindCompleted = false;
 
   private Boolean generatedByEnrollmentDate = false;
@@ -185,6 +175,16 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getMinDaysFromStart() {
+    return minDaysFromStart;
+  }
+
+  public void setMinDaysFromStart(int minDaysFromStart) {
+    this.minDaysFromStart = minDaysFromStart;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Boolean getGeneratedByEnrollmentDate() {
     return generatedByEnrollmentDate;
   }
@@ -235,19 +235,6 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
     this.dataEntryForm = dataEntryForm;
   }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
   @JsonProperty("programStageSections")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "programStageSections", namespace = DxfNamespaces.DXF_2_0)
@@ -278,16 +265,6 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   public void setRepeatable(boolean repeatable) {
     this.repeatable = repeatable;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getMinDaysFromStart() {
-    return minDaysFromStart;
-  }
-
-  public void setMinDaysFromStart(int minDaysFromStart) {
-    this.minDaysFromStart = minDaysFromStart;
   }
 
   @JsonProperty
@@ -498,18 +475,6 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   public void setStyle(ObjectStyle style) {
     this.style = style;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFormName() {
-    return formName;
-  }
-
-  @Override
-  public void setFormName(String formName) {
-    this.formName = formName;
   }
 
   @JsonProperty
