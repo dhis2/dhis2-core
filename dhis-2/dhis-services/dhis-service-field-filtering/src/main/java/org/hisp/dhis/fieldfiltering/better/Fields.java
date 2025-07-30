@@ -43,8 +43,8 @@ import lombok.ToString;
  * Fields represent the fields a user wants to be returned from an API usually specified via the
  * HTTP request parameter {@code fields}.
  *
- * <p>The structure is immutable once created, making it safe for concurrent access and caching. Use
- * {@link FieldsParser} to create instances from field expressions.
+ * <p>Fields ensures that all children of an excluded field {@code test(field)==false} are excluded
+ * as well.
  */
 @RequiredArgsConstructor
 @ToString
@@ -65,12 +65,6 @@ public final class Fields implements Predicate<String> {
   private final Function<String, Fields> children;
 
   private final Map<String, Transformation> transformations;
-
-  // TODO(ivo) is all(excluding) and only(include) still useful?
-  /** Creates Fields which include all fields and all of its children with no transformations. */
-  public static Fields all(Set<String> except) {
-    return new Fields(true, except, (field) -> ALL, Map.of());
-  }
 
   /** Creates Fields which includes all fields and all of its children with no transformations. */
   public static Fields all() {
@@ -108,7 +102,7 @@ public final class Fields implements Predicate<String> {
         return false;
       }
 
-      current = current.getChild(segment);
+      current = current.getChildren(segment);
     }
 
     return true;
@@ -118,10 +112,14 @@ public final class Fields implements Predicate<String> {
    * Returns the fields specification for a child object.
    *
    * @param field the field name
-   * @return Fields specification for the child, or null if no specific rules apply
+   * @return Fields specification for the child
    */
   @Nonnull
-  public Fields getChild(String field) {
+  public Fields getChildren(String field) {
+    if (!test(field)) {
+      return Fields.NONE;
+    }
+
     return children.apply(field);
   }
 

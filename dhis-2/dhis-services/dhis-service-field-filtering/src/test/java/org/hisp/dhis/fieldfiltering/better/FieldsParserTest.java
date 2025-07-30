@@ -371,7 +371,8 @@ class FieldsParserTest {
             new ExpectField(true, "names"),
             new ExpectField(true, "names.list"),
             new ExpectField(true, "names.list.second"),
-            new ExpectField(false, "names.list.first")),
+            new ExpectField(false, "names.list.first"),
+            new ExpectField(false, "names.list.first.deep")),
         fields);
   }
 
@@ -393,6 +394,23 @@ class FieldsParserTest {
             new ExpectField(false, "group"),
             new ExpectField(false, "group.code"),
             new ExpectField(false, "group.code.name")),
+        fields);
+  }
+
+  @Test
+  void testGetChildren() {
+    Fields fields = FieldsParser.parse("relationships[!from]");
+
+    assertFalse(fields.getChildren("relationships").test("from"));
+    // TODO(ivo) ? API design of Fields as its possible to construct something like that or is it in
+    // Fields.getChild?
+    assertFalse(fields.getChildren("relationships").getChildren("from").test("value"));
+
+    assertFields(
+        List.of(
+            new ExpectField(true, "relationships"),
+            new ExpectField(false, "relationships.from"),
+            new ExpectField(false, "relationships.from.value")),
         fields);
   }
 
@@ -644,6 +662,7 @@ class FieldsParserTest {
    */
   private static void assertField(ExpectField expected, Fields fields) {
     String what = expected.included ? "includes" : "exclude";
+
     assertEquals(
         expected.included,
         fields.includes(expected.dotPath),

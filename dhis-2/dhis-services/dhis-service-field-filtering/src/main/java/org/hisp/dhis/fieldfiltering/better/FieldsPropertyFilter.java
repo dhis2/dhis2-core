@@ -56,10 +56,9 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
           "No fields attribute found in SerializerProvider there must be a bug in field filtering.");
     }
 
-    // TODO(ivo) is it expensive to setAttribute?
     if (current.test(writer.getName())) {
       // Set the child for nested serialization
-      Fields children = current.getChild(writer.getName());
+      Fields children = current.getChildren(writer.getName());
       provider.setAttribute(FIELDS_ATTRIBUTE, children);
 
       writer.serializeAsField(pojo, jgen, provider);

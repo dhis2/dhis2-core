@@ -151,6 +151,7 @@ public class FieldsParser {
   /** Maps in depth-first search order each field and its children to {@link Fields}. */
   private static Fields map(FieldsAccumulator acc, boolean includesAll) {
     // Inclusion rules
+    // 0. Children of excluded parents are automatically excluded
     // 1. * automatically includes children unless they are explicitly included/excluded
     // 2. Children are automatically included unless they are explicitly included/excluded
     // TODO(ivo) Children are not automatically when it comes to metadata. The behavior is schema
