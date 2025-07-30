@@ -39,7 +39,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
-/** {@link Schema} aware implementations for {@link org.hisp.dhis.fieldfiltering.FieldPreset}. */
+/** {@link Schema} aware implementations of {@link org.hisp.dhis.fieldfiltering.FieldPreset}s. */
 @RequiredArgsConstructor
 @Component
 public class SchemaFieldsPresets {

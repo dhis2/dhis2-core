@@ -58,7 +58,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -151,6 +150,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "event,dataValues[*,!storedBy]",
         "event,dataValues[:all,!storedBy]",
         "event,dataValues[!*,!storedBy]",
+        "event,dataValues[:simple,!storedBy]",
+        "event,dataValues[:simple,!storedBy,:all]",
         "event,dataValues[!:all,!storedBy]",
         "*,!enrollment",
         "relationships,relationships[from]",
@@ -161,6 +162,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         // want to know what fields actually exist as this makes everything complicated
         "relationships[!unknownfield]",
         "relationships[f rom[trackedEntity[ org Unit ]",
+        "relationships[from[trackedEntity[ :simple ]",
       })
   void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
       throws JsonProcessingException {
@@ -289,17 +291,5 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                     .build()))
         .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
         .build();
-  }
-
-  @Autowired SchemaFieldsPresets pr;
-
-  @Test
-  void bar() {
-    // TODO(ivo) schema is null for a field that is simple or does not exist, add tests and handle
-    // gracefully (I assume that means ignore)
-    //    pr.foo(List.of("dataValues.dataElement"), Event.class);
-    //    pr.foo(List.of("dataValues.foo"), Event.class);
-    //    Schema schema = schemaService.getDynamicSchema(Event.class);
-    //    pr.mapSimple(schema, "dataValues");
   }
 }
