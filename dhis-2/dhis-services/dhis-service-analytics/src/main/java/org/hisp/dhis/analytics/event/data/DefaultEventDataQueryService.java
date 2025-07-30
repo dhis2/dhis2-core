@@ -333,6 +333,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
+  /**
+   * Adds the program stage associated with an item, if any. This happens only for enrollments
+   * aggregate queries.
+   *
+   * @param paramsBuilder the {@link EventQueryParams.Builder}.
+   * @param request the {@link EventDataQueryRequest}.
+   * @param groupableItem the {@link GroupableItem}.
+   */
   private void addStageToParams(
       EventQueryParams.Builder paramsBuilder,
       EventDataQueryRequest request,

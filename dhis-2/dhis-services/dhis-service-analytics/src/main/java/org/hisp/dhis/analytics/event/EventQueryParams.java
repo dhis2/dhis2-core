@@ -1009,6 +1009,11 @@ public class EventQueryParams extends DataQueryParams {
     return isNotEmpty(getFilterPeriods());
   }
 
+  /**
+   * Verifies whether there is an org. unit filter associated with a query item.
+   *
+   * @return true if the org. unit filter is present, false otherwise.
+   */
   public boolean hasOrgUnitFilter() {
     Set<QueryItem> itemsSet =
         Stream.concat(getItems().stream(), getItemFilters().stream())
