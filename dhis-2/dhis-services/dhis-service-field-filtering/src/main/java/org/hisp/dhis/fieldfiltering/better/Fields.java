@@ -101,7 +101,7 @@ public final class Fields implements Predicate<String> {
   @Nonnull
   public Fields getChildren(String field) {
     if (!test(field)) {
-      return Fields.NONE; // children of excluded parent are excluded
+      return Fields.NONE; // children of an excluded parent are excluded
     }
 
     // explicit specifications take precedence
@@ -118,21 +118,20 @@ public final class Fields implements Predicate<String> {
    * Tests whether the dot separated field path is included. Serialization filters should use the
    * more performant {@link #test(String)}.
    *
+   * <p>{@code fields.includes("group.group.code")} is like {@code
+   * fields.getChildren("group").getChildren("group").test("code")}
+   *
    * @param dotPath dot separated field path
    * @return true if the field should be included, false otherwise
    */
   public boolean includes(String dotPath) {
-    Fields current = this;
     String[] segments = dotPath.split("\\.");
-    for (String segment : segments) {
-      if (!current.test(segment)) {
-        return false;
-      }
-
-      current = current.getChildren(segment);
+    Fields current = this;
+    for (int i = 0; i < segments.length - 1; i++) {
+      current = current.getChildren(segments[i]);
     }
-
-    return true;
+    String lastSegment = segments[segments.length - 1];
+    return current.test(lastSegment);
   }
 
   /**

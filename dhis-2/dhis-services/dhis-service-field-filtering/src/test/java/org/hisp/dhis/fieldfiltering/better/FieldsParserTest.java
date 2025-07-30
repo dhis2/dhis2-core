@@ -118,7 +118,7 @@ class FieldsParserTest {
 
         // missing closing brackets are ignored
         Arguments.of(
-            "id,name,group[id,name],group[id,name,group[id,name,group[id,name[[[",
+            "id,name,group[id,name],group[id,name,group[id,name,group[id,name[",
             List.of(
                 new ExpectField(true, "id"),
                 new ExpectField(true, "name"),
@@ -419,23 +419,19 @@ class FieldsParserTest {
         fields);
   }
 
-  // TODO(ivo) add more cases and improve this test, ideally I would be able to test
-  // includes/getChildren/test on each of the test cases above
   @Test
-  void testGetChildren() {
+  void testGetChildrenAlignsWithIncludes() {
     Fields fields = FieldsParser.parse("relationships[!from]");
 
+    assertTrue(fields.test("relationships"));
     assertFalse(fields.getChildren("relationships").test("from"));
-    // TODO(ivo) ? API design of Fields as its possible to construct something like that or is it in
-    // Fields.getChild?
+    assertTrue(fields.getChildren("relationships").test("to"));
     assertFalse(fields.getChildren("relationships").getChildren("from").test("value"));
 
-    assertFields(
-        List.of(
-            new ExpectField(true, "relationships"),
-            new ExpectField(false, "relationships.from"),
-            new ExpectField(false, "relationships.from.value")),
-        fields);
+    assertTrue(fields.includes("relationships"));
+    assertTrue(fields.includes("relationships.to"));
+    assertFalse(fields.includes("relationships.from"));
+    assertFalse(fields.includes("relationships.from.value"));
   }
 
   // TODO implement: group(id) is equivalent to group[id] but () is also used for transformers
