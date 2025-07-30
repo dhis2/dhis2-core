@@ -64,7 +64,6 @@ public class FieldsParser {
           isExclusion = false;
         }
       } else if (input.charAt(i) == '[' || input.charAt(i) == '(') {
-        // TODO fail if we are not inField? old parser allows this but the result makes no sense
         if (inField) {
           String parent = parseField(input, fieldStart, i);
           if (isExclusion) {
@@ -78,7 +77,8 @@ public class FieldsParser {
           isExclusion = false;
         }
       } else if (input.charAt(i) == ']' || input.charAt(i) == ')') {
-        if (stack.size() <= 1) {
+        if (stack.size() <= 1
+            && !stack.peek().isEmpty()) { // fields=[value] is ignored, ideally we would reject this
           throw new IllegalArgumentException("Unbalanced parens/brackets in input: " + input);
         }
 
@@ -112,8 +112,8 @@ public class FieldsParser {
         stack.peek().includes(parseField(input, fieldStart, i));
       }
     }
-    // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
-    // "group[name" was not closed
+    // this is where we should check if stack size is > 1 and err as a bracket/paren
+    // fields="group[name" was not closed
 
     mapPresets(root);
     return map(root, root.includes.contains(TOKEN_ALL));
@@ -192,6 +192,10 @@ public class FieldsParser {
     Set<String> includes = new HashSet<>();
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
+
+    boolean isEmpty() {
+      return includes.isEmpty() && excludes.isEmpty();
+    }
 
     void includes(String field) {
       this.includes.add(field);

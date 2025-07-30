@@ -300,25 +300,15 @@ class FieldsParserTest {
     assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
   }
 
-  // TODO(ivo) create extra tests for * only for my parser?
-  // I might have to separate the two or create a separate preset test with different assertions
-  //    @Test
-  //    void testParseWithAsterisk1() {
-  //      List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code");
-  //
-  //      FieldPath asterisk = getFieldPath(fieldPaths, "all");
-  //      assertNotNull(asterisk);
-  //      assertFalse(asterisk.isExclude());
-  //      assertTrue(asterisk.isPreset());
-  //      FieldPath code = getFieldPath(fieldPaths, "code");
-  //      assertNotNull(code);
-  //      assertTrue(code.isExclude());
-  //      assertFalse(code.isPreset());
-  //    }
-
-  @Test
-  void testBetterParserGivenRootStar() {
-    Fields fields = FieldsParser.parse("*");
+  // TODO(ivo) add test for negating presets which is ignored so leads to preset inclusion, add test
+  // here and in serializer test
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "*", ":all",
+      })
+  void testBetterParserGivenRootStar(String input) {
+    Fields fields = FieldsParser.parse(input);
 
     assertFields(
         List.of(
@@ -329,9 +319,14 @@ class FieldsParserTest {
         fields);
   }
 
-  @Test
-  void testBetterParserGivenRootStarAndExclusion() {
-    Fields fields = FieldsParser.parse("*,!code");
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "*,!code",
+        ":all,!code",
+      })
+  void testBetterParserGivenRootStarAndExclusion(String input) {
+    Fields fields = FieldsParser.parse(input);
 
     assertFields(
         List.of(
@@ -342,9 +337,14 @@ class FieldsParserTest {
         fields);
   }
 
-  @Test
-  void testBetterParserGivenRootStarAndChildExclusion() {
-    Fields fields = FieldsParser.parse("*,group[!code]");
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "*,group[!code]",
+        ":all,group[!code]",
+      })
+  void testBetterParserGivenRootStarAndChildExclusion(String input) {
+    Fields fields = FieldsParser.parse(input);
 
     assertFields(
         List.of(
@@ -356,9 +356,14 @@ class FieldsParserTest {
         fields);
   }
 
-  @Test
-  void testBetterParserGivenChildStarAndChildExclusion() {
-    Fields fields = FieldsParser.parse("code,group[*,!code],names[list[*]],names[list[!first]]");
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "code,group[*,!code],names[list[*]],names[list[!first]]",
+        "code,group[:all,!code],names[list[:all]],names[list[!first]]",
+      })
+  void testBetterParserGivenChildStarAndChildExclusion(String input) {
+    Fields fields = FieldsParser.parse(input);
 
     assertFields(
         List.of(
@@ -425,7 +430,6 @@ class FieldsParserTest {
   // on the other hand FieldPreset is a static mapping of presets to fields. Why do we still need
   // the schema then? Is it due to his approach of computing all paths of an object instead of only
   // what we need to know?
-  // TODO(ivo) add test for negating presets which is ignored so leads to preset inclusion
   // TODO(ivo) only used by metadata: fields=parent on orgUnits only shows the parent.id and
   // fields=parent[:all] shows all. This is done by the FieldFilterService, the FieldFilterParser
   // only parses the presets without expanding them.
