@@ -129,8 +129,10 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "relationships,relationships[from]",
         "relationships[!from]",
         "relationships[  ]",
+        "relationships[relationship,unknownfield]",
         "relationships[unknownfield]", // TODO(ivo) anyway we can replicate this behavior? I do not
         // want to know what fields actually exist as this makes everything complicated
+        "relationships[!unknownfield]",
         "relationships[f rom[trackedEntity[ org Unit ]",
       })
   void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
