@@ -126,7 +126,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "*,!enrollment",
         "relationships,relationships[from]",
         "relationships[!from]",
-        "relationships[]",
+        "relationships[  ]",
         "relationships[unknownfield]", // TODO(ivo) anyway we can replicate this behavior? I do not
         // want to know what fields actually exist as this makes everything complicated
         "relationships[f rom[trackedEntity[ org Unit ]",

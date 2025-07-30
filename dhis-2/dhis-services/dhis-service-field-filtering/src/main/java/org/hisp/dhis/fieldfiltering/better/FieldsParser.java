@@ -40,8 +40,6 @@ public class FieldsParser {
   private static final String TOKEN_ALL = "*";
 
   public static Fields parse(String input) {
-    // TODO error handling: white space in a field name, special characters like * or : in a field
-    // name, things like ', ,   ' or 'group[ ]' or a block without a name '[]'
     FieldsAccumulator root = new FieldsAccumulator();
     Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
