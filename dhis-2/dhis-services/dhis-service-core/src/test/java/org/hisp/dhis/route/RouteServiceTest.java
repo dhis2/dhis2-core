@@ -30,6 +30,7 @@
 package org.hisp.dhis.route;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
 import java.util.Random;
@@ -125,5 +126,10 @@ class RouteServiceTest {
     } else {
       assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
     }
+  }
+
+  @Test
+  void testAllowedRequestHeaders() {
+    assertTrue(RouteService.ALLOWED_REQUEST_HEADERS.contains("content-type"));
   }
 }

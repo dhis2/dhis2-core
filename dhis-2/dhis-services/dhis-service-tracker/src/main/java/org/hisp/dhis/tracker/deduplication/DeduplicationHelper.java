@@ -210,9 +210,11 @@ public class DeduplicationHelper {
 
   private boolean isSameRelationshipItem(RelationshipItem a, RelationshipItem b) {
     IdentifiableObject idoA =
-        ObjectUtils.firstNonNull(a.getTrackedEntity(), a.getEnrollment(), a.getEvent());
+        ObjectUtils.firstNonNull(
+            a.getTrackedEntity(), a.getEnrollment(), a.getTrackerEvent(), a.getSingleEvent());
     IdentifiableObject idoB =
-        ObjectUtils.firstNonNull(b.getTrackedEntity(), b.getEnrollment(), b.getEvent());
+        ObjectUtils.firstNonNull(
+            b.getTrackedEntity(), b.getEnrollment(), b.getTrackerEvent(), a.getSingleEvent());
 
     return idoA.getUid().equals(idoB.getUid());
   }
