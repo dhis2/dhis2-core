@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.C
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
@@ -80,8 +81,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -338,8 +337,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventQueryParams.Builder paramsBuilder,
       EventDataQueryRequest request,
       GroupableItem groupableItem) {
-    if (request.getEndpointItem() == EndpointItem.ENROLLMENT
-        && request.getEndpointAction() == EndpointAction.AGGREGATE) {
+    if (handleEnrollmentOrgUnitFilter(request)) {
       if (groupableItem instanceof DimensionalObject dim) {
         paramsBuilder.withProgramStage(dim.getProgramStage());
       } else if (groupableItem instanceof QueryItem item) {

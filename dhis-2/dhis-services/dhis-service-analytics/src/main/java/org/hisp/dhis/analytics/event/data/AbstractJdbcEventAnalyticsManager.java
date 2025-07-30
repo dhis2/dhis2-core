@@ -59,6 +59,7 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -73,9 +74,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
-import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
@@ -525,10 +524,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
-      } else if (params.hasOrgUnitFilter()
-          && params.getEndpointAction() == AGGREGATE
-          && params.getEndpointItem() == ENROLLMENT
-          && queryItem.getValueType() == ORGANISATION_UNIT) {
+      } else if (handleEnrollmentOrgUnitFilter(params, queryItem)) {
         return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
         return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
@@ -961,9 +957,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
-    } else if (params.hasOrgUnitFilter()
-        && params.getEndpointAction() == AGGREGATE
-        && item.getValueType() == ORGANISATION_UNIT) {
+    } else if (handleEnrollmentOrgUnitFilter(params, item)) {
       return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
@@ -1084,7 +1078,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
 
     String join = EMPTY;
-    if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE) {
+    if (handleEnrollmentOrgUnitFilter(params)) {
       join =
           " join analytics_event_"
               + params.getProgram().getUid()

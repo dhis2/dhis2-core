@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -46,7 +47,6 @@ import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -546,7 +546,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
-    if (params.hasOrgUnitFilter() && params.getEndpointAction() == AGGREGATE) {
+    if (handleEnrollmentOrgUnitFilter(params)) {
       selectCols = selectCols.stream().map(this::addEventPrefix).toList();
     }
 
