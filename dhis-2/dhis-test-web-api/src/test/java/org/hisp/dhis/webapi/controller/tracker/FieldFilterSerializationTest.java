@@ -103,6 +103,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   @ValueSource(
       strings = {
         "*",
+        ":all",
         "!event",
         "event,dataValues",
         "event,!dataValues",
@@ -123,6 +124,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "event,*,dataValues[!value]",
         "event,dataValues[dataElement,value]",
         "event,dataValues[*,!storedBy]",
+        "event,dataValues[:all,!storedBy]",
         "*,!enrollment",
         "relationships,relationships[from]",
         "relationships[!from]",

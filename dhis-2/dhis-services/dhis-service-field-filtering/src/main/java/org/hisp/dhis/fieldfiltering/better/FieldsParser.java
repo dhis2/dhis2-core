@@ -34,10 +34,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class FieldsParser {
   /** Fields token that includes all fields. */
   private static final String TOKEN_ALL = "*";
+
+  private static final String TOKEN_PRESET_ALL = ":all";
 
   public static Fields parse(String input) {
     FieldsAccumulator root = new FieldsAccumulator();
@@ -112,6 +115,7 @@ public class FieldsParser {
     // TODO this is where we could check if stack size is > 1 and err as a bracket/paren
     // "group[name" was not closed
 
+    mapPresets(root);
     return map(root, root.includes.contains(TOKEN_ALL));
   }
 
@@ -145,6 +149,17 @@ public class FieldsParser {
     return sb.toString();
   }
 
+  private static void mapPresets(FieldsAccumulator acc) {
+    acc.includes =
+        acc.includes.stream()
+            .map(f -> TOKEN_PRESET_ALL.equals(f) ? TOKEN_ALL : f)
+            .collect(Collectors.toSet());
+
+    for (FieldsAccumulator child : acc.children.values()) {
+      mapPresets(child);
+    }
+  }
+
   /** Maps in depth-first search order each field and its children to {@link Fields}. */
   private static Fields map(FieldsAccumulator acc, boolean includesAll) {
     // fields with `[]` i.e. fields=dataValues[value] will have accumulated children processed here
@@ -174,7 +189,7 @@ public class FieldsParser {
    * representing the (nested) fields expressions.
    */
   private static final class FieldsAccumulator {
-    final Set<String> includes = new HashSet<>();
+    Set<String> includes = new HashSet<>();
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
 
