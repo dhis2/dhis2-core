@@ -114,6 +114,13 @@ public class Enrollment extends SoftDeletableObject {
     this.program = program;
   }
 
+  public Enrollment(
+      Program program, TrackedEntity trackedEntity, OrganisationUnit organisationUnit) {
+    this.program = program;
+    this.trackedEntity = trackedEntity;
+    this.organisationUnit = organisationUnit;
+  }
+
   @Override
   public void setAutoFields() {
     super.setAutoFields();
