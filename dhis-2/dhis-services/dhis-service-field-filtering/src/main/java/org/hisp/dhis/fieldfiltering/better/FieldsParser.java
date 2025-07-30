@@ -64,21 +64,22 @@ public class FieldsParser {
           isExclusion = false;
         }
       } else if (input.charAt(i) == '[' || input.charAt(i) == '(') {
-        if (inField) {
-          String parent = parseField(input, fieldStart, i);
-          if (isExclusion) {
-            stack.peek().excludes(parent);
-          } else {
-            stack.peek().includes(parent);
-          }
-
-          stack.push(stack.peek().getOrCreateChild(parent));
-          inField = false;
-          isExclusion = false;
+        if (!inField) { // fields=[value] is ignored, ideally we would reject this
+          throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
         }
+
+        String parent = parseField(input, fieldStart, i);
+        if (isExclusion) {
+          stack.peek().excludes(parent);
+        } else {
+          stack.peek().includes(parent);
+        }
+
+        stack.push(stack.peek().getOrCreateChild(parent));
+        inField = false;
+        isExclusion = false;
       } else if (input.charAt(i) == ']' || input.charAt(i) == ')') {
-        if (stack.size() <= 1
-            && !stack.peek().isEmpty()) { // fields=[value] is ignored, ideally we would reject this
+        if (stack.size() == 1) {
           throw new IllegalArgumentException("Unbalanced parens/brackets in input: " + input);
         }
 

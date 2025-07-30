@@ -115,13 +115,18 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         // failing with an NPE in the current parser
         "dataValues,!dataValues",
         "!dataValues,dataValues",
-        "[value]",
+        // TODO(ivo): this is a bug IMHO opening a block without a field
+        // http://localhost:8080/api/organisationUnits?pageSize=1&fields=[id]
+        // I get empty objects. I would reject this in 42.
+        //          "[value]",
         "event,!dataValues,*",
         "dataValues[!value]",
         "dataValues, ,dataValues[!value], ",
         "dataValues,dataValues[!value,value)",
         "dataValues,dataValues[value]",
         "*,dataValues[value]",
+        "dataValues[value]",
+        "dataValues[value",
         "dataValues[dataElement,!value]",
         "event,*,dataValues[!value]",
         "event,dataValues[dataElement,value]",

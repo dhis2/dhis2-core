@@ -30,6 +30,7 @@
 package org.hisp.dhis.fieldfiltering.better;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -277,10 +278,6 @@ class FieldsParserTest {
         List.of(new ExpectField(false, "group"), new ExpectField(true, "group.code")), fieldPaths);
   }
 
-  // TODO(ivo): this is a bug IMHO opening a group without a field
-  // http://localhost:8080/api/organisationUnits?pageSize=1&fields=[id]
-  // I get empty objects
-
   // TODO(ivo) this is a bug IMHO as it leads to an HTTP 500 instead of 400
   @Test
   void bugInCurrentParserUnbalancedClosingParen() {
@@ -291,13 +288,33 @@ class FieldsParserTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "]", ")",
-        "group[name]]", "group[name))",
+        // TODO old parser ignores this, I think this should be invalid
+        "[value]"
+      })
+  void betterParserFailsOnBlockWithoutName(String input) {
+    Exception exception =
+        assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
+
+    assertContains("Block must have a field name", exception.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
         // TODO old parser throws EmptyStackException which leads to a 500 error
-        "group[name],id]", "group[name],id)",
+        "]",
+        ")",
+        "group[name]]",
+        "group[group[name)]),code",
+        "group[name))",
+        "group[name],id]",
+        "group[name],id)",
       })
   void betterParserFailsOnUnbalancedClosingParen(String input) {
-    assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
+    Exception exception =
+        assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
+
+    assertContains("Unbalanced", exception.getMessage());
   }
 
   // TODO(ivo) add test for negating presets which is ignored so leads to preset inclusion, add test
@@ -425,15 +442,6 @@ class FieldsParserTest {
   // TODO(ivo) presets: org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets does rely on the
   // schema. Make a provision for this that allows passing in a Map<String, Set<String>> presets
   // into the parser.
-  // :all should be a preset mapped to * (maybe a default preset that users of the parser cannot
-  // override)
-  // on the other hand FieldPreset is a static mapping of presets to fields. Why do we still need
-  // the schema then? Is it due to his approach of computing all paths of an object instead of only
-  // what we need to know?
-  // TODO(ivo) only used by metadata: fields=parent on orgUnits only shows the parent.id and
-  // fields=parent[:all] shows all. This is done by the FieldFilterService, the FieldFilterParser
-  // only parses the presets without expanding them.
-  // fields
   // TODO(ivo) support transformers: I think I first need to investigate all their intricacies and
   // what a
   // more efficient way is for Jackson
