@@ -74,6 +74,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -366,7 +367,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
     manager.delete(r);
-    TrackerEvent to = r.getTo().getEvent();
+    SingleEvent to = r.getTo().getSingleEvent();
 
     JsonList<JsonRelationship> rels =
         GET(
@@ -410,7 +411,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
     RelationshipItem relItem = from.getRelationshipItems().iterator().next();
     Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
-    TrackerEvent to = r.getTo().getEvent();
+    SingleEvent to = r.getTo().getSingleEvent();
 
     JsonList<JsonRelationship> rels =
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
@@ -1409,7 +1410,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   private void assertTrackedEntityWithinRelationship(
-      TrackerEvent expected, JsonRelationshipItem json) {
+      SingleEvent expected, JsonRelationshipItem json) {
     JsonRelationshipItem.JsonEvent jsonEvent = json.getEvent();
     assertFalse(jsonEvent.isEmpty(), "event should not be empty");
     assertEquals(expected.getUid(), jsonEvent.getEvent());

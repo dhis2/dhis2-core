@@ -111,7 +111,7 @@ public class RouteService {
 
   private WebClient webClient;
 
-  private static final Set<String> ALLOWED_REQUEST_HEADERS =
+  protected static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
           "accept",
           "accept-encoding",
@@ -119,6 +119,7 @@ public class RouteService {
           "x-requested-with",
           "user-agent",
           "cache-control",
+          "content-type",
           "if-match",
           "if-modified-since",
           "if-none-match",

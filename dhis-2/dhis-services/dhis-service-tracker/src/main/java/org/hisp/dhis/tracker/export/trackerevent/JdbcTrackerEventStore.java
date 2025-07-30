@@ -122,7 +122,7 @@ class JdbcTrackerEventStore {
        userinfo.username as note_user_username,\
        userinfo.firstname as note_user_firstname,\
        userinfo.surname as note_user_surname\
-       from event_notes evn\
+       from trackerevent_notes evn\
        inner join note n\
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";

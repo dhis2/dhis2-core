@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.util;
+package org.hisp.dhis.user;
 
-import java.util.Objects;
+import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.relationship.RelationshipKey;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 
+/** Constants related to users. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class RelationshipKeySupport {
+public final class UserConstants {
+  public static final Pattern BCRYPT_PATTERN =
+      Pattern.compile("\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
 
-  public static boolean hasRelationshipKey(
-      Relationship relationship, RelationshipType relationshipType) {
-    return ObjectUtils.allNotNull(relationshipType, relationship.getFrom(), relationship.getTo());
-  }
+  public static final String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
-  private static RelationshipKey.RelationshipItemKey getRelationshipItemKey(
-      RelationshipItem relationshipItem) {
-    if (Objects.nonNull(relationshipItem)) {
-      return RelationshipKey.RelationshipItemKey.builder()
-          .trackedEntity(relationshipItem.getTrackedEntity())
-          .enrollment(relationshipItem.getEnrollment())
-          .trackerEvent(relationshipItem.getEvent())
-          .singleEvent(relationshipItem.getEvent())
-          .build();
-    }
-    throw new IllegalStateException("Unable to determine uid for relationship item");
-  }
+  public static final String RESTORE_PATH = "/dhis-web-login/index.html#/";
 
-  public static RelationshipKey getRelationshipKey(
-      Relationship relationship, RelationshipType relationshipType) {
-    return RelationshipKey.of(
-        relationshipType.getUid(),
-        getRelationshipItemKey(relationship.getFrom()),
-        getRelationshipItemKey(relationship.getTo()));
-  }
+  public static final String TBD_NAME = "(TBD)";
+
+  public static final String DEFAULT_APPLICATION_TITLE = "DHIS2";
+
+  public static final String RECAPTCHA_VERIFY_URL =
+      "https://www.google.com/recaptcha/api/siteverify";
+
+  public static final int LOGIN_MAX_FAILED_ATTEMPTS = 4;
+
+  public static final int RECOVERY_LOCKOUT_MINS = 15;
+
+  public static final int RECOVER_MAX_ATTEMPTS = 5;
+
+  public static final int MAX_LENGTH_NAME = 80;
+
+  public static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 }

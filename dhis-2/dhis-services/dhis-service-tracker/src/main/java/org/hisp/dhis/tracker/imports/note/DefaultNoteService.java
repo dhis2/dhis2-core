@@ -79,12 +79,13 @@ public class DefaultNoteService implements NoteService {
     Program program = getProgramFromEvent(event);
     if (program.isRegistration()) {
       trackerEventService.getEvent(event);
+      validateNote(note);
+      noteStore.saveTrackerEventNote(event, note, CurrentUserUtil.getCurrentUserDetails());
     } else {
       singleEventService.getEvent(event);
+      validateNote(note);
+      noteStore.saveSingleEventNote(event, note, CurrentUserUtil.getCurrentUserDetails());
     }
-    validateNote(note);
-
-    noteStore.saveEventNote(event, note, CurrentUserUtil.getCurrentUserDetails());
   }
 
   private void validateNote(Note note) throws BadRequestException {
