@@ -79,16 +79,14 @@ docker compose up
 ### Launch with Doris
 
 ```sh
-DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 docker compose -f docker-compose.yml -f docker-compose.doris.yml up
+DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 \
+docker compose -f docker-compose.yml -f docker-compose.doris.yml up
 ```
 
-> **Note**
-> 
-> Remember, when running compose up with multiple compose files, you need to pass the same files to compose down, e.g.
-> ```
-> docker compose -f docker-compose.yml -f docker-compose.doris.yml down
-> ```
-
+When running compose up with multiple compose files, you need to pass the same files to compose down, e.g.
+```
+docker compose -f docker-compose.yml -f docker-compose.doris.yml down
+```
 
 ### Synchronization between DHIS2 instances
 
