@@ -51,6 +51,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -148,7 +149,9 @@ class TrackerIdentifierCollectorTest {
     Map<Class<?>, Set<String>> ids = collector.collect(trackerObjects);
 
     assertNotNull(ids);
-    assertContainsOnly(Set.of(event.getUid().getValue()), ids.get(Event.class));
+    assertContainsOnly(
+        Set.of(event.getUid().getValue()), ids.get(org.hisp.dhis.program.TrackerEvent.class));
+    assertContainsOnly(Set.of(event.getUid().getValue()), ids.get(SingleEvent.class));
     assertContainsOnly(Set.of(event.getEnrollment().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
     assertContainsOnly(Set.of("flowers"), ids.get(ProgramStage.class));
@@ -196,7 +199,11 @@ class TrackerIdentifierCollectorTest {
     assertContainsOnly(Set.of("sunshine"), ids.get(RelationshipType.class));
     assertContainsOnly(
         Set.of(relationship.getFrom().getEnrollment().getValue()), ids.get(Enrollment.class));
-    assertContainsOnly(Set.of(relationship.getTo().getEvent().getValue()), ids.get(Event.class));
+    assertContainsOnly(
+        Set.of(relationship.getTo().getEvent().getValue()),
+        ids.get(org.hisp.dhis.program.TrackerEvent.class));
+    assertContainsOnly(
+        Set.of(relationship.getTo().getEvent().getValue()), ids.get(SingleEvent.class));
   }
 
   private UID uid() {

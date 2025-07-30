@@ -25,8 +25,12 @@
                      column="enrollmentid"
                      foreign-key="fk_relationshipitem_programinstanceid"/>
 
-        <many-to-one name="event" class="org.hisp.dhis.program.TrackerEvent"
-                     column="eventid"
-                     foreign-key="fk_relationshipitem_programstageinstanceid"/>
+        <many-to-one name="trackerEvent" class="org.hisp.dhis.program.TrackerEvent"
+                     column="trackereventid"
+                     foreign-key="fk_relationshipitem_trackereventid"/>
+
+        <many-to-one name="singleEvent" class="org.hisp.dhis.program.SingleEvent"
+                     column="singleeventid"
+                     foreign-key="fk_relationshipitem_singleeventid"/>
     </class>
 </hibernate-mapping>

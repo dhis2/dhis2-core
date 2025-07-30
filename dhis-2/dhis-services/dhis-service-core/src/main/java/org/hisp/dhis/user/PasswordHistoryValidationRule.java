@@ -40,7 +40,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @RequiredArgsConstructor
 public class PasswordHistoryValidationRule implements PasswordValidationRule {
-  private static final int HISTORY_LIMIT = 24;
+  private static final int PW_HISTORY_LIMIT = 24;
 
   private final PasswordEncoder passwordEncoder;
 
@@ -57,12 +57,12 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule {
     List<String> previousPasswords = user.getPreviousPasswords();
     for (String encodedPassword : previousPasswords) {
       if (passwordEncoder.matches(credentials.getPassword(), encodedPassword)) {
-        return new PasswordValidationResult(PASSWORD_ALREADY_USED_BEFORE, HISTORY_LIMIT);
+        return new PasswordValidationResult(PASSWORD_ALREADY_USED_BEFORE, PW_HISTORY_LIMIT);
       }
     }
 
-    // remove one item from password history if size exceeds HISTORY_LIMIT
-    if (previousPasswords.size() == HISTORY_LIMIT) {
+    // Remove one item from password history if size exceeds HISTORY_LIMIT
+    if (previousPasswords.size() == PW_HISTORY_LIMIT) {
       previousPasswords.remove(0);
       userService.updateUser(user);
     }
