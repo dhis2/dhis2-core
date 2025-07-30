@@ -259,7 +259,7 @@ class FieldsParserTest {
 
   // TODO(ivo) better API compared to current:
   // /api/organisationUnits?fields=dataSets[name],!dataSets will return an empty object
-  // The better parser clearly shows that negation has precedence over inclusion.
+  // The better parser clearly shows that excluding has precedence over inclusion.
   // The current parser does not as exclusions are handled in the FieldFilterService. This makes it
   // confusion to read the expectations of the current parser.
   @Test
@@ -317,12 +317,10 @@ class FieldsParserTest {
     assertContains("Unbalanced", exception.getMessage());
   }
 
-  // TODO(ivo) add test for negating presets which is ignored so leads to preset inclusion, add test
-  // here and in serializer test
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "*", ":all",
+        "*", ":all", "!*", "!:all",
       })
   void testBetterParserGivenRootStar(String input) {
     Fields fields = FieldsParser.parse(input);
@@ -341,6 +339,8 @@ class FieldsParserTest {
       strings = {
         "*,!code",
         ":all,!code",
+        "!*,!code",
+        "!:all,!code",
       })
   void testBetterParserGivenRootStarAndExclusion(String input) {
     Fields fields = FieldsParser.parse(input);
@@ -359,6 +359,8 @@ class FieldsParserTest {
       strings = {
         "*,group[!code]",
         ":all,group[!code]",
+        "!*,group[!code]",
+        "!:all,group[!code]",
       })
   void testBetterParserGivenRootStarAndChildExclusion(String input) {
     Fields fields = FieldsParser.parse(input);
@@ -378,6 +380,8 @@ class FieldsParserTest {
       strings = {
         "code,group[*,!code],names[list[*]],names[list[!first]]",
         "code,group[:all,!code],names[list[:all]],names[list[!first]]",
+        "code,group[!*,!code],names[list[!*]],names[list[!first]]",
+        "code,group[!:all,!code],names[list[!:all]],names[list[!first]]",
       })
   void testBetterParserGivenChildStarAndChildExclusion(String input) {
     Fields fields = FieldsParser.parse(input);

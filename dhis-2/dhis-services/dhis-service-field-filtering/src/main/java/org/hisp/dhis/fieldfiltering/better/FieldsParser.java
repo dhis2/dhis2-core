@@ -42,6 +42,8 @@ public class FieldsParser {
 
   private static final String TOKEN_PRESET_ALL = ":all";
 
+  private static final Set<String> UNEXCLUDABLE_TOKENS = Set.of(TOKEN_ALL, TOKEN_PRESET_ALL);
+
   public static Fields parse(String input) {
     FieldsAccumulator root = new FieldsAccumulator();
     Stack<FieldsAccumulator> stack = new Stack<>();
@@ -54,11 +56,7 @@ public class FieldsParser {
     while (i < input.length()) {
       if ((input.charAt(i) == ',')) {
         if (inField) {
-          if (isExclusion) {
-            stack.peek().excludes(parseField(input, fieldStart, i));
-          } else {
-            stack.peek().includes(parseField(input, fieldStart, i));
-          }
+          stack.peek().add(parseField(input, fieldStart, i), isExclusion);
 
           inField = false;
           isExclusion = false;
@@ -69,11 +67,7 @@ public class FieldsParser {
         }
 
         String parent = parseField(input, fieldStart, i);
-        if (isExclusion) {
-          stack.peek().excludes(parent);
-        } else {
-          stack.peek().includes(parent);
-        }
+        stack.peek().add(parent, isExclusion);
 
         stack.push(stack.peek().getOrCreateChild(parent));
         inField = false;
@@ -84,11 +78,7 @@ public class FieldsParser {
         }
 
         if (inField) {
-          if (isExclusion) {
-            stack.peek().excludes(parseField(input, fieldStart, i));
-          } else {
-            stack.peek().includes(parseField(input, fieldStart, i));
-          }
+          stack.peek().add(parseField(input, fieldStart, i), isExclusion);
         }
 
         stack.pop();
@@ -107,11 +97,7 @@ public class FieldsParser {
     }
 
     if (inField) {
-      if (isExclusion) {
-        stack.peek().excludes(parseField(input, fieldStart, i));
-      } else {
-        stack.peek().includes(parseField(input, fieldStart, i));
-      }
+      stack.peek().add(parseField(input, fieldStart, i), isExclusion);
     }
     // this is where we should check if stack size is > 1 and err as a bracket/paren
     // fields="group[name" was not closed
@@ -194,16 +180,12 @@ public class FieldsParser {
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
 
-    boolean isEmpty() {
-      return includes.isEmpty() && excludes.isEmpty();
-    }
-
-    void includes(String field) {
-      this.includes.add(field);
-    }
-
-    void excludes(String field) {
-      this.excludes.add(field);
+    void add(String field, boolean isExclusion) {
+      if (!isExclusion || UNEXCLUDABLE_TOKENS.contains(field)) {
+        this.includes.add(field);
+      } else {
+        this.excludes.add(field);
+      }
     }
 
     FieldsAccumulator getOrCreateChild(String field) {

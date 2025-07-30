@@ -104,6 +104,9 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
       strings = {
         "*",
         ":all",
+        "!*",
+        "!:all", // TODO(ivo) should this be invalid? the exclusion is ignored and the preset is
+        // applied
         "!event",
         "event,dataValues",
         "event,!dataValues",
@@ -132,6 +135,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "event,dataValues[dataElement,value]",
         "event,dataValues[*,!storedBy]",
         "event,dataValues[:all,!storedBy]",
+        "event,dataValues[!*,!storedBy]",
+        "event,dataValues[!:all,!storedBy]",
         "*,!enrollment",
         "relationships,relationships[from]",
         "relationships[!from]",
