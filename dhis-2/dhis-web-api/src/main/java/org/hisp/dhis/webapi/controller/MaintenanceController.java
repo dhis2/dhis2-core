@@ -34,9 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
-
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
@@ -63,6 +61,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -89,7 +88,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/analyticsTablesClear",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public void clearAnalyticsTables() {
     analyticsTableService.forEach(AnalyticsTableService::dropTables);
   }
@@ -97,7 +96,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/analyticsTablesAnalyze",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage analyzeAnalyticsTables() {
     analyticsTableService.forEach(AnalyticsTableService::analyzeAnalyticsTables);
     return WebMessageUtils.ok();
@@ -106,7 +105,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/expiredInvitationsClear",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage clearExpiredInvitations() {
     maintenanceService.removeExpiredInvitations();
     return WebMessageUtils.ok();
@@ -115,7 +114,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/ouPathsUpdate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage forceUpdatePaths() {
     organisationUnitService.forceUpdatePaths();
     return WebMessageUtils.ok();
@@ -124,7 +123,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/periodPruning",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage prunePeriods() {
     maintenanceService.prunePeriods();
     return WebMessageUtils.ok();
@@ -133,7 +132,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/zeroDataValueRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage deleteZeroDataValues() {
     maintenanceService.deleteZeroDataValues();
     return WebMessageUtils.ok();
@@ -142,7 +141,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedDataValueRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage deleteSoftDeletedDataValues() {
     maintenanceService.deleteSoftDeletedDataValues();
     return WebMessageUtils.ok();
@@ -151,7 +150,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedEventRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage deleteSoftDeletedEvents() {
     maintenanceService.deleteSoftDeletedEvents();
     return WebMessageUtils.ok();
@@ -160,7 +159,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedRelationshipRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage deleteSoftDeletedRelationships() {
     maintenanceService.deleteSoftDeletedRelationships();
     return WebMessageUtils.ok();
@@ -169,7 +168,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedEnrollmentRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage deleteSoftDeletedEnrollments() {
     maintenanceService.deleteSoftDeletedEnrollments();
     return WebMessageUtils.ok();
@@ -178,7 +177,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedTrackedEntityRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage deleteSoftDeletedTrackedEntities() {
     maintenanceService.deleteSoftDeletedTrackedEntities();
     return WebMessageUtils.ok();
@@ -187,7 +186,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/sqlViewsCreate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage createSqlViews() {
     resourceTableService.createAllSqlViews(JobProgress.noop());
     return WebMessageUtils.ok();
@@ -196,7 +195,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/sqlViewsDrop",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage dropSqlViews() {
     resourceTableService.dropAllSqlViews(JobProgress.noop());
     return WebMessageUtils.ok();
@@ -205,7 +204,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/categoryOptionComboUpdate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage updateCategoryOptionCombos() {
     categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
     return WebMessageUtils.ok();
@@ -229,7 +228,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = {"/cacheClear", "/cache"},
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   public WebMessage clearCache() {
     maintenanceService.clearApplicationCaches();
     return WebMessageUtils.ok();
@@ -277,8 +276,8 @@ public class MaintenanceController {
   }
 
   @RequestMapping(method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void performMaintenance(
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage performMaintenance(
       @RequestParam(required = false) boolean analyticsTableClear,
       @RequestParam(required = false) boolean analyticsTableAnalyze,
       @RequestParam(required = false) boolean expiredInvitationsClear,
@@ -363,5 +362,7 @@ public class MaintenanceController {
     if (resourceTableUpdate) {
       analyticsTableGenerator.generateResourceTables(JobProgress.noop());
     }
+    
+    return WebMessageUtils.ok();
   }
 }
