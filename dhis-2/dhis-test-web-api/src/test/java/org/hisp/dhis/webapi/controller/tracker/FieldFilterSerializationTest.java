@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.hisp.dhis.webapi.fields.FieldsConverter.PRESETS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,9 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -88,25 +87,23 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   // a JSON string
   @Autowired private ObjectMapper objectMapper;
 
-  @Autowired private SchemaService schemaService;
-  @Autowired private SchemaFieldsPresets schemaFieldsPresets;
-
   // use the filter ObjectMapper from JacksonObjectMapperConfig to serialize, filter and transform
   // an Object to a JSON string
   @Qualifier("jsonFilterMapper")
   @Autowired
   private ObjectMapper filterMapper;
 
+  @Autowired private SchemaService schemaService;
+  @Autowired private SchemaFieldsPresets schemaFieldsPresets;
+
   private List<Event> events;
 
   private Schema eventSchema;
-  private Map<String, Function<Schema, Set<String>>> presets;
 
   @BeforeAll
   void setUp() {
     events = createEvents(2);
     eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
-    presets = Map.of(":all", FieldsParser.PRESET_ALL, ":simple", SchemaFieldsPresets::mapSimple);
   }
 
   // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are. If we
@@ -182,7 +179,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   private String serializeUsingBetterFilter(List<Event> events, String fieldsInput)
       throws JsonProcessingException {
     Fields fields =
-        FieldsParser.parse(fieldsInput, eventSchema, schemaFieldsPresets::getSchema, presets);
+        FieldsParser.parse(fieldsInput, eventSchema, schemaFieldsPresets::getSchema, PRESETS);
     return filterMapper
         .writer()
         .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)

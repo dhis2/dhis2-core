@@ -61,7 +61,7 @@ public class FieldsConverter implements ConditionalGenericConverter {
   private final SchemaFieldsPresets schemaFieldsPresets;
 
   // TODO(ivo) this is now tracker specific
-  private final Map<String, Function<Schema, Set<String>>> presets =
+  public static final Map<String, Function<Schema, Set<String>>> PRESETS =
       Map.of(":all", FieldsParser.PRESET_ALL, ":simple", SchemaFieldsPresets::mapSimple);
 
   @Override
@@ -100,7 +100,7 @@ public class FieldsConverter implements ConditionalGenericConverter {
     Class<?> entityClass = getEntityTypeFromRequestContext();
     if (entityClass != null) {
       Schema schema = schemaService.getDynamicSchema(entityClass);
-      return FieldsParser.parse(fieldsString, schema, schemaFieldsPresets::getSchema, presets);
+      return FieldsParser.parse(fieldsString, schema, schemaFieldsPresets::getSchema, PRESETS);
     }
 
     return FieldsParser.parse(fieldsString);
