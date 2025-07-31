@@ -32,6 +32,8 @@ The software is open source and released under the [BSD 3-Clause license](https:
 
 The following guides runs DHIS2 with [Docker Compose](https://docs.docker.com/compose/install/).
 
+Our Docker Compose file depends on various environment variables. See .env.example for a list of these. You can copy the file to .env and set the variables there.
+
 A database dump is downloaded automatically the first time you start DHIS2. If you switch between different DHIS2 versions or need to download a different DB dump, you will need to remove the shared volume `db-dump` with the following command.
 
 ```sh
