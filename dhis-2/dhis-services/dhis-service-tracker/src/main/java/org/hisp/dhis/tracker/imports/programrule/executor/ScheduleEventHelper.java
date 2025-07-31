@@ -31,9 +31,6 @@ package org.hisp.dhis.tracker.imports.programrule.executor;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -92,9 +89,7 @@ public class ScheduleEventHelper {
     scheduledEvent.setScheduledAt(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
     scheduledEvent.setStatus(EventStatus.SCHEDULE);
 
-    List<TrackerEvent> trackerEvents = new ArrayList<>(bundle.getTrackerEvents());
-    trackerEvents.add(scheduledEvent);
-    bundle.setTrackerEvents(Collections.unmodifiableList(trackerEvents));
+    bundle.getProgramRuleScheduledEvents().put(programStage, scheduledEvent);
     bundle.setStrategy(scheduledEvent, TrackerImportStrategy.CREATE);
 
     return Optional.of(
