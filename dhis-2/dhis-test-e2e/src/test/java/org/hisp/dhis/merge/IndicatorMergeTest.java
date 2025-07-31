@@ -39,6 +39,9 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.merge.IndicatorTypeMergeTest.createIndicator;
 import static org.hisp.dhis.merge.IndicatorTypeMergeTest.createIndicatorType;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
@@ -49,8 +52,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 class IndicatorMergeTest extends ApiTest {
 
