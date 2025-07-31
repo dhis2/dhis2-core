@@ -34,7 +34,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
@@ -61,7 +63,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
