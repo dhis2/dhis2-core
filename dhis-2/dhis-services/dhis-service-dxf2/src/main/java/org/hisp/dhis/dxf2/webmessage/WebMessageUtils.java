@@ -30,7 +30,6 @@
 package org.hisp.dhis.dxf2.webmessage;
 
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
-
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Supplier;
@@ -61,26 +60,8 @@ import org.springframework.http.HttpStatus;
  */
 public final class WebMessageUtils {
 
-  public static WebMessage createWebMessage(Status status, HttpStatus httpStatus) {
-    return new WebMessage(status, httpStatus);
-  }
-
-  public static WebMessage createWebMessage(String message, Status status, HttpStatus httpStatus) {
-    return new WebMessage(status, httpStatus).setMessage(message);
-  }
-
-  public static WebMessage createWebMessage(
-      String message, Status status, HttpStatus httpStatus, ErrorCode errorCode) {
-    return new WebMessage(status, httpStatus).setErrorCode(errorCode).setMessage(message);
-  }
-
-  public static WebMessage createWebMessage(
-      String message, String devMessage, Status status, HttpStatus httpStatus) {
-    return new WebMessage(status, httpStatus).setMessage(message).setDevMessage(devMessage);
-  }
-
   public static WebMessage ok() {
-    return ok(null);
+    return createWebMessage(Status.OK, HttpStatus.OK);
   }
 
   public static WebMessage ok(String message) {
@@ -166,6 +147,24 @@ public final class WebMessageUtils {
 
   public static WebMessage unauthorized(String message) {
     return createWebMessage(message, Status.ERROR, HttpStatus.UNAUTHORIZED);
+  }
+
+  public static WebMessage createWebMessage(Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus);
+  }
+
+  public static WebMessage createWebMessage(String message, Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus).setMessage(message);
+  }
+
+  public static WebMessage createWebMessage(
+      String message, Status status, HttpStatus httpStatus, ErrorCode errorCode) {
+    return new WebMessage(status, httpStatus).setErrorCode(errorCode).setMessage(message);
+  }
+
+  public static WebMessage createWebMessage(
+      String message, String devMessage, Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus).setMessage(message).setDevMessage(devMessage);
   }
 
   public static WebMessage importSummary(ImportSummary importSummary) {

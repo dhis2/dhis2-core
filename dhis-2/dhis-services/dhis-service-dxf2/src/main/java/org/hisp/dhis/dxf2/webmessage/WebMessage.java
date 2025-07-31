@@ -29,13 +29,7 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
 import javax.annotation.Nonnull;
-import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.ImportTypeSummary;
@@ -59,6 +53,12 @@ import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.hisp.dhis.webmessage.WebResponse;
 import org.springframework.http.HttpStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -115,9 +115,15 @@ public class WebMessage extends WebResponse {
   // Constructors
   // -------------------------------------------------------------------------
 
-  /** Only for deserialisation */
+  /** Constructor. Only for deserialisation. */
   public WebMessage() {}
 
+  /**
+   * Constructor.
+   * 
+   * @param status the {@link Status}.
+   * @param httpStatus the {@link HttpStatus}.
+   */
   public WebMessage(Status status, HttpStatus httpStatus) {
     this.status = status;
     this.httpStatus = httpStatus;
