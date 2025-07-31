@@ -141,7 +141,7 @@ class DataValueSetImportValidatorTest {
   @Test
   void testValidateDataSetIsAccessibleByUser() {
     // simulate that user does not have access:
-    when(aclService.canDataRead(any(User.class), any())).thenReturn(false);
+    when(aclService.canDataRead(any(UserDetails.class), any())).thenReturn(false);
     DataValueSet dataValueSet = createEmptyDataValueSet();
     ImportContext context = createMinimalImportContext(null).build();
     DataSetContext dataSetContext = createMinimalDataSetContext(dataValueSet).build();
@@ -155,7 +155,7 @@ class DataValueSetImportValidatorTest {
 
   @Test
   void testValidateDataSetOrgUnitExists() {
-    when(aclService.canDataRead(any(User.class), any())).thenReturn(true);
+    when(aclService.canDataRead(any(UserDetails.class), any())).thenReturn(true);
     DataValueSet dataValueSet = new DataValueSet();
     dataValueSet.setOrgUnit(CodeGenerator.generateUid());
     ImportContext context = createMinimalImportContext(null).build();
@@ -171,7 +171,7 @@ class DataValueSetImportValidatorTest {
 
   @Test
   void testValidateDataSetAttrOptionComboExists() {
-    when(aclService.canDataRead(any(User.class), any())).thenReturn(true);
+    when(aclService.canDataRead(any(UserDetails.class), any())).thenReturn(true);
     DataValueSet dataValueSet = new DataValueSet();
     dataValueSet.setAttributeOptionCombo(CodeGenerator.generateUid());
     ImportContext context = createMinimalImportContext(null).build();
@@ -907,6 +907,7 @@ class DataValueSetImportValidatorTest {
   }
 
   private void setupUserCanWriteCategoryOptions(boolean canWrite) {
-    when(aclService.canDataWrite(any(User.class), any(CategoryOption.class))).thenReturn(canWrite);
+    when(aclService.canDataWrite(any(UserDetails.class), any(CategoryOption.class)))
+        .thenReturn(canWrite);
   }
 }
