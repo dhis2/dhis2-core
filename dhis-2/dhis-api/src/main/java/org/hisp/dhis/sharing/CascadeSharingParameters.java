@@ -33,7 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 @Data
 @Builder
@@ -54,7 +54,7 @@ public class CascadeSharingParameters {
    */
   private boolean atomic = false;
 
-  private User user;
+  private UserDetails user;
 
   /** Report to be included in the api's response */
   private CascadeSharingReport report = new CascadeSharingReport();
