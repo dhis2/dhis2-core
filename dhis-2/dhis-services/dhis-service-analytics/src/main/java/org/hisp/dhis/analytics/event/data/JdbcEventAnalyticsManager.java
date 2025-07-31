@@ -524,7 +524,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // ---------------------------------------------------------------------
 
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-      sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+      if (StringUtils.isNotBlank(timeFieldSql)) {
+        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+      }
     }
 
     // ---------------------------------------------------------------------

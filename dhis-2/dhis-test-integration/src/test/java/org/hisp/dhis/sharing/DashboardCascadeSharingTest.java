@@ -51,6 +51,7 @@ import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -406,7 +407,11 @@ class DashboardCascadeSharingTest extends CascadeSharingTest {
     assertFalse(aclService.canRead(userA, mapA));
     CascadeSharingReport report =
         cascadeSharingService.cascadeSharing(
-            dashboard, CascadeSharingParameters.builder().atomic(true).user(userB).build());
+            dashboard,
+            CascadeSharingParameters.builder()
+                .atomic(true)
+                .user(UserDetails.fromUser(userB))
+                .build());
     assertEquals(1, report.getErrorReports().size());
     assertEquals(0, report.getUpdateObjects().size());
     assertFalse(aclService.canRead(userA, mapA));
@@ -438,7 +443,11 @@ class DashboardCascadeSharingTest extends CascadeSharingTest {
 
     CascadeSharingReport report =
         cascadeSharingService.cascadeSharing(
-            dashboard, CascadeSharingParameters.builder().atomic(false).user(userB).build());
+            dashboard,
+            CascadeSharingParameters.builder()
+                .atomic(false)
+                .user(UserDetails.fromUser(userB))
+                .build());
     assertEquals(1, report.getErrorReports().size());
     assertEquals(1, report.getUpdateObjects().size());
     assertTrue(aclService.canRead(userA, mapA));
