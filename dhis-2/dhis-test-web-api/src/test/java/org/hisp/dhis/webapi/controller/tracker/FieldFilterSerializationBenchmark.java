@@ -77,7 +77,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Fork(2)
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class FieldFilterSerializationBenchmark extends H2ControllerIntegrationTestBase {
+public class FieldFilterSerializationBenchmark extends H2ControllerIntegrationTestBase {
 
   @Param({"10", "100", "1000"})
   private int eventCount;
