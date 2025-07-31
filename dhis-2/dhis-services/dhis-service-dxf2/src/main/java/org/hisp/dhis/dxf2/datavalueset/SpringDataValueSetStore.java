@@ -56,7 +56,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
@@ -70,13 +69,9 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.dxf2.datavalueset.DataValueSetStore")
 public class SpringDataValueSetStore implements DataValueSetStore {
   private final JdbcTemplate jdbcTemplate;
-  private final UserService userService;
 
-  public SpringDataValueSetStore(UserService userService, JdbcTemplate jdbcTemplate) {
-    checkNotNull(userService);
+  public SpringDataValueSetStore(JdbcTemplate jdbcTemplate) {
     checkNotNull(jdbcTemplate);
-
-    this.userService = userService;
     this.jdbcTemplate = jdbcTemplate;
   }
 
