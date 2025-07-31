@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.webapi.fields;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,8 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.better.Fields;
-import org.hisp.dhis.fieldfiltering.better.FieldsConverter;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,10 +48,22 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+// TODO(ivo) double check this tests the new capabilities
+// and test error cases
 class FieldsConverterTest {
   private MockMvc mockMvc;
 
   record ExpectField(boolean included, String dotPath) {}
+
+  static class TestEntity {
+    private String deleted;
+    private List<TestAttribute> attributes;
+  }
+
+  static class TestAttribute {
+    private String attribute;
+    private String value;
+  }
 
   @BeforeEach
   void setUp() {
@@ -64,7 +76,7 @@ class FieldsConverterTest {
 
     DefaultFormattingConversionService formattingConversionService =
         new DefaultFormattingConversionService();
-    formattingConversionService.addConverter(new FieldsConverter());
+    formattingConversionService.addConverter(new FieldsConverter(null, null));
     mockMvc =
         MockMvcBuilders.standaloneSetup(new FieldsController(expected))
             .setConversionService(formattingConversionService)
@@ -100,12 +112,13 @@ class FieldsConverterTest {
   }
 
   @Controller
+  @OpenApi.EntityType(TestEntity.class)
   @RequiredArgsConstructor
   private static class FieldsController extends CrudControllerAdvice {
     private final List<ExpectField> expected;
 
     @GetMapping("/test-fields")
-    public @ResponseBody String get(@RequestParam Fields fields) {
+    public @ResponseBody String get(@RequestParam(defaultValue = "*") Fields fields) {
       assertFields(expected, fields);
       return "";
     }
