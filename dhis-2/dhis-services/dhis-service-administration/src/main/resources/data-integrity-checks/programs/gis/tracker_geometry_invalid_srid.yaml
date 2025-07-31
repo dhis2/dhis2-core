@@ -62,7 +62,6 @@ introduction: >
 details_id_type: tracker
 recommendation: >-
   To correct this issue, you should update the SRID of the affected records to 4326 using the following SQL queries.
-  Make sure the geometries are already in the correct coordinate system (WGS 84); this operation only resets the SRID metadata:
   
     UPDATE trackedentity
     SET geometry = ST_SetSRID(geometry, 4326)
