@@ -68,15 +68,17 @@ public final class EventAnalyticsColumn {
    * Returns a list of {@link AnalyticsTableColumn}.
    *
    * @param sqlBuilder the {@link SqlBuilder}.
+   * @param useCentroidForOuGeometry if true, use the Postgis's ST_Centroid function for OU geometry
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  public static List<AnalyticsTableColumn> getColumns(SqlBuilder sqlBuilder) {
+  public static List<AnalyticsTableColumn> getColumns(
+      SqlBuilder sqlBuilder, boolean useCentroidForOuGeometry) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(getCommonColumns(sqlBuilder));
     columns.addAll(getJsonColumns(sqlBuilder));
 
     if (sqlBuilder.supportsGeospatialData()) {
-      columns.addAll(getGeometryColumns(sqlBuilder));
+      columns.addAll(getGeometryColumns(useCentroidForOuGeometry));
     }
 
     return columns;
@@ -209,10 +211,9 @@ public final class EventAnalyticsColumn {
   /**
    * Returns a list of geometry {@link AnalyticsTableColumn}.
    *
-   * @param sqlBuilder the {@link SqlBuilder}.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private static List<AnalyticsTableColumn> getGeometryColumns(SqlBuilder sqlBuilder) {
+  private static List<AnalyticsTableColumn> getGeometryColumns(boolean useCentroid) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.EVENT_GEOMETRY_COLUMN_NAME)
@@ -223,7 +224,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.OU_GEOMETRY_COLUMN_NAME)
             .dataType(GEOMETRY)
-            .selectExpression("ou.geometry")
+            .selectExpression(useCentroid ? "ST_Centroid(ou.geometry)" : "ou.geometry")
             .indexType(IndexType.GIST)
             .build(),
         AnalyticsTableColumn.builder()

@@ -229,7 +229,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         // element d5 also creates a Name column
         .addColumn(
             deE.getUid() + "_name", TEXT, toSelectExpression(aliasF, deE.getUid()), Skip.SKIP)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
         .build()
         .verify();
   }

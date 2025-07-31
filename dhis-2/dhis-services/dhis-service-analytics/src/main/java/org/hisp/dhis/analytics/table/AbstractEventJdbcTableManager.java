@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.analytics.AnalyticsStringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
@@ -264,20 +265,40 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @return an org unit select query.
    */
   private String getOrgUnitSelectSubquery(TrackedEntityAttribute attribute, String column) {
-    String format =
-        """
-        (select ou.${column} from ${organisationunit} ou \
-        where ou.uid = ${columnExpression}) as ${alias}""";
     String valueColumn = getValueColumn(attribute);
     String columnExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     String alias = quote(attribute.getUid());
 
-    return replaceQualify(
-        format,
+    return buildOrgUnitSelectSubquery(column, columnExpression, alias);
+  }
+
+  private String buildOrgUnitSelectSubquery(String column, String columnExpression, String alias) {
+    String baseFormat =
+        "(select ou.${column} from ${organisationunit} ou where ou.uid = ${columnExpression})";
+    String finalFormat = wrapWithCentroid(column, baseFormat) + " as ${alias}";
+
+    return AnalyticsStringUtils.replaceQualify(
+        sqlBuilder,
+        finalFormat,
         Map.of(
             "column", column,
             "columnExpression", columnExpression,
             "alias", alias));
+  }
+
+  /**
+   * Wraps the base query format with ST_Centroid if the column is geometry and the current settings
+   * allow it.
+   *
+   * @param column the column name.
+   * @param baseFormat the base SQL format string.
+   * @return the format string, optionally wrapped with ST_Centroid.
+   */
+  private String wrapWithCentroid(String column, String baseFormat) {
+    return column.equals("geometry")
+            && this.settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics()
+        ? "ST_Centroid(" + baseFormat + ")"
+        : baseFormat;
   }
 
   /**
