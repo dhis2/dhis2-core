@@ -42,6 +42,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.HandlerMapping;
@@ -52,6 +53,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * request context to determine controller's {@link @OpenApi.EntityType} annotation to fetch the
  * {@link Schema}. The {@link Schema} is needed to expand presets into fields.
  */
+@Component
 @RequiredArgsConstructor
 public class FieldsConverter implements ConditionalGenericConverter {
 

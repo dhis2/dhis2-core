@@ -90,7 +90,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(Event.class)
+@OpenApi.EntityType(org.hisp.dhis.webapi.controller.tracker.view.Event.class)
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/events")

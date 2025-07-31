@@ -111,7 +111,7 @@ public class FilteredPageHttpMessageConverter
   private void writePageToStream(FilteredPage<?> filteredPage, OutputStream outputStream)
       throws IOException {
     Page<?> page = filteredPage.page();
-    Fields pageFields = createPageFields(page.getKey(), filteredPage.fields());
+    Fields pageFields = createPageFields(filteredPage.fields());
 
     ObjectWriter writer =
         filterMapper.writer().withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, pageFields);
@@ -128,13 +128,16 @@ public class FilteredPageHttpMessageConverter
    * actually an object with a {@code pager} and an {@code events} collection. We thus need to
    * pretend the user sent {@code fields=events[event,orgUnit]}.
    */
-  private Fields createPageFields(String key, Fields fields) {
+  private Fields createPageFields(Fields fields) {
     // TODO(ivo) improve the Fields API to make this easier. Do I also need to worry about safety?
     // or not as the effective computation is done internally so "odd/invalid" fields can be put in
     // but will be handled correctly
     // Include pager field with all sub-properties
     // Include dynamic key (e.g., "events") with user's filtering predicate
     return new Fields(
-        false, Set.of("pager", key), Map.of("pager", Fields.all(), key, fields), Map.of());
+        false,
+        Set.of("pager", "getDynamicItems"),
+        Map.of("pager", Fields.all(), "getDynamicItems", fields),
+        Map.of());
   }
 }
