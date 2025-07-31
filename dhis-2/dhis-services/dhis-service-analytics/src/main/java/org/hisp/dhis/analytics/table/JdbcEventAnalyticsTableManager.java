@@ -752,9 +752,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   private boolean useCentroidForOuColumns() {
-    System.out.println(
-        "CENTROID SETTINGS: "
-            + settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics());
     return settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics();
   }
 }
