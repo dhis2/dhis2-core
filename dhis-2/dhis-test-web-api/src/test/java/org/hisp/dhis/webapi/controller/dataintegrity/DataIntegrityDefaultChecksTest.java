@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityCheck;
@@ -61,7 +60,7 @@ class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTes
     assertTrue(slowCheck.getIsSlow());
 
     // Be sure we start with a clean slate
-    assertStatus(HttpStatus.NO_CONTENT, POST("/maintenance?cacheClear=true"));
+    assertStatus(HttpStatus.OK, POST("/maintenance?cacheClear=true"));
 
     // Trigger the default checks
     assertStatus(HttpStatus.OK, POST("/dataIntegrity/summary"));
