@@ -48,6 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -67,14 +68,16 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    if (event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus()) {
-      reporter.addError(event, E1050, event);
-      return;
+    if (event instanceof TrackerEvent trackerEvent) {
+      if (trackerEvent.getScheduledAt() == null
+          && EventStatus.SCHEDULE == trackerEvent.getStatus()) {
+        reporter.addError(trackerEvent, E1050, trackerEvent);
+        return;
+      }
+      validateExpiryPeriodType(reporter, trackerEvent, program);
     }
-
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
     validateCompletionExpiryDays(reporter, event, program, bundle.getUser());
-    validateExpiryPeriodType(reporter, event, program);
   }
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(Reporter reporter, Event event) {
@@ -97,7 +100,7 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private void validateExpiryPeriodType(Reporter reporter, Event event, Program program) {
+  private void validateExpiryPeriodType(Reporter reporter, TrackerEvent event, Program program) {
     PeriodType periodType = program.getExpiryPeriodType();
 
     if (periodType == null || program.getExpiryDays() == 0) {

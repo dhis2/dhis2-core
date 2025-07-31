@@ -37,6 +37,15 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.user.UserConstants.BCRYPT_PATTERN;
+import static org.hisp.dhis.user.UserConstants.DEFAULT_APPLICATION_TITLE;
+import static org.hisp.dhis.user.UserConstants.EMAIL_TOKEN_EXPIRY_MILLIS;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
+import static org.hisp.dhis.user.UserConstants.PW_NO_INTERNAL_LOGIN;
+import static org.hisp.dhis.user.UserConstants.RECAPTCHA_VERIFY_URL;
+import static org.hisp.dhis.user.UserConstants.RECOVER_MAX_ATTEMPTS;
+import static org.hisp.dhis.user.UserConstants.RESTORE_PATH;
+import static org.hisp.dhis.user.UserConstants.TBD_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -112,7 +121,6 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
-  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
@@ -473,13 +481,13 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups) {
-    return canAddOrUpdateUser(userGroups, getUserByUsername(CurrentUserUtil.getCurrentUsername()));
+    return canAddOrUpdateUser(userGroups, CurrentUserUtil.getCurrentUserDetails());
   }
 
   // TODO: MAS refactor to use user details instead of user
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
+  public boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser) {
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -611,7 +619,7 @@ public class DefaultUserService implements UserService {
     }
 
     if (user.isExternalAuth()) {
-      user.setPassword(UserService.PW_NO_INTERNAL_LOGIN);
+      user.setPassword(PW_NO_INTERNAL_LOGIN);
 
       return; // Set unusable, not-encoded password if external authentication
     }
@@ -625,7 +633,7 @@ public class DefaultUserService implements UserService {
     }
 
     // Encode and set password
-    Matcher matcher = UserService.BCRYPT_PATTERN.matcher(rawPassword);
+    Matcher matcher = BCRYPT_PATTERN.matcher(rawPassword);
     if (matcher.matches()) {
       throw new IllegalArgumentException(
           "Raw password looks like bcrypt encoded password, this is most likely a bug");
@@ -733,6 +741,7 @@ public class DefaultUserService implements UserService {
     return errors;
   }
 
+  // TODO: MAS. This needs refactoring, can be unnecessary expensive, can be moved to the DB
   private void checkIsInOrgUnitHierarchy(
       Set<OrganisationUnit> organisationUnits, UserDetails currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
@@ -912,6 +921,17 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsSafe(@Nonnull String userUid) {
+    User user = userStore.getByUid(userUid);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public UserDetails createUserDetails(User user) {
     if (user == null) {
       return null;
@@ -963,7 +983,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canCurrentUserCanModify(
-      User currentUser, User userToModify, Consumer<ErrorReport> errors) {
+      UserDetails currentUser, User userToModify, Consumer<ErrorReport> errors) {
     if (!aclService.canUpdate(currentUser, userToModify)) {
       errors.accept(
           new ErrorReport(

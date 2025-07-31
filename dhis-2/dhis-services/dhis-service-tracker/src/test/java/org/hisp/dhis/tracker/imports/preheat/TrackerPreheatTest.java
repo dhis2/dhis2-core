@@ -56,8 +56,8 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -394,9 +394,9 @@ class TrackerPreheatTest extends TestBase {
     UID uid = UID.generate();
     assertFalse(preheat.exists(TrackerType.EVENT, uid));
 
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setUid(uid.getValue());
-    preheat.putEvents(List.of(event));
+    preheat.putTrackerEvents(List.of(event));
 
     assertTrue(preheat.exists(TrackerType.EVENT, uid));
   }

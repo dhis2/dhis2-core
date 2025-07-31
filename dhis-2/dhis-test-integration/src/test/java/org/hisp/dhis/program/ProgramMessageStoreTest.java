@@ -82,7 +82,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   private ProgramMessageQueryParams params;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
   private ProgramMessage programMessageA;
   private ProgramMessage programMessageB;

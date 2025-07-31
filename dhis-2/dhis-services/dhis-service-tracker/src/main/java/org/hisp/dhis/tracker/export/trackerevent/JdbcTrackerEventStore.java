@@ -72,10 +72,10 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -122,7 +122,7 @@ class JdbcTrackerEventStore {
        userinfo.username as note_user_username,\
        userinfo.firstname as note_user_firstname,\
        userinfo.surname as note_user_surname\
-       from event_notes evn\
+       from trackerevent_notes evn\
        inner join note n\
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
@@ -178,8 +178,8 @@ class JdbcTrackerEventStore {
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
 
   /**
-   * Events can be ordered by given fields which correspond to fields on {@link Event}. Maps fields
-   * to DB columns.
+   * Events can be ordered by given fields which correspond to fields on {@link TrackerEvent}. Maps
+   * fields to DB columns.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
@@ -223,20 +223,21 @@ class JdbcTrackerEventStore {
 
   private final IdentifiableObjectManager manager;
 
-  public List<Event> getEvents(TrackerEventQueryParams queryParams) {
+  public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
 
-  public Page<Event> getEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
-    List<Event> events = fetchEvents(queryParams, pageParams);
+  public Page<TrackerEvent> getEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
+    List<TrackerEvent> events = fetchEvents(queryParams, pageParams);
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
-  private List<Event> fetchEvents(TrackerEventQueryParams queryParams, PageParams pageParams) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+  private List<TrackerEvent> fetchEvents(
+      TrackerEventQueryParams queryParams, PageParams pageParams) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, queryParams);
 
-    Map<String, Event> eventsByUid;
+    Map<String, TrackerEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
     } else {
@@ -244,7 +245,7 @@ class JdbcTrackerEventStore {
           new HashMap<>(
               pageParams.getPageSize() + 1); // get extra event to determine if there is a nextPage
     }
-    List<Event> events = new ArrayList<>();
+    List<TrackerEvent> events = new ArrayList<>();
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
     String sql = buildSql(queryParams, pageParams, sqlParameters, currentUser);
@@ -267,11 +268,11 @@ class JdbcTrackerEventStore {
 
             String eventUid = resultSet.getString(COLUMN_EVENT_UID);
 
-            Event event;
+            TrackerEvent event;
             if (eventsByUid.containsKey(eventUid)) {
               event = eventsByUid.get(eventUid);
             } else {
-              event = new Event();
+              event = new TrackerEvent();
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
@@ -499,7 +500,7 @@ class JdbcTrackerEventStore {
   }
 
   private long getEventCount(TrackerEventQueryParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, params);
 
     String sql;
@@ -540,7 +541,7 @@ class JdbcTrackerEventStore {
       TrackerEventQueryParams queryParams,
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
-      User user) {
+      UserDetails user) {
     StringBuilder sqlBuilder = new StringBuilder("select *");
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
@@ -640,7 +641,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getEventSelectQuery(
-      TrackerEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      TrackerEventQueryParams params,
+      MapSqlParameterSource mapSqlParameterSource,
+      UserDetails user) {
     SqlHelper hlp = new SqlHelper(true);
 
     StringBuilder selectBuilder =
@@ -768,7 +771,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private StringBuilder getFromWhereClause(
       TrackerEventQueryParams params,
       MapSqlParameterSource sqlParameters,
-      User user,
+      UserDetails user,
       SqlHelper hlp) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
@@ -1099,7 +1102,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *   <li>A user must have access to all COs of the events COC to have access to an event.
    * </ul>
    */
-  private String getCategoryOptionComboQuery(User user) {
+  private String getCategoryOptionComboQuery(UserDetails user) {
     String joinCondition =
 """
  inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,\
@@ -1123,7 +1126,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
+                  "co.sharing", user, AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 
@@ -1170,7 +1173,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private boolean isNotSuperUser(User user) {
+  private boolean isNotSuperUser(UserDetails user) {
     return user != null && !user.isSuper();
   }
 
@@ -1184,7 +1187,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private void setAccessiblePrograms(User user, TrackerEventQueryParams params) {
+  private void setAccessiblePrograms(UserDetails user, TrackerEventQueryParams params) {
     if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));

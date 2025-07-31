@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -75,7 +75,7 @@ class StrategyPreProcessorTest extends TestBase {
 
   private static final UID NEW_RELATIONSHIP_UID = UID.generate();
 
-  private Event dbEvent;
+  private TrackerEvent dbEvent;
 
   private Enrollment preheatEnrollment;
 
@@ -117,7 +117,7 @@ class StrategyPreProcessorTest extends TestBase {
     enrollment.setEnrollment(ENROLLMENT_UID);
     newEnrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
     newEnrollment.setEnrollment(NEW_ENROLLMENT_UID);
-    dbEvent = new Event();
+    dbEvent = new TrackerEvent();
     dbEvent.setUid(EVENT_UID.getValue());
     event = org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder().event(EVENT_UID).build();
     newEvent =
@@ -130,7 +130,7 @@ class StrategyPreProcessorTest extends TestBase {
     newPayloadRelationship.setRelationship(NEW_RELATIONSHIP_UID);
     Mockito.when(preheat.getTrackedEntity(TE_UID)).thenReturn(te);
     Mockito.when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(preheatEnrollment);
-    Mockito.when(preheat.getEvent(EVENT_UID)).thenReturn(dbEvent);
+    Mockito.when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(dbEvent);
     Mockito.when(preheat.getRelationship(RELATIONSHIP_UID)).thenReturn(relationship);
   }
 

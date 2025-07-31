@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.util;
 
-import org.hisp.dhis.program.Event;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import javax.annotation.Nullable;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      ProgramStageMapper.class,
-      OrganisationUnitMapper.class,
-      EnrollmentMapper.class
-    })
-public interface EventMapper extends PreheatMapper<Event> {
-  EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
+public class ExceptionUtils {
 
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "user")
-  @Mapping(target = "enrollment")
-  @Mapping(target = "programStage")
-  @Mapping(target = "status")
-  @Mapping(target = "organisationUnit")
-  @Mapping(target = "created")
-  @Mapping(target = "eventDataValues")
-  @Mapping(target = "notes")
-  @Mapping(target = "scheduledDate")
-  @Mapping(target = "occurredDate")
-  @Mapping(target = "completedDate")
-  @Mapping(target = "completedBy")
-  @Mapping(target = "deleted")
-  @Mapping(target = "createdByUserInfo")
-  @Mapping(target = "lastUpdatedByUserInfo")
-  @Mapping(target = "geometry")
-  Event map(Event event);
+  /**
+   * Some exceptions (e.g. Database) can have deeply-nested root causes and may have a very vague
+   * top-level message, which may not be very helpful to log/return. This method checks if a more
+   * detailed, user-friendly message is available and returns it if found.
+   *
+   * <p>For example, instead of returning: <b><i>org.hibernate.exception.GenericJDBCException: could
+   * not execute statement</i></b> , potentially returning: <b><i>"PSQLException: ERROR: cannot
+   * execute UPDATE in a read-only transaction"</i></b>.
+   *
+   * @param ex exception to check
+   * @return detailed message or original exception message
+   */
+  @Nullable
+  public static String getHelpfulMessage(Exception ex) {
+    Throwable cause = ex.getCause();
+
+    if (cause != null) {
+      Throwable rootCause = cause.getCause();
+      if (rootCause != null) {
+        return rootCause.getMessage();
+      }
+    }
+    return ex.getMessage();
+  }
 }

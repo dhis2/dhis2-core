@@ -59,11 +59,11 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -143,7 +143,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollment;
 
-  private Event event;
+  private TrackerEvent event;
 
   private TrackedEntity trackedEntity;
 
@@ -198,13 +198,17 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         enrollment.getTrackedEntity(), enrollment.getProgram(), organisationUnit);
-    event = new Event(enrollment, stageA);
+    event = new TrackerEvent();
+    event.setEnrollment(enrollment);
+    event.setProgramStage(stageA);
     event.setUid(UID.generate().getValue());
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
     event.setOccurredDate(new Date());
     event.setAttributeOptionCombo(coA);
-    Event eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
+    TrackerEvent eventWithTeAssociation = new TrackerEvent();
+    eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
+    eventWithTeAssociation.setProgramStage(stageA);
     eventWithTeAssociation.setUid(UID.generate().getValue());
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
@@ -346,7 +350,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
-    Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
@@ -374,7 +380,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
-    Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
@@ -383,7 +391,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     UID idA = UID.of(eventA);
     Relationship r = new Relationship();
     RelationshipItem rItem1 = new RelationshipItem();
-    rItem1.setEvent(eventA);
+    rItem1.setTrackerEvent(eventA);
     RelationshipItem rItem2 = new RelationshipItem();
     rItem2.setTrackedEntity(trackedEntity);
     r.setFrom(rItem1);

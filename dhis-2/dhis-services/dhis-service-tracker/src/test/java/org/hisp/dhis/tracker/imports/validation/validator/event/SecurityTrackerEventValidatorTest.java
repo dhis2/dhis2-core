@@ -52,10 +52,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -230,9 +230,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
@@ -262,9 +262,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
@@ -327,9 +327,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(false);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
@@ -393,9 +393,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(false);
@@ -459,9 +459,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataRead(userDetails, trackedEntityType)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
@@ -530,9 +530,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
 
@@ -566,10 +566,10 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
 
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
 
@@ -601,8 +601,8 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    TrackerEvent preheatEvent = getEvent();
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(getEnrollment(null));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
@@ -647,8 +647,8 @@ class SecurityTrackerEventValidatorTest extends TestBase {
 
     when(bundle.getStrategy(event)).thenReturn(strategy);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    Event preheatEvent = getEvent();
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    TrackerEvent preheatEvent = getEvent();
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(null);
     when(bundle.findEnrollmentByUid(event.getEnrollment())).thenReturn(Optional.of(enrollment));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
@@ -685,10 +685,10 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setOrganisationUnit(captureScopeOrgUnit);
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getProgramOwner())
         .thenReturn(
             Collections.singletonMap(
@@ -733,10 +733,10 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     UserDetails userDetails = changeCompletedEventAuthorisedUser();
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
 
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
 
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
@@ -763,10 +763,10 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     UserDetails userDetails = userWithOrgUnitAndCompleteEventAuthorization();
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
 
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
 
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
@@ -832,9 +832,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     when(bundle.getStrategy(event)).thenReturn(strategy);
     UserDetails userDetails = changeCompletedEventAuthorisedUser();
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
@@ -866,9 +866,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     when(bundle.getStrategy(event)).thenReturn(strategy);
     UserDetails userDetails = changeCompletedEventAuthorisedUser();
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
@@ -893,9 +893,9 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     Enrollment enrollment = getEnrollment(enrollmentUid);
-    Event preheatEvent = getEvent();
+    TrackerEvent preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -929,8 +929,8 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     return enrollment;
   }
 
-  private Event getEvent() {
-    Event event = new Event();
+  private TrackerEvent getEvent() {
+    TrackerEvent event = new TrackerEvent();
     event.setProgramStage(programStage);
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(getEnrollment(UID.generate()));

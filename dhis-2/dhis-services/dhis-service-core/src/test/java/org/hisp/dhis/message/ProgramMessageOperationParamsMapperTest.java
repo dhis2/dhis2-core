@@ -43,9 +43,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessageOperationParamMapper;
 import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
@@ -75,7 +75,7 @@ class ProgramMessageOperationParamsMapperTest {
 
   private User user;
   private Enrollment enrollment;
-  private Event event;
+  private TrackerEvent event;
   private Program program;
 
   @BeforeEach
@@ -93,12 +93,12 @@ class ProgramMessageOperationParamsMapperTest {
     enrollment.setUid(ENROLLMENT.getValue());
     enrollment.setProgram(program);
 
-    event = new Event();
+    event = new TrackerEvent();
     event.setUid(EVENT.getValue());
     event.setEnrollment(enrollment);
 
     when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
-    when(manager.get(eq(Event.class), anyString())).thenReturn(event);
+    when(manager.get(eq(TrackerEvent.class), anyString())).thenReturn(event);
     when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
   }
 
@@ -139,7 +139,7 @@ class ProgramMessageOperationParamsMapperTest {
   @Test
   void shouldFailWhenEventNotFound() {
     UID invalidEvent = UID.generate();
-    when(manager.get(eq(Event.class), anyString())).thenReturn(null);
+    when(manager.get(eq(TrackerEvent.class), anyString())).thenReturn(null);
 
     NotFoundException exception =
         assertThrows(
@@ -147,7 +147,7 @@ class ProgramMessageOperationParamsMapperTest {
             () -> subject.map(ProgramMessageOperationParams.builder().event(invalidEvent).build()));
 
     assertStartsWith(
-        String.format("%s: %s does not exist.", Event.class.getSimpleName(), invalidEvent),
+        String.format("%s: %s does not exist.", TrackerEvent.class.getSimpleName(), invalidEvent),
         exception.getMessage());
   }
 

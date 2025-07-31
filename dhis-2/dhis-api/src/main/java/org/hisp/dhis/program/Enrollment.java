@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -83,7 +84,7 @@ public class Enrollment extends SoftDeletableObject {
 
   @AuditAttribute private Program program;
 
-  private Set<Event> events = new HashSet<>();
+  private Set<TrackerEvent> events = new HashSet<>();
 
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
@@ -129,28 +130,6 @@ public class Enrollment extends SoftDeletableObject {
     }
 
     lastUpdatedAtClient = lastUpdated;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /**
-   * Updated the bidirectional associations between this Enrollment and the given tracked entity and
-   * program.
-   *
-   * @param trackedEntity the tracked entity to enroll
-   * @param program the program to enroll the tracked entity in
-   */
-  public void enrollTrackedEntity(TrackedEntity trackedEntity, Program program) {
-    setTrackedEntity(trackedEntity);
-    trackedEntity.getEnrollments().add(this);
-
-    setProgram(program);
-  }
-
-  public boolean isCompleted() {
-    return this.status == EnrollmentStatus.COMPLETED;
   }
 
   // -------------------------------------------------------------------------
@@ -303,11 +282,11 @@ public class Enrollment extends SoftDeletableObject {
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "events", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "event", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Event> getEvents() {
+  public Set<TrackerEvent> getEvents() {
     return events;
   }
 
-  public void setEvents(Set<Event> events) {
+  public void setEvents(Set<TrackerEvent> events) {
     this.events = events;
   }
 
@@ -386,40 +365,21 @@ public class Enrollment extends SoftDeletableObject {
 
   @Override
   public String toString() {
-    return "Enrollment{"
-        + "id="
-        + id
-        + ", uid='"
-        + uid
-        + '\''
-        + ", code='"
-        + code
-        + '\''
-        + ", name='"
-        + name
-        + '\''
-        + ", created="
-        + created
-        + ", lastUpdated="
-        + lastUpdated
-        + ", status="
-        + status
-        + ", organisationUnit="
-        + (organisationUnit != null ? organisationUnit.getUid() : "null")
-        + ", incidentDate="
-        + occurredDate
-        + ", enrollmentDate="
-        + enrollmentDate
-        + ", trackedEntity="
-        + (trackedEntity != null ? trackedEntity.getUid() : "null")
-        + ", program="
-        + program
-        + ", deleted="
-        + isDeleted()
-        + ", storedBy='"
-        + storedBy
-        + '\''
-        + '}';
+    return MoreObjects.toStringHelper(this)
+        .add("id", id)
+        .add("uid", uid)
+        .add("code", code)
+        .add("name", name)
+        .add("created", created)
+        .add("lastUpdated", lastUpdated)
+        .add("organisationUnit", organisationUnit)
+        .add("occurredDate", occurredDate)
+        .add("enrollmentDate", enrollmentDate)
+        .add("trackedEntity", trackedEntity)
+        .add("program", program)
+        .add("deleted", deleted)
+        .add("storedBy", storedBy)
+        .toString();
   }
 
   public static final BiFunction<Enrollment, Program, Enrollment> copyOf =

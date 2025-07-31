@@ -157,7 +157,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -167,6 +166,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
@@ -1697,21 +1697,16 @@ public abstract class TestBase {
 
   public static Enrollment createEnrollment(
       Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(program, te, organisationUnit);
+    Enrollment enrollment = new Enrollment(new Date(), new Date(), te, program);
     enrollment.setAutoFields();
-
-    enrollment.setProgram(program);
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-
     return enrollment;
   }
 
-  public static Event createEvent(
+  public static TrackerEvent createEvent(
       ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
-    Event event = new Event();
+    TrackerEvent event = new TrackerEvent();
     event.setAutoFields();
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
@@ -1722,12 +1717,12 @@ public abstract class TestBase {
     return event;
   }
 
-  public static Event createEvent(
+  public static TrackerEvent createEvent(
       Enrollment enrollment,
       ProgramStage programStage,
       OrganisationUnit organisationUnit,
       Set<EventDataValue> dataValues) {
-    Event event = createEvent(programStage, enrollment, organisationUnit);
+    TrackerEvent event = createEvent(programStage, enrollment, organisationUnit);
     event.setOccurredDate(new Date());
     event.setStatus(EventStatus.ACTIVE);
     event.setEventDataValues(dataValues);
@@ -2060,13 +2055,13 @@ public abstract class TestBase {
   }
 
   public static Relationship createTeToEventRelationship(
-      TrackedEntity from, Event to, RelationshipType relationshipType) {
+      TrackedEntity from, TrackerEvent to, RelationshipType relationshipType) {
     Relationship relationship = new Relationship();
     RelationshipItem riFrom = new RelationshipItem();
     RelationshipItem riTo = new RelationshipItem();
 
     riFrom.setTrackedEntity(from);
-    riTo.setEvent(to);
+    riTo.setTrackerEvent(to);
 
     relationship.setRelationshipType(relationshipType);
     relationship.setFrom(riFrom);

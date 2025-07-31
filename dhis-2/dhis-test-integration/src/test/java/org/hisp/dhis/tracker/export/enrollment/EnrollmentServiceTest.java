@@ -62,10 +62,10 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -104,7 +104,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  private final Date incidentDate = new Date();
+  private final Date occurredDate = new Date();
 
   private User admin;
 
@@ -124,7 +124,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollmentGrandchildA;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
   private TrackedEntity trackedEntityA;
 
@@ -267,7 +267,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.save(relationshipA, false);
 
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
-    eventA.setOccurredDate(incidentDate);
+    eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(to));
@@ -329,7 +329,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollment);
     assertContainsOnly(
-        List.of(eventA.getUid()), enrollment.getEvents().stream().map(Event::getUid).toList());
+        List.of(eventA.getUid()),
+        enrollment.getEvents().stream().map(TrackerEvent::getUid).toList());
   }
 
   @Test

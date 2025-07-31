@@ -27,27 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Comparator;
-import java.util.Date;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Chau Thu Tran
- */
-public class EventVisitDateComparator implements Comparator<Event> {
-  @Override
-  public int compare(Event event1, Event event2) {
-    Date d1 =
-        (event1.getOccurredDate() != null) ? event1.getOccurredDate() : event1.getScheduledDate();
-    Date d2 =
-        (event2.getOccurredDate() != null) ? event2.getOccurredDate() : event2.getScheduledDate();
-    if (d1.before(d2)) {
-      return -1;
-    } else if (d1.after(d2)) {
-      return 1;
-    }
-    return 0;
-  }
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      ProgramStageMapper.class,
+      OrganisationUnitMapper.class,
+      EnrollmentMapper.class
+    })
+public interface TrackerEventMapper extends PreheatMapper<TrackerEvent> {
+  TrackerEventMapper INSTANCE = Mappers.getMapper(TrackerEventMapper.class);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "user")
+  @Mapping(target = "enrollment")
+  @Mapping(target = "programStage")
+  @Mapping(target = "status")
+  @Mapping(target = "organisationUnit")
+  @Mapping(target = "created")
+  @Mapping(target = "eventDataValues")
+  @Mapping(target = "notes")
+  @Mapping(target = "scheduledDate")
+  @Mapping(target = "occurredDate")
+  @Mapping(target = "completedDate")
+  @Mapping(target = "completedBy")
+  @Mapping(target = "deleted")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "geometry")
+  TrackerEvent map(TrackerEvent event);
 }
