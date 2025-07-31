@@ -113,6 +113,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
       ValidationResult result =
           jobProgress.nonNullStagePostCondition(
               jobProgress.runStage(() -> validationService.validateRuleEngine(trackerBundle)));
+
       trackerBundle.setTrackedEntities(result.getTrackedEntities());
       trackerBundle.setEnrollments(result.getEnrollments());
       trackerBundle.setEvents(result.getEvents());
