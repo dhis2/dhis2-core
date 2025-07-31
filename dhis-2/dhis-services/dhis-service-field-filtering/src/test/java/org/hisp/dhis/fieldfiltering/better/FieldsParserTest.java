@@ -39,12 +39,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.schema.Schema;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -239,9 +242,8 @@ class FieldsParserTest {
                 new ExpectField(true, "group"),
                 new ExpectField(true, "group.code"))),
 
-        // based on testParseWithPresetAndExclude without the presets as I will need to test them
-        // separately
-        // FieldFilterParser.parse("id,name,!code,:owner,group[:owner,:all,!code,hello]");
+        // based on testParseWithPresetAndExclude without the presets which are tested separately
+        // below
         Arguments.of(
             "code,id,name,!code,group[!code,hello,code]",
             List.of(
@@ -317,13 +319,20 @@ class FieldsParserTest {
     assertContains("Unbalanced", exception.getMessage());
   }
 
+  private static final Map<String, Function<Schema, Set<String>>> PRESETS =
+      Map.of(":all", FieldsParser.PRESET_ALL);
+
+  record Any() {}
+  ;
+
   @ParameterizedTest
   @ValueSource(
       strings = {
         "*", ":all", "!*", "!:all",
       })
   void testBetterParserGivenRootStar(String input) {
-    Fields fields = FieldsParser.parse(input);
+    Schema schema = new Schema(Any.class, "any", "any");
+    Fields fields = FieldsParser.parse(input, schema, (s, f) -> schema, PRESETS);
 
     assertFields(
         List.of(
@@ -343,7 +352,8 @@ class FieldsParserTest {
         "!:all,!code",
       })
   void testBetterParserGivenRootStarAndExclusion(String input) {
-    Fields fields = FieldsParser.parse(input);
+    Schema schema = new Schema(Any.class, "any", "any");
+    Fields fields = FieldsParser.parse(input, schema, (s, f) -> schema, PRESETS);
 
     assertFields(
         List.of(
@@ -363,7 +373,8 @@ class FieldsParserTest {
         "!:all,group[!code]",
       })
   void testBetterParserGivenRootStarAndChildExclusion(String input) {
-    Fields fields = FieldsParser.parse(input);
+    Schema schema = new Schema(Any.class, "any", "any");
+    Fields fields = FieldsParser.parse(input, schema, (s, f) -> schema, PRESETS);
 
     assertFields(
         List.of(
@@ -384,7 +395,8 @@ class FieldsParserTest {
         "code,group[!:all,!code],names[list[!:all]],names[list[!first]]",
       })
   void testBetterParserGivenChildStarAndChildExclusion(String input) {
-    Fields fields = FieldsParser.parse(input);
+    Schema schema = new Schema(Any.class, "any", "any");
+    Fields fields = FieldsParser.parse(input, schema, (s, f) -> schema, PRESETS);
 
     assertFields(
         List.of(

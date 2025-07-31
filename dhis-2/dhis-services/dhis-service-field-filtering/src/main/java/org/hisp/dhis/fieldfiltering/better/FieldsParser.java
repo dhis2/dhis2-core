@@ -45,7 +45,6 @@ public class FieldsParser {
   /** Fields token that includes all fields. */
   private static final String TOKEN_ALL = "*";
 
-  // TODO(ivo) adjust my FieldsParserTests to test the new parse function and pass in PRESET_ALL
   public static final Function<Schema, Set<String>> PRESET_ALL = (s) -> Set.of(TOKEN_ALL);
 
   /**
