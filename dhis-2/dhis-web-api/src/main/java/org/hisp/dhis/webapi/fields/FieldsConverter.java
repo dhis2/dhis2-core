@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.better.Fields;
@@ -48,10 +49,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.HandlerMapping;
 
 /**
- * Spring converter that converts field filter strings to {@link Fields} with schema context. Works
- * for both {@code @RequestParam} Fields and properties within {@code @ModelAttribute} objects. Uses
- * request context to determine controller's {@link @OpenApi.EntityType} annotation to fetch the
- * {@link Schema}. The {@link Schema} is needed to expand presets into fields.
+ * Spring converter that converts field filter strings to {@link Fields}. Works for both
+ * {@code @RequestParam} and properties within {@code @ModelAttribute} objects. Uses request context
+ * to determine the controller's {@link @OpenApi.EntityType} annotation to fetch the {@link Schema}.
+ * The {@link Schema} is needed to expand presets into fields.
  */
 @Component
 @RequiredArgsConstructor
@@ -60,7 +61,6 @@ public class FieldsConverter implements ConditionalGenericConverter {
   private final SchemaService schemaService;
   private final SchemaFieldsPresets schemaFieldsPresets;
 
-  // TODO(ivo) this is now tracker specific
   public static final Map<String, Function<Schema, Set<String>>> PRESETS =
       Map.of(":all", FieldsParser.PRESET_ALL, ":simple", SchemaFieldsPresets::mapSimple);
 
@@ -97,43 +97,45 @@ public class FieldsConverter implements ConditionalGenericConverter {
       fieldsString = (String) source;
     }
 
-    Class<?> entityClass = getEntityTypeFromRequestContext();
-    if (entityClass != null) {
-      Schema schema = schemaService.getDynamicSchema(entityClass);
-      return FieldsParser.parse(fieldsString, schema, schemaFieldsPresets::getSchema, PRESETS);
+    Class<?> entityClass = getOpenApiEntityType();
+    if (entityClass == null) {
+      throw new IllegalArgumentException(
+          "Cannot convert fields without @OpenApi.EntityType annotation on controller. "
+              + "Ensure controller has @OpenApi.EntityType annotation and conversion happens within web request context.");
+    }
+    Schema schema = schemaService.getDynamicSchema(entityClass);
+    if (schema == null) {
+      throw new IllegalArgumentException(
+          "No schema found for entity class "
+              + entityClass.getSimpleName()
+              + ". Ensure the entity class is properly configured in the schema service.");
     }
 
-    return FieldsParser.parse(fieldsString);
+    return FieldsParser.parse(fieldsString, schema, schemaFieldsPresets::getSchema, PRESETS);
   }
 
-  // TODO(ivo) error handling
-  private Class<?> getEntityTypeFromRequestContext() {
-    try {
-      RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-      if (requestAttributes == null) {
-        return null;
-      }
-
-      Object handler =
-          requestAttributes.getAttribute(
-              HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
-
-      if (handler == null) {
-        return null;
-      }
-
-      Class<?> controllerClass;
-      if (handler instanceof org.springframework.web.method.HandlerMethod) {
-        controllerClass = ((org.springframework.web.method.HandlerMethod) handler).getBeanType();
-      } else {
-        controllerClass = handler.getClass();
-      }
-
-      OpenApi.EntityType entityType = controllerClass.getAnnotation(OpenApi.EntityType.class);
-      return entityType != null ? entityType.value() : null;
-
-    } catch (Exception e) {
+  @Nullable
+  private Class<?> getOpenApiEntityType() {
+    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+    if (requestAttributes == null) {
       return null;
     }
+
+    Object handler =
+        requestAttributes.getAttribute(
+            HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+    if (handler == null) {
+      return null;
+    }
+
+    Class<?> controllerClass;
+    if (handler instanceof org.springframework.web.method.HandlerMethod) {
+      controllerClass = ((org.springframework.web.method.HandlerMethod) handler).getBeanType();
+    } else {
+      controllerClass = handler.getClass();
+    }
+
+    OpenApi.EntityType entityType = controllerClass.getAnnotation(OpenApi.EntityType.class);
+    return entityType != null ? entityType.value() : null;
   }
 }

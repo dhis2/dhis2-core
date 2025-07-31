@@ -45,12 +45,6 @@ import org.springframework.stereotype.Component;
 public class SchemaFieldsPresets {
   private final SchemaService schemaService;
 
-  // TODO(ivo) Spring setup, rethink how we currently use the FieldFilterService as if I get this we
-  // are and have to parse the fields twice?
-  // I need to be careful with :all as right now I moved it out of the default parse(String). So the
-  // simple parse diverges from the schema aware one.
-  //  HibernateProxyUtils.getRealClass(firstObject)
-  //  Schema schema = schemaService.getDynamicSchema(root);
   @Nonnull
   public static Set<String> mapSimple(@Nonnull Schema schema) {
     return schema.getProperties().stream()

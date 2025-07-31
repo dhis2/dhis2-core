@@ -48,22 +48,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-// TODO(ivo) double check this tests the new capabilities
-// and test error cases
+/** Tests {@link FieldsConverter} handles repeated {@code fields} request parameters correctly. */
 class FieldsConverterTest {
   private MockMvc mockMvc;
 
   record ExpectField(boolean included, String dotPath) {}
 
-  static class TestEntity {
-    private String deleted;
-    private List<TestAttribute> attributes;
-  }
-
-  static class TestAttribute {
-    private String attribute;
-    private String value;
-  }
+  static class TestEntity {}
 
   @BeforeEach
   void setUp() {

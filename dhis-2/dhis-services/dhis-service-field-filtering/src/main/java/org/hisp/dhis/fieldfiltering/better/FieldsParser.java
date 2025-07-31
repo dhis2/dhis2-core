@@ -54,11 +54,12 @@ public class FieldsParser {
    *
    * <p>Use {@link #parse(String)} to parse fields without expanding presets.
    */
+  @Nonnull
   public static Fields parse(
-      String input,
-      Schema schema,
-      BiFunction<Schema, String, Schema> getSchema,
-      Map<String, Function<Schema, Set<String>>> presets) {
+      @Nonnull String input,
+      @Nonnull Schema schema,
+      @Nonnull BiFunction<Schema, String, Schema> getSchema,
+      @Nonnull Map<String, Function<Schema, Set<String>>> presets) {
     FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
     mapPresets(root, schema, getSchema, presets);
     return map(root, root.includes.contains(TOKEN_ALL));
@@ -71,7 +72,8 @@ public class FieldsParser {
    *
    * <p>Use {@link #parse(String, Schema, BiFunction, Map)} to register and expand presets.
    */
-  public static Fields parse(String input) {
+  @Nonnull
+  public static Fields parse(@Nonnull String input) {
     FieldsAccumulator root = parseFields(input, new HashSet<>());
     return map(root, root.includes.contains(TOKEN_ALL));
   }
