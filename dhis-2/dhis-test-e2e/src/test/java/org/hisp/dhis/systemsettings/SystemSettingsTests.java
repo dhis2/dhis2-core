@@ -33,10 +33,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -46,6 +42,9 @@ import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -93,14 +92,12 @@ class SystemSettingsTests extends ApiTest {
 
     systemSettingActions.post(
         APPLICATION_FOOTER_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
-    // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + DEFAULT_INTRO);
 
     systemSettingActions.post(
         APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
-    // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + ENGLISH_INTRO);
@@ -108,7 +105,6 @@ class SystemSettingsTests extends ApiTest {
 
     systemSettingActions.post(
         APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
-    // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + FRENCH_INTRO);

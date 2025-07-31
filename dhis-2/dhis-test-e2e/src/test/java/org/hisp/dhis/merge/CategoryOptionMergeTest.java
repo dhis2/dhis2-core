@@ -35,10 +35,6 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import io.restassured.response.ValidatableResponse;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
@@ -50,6 +46,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import io.restassured.response.ValidatableResponse;
 
 class CategoryOptionMergeTest extends ApiTest {
 
@@ -96,7 +95,7 @@ class CategoryOptionMergeTest extends ApiTest {
     // generate category option combos
     maintenanceApiActions
         .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
+        .validateStatus(200);
 
     // confirm state before merge
     ValidatableResponse preMergeState =
@@ -192,261 +191,262 @@ class CategoryOptionMergeTest extends ApiTest {
   }
 
   private String metadata() {
-    return """
-          {
-              "categoryOptions": [
-                  {
-                      "id": "UIDCatOpt1A",
-                      "name": "cat option 1A",
-                      "shortName": "cat option 1A",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid1"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt1B",
-                      "name": "cat option 1B",
-                      "shortName": "cat option 1B",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid1"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt2A",
-                      "name": "cat option 2A",
-                      "shortName": "cat option 2A",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid2"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt2B",
-                      "name": "cat option 2B",
-                      "shortName": "cat option 2B",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid2"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt3A",
-                      "name": "cat option 3A",
-                      "shortName": "cat option 3A",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid3"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt3B",
-                      "name": "cat option 3B",
-                      "shortName": "cat option 3B",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid3"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt4A",
-                      "name": "cat option 4A",
-                      "shortName": "cat option 4A",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid4"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatOpt4B",
-                      "name": "cat option 4B",
-                      "shortName": "cat option 4B",
-                      "organisationUnits": [
-                          {
-                              "id": "OrgUnitUid4"
-                          }
-                      ]
-                  }
-              ],
-              "categories": [
-                  {
-                      "id": "UIDCatego01",
-                      "name": "category 1",
-                      "shortName": "category 1",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt1A"
-                          },
-                          {
-                              "id": "UIDCatOpt1B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatego02",
-                      "name": "category 2",
-                      "shortName": "category 2",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt2A"
-                          },
-                          {
-                              "id": "UIDCatOpt2B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatego03",
-                      "name": "category 3",
-                      "shortName": "category 3",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt3A"
-                          },
-                          {
-                              "id": "UIDCatOpt3B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatego04",
-                      "name": "category 4",
-                      "shortName": "category 4",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt4A"
-                          },
-                          {
-                              "id": "UIDCatOpt4B"
-                          }
-                      ]
-                  }
-              ],
-              "organisationUnits": [
-                  {
-                      "id": "OrgUnitUid1",
-                      "name": "org 1",
-                      "shortName": "org 1",
-                      "openingDate": "2023-06-15"
-                  },
-                  {
-                      "id": "OrgUnitUid2",
-                      "name": "org 2",
-                      "shortName": "org 2",
-                      "openingDate": "2024-06-15"
-                  },
-                  {
-                      "id": "OrgUnitUid3",
-                      "name": "org 3",
-                      "shortName": "org 3",
-                      "openingDate": "2023-09-15"
-                  },
-                  {
-                      "id": "OrgUnitUid4",
-                      "name": "org 4",
-                      "shortName": "org 4",
-                      "openingDate": "2023-06-25"
-                  }
-              ],
-              "categoryOptionGroups": [
-                  {
-                      "id": "CatOptGrp01",
-                      "name": "co group 1",
-                      "shortName": "co group 1",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt1A"
-                          },
-                          {
-                              "id": "UIDCatOpt1B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptGrp02",
-                      "name": "co group 2",
-                      "shortName": "co group 2",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt2A"
-                          },
-                          {
-                              "id": "UIDCatOpt2B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptGrp03",
-                      "name": "co group 3",
-                      "shortName": "co group 3",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt3A"
-                          },
-                          {
-                              "id": "UIDCatOpt3B"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "CatOptGrp04",
-                      "name": "co group 4",
-                      "shortName": "co group 4",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categoryOptions": [
-                          {
-                              "id": "UIDCatOpt4A"
-                          },
-                          {
-                              "id": "UIDCatOpt4B"
-                          }
-                      ]
-                  }
-              ],
-              "categoryCombos": [
-                  {
-                      "id": "UIDCatCom01",
-                      "name": "category combo 1",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categories": [
-                          {
-                              "id": "UIDCatego01"
-                          },
-                          {
-                              "id": "UIDCatego02"
-                          }
-                      ]
-                  },
-                  {
-                      "id": "UIDCatCom02",
-                      "name": "category combo 2",
-                      "dataDimensionType": "DISAGGREGATION",
-                      "categories": [
-                          {
-                              "id": "UIDCatego03"
-                          },
-                          {
-                              "id": "UIDCatego04"
-                          }
-                      ]
-                  }
-              ]
-          }
-          """;
+    return 
+        """
+        {
+            "categoryOptions": [
+                {
+                    "id": "UIDCatOpt1A",
+                    "name": "cat option 1A",
+                    "shortName": "cat option 1A",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid1"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt1B",
+                    "name": "cat option 1B",
+                    "shortName": "cat option 1B",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid1"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt2A",
+                    "name": "cat option 2A",
+                    "shortName": "cat option 2A",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid2"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt2B",
+                    "name": "cat option 2B",
+                    "shortName": "cat option 2B",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid2"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt3A",
+                    "name": "cat option 3A",
+                    "shortName": "cat option 3A",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid3"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt3B",
+                    "name": "cat option 3B",
+                    "shortName": "cat option 3B",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid3"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt4A",
+                    "name": "cat option 4A",
+                    "shortName": "cat option 4A",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid4"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatOpt4B",
+                    "name": "cat option 4B",
+                    "shortName": "cat option 4B",
+                    "organisationUnits": [
+                        {
+                            "id": "OrgUnitUid4"
+                        }
+                    ]
+                }
+            ],
+            "categories": [
+                {
+                    "id": "UIDCatego01",
+                    "name": "category 1",
+                    "shortName": "category 1",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt1A"
+                        },
+                        {
+                            "id": "UIDCatOpt1B"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatego02",
+                    "name": "category 2",
+                    "shortName": "category 2",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt2A"
+                        },
+                        {
+                            "id": "UIDCatOpt2B"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatego03",
+                    "name": "category 3",
+                    "shortName": "category 3",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt3A"
+                        },
+                        {
+                            "id": "UIDCatOpt3B"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatego04",
+                    "name": "category 4",
+                    "shortName": "category 4",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt4A"
+                        },
+                        {
+                            "id": "UIDCatOpt4B"
+                        }
+                    ]
+                }
+            ],
+            "organisationUnits": [
+                {
+                    "id": "OrgUnitUid1",
+                    "name": "org 1",
+                    "shortName": "org 1",
+                    "openingDate": "2023-06-15"
+                },
+                {
+                    "id": "OrgUnitUid2",
+                    "name": "org 2",
+                    "shortName": "org 2",
+                    "openingDate": "2024-06-15"
+                },
+                {
+                    "id": "OrgUnitUid3",
+                    "name": "org 3",
+                    "shortName": "org 3",
+                    "openingDate": "2023-09-15"
+                },
+                {
+                    "id": "OrgUnitUid4",
+                    "name": "org 4",
+                    "shortName": "org 4",
+                    "openingDate": "2023-06-25"
+                }
+            ],
+            "categoryOptionGroups": [
+                {
+                    "id": "CatOptGrp01",
+                    "name": "co group 1",
+                    "shortName": "co group 1",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt1A"
+                        },
+                        {
+                            "id": "UIDCatOpt1B"
+                        }
+                    ]
+                },
+                {
+                    "id": "CatOptGrp02",
+                    "name": "co group 2",
+                    "shortName": "co group 2",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt2A"
+                        },
+                        {
+                            "id": "UIDCatOpt2B"
+                        }
+                    ]
+                },
+                {
+                    "id": "CatOptGrp03",
+                    "name": "co group 3",
+                    "shortName": "co group 3",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt3A"
+                        },
+                        {
+                            "id": "UIDCatOpt3B"
+                        }
+                    ]
+                },
+                {
+                    "id": "CatOptGrp04",
+                    "name": "co group 4",
+                    "shortName": "co group 4",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categoryOptions": [
+                        {
+                            "id": "UIDCatOpt4A"
+                        },
+                        {
+                            "id": "UIDCatOpt4B"
+                        }
+                    ]
+                }
+            ],
+            "categoryCombos": [
+                {
+                    "id": "UIDCatCom01",
+                    "name": "category combo 1",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categories": [
+                        {
+                            "id": "UIDCatego01"
+                        },
+                        {
+                            "id": "UIDCatego02"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatCom02",
+                    "name": "category combo 2",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categories": [
+                        {
+                            "id": "UIDCatego03"
+                        },
+                        {
+                            "id": "UIDCatego04"
+                        }
+                    ]
+                }
+            ]
+        }
+        """;
   }
 }
