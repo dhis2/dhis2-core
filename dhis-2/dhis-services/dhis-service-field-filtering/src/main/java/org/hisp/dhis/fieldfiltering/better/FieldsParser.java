@@ -53,7 +53,17 @@ public class FieldsParser {
 
   private static final Pattern LEXER_PATTERN =
       Pattern.compile(
-          "(!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(,)|(\\[|\\()|(\\]|\\))");
+          """
+          (?<NAME>!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(?<SEPARATOR>,)|(?<OPEN>\\[|\\()|(?<CLOSE>\\]|\\))
+          """
+              .trim());
+
+  private static final Map<String, TokenType> GROUP_TO_TOKEN =
+      Map.of(
+          "NAME", TokenType.NAME,
+          "SEPARATOR", TokenType.SEPARATOR,
+          "OPEN", TokenType.PAREN_OPEN,
+          "CLOSE", TokenType.PAREN_CLOSE);
 
   enum TokenType {
     NAME,
@@ -69,22 +79,22 @@ public class FieldsParser {
     Matcher matcher = LEXER_PATTERN.matcher(input);
 
     while (matcher.find()) {
-      TokenType tokenType = null;
-      String value = matcher.group();
+      // Find which named group matched
+      TokenType tokenType =
+          GROUP_TO_TOKEN.entrySet().stream()
+              .filter(entry -> matcher.group(entry.getKey()) != null)
+              .map(Map.Entry::getValue)
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Regex matched text '"
+                              + matcher.group()
+                              + "' at position "
+                              + matcher.start()
+                              + " but no named group captured it. This indicates a programmer error in the regex pattern or GROUP_TO_TOKEN mapping."));
 
-      if (matcher.group(1) != null) {
-        tokenType = TokenType.NAME;
-      } else if (matcher.group(2) != null) {
-        tokenType = TokenType.SEPARATOR;
-      } else if (matcher.group(3) != null) {
-        tokenType = TokenType.PAREN_OPEN;
-      } else if (matcher.group(4) != null) {
-        tokenType = TokenType.PAREN_CLOSE;
-      }
-
-      if (tokenType != null) {
-        tokens.add(new Token(tokenType, value, matcher.start(), matcher.end()));
-      }
+      tokens.add(new Token(tokenType, matcher.group(), matcher.start(), matcher.end()));
     }
 
     return tokens;

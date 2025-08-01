@@ -685,7 +685,10 @@ class FieldsParserTest {
   void testRegexTokenization(String input, List<ExpectField> expectFields) {
     Pattern pattern =
         Pattern.compile(
-            "(!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(,)|(\\[|\\()|(\\]|\\))");
+            """
+            (?<NAME>!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(?<SEPARATOR>,)|(?<OPEN>\\[|\\()|(?<CLOSE>\\]|\\))
+            """
+                .trim());
 
     List<Token> tokens = tokenize(input, pattern);
 
@@ -705,19 +708,24 @@ class FieldsParserTest {
       String tokenType = null;
       String value = matcher.group();
 
-      if (matcher.group(1) != null) {
+      if (matcher.group("NAME") != null) {
         tokenType = "NAME";
-      } else if (matcher.group(2) != null) {
+      } else if (matcher.group("SEPARATOR") != null) {
         tokenType = "SEPARATOR";
-      } else if (matcher.group(3) != null) {
+      } else if (matcher.group("OPEN") != null) {
         tokenType = "PAREN_OPEN";
-      } else if (matcher.group(4) != null) {
+      } else if (matcher.group("CLOSE") != null) {
         tokenType = "PAREN_CLOSE";
+      } else {
+        throw new IllegalStateException(
+            "Regex matched text '"
+                + value
+                + "' at position "
+                + matcher.start()
+                + " but no named group captured it. This indicates a programmer error in the regex pattern or group handling.");
       }
 
-      if (tokenType != null) {
-        tokens.add(new Token(tokenType, value, matcher.start(), matcher.end()));
-      }
+      tokens.add(new Token(tokenType, value, matcher.start(), matcher.end()));
     }
 
     return tokens;
