@@ -54,20 +54,43 @@ public class FieldsParser {
   private static final Pattern LEXER_PATTERN =
       Pattern.compile(
           """
-          (?<NAME>!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(?<SEPARATOR>,)|(?<OPEN>\\[|\\()|(?<CLOSE>\\]|\\))
+          (?<COLONCOLON>::)|(?<TILDE>~)|(?<PIPE>\\|)|(?<BRACKETOPEN>\\[)|(?<BRACKETCLOSE>\\])|(?<PARENOPEN>\\()|(?<PARENCLOSE>\\))|(?<COMMA>,)|(?<NAME>!?(?:[^,\\[\\]()~|;:]|:(?!:))+)
           """
               .trim());
 
   private static final Map<String, TokenType> GROUP_TO_TOKEN =
       Map.of(
           "NAME", TokenType.NAME,
-          "SEPARATOR", TokenType.SEPARATOR,
-          "OPEN", TokenType.PAREN_OPEN,
-          "CLOSE", TokenType.PAREN_CLOSE);
+          "COMMA", TokenType.COMMA,
+          "COLONCOLON", TokenType.COLON_COLON,
+          "TILDE", TokenType.TILDE,
+          "PIPE", TokenType.PIPE,
+          "BRACKETOPEN", TokenType.BRACKET_OPEN,
+          "BRACKETCLOSE", TokenType.BRACKET_CLOSE,
+          "PARENOPEN", TokenType.PAREN_OPEN,
+          "PARENCLOSE", TokenType.PAREN_CLOSE);
+
+  // Logical groupings for easier token handling
+  private static final Set<TokenType> SEPARATORS = Set.of(TokenType.COMMA);
+  private static final Set<TokenType> TRANSFORMERS =
+      Set.of(TokenType.COLON_COLON, TokenType.TILDE, TokenType.PIPE);
+  private static final Set<TokenType> OPENING_DELIMITERS =
+      Set.of(TokenType.BRACKET_OPEN, TokenType.PAREN_OPEN);
+  private static final Set<TokenType> CLOSING_DELIMITERS =
+      Set.of(TokenType.BRACKET_CLOSE, TokenType.PAREN_CLOSE);
+  private static final Set<TokenType> DELIMITERS =
+      Set.of(
+          TokenType.BRACKET_OPEN, TokenType.BRACKET_CLOSE,
+          TokenType.PAREN_OPEN, TokenType.PAREN_CLOSE);
 
   enum TokenType {
     NAME,
-    SEPARATOR,
+    COMMA,
+    COLON_COLON,
+    TILDE,
+    PIPE,
+    BRACKET_OPEN,
+    BRACKET_CLOSE,
     PAREN_OPEN,
     PAREN_CLOSE
   }
@@ -161,7 +184,7 @@ public class FieldsParser {
           isExclusion = token.value.startsWith("!");
           break;
 
-        case SEPARATOR:
+        case COMMA:
           if (currentField != null) {
             String fieldName = parseFieldName(currentField.value);
             List<Fields.Transformation> transformers = parseTransformers(currentField.value);
@@ -171,6 +194,7 @@ public class FieldsParser {
           }
           break;
 
+        case BRACKET_OPEN:
         case PAREN_OPEN:
           if (currentField == null) {
             throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
@@ -184,6 +208,7 @@ public class FieldsParser {
           isExclusion = false;
           break;
 
+        case BRACKET_CLOSE:
         case PAREN_CLOSE:
           if (stack.size() == 1) {
             throw new IllegalArgumentException("Unbalanced parens/brackets in input");
@@ -223,27 +248,63 @@ public class FieldsParser {
     for (int i = 0; i < tokens.size(); i++) {
       Token token = tokens.get(i);
 
-      // Check if this is a field name followed by transformer parameters
-      if (token.type == TokenType.NAME
-          && token.value.matches(".*(?:[~|]|::)\\w+$")
-          && i + 1 < tokens.size()
-          && tokens.get(i + 1).type == TokenType.PAREN_OPEN
-          && tokens.get(i + 1).value.equals("(")) {
+      // Check if this is a field name that starts a transformer sequence
+      if (token.type == TokenType.NAME && hasTransformerSequence(tokens, i)) {
 
-        // Find the matching closing parenthesis and merge all content
+        // Merge field name + transformer sequence + parameters
         StringBuilder fullField = new StringBuilder(token.value);
         int j = i + 1;
-        int parenCount = 0;
 
+        // Merge transformer tokens (::, ~, |) and transformer names and parameters
         while (j < tokens.size()) {
           Token t = tokens.get(j);
-          fullField.append(t.value);
 
-          if (t.value.equals("(")) parenCount++;
-          else if (t.value.equals(")")) parenCount--;
+          // If we hit a comma (field separator), stop merging
+          if (t.type == TokenType.COMMA) {
+            break;
+          }
 
-          j++;
-          if (parenCount == 0) break;
+          // If we hit bracket delimiters (structural), stop merging
+          if (t.type == TokenType.BRACKET_OPEN || t.type == TokenType.BRACKET_CLOSE) {
+            break;
+          }
+
+          // Special case: if it's PAREN_OPEN after a transformer name, merge parameters
+          if (t.type == TokenType.PAREN_OPEN && isAfterTransformer(tokens, j)) {
+            // Merge parentheses and their contents, including semicolons as commas
+            int parenCount = 0;
+            while (j < tokens.size()) {
+              Token pToken = tokens.get(j);
+              if (pToken.type == TokenType.PAREN_OPEN) {
+                fullField.append(pToken.value);
+                parenCount++;
+              } else if (pToken.type == TokenType.PAREN_CLOSE) {
+                fullField.append(pToken.value);
+                parenCount--;
+              } else if (pToken.type == TokenType.NAME) {
+                // Add the parameter name
+                fullField.append(pToken.value);
+                // Check if next token might be a separator for this parameter
+                if (j + 1 < tokens.size()
+                    && tokens.get(j + 1).type == TokenType.NAME
+                    && parenCount > 0) {
+                  fullField.append(";"); // Add semicolon separator between parameters
+                }
+              }
+
+              j++;
+              if (parenCount == 0) break;
+            }
+            break;
+          }
+
+          // Merge transformer tokens and names
+          if (TRANSFORMERS.contains(t.type) || t.type == TokenType.NAME) {
+            fullField.append(t.value);
+            j++;
+          } else {
+            break;
+          }
         }
 
         // Create merged token
@@ -257,6 +318,34 @@ public class FieldsParser {
     }
 
     return merged;
+  }
+
+  private static boolean hasTransformerSequence(List<Token> tokens, int startIndex) {
+    // Look ahead to see if there's a transformer sequence after this name
+    for (int i = startIndex + 1; i < tokens.size(); i++) {
+      Token t = tokens.get(i);
+      if (TRANSFORMERS.contains(t.type)) {
+        return true;
+      }
+      if (t.type != TokenType.NAME) {
+        break;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isAfterTransformer(List<Token> tokens, int parenIndex) {
+    // Check if the previous non-NAME token was a transformer
+    for (int i = parenIndex - 1; i >= 0; i--) {
+      Token t = tokens.get(i);
+      if (TRANSFORMERS.contains(t.type)) {
+        return true;
+      }
+      if (t.type != TokenType.NAME) {
+        break;
+      }
+    }
+    return false;
   }
 
   /**
