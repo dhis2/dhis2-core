@@ -304,7 +304,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .text("text")
             .recipients(programMessageRecipients)
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
-            .event(event)
+            .trackerEvent(event)
             .build();
     manager.save(event);
     UID idA = UID.of(event);

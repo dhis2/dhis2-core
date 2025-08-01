@@ -41,6 +41,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageOperationParams;
@@ -48,6 +50,7 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,7 +80,9 @@ public class ProgramMessageController
       throws BadRequestException, ConflictException, NotFoundException {
     ProgramMessageOperationParams params = requestParamMapper.map(requestParams);
 
-    return programMessageService.getProgramMessages(params);
+    List<ProgramMessage> programMessages = programMessageService.getProgramMessages(params);
+    programMessages.forEach(this::setEvent);
+    return programMessages;
   }
 
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
@@ -88,7 +93,10 @@ public class ProgramMessageController
     params.setMessageStatus(ProgramMessageStatus.SENT);
     ProgramMessageOperationParams operationParams = requestParamMapper.map(params);
 
-    return programMessageService.getProgramMessages(operationParams);
+    List<ProgramMessage> programMessages =
+        programMessageService.getProgramMessages(operationParams);
+    programMessages.forEach(this::setEvent);
+    return programMessages;
   }
 
   // -------------------------------------------------------------------------
@@ -107,5 +115,15 @@ public class ProgramMessageController
     }
 
     return programMessageService.sendMessages(batch.getProgramMessages());
+  }
+
+  private void setEvent(ProgramMessage programMessage) {
+    TrackerEvent trackerEvent = programMessage.getTrackerEvent();
+    SingleEvent singleEvent = programMessage.getSingleEvent();
+    if (trackerEvent != null) {
+      programMessage.setEvent(trackerEvent);
+    } else if (singleEvent != null) {
+      programMessage.setEvent(TrackerObjectsMapper.map(singleEvent));
+    }
   }
 }

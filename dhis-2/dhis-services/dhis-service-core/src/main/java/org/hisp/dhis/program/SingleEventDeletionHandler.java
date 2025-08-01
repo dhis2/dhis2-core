@@ -27,61 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.program;
 
-import java.util.Date;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-@Data
-@Builder
-public class ProgramMessageQueryParams {
-  private Set<String> organisationUnit;
-
-  private ProgramMessageStatus messageStatus;
-
-  private Enrollment enrollment;
-
-  private TrackerEvent trackerEvent;
-
-  private SingleEvent singleEvent;
-
-  private Date afterDate;
-
-  private Date beforeDate;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasOrganisationUnit() {
-    return organisationUnit != null;
+@Component
+@RequiredArgsConstructor
+public class SingleEventDeletionHandler extends IdObjectDeletionHandler<SingleEvent> {
+  @Override
+  protected void registerHandler() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
   }
 
-  public boolean hasEnrollment() {
-    return enrollment != null;
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent where programstageid = :id limit 1",
+        Map.of("id", programStage.getId()));
   }
 
-  public boolean hasTrackerEvent() {
-    return trackerEvent != null;
+  private DeletionVeto allowDeleteProgram(Program program) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
+        Map.of("id", program.getId()));
   }
 
-  public boolean hasSingleEvent() {
-    return singleEvent != null;
-  }
-
-  public boolean hasPaging() {
-    return page != null && pageSize != null;
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent where eventdatavalues ?? :uid limit 1",
+        Map.of("uid", dataElement.getUid()));
   }
 }

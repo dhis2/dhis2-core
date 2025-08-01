@@ -115,16 +115,23 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenEventDoesNotExist() {
     assertThrows(
         NotFoundException.class,
-        () -> singleEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
+        () ->
+            singleEventChangeLogService.getEventChangeLog(
+                UID.generate(), defaultOperationParams, defaultPageParams));
   }
 
   @Test
   void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
-    trackerObjectDeletionService.deleteSingleEvents(List.of(UID.of("D9PbzJY8bJM")));
+    trackerObjectDeletionService.deleteSingleEvents(List.of(UID.of("OTmjvJDn0Fu")));
+
+    manager.flush();
+    manager.clear();
 
     assertThrows(
         NotFoundException.class,
-        () -> singleEventChangeLogService.getEventChangeLog(UID.generate(), null, null));
+        () ->
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), defaultOperationParams, defaultPageParams));
   }
 
   @Test
@@ -133,7 +140,9 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> singleEventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
+        () ->
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("OTmjvJDn0Fu"), defaultOperationParams, defaultPageParams));
   }
 
   @Test
@@ -142,14 +151,18 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         NotFoundException.class,
-        () -> singleEventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
+        () ->
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("G9PbzJY8bJG"), defaultOperationParams, defaultPageParams));
   }
 
   @Test
   void shouldFailWithNotFoundWhenTryingToGetChangeLogsForTrackerEvent() {
     assertThrows(
         NotFoundException.class,
-        () -> singleEventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
+        () ->
+            singleEventChangeLogService.getEventChangeLog(
+                UID.of("H0PbzJY8bJG"), defaultOperationParams, defaultPageParams));
   }
 
   @Test

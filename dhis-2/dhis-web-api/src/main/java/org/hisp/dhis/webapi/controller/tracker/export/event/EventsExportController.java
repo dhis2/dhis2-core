@@ -79,7 +79,6 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -137,8 +136,6 @@ class EventsExportController {
 
   private final ProgramService programService;
 
-  private final IdentifiableObjectManager manager;
-
   public EventsExportController(
       TrackerEventService trackerEventService,
       TrackerEventRequestParamsMapper trackerEventParamsMapper,
@@ -163,7 +160,6 @@ class EventsExportController {
     this.singleEventChangeLogService = singleEventChangeLogService;
     this.trackerEventChangeLogService = trackerEventChangeLogService;
     this.programService = programService;
-    this.manager = manager;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, trackerEventService.getOrderableFields());
@@ -372,8 +368,7 @@ class EventsExportController {
       throws NotFoundException, WebMessageException {
     MappingErrors errors = new MappingErrors(idSchemeParams);
     org.hisp.dhis.webapi.controller.tracker.view.Event eventView;
-    Program program = getProgramFromEvent(uid);
-    if (program.isRegistration()) {
+    if (trackerEventService.exists(uid)) {
       org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields eventFields =
           org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields.of(
               f ->
@@ -408,16 +403,6 @@ class EventsExportController {
       throw new BadRequestException("Program is specified but does not exist: " + programUID);
     }
     return program;
-  }
-
-  @Nonnull
-  private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
-    TrackerEvent event = manager.get(TrackerEvent.class, eventUID);
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUID);
-    }
-
-    return event.getProgramStage().getProgram();
   }
 
   private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getSingleEventsList(
@@ -463,8 +448,7 @@ class EventsExportController {
             + " /tracker/event/dataValues/{dataElement}/image");
 
     FileResourceStream fileResource;
-    Program program = getProgramFromEvent(event);
-    if (program.isRegistration()) {
+    if (trackerEventService.exists(event)) {
       fileResource = trackerEventService.getFileResource(event, dataElement);
     } else {
       fileResource = singleEventService.getFileResource(event, dataElement);
@@ -479,9 +463,8 @@ class EventsExportController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
-    Program program = getProgramFromEvent(event);
     FileResourceStream fileResourceImage;
-    if (program.isRegistration()) {
+    if (trackerEventService.exists(event)) {
       fileResourceImage = trackerEventService.getFileResourceImage(event, dataElement, dimension);
     } else {
       fileResourceImage = singleEventService.getFileResourceImage(event, dataElement, dimension);
@@ -496,8 +479,7 @@ class EventsExportController {
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
       throws NotFoundException, BadRequestException {
-    Program program = getProgramFromEvent(event);
-    if (program.isRegistration()) {
+    if (trackerEventService.exists(event)) {
       EventChangeLogOperationParams operationParams =
           ChangeLogRequestParamsMapper.map(
               trackerEventChangeLogService.getOrderableFields(),
