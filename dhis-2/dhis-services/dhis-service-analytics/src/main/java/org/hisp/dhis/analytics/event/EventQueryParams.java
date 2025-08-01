@@ -1014,7 +1014,7 @@ public class EventQueryParams extends DataQueryParams {
    *
    * @return true if the org. unit filter is present, false otherwise.
    */
-  public boolean hasOrgUnitFilter() {
+  public boolean hasOrgUnitFilterInItem() {
     Set<QueryItem> itemsSet =
         Stream.concat(getItems().stream(), getItemFilters().stream())
             .filter(QueryItem::hasFilter)

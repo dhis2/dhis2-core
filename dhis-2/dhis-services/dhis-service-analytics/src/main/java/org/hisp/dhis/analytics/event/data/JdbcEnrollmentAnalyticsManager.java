@@ -546,6 +546,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
+    // Needs event prefix as we will join with the event table for filtering DataElement of type
+    // Org. Unit.
     if (handleEnrollmentOrgUnitFilter(params)) {
       selectCols = selectCols.stream().map(this::addEventPrefix).toList();
     }
@@ -553,6 +555,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return "select " + StringUtils.join(selectCols, ",") + " ";
   }
 
+  /**
+   * This method switches or add a new prefix to the given column if needed. It's applied for
+   * specific cases driven by the business rules of the invoker.
+   *
+   * @param column to be prefixed.
+   * @return the prefixed column (if required).
+   */
   private String addEventPrefix(String column) {
     if (column.startsWith("ax.")) {
       column = column.replace("ax.", "ev.");
