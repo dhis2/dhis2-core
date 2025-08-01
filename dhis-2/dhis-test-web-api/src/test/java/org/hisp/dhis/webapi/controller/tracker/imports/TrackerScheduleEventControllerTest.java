@@ -70,10 +70,12 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
   private User importUser;
   private User readOnlyUser;
   private Enrollment enrollment;
+  private TrackedEntity te;
 
   private DataElement dataElementA;
   private Program program;
   private ProgramStage programStageA;
+  private OrganisationUnit orgUnit;
 
   @BeforeAll
   void setUp() {
@@ -82,7 +84,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     manager.save(importUser, false);
     manager.save(readOnlyUser, false);
 
-    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
 
     dataElementA = createDataElement('A');
@@ -118,7 +120,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
 
     manager.update(programStageReadOnly);
 
-    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
+    te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);
     manager.save(te);
 
@@ -126,7 +128,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     manager.update(enrollment);
 
     createProgramRuleWithAction(
-        'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageB);
+        'R', "V{current_date}!=V{enrollment_date}", "V{current_date}", programStageB);
     createProgramRuleWithAction('S', "V{current_date}==V{event_date}", INVALID_DATE, programStageB);
     createProgramRuleWithAction(
         'S', "'2025-12-12'==V{event_date}", "V{current_date}", programStageReadOnly);
@@ -148,6 +150,65 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .getString("warningCode")
             .string());
     assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(0, importReport.getStats().getIgnored());
+  }
+
+  @Test
+  void shouldSuccessfullyScheduleOnlyOneEvent() {
+    injectSecurityContextUser(importUser);
+
+    JsonImportReport importReport =
+        POST(
+                "/tracker?async=false&reportMode=FULL",
+"""
+{
+    "enrollments": [
+        {
+            "trackedEntity": "%s",
+            "program": "%s",
+            "status": "ACTIVE",
+            "orgUnit": "%s",
+            "occurredAt": "2025-07-01",
+            "enrolledAt": "2025-07-01",
+            "attributes": [],
+            "events": [
+                {
+                    "enrollment": "%s",
+                    "occurredAt": "%s",
+                    "orgUnit": "%s",
+                    "program": "%s",
+                    "programStage": "%s",
+                    "status": "COMPLETED",
+                    "trackedEntity": "%s"
+                }
+            ]
+        }
+    ]
+}
+"""
+                    .formatted(
+                        te.getUid(),
+                        program.getUid(),
+                        orgUnit.getUid(),
+                        enrollment.getUid(),
+                        "2025-11-11",
+                        enrollment.getOrganisationUnit().getUid(),
+                        enrollment.getProgram().getUid(),
+                        programStageA.getUid(),
+                        enrollment.getTrackedEntity().getUid()))
+            .content(HttpStatus.OK)
+            .as(JsonImportReport.class);
+
+    assertEquals(
+        "E1320",
+        importReport
+            .getObject("validationReport.warningReports[0]")
+            .getString("warningCode")
+            .string());
+
+    // Three tracker entities should be created:
+    // one enrollment and two events (one provided in the payload, the other scheduled).
+    assertEquals(3, importReport.getStats().getCreated());
     assertEquals(0, importReport.getStats().getIgnored());
   }
 
