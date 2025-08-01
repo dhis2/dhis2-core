@@ -6,9 +6,9 @@
 # Redistributions of source code must retain the above copyright notice, this
 # list of conditions and the following disclaimer.
 #
-# Redistributions in binary form must reproduce the above copyright notice,
-# this list of conditions and the following disclaimer in the documentation
-# and/or other materials provided with the distribution.
+# Redistributions in binary form must reproduce the above copyright notice, this
+# list of conditions and the following disclaimer in the documentation and/or
+# other materials provided with the distribution.
 # Neither the name of the HISP project nor the names of its contributors may
 # be used to endorse or promote products derived from this software without
 # specific prior written permission.
@@ -29,40 +29,51 @@ name: tracker_geometry_invalid_srid
 description: Tracker entities with geometry not using SRID 4326
 section: Tracker
 section_order: 4
+severity: WARNING
+details_id_type: tracker
+
 summary_sql: >-
-  SELECT COUNT(*) AS value,
-         100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM (
-           SELECT geometry FROM trackedentity WHERE geometry IS NOT NULL
-           UNION ALL
-           SELECT geometry FROM enrollment WHERE geometry IS NOT NULL
-           UNION ALL
-           SELECT geometry FROM event WHERE geometry IS NOT NULL
-         ) AS all_geom), 0) AS percent
-  FROM (
+  WITH all_geom AS (
+    SELECT geometry FROM trackedentity WHERE geometry IS NOT NULL
+    UNION ALL
+    SELECT geometry FROM enrollment WHERE geometry IS NOT NULL
+    UNION ALL
+    SELECT geometry FROM event WHERE geometry IS NOT NULL
+  ),
+  invalid_geom AS (
     SELECT geometry FROM trackedentity WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
     UNION ALL
     SELECT geometry FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
     UNION ALL
     SELECT geometry FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-  ) AS invalid_geom;
+  )
+  SELECT COUNT(*) AS value,
+         100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM all_geom), 0) AS percent
+  FROM invalid_geom;
+
 details_sql: >-
-  SELECT 'trackedentity' AS table_name, uid, ST_SRID(geometry) AS srid
-  FROM trackedentity WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-  UNION ALL
-  SELECT 'enrollment' AS table_name, uid, ST_SRID(geometry) AS srid
-  FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-  UNION ALL
-  SELECT 'event' AS table_name, uid, ST_SRID(geometry) AS srid
-  FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
-severity: WARNING
+  SELECT uid, table_name as name,
+         'Expected SRID 4326 but found ' || srid AS comment
+  FROM (
+    SELECT 'trackedentity' AS table_name, uid, ST_SRID(geometry) AS srid
+    FROM trackedentity WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+    UNION ALL
+    SELECT 'enrollment' AS table_name, uid, ST_SRID(geometry) AS srid
+    FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+    UNION ALL
+    SELECT 'event' AS table_name, uid, ST_SRID(geometry) AS srid
+    FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  ) AS invalid_geometries;
+
 introduction: >
-  Geometry data in DHIS2 is expected to use the standard WGS 84 coordinate system (SRID 4326).
-  Records in the trackedentity, enrollment, or event tables using a different spatial reference
-  system may cause issues in GIS-based features. This integrity check identifies such records.
-details_id_type: tracker
+  Geometry data in DHIS2 should conform to the WGS 84 coordinate system (SRID 4326).
+  Tracker records (Tracked Entity, Enrollment, or Event) using a different spatial reference system
+  may lead to unexpected results or errors in GIS-based features. This integrity check identifies
+  such geometry records that do not use SRID 4326.
+
 recommendation: >-
-  To correct this issue, you should update the SRID of the affected records to 4326 using the following SQL queries.
-  
+  To correct this issue, update the SRID of the affected records to 4326 using the SQL queries below:
+
     UPDATE trackedentity
     SET geometry = ST_SetSRID(geometry, 4326)
     WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
@@ -75,4 +86,4 @@ recommendation: >-
     SET geometry = ST_SetSRID(geometry, 4326)
     WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
 
-  It is highly recommended to back up your database before applying these changes and test in a staging environment first.
+  Make sure to back up your database and run this fix in a testing or staging environment before applying to production.
