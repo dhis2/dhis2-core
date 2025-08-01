@@ -126,10 +126,11 @@ public class FieldsParser {
     List<Token> tokens = tokenize(input);
     unexcludableTokens.add(TOKEN_ALL);
 
-    Parser parser = new Parser();
     FieldsAccumulator root = new FieldsAccumulator();
     Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
+
+    Parser parser = new Parser(unexcludableTokens);
 
     for (Token token : tokens) {
       switch (token.type) {
@@ -151,7 +152,7 @@ public class FieldsParser {
           } else if (parser.currentFieldName == null) {
             parser.currentFieldName = token.value;
           } else {
-            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+            parser.consumeCurrentField(stack.peek());
             parser.currentFieldName = token.value;
           }
           break;
@@ -176,7 +177,7 @@ public class FieldsParser {
                   "Block must have a field name like orgUnits[code]");
             }
             String fieldName = parser.currentFieldName;
-            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+            parser.consumeCurrentField(stack.peek());
             stack.push(stack.peek().getOrCreateChild(fieldName));
           }
           break;
@@ -195,7 +196,7 @@ public class FieldsParser {
               throw new IllegalArgumentException("Unbalanced parens/brackets in input");
             }
             if (parser.currentFieldName != null) {
-              parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+              parser.consumeCurrentField(stack.peek());
             }
             stack.pop();
           }
@@ -206,7 +207,7 @@ public class FieldsParser {
             throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
           }
           String fieldName = parser.currentFieldName;
-          parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+          parser.consumeCurrentField(stack.peek());
           stack.push(stack.peek().getOrCreateChild(fieldName));
           break;
 
@@ -215,14 +216,14 @@ public class FieldsParser {
             throw new IllegalArgumentException("Unbalanced parens/brackets in input");
           }
           if (parser.currentFieldName != null) {
-            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+            parser.consumeCurrentField(stack.peek());
           }
           stack.pop();
           break;
 
         case COMMA:
           if (!parser.parsingTransformerParameters && parser.currentFieldName != null) {
-            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+            parser.consumeCurrentField(stack.peek());
           }
           break;
 
@@ -232,13 +233,15 @@ public class FieldsParser {
     }
 
     if (parser.currentFieldName != null) {
-      parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+      parser.consumeCurrentField(stack.peek());
     }
 
     return root;
   }
 
   private static class Parser {
+    final Set<String> unexcludableTokens;
+
     String currentFieldName = null;
     List<Fields.Transformation> currentTransformers = new ArrayList<>();
     boolean isExclusion = false;
@@ -247,7 +250,11 @@ public class FieldsParser {
     List<String> transformerParameters = new ArrayList<>();
     boolean parsingTransformerParameters = false;
 
-    void consumeCurrentField(FieldsAccumulator accumulator, Set<String> unexcludableTokens) {
+    Parser(Set<String> unexcludableTokens) {
+      this.unexcludableTokens = unexcludableTokens;
+    }
+
+    void consumeCurrentField(FieldsAccumulator accumulator) {
       if (currentFieldName != null && !currentFieldName.trim().isEmpty()) {
         if (pendingTransformerName != null && !pendingTransformerName.isEmpty()) {
           currentTransformers.add(new Fields.Transformation(pendingTransformerName));
