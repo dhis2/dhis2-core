@@ -38,15 +38,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 import org.hisp.dhis.schema.Schema;
 import org.junit.jupiter.api.Test;
@@ -80,6 +82,8 @@ class FieldsParserTest {
     assertFields(expectFields, fieldPaths);
   }
 
+  // Tests with a comment that looks like a method name are ported from FieldFilterParserTest to
+  // ensure the current and better parser behave the same. Some more tests were added.
   static Stream<Arguments> providerEqualBehavior() {
     return Stream.of(
         // testDepth0Filters
@@ -262,7 +266,75 @@ class FieldsParserTest {
             List.of(
                 new ExpectField(true, "name", new Transformation("x", "a", "b")),
                 new ExpectField(true, "id", new Transformation("y", "a", "b", "c")),
-                new ExpectField(true, "code", new Transformation("z", "t")))));
+                new ExpectField(true, "code", new Transformation("z", "t")))),
+
+        // testParseWithTransformer2
+        Arguments.of(
+            "groups[name::x(a;b)]",
+            List.of(
+                new ExpectField(true, "groups"),
+                new ExpectField(true, "groups.name", new Transformation("x", "a", "b")))),
+
+        // testParseWithTransformer3
+        Arguments.of(
+            "groups[name::x(a;b), code~y(a)]",
+            List.of(
+                new ExpectField(true, "groups"),
+                new ExpectField(true, "groups.name", new Transformation("x", "a", "b")),
+                new ExpectField(true, "groups.code", new Transformation("y", "a")))),
+
+        // testParseWithTransformer4
+        Arguments.of(
+            "name::rename(n),groups[name]",
+            List.of(
+                new ExpectField(true, "name", new Transformation("rename", "n")),
+                new ExpectField(true, "groups"),
+                new ExpectField(true, "groups.name"))),
+
+        // testParseWithTransformer5
+        Arguments.of(
+            "name::rename(n),groups::rename(g)[name::rename(n)]",
+            List.of(
+                new ExpectField(true, "name", new Transformation("rename", "n")),
+                new ExpectField(true, "groups", new Transformation("rename", "g")),
+                new ExpectField(true, "groups.name", new Transformation("rename", "n")))),
+
+        // testParseWithTransformer6
+        Arguments.of(
+            "name::rename(n),groups::rename(g)[name]",
+            List.of(
+                new ExpectField(true, "name", new Transformation("rename", "n")),
+                new ExpectField(true, "groups", new Transformation("rename", "g")),
+                new ExpectField(true, "groups.name"))),
+
+        // testParseWithTransformer7
+        Arguments.of(
+            "name::size,group::isEmpty",
+            List.of(
+                new ExpectField(true, "name", new Transformation("size")),
+                new ExpectField(true, "group", new Transformation("isEmpty")))),
+
+        // testParseWithTransformer8
+        Arguments.of(
+            "name::rename(n)",
+            List.of(new ExpectField(true, "name", new Transformation("rename", "n")))),
+
+        // testParseWithMultipleTransformers
+        Arguments.of(
+            "name::size::rename(n)",
+            List.of(
+                new ExpectField(
+                    true, "name", new Transformation("size"), new Transformation("rename", "n")))),
+
+        // testMixedBlockWithTransformation
+        Arguments.of(
+            "id,categoryCombo[categoryOptionCombos~size],displayName",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "categoryCombo"),
+                new ExpectField(
+                    true, "categoryCombo.categoryOptionCombos", new Transformation("size")),
+                new ExpectField(true, "displayName"))));
   }
 
   // The following tests show where the current and better implementations differ. Some differences
@@ -459,7 +531,7 @@ class FieldsParserTest {
     assertFalse(fields.includes("relationships.from.value"));
   }
 
-  // TODO(ivo) transformers: validation I think we should not allow duplicate transformers
+  // TODO(ivo) transformers: error handling, like I think we should not allow duplicate transformers
   // TODO(ivo) transformers: test what happens with transformers on presets
 
   // TODO(ivo) only used in tests: FieldFilterParser.parseWithPrefix can be removed
@@ -477,101 +549,6 @@ class FieldsParserTest {
 
     assertFieldPathContains(fieldPaths, "prefix.aaa.a");
     assertFieldPathContains(fieldPaths, "prefix.bbb.b");
-  }
-
-  // TODO(ivo) port these transformer tests
-  @Test
-  void testParseWithTransformer1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::x(a;b),id~y(a;b;c),code|z(t)");
-
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "code");
-  }
-
-  @Test
-  void testParseWithTransformer2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b)]");
-
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name");
-  }
-
-  @Test
-  void testParseWithTransformer3() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("groups[name::x(a;b), code~y(a)]");
-
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name");
-    assertFieldPathContains(fieldPaths, "groups.code");
-  }
-
-  @Test
-  void testParseWithTransformer4() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups[name]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups");
-    assertFieldPathContains(fieldPaths, "groups.name", false);
-  }
-
-  @Test
-  void testParseWithTransformer5() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("name::rename(n),groups::rename(g)[name::rename(n)]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups", true);
-    assertFieldPathContains(fieldPaths, "groups.name", true);
-  }
-
-  @Test
-  void testParseWithTransformer6() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n),groups::rename(g)[name]");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "groups", true);
-    assertFieldPathContains(fieldPaths, "groups.name", false);
-  }
-
-  @Test
-  void testParseWithTransformer7() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size,group::isEmpty");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    assertFieldPathContains(fieldPaths, "group", true);
-  }
-
-  @Test
-  void testParseWithTransformer8() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::rename(n)");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
-    assertEquals("rename", fieldPathTransformer.getName());
-  }
-
-  @Test
-  void testParseWithMultipleTransformers() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("name::size::rename(n)");
-
-    assertFieldPathContains(fieldPaths, "name", true);
-    FieldPathTransformer fieldPathTransformer = fieldPaths.get(0).getTransformers().get(0);
-    assertEquals("size", fieldPathTransformer.getName());
-    fieldPathTransformer = fieldPaths.get(0).getTransformers().get(1);
-    assertEquals("rename", fieldPathTransformer.getName());
-  }
-
-  @Test
-  void testMixedBlockWithTransformation() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("id,categoryCombo[categoryOptionCombos~size],displayName");
-
-    assertEquals(4, fieldPaths.size());
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "categoryCombo");
-    assertFieldPathContains(fieldPaths, "categoryCombo.categoryOptionCombos");
-    assertFieldPathContains(fieldPaths, "displayName");
   }
 
   public static void assertFields(List<ExpectField> expectFields, Fields fields) {
@@ -628,7 +605,7 @@ class FieldsParserTest {
    * included in the parsed fields predicate.
    */
   private static void assertField(ExpectField expected, List<FieldPath> fieldPaths) {
-    String what = expected.included ? "includes" : "exclude";
+    String what = expected.included ? "include" : "exclude";
     List<FieldPath> actual =
         fieldPaths.stream().filter(fp -> expected.dotPath.equals(fp.toFullPath())).toList();
     assertNotEmpty(
@@ -641,6 +618,7 @@ class FieldsParserTest {
                 + what
                 + " it");
 
+    Predicate<FieldPath> predicate;
     if (expected.included) {
       // exclusion has higher precedence over inclusion, a field can thus only be considered
       // included if there is not also an exclusion
@@ -651,66 +629,49 @@ class FieldsParserTest {
                   + " should includes "
                   + expected.dotPath
                   + " but it contains the path with an exclusion");
-      assertTrue(
-          actual.stream().anyMatch(fp -> !fp.isExclude()),
-          () ->
-              fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
-                  + " should includes "
-                  + expected.dotPath
-                  + " but it does not contain the path with an inclusion");
+      predicate = fp -> !fp.isExclude();
     } else {
-      assertTrue(
-          actual.stream().anyMatch(FieldPath::isExclude),
-          () ->
-              fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
-                  + " should exclude "
-                  + expected.dotPath
-                  + " but it does not contain the path with an exclusion");
+      predicate = FieldPath::isExclude;
     }
-    // TODO(ivo) figure out if we can extract the match from the previous step and then check the
-    // transformations on it?
-    //    assertTransformations(expected, fieldPaths);
+    Optional<FieldPath> path = actual.stream().filter(predicate).findAny();
+    assertTrue(
+        path.isPresent(),
+        () ->
+            fieldPaths.stream().map(FieldPath::toFullPath).collect(Collectors.toSet())
+                + " should contain "
+                + expected.dotPath
+                + " and "
+                + what
+                + " it");
+
+    assertTransformations(expected, path.get());
   }
 
-  //  private static void assertTransformations(ExpectField expected, List<FieldPath> fieldPaths) {
-  //
-  //    if (expected.transformations.length == 0) {
-  //      assertIsEmpty(actual == null ? List.of() : actual,
-  //          "Expected no transformations for field " + expected.dotPath);
-  //    } else {
-  //      assertNotEmpty(actual,
-  //          "Expected transformations for field " + expected.dotPath);
-  //      assertEquals(List.of(expected.transformations), actual,
-  //          "Transformations mismatch for field " + expected.dotPath);
-  //    }
-  //  }
-
-  private void assertFieldPathContains(
-      List<FieldPath> fieldPaths, String expected, boolean isTransformer) {
-    boolean condition = false;
-    for (FieldPath fieldPath : fieldPaths) {
-      String path = fieldPath.toFullPath();
-      if (path.equals(expected)) {
-        condition = fieldPath.isTransformer() == isTransformer;
-        break;
-      }
+  private static void assertTransformations(ExpectField expected, FieldPath actual) {
+    if (expected.transformations.length == 0) {
+      assertIsEmpty(
+          actual.getTransformers(), "Expected no transformations for field " + expected.dotPath);
+    } else {
+      assertNotEmpty(
+          actual.getTransformers(),
+          "Expected transformations "
+              + Arrays.toString(expected.transformations)
+              + " for field "
+              + expected.dotPath);
+      List<Transformation> actualTransformations =
+          actual.getTransformers().stream()
+              .map(t -> new Transformation(t.getName(), t.getParameters().toArray(new String[0])))
+              .toList();
+      assertEquals(
+          List.of(expected.transformations),
+          actualTransformations,
+          "Transformations mismatch for field " + expected.dotPath);
     }
-    assertTrue(condition);
   }
 
   private void assertFieldPathContains(List<FieldPath> fieldPaths, String expected) {
     Set<String> actual =
         fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
-  }
-
-  private FieldPath getFieldPath(List<FieldPath> fieldPaths, String path) {
-    for (FieldPath fieldPath : fieldPaths) {
-      String fullPath = fieldPath.toFullPath();
-      if (path.equals(fullPath)) {
-        return fieldPath;
-      }
-    }
-    return null;
   }
 }

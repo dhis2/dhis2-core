@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
