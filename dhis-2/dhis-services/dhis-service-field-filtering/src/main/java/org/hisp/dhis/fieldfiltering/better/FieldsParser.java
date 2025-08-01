@@ -93,7 +93,7 @@ public class FieldsParser {
     while (i < input.length()) {
       if ((input.charAt(i) == ',')) {
         if (inField) {
-          stack.peek().add(parseField(input, fieldStart, i), isExclusion, unexcludableTokens);
+          stack.peek().add(parseFieldName(input, fieldStart, i), isExclusion, unexcludableTokens);
 
           inField = false;
           isExclusion = false;
@@ -103,7 +103,7 @@ public class FieldsParser {
           throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
         }
 
-        String parent = parseField(input, fieldStart, i);
+        String parent = parseFieldName(input, fieldStart, i);
         stack.peek().add(parent, isExclusion, unexcludableTokens);
 
         stack.push(stack.peek().getOrCreateChild(parent));
@@ -115,7 +115,7 @@ public class FieldsParser {
         }
 
         if (inField) {
-          stack.peek().add(parseField(input, fieldStart, i), isExclusion, unexcludableTokens);
+          stack.peek().add(parseFieldName(input, fieldStart, i), isExclusion, unexcludableTokens);
         }
 
         stack.pop();
@@ -134,7 +134,7 @@ public class FieldsParser {
     }
 
     if (inField) {
-      stack.peek().add(parseField(input, fieldStart, i), isExclusion, unexcludableTokens);
+      stack.peek().add(parseFieldName(input, fieldStart, i), isExclusion, unexcludableTokens);
     }
     // this is where we should check if stack size is > 1 and err as a bracket/paren
     // fields="group[name" was not closed
@@ -146,7 +146,7 @@ public class FieldsParser {
    * and remove it if present. Ideally we would not support this and only ignore leading and
    * trailing whitespace.
    */
-  private static String parseField(String input, int start, int end) {
+  private static String parseFieldName(String input, int start, int end) {
     String field = input.substring(start, end);
 
     boolean hasWhitespace = false;

@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
@@ -673,5 +676,52 @@ class FieldsParserTest {
     Set<String> actual =
         fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
+  }
+
+  record Token(String type, String value, int start, int end) {}
+
+  @ParameterizedTest
+  @MethodSource("providerEqualBehavior")
+  void testRegexTokenization(String input, List<ExpectField> expectFields) {
+    Pattern pattern = Pattern.compile(
+        "(!?[\\w:*~|();]+)|(,)|(\\[|\\()|(\\]|\\))|(\\s+)"
+    );
+    
+    List<Token> tokens = tokenize(input, pattern);
+    
+    // Print tokens for debugging
+    System.out.println("Input: \"" + input + "\"");
+    for (Token token : tokens) {
+      System.out.println("  " + token);
+    }
+    System.out.println();
+  }
+
+  private List<Token> tokenize(String input, Pattern pattern) {
+    List<Token> tokens = new ArrayList<>();
+    Matcher matcher = pattern.matcher(input);
+    
+    while (matcher.find()) {
+      String tokenType = null;
+      String value = matcher.group();
+      
+      if (matcher.group(1) != null) {
+        tokenType = "NAME";
+      } else if (matcher.group(2) != null) {
+        tokenType = "SEPARATOR";
+      } else if (matcher.group(3) != null) {
+        tokenType = "PAREN_OPEN";
+      } else if (matcher.group(4) != null) {
+        tokenType = "PAREN_CLOSE";
+      } else if (matcher.group(5) != null) {
+        tokenType = "WHITESPACE";
+      }
+      
+      if (tokenType != null) {
+        tokens.add(new Token(tokenType, value, matcher.start(), matcher.end()));
+      }
+    }
+    
+    return tokens;
   }
 }
