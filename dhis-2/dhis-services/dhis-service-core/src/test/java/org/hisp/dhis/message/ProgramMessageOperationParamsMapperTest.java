@@ -111,11 +111,11 @@ class ProgramMessageOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapEventUIDToEnrollmentObject() throws NotFoundException {
+  void shouldMapEventUIDToEventObject() throws NotFoundException {
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().event(EVENT).build());
 
-    assertEquals(event, queryParams.getEvent());
+    assertEquals(event, queryParams.getTrackerEvent());
   }
 
   @Test
@@ -147,8 +147,7 @@ class ProgramMessageOperationParamsMapperTest {
             () -> subject.map(ProgramMessageOperationParams.builder().event(invalidEvent).build()));
 
     assertStartsWith(
-        String.format("%s: %s does not exist.", TrackerEvent.class.getSimpleName(), invalidEvent),
-        exception.getMessage());
+        String.format("Event: %s does not exist.", invalidEvent), exception.getMessage());
   }
 
   @Test

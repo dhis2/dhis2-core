@@ -56,7 +56,6 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
-import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -208,7 +207,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
-              ProgramNotificationInstanceParam.builder().event(event).build());
+              ProgramNotificationInstanceParam.builder().trackerEvent(event).build());
 
       notificationInstances.forEach(programNotificationInstanceService::delete);
 
@@ -288,9 +287,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
-              ProgramNotificationInstanceParam.builder()
-                  .event(TrackerObjectsMapper.map(event))
-                  .build());
+              ProgramNotificationInstanceParam.builder().singleEvent(event).build());
 
       notificationInstances.forEach(programNotificationInstanceService::delete);
 

@@ -50,6 +50,7 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
@@ -166,7 +167,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
 
     if (message.getEnrollment() == null && message.getEvent() == null) {
-      violations.add("Enrollment or event must be specified");
+      violations.add("Enrollment or Event must be specified");
     }
 
     if (recipients.getTrackedEntity() != null) {
@@ -200,8 +201,10 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
     if (message.hasEnrollment()) {
       object = message.getEnrollment().getProgram();
-    } else if (message.hasEvent()) {
-      object = message.getEvent().getProgramStage();
+    } else if (message.hasTrackerEvent()) {
+      object = message.getTrackerEvent().getProgramStage();
+    } else if (message.hasSingleEvent()) {
+      object = message.getSingleEvent().getProgramStage();
     }
 
     if (object != null) {
@@ -228,7 +231,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private ProgramMessage setParameters(ProgramMessage message, BatchResponseStatus status) {
     message.setEnrollment(getEntity(Enrollment.class, message.getEnrollment()));
-    message.setEvent(getEntity(TrackerEvent.class, message.getEvent()));
+    message.setTrackerEvent(getEntity(TrackerEvent.class, message.getEvent()));
+    message.setSingleEvent(getEntity(SingleEvent.class, message.getEvent()));
     message.setProcessedDate(new Date());
     message.setMessageStatus(
         status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED);
