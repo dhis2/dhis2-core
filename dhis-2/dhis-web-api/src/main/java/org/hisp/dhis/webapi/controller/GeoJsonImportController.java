@@ -57,7 +57,7 @@ import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -112,7 +112,7 @@ public class GeoJsonImportController {
       boolean async, GeoJsonImportJobParams params, HttpServletRequest request)
       throws ConflictException, IOException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (async) {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
@@ -139,7 +139,7 @@ public class GeoJsonImportController {
       @RequestParam(required = false) String attributeId,
       @RequestParam(required = false) boolean dryRun,
       @RequestBody String geometry,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     GeoJsonImportJobParams params =
         GeoJsonImportJobParams.builder()
             .user(currentUser)
@@ -162,7 +162,7 @@ public class GeoJsonImportController {
       @PathVariable("uid") String ou,
       @RequestParam(required = false) String attributeId,
       @RequestParam(required = false) boolean dryRun,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return postImportSingle(ou, attributeId, dryRun, "null", currentUser);
   }
 

@@ -169,7 +169,7 @@ class DataElementMergeTest extends ApiTest {
     // generate category option combos
     maintenanceApiActions
         .post("categoryOptionComboUpdate", new QueryParamsBuilder().build())
-        .validateStatus(204);
+        .validateStatus(200);
 
     // get cat opt combo ID to use in min max data elements
     String cocId =

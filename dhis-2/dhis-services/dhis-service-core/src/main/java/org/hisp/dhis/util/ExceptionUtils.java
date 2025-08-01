@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,71 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.service;
+package org.hisp.dhis.util;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Nullable;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface ContextService {
+public class ExceptionUtils {
+
   /**
-   * Get servlet path.
+   * Some exceptions (e.g. Database) can have deeply-nested root causes and may have a very vague
+   * top-level message, which may not be very helpful to log/return. This method checks if a more
+   * detailed, user-friendly message is available and returns it if found.
    *
-   * @return the full href servlet path.
-   */
-  String getServletPath();
-
-  /**
-   * Get context path to API.
+   * <p>For example, instead of returning: <b><i>org.hibernate.exception.GenericJDBCException: could
+   * not execute statement</i></b> , potentially returning: <b><i>"PSQLException: ERROR: cannot
+   * execute UPDATE in a read-only transaction"</i></b>.
    *
-   * @return the context path to API.
+   * @param ex exception to check
+   * @return detailed message or original exception message
    */
-  String getContextPath();
+  @Nullable
+  public static String getHelpfulMessage(Exception ex) {
+    Throwable cause = ex.getCause();
 
-  /**
-   * Get path to API.
-   *
-   * @return the API path.
-   */
-  String getApiPath();
-
-  /**
-   * Get active HttpServletRequest.
-   *
-   * @return the active HttpServletRequest.
-   */
-  HttpServletRequest getRequest();
-
-  /**
-   * Returns a list of values from a parameter, if the parameter doesn't exist, it will return a
-   * empty list.
-   *
-   * @param name the parameter to get.
-   * @return a list of parameter values, or empty if not found.
-   */
-  List<String> getParameterValues(String name);
-
-  /**
-   * Get all parameters as a mapping of key to values, supports more than one value per key (so
-   * values is a collection).
-   */
-  Map<String, List<String>> getParameterValuesMap();
-
-  /**
-   * Get a list of fields from request.
-   *
-   * @return a list of fields.
-   */
-  List<String> getFieldsFromRequestOrAll();
-
-  /**
-   * Get a list of fields from request, or the given default fields.
-   *
-   * @param fields the default fields.
-   * @return a list of fields.
-   */
-  List<String> getFieldsFromRequestOrElse(String fields);
+    if (cause != null) {
+      Throwable rootCause = cause.getCause();
+      if (rootCause != null) {
+        return rootCause.getMessage();
+      }
+    }
+    return ex.getMessage();
+  }
 }
