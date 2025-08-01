@@ -68,7 +68,6 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
   private User importUser;
   private User readOnlyUser;
   private Enrollment enrollment;
-  private Enrollment enrollment2;
   private TrackedEntity te;
 
   private DataElement dataElementA;
@@ -125,12 +124,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     te.setTrackedEntityType(trackedEntityType);
     manager.save(te);
 
-    TrackedEntity te2 = createTrackedEntity(orgUnit, trackedEntityType);
-    te2.setTrackedEntityType(trackedEntityType);
-    manager.save(te2);
-
     enrollment = createEnrollment(te, program, orgUnit);
-    enrollment2 = createEnrollment(te2, program, orgUnit);
     manager.update(enrollment);
   }
 
@@ -306,11 +300,11 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             ]}
             """
         .formatted(
-            enrollment2.getUid(),
+            enrollment.getUid(),
             occurredAt,
-            enrollment2.getOrganisationUnit().getUid(),
-            enrollment2.getProgram().getUid(),
+            enrollment.getOrganisationUnit().getUid(),
+            enrollment.getProgram().getUid(),
             programStageA.getUid(),
-            enrollment2.getTrackedEntity().getUid());
+            enrollment.getTrackedEntity().getUid());
   }
 }
