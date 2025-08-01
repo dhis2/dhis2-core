@@ -1697,15 +1697,10 @@ public abstract class TestBase {
 
   public static Enrollment createEnrollment(
       Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(program, te, organisationUnit);
+    Enrollment enrollment = new Enrollment(new Date(), new Date(), te, program);
     enrollment.setAutoFields();
-
-    enrollment.setProgram(program);
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-
     return enrollment;
   }
 

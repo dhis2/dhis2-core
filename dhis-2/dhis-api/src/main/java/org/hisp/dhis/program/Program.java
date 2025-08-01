@@ -72,6 +72,10 @@ import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserRole;
 
 /**
+ * Programe entity object.
+ *
+ * <p>Note that "incident date" is superseded by "occurred date".
+ *
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
