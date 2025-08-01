@@ -60,6 +60,7 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLL
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -1071,7 +1072,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
     String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
     String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
-    String orgUnitColumns = !isBlank(orgUnitLevels) ? orgUnitLevels : ORGUNIT_DIM_ID;
+    String orgUnitColumns = orgUnitLevels;
+
+    if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
+      orgUnitColumns = ORGUNIT_DIM_ID;
+    }
 
     List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
     String columns =
@@ -1102,7 +1107,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             + ") "
             + OUTER_SQL_ALIAS
             + " group by "
-            + StringUtils.substringBeforeLast(columns, " as ");
+            + columns;
 
     return sql;
   }

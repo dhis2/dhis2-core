@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.C
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
@@ -325,31 +324,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             params.addItem((QueryItem) groupableItem);
           }
 
-          addStageToParams(params, request, groupableItem);
-
           groupableItem.setGroupUUID(groupUUID);
         }
-      }
-    }
-  }
-
-  /**
-   * Adds the program stage associated with an item, if any. This happens only for enrollments
-   * aggregate queries.
-   *
-   * @param paramsBuilder the {@link EventQueryParams.Builder}.
-   * @param request the {@link EventDataQueryRequest}.
-   * @param groupableItem the {@link GroupableItem}.
-   */
-  private void addStageToParams(
-      EventQueryParams.Builder paramsBuilder,
-      EventDataQueryRequest request,
-      GroupableItem groupableItem) {
-    if (handleEnrollmentOrgUnitFilter(request)) {
-      if (groupableItem instanceof DimensionalObject dim) {
-        paramsBuilder.withProgramStage(dim.getProgramStage());
-      } else if (groupableItem instanceof QueryItem item) {
-        paramsBuilder.withProgramStage(item.getProgramStage());
       }
     }
   }

@@ -73,12 +73,22 @@ public class EnrollmentOrgUnitFilterHandler {
   }
 
   /**
-   * Checks if org. unit item filter handling is needed for enrollments/aggregate.
+   * Checks handling is needed for enrollments/aggregate.
    *
    * @param request the {@link EventDataQueryRequest}.
    * @return true if handling is required, false otherwise.
    */
-  public static boolean handleEnrollmentOrgUnitFilter(EventDataQueryRequest request) {
+  public static boolean isAggregateEnrollment(EventDataQueryRequest request) {
     return request.getEndpointAction() == AGGREGATE && request.getEndpointItem() == ENROLLMENT;
+  }
+
+  /**
+   * Checks if handling is needed for enrollments/aggregate.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return true if handling is required, false otherwise.
+   */
+  public static boolean isAggregateEnrollment(EventQueryParams params) {
+    return params.getEndpointAction() == AGGREGATE && params.getEndpointItem() == ENROLLMENT;
   }
 }
