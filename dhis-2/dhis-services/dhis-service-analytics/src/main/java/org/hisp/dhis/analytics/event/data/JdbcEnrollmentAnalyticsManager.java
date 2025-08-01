@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -545,7 +546,30 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
             getSelectColumns(params, false));
 
+    // Needs event prefix as we will join with the event table for filtering DataElement of type
+    // Org. Unit.
+    if (handleEnrollmentOrgUnitFilter(params)) {
+      selectCols = selectCols.stream().map(this::addEventPrefix).toList();
+    }
+
     return "select " + StringUtils.join(selectCols, ",") + " ";
+  }
+
+  /**
+   * This method switches or add a new prefix to the given column if needed. It's applied for
+   * specific cases driven by the business rules of the invoker.
+   *
+   * @param column to be prefixed.
+   * @return the prefixed column (if required).
+   */
+  private String addEventPrefix(String column) {
+    if (column.startsWith("ax.")) {
+      column = column.replace("ax.", "ev.");
+    } else if (!column.contains("(")) {
+      column = "ev." + column;
+    }
+
+    return column;
   }
 
   /**
