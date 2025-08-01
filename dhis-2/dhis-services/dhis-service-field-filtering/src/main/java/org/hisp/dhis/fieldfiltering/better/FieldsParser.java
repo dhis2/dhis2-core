@@ -53,7 +53,7 @@ public class FieldsParser {
 
   private static final Pattern LEXER_PATTERN =
       Pattern.compile(
-          "(!?\\w+(?:\\s*\\w+)*(?:(?:[~|]|::)\\w+(?:\\([^)]*\\))?)*\\s*)|(,)|(\\[|\\()|(\\]|\\))");
+          "(!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(,)|(\\[|\\()|(\\]|\\))");
 
   enum TokenType {
     NAME,
@@ -130,6 +130,9 @@ public class FieldsParser {
     Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
 
+    // Merge transformer parameters with field names
+    tokens = mergeTransformerTokens(tokens);
+
     Token currentField = null;
     boolean isExclusion = false;
 
@@ -202,6 +205,48 @@ public class FieldsParser {
     // }
 
     return root;
+  }
+
+  private static List<Token> mergeTransformerTokens(List<Token> tokens) {
+    List<Token> merged = new ArrayList<>();
+
+    for (int i = 0; i < tokens.size(); i++) {
+      Token token = tokens.get(i);
+
+      // Check if this is a field name followed by transformer parameters
+      if (token.type == TokenType.NAME
+          && token.value.matches(".*(?:[~|]|::)\\w+$")
+          && i + 1 < tokens.size()
+          && tokens.get(i + 1).type == TokenType.PAREN_OPEN
+          && tokens.get(i + 1).value.equals("(")) {
+
+        // Find the matching closing parenthesis and merge all content
+        StringBuilder fullField = new StringBuilder(token.value);
+        int j = i + 1;
+        int parenCount = 0;
+
+        while (j < tokens.size()) {
+          Token t = tokens.get(j);
+          fullField.append(t.value);
+
+          if (t.value.equals("(")) parenCount++;
+          else if (t.value.equals(")")) parenCount--;
+
+          j++;
+          if (parenCount == 0) break;
+        }
+
+        // Create merged token
+        merged.add(
+            new Token(TokenType.NAME, fullField.toString(), token.start, tokens.get(j - 1).end));
+        i = j - 1; // Skip the merged tokens
+
+      } else {
+        merged.add(token);
+      }
+    }
+
+    return merged;
   }
 
   /**

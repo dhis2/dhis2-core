@@ -685,7 +685,7 @@ class FieldsParserTest {
   void testRegexTokenization(String input, List<ExpectField> expectFields) {
     Pattern pattern =
         Pattern.compile(
-            "(!?\\w+(?:\\s*\\w+)*(?:(?:[~|]|::)\\w+(?:\\([^)]*\\))?)*\\s*)|(,)|(\\[|\\()|(\\]|\\))");
+            "(!?[^,\\[\\]()]+(?:(?:[~|]|::)[^,\\[\\]()]*(?:\\([^)]*\\))?)*[^,\\[\\]()]*)|(,)|(\\[|\\()|(\\]|\\))");
 
     List<Token> tokens = tokenize(input, pattern);
 
