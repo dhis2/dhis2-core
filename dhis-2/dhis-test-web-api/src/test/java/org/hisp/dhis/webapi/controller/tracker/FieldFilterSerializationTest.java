@@ -141,6 +141,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "*,dataValues[value]",
         "dataValues[value]",
         "dataValues[value",
+        "dataValues~isEmpty",
+        "dataValues::isEmpty",
         "dataValues[dataElement,!value]",
         "event,*,dataValues[!value]",
         "event,dataValues[dataElement,value]",

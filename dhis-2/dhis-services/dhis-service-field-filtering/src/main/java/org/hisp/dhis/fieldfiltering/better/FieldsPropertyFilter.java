@@ -31,8 +31,12 @@ package org.hisp.dhis.fieldfiltering.better;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.List;
 
 public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
 
@@ -57,18 +61,84 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     if (current.test(writer.getName())) {
-      // Set the child for nested serialization
-      Fields children = current.getChildren(writer.getName());
-      provider.setAttribute(FIELDS_ATTRIBUTE, children);
+      List<Fields.Transformation> transformationList = current.getTransformations(writer.getName());
 
-      writer.serializeAsField(pojo, jgen, provider);
-
-      // Restore the current predicate after serialization
-      provider.setAttribute(FIELDS_ATTRIBUTE, current);
-      // TODO(ivo) is this needed? its in the default implementation but feels odd to have an else
-      // on "do not includes the property", is this to make sure arrays/objects are closed properly?
+      if (transformationList != null && !transformationList.isEmpty()) {
+        // Apply transformation chain and use SerializerProvider
+        applyTransformationChain(pojo, jgen, provider, writer, transformationList, current);
+      } else {
+        // Standard field serialization
+        Fields children = current.getChildren(writer.getName());
+        provider.setAttribute(FIELDS_ATTRIBUTE, children);
+        writer.serializeAsField(pojo, jgen, provider);
+        provider.setAttribute(FIELDS_ATTRIBUTE, current);
+      }
     } else if (!jgen.canOmitFields()) { // since 2.3
       writer.serializeAsOmittedField(pojo, jgen, provider);
     }
   }
+
+  private void applyTransformationChain(
+      Object pojo,
+      JsonGenerator jgen,
+      SerializerProvider provider,
+      PropertyWriter writer,
+      List<Fields.Transformation> transformations,
+      Fields current)
+      throws Exception {
+
+    // Step 1: Extract field value once at the beginning
+    Object currentValue = extractFieldValue(pojo, writer);
+    String currentFieldName = writer.getName();
+
+    // Step 2: Process transformation chain - transform the value step by step
+    for (Fields.Transformation transformation : transformations) {
+      try {
+        TransformationResult result =
+            applyTransformation(transformation, currentValue, currentFieldName);
+        currentValue = result.value;
+        currentFieldName = result.fieldName;
+      } catch (Exception e) {
+        // Stop chain on error - continue with last valid value
+        break;
+      }
+    }
+
+    // Step 3: Use SerializerProvider to serialize the final transformed value
+    provider.defaultSerializeField(currentFieldName, currentValue, jgen);
+  }
+
+  private Object extractFieldValue(Object pojo, PropertyWriter writer) {
+    if (writer instanceof BeanPropertyWriter beanWriter) {
+      try {
+        return beanWriter.get(pojo);
+      } catch (Exception e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  TransformationResult applyTransformation(
+      Fields.Transformation transformation, Object value, String fieldName) {
+    return switch (transformation.getName()) {
+      case "isEmpty" -> applyIsEmpty(value, fieldName);
+      default -> new TransformationResult(value, fieldName);
+    };
+  }
+
+  TransformationResult applyIsEmpty(Object value, String fieldName) {
+    boolean isEmpty = checkIfEmpty(value);
+    return new TransformationResult(isEmpty, fieldName);
+  }
+
+  boolean checkIfEmpty(Object value) {
+    if (value == null) return true;
+    if (value instanceof Collection<?> collection) return collection.isEmpty();
+    if (value instanceof String string) return string.isEmpty();
+    if (value.getClass().isArray()) return Array.getLength(value) == 0;
+    return false;
+  }
+
+  record TransformationResult(Object value, String fieldName) {}
 }
