@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -47,6 +48,7 @@ import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.AssignDataValueExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.RuleEngineErrorExecutor;
+import org.hisp.dhis.tracker.imports.programrule.executor.event.ScheduleEventExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.SetMandatoryFieldExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowErrorExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowErrorOnCompleteExecutor;
@@ -58,6 +60,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class RuleActionEventMapper {
   private final SystemSettingsProvider settingsProvider;
+  private final AclService aclService;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
@@ -99,6 +102,7 @@ class RuleActionEventMapper {
       case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+      case SCHEDULE_EVENT -> new ScheduleEventExecutor(validationEffect, aclService);
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };
