@@ -774,7 +774,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user,
       SqlHelper hlp) {
     StringBuilder fromBuilder =
-        new StringBuilder(" from event ev ")
+        new StringBuilder(" from trackerevent ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ")

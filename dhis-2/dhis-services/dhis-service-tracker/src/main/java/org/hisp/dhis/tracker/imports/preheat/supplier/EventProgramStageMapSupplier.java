@@ -62,7 +62,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           + " "
           + " from enrollment as en "
           + " join programstage as ps on en.programid = ps.programid "
-          + " join event as ev on en.enrollmentid = ev.enrollmentid "
+          + " join trackerevent as ev on en.enrollmentid = ev.enrollmentid "
           + " where ev.deleted = false "
           + " and ev.status != 'SKIPPED' "
           + " and ps.programstageid = ev.programstageid "

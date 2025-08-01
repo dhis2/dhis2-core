@@ -61,20 +61,15 @@ public class ProgramMessageOperationParamMapper {
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
       throws NotFoundException {
-    // TODO(DHIS2-19702): Refactor this method
+    Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
     Optional<TrackerEvent> trackerEvent = Optional.empty();
     Optional<SingleEvent> singleEvent = Optional.empty();
-    Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
     if (operationParams.getEvent() != null) {
       trackerEvent = findEntity(operationParams.getEvent(), TrackerEvent.class);
-      if (trackerEvent.isEmpty()) {
+      singleEvent = findEntity(operationParams.getEvent(), SingleEvent.class);
+      if (trackerEvent.isEmpty() && singleEvent.isEmpty()) {
         throw new NotFoundException(
             String.format("Event: %s does not exist.", operationParams.getEvent().getValue()));
-      }
-
-      if (trackerEvent.get().getEnrollment().getProgram().isWithoutRegistration()) {
-        singleEvent = findEntity(operationParams.getEvent(), SingleEvent.class);
-        trackerEvent = Optional.empty();
       }
     }
 
