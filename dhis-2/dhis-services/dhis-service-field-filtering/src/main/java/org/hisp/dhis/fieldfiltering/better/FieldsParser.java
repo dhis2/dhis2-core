@@ -51,11 +51,11 @@ public class FieldsParser {
 
   public static final Function<Schema, Set<String>> PRESET_ALL = (s) -> Set.of(TOKEN_ALL);
 
-  private static final Pattern LEXER_PATTERN =
+  private static final Pattern TOKEN_PATTERN =
       Pattern.compile(
-          """
+"""
           (?<COLONCOLON>::)|(?<TILDE>~)|(?<PIPE>\\|)|(?<BRACKETOPEN>\\[)|(?<BRACKETCLOSE>\\])|(?<PARENOPEN>\\()|(?<PARENCLOSE>\\))|(?<COMMA>,)|(?<NAME>!?(?:[^,\\[\\]()~|;:]|:(?!:))+)
-          """
+"""
               .trim());
 
   private static final Map<String, TokenType> GROUP_TO_TOKEN =
@@ -70,18 +70,8 @@ public class FieldsParser {
           "PARENOPEN", TokenType.PAREN_OPEN,
           "PARENCLOSE", TokenType.PAREN_CLOSE);
 
-  // Logical groupings for easier token handling
-  private static final Set<TokenType> SEPARATORS = Set.of(TokenType.COMMA);
   private static final Set<TokenType> TRANSFORMERS =
       Set.of(TokenType.COLON_COLON, TokenType.TILDE, TokenType.PIPE);
-  private static final Set<TokenType> OPENING_DELIMITERS =
-      Set.of(TokenType.BRACKET_OPEN, TokenType.PAREN_OPEN);
-  private static final Set<TokenType> CLOSING_DELIMITERS =
-      Set.of(TokenType.BRACKET_CLOSE, TokenType.PAREN_CLOSE);
-  private static final Set<TokenType> DELIMITERS =
-      Set.of(
-          TokenType.BRACKET_OPEN, TokenType.BRACKET_CLOSE,
-          TokenType.PAREN_OPEN, TokenType.PAREN_CLOSE);
 
   enum TokenType {
     NAME,
@@ -97,32 +87,6 @@ public class FieldsParser {
 
   record Token(TokenType type, String value, int start, int end) {}
 
-  private static List<Token> tokenize(String input) {
-    List<Token> tokens = new ArrayList<>();
-    Matcher matcher = LEXER_PATTERN.matcher(input);
-
-    while (matcher.find()) {
-      // Find which named group matched
-      TokenType tokenType =
-          GROUP_TO_TOKEN.entrySet().stream()
-              .filter(entry -> matcher.group(entry.getKey()) != null)
-              .map(Map.Entry::getValue)
-              .findFirst()
-              .orElseThrow(
-                  () ->
-                      new IllegalStateException(
-                          "Regex matched text '"
-                              + matcher.group()
-                              + "' at position "
-                              + matcher.start()
-                              + " but no named group captured it. This indicates a programmer error in the regex pattern or GROUP_TO_TOKEN mapping."));
-
-      tokens.add(new Token(tokenType, matcher.group(), matcher.start(), matcher.end()));
-    }
-
-    return tokens;
-  }
-
   /**
    * Parse fields and expand presets using given {@code presets} functions. Presets cannot be
    * excluded i.e. fields=!:simple is equivalent to fields=:simple.
@@ -135,8 +99,7 @@ public class FieldsParser {
       @Nonnull Schema schema,
       @Nonnull BiFunction<Schema, String, Schema> getSchema,
       @Nonnull Map<String, Function<Schema, Set<String>>> presets) {
-    List<Token> tokens = tokenize(input);
-    FieldsAccumulator root = parseTokens(tokens, new HashSet<>(presets.keySet()));
+    FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
     mapPresets(root, schema, getSchema, presets);
     return map(root, root.includes.contains(TOKEN_ALL));
   }
@@ -150,20 +113,19 @@ public class FieldsParser {
    */
   @Nonnull
   public static Fields parse(@Nonnull String input) {
-    List<Token> tokens = tokenize(input);
-    FieldsAccumulator root = parseTokens(tokens, new HashSet<>());
+    FieldsAccumulator root = parseFields(input, new HashSet<>());
     return map(root, root.includes.contains(TOKEN_ALL));
   }
 
-  @Nonnull
-  private static FieldsAccumulator parseTokens(List<Token> tokens, Set<String> unexcludableTokens) {
+  private static FieldsAccumulator parseFields(String input, Set<String> unexcludableTokens) {
+    List<Token> tokens = tokenize(input);
+
     unexcludableTokens.add(TOKEN_ALL);
 
     FieldsAccumulator root = new FieldsAccumulator();
     Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
 
-    // Merge transformer parameters with field names
     tokens = mergeTransformerTokens(tokens);
 
     Token currentField = null;
@@ -227,19 +189,36 @@ public class FieldsParser {
       }
     }
 
-    // Process final field if exists
     if (currentField != null) {
       String fieldName = parseFieldName(currentField.value);
       List<Fields.Transformation> transformers = parseTransformers(currentField.value);
       stack.peek().add(fieldName, isExclusion, unexcludableTokens, transformers);
     }
 
-    // The original parser was lenient with unclosed brackets, so we follow that behavior
-    // if (stack.size() > 1) {
-    //   throw new IllegalArgumentException("Unclosed brackets/parentheses in input");
-    // }
-
     return root;
+  }
+
+  private static List<Token> tokenize(String input) {
+    List<Token> tokens = new ArrayList<>();
+    Matcher matcher = TOKEN_PATTERN.matcher(input);
+    while (matcher.find()) {
+      TokenType tokenType =
+          GROUP_TO_TOKEN.entrySet().stream()
+              .filter(entry -> matcher.group(entry.getKey()) != null)
+              .map(Map.Entry::getValue)
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Regex matched text '"
+                              + matcher.group()
+                              + "' at position "
+                              + matcher.start()
+                              + " but no named group captured it. This indicates a programmer error in the regex pattern or GROUP_TO_TOKEN mapping."));
+      tokens.add(new Token(tokenType, matcher.group(), matcher.start(), matcher.end()));
+    }
+
+    return tokens;
   }
 
   private static List<Token> mergeTransformerTokens(List<Token> tokens) {
@@ -528,10 +507,6 @@ public class FieldsParser {
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
     final Map<String, List<Fields.Transformation>> transformations = new HashMap<>();
-
-    void add(String field, boolean isExclusion, Set<String> unexcludableTokens) {
-      add(field, isExclusion, unexcludableTokens, List.of());
-    }
 
     void add(
         String field,
