@@ -33,7 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.user.DefaultUserService.RECOVERY_LOCKOUT_MINS;
+import static org.hisp.dhis.user.UserConstants.RECOVERY_LOCKOUT_MINS;
 import static org.springframework.http.CacheControl.noStore;
 
 import com.google.common.base.Strings;

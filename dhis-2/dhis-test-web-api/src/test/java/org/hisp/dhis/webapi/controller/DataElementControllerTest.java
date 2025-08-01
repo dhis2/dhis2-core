@@ -253,6 +253,8 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
             """)
         .content(OK);
 
+    switchContextToUser(userService.getUser(ADMIN_USER_UID));
+
     // add data value for data element
     POST(
             "/dataValueSets",
@@ -369,6 +371,8 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
         ]
         """)
         .content(OK);
+
+    switchContextToUser(userService.getUser(ADMIN_USER_UID));
 
     // add data value for data element
     POST(

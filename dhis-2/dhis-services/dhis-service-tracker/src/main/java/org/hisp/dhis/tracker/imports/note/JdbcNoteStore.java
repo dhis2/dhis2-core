@@ -65,21 +65,41 @@ public class JdbcNoteStore {
     jdbcTemplate.update(sql, Map.of("enrollment", enrollment.getValue(), "noteId", noteId));
   }
 
-  public void saveEventNote(@Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
+  public void saveTrackerEventNote(
+      @Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
     long noteId = saveNote(note, user);
     String sql =
         """
-            INSERT INTO event_notes(eventid, noteid, sort_order)
+            INSERT INTO trackerevent_notes(eventid, noteid, sort_order)
             VALUES ((select eventid from event where uid = :event),
                     :noteId,
                     coalesce(
                                 (select max(sort_order) + 1
-                                from event_notes
+                                from trackerevent_notes
                                 where eventid = (select eventid from event where uid = :event)
                                 ),
                             1)
                     )
         """;
+    jdbcTemplate.update(sql, Map.of("event", event.getValue(), "noteId", noteId));
+  }
+
+  public void saveSingleEventNote(
+      @Nonnull UID event, @Nonnull Note note, @Nonnull UserDetails user) {
+    long noteId = saveNote(note, user);
+    String sql =
+        """
+                INSERT INTO singleevent_notes(eventid, noteid, sort_order)
+                VALUES ((select eventid from event where uid = :event),
+                        :noteId,
+                        coalesce(
+                                    (select max(sort_order) + 1
+                                    from singleevent_notes
+                                    where eventid = (select eventid from event where uid = :event)
+                                    ),
+                                1)
+                        )
+            """;
     jdbcTemplate.update(sql, Map.of("event", event.getValue(), "noteId", noteId));
   }
 

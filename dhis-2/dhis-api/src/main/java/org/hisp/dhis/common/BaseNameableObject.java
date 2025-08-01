@@ -44,10 +44,10 @@ import org.hisp.dhis.translation.Translatable;
  */
 @JacksonXmlRootElement(localName = "nameableObject", namespace = DxfNamespaces.DXF_2_0)
 public class BaseNameableObject extends BaseIdentifiableObject implements NameableObject {
-  /** An short name representing this Object. Optional but unique. */
+  /** Short name representing this object. Optional and unique. */
   protected String shortName;
 
-  /** Description of this Object. */
+  /** Description of this object. */
   protected String description;
 
   protected String formName;
@@ -211,14 +211,6 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
     return getTranslation("DESCRIPTION", getDescription());
   }
 
-  @JsonProperty
-  @Sortable(whenPersisted = false)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "formName", key = "FORM_NAME")
-  public String getDisplayFormName() {
-    return getTranslation("FORM_NAME", getFormNameFallback());
-  }
-
   /** Returns the form name, or the name if it does not exist. */
   public String getFormNameFallback() {
     return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
@@ -233,5 +225,13 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
 
   public void setFormName(String formName) {
     this.formName = formName;
+  }
+
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return getTranslation("FORM_NAME", getFormNameFallback());
   }
 }
