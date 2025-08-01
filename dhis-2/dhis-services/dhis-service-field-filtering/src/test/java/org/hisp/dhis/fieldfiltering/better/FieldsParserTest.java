@@ -683,12 +683,12 @@ class FieldsParserTest {
   @ParameterizedTest
   @MethodSource("providerEqualBehavior")
   void testRegexTokenization(String input, List<ExpectField> expectFields) {
-    Pattern pattern = Pattern.compile(
-        "(!?[\\w:*~|();]+)|(,)|(\\[|\\()|(\\]|\\))|(\\s+)"
-    );
-    
+    Pattern pattern =
+        Pattern.compile(
+            "(!?\\w+(?:\\s*\\w+)*(?:(?:[~|]|::)\\w+(?:\\([^)]*\\))?)*\\s*)|(,)|(\\[|\\()|(\\]|\\))");
+
     List<Token> tokens = tokenize(input, pattern);
-    
+
     // Print tokens for debugging
     System.out.println("Input: \"" + input + "\"");
     for (Token token : tokens) {
@@ -700,11 +700,11 @@ class FieldsParserTest {
   private List<Token> tokenize(String input, Pattern pattern) {
     List<Token> tokens = new ArrayList<>();
     Matcher matcher = pattern.matcher(input);
-    
+
     while (matcher.find()) {
       String tokenType = null;
       String value = matcher.group();
-      
+
       if (matcher.group(1) != null) {
         tokenType = "NAME";
       } else if (matcher.group(2) != null) {
@@ -713,15 +713,13 @@ class FieldsParserTest {
         tokenType = "PAREN_OPEN";
       } else if (matcher.group(4) != null) {
         tokenType = "PAREN_CLOSE";
-      } else if (matcher.group(5) != null) {
-        tokenType = "WHITESPACE";
       }
-      
+
       if (tokenType != null) {
         tokens.add(new Token(tokenType, value, matcher.start(), matcher.end()));
       }
     }
-    
+
     return tokens;
   }
 }

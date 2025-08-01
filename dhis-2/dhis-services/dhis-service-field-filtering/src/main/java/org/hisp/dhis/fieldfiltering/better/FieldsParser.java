@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.schema.Schema;
@@ -47,6 +50,45 @@ public class FieldsParser {
   private static final String TOKEN_ALL = "*";
 
   public static final Function<Schema, Set<String>> PRESET_ALL = (s) -> Set.of(TOKEN_ALL);
+
+  private static final Pattern LEXER_PATTERN =
+      Pattern.compile(
+          "(!?\\w+(?:\\s*\\w+)*(?:(?:[~|]|::)\\w+(?:\\([^)]*\\))?)*\\s*)|(,)|(\\[|\\()|(\\]|\\))");
+
+  enum TokenType {
+    NAME,
+    SEPARATOR,
+    PAREN_OPEN,
+    PAREN_CLOSE
+  }
+
+  record Token(TokenType type, String value, int start, int end) {}
+
+  private static List<Token> tokenize(String input) {
+    List<Token> tokens = new ArrayList<>();
+    Matcher matcher = LEXER_PATTERN.matcher(input);
+
+    while (matcher.find()) {
+      TokenType tokenType = null;
+      String value = matcher.group();
+
+      if (matcher.group(1) != null) {
+        tokenType = TokenType.NAME;
+      } else if (matcher.group(2) != null) {
+        tokenType = TokenType.SEPARATOR;
+      } else if (matcher.group(3) != null) {
+        tokenType = TokenType.PAREN_OPEN;
+      } else if (matcher.group(4) != null) {
+        tokenType = TokenType.PAREN_CLOSE;
+      }
+
+      if (tokenType != null) {
+        tokens.add(new Token(tokenType, value, matcher.start(), matcher.end()));
+      }
+    }
+
+    return tokens;
+  }
 
   /**
    * Parse fields and expand presets using given {@code presets} functions. Presets cannot be
@@ -60,7 +102,8 @@ public class FieldsParser {
       @Nonnull Schema schema,
       @Nonnull BiFunction<Schema, String, Schema> getSchema,
       @Nonnull Map<String, Function<Schema, Set<String>>> presets) {
-    FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
+    List<Token> tokens = tokenize(input);
+    FieldsAccumulator root = parseTokens(tokens, new HashSet<>(presets.keySet()));
     mapPresets(root, schema, getSchema, presets);
     return map(root, root.includes.contains(TOKEN_ALL));
   }
@@ -74,101 +117,218 @@ public class FieldsParser {
    */
   @Nonnull
   public static Fields parse(@Nonnull String input) {
-    FieldsAccumulator root = parseFields(input, new HashSet<>());
+    List<Token> tokens = tokenize(input);
+    FieldsAccumulator root = parseTokens(tokens, new HashSet<>());
     return map(root, root.includes.contains(TOKEN_ALL));
   }
 
   @Nonnull
-  private static FieldsAccumulator parseFields(String input, Set<String> unexcludableTokens) {
+  private static FieldsAccumulator parseTokens(List<Token> tokens, Set<String> unexcludableTokens) {
     unexcludableTokens.add(TOKEN_ALL);
 
     FieldsAccumulator root = new FieldsAccumulator();
     Stack<FieldsAccumulator> stack = new Stack<>();
     stack.push(root);
 
-    int i = 0;
-    int fieldStart = i;
-    boolean inField = false;
+    Token currentField = null;
     boolean isExclusion = false;
-    while (i < input.length()) {
-      if ((input.charAt(i) == ',')) {
-        if (inField) {
-          stack.peek().add(parseFieldName(input, fieldStart, i), isExclusion, unexcludableTokens);
 
-          inField = false;
+    for (Token token : tokens) {
+      switch (token.type) {
+        case NAME:
+          if (currentField != null) {
+            // Process previous field
+            String fieldName = parseFieldName(currentField.value);
+            List<Fields.Transformation> transformers = parseTransformers(currentField.value);
+            stack.peek().add(fieldName, isExclusion, unexcludableTokens, transformers);
+          }
+
+          // Set up new field
+          currentField = token;
+          isExclusion = token.value.startsWith("!");
+          break;
+
+        case SEPARATOR:
+          if (currentField != null) {
+            String fieldName = parseFieldName(currentField.value);
+            List<Fields.Transformation> transformers = parseTransformers(currentField.value);
+            stack.peek().add(fieldName, isExclusion, unexcludableTokens, transformers);
+            currentField = null;
+            isExclusion = false;
+          }
+          break;
+
+        case PAREN_OPEN:
+          if (currentField == null) {
+            throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
+          }
+
+          String parent = parseFieldName(currentField.value);
+          List<Fields.Transformation> parentTransformers = parseTransformers(currentField.value);
+          stack.peek().add(parent, isExclusion, unexcludableTokens, parentTransformers);
+          stack.push(stack.peek().getOrCreateChild(parent));
+          currentField = null;
           isExclusion = false;
-        }
-      } else if (input.charAt(i) == '[' || input.charAt(i) == '(') {
-        if (!inField) { // fields=[value] is ignored, ideally we would reject this
-          throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
-        }
+          break;
 
-        String parent = parseFieldName(input, fieldStart, i);
-        stack.peek().add(parent, isExclusion, unexcludableTokens);
+        case PAREN_CLOSE:
+          if (stack.size() == 1) {
+            throw new IllegalArgumentException("Unbalanced parens/brackets in input");
+          }
 
-        stack.push(stack.peek().getOrCreateChild(parent));
-        inField = false;
-        isExclusion = false;
-      } else if (input.charAt(i) == ']' || input.charAt(i) == ')') {
-        if (stack.size() == 1) {
-          throw new IllegalArgumentException("Unbalanced parens/brackets in input: " + input);
-        }
+          if (currentField != null) {
+            String fieldName = parseFieldName(currentField.value);
+            List<Fields.Transformation> transformers = parseTransformers(currentField.value);
+            stack.peek().add(fieldName, isExclusion, unexcludableTokens, transformers);
+            currentField = null;
+            isExclusion = false;
+          }
 
-        if (inField) {
-          stack.peek().add(parseFieldName(input, fieldStart, i), isExclusion, unexcludableTokens);
-        }
-
-        stack.pop();
-        inField = false;
-        isExclusion = false;
-      } else if (input.charAt(i) == '!' && !inField) {
-        inField = true;
-        isExclusion = true;
-        fieldStart = i + 1; // do not includes ! in field name
-      } else if (!Character.isWhitespace(input.charAt(i)) && !inField) {
-        inField = true;
-        isExclusion = false;
-        fieldStart = i;
+          stack.pop();
+          break;
       }
-      i++;
     }
 
-    if (inField) {
-      stack.peek().add(parseFieldName(input, fieldStart, i), isExclusion, unexcludableTokens);
+    // Process final field if exists
+    if (currentField != null) {
+      String fieldName = parseFieldName(currentField.value);
+      List<Fields.Transformation> transformers = parseTransformers(currentField.value);
+      stack.peek().add(fieldName, isExclusion, unexcludableTokens, transformers);
     }
-    // this is where we should check if stack size is > 1 and err as a bracket/paren
-    // fields="group[name" was not closed
+
+    // The original parser was lenient with unclosed brackets, so we follow that behavior
+    // if (stack.size() > 1) {
+    //   throw new IllegalArgumentException("Unclosed brackets/parentheses in input");
+    // }
+
     return root;
   }
 
   /**
-   * The current {@code FieldFilterParser} has this behavior. We check for whitespace in the field
-   * and remove it if present. Ideally we would not support this and only ignore leading and
-   * trailing whitespace.
+   * Parses field name and extracts transformers. Returns the base field name without transformers.
    */
-  private static String parseFieldName(String input, int start, int end) {
-    String field = input.substring(start, end);
+  private static String parseFieldName(String field) {
+    // Remove leading ! if present
+    if (field.startsWith("!")) {
+      field = field.substring(1);
+    }
 
+    // Extract base field name (everything before first transformer separator)
+    int transformerStart = -1;
+    for (int i = 0; i < field.length() - 1; i++) {
+      if ((field.charAt(i) == ':' && field.charAt(i + 1) == ':')
+          || field.charAt(i) == '~'
+          || field.charAt(i) == '|') {
+        transformerStart = i;
+        break;
+      }
+    }
+
+    String baseField = transformerStart >= 0 ? field.substring(0, transformerStart) : field;
+
+    // Remove whitespace from base field name
     boolean hasWhitespace = false;
-    for (int j = 0; j < field.length(); j++) {
-      if (Character.isWhitespace(field.charAt(j))) {
+    for (int j = 0; j < baseField.length(); j++) {
+      if (Character.isWhitespace(baseField.charAt(j))) {
         hasWhitespace = true;
         break;
       }
     }
 
     if (!hasWhitespace) {
-      return field;
+      return baseField;
     }
 
-    StringBuilder sb = new StringBuilder(field.length());
-    for (int j = 0; j < field.length(); j++) {
-      char c = field.charAt(j);
+    StringBuilder sb = new StringBuilder(baseField.length());
+    for (int j = 0; j < baseField.length(); j++) {
+      char c = baseField.charAt(j);
       if (!Character.isWhitespace(c)) {
         sb.append(c);
       }
     }
     return sb.toString();
+  }
+
+  /** Parses transformers from a field string. */
+  private static List<Fields.Transformation> parseTransformers(String field) {
+    List<Fields.Transformation> transformers = new ArrayList<>();
+
+    // Remove leading ! if present
+    if (field.startsWith("!")) {
+      field = field.substring(1);
+    }
+
+    // Find transformer part
+    int transformerStart = -1;
+    for (int i = 0; i < field.length() - 1; i++) {
+      if ((field.charAt(i) == ':' && field.charAt(i + 1) == ':')
+          || field.charAt(i) == '~'
+          || field.charAt(i) == '|') {
+        transformerStart = i;
+        break;
+      }
+    }
+
+    if (transformerStart < 0) {
+      return transformers; // No transformers
+    }
+
+    String transformerPart = field.substring(transformerStart);
+
+    // Parse individual transformers
+    int i = 0;
+    while (i < transformerPart.length()) {
+      // Skip separator
+      if (transformerPart.charAt(i) == ':'
+          && i + 1 < transformerPart.length()
+          && transformerPart.charAt(i + 1) == ':') {
+        i += 2;
+      } else if (transformerPart.charAt(i) == '~' || transformerPart.charAt(i) == '|') {
+        i++;
+      }
+
+      // Extract transformer name
+      int nameStart = i;
+      while (i < transformerPart.length()
+          && Character.isJavaIdentifierPart(transformerPart.charAt(i))) {
+        i++;
+      }
+
+      if (nameStart == i) break; // No valid transformer name
+
+      String transformerName = transformerPart.substring(nameStart, i);
+
+      // Extract parameters if present
+      List<String> params = new ArrayList<>();
+      if (i < transformerPart.length() && transformerPart.charAt(i) == '(') {
+        i++; // Skip opening paren
+        int paramStart = i;
+        int parenCount = 1;
+
+        while (i < transformerPart.length() && parenCount > 0) {
+          if (transformerPart.charAt(i) == '(') {
+            parenCount++;
+          } else if (transformerPart.charAt(i) == ')') {
+            parenCount--;
+          }
+          i++;
+        }
+
+        if (parenCount == 0) {
+          String paramString = transformerPart.substring(paramStart, i - 1);
+          if (!paramString.isEmpty()) {
+            // Split by semicolon
+            for (String param : paramString.split(";")) {
+              params.add(param.trim());
+            }
+          }
+        }
+      }
+
+      transformers.add(new Fields.Transformation(transformerName, params.toArray(new String[0])));
+    }
+
+    return transformers;
   }
 
   private static void mapPresets(
@@ -212,7 +372,7 @@ public class FieldsParser {
       fields.removeAll(acc.excludes);
     }
 
-    return new Fields(includesAll, fields, children, Map.of());
+    return new Fields(includesAll, fields, children, acc.transformations);
   }
 
   /**
@@ -226,10 +386,22 @@ public class FieldsParser {
     final Map<String, List<Fields.Transformation>> transformations = new HashMap<>();
 
     void add(String field, boolean isExclusion, Set<String> unexcludableTokens) {
+      add(field, isExclusion, unexcludableTokens, List.of());
+    }
+
+    void add(
+        String field,
+        boolean isExclusion,
+        Set<String> unexcludableTokens,
+        List<Fields.Transformation> transformers) {
       if (!isExclusion || unexcludableTokens.contains(field)) {
         this.includes.add(field);
       } else {
         this.excludes.add(field);
+      }
+
+      if (!transformers.isEmpty()) {
+        this.transformations.put(field, transformers);
       }
     }
 
