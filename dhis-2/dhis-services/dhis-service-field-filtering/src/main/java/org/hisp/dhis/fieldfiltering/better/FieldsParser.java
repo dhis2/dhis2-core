@@ -151,8 +151,7 @@ public class FieldsParser {
           } else if (parser.currentFieldName == null) {
             parser.currentFieldName = token.value;
           } else {
-            parser.commitCurrentField(stack.peek(), unexcludableTokens);
-            parser.reset();
+            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
             parser.currentFieldName = token.value;
           }
           break;
@@ -176,9 +175,9 @@ public class FieldsParser {
               throw new IllegalArgumentException(
                   "Block must have a field name like orgUnits[code]");
             }
-            parser.commitCurrentField(stack.peek(), unexcludableTokens);
-            stack.push(stack.peek().getOrCreateChild(parser.currentFieldName));
-            parser.reset();
+            String fieldName = parser.currentFieldName;
+            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+            stack.push(stack.peek().getOrCreateChild(fieldName));
           }
           break;
 
@@ -196,8 +195,7 @@ public class FieldsParser {
               throw new IllegalArgumentException("Unbalanced parens/brackets in input");
             }
             if (parser.currentFieldName != null) {
-              parser.commitCurrentField(stack.peek(), unexcludableTokens);
-              parser.reset();
+              parser.consumeCurrentField(stack.peek(), unexcludableTokens);
             }
             stack.pop();
           }
@@ -207,9 +205,9 @@ public class FieldsParser {
           if (parser.currentFieldName == null) {
             throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
           }
-          parser.commitCurrentField(stack.peek(), unexcludableTokens);
-          stack.push(stack.peek().getOrCreateChild(parser.currentFieldName));
-          parser.reset();
+          String fieldName = parser.currentFieldName;
+          parser.consumeCurrentField(stack.peek(), unexcludableTokens);
+          stack.push(stack.peek().getOrCreateChild(fieldName));
           break;
 
         case BRACKET_CLOSE:
@@ -217,18 +215,14 @@ public class FieldsParser {
             throw new IllegalArgumentException("Unbalanced parens/brackets in input");
           }
           if (parser.currentFieldName != null) {
-            parser.commitCurrentField(stack.peek(), unexcludableTokens);
-            parser.reset();
+            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
           }
           stack.pop();
           break;
 
         case COMMA:
-          if (!parser.parsingTransformerParameters) {
-            if (parser.currentFieldName != null) {
-              parser.commitCurrentField(stack.peek(), unexcludableTokens);
-              parser.reset();
-            }
+          if (!parser.parsingTransformerParameters && parser.currentFieldName != null) {
+            parser.consumeCurrentField(stack.peek(), unexcludableTokens);
           }
           break;
 
@@ -238,7 +232,7 @@ public class FieldsParser {
     }
 
     if (parser.currentFieldName != null) {
-      parser.commitCurrentField(stack.peek(), unexcludableTokens);
+      parser.consumeCurrentField(stack.peek(), unexcludableTokens);
     }
 
     return root;
@@ -253,7 +247,7 @@ public class FieldsParser {
     List<String> transformerParameters = new ArrayList<>();
     boolean parsingTransformerParameters = false;
 
-    void commitCurrentField(FieldsAccumulator accumulator, Set<String> unexcludableTokens) {
+    void consumeCurrentField(FieldsAccumulator accumulator, Set<String> unexcludableTokens) {
       if (currentFieldName != null && !currentFieldName.trim().isEmpty()) {
         if (pendingTransformerName != null && !pendingTransformerName.isEmpty()) {
           currentTransformers.add(new Fields.Transformation(pendingTransformerName));
@@ -262,6 +256,7 @@ public class FieldsParser {
         accumulator.add(
             cleanFieldName, isExclusion, unexcludableTokens, new ArrayList<>(currentTransformers));
       }
+      reset();
     }
 
     /**
@@ -279,7 +274,7 @@ public class FieldsParser {
       return sb.toString();
     }
 
-    void reset() {
+    private void reset() {
       currentFieldName = null;
       currentTransformers.clear();
       isExclusion = false;
