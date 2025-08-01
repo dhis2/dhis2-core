@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -222,6 +224,7 @@ public class FieldsParser {
     Set<String> includes = new HashSet<>();
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
+    final Map<String, List<Fields.Transformation>> transformations = new HashMap<>();
 
     void add(String field, boolean isExclusion, Set<String> unexcludableTokens) {
       if (!isExclusion || unexcludableTokens.contains(field)) {

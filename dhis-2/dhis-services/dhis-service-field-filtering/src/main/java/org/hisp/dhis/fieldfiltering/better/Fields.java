@@ -29,15 +29,16 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.opengis.referencing.operation.Transformation;
 
 /**
  * Fields represent the fields a user wants to be returned from an API usually specified via the
@@ -69,7 +70,7 @@ public final class Fields implements Predicate<String> {
 
   private final Map<String, Fields> children;
 
-  private final Map<String, Transformation> transformations;
+  private final Map<String, List<Transformation>> transformations;
 
   /** Creates Fields which includes all fields and all of its children with no transformations. */
   public static Fields all() {
@@ -132,6 +133,22 @@ public final class Fields implements Predicate<String> {
     }
     String lastSegment = segments[segments.length - 1];
     return current.test(lastSegment);
+  }
+
+  /**
+   * Returns the transformations for a field.
+   *
+   * @param field the field name
+   * @return transformation for the field if any
+   */
+  // TODO(ivo) or a NOOP transformation?
+  @Nullable
+  public List<Transformation> getTransformations(String field) {
+    if (!test(field)) {
+      return null; // field must be included for it to be transformed
+    }
+
+    return transformations.get(field);
   }
 
   /**

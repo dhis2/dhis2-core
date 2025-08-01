@@ -31,10 +31,10 @@ package org.hisp.dhis.fieldfiltering.better;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 import org.hisp.dhis.schema.Schema;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,7 +61,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  * indicate where the tests differ.
  */
 class FieldsParserTest {
-  record ExpectField(boolean included, String dotPath) {}
+
+  record ExpectField(boolean included, String dotPath, Transformation... transformations) {}
 
   @ParameterizedTest
   @MethodSource("providerEqualBehavior")
@@ -252,7 +254,15 @@ class FieldsParserTest {
                 new ExpectField(false, "code"),
                 new ExpectField(true, "group"),
                 new ExpectField(false, "group.code"),
-                new ExpectField(true, "group.hello"))));
+                new ExpectField(true, "group.hello"))),
+
+        // testParseWithTransformer1
+        Arguments.of(
+            "name::x(a;b),id~y(a;b;c),code|z(t)",
+            List.of(
+                new ExpectField(true, "name", new Transformation("x", "a", "b")),
+                new ExpectField(true, "id", new Transformation("y", "a", "b", "c")),
+                new ExpectField(true, "code", new Transformation("z", "t")))));
   }
 
   // The following tests show where the current and better implementations differ. Some differences
@@ -323,7 +333,6 @@ class FieldsParserTest {
       Map.of(":all", FieldsParser.PRESET_ALL);
 
   record Any() {}
-  ;
 
   @ParameterizedTest
   @ValueSource(
@@ -450,13 +459,9 @@ class FieldsParserTest {
     assertFalse(fields.includes("relationships.from.value"));
   }
 
-  // TODO implement: group(id) is equivalent to group[id] but () is also used for transformers
-  // TODO(ivo) presets: org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets does rely on the
-  // schema. Make a provision for this that allows passing in a Map<String, Set<String>> presets
-  // into the parser.
-  // TODO(ivo) support transformers: I think I first need to investigate all their intricacies and
-  // what a
-  // more efficient way is for Jackson
+  // TODO(ivo) transformers: validation I think we should not allow duplicate transformers
+  // TODO(ivo) transformers: test what happens with transformers on presets
+
   // TODO(ivo) only used in tests: FieldFilterParser.parseWithPrefix can be removed
   @Test
   void testParseWithPrefix1() {
@@ -474,114 +479,7 @@ class FieldsParserTest {
     assertFieldPathContains(fieldPaths, "prefix.bbb.b");
   }
 
-  // TODO(ivo) double-check my ported tests are equivalent, make them fail, look at assertion errors
-  @Test
-  void testParseWithPresetAndExclude1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,!code,:owner");
-
-    FieldPath id = getFieldPath(fieldPaths, "id");
-    assertNotNull(id);
-    assertFalse(id.isExclude());
-    assertFalse(id.isPreset());
-    FieldPath name = getFieldPath(fieldPaths, "name");
-    assertNotNull(name);
-    assertFalse(name.isExclude());
-    assertFalse(name.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-    FieldPath owner = getFieldPath(fieldPaths, "owner");
-    assertNotNull(owner);
-    assertFalse(owner.isExclude());
-    assertTrue(owner.isPreset());
-  }
-
-  @Test
-  void testParseWithPresetAndExclude() {
-    List<FieldPath> fieldPaths =
-        FieldFilterParser.parse("id,name,!code,:owner,group[:owner,:all,!code,hello]");
-
-    FieldPath id = getFieldPath(fieldPaths, "id");
-    assertNotNull(id);
-    assertFalse(id.isExclude());
-    assertFalse(id.isPreset());
-    FieldPath name = getFieldPath(fieldPaths, "name");
-    assertNotNull(name);
-    assertFalse(name.isExclude());
-    assertFalse(name.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-    FieldPath owner = getFieldPath(fieldPaths, "owner");
-    assertNotNull(owner);
-    assertFalse(owner.isExclude());
-    assertTrue(owner.isPreset());
-    FieldPath groupOwner = getFieldPath(fieldPaths, "group.owner");
-    assertNotNull(groupOwner);
-    assertFalse(groupOwner.isExclude());
-    assertTrue(groupOwner.isPreset());
-    FieldPath groupAll = getFieldPath(fieldPaths, "group.all");
-    assertNotNull(groupAll);
-    assertFalse(groupAll.isExclude());
-    assertTrue(groupAll.isPreset());
-    FieldPath groupCode = getFieldPath(fieldPaths, "group.code");
-    assertNotNull(groupCode);
-    assertTrue(groupCode.isExclude());
-    assertFalse(groupCode.isPreset());
-    FieldPath groupHello = getFieldPath(fieldPaths, "group.hello");
-    assertNotNull(groupHello);
-    assertFalse(groupHello.isExclude());
-    assertFalse(groupHello.isPreset());
-  }
-
-  @Test
-  void testParseWithAsterisk1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code");
-
-    FieldPath asterisk = getFieldPath(fieldPaths, "all");
-    assertNotNull(asterisk);
-    assertFalse(asterisk.isExclude());
-    assertTrue(asterisk.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-  }
-
-  @Test
-  void testParseWithAsterisk2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("*,!code,group[*]");
-
-    FieldPath asterisk = getFieldPath(fieldPaths, "all");
-    assertNotNull(asterisk);
-    assertFalse(asterisk.isExclude());
-    assertTrue(asterisk.isPreset());
-    FieldPath code = getFieldPath(fieldPaths, "code");
-    assertNotNull(code);
-    assertTrue(code.isExclude());
-    assertFalse(code.isPreset());
-    FieldPath groupAsterisk = getFieldPath(fieldPaths, "group.all");
-    assertNotNull(groupAsterisk);
-    assertFalse(groupAsterisk.isExclude());
-    assertTrue(groupAsterisk.isPreset());
-  }
-
-  @Test
-  void testMixedBlockSingleFields() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parse("id,name,group[id,name],code");
-
-    assertEquals(6, fieldPaths.size());
-    assertFieldPathContains(fieldPaths, "id");
-    assertFieldPathContains(fieldPaths, "name");
-    assertFieldPathContains(fieldPaths, "group");
-    assertFieldPathContains(fieldPaths, "group.id");
-    assertFieldPathContains(fieldPaths, "group.name");
-    assertFieldPathContains(fieldPaths, "code");
-  }
-
-  // TODO(ivo) need to implement transformers
+  // TODO(ivo) port these transformer tests
   @Test
   void testParseWithTransformer1() {
     List<FieldPath> fieldPaths = FieldFilterParser.parse("name::x(a;b),id~y(a;b;c),code|z(t)");
@@ -693,6 +591,29 @@ class FieldsParserTest {
         expected.included,
         fields.includes(expected.dotPath),
         "fields " + fields + " does not " + what + " " + expected.dotPath);
+    assertTransformations(expected, fields);
+  }
+
+  private static void assertTransformations(ExpectField expected, Fields fields) {
+    String[] segments = expected.dotPath.split("\\.");
+    Fields current = fields;
+    for (int i = 0; i < segments.length - 1; i++) {
+      current = current.getChildren(segments[i]);
+    }
+    String lastSegment = segments[segments.length - 1];
+    List<Transformation> actual = current.getTransformations(lastSegment);
+
+    if (expected.transformations.length == 0) {
+      assertIsEmpty(
+          actual == null ? List.of() : actual,
+          "Expected no transformations for field " + expected.dotPath);
+    } else {
+      assertNotEmpty(actual, "Expected transformations for field " + expected.dotPath);
+      assertEquals(
+          List.of(expected.transformations),
+          actual,
+          "Transformations mismatch for field " + expected.dotPath);
+    }
   }
 
   private static void assertFields(
@@ -746,7 +667,23 @@ class FieldsParserTest {
                   + expected.dotPath
                   + " but it does not contain the path with an exclusion");
     }
+    // TODO(ivo) figure out if we can extract the match from the previous step and then check the
+    // transformations on it?
+    //    assertTransformations(expected, fieldPaths);
   }
+
+  //  private static void assertTransformations(ExpectField expected, List<FieldPath> fieldPaths) {
+  //
+  //    if (expected.transformations.length == 0) {
+  //      assertIsEmpty(actual == null ? List.of() : actual,
+  //          "Expected no transformations for field " + expected.dotPath);
+  //    } else {
+  //      assertNotEmpty(actual,
+  //          "Expected transformations for field " + expected.dotPath);
+  //      assertEquals(List.of(expected.transformations), actual,
+  //          "Transformations mismatch for field " + expected.dotPath);
+  //    }
+  //  }
 
   private void assertFieldPathContains(
       List<FieldPath> fieldPaths, String expected, boolean isTransformer) {
