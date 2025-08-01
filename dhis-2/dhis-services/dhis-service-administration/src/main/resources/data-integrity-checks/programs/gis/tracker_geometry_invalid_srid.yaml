@@ -34,19 +34,18 @@ details_id_type: tracker
 
 summary_sql: >-
   WITH all_geom AS (
-    SELECT geometry FROM trackedentity WHERE geometry IS NOT NULL
-    UNION ALL
-    SELECT geometry FROM enrollment WHERE geometry IS NOT NULL
-    UNION ALL
-    SELECT geometry FROM event WHERE geometry IS NOT NULL
+      SELECT 'trackedentity' AS table_name, geometry FROM trackedentity
+      WHERE geometry IS NOT NULL
+      UNION ALL
+      SELECT 'enrollment' AS table_name, geometry FROM enrollment
+      WHERE geometry IS NOT NULL
+      UNION ALL
+      SELECT 'event' AS table_name, geometry FROM event
+      WHERE geometry IS NOT NULL
   ),
-  invalid_geom AS (
-    SELECT geometry FROM trackedentity WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-    UNION ALL
-    SELECT geometry FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-    UNION ALL
-    SELECT geometry FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-  )
+       invalid_geom AS (
+           SELECT * FROM all_geom WHERE ST_SRID(geometry) != 4326
+       )
   SELECT COUNT(*) AS value,
          100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM all_geom), 0) AS percent
   FROM invalid_geom;
