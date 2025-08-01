@@ -34,6 +34,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABL
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.http.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -579,6 +580,35 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "User with id does-not-exist could not be found.",
         POST("/users/does-not-exist/reset").error(HttpStatus.NOT_FOUND).getMessage());
+  }
+
+  @Test
+  @DisplayName("Test that a user can also delete a replicated user, see: DHIS2-19693")
+  void testReplicateUserNoRoleAuth() {
+    UserRole replicateRole = createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD");
+    userService.addUserRole(replicateRole);
+    String roleUid = userService.getUserRoleByName("ROLE_REPLICATE").getUid();
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleUid + "'}]}]")
+        .content(HttpStatus.OK);
+
+    switchContextToUser(peter);
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + getAdminUser().getUid() + "/replica",
+                "{'username':'petersadmin','password':'Saf€sEcre1'}")
+            .content());
+
+    User petersadmin = userService.getUserByUsername("petersadmin");
+
+    // Then
+    DELETE("/users/" + petersadmin.getUid()).content(OK);
   }
 
   @Test
