@@ -115,9 +115,15 @@ public class WebMessage extends WebResponse {
   // Constructors
   // -------------------------------------------------------------------------
 
-  /** Only for deserialisation */
+  /** Constructor. Only for deserialisation. */
   public WebMessage() {}
 
+  /**
+   * Constructor.
+   *
+   * @param status the {@link Status}.
+   * @param httpStatus the {@link HttpStatus}.
+   */
   public WebMessage(Status status, HttpStatus httpStatus) {
     this.status = status;
     this.httpStatus = httpStatus;
