@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -137,7 +136,7 @@ public class CategoryCombo extends BaseMetadataObject
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Category> categories = new ArrayList<>();
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "categoryCombo")
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "categoryCombo")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 

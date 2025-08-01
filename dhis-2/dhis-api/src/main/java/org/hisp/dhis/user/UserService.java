@@ -45,6 +45,7 @@ import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -928,4 +929,17 @@ public interface UserService {
    * @param activeUsername the username of the user to set as active
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
+
+  /**
+   * Creates a replica of an existing user with new credentials.
+   *
+   * @param existingUser the user to replicate
+   * @param username the username for the new user
+   * @param password the password for the new user
+   * @param currentUser the current user performing the replication
+   * @return the newly created user replica
+   * @throws ConflictException if validation fails
+   */
+  User replicateUser(User existingUser, String username, String password, UserDetails currentUser)
+      throws ConflictException, NotFoundException, BadRequestException;
 }
