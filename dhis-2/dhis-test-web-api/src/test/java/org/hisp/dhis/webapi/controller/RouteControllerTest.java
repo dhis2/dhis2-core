@@ -67,7 +67,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
-import org.mockserver.model.Header;
 import org.mockserver.model.MediaType;
 import org.mockserver.model.NottableString;
 import org.springframework.beans.factory.annotation.Autowired;
