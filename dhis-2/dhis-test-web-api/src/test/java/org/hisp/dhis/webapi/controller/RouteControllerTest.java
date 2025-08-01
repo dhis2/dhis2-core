@@ -44,6 +44,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
@@ -67,6 +68,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
+import org.mockserver.model.NottableString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -93,13 +95,12 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static GenericContainer<?> tokenMockServerContainer;
-  private static MockServerClient tokentMockServerClient;
+  private static MockServerClient tokenMockServerClient;
 
   @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
   @Autowired private ObjectMapper jsonMapper;
 
-  @Configuration
   public static class DhisConfigurationProviderTestConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
@@ -159,13 +160,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
-    tokentMockServerClient =
+    tokenMockServerClient =
         new MockServerClient("localhost", tokenMockServerContainer.getFirstMappedPort());
   }
 
   @BeforeEach
   void beforeEach() {
-    tokentMockServerClient.reset();
+    tokenMockServerClient.reset();
   }
 
   @AfterAll
@@ -199,6 +200,11 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @AfterEach
     void afterEach() {
       upstreamMockServerClient.reset();
+    }
+
+    @AfterAll
+    static void afterAll() {
+      upstreamMockServerContainer.stop();
     }
 
     @Test
@@ -283,6 +289,36 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                       + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
                       + "/run",
                   new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(200, mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    void testRunRouteFiltersRequestHeaders() throws JsonProcessingException {
+      upstreamMockServerClient
+          .when(
+              request()
+                  .withPath("/")
+                  .withContentType(MediaType.APPLICATION_JSON)
+                  .withHeader(NottableString.not("Set-Cookie")))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  List.of(
+                      new Header("Set-Cookie", "sessionId=e8bb43229de9; Domain=foo.example.com")),
                   "application/json",
                   null));
 
@@ -384,7 +420,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
@@ -447,7 +483,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
@@ -499,7 +535,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
-    tokentMockServerClient
+    tokenMockServerClient
         .when(request().withPath("/token"))
         .respond(
             org.mockserver.model.HttpResponse.response(
