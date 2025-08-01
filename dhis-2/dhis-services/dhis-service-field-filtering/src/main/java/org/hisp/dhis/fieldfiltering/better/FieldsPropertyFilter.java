@@ -64,7 +64,6 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       List<Fields.Transformation> transformationList = current.getTransformations(writer.getName());
 
       if (transformationList != null && !transformationList.isEmpty()) {
-        // Apply transformation chain and use SerializerProvider
         applyTransformationChain(pojo, jgen, provider, writer, transformationList, current);
       } else {
         // Standard field serialization
@@ -87,11 +86,9 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       Fields current)
       throws Exception {
 
-    // Step 1: Extract field value once at the beginning
     Object currentValue = extractFieldValue(pojo, writer);
     String currentFieldName = writer.getName();
 
-    // Step 2: Process transformation chain - transform the value step by step
     for (Fields.Transformation transformation : transformations) {
       try {
         TransformationResult result =
@@ -104,7 +101,6 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       }
     }
 
-    // Step 3: Use SerializerProvider to serialize the final transformed value
     provider.defaultSerializeField(currentFieldName, currentValue, jgen);
   }
 
@@ -123,6 +119,7 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       Fields.Transformation transformation, Object value, String fieldName) {
     return switch (transformation.getName()) {
       case "isEmpty" -> applyIsEmpty(value, fieldName);
+      case "rename" -> applyRename(transformation, value, fieldName);
       default -> new TransformationResult(value, fieldName);
     };
   }
@@ -130,6 +127,15 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
   TransformationResult applyIsEmpty(Object value, String fieldName) {
     boolean isEmpty = checkIfEmpty(value);
     return new TransformationResult(isEmpty, fieldName);
+  }
+
+  TransformationResult applyRename(
+      Fields.Transformation transformation, Object value, String fieldName) {
+    if (transformation.getArguments().length > 0) {
+      String newName = transformation.getArguments()[0];
+      return new TransformationResult(value, newName);
+    }
+    return new TransformationResult(value, fieldName);
   }
 
   boolean checkIfEmpty(Object value) {

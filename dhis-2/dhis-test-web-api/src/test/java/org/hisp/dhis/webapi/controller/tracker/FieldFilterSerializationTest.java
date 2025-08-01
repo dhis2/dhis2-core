@@ -74,9 +74,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-// TODO(ivo) the tracker view model can be built/tested without a DB. We only need Spring to wire
-// the service(s) and the ObjectMapper. As soon as we test metadata as well we should switch to
-// PostgresControllerIntegrationTestBase
 class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   private static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory();
   private static final Instant DATE = Instant.parse("2023-03-15T14:30:45Z");
@@ -143,6 +140,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "dataValues[value",
         "dataValues~isEmpty",
         "dataValues::isEmpty",
+        "dataValues|isEmpty",
+        "dataValues|rename(hasDataValues)~isEmpty",
         "dataValues[dataElement,!value]",
         "event,*,dataValues[!value]",
         "event,dataValues[dataElement,value]",

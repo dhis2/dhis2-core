@@ -369,6 +369,20 @@ class FieldsParserTest {
         java.util.EmptyStackException.class, () -> FieldFilterParser.parse("group[name]]"));
   }
 
+  @Test
+  void testBetterParserWhitespaceInNestedFieldNames() {
+    Fields fields = FieldsParser.parse("relationships[f rom[trackedEntity[ org Unit ]]]");
+
+    assertFields(
+        List.of(
+            new ExpectField(true, "relationships"),
+            new ExpectField(true, "relationships.from"),
+            new ExpectField(true, "relationships.from.trackedEntity"),
+            new ExpectField(true, "relationships.from.trackedEntity.orgUnit"),
+            new ExpectField(false, "relationships.from.trackedEntity.trackedEntityType")),
+        fields);
+  }
+
   @ParameterizedTest
   @ValueSource(
       strings = {
@@ -673,5 +687,16 @@ class FieldsParserTest {
     Set<String> actual =
         fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
+  }
+
+  @Test
+  void testParserSortsTransformationsWithRenameLast() {
+    Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
+
+    List<Transformation> actual = fields.getTransformations("field");
+    List<Transformation> expected =
+        List.of(new Transformation("isEmpty"), new Transformation("rename", "newName"));
+
+    assertEquals(expected, actual);
   }
 }

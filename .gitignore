@@ -37,6 +37,7 @@ node_modules
 .vscode
 .cursor
 .claude
+CLAUDE.local.md
 # ignore generated artifact directory
 docker/artifacts
 # ignore local docker override files

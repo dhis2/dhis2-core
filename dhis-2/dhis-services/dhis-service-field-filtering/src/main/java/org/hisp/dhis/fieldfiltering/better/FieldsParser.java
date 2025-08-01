@@ -139,63 +139,63 @@ public class FieldsParser {
           break;
 
         case NAME:
-          if (parser.parsingTransformerParameters) {
-            parser.transformerParameters.add(token.value.trim());
-          } else if (parser.pendingTransformerName != null) {
-            if (parser.pendingTransformerName.isEmpty()) {
-              parser.pendingTransformerName = token.value.trim();
+          if (parser.parsingTransformationParams) {
+            parser.transformationParams.add(token.value.trim());
+          } else if (parser.pendingTransformation != null) {
+            if (parser.pendingTransformation.isEmpty()) {
+              parser.pendingTransformation = token.value.trim();
             } else {
-              parser.currentTransformers.add(
-                  new Fields.Transformation(parser.pendingTransformerName));
-              parser.pendingTransformerName = token.value.trim();
+              parser.currentTransformation.add(
+                  new Fields.Transformation(parser.pendingTransformation));
+              parser.pendingTransformation = token.value.trim();
             }
-          } else if (parser.currentFieldName == null) {
-            parser.currentFieldName = token.value;
+          } else if (parser.currentField == null) {
+            parser.currentField = removeAllWhitespace(token.value);
           } else {
             parser.consumeCurrentField(stack.peek());
-            parser.currentFieldName = token.value;
+            parser.currentField = removeAllWhitespace(token.value);
           }
           break;
 
         case COLON_COLON:
         case TILDE:
         case PIPE:
-          if (parser.pendingTransformerName != null && !parser.pendingTransformerName.isEmpty()) {
-            parser.currentTransformers.add(
-                new Fields.Transformation(parser.pendingTransformerName));
+          if (parser.pendingTransformation != null && !parser.pendingTransformation.isEmpty()) {
+            parser.currentTransformation.add(
+                new Fields.Transformation(parser.pendingTransformation));
           }
-          parser.pendingTransformerName = "";
+          parser.pendingTransformation = "";
           break;
 
         case PAREN_OPEN:
-          if (parser.pendingTransformerName != null) {
-            parser.parsingTransformerParameters = true;
-            parser.transformerParameters.clear();
+          if (parser.pendingTransformation != null) {
+            parser.parsingTransformationParams = true;
+            parser.transformationParams.clear();
           } else {
-            if (parser.currentFieldName == null) {
+            if (parser.currentField == null) {
               throw new IllegalArgumentException(
                   "Block must have a field name like orgUnits[code]");
             }
-            String fieldName = parser.currentFieldName;
+            String fieldName = parser.currentField;
             parser.consumeCurrentField(stack.peek());
             stack.push(stack.peek().getOrCreateChild(fieldName));
           }
           break;
 
         case PAREN_CLOSE:
-          if (parser.parsingTransformerParameters) {
-            parser.currentTransformers.add(
+          if (parser.parsingTransformationParams) {
+            parser.currentTransformation.add(
                 new Fields.Transformation(
-                    parser.pendingTransformerName,
-                    parser.transformerParameters.toArray(new String[0])));
-            parser.pendingTransformerName = null;
-            parser.transformerParameters.clear();
-            parser.parsingTransformerParameters = false;
+                    parser.pendingTransformation,
+                    parser.transformationParams.toArray(new String[0])));
+            parser.pendingTransformation = null;
+            parser.transformationParams.clear();
+            parser.parsingTransformationParams = false;
           } else {
             if (stack.size() == 1) {
               throw new IllegalArgumentException("Unbalanced parens/brackets in input");
             }
-            if (parser.currentFieldName != null) {
+            if (parser.currentField != null) {
               parser.consumeCurrentField(stack.peek());
             }
             stack.pop();
@@ -203,10 +203,10 @@ public class FieldsParser {
           break;
 
         case BRACKET_OPEN:
-          if (parser.currentFieldName == null) {
+          if (parser.currentField == null) {
             throw new IllegalArgumentException("Block must have a field name like orgUnits[code]");
           }
-          String fieldName = parser.currentFieldName;
+          String fieldName = parser.currentField;
           parser.consumeCurrentField(stack.peek());
           stack.push(stack.peek().getOrCreateChild(fieldName));
           break;
@@ -215,14 +215,14 @@ public class FieldsParser {
           if (stack.size() == 1) {
             throw new IllegalArgumentException("Unbalanced parens/brackets in input");
           }
-          if (parser.currentFieldName != null) {
+          if (parser.currentField != null) {
             parser.consumeCurrentField(stack.peek());
           }
           stack.pop();
           break;
 
         case COMMA:
-          if (!parser.parsingTransformerParameters && parser.currentFieldName != null) {
+          if (!parser.parsingTransformationParams && parser.currentField != null) {
             parser.consumeCurrentField(stack.peek());
           }
           break;
@@ -232,63 +232,11 @@ public class FieldsParser {
       }
     }
 
-    if (parser.currentFieldName != null) {
+    if (parser.currentField != null) {
       parser.consumeCurrentField(stack.peek());
     }
 
     return root;
-  }
-
-  private static class Parser {
-    final Set<String> unexcludableTokens;
-
-    String currentFieldName = null;
-    List<Fields.Transformation> currentTransformers = new ArrayList<>();
-    boolean isExclusion = false;
-
-    String pendingTransformerName = null;
-    List<String> transformerParameters = new ArrayList<>();
-    boolean parsingTransformerParameters = false;
-
-    Parser(Set<String> unexcludableTokens) {
-      this.unexcludableTokens = unexcludableTokens;
-    }
-
-    void consumeCurrentField(FieldsAccumulator accumulator) {
-      if (currentFieldName != null && !currentFieldName.trim().isEmpty()) {
-        if (pendingTransformerName != null && !pendingTransformerName.isEmpty()) {
-          currentTransformers.add(new Fields.Transformation(pendingTransformerName));
-        }
-        String cleanFieldName = removeAllWhitespace(currentFieldName);
-        accumulator.add(
-            cleanFieldName, isExclusion, unexcludableTokens, new ArrayList<>(currentTransformers));
-      }
-      reset();
-    }
-
-    /**
-     * This is the behavior of the {@code FieldFilterParser} so we kept it for backwards
-     * compatibility.
-     */
-    private String removeAllWhitespace(String fieldName) {
-      StringBuilder sb = new StringBuilder(fieldName.length());
-      for (int i = 0; i < fieldName.length(); i++) {
-        char c = fieldName.charAt(i);
-        if (!Character.isWhitespace(c)) {
-          sb.append(c);
-        }
-      }
-      return sb.toString();
-    }
-
-    private void reset() {
-      currentFieldName = null;
-      currentTransformers.clear();
-      isExclusion = false;
-      pendingTransformerName = null;
-      transformerParameters.clear();
-      parsingTransformerParameters = false;
-    }
   }
 
   private static List<Token> tokenize(String input) {
@@ -312,6 +260,58 @@ public class FieldsParser {
     }
 
     return tokens;
+  }
+
+  /**
+   * This is the behavior of the {@code FieldFilterParser} so we kept it for backwards
+   * compatibility.
+   */
+  private static String removeAllWhitespace(String fieldName) {
+    StringBuilder sb = new StringBuilder(fieldName.length());
+    for (int i = 0; i < fieldName.length(); i++) {
+      char c = fieldName.charAt(i);
+      if (!Character.isWhitespace(c)) {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+
+  private static class Parser {
+    /** {@code *} and presets cannot be excluded, {@code !} is ignored. */
+    final Set<String> unexcludableTokens;
+
+    String currentField = null;
+    List<Fields.Transformation> currentTransformation = new ArrayList<>();
+    boolean isExclusion = false;
+
+    String pendingTransformation = null;
+    List<String> transformationParams = new ArrayList<>();
+    boolean parsingTransformationParams = false;
+
+    Parser(Set<String> unexcludableTokens) {
+      this.unexcludableTokens = unexcludableTokens;
+    }
+
+    void consumeCurrentField(FieldsAccumulator accumulator) {
+      if (currentField != null && !currentField.isEmpty()) {
+        if (pendingTransformation != null && !pendingTransformation.isEmpty()) {
+          currentTransformation.add(new Fields.Transformation(pendingTransformation));
+        }
+        accumulator.add(
+            currentField, isExclusion, unexcludableTokens, new ArrayList<>(currentTransformation));
+      }
+      reset();
+    }
+
+    private void reset() {
+      currentField = null;
+      currentTransformation.clear();
+      isExclusion = false;
+      pendingTransformation = null;
+      transformationParams.clear();
+      parsingTransformationParams = false;
+    }
   }
 
   private static void mapPresets(
@@ -355,7 +355,23 @@ public class FieldsParser {
       fields.removeAll(acc.excludes);
     }
 
-    return new Fields(includesAll, fields, children, acc.transformations);
+    Map<String, List<Fields.Transformation>> sortedTransformations = new HashMap<>();
+    for (Entry<String, List<Fields.Transformation>> entry : acc.transformations.entrySet()) {
+      List<Fields.Transformation> sorted =
+          entry.getValue().stream()
+              .sorted(
+                  (t1, t2) -> {
+                    boolean t1IsRename = "rename".equals(t1.getName());
+                    boolean t2IsRename = "rename".equals(t2.getName());
+                    if (t1IsRename && !t2IsRename) return 1;
+                    if (!t1IsRename && t2IsRename) return -1;
+                    return 0;
+                  })
+              .toList();
+      sortedTransformations.put(entry.getKey(), sorted);
+    }
+
+    return new Fields(includesAll, fields, children, sortedTransformations);
   }
 
   /**
