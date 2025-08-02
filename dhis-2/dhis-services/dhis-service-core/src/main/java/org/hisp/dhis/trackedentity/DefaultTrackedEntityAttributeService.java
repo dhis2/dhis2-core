@@ -183,10 +183,10 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
     return attributes;
   }
 
-  @Override
   @Transactional(readOnly = true)
+  @Override
   public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
-    return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
+    return attributeStore.getAllTrigramIndexableTrackedEntityAttributes();
   }
 
   // -------------------------------------------------------------------------

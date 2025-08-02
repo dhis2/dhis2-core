@@ -65,7 +65,7 @@ class QueryOperatorTest {
 
   @ParameterizedTest
   @MethodSource("provideOperatorsForMapping")
-  void shouldMapIVariantOperatorsToTrackerOperators(QueryOperator input, QueryOperator expected) {
+  void shouldStripCaseVariantOperators(QueryOperator input, QueryOperator expected) {
     assertEquals(expected, input.stripCaseVariant());
   }
 
