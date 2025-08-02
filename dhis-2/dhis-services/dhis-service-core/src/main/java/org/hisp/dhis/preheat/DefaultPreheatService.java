@@ -486,16 +486,18 @@ public class DefaultPreheatService implements PreheatService {
                       map.get(PreheatIdentifier.UID)
                           .computeIfAbsent(Attribute.class, k -> new HashSet<>())
                           .add(attributeId));
-          identifiableObject
-              .getSharing()
-              .getUserGroups()
-              .values()
-              .forEach(uga -> addIdentifiers(map, uga.getUserGroup()));
-          identifiableObject
-              .getSharing()
-              .getUsers()
-              .values()
-              .forEach(ua -> addIdentifiers(map, ua.getUser()));
+          if (identifiableObject.hasSharing()) {
+            identifiableObject
+                .getSharing()
+                .getUserGroups()
+                .values()
+                .forEach(uga -> addIdentifiers(map, uga.getUserGroup()));
+            identifiableObject
+                .getSharing()
+                .getUsers()
+                .values()
+                .forEach(ua -> addIdentifiers(map, ua.getUser()));
+          }
 
           if (identifiableObject.getCreatedBy() != null) {
             addIdentifiers(map, identifiableObject.getCreatedBy());
