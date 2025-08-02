@@ -263,18 +263,24 @@ public class EventAggregateService {
    * Add headers into the given {@link Grid}.
    *
    * @param params the {@link EventQueryParams}.
-   * @return the {@link Grid} with initial headers.
+   * @param grid the {@link Grid} to add headers to.
    */
   private void addHeaders(EventQueryParams params, Grid grid) {
     if (params.isCollapseDataDimensions() || params.isAggregateData()) {
       grid.addHeader(new GridHeader(DATA_COLLAPSED_DIM_ID, DISPLAY_NAME_DATA_X, TEXT, false, true));
     } else {
       for (QueryItem item : params.getItems()) {
+        String name = item.getItem().getUid();
+        // attach program stage uid to the header name if it is a program stage item
+        if (item.hasProgramStage()) {
+          name = item.getProgramStage().getUid() + "." + name;
+        }
+
         String displayProperty = item.getItem().getDisplayProperty(params.getDisplayProperty());
 
         grid.addHeader(
             new GridHeader(
-                item.getItem().getUid(),
+                name,
                 displayProperty,
                 item.getValueType(),
                 false,
