@@ -30,14 +30,11 @@
 package org.hisp.dhis.dataanalysis;
 
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -54,9 +51,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -70,8 +68,6 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   private final DataAnalysisStore dataAnalysisStore;
 
   private final FollowupValueManager followupValueManager;
-
-  private final UserService userService;
 
   private final I18nManager i18nManager;
 
