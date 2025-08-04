@@ -32,7 +32,6 @@ package org.hisp.dhis.dataexchange.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.net.URI;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
@@ -133,6 +132,9 @@ class Dhis2ClientTest {
     assertEquals(
         "https://play.dhis2.org/2.38.0/api/system/info",
         client.getResolvedUriBuilder("system/info").build().toUriString());
+    assertEquals(
+        "https://play.dhis2.org/2.38.0/api/analytics/dataValueSets",
+        client.getResolvedUriBuilder("analytics/dataValueSets").build().toUriString());
   }
 
   @Test
