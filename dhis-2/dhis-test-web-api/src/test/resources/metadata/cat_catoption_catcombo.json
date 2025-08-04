@@ -1,0 +1,77 @@
+{
+  "categories": [
+    {
+      "name": "colour",
+      "id": "xjOK1aXkjVO",
+      "code": "colour",
+      "shortName": "colour",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "xT49qinT8J7"
+        },
+        {
+          "id": "xhP2RNzP0fm"
+        }
+      ]
+    },
+    {
+      "name": "size",
+      "id": "xv9b9dYOHMG",
+      "code": "size",
+      "shortName": "size",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "x8ft17oIEID"
+        },
+        {
+          "id": "xaLPcwxxBRs"
+        }
+      ]
+    }
+  ],
+  "categoryOptions": [
+    {
+      "name": "blue",
+      "id": "xT49qinT8J7",
+      "code": "blue",
+      "shortName": "blue"
+    },
+    {
+      "name": "red",
+      "id": "xhP2RNzP0fm",
+      "code": "red",
+      "shortName": "red"
+    },
+    {
+      "name": "small",
+      "id": "x8ft17oIEID",
+      "code": "small",
+      "shortName": "small"
+    },
+    {
+      "name": "large",
+      "id": "xaLPcwxxBRs",
+      "code": "large",
+      "shortName": "large"
+    }
+  ],
+  "categoryCombos": [
+    {
+      "name": "colour_size",
+      "id": "xBCZTtKoxWg",
+      "code": "colour_size",
+      "shortName": "colour_size",
+      "categories": [
+        {
+          "id": "xjOK1aXkjVO"
+        },
+        {
+          "id": "xv9b9dYOHMG"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    }
+  ]
+}

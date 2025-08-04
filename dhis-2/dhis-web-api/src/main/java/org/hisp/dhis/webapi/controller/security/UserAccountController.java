@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -57,6 +56,7 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
+import org.hisp.dhis.user.UserConstants;
 import org.hisp.dhis.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -209,7 +209,7 @@ public class UserAccountController {
       throw new ForbiddenException(
           "The account recovery operation for the given user is temporarily locked due to too "
               + "many calls to this endpoint in the last '"
-              + RECOVERY_LOCKOUT_MINS
+              + UserConstants.RECOVERY_LOCKOUT_MINS
               + "' minutes. Username:"
               + username);
     } else {

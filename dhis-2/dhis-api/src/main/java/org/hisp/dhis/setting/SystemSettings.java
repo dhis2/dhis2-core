@@ -506,6 +506,10 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyBingMapsApiKey", "");
   }
 
+  default String getAzureMapsApiKey() {
+    return asString("keyAzureMapsApiKey", "");
+  }
+
   default Date getLastMetaDataSyncSuccess() {
     return asDate("keyLastMetaDataSyncSuccess", new Date(0));
   }
