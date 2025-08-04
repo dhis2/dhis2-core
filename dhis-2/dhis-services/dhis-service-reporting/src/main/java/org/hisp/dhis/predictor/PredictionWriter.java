@@ -29,19 +29,19 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
-import org.hisp.dhis.period.Period;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.dhis.feedback.ConflictException;
 
 /**
  * Writes predictions to the database.
@@ -50,39 +50,13 @@ import org.hisp.quick.BatchHandlerFactory;
  *
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 public class PredictionWriter {
-  private final DataValueService dataValueService;
 
-  private final BatchHandlerFactory batchHandlerFactory;
+  private final DataEntryService dataEntryService;
+  private final PredictionSummary summary;
 
-  private BatchHandler<DataValue> dataValueBatchHandler;
-
-  private Set<Period> existingOutputPeriods;
-
-  private PredictionSummary summary;
-
-  public PredictionWriter(
-      DataValueService dataValueService, BatchHandlerFactory batchHandlerFactory) {
-    checkNotNull(dataValueService);
-    checkNotNull(batchHandlerFactory);
-
-    this.dataValueService = dataValueService;
-    this.batchHandlerFactory = batchHandlerFactory;
-  }
-
-  /**
-   * Initializes the PredictionWriter.
-   *
-   * @param existingOutputPeriods existing output periods before transation.
-   * @param summary prediction summary into which to write statistics.
-   */
-  public void init(Set<Period> existingOutputPeriods, PredictionSummary summary) {
-    this.existingOutputPeriods = existingOutputPeriods;
-    this.summary = summary;
-
-    dataValueBatchHandler =
-        batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
-  }
+  private final List<DataEntryValue> pendingUpsertValues = new ArrayList<>();
 
   /**
    * Writes a List of predicted data values.
@@ -97,19 +71,25 @@ public class PredictionWriter {
    * @param predictions new predicted data values.
    * @param oldPredictions existing predicted data values.
    */
-  public void write(List<DataValue> predictions, List<DataValue> oldPredictions) {
+  public void addPredictions(List<DataValue> predictions, List<DataValue> oldPredictions) {
     Map<String, DataValue> oldPredictionMap =
         oldPredictions.stream().collect(Collectors.toMap(this::mapKey, dv -> dv));
 
     for (DataValue prediction : predictions) {
-      writePrediction(prediction, oldPredictionMap);
+      addPrediction(prediction, oldPredictionMap);
     }
 
-    deleteObsoletePredictions(oldPredictionMap);
+    addPredictionDelete(oldPredictionMap);
   }
 
-  public void flush() {
-    dataValueBatchHandler.flush();
+  public void commit() throws ConflictException {
+    DataEntryGroup.Options options = new DataEntryGroup.Options(false, false, true);
+    try {
+      dataEntryService.upsertGroup(
+          options, new DataEntryGroup(null, pendingUpsertValues), transitory());
+    } finally {
+      pendingUpsertValues.clear();
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -126,7 +106,7 @@ public class PredictionWriter {
    * @param prediction new predicted data value.
    * @param oldPredictionMap existing predicted data values.
    */
-  private void writePrediction(DataValue prediction, Map<String, DataValue> oldPredictionMap) {
+  private void addPrediction(DataValue prediction, Map<String, DataValue> oldPredictionMap) {
     boolean predictionIsZeroAndInsignificant =
         dataValueIsZeroAndInsignificant(prediction.getValue(), prediction.getDataElement());
 
@@ -134,7 +114,7 @@ public class PredictionWriter {
 
     if (oldPrediction == null) {
       if (!predictionIsZeroAndInsignificant) {
-        insertPrediction(prediction);
+        addPredictionInsert(prediction);
       }
     } else {
       if (predictionIsZeroAndInsignificant) {
@@ -143,7 +123,7 @@ public class PredictionWriter {
         }
       } else if (!prediction.getValue().equals(oldPrediction.getValue())
           || oldPrediction.isDeleted()) {
-        updatePrediction(prediction);
+        addPredictionUpdate(prediction);
       } else {
         summary.incrementUnchanged();
       }
@@ -155,20 +135,11 @@ public class PredictionWriter {
   /**
    * Adds a predicted data value to the database.
    *
-   * <p>Note: BatchHandler can be used for inserting only when the period previously existed. To
-   * insert values into new periods (just added to the database within this transaction), the
-   * dataValueService must be used.
-   *
    * @param prediction the predicted data value.
    */
-  private void insertPrediction(DataValue prediction) {
+  private void addPredictionInsert(DataValue prediction) {
     summary.incrementInserted();
-
-    if (existingOutputPeriods.contains(prediction.getPeriod())) {
-      dataValueBatchHandler.addObject(prediction);
-    } else {
-      dataValueService.addDataValue(prediction);
-    }
+    pendingUpsertValues.add(toDataEntryValue(prediction));
   }
 
   /**
@@ -176,25 +147,19 @@ public class PredictionWriter {
    *
    * @param prediction the predicted data value.
    */
-  private void updatePrediction(DataValue prediction) {
+  private void addPredictionUpdate(DataValue prediction) {
     summary.incrementUpdated();
-
-    dataValueBatchHandler.updateObject(prediction);
+    pendingUpsertValues.add(toDataEntryValue(prediction));
   }
 
-  /**
-   * (Soft) deletes any remaining old predictions from the database.
-   *
-   * @param oldPredictionMap
-   */
-  private void deleteObsoletePredictions(Map<String, DataValue> oldPredictionMap) {
+  /** (Soft) deletes any remaining old predictions from the database. */
+  private void addPredictionDelete(Map<String, DataValue> oldPredictionMap) {
     for (DataValue remainingOldPrediction : oldPredictionMap.values()) {
       if (!remainingOldPrediction.isDeleted()) {
         summary.incrementDeleted();
 
         remainingOldPrediction.setDeleted(true);
-
-        dataValueBatchHandler.updateObject(remainingOldPrediction);
+        pendingUpsertValues.add(toDataEntryValue(remainingOldPrediction));
       }
     }
   }
@@ -211,5 +176,9 @@ public class PredictionWriter {
         + dv.getDataElement().getUid()
         + dv.getCategoryOptionCombo().getUid()
         + dv.getAttributeOptionCombo().getUid();
+  }
+
+  private DataEntryValue toDataEntryValue(DataValue dv) {
+    return dv.toDataEntryValue(pendingUpsertValues.size());
   }
 }

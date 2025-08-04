@@ -104,7 +104,6 @@ class SystemSettingsTest {
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
     assertEquals(144, keys.size());
-    assertEquals(148, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));

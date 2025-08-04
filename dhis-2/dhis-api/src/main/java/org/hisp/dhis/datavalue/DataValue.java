@@ -41,6 +41,7 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -443,5 +444,19 @@ public class DataValue implements Serializable {
 
   public String getAuditValue() {
     return auditValue;
+  }
+
+  public DataEntryValue toDataEntryValue(int index) {
+    return new DataEntryValue(
+        index,
+        UID.of(getDataElement()),
+        UID.of(getSource()),
+        UID.of(getCategoryOptionCombo()),
+        UID.of(getAttributeOptionCombo()),
+        getPeriod().getIsoDate(),
+        value,
+        comment,
+        followup,
+        deleted);
   }
 }
