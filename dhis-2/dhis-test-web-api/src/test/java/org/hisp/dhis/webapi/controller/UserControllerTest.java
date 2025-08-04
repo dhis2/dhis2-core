@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -585,7 +585,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Test that a user can also delete a replicated user, see: DHIS2-19693")
   void testReplicateUserNoRoleAuth() {
-    UserRole replicateRole = createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD");
+    UserRole replicateRole =
+        createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE");
     userService.addUserRole(replicateRole);
     String roleUid = userService.getUserRoleByName("ROLE_REPLICATE").getUid();
     PATCH(
@@ -593,7 +594,12 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleUid + "'}]}]")
         .content(HttpStatus.OK);
 
-    switchContextToUser(peter);
+    peter = userService.getUser(this.peter.getUid());
+    assertTrue(
+        peter
+            .getAllAuthorities()
+            .containsAll(Set.of("F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE")));
+    switchContextToUser(this.peter);
 
     assertWebMessage(
         "Created",

@@ -664,8 +664,9 @@ public class UserController
   protected void preDeleteEntity(User entity) throws ConflictException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!userService.canAddOrUpdateUser(getUids(entity.getGroups()), currentUser)
-        || !currentUser.canModifyUser(entity)) {
+    boolean canAddOrUpdateUser = userService.canAddOrUpdateUser(getUids(entity.getGroups()), currentUser);
+    boolean canModifyUser = currentUser.canModifyUser(entity);
+    if (!canAddOrUpdateUser || !canModifyUser) {
       throw new ConflictException(
           "You must have permissions to create user, or ability to manage at least one user group for the user.");
     }

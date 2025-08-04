@@ -54,7 +54,8 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
       // We are just updating the membership/mapping here on the user we have access to.
       // See: https://dhis2.atlassian.net/browse/DHIS2-19693
       role.getMembers().remove(user);
-      userService.updateUserRole(role, new SystemUser());
+      userService.updateUserRole(role);
+//      userService.updateUserRole(role, new SystemUser());
     }
 
     user.setUserRoles(new HashSet<>());
