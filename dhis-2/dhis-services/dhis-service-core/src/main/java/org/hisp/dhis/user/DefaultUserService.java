@@ -1617,7 +1617,19 @@ public class DefaultUserService implements UserService {
     userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
-    userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
+
+    Map<String, String> map = settings.toMap();
+    map.forEach(
+        (key, value) -> {
+          if (value != null && !value.isBlank()) {
+            try {
+              map.put(key, value);
+            } catch (Exception e) {
+              // ignore
+            }
+          }
+        });
+    //    userSettingsService.putAll(map, userReplica.getUsername());
 
     return userReplica;
   }

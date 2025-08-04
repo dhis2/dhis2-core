@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -583,8 +583,11 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Test that a user can also delete a replicated user, see: DHIS2-19693")
+  @DisplayName(
+      "Test that a user can also delete a user without UserRole write access, see: DHIS2-19693")
   void testReplicateUserNoRoleAuth() {
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
+
     UserRole replicateRole =
         createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE");
     userService.addUserRole(replicateRole);
@@ -607,14 +610,14 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         "OK",
         "User replica created",
         POST(
-                "/users/" + getAdminUser().getUid() + "/replica",
-                "{'username':'petersadmin','password':'Saf€sEcre1'}")
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
             .content());
 
-    User petersadmin = userService.getUserByUsername("petersadmin");
+    User peter2 = userService.getUserByUsername("peter2");
 
     // Then
-    DELETE("/users/" + petersadmin.getUid()).content(OK);
+    DELETE("/users/" + peter2.getUid()).content(OK);
   }
 
   @Test
