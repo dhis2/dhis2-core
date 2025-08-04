@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.StringUtils;
@@ -86,9 +87,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class ValidationNotificationServiceTest extends TestBase {
 
-  // -------------------------------------------------------------------------
-  // Setup
-  // -------------------------------------------------------------------------
   private static final String STATIC_MOCK_SUBJECT = "Subject goes here";
 
   private static final String STATIC_MOCK_MESSAGE = "Message goes here";
@@ -107,9 +105,6 @@ class ValidationNotificationServiceTest extends TestBase {
 
   private List<MockMessage> sentMessages;
 
-  // -------------------------------------------------------------------------
-  // Test fixtures
-  // -------------------------------------------------------------------------
   private OrganisationUnit orgUnitA;
 
   private CategoryOptionCombo catOptCombo = createCategoryOptionCombo('A', 'r', 'i', 'b', 'a');
@@ -347,6 +342,7 @@ class ValidationNotificationServiceTest extends TestBase {
   }
 
   private ValidationResult createValidationResultA() {
+    RandomGenerator rnd = RandomGenerator.getDefault();
     Period period = createPeriod("2017Q1");
     ValidationResult vr =
         new ValidationResult(
@@ -354,8 +350,8 @@ class ValidationNotificationServiceTest extends TestBase {
             period,
             orgUnitA,
             catOptCombo,
-            173.0,
-            871.0,
+            rnd.nextDouble(10, 1000),
+            rnd.nextDouble(10, 1000),
             periodService.getDayInPeriod(period, new Date()));
     vr.setId(idCounter++);
     return vr;
