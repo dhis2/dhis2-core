@@ -1618,18 +1618,13 @@ public class DefaultUserService implements UserService {
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
 
-    Map<String, String> map = settings.toMap();
-    map.forEach(
-        (key, value) -> {
-          if (value != null && !value.isBlank()) {
-            try {
-              map.put(key, value);
-            } catch (Exception e) {
-              // ignore
-            }
-          }
-        });
-    //    userSettingsService.putAll(map, userReplica.getUsername());
+    Set<String> allowedKeys = UserSettings.keysWithDefaults();
+    Map<String, String> filteredMap =
+        settings.toMap().entrySet().stream()
+            .filter(e -> allowedKeys.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    userSettingsService.putAll(filteredMap, userReplica.getUsername());
 
     return userReplica;
   }
