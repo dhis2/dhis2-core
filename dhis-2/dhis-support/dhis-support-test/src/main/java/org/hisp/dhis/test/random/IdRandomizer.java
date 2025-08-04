@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.test.random;
 
-import org.apache.commons.lang3.RandomUtils;
+import java.util.random.RandomGenerator;
 import org.jeasy.random.api.Randomizer;
 
 /**
@@ -38,6 +38,6 @@ import org.jeasy.random.api.Randomizer;
 public class IdRandomizer implements Randomizer<Long> {
   @Override
   public Long getRandomValue() {
-    return RandomUtils.nextLong(1, 100000);
+    return RandomGenerator.getDefault().nextLong(1, 100000);
   }
 }
