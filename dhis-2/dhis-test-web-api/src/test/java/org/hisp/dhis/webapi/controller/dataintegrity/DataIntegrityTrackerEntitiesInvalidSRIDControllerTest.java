@@ -42,7 +42,7 @@ import org.locationtech.jts.geom.Point;
 /**
  * @author Zubair Asghar
  */
-public class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
+class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
     extends AbstractDataIntegrityIntegrationTest {
   private TrackedEntity trackedEntityWithInvalidSRID;
 
