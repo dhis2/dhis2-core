@@ -123,7 +123,6 @@ public class ServiceConfig {
     flags.add("czechia");
     flags.add("demoland");
     flags.add("denmark");
-    flags.add("denmark");
     flags.add("djibouti");
     flags.add("dominica");
     flags.add("dominican_republic");
