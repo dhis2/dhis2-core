@@ -585,7 +585,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   }
 
   // -------------------------------------------------------------------------
-  // Not supported by DashboardItem
+  // Not supported properties
   // -------------------------------------------------------------------------
 
   @Override
@@ -609,53 +609,72 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
     return false;
   }
 
+  /**
+   * @deprecated DashboardItem does not support sharing
+   */
   @Override
   @Deprecated
   @JsonIgnore
-  /** DashboardItem does not support sharing. */
   public Sharing getSharing() {
     return null;
   }
 
   @Override
+  @Deprecated
   public void setSharing(Sharing sharing) {}
 
   @Override
+  @Deprecated
   public void setOwner(String owner) {}
 
+  /**
+   * @deprecated DashboardItem does not support attributes
+   */
   @Override
+  @Deprecated
+  @JsonIgnore
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
   @Override
+  @Deprecated
   public void setAttributeValues(AttributeValues attributeValues) {}
 
   @Override
+  @Deprecated
   public void addAttributeValue(String attributeId, String value) {}
 
   @Override
+  @Deprecated
   public void removeAttributeValue(String attributeId) {}
 
   @Override
+  @Deprecated
   public void setHref(String link) {}
 
+  /**
+   * @deprecated DashboardItem does not support attributes
+   */
   @JsonIgnore
+  @Deprecated
   public String getAttributeValue(String attributeUid) {
     return null;
   }
 
   @Override
+  @Deprecated
   public String getName() {
     return null;
   }
 
   @Override
+  @Deprecated
   public void setName(String name) {}
 
   @Override
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @JsonIgnore
+  @Deprecated
   public User getCreatedBy() {
     return null;
   }
@@ -667,6 +686,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   }
 
   @Override
+  @Deprecated
   public void setCreatedBy(User createdBy) {}
 
   @Override
