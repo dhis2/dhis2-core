@@ -422,7 +422,6 @@ public class SystemController {
               "czechia",
               "demoland",
               "denmark",
-              "denmark",
               "djibouti",
               "dominica",
               "dominican_republic",
