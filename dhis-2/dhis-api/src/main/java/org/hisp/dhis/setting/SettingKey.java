@@ -200,6 +200,7 @@ public enum SettingKey {
       String.class,
       false,
       false),
+  AZURE_MAPS_API_KEY("keyAzureMapsApiKey", "", String.class, false, false),
   LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
   METADATAVERSION_ENABLED("keyVersionEnabled", Boolean.FALSE, Boolean.class),
   METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
