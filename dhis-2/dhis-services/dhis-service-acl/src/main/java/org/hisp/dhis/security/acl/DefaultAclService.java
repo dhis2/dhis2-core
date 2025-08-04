@@ -703,10 +703,10 @@ public class DefaultAclService implements AclService {
     return user.isSuper();
   }
 
-  private boolean canAccess(UserDetails user, Collection<String> anyAuthorities) {
-    return haveOverrideAuthority(user)
+  private boolean canAccess(UserDetails currentUser, Collection<String> anyAuthorities) {
+    return haveOverrideAuthority(currentUser)
         || anyAuthorities.isEmpty()
-        || haveAuthority(user.getAllAuthorities(), anyAuthorities);
+        || haveAuthority(currentUser.getAllAuthorities(), anyAuthorities);
   }
 
   private boolean haveAuthority(Set<String> userAuthorities, Collection<String> anyAuthorities) {

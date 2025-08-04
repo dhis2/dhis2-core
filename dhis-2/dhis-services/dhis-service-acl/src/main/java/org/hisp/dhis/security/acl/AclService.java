@@ -57,14 +57,6 @@ public interface AclService {
   void invalidateCurrentUserGroupInfoCache(String userUid);
 
   /**
-   * Is type supported for acl?
-   *
-   * @param type Type to check
-   * @return true if type is supported
-   */
-  boolean isSupported(String type);
-
-  /**
    * Is object supported for acl?
    *
    * @param object Object to check
@@ -80,14 +72,6 @@ public interface AclService {
    * @return true if class is supported
    */
   <T extends IdentifiableObject> boolean isClassShareable(Class<T> klass);
-
-  /**
-   * Is object supported for data acl?
-   *
-   * @param object Object to check
-   * @return true if type is supported
-   */
-  boolean isDataShareable(IdentifiableObject object);
 
   /**
    * Is class supported for data acl?
@@ -264,8 +248,6 @@ public interface AclService {
    */
   <T extends IdentifiableObject> boolean canMakePublic(UserDetails userDetails, T object);
 
-  <T extends IdentifiableObject> boolean canMakePublic(User user, T object);
-
   /**
    * Checks if a user can create a public instance of a certain class.
    *
@@ -290,8 +272,6 @@ public interface AclService {
    * @return Result of test
    */
   <T extends IdentifiableObject> boolean canMakePrivate(UserDetails userDetails, T object);
-
-  <T extends IdentifiableObject> boolean canMakePrivate(User user, T object);
 
   /**
    * Checks if a user can create a private instance of a certain class.
