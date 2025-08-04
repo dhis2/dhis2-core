@@ -327,8 +327,6 @@ class DataValueListenerTest extends TestBase {
     // Mock for dataValueService
     when(dataValueService.getDataValue(any(), any(), any(), any())).thenReturn(fetchedDataValue);
 
-    when(dataValueService.addDataValue(any())).thenReturn(true);
-
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
 
@@ -393,10 +391,6 @@ class DataValueListenerTest extends TestBase {
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
-
-    // Mock for dataElementCategoryService
-    when(dataElementCategoryService.getDefaultCategoryOptionCombo())
-        .thenReturn(defaultCategoryOptionCombo);
 
     // Mock for smsCommandService
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
