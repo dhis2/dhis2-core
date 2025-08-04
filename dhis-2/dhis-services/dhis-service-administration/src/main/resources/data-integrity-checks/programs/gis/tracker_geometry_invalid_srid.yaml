@@ -86,3 +86,4 @@ recommendation: >-
     WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
 
   Make sure to back up your database and run this fix in a testing or staging environment before applying to production.
+is_slow: true
