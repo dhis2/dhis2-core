@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.expression.Operator;
@@ -340,8 +339,8 @@ class ValidationNotificationServiceTest extends TestBase {
             period,
             ou,
             catOptCombo,
-            RandomUtils.nextDouble(10, 1000),
-            RandomUtils.nextDouble(10, 1000),
+            412.0,
+            532.0,
             periodService.getDayInPeriod(period, new Date()));
     vr.setId(idCounter++);
     return vr;
@@ -355,8 +354,8 @@ class ValidationNotificationServiceTest extends TestBase {
             period,
             orgUnitA,
             catOptCombo,
-            RandomUtils.nextDouble(10, 1000),
-            RandomUtils.nextDouble(10, 1000),
+            173.0,
+            871.0,
             periodService.getDayInPeriod(period, new Date()));
     vr.setId(idCounter++);
     return vr;
