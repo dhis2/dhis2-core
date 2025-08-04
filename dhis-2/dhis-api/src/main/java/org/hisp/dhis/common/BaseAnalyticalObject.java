@@ -126,8 +126,6 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
 
-  public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
-
   /** Line and axis labels. */
   protected String domainAxisLabel;
 
@@ -620,7 +618,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
     } else {
-      throw new IllegalArgumentException(format(NOT_A_VALID_DIMENSION, dimension));
+      throw new IllegalArgumentException(format("Not a valid dimension: %s", dimension));
     }
   }
 
