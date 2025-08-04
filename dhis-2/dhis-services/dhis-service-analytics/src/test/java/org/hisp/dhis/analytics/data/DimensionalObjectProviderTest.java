@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.data;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_DATASET;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_PROGRAM;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_APRIL;
 import static org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -43,8 +45,6 @@ import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
 import static org.hisp.dhis.test.TestBase.createCategory;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createIndicator;
@@ -387,10 +387,8 @@ class DimensionalObjectProviderTest {
     assertEquals("Organisation unit group", dimensionalObject.getDimensionDisplayName());
 
     assertNull(dimensionalObject.getDimensionItemKeywords());
-    assertBaseDimensionalObjects(
-        organisationUnitGroup1, (OrganisationUnitGroup) dimensionalObject.getItems().get(0));
-    assertBaseDimensionalObjects(
-        organisationUnitGroup2, (OrganisationUnitGroup) dimensionalObject.getItems().get(1));
+    assertBaseDimensionalObjects(organisationUnitGroup1, dimensionalObject.getItems().get(0));
+    assertBaseDimensionalObjects(organisationUnitGroup2, dimensionalObject.getItems().get(1));
   }
 
   @Test
