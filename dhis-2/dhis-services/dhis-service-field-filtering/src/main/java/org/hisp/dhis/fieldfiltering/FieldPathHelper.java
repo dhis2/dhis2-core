@@ -337,12 +337,9 @@ public class FieldPathHelper {
   public static boolean fieldShouldBeExcluded(String fullFieldPath, String fullExclusionPath) {
     if (ObjectUtils.anyNull(fullFieldPath, fullExclusionPath)) return false;
 
-    return stringEquals.test(fullFieldPath, fullExclusionPath)
+    return fullFieldPath.equals(fullExclusionPath)
         || exclusionIsPathOfFieldPath.test(fullFieldPath, fullExclusionPath);
   }
-
-  /** If strings match then the field should be excluded */
-  private static final BiPredicate<String, String> stringEquals = String::equals;
 
   /** If the exclusion path is a subpath (or the same) then return true. */
   private static final BiPredicate<String, String> exclusionIsPathOfFieldPath =
