@@ -40,9 +40,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +64,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -474,7 +473,7 @@ public class RelationshipsTests extends TrackerApiTest {
       boolean bidirectional,
       int expectedCount,
       // do not remove used for the parametrized test name
-      @SuppressWarnings("unused") String testName) {
+     String testName) {
     String relationshipTypeId =
         relationshipTypeActions
             .get(
