@@ -140,19 +140,19 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   protected Double rangeAxisMaxValue;
   protected Double rangeAxisMinValue;
 
-  /** How many axis steps. */
+  /** Number of axis steps. */
   protected Integer rangeAxisSteps; // Minimum 1
 
-  /** How many axis decimals. */
+  /** Number of axis decimals. */
   protected Integer rangeAxisDecimals;
 
-  /** The regression type. */
+  /** Regression type. */
   protected RegressionType regressionType = RegressionType.NONE;
 
-  /** The display density of the text in the table. */
+  /** Display density of the text in the table. */
   protected DisplayDensity displayDensity;
 
-  /** The font size of the text in the table. */
+  /** Font size of the text in the table. */
   protected FontSize fontSize;
 
   protected RelativePeriods relatives;
@@ -173,13 +173,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** Indicates rendering of empty rows for the table. */
   protected boolean showHierarchy;
 
-  /** Include user org. unit. */
+  /** Include user org unit. */
   protected boolean userOrganisationUnit;
 
-  /** Include user org. unit children. */
+  /** Include user org unit children. */
   protected boolean userOrganisationUnitChildren;
 
-  /** Include user org. unit grand children. */
+  /** Include user org unit grand children. */
   protected boolean userOrganisationUnitGrandChildren;
 
   /** Include completed events only. */
