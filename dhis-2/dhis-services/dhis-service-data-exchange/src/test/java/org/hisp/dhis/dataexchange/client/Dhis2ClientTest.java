@@ -32,6 +32,7 @@ package org.hisp.dhis.dataexchange.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.net.URI;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
