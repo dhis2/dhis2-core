@@ -31,6 +31,7 @@ package org.hisp.dhis.dataanalysis;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,6 +60,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService")
 public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
+  private static final EnumSet<ValueType> POS_INT_TYPES =
+      EnumSet.of(ValueType.INTEGER_POSITIVE, ValueType.INTEGER_ZERO_OR_POSITIVE);
+
   private final DataAnalysisStore dataAnalysisStore;
 
   private final MinMaxDataElementService minMaxDataElementService;
@@ -99,9 +103,6 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
         "Starting min-max value generation, data elements: {}, parent: '{}'",
         dataElements.size(),
         orgUnit.getUid());
-
-    Set<ValueType> POS_INT_TYPES =
-        Set.of(ValueType.INTEGER_POSITIVE, ValueType.INTEGER_ZERO_OR_POSITIVE);
 
     Date from = new DateTime(1, 1, 1, 1, 1).toDate();
 
