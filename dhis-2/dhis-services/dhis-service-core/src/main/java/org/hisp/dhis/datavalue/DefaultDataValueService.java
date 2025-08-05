@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
-
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -41,13 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,76 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.datavalue.DataValueService")
 public class DefaultDataValueService implements DataValueService {
 
-  private final DataEntryService dataEntryService;
   private final DataValueStore dataValueStore;
   private final CategoryService categoryService;
-
-  // -------------------------------------------------------------------------
-  // Basic DataValue
-  // -------------------------------------------------------------------------
-
-  @Nonnull
-  private DataEntryValue.Input toDataEntryValue(DataValue dataValue) {
-    return new DataEntryValue.Input(
-        getUid(dataValue.getDataElement()),
-        getUid(dataValue.getSource()),
-        getUid(dataValue.getCategoryOptionCombo()),
-        null,
-        getUid(dataValue.getAttributeOptionCombo()),
-        dataValue.getPeriod().getIsoDate(),
-        dataValue.getValue(),
-        dataValue.getComment(),
-        dataValue.isFollowup(),
-        dataValue.isDeleted());
-  }
-
-  private static String getUid(IdentifiableObject object) {
-    return object == null ? null : object.getUid();
-  }
-
-  @Override
-  @IndirectTransactional
-  public boolean addDataValue(DataValue dataValue) {
-    try {
-      dataEntryService.upsertValue(
-          false, null, dataEntryService.decodeValue(null, toDataEntryValue(dataValue)));
-      return true;
-    } catch (ConflictException | BadRequestException ex) {
-      return false;
-    }
-  }
-
-  @Override
-  @IndirectTransactional
-  public void updateDataValue(DataValue dv) throws ConflictException, BadRequestException {
-    if (isNullOrEmpty(dv.getValue()) && isNullOrEmpty(dv.getComment())) dv.setDeleted(true);
-    dataEntryService.upsertValue(
-        false, null, dataEntryService.decodeValue(null, toDataEntryValue(dv)));
-  }
-
-  @Override
-  @IndirectTransactional
-  public void updateDataValues(List<DataValue> dataValues)
-      throws ConflictException, BadRequestException {
-    dataEntryService.upsertGroup(
-        new DataEntryGroup.Options(false, true, false),
-        dataEntryService.decodeGroup(
-            new DataEntryGroup.Input(dataValues.stream().map(this::toDataEntryValue).toList())),
-        transitory());
-  }
-
-  @Override
-  @IndirectTransactional
-  public void deleteDataValue(DataValue dataValue) throws ConflictException, BadRequestException {
-    DataEntryKey key =
-        new DataEntryKey(
-            UID.of(dataValue.getDataElement()),
-            UID.of(dataValue.getSource()),
-            UID.of(dataValue.getCategoryOptionCombo()),
-            UID.of(dataValue.getAttributeOptionCombo()),
-            dataValue.getPeriod().getIsoDate());
-    dataEntryService.deleteValue(false, null, key);
-  }
 
   @Override
   @Transactional

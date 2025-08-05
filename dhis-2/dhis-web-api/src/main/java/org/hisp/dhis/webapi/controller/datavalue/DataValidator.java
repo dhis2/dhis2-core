@@ -44,7 +44,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -57,7 +56,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 import org.springframework.stereotype.Component;
 
@@ -73,8 +71,6 @@ public class DataValidator {
   private final OrganisationUnitService organisationUnitService;
 
   private final IdentifiableObjectManager idObjectManager;
-
-  private final DataValueService dataValueService;
 
   private final InputUtils inputUtils;
 
@@ -219,34 +215,6 @@ public class DataValidator {
     }
 
     return organisationUnit;
-  }
-
-  /**
-   * Validates and retrieves a data value follow up request.
-   *
-   * @param request the {@link DataValueFollowUpRequest}.
-   * @return a {@link DataValue}.
-   * @throws IllegalQueryException if the validation fails.
-   */
-  public DataValue getAndValidateDataValueFollowUp(DataValueFollowUpRequest request) {
-    DataElement dataElement = getAndValidateDataElement(request.getDataElement());
-    Period period = PeriodType.getPeriodFromIsoString(request.getPeriod());
-    OrganisationUnit orgUnit = getAndValidateOrganisationUnit(request.getOrgUnit());
-    CategoryOptionCombo categoryOptionCombo =
-        getAndValidateCategoryOptionCombo(request.getCategoryOptionCombo(), false);
-    CategoryOptionCombo attributeOptionCombo =
-        request.hasAttribute()
-            ? getAndValidateAttributeOptionCombo(request.getAttribute())
-            : getAndValidateCategoryOptionCombo(request.getAttributeOptionCombo(), false);
-    DataValue dataValue =
-        dataValueService.getDataValue(
-            dataElement, period, orgUnit, categoryOptionCombo, attributeOptionCombo);
-
-    if (dataValue == null) {
-      throw new IllegalQueryException(ErrorCode.E2032);
-    }
-
-    return dataValue;
   }
 
   /**

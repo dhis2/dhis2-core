@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.Date;
@@ -66,6 +67,8 @@ import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -98,6 +101,7 @@ import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -136,6 +140,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
   @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataEntryService dataEntryService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
@@ -729,9 +734,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocDuplicate2, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
     dbmsManager.clearSession();
 
     // when
@@ -786,9 +789,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocDuplicate, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -845,9 +846,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2024-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -905,9 +904,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -972,12 +969,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3b = createDataValue(de3, p1, ou1, cocTarget, cocRandom, "keep target value 3b");
     dv3b.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1a);
-    dataValueStore.addDataValue(dv1b);
-    dataValueStore.addDataValue(dv2a);
-    dataValueStore.addDataValue(dv2b);
-    dataValueStore.addDataValue(dv3a);
-    dataValueStore.addDataValue(dv3b);
+    addDataValues(dv1a, dv1b, dv2a, dv2b, dv3a, dv3b);
 
     dbmsManager.clearSession();
 
@@ -1033,9 +1025,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocDuplicate2, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
     dbmsManager.clearSession();
 
     // when
@@ -1090,9 +1080,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocDuplicate, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1148,9 +1136,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2024-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -1208,9 +1194,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -1275,12 +1259,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3b = createDataValue(de3, p1, ou1, cocRandom, cocTarget, "keep target value 3b");
     dv3b.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1a);
-    dataValueStore.addDataValue(dv1b);
-    dataValueStore.addDataValue(dv2a);
-    dataValueStore.addDataValue(dv2b);
-    dataValueStore.addDataValue(dv3a);
-    dataValueStore.addDataValue(dv3b);
+    addDataValues(dv1a, dv1b, dv2a, dv2b, dv3a, dv3b);
 
     dbmsManager.clearSession();
 
@@ -2272,5 +2251,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {
     return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
+  }
+
+  private void addDataValues(DataValue... dvs) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(dvs))),
+          RecordingJobProgress.transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

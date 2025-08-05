@@ -29,10 +29,13 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
@@ -41,9 +44,11 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValue;
@@ -76,7 +81,7 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
 
   @Autowired private MinMaxDataElementService minMaxService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private DefaultOutlierDetectionService subject;
 
@@ -217,7 +222,14 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
     for (MinMaxDataElement e : minMaxValues) minMaxService.importValue(MinMaxValue.of(e));
   }
 
-  private void addDataValues(DataValue... dataValues) {
-    Stream.of(dataValues).forEach(dataValueService::addDataValue);
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

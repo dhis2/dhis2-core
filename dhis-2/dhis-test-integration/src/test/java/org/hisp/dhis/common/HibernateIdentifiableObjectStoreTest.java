@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
@@ -44,12 +45,15 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -67,6 +71,7 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementStore dataElementStore;
 
   @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private AggregateAccessManager accessManager;
 
@@ -151,7 +156,7 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDataRead() {
+  void testDataRead() throws Exception {
     User user1 = createUserWithAuth("user1", "DATA_READ");
     User user2 = createUserWithAuth("user2", "DATA_READ");
     User user3 = createUserWithAuth("user3", "DATA_READ");
@@ -199,7 +204,10 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     defaultCategoryOptionCombo.getCategoryOptions().add(categoryOption);
     DataValue dataValue =
         createDataValue(dataElement, period, organisationUnitA, "test", defaultCategoryOptionCombo);
-    dataValueStore.addDataValue(dataValue);
+    dataEntryService.upsertGroup(
+        new DataEntryGroup.Options().allowDisconnected(),
+        new DataEntryGroup(null, List.of(dataValue.toDataEntryValue(0))),
+        RecordingJobProgress.transitory());
     // User1 can't access but it belongs to UserGroup1 which has access
     assertEquals(0, accessManager.canRead(UserDetails.fromUser(user1), dataValue).size());
     // User2 has access to DEA

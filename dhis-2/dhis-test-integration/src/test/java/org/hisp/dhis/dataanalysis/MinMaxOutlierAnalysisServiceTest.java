@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Date;
 import java.util.List;
@@ -38,8 +40,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValue;
@@ -64,7 +69,7 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   private DataElement dataElementA;
 
@@ -143,34 +148,22 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testAnalyse() throws Exception {
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodB, organisationUnitA, "-50", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodC, organisationUnitA, "5", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodD, organisationUnitA, "-5", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodF, organisationUnitA, "-10", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodG, organisationUnitA, "13", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodH, organisationUnitA, "-13", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementA, periodI, organisationUnitA, "41", categoryOptionCombo));
-    dataValueService.addDataValue(
+    addDataValues(
+        createDataValue(dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo),
+        createDataValue(dataElementA, periodB, organisationUnitA, "-50", categoryOptionCombo),
+        createDataValue(dataElementA, periodC, organisationUnitA, "5", categoryOptionCombo),
+        createDataValue(dataElementA, periodD, organisationUnitA, "-5", categoryOptionCombo),
+        createDataValue(dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo),
+        createDataValue(dataElementA, periodF, organisationUnitA, "-10", categoryOptionCombo),
+        createDataValue(dataElementA, periodG, organisationUnitA, "13", categoryOptionCombo),
+        createDataValue(dataElementA, periodH, organisationUnitA, "-13", categoryOptionCombo),
+        createDataValue(dataElementA, periodI, organisationUnitA, "41", categoryOptionCombo),
         createDataValue(dataElementA, periodJ, organisationUnitA, "-41", categoryOptionCombo));
 
-    dataValueService.addDataValue(
-        createDataValue(dataElementC, periodA, organisationUnitA, "7", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementC, periodE, organisationUnitA, "15", categoryOptionCombo));
-    dataValueService.addDataValue(
-        createDataValue(dataElementC, periodI, organisationUnitA, "17", categoryOptionCombo));
-    dataValueService.addDataValue(
+    addDataValues(
+        createDataValue(dataElementC, periodA, organisationUnitA, "7", categoryOptionCombo),
+        createDataValue(dataElementC, periodE, organisationUnitA, "15", categoryOptionCombo),
+        createDataValue(dataElementC, periodI, organisationUnitA, "17", categoryOptionCombo),
         createDataValue(dataElementC, periodJ, organisationUnitA, "23", categoryOptionCombo));
 
     minMaxDataElementService.importValue(
@@ -192,5 +185,16 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
 
     assertEquals(3, resultA.size());
     assertEquals(2, resultB.size());
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

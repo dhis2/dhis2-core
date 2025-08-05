@@ -32,10 +32,10 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,6 +49,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
@@ -61,6 +62,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
@@ -278,13 +280,16 @@ public class DataValueController {
   @ResponseStatus(value = HttpStatus.OK)
   public void setDataValueFollowUp(@RequestBody DataValueFollowUpRequest request)
       throws ConflictException, BadRequestException {
-    if (request == null || request.getFollowup() == null) {
+    if (request == null || request.getFollowup() == null)
       throw new IllegalQueryException(ErrorCode.E2033);
-    }
 
-    DataValue dataValue = dataValidator.getAndValidateDataValueFollowUp(request);
-    dataValue.setFollowup(request.getFollowup());
-    dataValueService.updateDataValue(dataValue);
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroupPartialUpdate(
+                new DataEntryGroup.Input(List.of(request.toDataEntryValue()))),
+            transitory());
+    if (summary.succeeded() < 1) throw new ConflictException("Failed to update followup");
   }
 
   @PutMapping(value = "/followups")
@@ -294,18 +299,18 @@ public class DataValueController {
     List<DataValueFollowUpRequest> values = request == null ? null : request.getValues();
     if (values == null
         || values.isEmpty()
-        || values.stream().anyMatch(e -> e.getFollowup() == null)) {
+        || values.stream().anyMatch(e -> e.getFollowup() == null))
       throw new IllegalQueryException(ErrorCode.E2033);
-    }
 
-    List<DataValue> dataValues = new ArrayList<>();
-
-    for (DataValueFollowUpRequest value : values) {
-      DataValue dataValue = dataValidator.getAndValidateDataValueFollowUp(value);
-      dataValue.setFollowup(value.getFollowup());
-    }
-
-    dataValueService.updateDataValues(dataValues);
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(false, true, false),
+            dataEntryService.decodeGroupPartialUpdate(
+                new DataEntryGroup.Input(
+                    values.stream().map(DataValueFollowUpRequest::toDataEntryValue).toList())),
+            transitory());
+    if (summary.succeeded() < values.size())
+      throw new ConflictException("Failed to update followup");
   }
 
   // ---------------------------------------------------------------------
@@ -317,8 +322,7 @@ public class DataValueController {
   public void getDataValueFile(
       DataValueQueryParams params,
       @RequestParam(defaultValue = "original") String dimension,
-      HttpServletResponse response,
-      HttpServletRequest request)
+      HttpServletResponse response)
       throws WebMessageException {
     // ---------------------------------------------------------------------
     // Input validation

@@ -139,6 +139,7 @@ public record DataEntryGroup(
       String de = dataElement;
       String ou = orgUnit;
       String pe = period;
+      // note: tries to maintain the common group properties if there are some
       if (!Objects.equals(de, other.dataElement)) de = null;
       if (!Objects.equals(ou, other.orgUnit)) ou = null;
       if (!Objects.equals(pe, other.period)) pe = null;
@@ -156,11 +157,26 @@ public record DataEntryGroup(
    * @param force when true, any timeliness validation is skipped (only possible as superuser) to
    *     allow out-of-time (early/late) entry of data e.g. as part of a data synchronisation or
    *     repair
+   * @param disconnected when true, skips all dataset related validation and allows import of data
+   *     without enforcing any consistency, access or timeliness constraints. As long as all
+   *     referenced objects exist the import will go though. This should only be used when the
+   *     import source is the system itself as in the case of predictors when running tests. As most
+   *     validations are skipped the import also will be faster which might be a reason to use it in
+   *     tests.
    */
-  public record Options(boolean dryRun, boolean atomic, boolean force) {
+  public record Options(boolean dryRun, boolean atomic, boolean force, boolean disconnected) {
+
+    public Options(boolean dryRun, boolean atomic, boolean force) {
+      this(dryRun, atomic, force, false);
+    }
 
     public Options() {
       this(false, false, false);
+    }
+
+    /** should only be used for imports originating in the system, such as predictors and tests */
+    public Options allowDisconnected() {
+      return new Options(dryRun, atomic, force, true);
     }
   }
 

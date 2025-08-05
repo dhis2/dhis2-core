@@ -30,19 +30,25 @@
 package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -72,7 +78,7 @@ class ValidationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -112,7 +118,7 @@ class ValidationServiceIntegrationTest extends PostgresIntegrationTestBase {
   /** See https://jira.dhis2.org/browse/DHIS2-10336. */
   @Test
   void testDataElementAndDEO() {
-    dataValueService.addDataValue(
+    addDataValues(
         createDataValue(dataElementA, periodA, orgUnitA, defaultCombo, defaultCombo, "10"));
     Expression expressionLeft =
         new Expression(
@@ -140,5 +146,16 @@ class ValidationServiceIntegrationTest extends PostgresIntegrationTestBase {
             validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0, dayInPeriodA);
     assertEquals(1, results.size());
     assertTrue(results.contains(referenceA));
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

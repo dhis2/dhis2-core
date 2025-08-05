@@ -36,8 +36,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -47,46 +45,6 @@ import org.hisp.dhis.period.Period;
  * @author Kristian Nordal
  */
 public interface DataValueService {
-  // -------------------------------------------------------------------------
-  // Basic DataValue
-  // -------------------------------------------------------------------------
-
-  /**
-   * Adds a DataValue. If both the value and the comment properties of the specified DataValue
-   * object are null, then the object should not be persisted. The value will be validated and not
-   * be saved if not passing validation.
-   *
-   * @param dataValue the DataValue to add or update
-   * @return true, when the value was persisted successful, false otherwise
-   */
-  boolean addDataValue(DataValue dataValue);
-
-  /**
-   * Upserts a data value.
-   *
-   * <p>If both the value and the comment properties of the specified DataValue object are null or
-   * empty, then the object should be deleted from the underlying storage.
-   *
-   * @param dataValue the DataValue to update.
-   * @throws ConflictException when the submitted value is invalid
-   * @throws BadRequestException when the submitted value is incomplete
-   */
-  void updateDataValue(DataValue dataValue) throws ConflictException, BadRequestException;
-
-  /**
-   * Updates multiple DataValues. If both the value and the comment properties of the specified
-   * DataValue object are null, then the object should be deleted from the underlying storage.
-   *
-   * @param dataValues list of DataValues to update.
-   */
-  void updateDataValues(List<DataValue> dataValues) throws ConflictException, BadRequestException;
-
-  /**
-   * Deletes a DataValue.
-   *
-   * @param dataValue the DataValue to delete.
-   */
-  void deleteDataValue(DataValue dataValue) throws ConflictException, BadRequestException;
 
   /**
    * Deletes all data values for the given organisation unit.

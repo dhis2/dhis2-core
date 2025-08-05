@@ -106,20 +106,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
 
   @Override
-  public void addDataValue(DataValue dataValue) {
-    dataValue.setPeriod(periodStore.reloadForceAddPeriod(dataValue.getPeriod()));
-
-    getSession().save(dataValue);
-  }
-
-  @Override
-  public void updateDataValue(DataValue dataValue) {
-    dataValue.setPeriod(periodStore.reloadForceAddPeriod(dataValue.getPeriod()));
-
-    getSession().update(dataValue);
-  }
-
-  @Override
   public void deleteDataValues(OrganisationUnit organisationUnit) {
     String hql = "delete from DataValue d where d.source = :source";
 

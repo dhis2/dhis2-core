@@ -83,7 +83,8 @@ public class PredictionWriter {
   }
 
   public void commit() throws ConflictException {
-    DataEntryGroup.Options options = new DataEntryGroup.Options(false, false, true);
+    DataEntryGroup.Options options =
+        new DataEntryGroup.Options(false, false, true).allowDisconnected();
     try {
       dataEntryService.upsertGroup(
           options, new DataEntryGroup(null, pendingUpsertValues), transitory());

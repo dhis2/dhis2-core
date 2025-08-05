@@ -74,6 +74,21 @@ public interface DataEntryService {
   DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException;
 
   /**
+   * Same as {@link #decodeGroup(DataEntryGroup.Input)} except that the decoding will assume that
+   * all values already exists and are updated and that any null value provided for a field of
+   * {@link DataEntryValue.Input} (value, comment, followup and deleted) means that the previous
+   * value should be kept. This is purely for convenience so that a caller that only wants to update
+   * on field does not need to load the data value but can state the keys fields + the fields to
+   * override.
+   *
+   * @param group the group data as submitted by a user
+   * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
+   *     is missing, a referenced object doesn't exist, or the referenced value (key combination)
+   *     does not exist yet.
+   */
+  DataEntryGroup decodeGroupPartialUpdate(DataEntryGroup.Input group) throws BadRequestException;
+
+  /**
    * Splits entered data values into groups, one group for each target data set. The data set is
    * selected based on the data element(s). In case of ambiguity the most recently created suitable
    * data set is targeted.

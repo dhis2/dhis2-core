@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
@@ -43,10 +44,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.util.DateUtils;
@@ -61,15 +64,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class DataValueStoreTest extends PostgresIntegrationTestBase {
   private @PersistenceContext EntityManager manager;
+
+  @Autowired private DataEntryService dataEntryService;
   @Autowired private DataValueStore dataValueStore;
 
   @Test
   void testGetSoftDeletedDataValue() {
     Period period = createPeriod(new Date(), new Date());
-    DataValue dataValue = createDataValue('A', period, "test");
-    dataValueStore.addDataValue(dataValue);
+    DataValue dataValue = persistDataValue('A', period, "test");
+    addDataValue(dataValue);
     dataValue.setDeleted(true);
-    dataValueStore.updateDataValue(dataValue);
+    addDataValue(dataValue);
     DataValue deletedDataValue = dataValueStore.getSoftDeletedDataValue(dataValue);
     assertEquals(dataValue.getDataElement().getId(), deletedDataValue.getDataElement().getId());
     assertEquals(dataValue.getSource().getId(), deletedDataValue.getSource().getId());
@@ -99,28 +104,28 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // data values with same period, org unit, data element and attr opt combo
     // which will be identified as duplicates during merging
-    DataValue dv1 = createDataValue('1', p1, "dv test 1");
+    DataValue dv1 = persistDataValue('1', p1, "dv test 1");
     dv1.setCategoryOptionCombo(categoryMetadata.coc1());
     dv1.setAttributeOptionCombo(categoryMetadata.coc4());
     dv1.setDataElement(de);
     dv1.setSource(ou);
     dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
 
-    DataValue dv2 = createDataValue('2', p1, "dv test 2 - last updated");
+    DataValue dv2 = persistDataValue('2', p1, "dv test 2 - last updated");
     dv2.setCategoryOptionCombo(categoryMetadata.coc2());
     dv2.setAttributeOptionCombo(categoryMetadata.coc4());
     dv2.setDataElement(de);
     dv2.setSource(ou);
     dv2.setLastUpdated(DateUtils.parseDate("2025-01-08"));
 
-    DataValue dv3 = createDataValue('3', p1, "dv test 3");
+    DataValue dv3 = persistDataValue('3', p1, "dv test 3");
     dv3.setCategoryOptionCombo(categoryMetadata.coc3());
     dv3.setAttributeOptionCombo(categoryMetadata.coc4());
     dv3.setDataElement(de);
     dv3.setSource(ou);
     dv3.setLastUpdated(DateUtils.parseDate("2024-12-06"));
 
-    DataValue dv4 = createDataValue('4', p1, "dv test 4, untouched");
+    DataValue dv4 = persistDataValue('4', p1, "dv test 4, untouched");
     dv4.setCategoryOptionCombo(categoryMetadata.coc4());
     dv4.setAttributeOptionCombo(categoryMetadata.coc4());
     dv4.setDataElement(de);
@@ -183,28 +188,28 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // data values with same period, org unit, data element and attr opt combo
     // which will be identified as duplicates during merging
-    DataValue dv1 = createDataValue('1', p1, "dv test 1");
+    DataValue dv1 = persistDataValue('1', p1, "dv test 1");
     dv1.setCategoryOptionCombo(categoryMetadata.coc1());
     dv1.setAttributeOptionCombo(categoryMetadata.coc4());
     dv1.setDataElement(de);
     dv1.setSource(ou);
     dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
 
-    DataValue dv2 = createDataValue('2', p1, "dv test 2");
+    DataValue dv2 = persistDataValue('2', p1, "dv test 2");
     dv2.setCategoryOptionCombo(categoryMetadata.coc2());
     dv2.setAttributeOptionCombo(categoryMetadata.coc4());
     dv2.setDataElement(de);
     dv2.setSource(ou);
     dv2.setLastUpdated(DateUtils.parseDate("2025-01-02"));
 
-    DataValue dv3 = createDataValue('3', p1, "dv test 3 - last updated");
+    DataValue dv3 = persistDataValue('3', p1, "dv test 3 - last updated");
     dv3.setCategoryOptionCombo(categoryMetadata.coc3());
     dv3.setAttributeOptionCombo(categoryMetadata.coc4());
     dv3.setDataElement(de);
     dv3.setSource(ou);
     dv3.setLastUpdated(DateUtils.parseDate("2025-01-06"));
 
-    DataValue dv4 = createDataValue('4', p1, "dv test 4, untouched");
+    DataValue dv4 = persistDataValue('4', p1, "dv test 4, untouched");
     dv4.setCategoryOptionCombo(categoryMetadata.coc4());
     dv4.setAttributeOptionCombo(categoryMetadata.coc4());
     dv4.setDataElement(de);
@@ -269,28 +274,28 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     manager.persist(ou);
 
     // data values with different period, so no duplicates detected during merging
-    DataValue dv1 = createDataValue('1', p1, "dv test 1");
+    DataValue dv1 = persistDataValue('1', p1, "dv test 1");
     dv1.setCategoryOptionCombo(categoryMetadata.coc1());
     dv1.setAttributeOptionCombo(categoryMetadata.coc4());
     dv1.setDataElement(de);
     dv1.setSource(ou);
     dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
 
-    DataValue dv2 = createDataValue('2', p2, "dv test 2 - last updated");
+    DataValue dv2 = persistDataValue('2', p2, "dv test 2 - last updated");
     dv2.setCategoryOptionCombo(categoryMetadata.coc2());
     dv2.setAttributeOptionCombo(categoryMetadata.coc4());
     dv2.setDataElement(de);
     dv2.setSource(ou);
     dv2.setLastUpdated(DateUtils.parseDate("2025-01-08"));
 
-    DataValue dv3 = createDataValue('3', p3, "dv test 3");
+    DataValue dv3 = persistDataValue('3', p3, "dv test 3");
     dv3.setCategoryOptionCombo(categoryMetadata.coc3());
     dv3.setAttributeOptionCombo(categoryMetadata.coc4());
     dv3.setDataElement(de);
     dv3.setSource(ou);
     dv3.setLastUpdated(DateUtils.parseDate("2024-12-06"));
 
-    DataValue dv4 = createDataValue('4', p4, "dv test 4, untouched");
+    DataValue dv4 = persistDataValue('4', p4, "dv test 4, untouched");
     dv4.setCategoryOptionCombo(categoryMetadata.coc4());
     dv4.setAttributeOptionCombo(categoryMetadata.coc4());
     dv4.setDataElement(de);
@@ -376,11 +381,21 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... dvs) {
-    for (DataValue dv : dvs) dataValueStore.addDataValue(dv);
-    entityManager.flush();
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(dvs))),
+          RecordingJobProgress.transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 
-  private DataValue createDataValue(char uniqueChar, Period period, String value) {
+  private void addDataValue(DataValue dv) {
+    addDataValues(dv);
+  }
+
+  private DataValue persistDataValue(char uniqueChar, Period period, String value) {
     DataElement dataElement = createDataElement(uniqueChar);
     dataElement.setValueType(ValueType.TEXT);
     CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo(uniqueChar);
@@ -389,7 +404,6 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     period.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     manager.persist(dataElement);
     manager.persist(organisationUnitA);
-    manager.persist(period);
     manager.persist(defaultCategoryOptionCombo);
     CategoryOption categoryOption = createCategoryOption(uniqueChar);
     categoryOption.setCategoryOptionCombos(Sets.newHashSet(defaultCategoryOptionCombo));

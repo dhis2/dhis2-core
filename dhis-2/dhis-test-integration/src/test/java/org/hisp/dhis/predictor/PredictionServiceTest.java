@@ -495,14 +495,11 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void flushDataValues() {
-    List<DataEntryValue> values = new ArrayList<>(pendingValues.size());
-    for (int i = 0; i < pendingValues.size(); i++) {
-      values.add(pendingValues.get(i).toDataEntryValue(i));
-    }
+    List<DataEntryValue> values = DataValue.toDataEntryValues(pendingValues);
     pendingValues.clear();
 
     try {
-      DataEntryGroup.Options options = new DataEntryGroup.Options(false, false, true);
+      DataEntryGroup.Options options = new DataEntryGroup.Options().allowDisconnected();
       dataEntryService.upsertGroup(options, new DataEntryGroup(null, values), transitory());
     } catch (ConflictException ex) {
       fail("Failed to insert test scenario setup data values", ex);

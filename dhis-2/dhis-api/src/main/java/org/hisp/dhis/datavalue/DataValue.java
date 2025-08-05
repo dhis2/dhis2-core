@@ -32,10 +32,15 @@ package org.hisp.dhis.datavalue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 import lombok.Builder;
-import org.apache.commons.lang3.StringUtils;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -49,6 +54,7 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Kristian Nordal
  */
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Auditable(scope = AuditScope.AGGREGATE)
 public class DataValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
@@ -64,29 +70,31 @@ public class DataValue implements Serializable {
   // Persistent properties
   // -------------------------------------------------------------------------
 
-  @AuditAttribute private DataElement dataElement;
+  @Setter @EqualsAndHashCode.Include @AuditAttribute private DataElement dataElement;
 
-  @AuditAttribute private Period period;
+  @Setter @EqualsAndHashCode.Include @AuditAttribute private Period period;
 
-  @AuditAttribute private OrganisationUnit source;
+  @Setter @EqualsAndHashCode.Include @AuditAttribute private OrganisationUnit source;
 
-  @AuditAttribute private CategoryOptionCombo categoryOptionCombo;
+  @Setter @EqualsAndHashCode.Include @AuditAttribute
+  private CategoryOptionCombo categoryOptionCombo;
 
-  @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
+  @Setter @Getter @EqualsAndHashCode.Include @AuditAttribute
+  private CategoryOptionCombo attributeOptionCombo;
 
   @AuditAttribute private String value;
 
-  private String storedBy;
+  @Setter @Getter private String storedBy;
 
-  private Date created;
+  @Setter @Getter private Date created;
 
-  private Date lastUpdated;
+  @Setter @Getter private Date lastUpdated;
 
-  private String comment;
+  @Setter @Getter private String comment;
 
-  private Boolean followup;
+  @Setter private Boolean followup;
 
-  private boolean deleted;
+  @Setter @Getter private boolean deleted;
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -96,7 +104,7 @@ public class DataValue implements Serializable {
 
   private transient boolean valueIsSet = false;
 
-  private transient String auditValue;
+  @Getter private transient String auditValue;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -244,72 +252,8 @@ public class DataValue implements Serializable {
         && ZERO_PATTERN.matcher(value).find();
   }
 
-  /** Indicates whether the value is null. */
-  public boolean isNullValue() {
-    return StringUtils.trimToNull(value) == null && StringUtils.trimToNull(comment) == null;
-  }
-
   public boolean isFollowup() {
     return followup != null && followup;
-  }
-
-  public boolean hasComment() {
-    return comment != null && !comment.isEmpty();
-  }
-
-  public void toggleFollowUp() {
-    if (this.followup == null) {
-      this.followup = true;
-    } else {
-      this.followup = !this.followup;
-    }
-  }
-
-  public void mergeWith(DataValue other) {
-    this.value = other.getValue();
-    this.storedBy = other.getStoredBy();
-    this.created = other.getCreated();
-    this.lastUpdated = other.getLastUpdated();
-    this.comment = other.getComment();
-    this.followup = other.isFollowup();
-    this.deleted = other.isDeleted();
-  }
-
-  // -------------------------------------------------------------------------
-  // hashCode and equals
-  // -------------------------------------------------------------------------
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (!(obj instanceof DataValue)) {
-      return false;
-    }
-
-    final DataValue other = (DataValue) obj;
-
-    return dataElement.equals(other.getDataElement())
-        && period.equals(other.getPeriod())
-        && source.equals(other.getSource())
-        && categoryOptionCombo.equals(other.getCategoryOptionCombo())
-        && attributeOptionCombo.equals(other.getAttributeOptionCombo());
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-
-    result = result * prime + dataElement.hashCode();
-    result = result * prime + period.hashCode();
-    result = result * prime + source.hashCode();
-    result = result * prime + categoryOptionCombo.hashCode();
-    result = result * prime + attributeOptionCombo.hashCode();
-
-    return result;
   }
 
   @Override
@@ -341,17 +285,9 @@ public class DataValue implements Serializable {
     return dataElement;
   }
 
-  public void setDataElement(DataElement dataElement) {
-    this.dataElement = dataElement;
-  }
-
   @JsonProperty
   public Period getPeriod() {
     return period;
-  }
-
-  public void setPeriod(Period period) {
-    this.period = period;
   }
 
   @JsonProperty
@@ -360,31 +296,15 @@ public class DataValue implements Serializable {
     return source;
   }
 
-  public void setSource(OrganisationUnit source) {
-    this.source = source;
-  }
-
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   public CategoryOptionCombo getCategoryOptionCombo() {
     return categoryOptionCombo;
   }
 
-  public void setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
-    this.categoryOptionCombo = categoryOptionCombo;
-  }
-
   @JsonProperty
   public String getValue() {
     return value;
-  }
-
-  public CategoryOptionCombo getAttributeOptionCombo() {
-    return attributeOptionCombo;
-  }
-
-  public void setAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
-    this.attributeOptionCombo = attributeOptionCombo;
   }
 
   public void setValue(String value) {
@@ -396,54 +316,6 @@ public class DataValue implements Serializable {
     valueIsSet = true;
 
     this.value = value;
-  }
-
-  public String getStoredBy() {
-    return storedBy;
-  }
-
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
-
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  public String getComment() {
-    return comment;
-  }
-
-  public void setComment(String comment) {
-    this.comment = comment;
-  }
-
-  public void setFollowup(Boolean followup) {
-    this.followup = followup;
-  }
-
-  public boolean isDeleted() {
-    return deleted;
-  }
-
-  public void setDeleted(boolean deleted) {
-    this.deleted = deleted;
-  }
-
-  public String getAuditValue() {
-    return auditValue;
   }
 
   public DataEntryValue toDataEntryValue(int index) {
@@ -458,5 +330,12 @@ public class DataValue implements Serializable {
         comment,
         followup,
         deleted);
+  }
+
+  public static List<DataEntryValue> toDataEntryValues(Collection<DataValue> values) {
+    List<DataEntryValue> res = new ArrayList<>(values.size());
+    int i = 0;
+    for (DataValue dv : values) res.add(dv.toDataEntryValue(i++));
+    return res;
   }
 }

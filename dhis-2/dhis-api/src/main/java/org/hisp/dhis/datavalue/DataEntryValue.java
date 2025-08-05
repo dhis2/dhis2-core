@@ -102,6 +102,8 @@ public record DataEntryValue(
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,
+
+      // TODO attributeOptions CC+COs UIDs
       @CheckForNull String period,
       @CheckForNull String value,
       @CheckForNull String comment,

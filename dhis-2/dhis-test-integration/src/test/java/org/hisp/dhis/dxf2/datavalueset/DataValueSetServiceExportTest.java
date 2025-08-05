@@ -31,15 +31,18 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -55,9 +58,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -89,7 +94,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueSetService dataValueSetService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private AttributeService attributeService;
 
@@ -189,18 +194,19 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
     attributeService.addAttributeValue(cocA, atA.getUid(), "AttributeValueC");
     attributeService.addAttributeValue(cocB, atA.getUid(), "AttributeValueD");
     // Data values
-    dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocB, cocB, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peA, ouB, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peA, ouB, cocB, cocB, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peB, ouA, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peB, ouA, cocB, cocB, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peB, ouB, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peB, ouB, cocB, cocB, "1"));
-    dataValueService.addDataValue(new DataValue(deB, peA, ouA, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deB, peA, ouA, cocB, cocB, "1"));
-    dataValueService.addDataValue(new DataValue(deB, peA, ouB, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deB, peA, ouB, cocB, cocB, "1"));
+    addDataValues(
+        new DataValue(deA, peA, ouA, cocA, cocA, "1"),
+        new DataValue(deA, peA, ouA, cocB, cocB, "1"),
+        new DataValue(deA, peA, ouB, cocA, cocA, "1"),
+        new DataValue(deA, peA, ouB, cocB, cocB, "1"),
+        new DataValue(deA, peB, ouA, cocA, cocA, "1"),
+        new DataValue(deA, peB, ouA, cocB, cocB, "1"),
+        new DataValue(deA, peB, ouB, cocA, cocA, "1"),
+        new DataValue(deA, peB, ouB, cocB, cocB, "1"),
+        new DataValue(deB, peA, ouA, cocA, cocA, "1"),
+        new DataValue(deB, peA, ouA, cocB, cocB, "1"),
+        new DataValue(deB, peA, ouB, cocA, cocA, "1"),
+        new DataValue(deB, peA, ouB, cocB, cocB, "1"));
     // Flush session to make data values visible to JDBC query
 
     dataSetService.updateDataSet(dsA);
@@ -462,16 +468,15 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   void testExportLastUpdatedWithDeletedValues() throws Exception {
     DataValue dvA = new DataValue(deC, peA, ouA, cocA, cocA, "1");
     DataValue dvB = new DataValue(deC, peB, ouA, cocA, cocA, "2");
-    dataValueService.addDataValue(dvA);
-    dataValueService.addDataValue(dvB);
+    addDataValues(dvA, dvB);
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     dataValueSetService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(14, dvs.getDataValues().size());
-    dataValueService.deleteDataValue(dvA);
-    dataValueService.deleteDataValue(dvB);
+    deleteDataValue(dvA);
+    deleteDataValue(dvB);
     out = new ByteArrayOutputStream();
     dataValueSetService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
     dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
@@ -597,5 +602,21 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
             IllegalQueryException.class,
             () -> dataValueSetService.exportDataValueSetJson(params, out)),
         ErrorCode.E2012);
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
+  }
+
+  private void deleteDataValue(DataValue dv) {
+    dv.setDeleted(true);
+    addDataValues(dv);
   }
 }

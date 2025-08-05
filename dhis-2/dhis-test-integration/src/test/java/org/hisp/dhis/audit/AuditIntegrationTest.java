@@ -30,9 +30,11 @@
 package org.hisp.dhis.audit;
 
 import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,10 +55,12 @@ import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -109,7 +113,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private PeriodService periodService;
 
@@ -251,10 +255,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = createDataValue(dataElementB, periodB, orgUnitB, "2", optionCombo);
     DataValue dataValueC = createDataValue(dataElementC, periodC, orgUnitC, "3", optionCombo);
     DataValue dataValueD = createDataValue(dataElementD, periodD, orgUnitD, "4", optionCombo);
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("dataElement", dataElementA.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
@@ -325,5 +326,16 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     assertNotNull(deserializeProgramStage.get("dataSetElements"));
     List<String> uids = (List<String>) deserializeProgramStage.get("dataSetElements");
     assertEquals(1, uids.size());
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

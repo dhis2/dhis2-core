@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.hisp.dhis.audit.AuditOperationType;
@@ -38,6 +40,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -57,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueAuditService dataValueAuditService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -133,10 +136,8 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueB = createDataValue(dataElementB, periodB, orgUnitB, optionCombo, optionCombo, "2");
     dataValueC = createDataValue(dataElementC, periodC, orgUnitC, optionCombo, optionCombo, "3");
     dataValueD = createDataValue(dataElementD, periodD, orgUnitD, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
   }
 
   @Test
@@ -278,9 +279,9 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueAuditWithFakeCreate2() throws Exception {
+  void testGetDataValueAuditWithFakeCreate2() {
     dataValueA.setValue("10");
-    dataValueService.updateDataValue(dataValueA);
+    addDataValues(dataValueA);
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
@@ -315,7 +316,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDelete2() throws Exception {
+  void testGetDataValueAuditWithFakeCreateDelete2() {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "10", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
@@ -325,7 +326,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "30", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
-    dataValueService.deleteDataValue(dataValueA);
+    deleteDataValue(dataValueA);
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
@@ -346,7 +347,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");
 
     dataElementService.addDataElement(dataElement);
-    dataValueService.addDataValue(dataValue);
+    addDataValues(dataValue);
 
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValue, "10", dataValue.getStoredBy(), AuditOperationType.UPDATE));
@@ -357,7 +358,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValue, "30", dataValue.getStoredBy(), AuditOperationType.UPDATE));
 
-    dataValueService.deleteDataValue(dataValue);
+    deleteDataValue(dataValue);
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
@@ -365,7 +366,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(List.of(), audits);
 
-    dataValueService.addDataValue(dataValue);
+    addDataValues(dataValue);
 
     audits =
         dataValueAuditService.getDataValueAudits(
@@ -378,5 +379,21 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     assertEquals(AuditOperationType.UPDATE, audits.get(3).getAuditType());
     assertEquals(AuditOperationType.UPDATE, audits.get(4).getAuditType());
     assertEquals(AuditOperationType.CREATE, audits.get(5).getAuditType());
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
+  }
+
+  private void deleteDataValue(DataValue dv) {
+    dv.setDeleted(true);
+    addDataValues(dv);
   }
 }

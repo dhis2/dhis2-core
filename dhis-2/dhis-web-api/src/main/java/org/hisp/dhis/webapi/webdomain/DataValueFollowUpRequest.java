@@ -35,7 +35,8 @@ import lombok.Data;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
@@ -47,7 +48,7 @@ import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 @OpenApi.Shared
 public class DataValueFollowUpRequest {
   @JsonProperty
-  @OpenApi.Property({UID.class, DataSet.class})
+  @OpenApi.Property({UID.class, DataElement.class})
   private String dataElement;
 
   @JsonProperty
@@ -73,5 +74,21 @@ public class DataValueFollowUpRequest {
   @JsonIgnore
   public boolean hasAttribute() {
     return attribute != null;
+  }
+
+  public DataEntryValue.Input toDataEntryValue() {
+    // TODO specifying AOC via combo and options
+    // note: null here means "keep current value"
+    return new DataEntryValue.Input(
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        null,
+        attributeOptionCombo,
+        period,
+        null,
+        null,
+        followup,
+        null);
   }
 }

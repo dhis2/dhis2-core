@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
+import java.util.List;
 import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -42,8 +45,10 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest.Builder;
@@ -71,7 +76,7 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -187,8 +192,15 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
         sql, new MapSqlParameterSource().addValue("target_id", target.getId()), Long.class);
   }
 
-  private void addDataValues(DataValue... dataValues) {
-    Stream.of(dataValues).forEach(dataValueService::addDataValue);
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 
   private void addDataApprovals(DataApproval... dataApprovals) {

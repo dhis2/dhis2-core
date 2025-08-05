@@ -36,6 +36,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
@@ -59,18 +60,22 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,6 +97,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
 
@@ -377,7 +383,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // Test export
   // --------------------------------------------------------------------------
   @Test
-  void testWriteDataValueSetA() throws AdxException, IOException {
+  void testWriteDataValueSetA() throws Exception {
     testExport(
         "adx/exportA.adx.xml",
         getCommonExportParams()
@@ -390,7 +396,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testWriteDataValueSetB() throws AdxException, IOException {
+  void testWriteDataValueSetB() throws Exception {
     testExport(
         "adx/exportB.adx.xml",
         getCommonExportParams()
@@ -405,7 +411,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testWriteDataValueSetC() throws AdxException, IOException {
+  void testWriteDataValueSetC() throws Exception {
     testExport(
         "adx/exportC.adx.xml",
         getCommonExportParams()
@@ -420,7 +426,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testWriteDataValueSetD() throws AdxException, IOException {
+  void testWriteDataValueSetD() throws Exception {
     testExport(
         "adx/exportD.adx.xml",
         getCommonExportParams()
@@ -528,13 +534,12 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
         .setDataSets(Sets.newHashSet(dsA, dsB));
   }
 
-  private void testExport(String filePath, DataExportParams params)
-      throws AdxException, IOException {
-    dataValueService.addDataValue(new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"));
-    dataValueService.addDataValue(
-        new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"));
-    dataValueService.addDataValue(new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"));
-    dataValueService.addDataValue(new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
+  private void testExport(String filePath, DataExportParams params) throws Exception {
+    addDataValues(
+        new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
+        new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"),
+        new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"));
+    addDataValues(new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     adxDataService.writeDataValueSet(params, out);
     String result = out.toString("UTF-8");
@@ -571,5 +576,16 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
             new DataValue(deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20"),
             new DataValue(deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30")),
         dataValues);
+  }
+
+  private void addDataValues(DataValue... dvs) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(dvs))),
+          RecordingJobProgress.transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

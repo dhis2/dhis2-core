@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,9 +45,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -72,7 +76,7 @@ class StdDevOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   private DataElement dataElementSingleQuoteName;
 
@@ -156,32 +160,25 @@ class StdDevOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
     dataValueB =
         createDataValue(
             dataElementSingleQuoteName, periodJ, organisationUnitA, "-71", categoryOptionCombo);
-    dataValueService.addDataValue(
+    addDataValues(
         createDataValue(
-            dataElementSingleQuoteName, periodA, organisationUnitA, "5", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodA, organisationUnitA, "5", categoryOptionCombo),
         createDataValue(
-            dataElementSingleQuoteName, periodB, organisationUnitA, "-5", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodB, organisationUnitA, "-5", categoryOptionCombo),
         createDataValue(
-            dataElementSingleQuoteName, periodC, organisationUnitA, "5", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodC, organisationUnitA, "5", categoryOptionCombo),
         createDataValue(
-            dataElementSingleQuoteName, periodD, organisationUnitA, "-5", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodD, organisationUnitA, "-5", categoryOptionCombo),
         createDataValue(
-            dataElementSingleQuoteName, periodE, organisationUnitA, "10", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodE, organisationUnitA, "10", categoryOptionCombo),
         createDataValue(
-            dataElementSingleQuoteName, periodF, organisationUnitA, "-10", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodF, organisationUnitA, "-10", categoryOptionCombo),
         createDataValue(
-            dataElementSingleQuoteName, periodG, organisationUnitA, "13", categoryOptionCombo));
-    dataValueService.addDataValue(
+            dataElementSingleQuoteName, periodG, organisationUnitA, "13", categoryOptionCombo),
         createDataValue(
             dataElementSingleQuoteName, periodH, organisationUnitA, "-13", categoryOptionCombo));
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
+    addDataValues(dataValueA, dataValueB);
+
     double stdDevFactor = 2.0;
     List<Period> periods = new ArrayList<>();
     periods.add(periodI);
@@ -196,5 +193,16 @@ class StdDevOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, values.size());
     assertTrue(values.contains(valueA));
     assertFalse(values.contains(valueB));
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

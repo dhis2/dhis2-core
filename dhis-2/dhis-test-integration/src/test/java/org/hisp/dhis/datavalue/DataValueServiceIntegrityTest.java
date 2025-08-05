@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Set;
@@ -42,6 +44,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -60,6 +63,8 @@ class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataValueService dataValueService;
+
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -129,12 +134,23 @@ class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(categoryOptionComboAC);
 
     DataValue dataValueA = new DataValue(deA, peA, ouA, categoryOptionComboAB, null, "1");
-    dataValueService.addDataValue(dataValueA);
+    addDataValues(dataValueA);
   }
 
   @Test
   void testExistsAnyValue() {
     assertTrue(dataValueService.dataValueExists(categoryComboAB));
     assertFalse(dataValueService.dataValueExists(categoryComboAC));
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

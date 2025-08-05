@@ -29,10 +29,12 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.Date;
@@ -42,8 +44,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -70,7 +74,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
 
   @Autowired private DataElementService dataElementService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private PeriodService periodService;
 
@@ -279,9 +283,8 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
     dataSetA.addCompulsoryDataElementOperand(compulsoryA);
     dataSetA.addCompulsoryDataElementOperand(compulsoryB);
     dataSetA.addCompulsoryDataElementOperand(compulsoryC);
-    dataValueService.addDataValue(
-        new DataValue(elementA, periodA, sourceA, optionCombo, optionCombo, "10"));
-    dataValueService.addDataValue(
+    addDataValues(
+        new DataValue(elementA, periodA, sourceA, optionCombo, optionCombo, "10"),
         new DataValue(elementE, periodA, sourceA, optionCombo, optionCombo, "20"));
     List<DataElementOperand> missingFields =
         completeDataSetRegistrationService.getMissingCompulsoryFields(
@@ -290,5 +293,16 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
     assertEquals(2, missingFields.size());
     assertEquals("DataElementB", missingFields.get(0).getDataElement().getName());
     assertEquals("DataElementC", missingFields.get(1).getDataElement().getName());
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
   }
 }

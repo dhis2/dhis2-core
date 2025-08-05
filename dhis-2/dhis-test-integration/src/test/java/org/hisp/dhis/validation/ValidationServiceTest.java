@@ -42,6 +42,7 @@ import static org.hisp.dhis.expression.Operator.less_than;
 import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -70,13 +71,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -119,7 +120,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private DataValueStore dataValueStore;
 
@@ -597,7 +598,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void useDataValue(DataElement e, Period p, OrganisationUnit s, String value) {
-    useDataValue(createDataValue(e, p, s, optionCombo, optionCombo, value));
+    addDataValues(createDataValue(e, p, s, optionCombo, optionCombo, value));
   }
 
   private void useDataValue(
@@ -607,14 +608,17 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
       String value,
       CategoryOptionCombo oc1,
       CategoryOptionCombo oc2) {
-    useDataValue(createDataValue(e, p, s, oc1, oc2, value));
+    addDataValues(createDataValue(e, p, s, oc1, oc2, value));
   }
 
-  private void useDataValue(DataValue dv) {
+  private void addDataValues(DataValue... values) {
     try {
-      dataValueService.updateDataValue(dv);
-    } catch (ConflictException | BadRequestException e) {
-      fail(e);
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
     }
   }
 

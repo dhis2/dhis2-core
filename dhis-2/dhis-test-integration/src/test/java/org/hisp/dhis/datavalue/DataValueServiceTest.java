@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Set;
@@ -42,6 +44,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -62,6 +65,8 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private DataValueService dataValueService;
+
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -125,9 +130,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouA, optionCombo, optionCombo, "3");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
+    addDataValues(dataValueA, dataValueB, dataValueC);
     dataValueA = dataValueService.getDataValue(deA, peA, ouA, optionCombo);
     assertNotNull(dataValueA);
     assertNotNull(dataValueA.getCreated());
@@ -155,12 +158,11 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   void testUpdataDataValue() throws Exception {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "2");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
+    addDataValues(dataValueA, dataValueB);
     assertNotNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
     assertNotNull(dataValueService.getDataValue(deB, peA, ouB, optionCombo));
     dataValueA.setValue("5");
-    dataValueService.updateDataValue(dataValueA);
+    addDataValues(dataValueA);
     dataValueA = dataValueService.getDataValue(deA, peA, ouA, optionCombo);
     assertNotNull(dataValueA);
     assertEquals("5", dataValueA.getValue());
@@ -175,30 +177,27 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouD, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
     assertNotNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
     assertNotNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
     assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
     assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueA);
+    deleteDataValue(dataValueA);
     assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
     assertNotNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
     assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
     assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueB);
+    deleteDataValue(dataValueB);
     assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
     assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
     assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
     assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueC);
+    deleteDataValue(dataValueC);
     assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
     assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
     assertNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
     assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueD);
+    deleteDataValue(dataValueD);
     assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
     assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
     assertNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
@@ -221,16 +220,17 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueH = new DataValue(deB, peB, ouB, optionCombo, optionCombo, "8");
     DataValue dataValueI = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "9");
     DataValue dataValueJ = new DataValue(deA, peC, ouB, optionCombo, optionCombo, "10");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    dataValueService.addDataValue(dataValueE);
-    dataValueService.addDataValue(dataValueF);
-    dataValueService.addDataValue(dataValueG);
-    dataValueService.addDataValue(dataValueH);
-    dataValueService.addDataValue(dataValueI);
-    dataValueService.addDataValue(dataValueJ);
+    addDataValues(
+        dataValueA,
+        dataValueB,
+        dataValueC,
+        dataValueD,
+        dataValueE,
+        dataValueF,
+        dataValueG,
+        dataValueH,
+        dataValueI,
+        dataValueJ);
     DataExportParams params =
         new DataExportParams()
             .setDataElements(Set.of(deA))
@@ -264,16 +264,17 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueH = new DataValue(deB, peB, ouB, optionCombo, optionCombo, "8");
     DataValue dataValueI = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "9");
     DataValue dataValueJ = new DataValue(deA, peC, ouB, optionCombo, optionCombo, "10");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    dataValueService.addDataValue(dataValueE);
-    dataValueService.addDataValue(dataValueF);
-    dataValueService.addDataValue(dataValueG);
-    dataValueService.addDataValue(dataValueH);
-    dataValueService.addDataValue(dataValueI);
-    dataValueService.addDataValue(dataValueJ);
+    addDataValues(
+        dataValueA,
+        dataValueB,
+        dataValueC,
+        dataValueD,
+        dataValueE,
+        dataValueF,
+        dataValueG,
+        dataValueH,
+        dataValueI,
+        dataValueJ);
 
     assertEquals(
         4,
@@ -347,10 +348,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
 
     assertEquals(
         2,
@@ -368,7 +366,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   void testGetDataValuesNonExistingPeriodA() {
 
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
-    dataValueService.addDataValue(dataValueA);
+    addDataValues(dataValueA);
 
     assertEquals(
         0,
@@ -388,10 +386,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
 
     assertEquals(
         2,
@@ -415,10 +410,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     dataValueC.setValue("3");
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo);
     dataValueD.setValue("4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(4, dataValues.size());
@@ -436,16 +428,17 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueH = new DataValue(deB, peB, ouB, optionCombo, optionCombo, "8");
     DataValue dataValueI = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "9");
     DataValue dataValueJ = new DataValue(deA, peC, ouB, optionCombo, optionCombo, "10");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    dataValueService.addDataValue(dataValueE);
-    dataValueService.addDataValue(dataValueF);
-    dataValueService.addDataValue(dataValueG);
-    dataValueService.addDataValue(dataValueH);
-    dataValueService.addDataValue(dataValueI);
-    dataValueService.addDataValue(dataValueJ);
+    addDataValues(
+        dataValueA,
+        dataValueB,
+        dataValueC,
+        dataValueD,
+        dataValueE,
+        dataValueF,
+        dataValueG,
+        dataValueH,
+        dataValueI,
+        dataValueJ);
     assertEquals(
         4,
         dataValueService
@@ -525,19 +518,17 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "3");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
+    addDataValues(dataValueA, dataValueB, dataValueC);
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
-    dataValueService.deleteDataValue(dataValueC);
+    deleteDataValue(dataValueC);
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
     assertEquals(
         2, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
-    dataValueService.deleteDataValue(dataValueB);
+    deleteDataValue(dataValueB);
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
     assertEquals(
@@ -597,5 +588,21 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
                         .setDataElements(Set.of(deA, deB))
                         .setPeriods(Set.of(peB)))),
         ErrorCode.E2006);
+  }
+
+  private void addDataValues(DataValue... values) {
+    try {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options().allowDisconnected(),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
+          transitory());
+    } catch (ConflictException ex) {
+      fail("Failed to upsert test data", ex);
+    }
+  }
+
+  private void deleteDataValue(DataValue dv) {
+    dv.setDeleted(true);
+    addDataValues(dv);
   }
 }
