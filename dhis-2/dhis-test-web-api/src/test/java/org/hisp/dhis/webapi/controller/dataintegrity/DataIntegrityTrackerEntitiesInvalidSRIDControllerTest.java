@@ -47,7 +47,7 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
   private TrackedEntity trackedEntityWithInvalidSRID;
 
   @Test
-  void testTrackedEntityHasInvalidSRID() {
+  void testTrackedEntitiesWithInvalidSRID() {
     setUp();
     assertHasDataIntegrityIssues(
         "tracker",
@@ -60,8 +60,14 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
   }
 
   @Test
-  void testInvalidSRIDWithNoTrackedEntities() {
+  void testTrackedEntitiesWithNoData() {
     assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid", false);
+  }
+
+  @Test
+  void testTrackedEntitiesWithValidSRID() {
+    setUpValidData();
+    assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid", true);
   }
 
   private void setUp() {
@@ -87,5 +93,24 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
 
     manager.save(trackedEntityWithValidSRID);
     manager.save(trackedEntityWithInvalidSRID);
+  }
+
+  private void setUpValidData() {
+    OrganisationUnit organisationUnit = createOrganisationUnit('P');
+    manager.save(organisationUnit);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('Q');
+    manager.save(trackedEntityType);
+
+    Program program = createProgram('R', Set.of(), organisationUnit);
+    manager.save(program);
+
+    TrackedEntity trackedEntityWithValidSRID =
+        createTrackedEntity(organisationUnit, trackedEntityType);
+    Point point = new GeometryFactory().createPoint(new Coordinate(60.0, 30.0));
+    point.setSRID(4326);
+    trackedEntityWithValidSRID.setGeometry(point);
+
+    manager.save(trackedEntityWithValidSRID);
   }
 }
