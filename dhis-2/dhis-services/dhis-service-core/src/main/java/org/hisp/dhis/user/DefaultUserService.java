@@ -558,6 +558,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
+  public void updateUserRole(UserRole userRole, UserDetails userDetails) {
+    userRoleStore.update(userRole, userDetails);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public UserRole getUserRole(String uid) {
     return userRoleStore.getByUid(uid);
@@ -1537,7 +1543,14 @@ public class DefaultUserService implements UserService {
     userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
-    userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
+
+    Set<String> allowedKeys = UserSettings.keysWithDefaults();
+    Map<String, String> filteredMap =
+        settings.toMap().entrySet().stream()
+            .filter(e -> allowedKeys.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    userSettingsService.putAll(filteredMap, userReplica.getUsername());
 
     return userReplica;
   }
