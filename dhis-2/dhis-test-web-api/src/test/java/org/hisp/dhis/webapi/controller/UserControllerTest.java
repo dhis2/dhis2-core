@@ -32,7 +32,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABL
 import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -105,6 +104,8 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @Autowired ObjectMapper objectMapper;
 
   @Autowired private DhisConfigurationProvider config;
+
+  @Autowired private SystemSettingManager systemSettingManager;
 
   private User peter;
 
@@ -630,7 +631,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   @DisplayName(
       "Test that a user can also delete a user without UserRole write access, see: DHIS2-19693")
   void testReplicateUserNoRoleAuth() {
-    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
 
     UserRole replicateRole =
         createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE");
@@ -661,7 +662,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     User peter2 = userService.getUserByUsername("peter2");
 
     // Then
-    DELETE("/users/" + peter2.getUid()).content(OK);
+    DELETE("/users/" + peter2.getUid()).content(HttpStatus.OK);
   }
 
   @Test
