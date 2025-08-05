@@ -32,6 +32,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABL
 import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -623,6 +624,44 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "User with id does-not-exist could not be found.",
         POST("/users/does-not-exist/reset").error(HttpStatus.NOT_FOUND).getMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "Test that a user can also delete a user without UserRole write access, see: DHIS2-19693")
+  void testReplicateUserNoRoleAuth() {
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
+
+    UserRole replicateRole =
+        createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE");
+    userService.addUserRole(replicateRole);
+    String roleUid = userService.getUserRoleByName("ROLE_REPLICATE").getUid();
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleUid + "'}]}]")
+        .content(HttpStatus.OK);
+
+    peter = userService.getUser(this.peter.getUid());
+    assertTrue(
+        peter
+            .getAllAuthorities()
+            .containsAll(Set.of("F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE")));
+    switchContextToUser(this.peter);
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .content());
+
+    User peter2 = userService.getUserByUsername("peter2");
+
+    // Then
+    DELETE("/users/" + peter2.getUid()).content(OK);
   }
 
   @Test
