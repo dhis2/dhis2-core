@@ -80,7 +80,9 @@ public class UserDetailsImpl implements UserDetails {
       @JsonProperty("userSearchOrgUnitIds") Set<String> userSearchOrgUnitIds,
       @JsonProperty("userEffectiveSearchOrgUnitIds") Set<String> userEffectiveSearchOrgUnitIds,
       @JsonProperty("isSuper") boolean isSuper,
-      @JsonProperty("userRoleIds") Set<String> userRoleIds) {
+      @JsonProperty("userRoleIds") Set<String> userRoleIds,
+      @JsonProperty("managedGroupLongIds") Set<Long> managedGroupLongIds,
+      @JsonProperty("userRoleLongIds") Set<Long> userRoleLongIds) {
     return UserDetailsImpl.builder()
         .uid(uid)
         .code(code)
@@ -108,6 +110,8 @@ public class UserDetailsImpl implements UserDetails {
         .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
         .isSuper(isSuper)
         .userRoleIds(userRoleIds)
+        .managedGroupLongIds(managedGroupLongIds)
+        .userRoleLongIds(userRoleLongIds)
         .build();
   }
 
@@ -128,6 +132,7 @@ public class UserDetailsImpl implements UserDetails {
   private final boolean accountNonExpired;
   private final boolean accountNonLocked;
   private final boolean credentialsNonExpired;
+  private final boolean isSuper;
   @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;
@@ -136,8 +141,9 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userDataOrgUnitIds;
   @Nonnull private final Set<String> userSearchOrgUnitIds;
   @Nonnull private final Set<String> userEffectiveSearchOrgUnitIds;
-  private final boolean isSuper;
   @Nonnull private final Set<String> userRoleIds;
+  @Nonnull private final Set<Long> managedGroupLongIds;
+  @Nonnull private final Set<Long> userRoleLongIds;
 
   @Override
   public boolean canModifyUser(User other) {

@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -71,7 +70,7 @@ public class SessionController {
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = ALL)
-  public Map<String, String> listAllSessions() throws NotFoundException {
+  public Map<String, String> listAllSessions() {
     return listAllUserSessions().stream()
         .collect(
             Collectors.toMap(
@@ -81,12 +80,11 @@ public class SessionController {
                         + (s.isExpired() ? ", (inactive)" : ", (active)")));
   }
 
-  private List<SessionInformation> listAllUserSessions() throws NotFoundException {
+  private List<SessionInformation> listAllUserSessions() {
     List<SessionInformation> allSessions = new ArrayList<>();
     List<User> allUsers = userService.getAllUsers();
     for (User user : allUsers) {
-      allSessions.addAll(
-          sessionRegistry.getAllSessions(userService.createUserDetails(user.getUid()), true));
+      allSessions.addAll(sessionRegistry.getAllSessions(userService.createUserDetails(user), true));
     }
     return allSessions;
   }
