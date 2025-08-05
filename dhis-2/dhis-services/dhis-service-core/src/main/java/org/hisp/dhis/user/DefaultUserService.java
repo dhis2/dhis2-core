@@ -537,6 +537,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
+  public void updateUserRole(UserRole userRole, UserDetails userDetails) {
+    userRoleStore.update(userRole, userDetails);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public UserRole getUserRole(String uid) {
     return userRoleStore.getByUid(uid);
@@ -1527,5 +1533,68 @@ public class DefaultUserService implements UserService {
   @Override
   public void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername) {
     userStore.setActiveLinkedAccounts(actingUser, activeUsername);
+  }
+
+  @Override
+  @Transactional
+  public User replicateUser(User existingUser, String username, String password)
+      throws ConflictException, NotFoundException, BadRequestException {
+
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+
+    if (!ValidationUtils.usernameIsValid(username, false)) {
+      throw new ConflictException("Username is not valid");
+    }
+
+    if (getUserByUsername(username) != null) {
+      throw new ConflictException("Username already taken: " + username);
+    }
+
+    Session session = entityManager.unwrap(Session.class);
+
+    User userReplica = new User();
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
+    copyAttributeValues(userReplica);
+    userReplica.setId(0);
+    userReplica.setUuid(UUID.randomUUID());
+    userReplica.setUid(CodeGenerator.generateUid());
+    userReplica.setCode(null);
+    userReplica.setCreated(new Date());
+    userReplica.setCreatedBy(session.getReference(User.class, currentUser.getId()));
+    userReplica.setLdapId(null);
+    userReplica.setOpenId(null);
+    userReplica.setUsername(username);
+    userReplica.setLastLogin(null);
+    encodeAndSetPassword(userReplica, password);
+
+    addUser(userReplica);
+
+    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
+
+    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
+
+    Set<String> allowedKeys = UserSettings.keysWithDefaults();
+    Map<String, String> filteredMap =
+        settings.toMap().entrySet().stream()
+            .filter(e -> allowedKeys.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    userSettingsService.putAll(filteredMap, userReplica.getUsername());
+
+    return userReplica;
+  }
+
+  private void copyAttributeValues(User userReplica) {
+    if (userReplica.getAttributeValues().isEmpty()) return;
+
+    List<String> uniqueAttributeIds =
+        attributeService.getAttributesByIds(userReplica.getAttributeValues().keys()).stream()
+            .filter(Attribute::isUnique)
+            .map(Attribute::getUid)
+            .toList();
+
+    userReplica.setAttributeValues(
+        userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 }
