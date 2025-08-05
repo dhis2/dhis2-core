@@ -69,7 +69,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
