@@ -32,7 +32,6 @@ package org.hisp.dhis.calendar;
 import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.TimeZone;
-import javax.annotation.Nonnull;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

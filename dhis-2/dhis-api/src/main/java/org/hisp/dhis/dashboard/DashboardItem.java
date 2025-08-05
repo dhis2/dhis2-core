@@ -596,7 +596,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
    *     <p>Currently it is only used for web api backward compatibility
    */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   @JsonIgnore
   public boolean isFavorite() {
     return false;
