@@ -191,6 +191,7 @@ public enum SettingKey {
   REMOTE_INSTANCE_PASSWORD("keyRemoteInstancePassword", "", String.class, true, false),
   GOOGLE_MAPS_API_KEY("keyGoogleMapsApiKey", "", String.class, false, false),
   BING_MAPS_API_KEY("keyBingMapsApiKey", "", String.class, false, false),
+  AZURE_MAPS_API_KEY("keyAzureMapsApiKey", "", String.class, false, false),
   LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
   METADATAVERSION_ENABLED("keyVersionEnabled", Boolean.FALSE, Boolean.class),
   METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
