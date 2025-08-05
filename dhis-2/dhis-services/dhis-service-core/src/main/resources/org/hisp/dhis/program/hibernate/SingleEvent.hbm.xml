@@ -65,15 +65,15 @@
 <!-- eagerly fetch notes to avoid lazy init exceptions in code outside a hibernate session we do not
 exclude notes like we do other collections if the fields parameter does not contain them like in
 fields=!notes. reconsider this if we do implement that optimization -->
-    <list name="notes" table="event_notes" cascade="all-delete-orphan" lazy="false" fetch="join">
-      <key column="eventid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
+    <list name="notes" table="singleevent_notes" cascade="all-delete-orphan" lazy="false" fetch="join">
+      <key column="eventid" foreign-key="fk_singleevent_notes_eventid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.note.Note" column="noteid"
                     unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
     </list>
 
     <set name="relationshipItems" inverse="true">
-      <key column="eventid" />
+      <key column="singleeventid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 

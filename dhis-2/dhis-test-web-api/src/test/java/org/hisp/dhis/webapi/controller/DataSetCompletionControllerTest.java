@@ -93,6 +93,7 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     POST("/metadata", metadata(compulsoryElementsAreRequired, withCompulsoryElements()))
         .content(HttpStatus.OK);
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
+    switchContextToUser(userService.getUser(ADMIN_USER_UID));
 
     // and data exists for the compulsory data element
     POST("dataValueSets", dataValue()).content(HttpStatus.OK);

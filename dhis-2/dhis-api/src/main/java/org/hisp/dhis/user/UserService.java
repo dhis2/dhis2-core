@@ -39,13 +39,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -57,24 +57,6 @@ import org.springframework.security.core.session.SessionInformation;
  * @author Chau Thu Tran
  */
 public interface UserService {
-  Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
-
-  String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
-
-  String RESTORE_PATH = "/login/#/";
-
-  String TBD_NAME = "(TBD)";
-
-  String DEFAULT_APPLICATION_TITLE = "DHIS2";
-
-  int LOGIN_MAX_FAILED_ATTEMPTS = 4;
-
-  int RECOVERY_LOCKOUT_MINS = 15;
-
-  int RECOVER_MAX_ATTEMPTS = 5;
-
-  String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
-
   /**
    * Adds a User.
    *
@@ -299,7 +281,7 @@ public interface UserService {
    * @param currentUser the current user.
    * @return true if the current user can create or update user, false if not.
    */
-  boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser);
+  boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser);
 
   /**
    * Retrieves the User associated with the User with the given id token.
@@ -550,6 +532,9 @@ public interface UserService {
    */
   UserDetails createUserDetails(String userUid) throws NotFoundException;
 
+  @CheckForNull
+  UserDetails createUserDetailsSafe(@Nonnull String userUid);
+
   /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
    * and credentials expired status.
@@ -569,7 +554,7 @@ public interface UserService {
    * @return Boolean
    */
   boolean canCurrentUserCanModify(
-      User currentUser, User userToModify, Consumer<ErrorReport> errors);
+      UserDetails currentUser, User userToModify, Consumer<ErrorReport> errors);
 
   /**
    * Register a failed 2FA disable attempt for the given user account.
@@ -944,4 +929,17 @@ public interface UserService {
    * @param activeUsername the username of the user to set as active
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
+
+  /**
+   * Creates a replica of an existing user with new credentials.
+   *
+   * @param existingUser the user to replicate
+   * @param username the username for the new user
+   * @param password the password for the new user
+   * @param currentUser the current user performing the replication
+   * @return the newly created user replica
+   * @throws ConflictException if validation fails
+   */
+  User replicateUser(User existingUser, String username, String password, UserDetails currentUser)
+      throws ConflictException, NotFoundException, BadRequestException;
 }

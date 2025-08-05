@@ -81,6 +81,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -140,7 +141,7 @@ class DataValueSetImportValidatorTest {
   @Test
   void testValidateDataSetIsAccessibleByUser() {
     // simulate that user does not have access:
-    when(aclService.canDataRead(any(User.class), any())).thenReturn(false);
+    when(aclService.canDataRead(any(UserDetails.class), any())).thenReturn(false);
     DataValueSet dataValueSet = createEmptyDataValueSet();
     ImportContext context = createMinimalImportContext(null).build();
     DataSetContext dataSetContext = createMinimalDataSetContext(dataValueSet).build();
@@ -154,7 +155,7 @@ class DataValueSetImportValidatorTest {
 
   @Test
   void testValidateDataSetOrgUnitExists() {
-    when(aclService.canDataRead(any(User.class), any())).thenReturn(true);
+    when(aclService.canDataRead(any(UserDetails.class), any())).thenReturn(true);
     DataValueSet dataValueSet = new DataValueSet();
     dataValueSet.setOrgUnit(CodeGenerator.generateUid());
     ImportContext context = createMinimalImportContext(null).build();
@@ -170,7 +171,7 @@ class DataValueSetImportValidatorTest {
 
   @Test
   void testValidateDataSetAttrOptionComboExists() {
-    when(aclService.canDataRead(any(User.class), any())).thenReturn(true);
+    when(aclService.canDataRead(any(UserDetails.class), any())).thenReturn(true);
     DataValueSet dataValueSet = new DataValueSet();
     dataValueSet.setAttributeOptionCombo(CodeGenerator.generateUid());
     ImportContext context = createMinimalImportContext(null).build();
@@ -850,7 +851,7 @@ class DataValueSetImportValidatorTest {
         .summary(new ImportSummary())
         .strategy(ImportStrategy.CREATE)
         .importOptions(new ImportOptions())
-        .currentUser(currentUser)
+        .currentUser(UserDetails.fromUser(currentUser))
         .i18n(i18n)
         .currentOrgUnits(valueContext == null ? null : singleton(valueContext.getOrgUnit()))
         .singularNameForType(DataValueSetImportValidatorTest::getSingularNameForType);
@@ -906,6 +907,7 @@ class DataValueSetImportValidatorTest {
   }
 
   private void setupUserCanWriteCategoryOptions(boolean canWrite) {
-    when(aclService.canDataWrite(any(User.class), any(CategoryOption.class))).thenReturn(canWrite);
+    when(aclService.canDataWrite(any(UserDetails.class), any(CategoryOption.class)))
+        .thenReturn(canWrite);
   }
 }

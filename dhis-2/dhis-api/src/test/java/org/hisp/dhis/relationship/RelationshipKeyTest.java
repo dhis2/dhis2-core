@@ -77,7 +77,9 @@ class RelationshipKeyTest {
             RelationshipKey.RelationshipItemKey.builder()
                 .trackedEntity(UID.of("Ea0rRdBPAIp"))
                 .build(),
-            RelationshipKey.RelationshipItemKey.builder().event(UID.of("G1afLIEKt8A")).build());
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackerEvent(UID.of("G1afLIEKt8A"))
+                .build());
 
     assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
   }

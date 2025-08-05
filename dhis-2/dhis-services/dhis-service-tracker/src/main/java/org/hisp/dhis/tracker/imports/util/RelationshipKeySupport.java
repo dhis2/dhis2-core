@@ -52,7 +52,8 @@ public class RelationshipKeySupport {
       return RelationshipKey.RelationshipItemKey.builder()
           .trackedEntity(relationshipItem.getTrackedEntity())
           .enrollment(relationshipItem.getEnrollment())
-          .event(relationshipItem.getEvent())
+          .trackerEvent(relationshipItem.getEvent())
+          .singleEvent(relationshipItem.getEvent())
           .build();
     }
     throw new IllegalStateException("Unable to determine uid for relationship item");

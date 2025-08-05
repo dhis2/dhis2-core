@@ -84,9 +84,10 @@ class OutlierDetectionUtilsTest {
   }
 
   private Object supplyWithErrorCode(ErrorCode errorCode) {
-    switch (errorCode) {
-      case E2208 -> throw new DataIntegrityViolationException(errorCode.getMessage());
-      case E7131 -> throw new DataAccessResourceFailureException(errorCode.getMessage());
+    if (ErrorCode.E2208 == errorCode) {
+      throw new DataIntegrityViolationException(errorCode.getMessage());
+    } else if (ErrorCode.E7131 == errorCode) {
+      throw new DataAccessResourceFailureException(errorCode.getMessage());
     }
 
     return null;
