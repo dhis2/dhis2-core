@@ -66,7 +66,6 @@ import org.springframework.http.ResponseEntity;
 
 @Tag("oauth2tests")
 @Slf4j
-@Disabled
 class OAuth2Test extends BaseE2ETest {
 
   private static WebDriver driver;
