@@ -324,11 +324,8 @@ public class UserController
   }
 
   private WebMessage postObject(User user) throws ForbiddenException, ConflictException {
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    validateCreateUser(user, currentUser);
-
-    return postObject(getObjectReport(createUser(user, currentUser)));
+    validateCreateUser(user);
+    return postObject(getObjectReport(createUser(user)));
   }
 
   @PostMapping(value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE)
@@ -351,12 +348,8 @@ public class UserController
 
   private WebMessage postInvite(HttpServletRequest request, User user)
       throws ForbiddenException, ConflictException {
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
-    validateInviteUser(user, currentUser);
-
-    ObjectReport objectReport = inviteUser(user, currentUser, request);
+    validateInviteUser(user);
+    ObjectReport objectReport = inviteUser(user, request);
 
     return postObject(objectReport);
   }
@@ -380,14 +373,12 @@ public class UserController
   private void postInvites(HttpServletRequest request, Users users)
       throws ForbiddenException, ConflictException {
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
     for (User user : users.getUsers()) {
-      validateInviteUser(user, currentUser);
+      validateInviteUser(user);
     }
 
     for (User user : users.getUsers()) {
-      inviteUser(user, currentUser, request);
+      inviteUser(user, request);
     }
   }
 
@@ -456,8 +447,7 @@ public class UserController
       return conflict("User not found: " + uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    validateCreateUser(existingUser, currentUser);
+    validateCreateUser(existingUser);
 
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
 
@@ -494,7 +484,7 @@ public class UserController
     }
 
     try {
-      User userReplica = userService.replicateUser(existingUser, username, password, currentUser);
+      User userReplica = userService.replicateUser(existingUser, username, password);
       return created("User replica created")
           .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());
     } catch (ConflictException e) {
@@ -684,8 +674,9 @@ public class UserController
    *
    * @param user the user.
    */
-  private void validateCreateUser(User user, UserDetails currentUser)
-      throws ForbiddenException, ConflictException {
+  private void validateCreateUser(User user) throws ForbiddenException, ConflictException {
+
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canCreate(currentUser, getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
@@ -710,7 +701,7 @@ public class UserController
    *
    * @param user user object parsed from the POST request.
    */
-  private ImportReport createUser(User user, UserDetails currentUser) {
+  private ImportReport createUser(User user) {
     MetadataImportParams importParams =
         new MetadataImportParams()
             .setImportReportMode(ImportReportMode.FULL)
@@ -720,7 +711,8 @@ public class UserController
         importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
     if (importReport.getStatus() == Status.OK && importReport.getStats().created() == 1) {
-      userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);
+      userGroupService.addUserToGroups(
+          user, getUids(user.getGroups()), CurrentUserUtil.getCurrentUserDetails());
     }
 
     return importReport;
@@ -731,13 +723,12 @@ public class UserController
    *
    * @param user the user.
    */
-  private void validateInviteUser(User user, UserDetails currentUser)
-      throws ForbiddenException, ConflictException {
+  private void validateInviteUser(User user) throws ForbiddenException, ConflictException {
     if (user == null) {
       throw new ConflictException("User is not present");
     }
 
-    validateCreateUser(user, currentUser);
+    validateCreateUser(user);
 
     ErrorCode errorCode = userService.validateInvite(user);
 
@@ -746,7 +737,7 @@ public class UserController
     }
   }
 
-  private ObjectReport inviteUser(User user, UserDetails currentUser, HttpServletRequest request) {
+  private ObjectReport inviteUser(User user, HttpServletRequest request) {
     RestoreOptions restoreOptions =
         user.getUsername() == null || user.getUsername().isEmpty()
             ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
@@ -754,7 +745,7 @@ public class UserController
 
     userService.prepareUserForInvite(user);
 
-    ImportReport importReport = createUser(user, currentUser);
+    ImportReport importReport = createUser(user);
     ObjectReport objectReport = getObjectReport(importReport);
 
     if (importReport.getStatus() == Status.OK
