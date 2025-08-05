@@ -564,24 +564,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  @Transactional
-  public void deleteUserRole(UserRole userRole) {
-    userRoleStore.delete(userRole);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getAllUserRoles() {
-    return userRoleStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserRole getUserRole(long id) {
-    return userRoleStore.get(id);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public UserRole getUserRole(String uid) {
     return userRoleStore.getByUid(uid);
