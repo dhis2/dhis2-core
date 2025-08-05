@@ -445,14 +445,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("dataEntryAutoGroup", false);
   }
 
-  /**
-   * @since 2.43
-   * @return true, to check that data entry falls into the OU's open-close date timeframe
-   */
-  default boolean getDataEntrySkipOrgUnitEntrySpanCheck() {
-    return asBoolean("dataEntrySkipOrgUnitEntrySpanCheck", false);
-  }
-
   default boolean getDataImportStrictOrganisationUnits() {
     return asBoolean("keyDataImportStrictOrganisationUnits", false);
   }

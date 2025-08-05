@@ -283,8 +283,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     return dataEntryIO.importXml(json, new ImportOptions(), transitory());
   }
 
-  private ImportSummary importCsv(InputStream json) {
-    return dataEntryIO.importCsv(json, new ImportOptions(), transitory());
+  private ImportSummary importCsv(InputStream csv) {
+    return dataEntryIO.importCsv(csv);
   }
 
   /** Import 1 data value. */

@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import static java.util.Objects.requireNonNull;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,8 +133,16 @@ public record DataEntryGroup(
     }
 
     public Input mergedSameDsAoc(Input other) {
-      values.addAll(other.values);
-      return new Input(ids, dataSet, values);
+      List<DataEntryValue.Input> merged = new ArrayList<>(values.size() + other.values.size());
+      merged.addAll(values);
+      merged.addAll(other.values);
+      String de = dataElement;
+      String ou = orgUnit;
+      String pe = period;
+      if (!Objects.equals(de, other.dataElement)) de = null;
+      if (!Objects.equals(ou, other.orgUnit)) ou = null;
+      if (!Objects.equals(pe, other.period)) pe = null;
+      return new Input(ids, dataSet, de, ou, pe, attributeOptionCombo, attributeOptions, merged);
     }
   }
 

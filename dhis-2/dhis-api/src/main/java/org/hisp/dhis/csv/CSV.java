@@ -334,6 +334,12 @@ public final class CSV {
     }
   }
 
+  private static String unquote(String str) {
+    return str == null || !str.startsWith("\"") || !str.endsWith("\"")
+        ? str
+        : str.substring(1, str.length() - 1);
+  }
+
   private record Reader<T extends Record>(BufferedReader csv, Columns<T> as)
       implements CsvReader<T> {
 
@@ -347,7 +353,8 @@ public final class CSV {
         throw new UncheckedIOException(e);
       }
       if (header == null) throw new IllegalArgumentException("No header line provided.");
-      List<String> columns = List.of(header.split(","));
+      List<String> columns =
+          Stream.of(header.split("\\s*,\\s*")).map(String::trim).map(CSV::unquote).toList();
       Function<List<String>, T> newRecord = as.from(columns);
       LineBuffer buf = LineBuffer.of(columns);
       return new Iterator<>() {

@@ -433,7 +433,6 @@ public class DefaultDataEntryService implements DataEntryService {
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E8025, aoc, ouNotInAoc);
       }
     }
-    if (settings.getCurrentSettings().getDataEntrySkipOrgUnitEntrySpanCheck()) return;
 
     // - require: PEs must be within the OU's operational span
     List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();

@@ -67,6 +67,26 @@ class CSVTest {
   }
 
   @Test
+  void testNullForOmittedOptionalColumns_QuotesSpace() {
+    List<MinMaxValue> actual =
+        CSV.of(
+                """
+          dataElement,  orgUnit , "optionCombo" ,minValue,maxValue
+          elD9B1HiTJO,"fKiYlhodhB1",HllvX50cXC0,0,10
+         c6Fi8CNxGJ1,  "fKiYlhodhB1" ,"HllvX50cXC0" ,0,10
+        elD9B1HiTJO , "MU1nUGOpV4Q" ,HllvX50cXC0  ,0,10
+        c6Fi8CNxGJ1 , MU1nUGOpV4Q ,"HllvX50cXC0"  ,0,10
+        """)
+            .as(MinMaxValue.class)
+            .list();
+    assertEquals(4, actual.size());
+    assertEquals(
+        new MinMaxValue(
+            UID.of("c6Fi8CNxGJ1"), UID.of("MU1nUGOpV4Q"), UID.of("HllvX50cXC0"), 0, 10, null),
+        actual.get(3));
+  }
+
+  @Test
   void testNullForOptionalColumns() {
     List<MinMaxValue> actual =
         CSV.of(

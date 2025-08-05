@@ -62,6 +62,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
@@ -187,6 +188,10 @@ public class DataEntryIO {
       }
     }
     return List.of(new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values));
+  }
+
+  public ImportSummary importCsv(InputStream in) {
+    return importCsv(in, new ImportOptions(), RecordingJobProgress.transitory());
   }
 
   public ImportSummary importCsv(InputStream in, ImportOptions options, JobProgress progress) {
