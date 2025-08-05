@@ -141,8 +141,9 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "dataValues~isEmpty",
         "dataValues::isEmpty",
         "dataValues|isEmpty",
-        "dataValues|rename(hasDataValues)~isEmpty",
+        "dataValues|rename(hasDataValues)~isEmpty", // rename must be applied last
         "dataValues[dataElement,!value]",
+        "dataValues::rename(values)[dataElement,!value]",
         "event,*,dataValues[!value]",
         "event,dataValues[dataElement,value]",
         "event,dataValues[*,!storedBy]",

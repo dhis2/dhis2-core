@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -141,14 +140,13 @@ public final class Fields implements Predicate<String> {
    * @param field the field name
    * @return transformation for the field if any
    */
-  // TODO(ivo) or a NOOP transformation?
-  @Nullable
+  @Nonnull
   public List<Transformation> getTransformations(String field) {
     if (!test(field)) {
-      return null; // field must be included for it to be transformed
+      return List.of(); // field must be included for it to be transformed
     }
 
-    return transformations.get(field);
+    return transformations.getOrDefault(field, List.of());
   }
 
   /**

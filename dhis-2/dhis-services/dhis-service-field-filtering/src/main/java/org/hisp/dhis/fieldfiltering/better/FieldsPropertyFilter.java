@@ -61,31 +61,30 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     if (current.test(writer.getName())) {
-      List<Fields.Transformation> transformationList = current.getTransformations(writer.getName());
+      // Standard field serialization
+      Fields children = current.getChildren(writer.getName());
+      provider.setAttribute(FIELDS_ATTRIBUTE, children);
 
-      if (transformationList != null && !transformationList.isEmpty()) {
-        applyTransformationChain(pojo, jgen, provider, writer, transformationList, current);
-      } else {
-        // Standard field serialization
-        Fields children = current.getChildren(writer.getName());
-        provider.setAttribute(FIELDS_ATTRIBUTE, children);
+      List<Fields.Transformation> transformations = current.getTransformations(writer.getName());
+      if (transformations.isEmpty()) {
         writer.serializeAsField(pojo, jgen, provider);
-        provider.setAttribute(FIELDS_ATTRIBUTE, current);
+      } else {
+        serializeUsingTransformations(pojo, jgen, provider, writer, transformations);
       }
+
+      provider.setAttribute(FIELDS_ATTRIBUTE, current);
     } else if (!jgen.canOmitFields()) { // since 2.3
       writer.serializeAsOmittedField(pojo, jgen, provider);
     }
   }
 
-  private void applyTransformationChain(
+  private void serializeUsingTransformations(
       Object pojo,
       JsonGenerator jgen,
       SerializerProvider provider,
       PropertyWriter writer,
-      List<Fields.Transformation> transformations,
-      Fields current)
+      List<Fields.Transformation> transformations)
       throws Exception {
-
     Object currentValue = extractFieldValue(pojo, writer);
     String currentFieldName = writer.getName();
 
@@ -96,7 +95,7 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
         currentValue = result.value;
         currentFieldName = result.fieldName;
       } catch (Exception e) {
-        // Stop chain on error - continue with last valid value
+        // TODO(ivo) continue with last valid value or throw?
         break;
       }
     }
@@ -104,6 +103,7 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     provider.defaultSerializeField(currentFieldName, currentValue, jgen);
   }
 
+  // TODO(ivo) error handling
   private Object extractFieldValue(Object pojo, PropertyWriter writer) {
     if (writer instanceof BeanPropertyWriter beanWriter) {
       try {
