@@ -73,6 +73,19 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
     this.code = code;
   }
 
+  /**
+   * Constructor.
+   *
+   * @param uid the identifier.
+   * @param code the code.
+   * @param name the name.
+   */
+  public BaseDimensionalItemObject(String uid, String code, String name) {
+    this.uid = uid;
+    this.code = code;
+    this.name = name;
+  }
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------

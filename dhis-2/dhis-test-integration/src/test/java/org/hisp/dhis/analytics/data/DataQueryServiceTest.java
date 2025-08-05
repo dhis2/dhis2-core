@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -505,7 +507,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetDimensionOrgUnitGroup() {
-    String ouGroupAUid = OrganisationUnit.KEY_ORGUNIT_GROUP + ouGroupA.getUid();
+    String ouGroupAUid = KEY_ORGUNIT_GROUP + ouGroupA.getUid();
     List<String> itemUids = List.of(ouGroupAUid);
     DimensionalObject actual =
         dataQueryService.getDimension(
@@ -826,7 +828,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetFromUrlUserOrgUnit() {
     Set<String> dimensionParams = new HashSet<>();
-    dimensionParams.add("ou:" + OrganisationUnit.KEY_USER_ORGUNIT);
+    dimensionParams.add("ou:" + KEY_USER_ORGUNIT);
     dimensionParams.add("dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem());
     dimensionParams.add("pe:2011;2012");
     DataQueryRequest dataQueryRequest =
