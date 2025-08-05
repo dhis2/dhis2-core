@@ -45,36 +45,51 @@ import org.junit.jupiter.params.provider.MethodSource;
 class FieldPathHelperTest {
 
   @ParameterizedTest
-  @MethodSource("noMatchingFields")
-  @DisplayName("Field does not equal root field")
-  void fieldDoesNotEqualRootFieldTest(String fullFieldPath, String field) {
-    boolean result = FieldPathHelper.fieldEqualsRootField(fullFieldPath, field);
-    assertFalse(result);
+  @MethodSource("fieldShouldNotBeExcluded")
+  @DisplayName("Field should not be excluded")
+  void fieldShouldNotBeExcludedTest(String fullFieldPath, String fullExclusionPath) {
+    assertFalse(FieldPathHelper.fieldShouldBeExcluded(fullFieldPath, fullExclusionPath));
   }
 
   @ParameterizedTest
-  @MethodSource("matchingFields")
-  @DisplayName("Field equals root field")
-  void fieldEqualsRootFieldTest(String fullFieldPath, String field) {
-    boolean result = FieldPathHelper.fieldEqualsRootField(fullFieldPath, field);
-    assertTrue(result);
+  @MethodSource("fieldShouldBeExcluded")
+  @DisplayName("Field should be excluded")
+  void fieldShouldBeExcludedTest(String fullFieldPath, String fullExclusionPath) {
+    assertTrue(FieldPathHelper.fieldShouldBeExcluded(fullFieldPath, fullExclusionPath));
   }
 
-  private static Stream<Arguments> noMatchingFields() {
+  private static Stream<Arguments> fieldShouldNotBeExcluded() {
     return Stream.of(
         arguments("username", "user"),
         arguments("userRoles", "user"),
         arguments("", "user"),
         arguments(null, "user"),
         arguments("", null),
-        arguments("test", "user"));
+        arguments("test", "user"),
+        arguments("user.name.last", "user.names"),
+        arguments("organisationUnits", "organisationUnits.translations"),
+        arguments("organisationUnits.translations", "organisationUnits.translation.locale"),
+        arguments("organisationUnits.translations", "organisationUnits.translations.locale"),
+        arguments("organisationUnits.translations", "organisationUnits.translationslocale"),
+        arguments("organisationUnits.translations", "organisationUnits.translations.locale.extra"),
+        arguments("organisationUnits.translations.locale", "translations.organisationUnits"),
+        arguments("organisationUnits.translations.locale", "organisationUnits.locale"),
+        arguments("organisationUnits.translations.locale", "organisationUnits.locale.translations"),
+        arguments(
+            "organisationUnits.translations.locale",
+            "organisationUnits.translations.locale.extra"));
   }
 
-  private static Stream<Arguments> matchingFields() {
+  private static Stream<Arguments> fieldShouldBeExcluded() {
     return Stream.of(
         arguments("user", "user"),
         arguments("user.name", "user"),
         arguments("user.address", "user"),
-        arguments("user.name.last", "user"));
+        arguments("user.name.last", "user"),
+        arguments("user.name", "user.name"),
+        arguments("organisationUnits", "organisationUnits"),
+        arguments("organisationUnits.translations", "organisationUnits"),
+        arguments("organisationUnits.translations", "organisationUnits.translations"),
+        arguments("organisationUnits.translations.locale", "organisationUnits.translations"));
   }
 }
