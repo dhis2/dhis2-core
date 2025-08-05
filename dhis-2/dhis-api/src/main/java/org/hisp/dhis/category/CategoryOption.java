@@ -29,53 +29,148 @@
  */
 package org.hisp.dhis.category;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.LinkableObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.TotalAggregationType;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * @author Abyot Asalefew
  */
-@JacksonXmlRootElement(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryOption extends BaseDimensionalItemObject
-    implements SystemDefaultMetadataObject {
+@JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
+@Entity
+@Table(name = "categoryoption")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+public class CategoryOption extends BaseMetadataObject
+    implements DimensionalItemObject, SystemDefaultMetadataObject, IdentifiableObject {
   public static final String DEFAULT_NAME = "default";
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(name = "categoryoptionid")
+  private long id;
+
+  @Column(name = "code")
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(name = "shortname", unique = true, nullable = false, length = 50)
+  private String shortName;
+
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
+
+  @Column(name = "formName", length = 230)
+  private String formName;
+
+  @Column(name = "startDate")
+  @Temporal(TemporalType.DATE)
   private Date startDate;
 
+  @Column(name = "endDate")
+  @Temporal(TemporalType.DATE)
   private Date endDate;
 
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-  private Set<Category> categories = new HashSet<>();
-
-  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-  private Set<CategoryOptionGroup> groups = new HashSet<>();
-
+  @Column(name = "style")
+  @Type(type = "jbObjectStyle")
   private ObjectStyle style;
 
-  /** The name to appear in forms. */
-  private String formName;
+  @Column(name = "translations")
+  @Type(type = "jblTranslations")
+  private Set<Translation> translations = new HashSet<>();
+
+  @Column(name = "attributeValues")
+  @Type(type = "jsbAttributeValues")
+  private AttributeValues attributeValues;
+
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "categoryoption_organisationunits",
+      joinColumns = @JoinColumn(name = "categoryoptionid"),
+      inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+
+  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "categoryOptions")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<Category> categories = new HashSet<>();
+
+  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "categoryOptions")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+
+  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "members")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<CategoryOptionGroup> groups = new HashSet<>();
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "userid")
+  private User createdBy;
+
+  @Column(name = "sharing")
+  @Type(type = "jsbObjectSharing")
+  private Sharing sharing;
+
+  // Transient fields for DimensionalItemObject interface
+  @Transient
+  private QueryModifiers queryMods;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -206,13 +301,260 @@ public class CategoryOption extends BaseDimensionalItemObject
   }
 
   // -------------------------------------------------------------------------
-  // DimensionalItemObject
+  // DimensionalItemObject implementation
   // -------------------------------------------------------------------------
+
+  @Override
+  public String getDimensionItem() {
+    return getUid();
+  }
+
+  @Override
+  public String getDimensionItemWithQueryModsId() {
+    return queryMods != null ? getUid() + "_" + queryMods.getPeriodOffset() : getUid();
+  }
+
+  @Override
+  public String getDimensionItem(IdScheme idScheme) {
+    return getPropertyValue(idScheme);
+  }
 
   @Override
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.CATEGORY_OPTION;
   }
+
+  @Override
+  public List<LegendSet> getLegendSets() {
+    return List.of();
+  }
+
+  @Override
+  public LegendSet getLegendSet() {
+    return null;
+  }
+
+  @Override
+  public boolean hasLegendSet() {
+    return false;
+  }
+
+  @Override
+  public AggregationType getAggregationType() {
+    return null;
+  }
+
+  @Override
+  public boolean hasAggregationType() {
+    return false;
+  }
+
+  @Override
+  public TotalAggregationType getTotalAggregationType() {
+    return null;
+  }
+
+  @Override
+  public QueryModifiers getQueryMods() {
+    return queryMods;
+  }
+
+  @Override
+  public void setQueryMods(QueryModifiers queryMods) {
+    this.queryMods = queryMods;
+  }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  public String getUid() {
+    return uid;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getDisplayName() {
+    return name;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Date getCreated() {
+    return created;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getCreatedBy() {
+    return createdBy;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {
+    // Implementation would depend on AttributeValues implementation
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    // Implementation would depend on AttributeValues implementation
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translations;
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations = translations;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Deprecated methods for non-mapped properties
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Deprecated
+  public Set<String> getFavorites() {
+    return Set.of();
+  }
+
+  @Override
+  @Deprecated
+  public boolean isFavorite() {
+    return false;
+  }
+
+  @Override
+  @Deprecated
+  public boolean setAsFavorite(UserDetails user) {
+    return false;
+  }
+
+  @Override
+  @Deprecated
+  public boolean removeAsFavorite(UserDetails user) {
+    return false;
+  }
+
+  @Override
+  @Deprecated
+  public User getUser() {
+    return getCreatedBy();
+  }
+
+  @Override
+  @Deprecated
+  public void setUser(User user) {
+    setCreatedBy(user);
+  }
+
+  @Override
+  @Deprecated
+  public void setCreatedBy(User createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  @Override
+  @Deprecated
+  public Access getAccess() {
+    return null;
+  }
+
+  @Override
+  @Deprecated
+  public void setAccess(Access access) {}
 
   // -------------------------------------------------------------------------
   // Getters and setters
@@ -296,7 +638,6 @@ public class CategoryOption extends BaseDimensionalItemObject
     this.style = style;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
@@ -304,14 +645,102 @@ public class CategoryOption extends BaseDimensionalItemObject
     return formName;
   }
 
-  @Override
   public void setFormName(String formName) {
     this.formName = formName;
   }
 
   /** Returns the form name, or the name if it does not exist. */
-  @Override
   public String getFormNameFallback() {
     return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+  }
+
+  // -------------------------------------------------------------------------
+  // NameableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getShortName() {
+    return shortName;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayShortName() {
+    return shortName;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayDescription() {
+    return description;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayProperty(DisplayProperty property) {
+    return switch (property) {
+      case SHORTNAME -> getDisplayShortName();
+      case NAME -> getDisplayName();
+      default -> getDisplayName();
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // LinkableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getHref() {
+    return "/categoryOptions/" + getUid();
+  }
+
+  @Override
+  @Deprecated
+  public void setHref(String href) {}
+
+  // -------------------------------------------------------------------------
+  // Additional IdentifiableObject methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Deprecated
+  public void setOwner(String owner) {}
+
+  // -------------------------------------------------------------------------
+  // Setters for mapped properties
+  // -------------------------------------------------------------------------
+
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setShortName(String shortName) {
+    this.shortName = shortName;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 }
