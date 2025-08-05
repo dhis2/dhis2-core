@@ -547,7 +547,7 @@ public class AccountController {
     if (Strings.isNullOrEmpty(currentUser.getEmail())) {
       throw new ConflictException("User has no email set");
     }
-    if (userService.isEmailVerified(currentUser)) {
+    if (currentUser.isEmailVerified()) {
       throw new ConflictException("User has already verified the email address");
     }
     if (userService.getUserByVerifiedEmail(currentUser.getEmail()) != null) {

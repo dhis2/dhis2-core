@@ -65,24 +65,25 @@ public class EventAggregateTest extends AnalyticsApiTest {
         .body("height", equalTo(0))
         .body("width", equalTo(0))
         .body("rows", hasSize(equalTo(0)))
-        .body("metaData.items", hasKey("CklPZdOd6H1"))
+        .body("metaData.items", hasKey("C0aLZo75dgJ.CklPZdOd6H1"))
         .body("metaData.items", hasKey("AZK4rjJCss5"))
         .body("metaData.items", hasKey("UrUdMteQzlT"));
 
     validateHeader(
         response,
         0,
-        "Z1rLc1rVHK8",
+        "C0aLZo75dgJ.Z1rLc1rVHK8",
         "Date of birth (mal) is estimated",
         "TRUE_ONLY",
         "java.lang.Boolean",
         false,
         true);
-    validateHeader(response, 1, "CklPZdOd6H1", "Sex", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 1, "C0aLZo75dgJ.CklPZdOd6H1", "Sex", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,
-        "B6TnnFMgmCk",
+        "C0aLZo75dgJ.B6TnnFMgmCk",
         "Age (years)",
         "INTEGER_ZERO_OR_POSITIVE",
         "java.lang.Integer",
