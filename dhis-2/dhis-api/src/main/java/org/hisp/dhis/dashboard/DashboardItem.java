@@ -616,7 +616,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   @Deprecated
   @JsonIgnore
   public Sharing getSharing() {
-    return null;
+    return Sharing.empty();
   }
 
   @Override
