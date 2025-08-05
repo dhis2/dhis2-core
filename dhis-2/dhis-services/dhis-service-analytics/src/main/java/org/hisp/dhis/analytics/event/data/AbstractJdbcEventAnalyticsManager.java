@@ -2646,9 +2646,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
     final String filterSql =
         """
-        select
-          enrollment,
-          %s as value
+        select enrollment, %s as value
         from
             (select
                 enrollment,
@@ -2750,7 +2748,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             from ${eventTableName} evt
             join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
             where evt.eventstatus != 'SCHEDULE'
-              and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
+                and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
         where evt.rn = 1
         """;
 
