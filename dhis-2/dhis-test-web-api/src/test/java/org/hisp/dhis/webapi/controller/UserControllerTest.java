@@ -105,8 +105,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private DhisConfigurationProvider config;
 
-  @Autowired private SystemSettingManager systemSettingManager;
-
   private User peter;
 
   @BeforeEach
