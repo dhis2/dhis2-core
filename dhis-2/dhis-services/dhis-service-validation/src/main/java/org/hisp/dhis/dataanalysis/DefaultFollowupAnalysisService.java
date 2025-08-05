@@ -54,7 +54,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,8 +69,6 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   private final DataAnalysisStore dataAnalysisStore;
 
   private final FollowupValueManager followupValueManager;
-
-  private final UserService userService;
 
   private final I18nManager i18nManager;
 

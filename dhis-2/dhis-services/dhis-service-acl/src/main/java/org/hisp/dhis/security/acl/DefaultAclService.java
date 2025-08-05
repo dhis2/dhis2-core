@@ -91,11 +91,6 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public boolean isSupported(String type) {
-    return schemaService.getSchemaBySingularName(type) != null;
-  }
-
-  @Override
   public boolean isSupported(IdentifiableObject object) {
     return schemaService.getSchema(HibernateProxyUtils.getRealClass(object)) != null;
   }
@@ -116,12 +111,6 @@ public class DefaultAclService implements AclService {
   public <T extends IdentifiableObject> boolean isClassShareable(Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
     return schema != null && schema.isShareable();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public boolean isDataShareable(IdentifiableObject object) {
-    return isDataClassShareable(HibernateProxyUtils.getRealClass(object));
   }
 
   @Override
@@ -415,11 +404,6 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> boolean canMakePublic(User user, T object) {
-    return canMakePublic(UserDetails.fromUser(user), object);
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
   public <T extends IdentifiableObject> boolean canMakePublic(UserDetails userDetails, T object) {
     return canMakeClassPublic(userDetails, HibernateProxyUtils.getRealClass(object));
@@ -438,11 +422,6 @@ public class DefaultAclService implements AclService {
     if (schema == null || !schema.isShareable()) return false;
 
     return canAccess(userDetails, schema.getAuthorityByType(AuthorityType.CREATE_PUBLIC));
-  }
-
-  @Override
-  public <T extends IdentifiableObject> boolean canMakePrivate(User user, T object) {
-    return canMakePrivate(UserDetails.fromUser(user), object);
   }
 
   @Override
@@ -703,10 +682,10 @@ public class DefaultAclService implements AclService {
     return user.isSuper();
   }
 
-  private boolean canAccess(UserDetails user, Collection<String> anyAuthorities) {
-    return haveOverrideAuthority(user)
+  private boolean canAccess(UserDetails currentUser, Collection<String> anyAuthorities) {
+    return haveOverrideAuthority(currentUser)
         || anyAuthorities.isEmpty()
-        || haveAuthority(user.getAllAuthorities(), anyAuthorities);
+        || haveAuthority(currentUser.getAllAuthorities(), anyAuthorities);
   }
 
   private boolean haveAuthority(Set<String> userAuthorities, Collection<String> anyAuthorities) {

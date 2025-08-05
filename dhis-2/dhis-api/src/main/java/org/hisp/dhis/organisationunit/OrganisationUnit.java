@@ -88,20 +88,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     implements MetadataObject, CoordinateObject {
   private static final String PATH_SEP = "/";
 
-  public static final String KEY_USER_ORGUNIT = "USER_ORGUNIT";
-
-  public static final String KEY_USER_ORGUNIT_CHILDREN = "USER_ORGUNIT_CHILDREN";
-
-  public static final String KEY_USER_ORGUNIT_GRANDCHILDREN = "USER_ORGUNIT_GRANDCHILDREN";
-
-  public static final String KEY_LEVEL = "LEVEL-";
-
-  public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
-
-  public static final String KEY_DATASET = "DS-";
-
-  public static final String KEY_PROGRAM = "PR-";
-
   private static final String NAME_SEPARATOR = " / ";
 
   private OrganisationUnit parent;

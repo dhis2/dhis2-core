@@ -36,6 +36,11 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
@@ -48,11 +53,6 @@ import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -126,44 +126,37 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
 
-  private static final DimensionalItemObject USER_OU_ITEM_OBJ =
-      buildDimItemObj(KEY_USER_ORGUNIT, "User organisation unit");
-
-  private static final DimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
-      buildDimItemObj(KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
-
-  private static final DimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
-      buildDimItemObj(KEY_USER_ORGUNIT_GRANDCHILDREN, "User organisation unit grand children");
-
-  public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
-
   /** Line and axis labels. */
   protected String domainAxisLabel;
 
   protected String rangeAxisLabel;
+
   protected String baseLineLabel;
+
   protected String targetLineLabel;
 
   /** Line and axis values. */
   protected Double targetLineValue;
 
   protected Double baseLineValue;
+
   protected Double rangeAxisMaxValue;
+
   protected Double rangeAxisMinValue;
 
-  /** How many axis steps. */
+  /** Number of axis steps. */
   protected Integer rangeAxisSteps; // Minimum 1
 
-  /** How many axis decimals. */
+  /** Number of axis decimals. */
   protected Integer rangeAxisDecimals;
 
-  /** The regression type. */
+  /** Regression type. */
   protected RegressionType regressionType = RegressionType.NONE;
 
-  /** The display density of the text in the table. */
+  /** Display density of the text in the table. */
   protected DisplayDensity displayDensity;
 
-  /** The font size of the text in the table. */
+  /** Font size of the text in the table. */
   protected FontSize fontSize;
 
   protected RelativePeriods relatives;
@@ -184,13 +177,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** Indicates rendering of empty rows for the table. */
   protected boolean showHierarchy;
 
-  /** Include user org. unit. */
+  /** Include user org unit. */
   protected boolean userOrganisationUnit;
 
-  /** Include user org. unit children. */
+  /** Include user org unit children. */
   protected boolean userOrganisationUnitChildren;
 
-  /** Include user org. unit grand children. */
+  /** Include user org unit grand children. */
   protected boolean userOrganisationUnitGrandChildren;
 
   /** Include completed events only. */
@@ -335,19 +328,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
       I18nFormat format);
-
-  /**
-   * Returns the dimensional item object for the given dimension and name.
-   *
-   * @param uid the dimension uid.
-   * @param name the dimension name.
-   * @return the DimensionalObject.
-   */
-  private static DimensionalItemObject buildDimItemObj(String uid, String name) {
-    BaseDimensionalItemObject itemObj = new BaseDimensionalItemObject(uid);
-    itemObj.setName(name);
-    return itemObj;
-  }
 
   @Override
   public abstract void populateAnalyticalProperties();
@@ -642,7 +622,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
     } else {
-      throw new IllegalArgumentException(format(NOT_A_VALID_DIMENSION, dimension));
+      throw new IllegalArgumentException(format("Not a valid dimension: %s", dimension));
     }
   }
 
@@ -754,15 +734,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         ouList.addAll(transientOrganisationUnits);
 
         if (userOrganisationUnit) {
-          ouList.add(USER_OU_ITEM_OBJ);
+          ouList.add(getUserOrgUnit());
         }
 
         if (userOrganisationUnitChildren) {
-          ouList.add(USER_OU_CHILDREN_ITEM_OBJ);
+          ouList.add(getUserOrgUnitChildren());
         }
 
         if (userOrganisationUnitGrandChildren) {
-          ouList.add(USER_OU_GRANDCHILDREN_ITEM_OBJ);
+          ouList.add(getUserOrgUnitGrandChildren());
         }
 
         if (organisationUnitLevels != null && !organisationUnitLevels.isEmpty()) {
@@ -1002,6 +982,23 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
                 dim.getUid(), new MetadataItem(dim.getDisplayName(), dim.getUid(), dim.getCode())));
 
     return metaData;
+  }
+
+  private DimensionalItemObject getUserOrgUnit() {
+    return new BaseDimensionalItemObject(
+        KEY_USER_ORGUNIT, KEY_USER_ORGUNIT, "User organisation unit");
+  }
+
+  private DimensionalItemObject getUserOrgUnitChildren() {
+    return new BaseDimensionalItemObject(
+        KEY_USER_ORGUNIT_CHILDREN, KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
+  }
+
+  private DimensionalItemObject getUserOrgUnitGrandChildren() {
+    return new BaseDimensionalItemObject(
+        KEY_USER_ORGUNIT_GRANDCHILDREN,
+        KEY_USER_ORGUNIT_GRANDCHILDREN,
+        "User organisation unit grand children");
   }
 
   /** Clear or set to false all persistent dimensional (not property) properties for this object. */
