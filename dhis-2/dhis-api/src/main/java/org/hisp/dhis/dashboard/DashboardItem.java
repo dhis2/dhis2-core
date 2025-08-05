@@ -507,15 +507,6 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   }
 
   @Override
-  @Sortable(whenPersisted = false)
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "name", key = "NAME")
-  public String getDisplayName() {
-    return translations.getTranslation("NAME", getName());
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public Date getCreated() {
@@ -588,22 +579,46 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   // Not supported properties
   // -------------------------------------------------------------------------
 
+  /**
+   * @deprecated DashboardItem does not support favorites
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return empty set
+   */
   @Override
+  @Deprecated(since = "44", forRemoval = true)
+  @JsonIgnore
   public Set<String> getFavorites() {
     return Set.of();
   }
 
+  /**
+   * @deprecated DashboardItem does not support favorites
+   *     <p>Currently it is only used for web api backward compatibility
+   */
   @Override
   @Deprecated
+  @JsonIgnore
   public boolean isFavorite() {
     return false;
   }
 
+  /**
+   * @deprecated DashboardItem does not support favorites
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return false
+   */
+  @Deprecated(since = "44", forRemoval = true)
   @Override
   public boolean setAsFavorite(UserDetails user) {
     return false;
   }
 
+  /**
+   * @deprecated DashboardItem does not support favorites
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return false
+   */
+  @Deprecated(since = "44", forRemoval = true)
   @Override
   public boolean removeAsFavorite(UserDetails user) {
     return false;
@@ -613,83 +628,144 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
    * @deprecated DashboardItem does not support sharing
    */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   @JsonIgnore
   public Sharing getSharing() {
     return Sharing.empty();
   }
 
+  /**
+   * @deprecated DashboardItem does not support sharing
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setSharing(Sharing sharing) {}
 
+  /**
+   * @deprecated DashboardItem does not support sharing
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setOwner(String owner) {}
 
   /**
    * @deprecated DashboardItem does not support attributes
    */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   @JsonIgnore
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
+  /**
+   * @deprecated DashboardItem does not support attributes
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setAttributeValues(AttributeValues attributeValues) {}
 
+  /**
+   * @deprecated DashboardItem does not support attributes
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void addAttributeValue(String attributeId, String value) {}
 
+  /**
+   * @deprecated DashboardItem does not support attributes
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void removeAttributeValue(String attributeId) {}
 
+  /**
+   * @deprecated DashboardItem does not support href
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return null
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setHref(String link) {}
 
   /**
    * @deprecated DashboardItem does not support attributes
    */
   @JsonIgnore
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public String getAttributeValue(String attributeUid) {
     return null;
   }
 
+  /**
+   * @deprecated DashboardItem does not support name
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return null
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
+  @JsonIgnore
   public String getName() {
     return null;
   }
 
+  /**
+   * @deprecated DashboardItem does not support name
+   *     <p>Currently it is only used for web api backward compatibility
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setName(String name) {}
 
+  /**
+   * @deprecated DashboardItem does not support createdBy/user
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return null
+   */
   @Override
   @JsonIgnore
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public User getCreatedBy() {
     return null;
   }
 
+  /**
+   * @deprecated DashboardItem does not support createdBy/user
+   *     <p>Currently it is only used for web api backward compatibility
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
+  @JsonIgnore
   public User getUser() {
     return null;
   }
 
+  /**
+   * @deprecated DashboardItem does not support createdBy/user
+   *     <p>Currently it is only used for web api backward compatibility
+   * @param createdBy
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setCreatedBy(User createdBy) {}
 
+  /**
+   * @deprecated DashboardItem does not support createdBy/user
+   *     <p>Currently it is only used for web api backward compatibility
+   */
   @Override
-  @Deprecated
+  @Deprecated(since = "44", forRemoval = true)
   public void setUser(User user) {}
+
+  /**
+   * @deprecated DashboardItem does not support displayName
+   *     <p>Currently it is only used for web api backward compatibility
+   * @return empty string
+   */
+  @Override
+  @Deprecated(since = "44", forRemoval = true)
+  @JsonIgnore
+  public String getDisplayName() {
+    return "";
+  }
 }
