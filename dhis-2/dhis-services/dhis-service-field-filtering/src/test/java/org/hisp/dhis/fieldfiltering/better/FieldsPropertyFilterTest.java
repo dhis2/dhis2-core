@@ -29,10 +29,12 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.stream.Stream;
+import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter.TransformationResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -45,8 +47,12 @@ class FieldsPropertyFilterTest {
   @ParameterizedTest
   @MethodSource("ifEmptyTransformation")
   void testIfEmptyTransformation(Object value, boolean expected, String description) {
-    boolean result = filter.checkIfEmpty(value);
-    assertEquals(expected, result, description);
+    TransformationResult result = filter.applyIsEmpty("items", value);
+
+    assertAll(
+        description,
+        () -> assertEquals(expected, result.value()),
+        () -> assertEquals("items", result.field()));
   }
 
   static Stream<Arguments> ifEmptyTransformation() {
@@ -61,48 +67,15 @@ class FieldsPropertyFilterTest {
         Arguments.of(42, false, "Non-collection object should not be empty"));
   }
 
-  // TODO(ivo) fail validation in FieldsParser as this should be invalid
-  @Test
-  void testApplyUnknownTransformation() {
-    Fields.Transformation transformation = new Fields.Transformation("unknown");
-    Object originalValue = "test";
-    FieldsPropertyFilter.TransformationResult result =
-        filter.applyTransformation(transformation, originalValue, "field");
-
-    assertEquals(originalValue, result.value());
-    assertEquals("field", result.fieldName());
-  }
-
   @Test
   void testApplyRenameTransformation() {
     Fields.Transformation transformation = new Fields.Transformation("rename", "newFieldName");
     Object originalValue = "test";
     FieldsPropertyFilter.TransformationResult result =
-        filter.applyTransformation(transformation, originalValue, "oldFieldName");
+        filter.applyTransformation("oldFieldName", originalValue, transformation);
 
     assertEquals(originalValue, result.value());
-    assertEquals("newFieldName", result.fieldName());
-  }
-
-  // TODO(ivo) fail validation in FieldsParser as this should be invalid
-  @Test
-  void testApplyRenameTransformationWithoutArgument() {
-    Fields.Transformation transformation = new Fields.Transformation("rename");
-    Object originalValue = "test";
-    FieldsPropertyFilter.TransformationResult result =
-        filter.applyTransformation(transformation, originalValue, "fieldName");
-
-    assertEquals(originalValue, result.value());
-    assertEquals("fieldName", result.fieldName());
-  }
-
-  @Test
-  void testApplyIsEmptyWithListTransformation() {
-    FieldsPropertyFilter.TransformationResult result =
-        filter.applyIsEmpty(List.of("item"), "fieldName");
-
-    assertEquals(false, result.value());
-    assertEquals("fieldName", result.fieldName());
+    assertEquals("newFieldName", result.field());
   }
 
   @Test
@@ -116,21 +89,38 @@ class FieldsPropertyFilterTest {
     Object currentValue = List.of("item");
     String currentFieldName = "items";
 
-    // Simulate the transformation pipeline manually
     for (Fields.Transformation transformation : transformations) {
       FieldsPropertyFilter.TransformationResult result =
-          filter.applyTransformation(transformation, currentValue, currentFieldName);
+          filter.applyTransformation(currentFieldName, currentValue, transformation);
       currentValue = result.value();
-      currentFieldName = result.fieldName();
+      currentFieldName = result.field();
     }
 
-    // Verify that the pipeline continues after unknown transformation:
-    // 1. isEmpty: List.of("item") -> false
-    // 2. nonExistentTransform: false -> false (unchanged)
-    // 3. rename: "items" -> "hasItems"
     assertEquals(false, currentValue);
     assertEquals("hasItems", currentFieldName);
   }
 
-  public record TestObject(String id, List<String> items) {}
+  // TODO(ivo) fail validation in FieldsParser as this should be invalid
+  @Test
+  void testApplyUnknownTransformation() {
+    Fields.Transformation transformation = new Fields.Transformation("unknown");
+    Object originalValue = "test";
+    FieldsPropertyFilter.TransformationResult result =
+        filter.applyTransformation("field", originalValue, transformation);
+
+    assertEquals(originalValue, result.value());
+    assertEquals("field", result.field());
+  }
+
+  // TODO(ivo) fail validation in FieldsParser as this should be invalid
+  //  @Test
+  //  void testApplyRenameTransformationWithoutArgument() {
+  //    Fields.Transformation transformation = new Fields.Transformation("rename");
+  //    Object originalValue = "test";
+  //    FieldsPropertyFilter.TransformationResult result =
+  //        filter.applyTransformation("fieldName", originalValue, transformation);
+  //
+  //    assertEquals(originalValue, result.value());
+  //    assertEquals("fieldName", result.field());
+  //  }
 }

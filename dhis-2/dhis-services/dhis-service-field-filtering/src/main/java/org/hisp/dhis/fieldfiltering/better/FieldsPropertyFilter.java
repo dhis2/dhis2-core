@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 
 public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
 
@@ -85,22 +86,21 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       PropertyWriter writer,
       List<Fields.Transformation> transformations)
       throws Exception {
-    Object currentValue = extractFieldValue(pojo, writer);
-    String currentFieldName = writer.getName();
+    String field = writer.getName();
+    Object value = extractFieldValue(pojo, writer);
 
     for (Fields.Transformation transformation : transformations) {
       try {
-        TransformationResult result =
-            applyTransformation(transformation, currentValue, currentFieldName);
-        currentValue = result.value;
-        currentFieldName = result.fieldName;
+        TransformationResult result = applyTransformation(field, value, transformation);
+        value = result.value;
+        field = result.field;
       } catch (Exception e) {
         // TODO(ivo) continue with last valid value or throw?
         break;
       }
     }
 
-    provider.defaultSerializeField(currentFieldName, currentValue, jgen);
+    provider.defaultSerializeField(field, value, jgen);
   }
 
   // TODO(ivo) error handling
@@ -116,26 +116,17 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
   }
 
   TransformationResult applyTransformation(
-      Fields.Transformation transformation, Object value, String fieldName) {
+      String field, Object value, Transformation transformation) {
     return switch (transformation.getName()) {
-      case "isEmpty" -> applyIsEmpty(value, fieldName);
-      case "rename" -> applyRename(transformation, value, fieldName);
-      default -> new TransformationResult(value, fieldName);
+      case "isEmpty" -> applyIsEmpty(field, value);
+      case "rename" -> applyRename(field, value, transformation.getArguments());
+      default -> new TransformationResult(field, value);
     };
   }
 
-  TransformationResult applyIsEmpty(Object value, String fieldName) {
+  TransformationResult applyIsEmpty(String field, Object value) {
     boolean isEmpty = checkIfEmpty(value);
-    return new TransformationResult(isEmpty, fieldName);
-  }
-
-  TransformationResult applyRename(
-      Fields.Transformation transformation, Object value, String fieldName) {
-    if (transformation.getArguments().length > 0) {
-      String newName = transformation.getArguments()[0];
-      return new TransformationResult(value, newName);
-    }
-    return new TransformationResult(value, fieldName);
+    return new TransformationResult(field, isEmpty);
   }
 
   boolean checkIfEmpty(Object value) {
@@ -146,5 +137,12 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     return false;
   }
 
-  record TransformationResult(Object value, String fieldName) {}
+  // TODO(ivo) is it useful to define a Transformation type? (String field, Object value, String[]
+  // arguments) -> TransformationResult
+  // TODO(ivo) we should have validated that there is one argument in the parser
+  TransformationResult applyRename(String field, Object value, String[] arguments) {
+    return new TransformationResult(arguments[0], value);
+  }
+
+  record TransformationResult(String field, Object value) {}
 }
