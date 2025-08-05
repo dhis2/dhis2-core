@@ -73,13 +73,20 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"2023Sep\":{\"name\":\"September 2023 - August 2024\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"2023Sep\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"2023Sep\":{\"name\":\"September 2023 - August 2024\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"2023Sep\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
     validateHeader(
-        response, 0, "a3kGcGDCuk6", "MCH Apgar Score", "NUMBER", "java.lang.Double", false, true);
+        response,
+        0,
+        "A03MvHHogjR.a3kGcGDCuk6",
+        "MCH Apgar Score",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 3, "value", "Value", "NUMBER", "java.lang.Double", false, false);
