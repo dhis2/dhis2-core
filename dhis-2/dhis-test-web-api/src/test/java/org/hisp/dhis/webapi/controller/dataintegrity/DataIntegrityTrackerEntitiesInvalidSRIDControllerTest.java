@@ -59,6 +59,11 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
         true);
   }
 
+  @Test
+  void testInvalidSRIDWithNoTrackedEntities() {
+    assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid", false);
+  }
+
   private void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('O');
     manager.save(organisationUnit);
