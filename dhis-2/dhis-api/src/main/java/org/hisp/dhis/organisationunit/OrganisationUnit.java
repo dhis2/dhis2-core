@@ -569,7 +569,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @return true if this org unit is a descendant of the ancestors.
    */
   public boolean isDescendant(Collection<OrganisationUnit> ancestors) {
-    // TODO: MAS optimize to use Set of UIDs from UserDetails as input instead
     if (isEmpty(ancestors)) {
       return false;
     }
@@ -577,6 +576,22 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
+        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
+  }
+
+  /**
+   * Indicates whether this org unit is a descendant of any of the given ancestor org units.
+   *
+   * @param ancestors the collection of ancestor org units uids.
+   * @return true if this org unit is a descendant of the ancestors.
+   */
+  public boolean isDescendant(Set<String> ancestors) {
+    if (isEmpty(ancestors)) {
+      return false;
+    }
+
+    return ancestors.stream()
+        .filter(Objects::nonNull)
         .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
   }
 

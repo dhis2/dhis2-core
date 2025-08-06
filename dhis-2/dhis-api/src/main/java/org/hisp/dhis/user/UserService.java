@@ -428,9 +428,9 @@ public interface UserService {
    * @param currentUser
    * @return
    */
-  List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser);
+  List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser);
 
-  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, User currentUser);
+  List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole user, UserDetails currentUser);
 
   /**
    * @param inDays number of days to include

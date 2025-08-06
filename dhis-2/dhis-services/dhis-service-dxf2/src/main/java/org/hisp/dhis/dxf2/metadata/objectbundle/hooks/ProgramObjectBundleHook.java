@@ -171,12 +171,12 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
               TrackedEntityAttribute attribute =
                   bundle.getPreheat().get(identifier, programAttr.getAttribute());
 
-              if (attribute == null || !aclService.canRead(bundle.getUser(), attribute)) {
+              if (attribute == null || !aclService.canRead(bundle.getUserDetails(), attribute)) {
                 addReports.accept(
                     new ErrorReport(
                         TrackedEntityAttribute.class,
                         ErrorCode.E3012,
-                        identifier.getIdentifiersWithName(bundle.getUser()),
+                        identifier.getIdentifiersWithName(bundle.getUserDetails()),
                         identifier.getIdentifiersWithName(programAttr.getAttribute())));
               }
             });
