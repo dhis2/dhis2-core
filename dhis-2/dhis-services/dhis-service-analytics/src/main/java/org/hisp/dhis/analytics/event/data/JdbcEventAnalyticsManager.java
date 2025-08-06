@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
@@ -226,7 +227,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns =
         Lists.newArrayList(
-            "count(event) as count", "ST_Extent(" + sqlClusterFields + ") as extent");
+            format("count(event) as count", "ST_Extent(%s) as extent", sqlClusterFields));
 
     columns.add(
         "case when count(event) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
