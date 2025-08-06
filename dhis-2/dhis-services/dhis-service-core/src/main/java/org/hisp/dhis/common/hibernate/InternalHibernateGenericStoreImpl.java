@@ -227,12 +227,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     if (userDetails == null) {
       return List.of();
     }
-
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
-    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      aclService.invalidateCurrentUserGroupInfoCache();
-    }
-
     return getDataSharingPredicates(
         builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_DATA);
   }
@@ -245,10 +240,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     }
 
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
-    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      aclService.invalidateCurrentUserGroupInfoCache();
-    }
-
     return getSharingPredicates(
         builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_METADATA);
   }
