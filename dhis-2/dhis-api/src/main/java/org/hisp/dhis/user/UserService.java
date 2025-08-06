@@ -265,7 +265,7 @@ public interface UserService {
    */
   boolean canAddOrUpdateUser(Collection<String> userGroups);
 
-  boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser);
+  boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser);
 
   /**
    * Retrieves the User associated with the User with the given id token.
@@ -497,6 +497,9 @@ public interface UserService {
    */
   UserDetails createUserDetails(String userUid) throws NotFoundException;
 
+  @CheckForNull
+  UserDetails createUserDetailsSafe(@Nonnull String userUid);
+
   /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
    * and credentials expired status.
@@ -516,7 +519,7 @@ public interface UserService {
    * @return Boolean
    */
   boolean canCurrentUserCanModify(
-      User currentUser, User userToModify, Consumer<ErrorReport> errors);
+      UserDetails currentUser, User userToModify, Consumer<ErrorReport> errors);
 
   /**
    * Register a failed 2FA disable attempt for the given user account.
