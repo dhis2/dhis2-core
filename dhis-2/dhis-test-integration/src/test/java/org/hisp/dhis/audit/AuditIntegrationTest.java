@@ -30,7 +30,6 @@
 package org.hisp.dhis.audit;
 
 import static org.awaitility.Awaitility.await;
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,12 +54,10 @@ import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -113,7 +110,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private PeriodService periodService;
 
@@ -329,13 +326,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
-          transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

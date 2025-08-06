@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -40,7 +39,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -60,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueAuditService dataValueAuditService;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -382,14 +380,8 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
-          transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 
   private void deleteDataValue(DataValue dv) {

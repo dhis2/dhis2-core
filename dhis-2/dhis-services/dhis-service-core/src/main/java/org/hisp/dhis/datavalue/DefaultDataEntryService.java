@@ -85,7 +85,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultDataEntryService implements DataEntryService {
+public class DefaultDataEntryService implements DataEntryService, DataInjectionService {
 
   private final DataEntryStore store;
 
@@ -100,7 +100,7 @@ public class DefaultDataEntryService implements DataEntryService {
   @Transactional(readOnly = true)
   public DataEntryGroup decodeGroupPartialUpdate(DataEntryGroup.Input group)
       throws BadRequestException {
-    // TOOD
+    // FIXME
     return decodeGroup(group);
   }
 
@@ -255,6 +255,13 @@ public class DefaultDataEntryService implements DataEntryService {
   }
 
   @Override
+  public int upsertValues(DataValue... values) {
+    if (values == null || values.length == 0) return 0;
+
+    return store.upsertValues(DataValue.toDataEntryValues(List.of(values)));
+  }
+
+  @Override
   @Transactional
   public void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
@@ -272,15 +279,12 @@ public class DefaultDataEntryService implements DataEntryService {
     List<DataEntryValue> values = group.values();
     if (values.isEmpty()) return new DataEntrySummary(0, 0, 0, List.of());
 
-    DataEntryGroup valid = group;
     List<DataEntryError> errors = new ArrayList<>();
-    if (!options.disconnected()) {
-      progress.startingStage("Validating group " + group.describe());
-      valid =
-          progress.runStageAndRethrow(
-              ConflictException.class,
-              () -> validate(options.force(), group.dataSet(), values, errors));
-    }
+    progress.startingStage("Validating group " + group.describe());
+    DataEntryGroup valid =
+        progress.runStageAndRethrow(
+            ConflictException.class,
+            () -> validate(options.force(), group.dataSet(), values, errors));
     int entered = values.size();
     int attempted = valid.values().size();
     if (options.atomic() && entered > attempted)
@@ -289,9 +293,9 @@ public class DefaultDataEntryService implements DataEntryService {
     String verb = "Upserting";
     if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
     progress.startingStage("%s group %s".formatted(verb, valid.describe()));
-    List<DataEntryValue> upserted = valid.values();
     int succeeded =
-        progress.runStage(0, () -> options.dryRun() ? attempted : store.upsertValues(upserted));
+        progress.runStage(
+            0, () -> options.dryRun() ? attempted : store.upsertValues(valid.values()));
 
     return new DataEntrySummary(entered, attempted, succeeded, errors);
   }

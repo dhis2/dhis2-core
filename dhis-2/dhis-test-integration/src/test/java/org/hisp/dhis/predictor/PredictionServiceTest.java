@@ -33,9 +33,7 @@ import static org.hisp.dhis.common.OrganisationUnitDescendants.SELECTED;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -57,16 +55,13 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -112,7 +107,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   private OrganisationUnitLevel orgUnitLevel1;
 
@@ -495,15 +490,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void flushDataValues() {
-    List<DataEntryValue> values = DataValue.toDataEntryValues(pendingValues);
+    dataInjectionService.upsertValues(pendingValues.toArray(DataValue[]::new));
     pendingValues.clear();
-
-    try {
-      DataEntryGroup.Options options = new DataEntryGroup.Options().allowDisconnected();
-      dataEntryService.upsertGroup(options, new DataEntryGroup(null, values), transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to insert test scenario setup data values", ex);
-    }
   }
 
   private void testPredictMissingValuesFunction(String function) {

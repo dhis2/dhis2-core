@@ -42,7 +42,6 @@ import static org.hisp.dhis.expression.Operator.less_than;
 import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -71,14 +70,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -120,7 +117,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private DataValueStore dataValueStore;
 
@@ -609,17 +606,6 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
       CategoryOptionCombo oc1,
       CategoryOptionCombo oc2) {
     addDataValues(createDataValue(e, p, s, oc1, oc2, value));
-  }
-
-  private void addDataValues(DataValue... values) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
-          transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
   }
 
   // -------------------------------------------------------------------------
@@ -1725,5 +1711,10 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   private ValidationAnalysisParams createParamsMonthlySourceAPeriodA() {
     return validationService.newParamsBuilder(dataSetMonthly, sourceA, periodA).build();
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

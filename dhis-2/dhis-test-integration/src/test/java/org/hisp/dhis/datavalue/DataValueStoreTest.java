@@ -44,12 +44,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.util.DateUtils;
@@ -65,7 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueStoreTest extends PostgresIntegrationTestBase {
   private @PersistenceContext EntityManager manager;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
   @Autowired private DataValueStore dataValueStore;
 
   @Test
@@ -380,15 +378,9 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     entityManager.clear();
   }
 
-  private void addDataValues(DataValue... dvs) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(dvs))),
-          RecordingJobProgress.transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 
   private void addDataValue(DataValue dv) {

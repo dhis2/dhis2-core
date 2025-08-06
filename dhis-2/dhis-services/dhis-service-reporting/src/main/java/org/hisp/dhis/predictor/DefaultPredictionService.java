@@ -68,7 +68,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
@@ -76,7 +76,6 @@ import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -106,7 +105,7 @@ public class DefaultPredictionService implements PredictionService {
   private final ExpressionService expressionService;
 
   private final DataValueService dataValueService;
-  private final DataEntryService dataEntryService;
+  private final DataInjectionService dataInjectionService;
 
   private final CategoryService categoryService;
 
@@ -284,7 +283,8 @@ public class DefaultPredictionService implements PredictionService {
             new PredictionDataValueFetcher(dataValueService, categoryService, currentUserOrgUnits),
             new PredictionAnalyticsDataFetcher(analyticsService, categoryService));
 
-    PredictionWriter predictionWriter = new PredictionWriter(dataEntryService, predictionSummary);
+    PredictionWriter predictionWriter =
+        new PredictionWriter(dataInjectionService, predictionSummary);
 
     predictionSummary.incrementPredictors();
 
@@ -357,11 +357,7 @@ public class DefaultPredictionService implements PredictionService {
         predictionWriter.addPredictions(predictions, data.getOldPredictions());
       }
     }
-    try {
-      predictionWriter.commit();
-    } catch (ConflictException ex) {
-      log.error("Failed to write prediction data values", ex);
-    }
+    predictionWriter.commit();
   }
 
   // -------------------------------------------------------------------------

@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,7 +42,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -53,12 +51,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -78,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueSetService dataValueSetService;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -301,13 +297,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
-          transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

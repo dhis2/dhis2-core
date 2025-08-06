@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 import java.util.ArrayList;
@@ -37,11 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.feedback.ConflictException;
 
 /**
  * Writes predictions to the database.
@@ -53,10 +49,10 @@ import org.hisp.dhis.feedback.ConflictException;
 @RequiredArgsConstructor
 public class PredictionWriter {
 
-  private final DataEntryService dataEntryService;
+  private final DataInjectionService dataInjectionService;
   private final PredictionSummary summary;
 
-  private final List<DataEntryValue> pendingUpsertValues = new ArrayList<>();
+  private final List<DataValue> pendingUpsertValues = new ArrayList<>();
 
   /**
    * Writes a List of predicted data values.
@@ -82,12 +78,9 @@ public class PredictionWriter {
     addPredictionDelete(oldPredictionMap);
   }
 
-  public void commit() throws ConflictException {
-    DataEntryGroup.Options options =
-        new DataEntryGroup.Options(false, false, true).allowDisconnected();
+  public void commit() {
     try {
-      dataEntryService.upsertGroup(
-          options, new DataEntryGroup(null, pendingUpsertValues), transitory());
+      dataInjectionService.upsertValues(pendingUpsertValues.toArray(DataValue[]::new));
     } finally {
       pendingUpsertValues.clear();
     }
@@ -140,7 +133,7 @@ public class PredictionWriter {
    */
   private void addPredictionInsert(DataValue prediction) {
     summary.incrementInserted();
-    pendingUpsertValues.add(toDataEntryValue(prediction));
+    pendingUpsertValues.add(prediction);
   }
 
   /**
@@ -150,7 +143,7 @@ public class PredictionWriter {
    */
   private void addPredictionUpdate(DataValue prediction) {
     summary.incrementUpdated();
-    pendingUpsertValues.add(toDataEntryValue(prediction));
+    pendingUpsertValues.add(prediction);
   }
 
   /** (Soft) deletes any remaining old predictions from the database. */
@@ -160,7 +153,7 @@ public class PredictionWriter {
         summary.incrementDeleted();
 
         remainingOldPrediction.setDeleted(true);
-        pendingUpsertValues.add(toDataEntryValue(remainingOldPrediction));
+        pendingUpsertValues.add(remainingOldPrediction);
       }
     }
   }
@@ -177,9 +170,5 @@ public class PredictionWriter {
         + dv.getDataElement().getUid()
         + dv.getCategoryOptionCombo().getUid()
         + dv.getAttributeOptionCombo().getUid();
-  }
-
-  private DataEntryValue toDataEntryValue(DataValue dv) {
-    return dv.toDataEntryValue(pendingUpsertValues.size());
   }
 }

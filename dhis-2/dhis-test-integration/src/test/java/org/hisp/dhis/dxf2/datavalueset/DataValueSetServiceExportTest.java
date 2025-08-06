@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,7 +41,6 @@ import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -58,11 +56,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -94,7 +90,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueSetService dataValueSetService;
 
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private AttributeService attributeService;
 
@@ -605,14 +601,8 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(values))),
-          transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 
   private void deleteDataValue(DataValue dv) {

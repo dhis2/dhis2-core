@@ -67,8 +67,7 @@ import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -101,7 +100,6 @@ import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -140,7 +138,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
   @Autowired private DataValueStore dataValueStore;
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
@@ -2253,14 +2251,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
   }
 
-  private void addDataValues(DataValue... dvs) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(dvs))),
-          RecordingJobProgress.transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

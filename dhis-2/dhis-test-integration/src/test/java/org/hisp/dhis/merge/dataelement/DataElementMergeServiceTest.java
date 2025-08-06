@@ -65,8 +65,7 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -115,7 +114,6 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
-import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -179,7 +177,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventStore eventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
-  @Autowired private DataEntryService dataEntryService;
+  @Autowired private DataInjectionService dataInjectionService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -2763,14 +2761,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
         .toList();
   }
 
-  private void addDataValues(DataValue... dvs) {
-    try {
-      dataEntryService.upsertGroup(
-          new DataEntryGroup.Options().allowDisconnected(),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(List.of(dvs))),
-          RecordingJobProgress.transitory());
-    } catch (ConflictException ex) {
-      fail("Failed to upsert test data", ex);
-    }
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }
