@@ -2014,11 +2014,11 @@
                   </exec>
                   <!-- @formatter:off -->
                   <echo file="${project.build.outputDirectory}/build.properties">
-build.version=${project.version}
+                    build.version=${project.version}
 build.time=${now}
 build.revision=${revision}
 jasperreports.version=${jasperreports.version}
-                  <!-- @formatter:on -->
+                    <!-- @formatter:on -->
                   </echo>
                 </target>
               </configuration>
@@ -2059,12 +2059,9 @@ jasperreports.version=${jasperreports.version}
               <licenseHeader>
                 <file>${rootDir}/license-header</file>
               </licenseHeader>
+              <toggleOffOn/>
             </java>
             <pom>
-              <toggleOffOn>
-                <off>@formatter:off</off>
-                <on>@formatter:on</on>
-              </toggleOffOn>
               <includes>
                 <include>pom.xml</include>
               </includes>
