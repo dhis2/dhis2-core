@@ -174,6 +174,17 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "notes::size",
         "event::size",
         "relationships[bidirectional::size]",
+        "dataValues::pluck",
+        "dataValues::pluck(value)",
+        "event::pluck",
+        // tracker does not have the field id which the key defaults to so this leads to {}
+        "dataValues~keyBy[dataElement,value]",
+        "dataValues~keyBy(dataElement)[dataElement,value]",
+        "dataValues~keyBy(dataElement)[!value,:all]",
+        // filtering is done before the transformation so this leads to {} as the key is filtered
+        // out
+        "dataValues~keyBy(dataElement)[!dataElement]",
+        "event::keyBy",
       })
   void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
       throws JsonProcessingException {

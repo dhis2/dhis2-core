@@ -44,6 +44,8 @@ import org.hisp.dhis.fieldfiltering.FieldTransformer;
 import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.KeyByFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.springframework.stereotype.Component;
@@ -126,14 +128,22 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
   }
 
-  /**
-   * Creates a FieldTransformer instance from a Fields.Transformation. Uses existing transformer
-   * implementations for compatibility.
-   */
   private FieldTransformer createFieldTransformer(Transformation transformation) {
     return switch (transformation.getName()) {
       case "isEmpty" -> IsEmptyFieldTransformer.INSTANCE;
       case "isNotEmpty" -> IsNotEmptyFieldTransformer.INSTANCE;
+      case "keyBy" -> {
+        List<String> parameters = List.of(transformation.getArguments());
+        FieldPathTransformer fieldPathTransformer =
+            new FieldPathTransformer(transformation.getName(), parameters);
+        yield new KeyByFieldTransformer(fieldPathTransformer);
+      }
+      case "pluck" -> {
+        List<String> parameters = List.of(transformation.getArguments());
+        FieldPathTransformer fieldPathTransformer =
+            new FieldPathTransformer(transformation.getName(), parameters);
+        yield new PluckFieldTransformer(fieldPathTransformer);
+      }
       case "rename" -> {
         List<String> parameters = List.of(transformation.getArguments());
         FieldPathTransformer fieldPathTransformer =
