@@ -33,10 +33,13 @@ import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,5 +79,116 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
                 Body("<metadata></metadata>"),
                 ContentType("application/xml")));
     assertStartsWith("Initiated METADATA_IMPORT", msg.getMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "Importing an existing CategoryCombo, which has no data values, with an additional Category succeeds")
+  void importingCategoryComboNewCategoryTest() {
+    // Given an existing CategoryCombo exists with 2 Categories
+    JsonImportSummary initialImport =
+        POST("/metadata", Body(getCatComboWithCategories()))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals("OK", initialImport.getStatus());
+    assertEquals(3, initialImport.getStats().getCreated());
+
+    // When importing the existing CategoryCombo with an additional Category
+    // Then the import should succeed with the expected message & stats
+    JsonImportSummary updateImport =
+        POST("/metadata", Body(getCatComboWithAdditionalCategory()))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals("OK", updateImport.getStatus());
+    assertEquals(3, updateImport.getStats().getUpdated());
+    assertEquals(1, updateImport.getStats().getCreated());
+  }
+
+  private String getCatComboWithCategories() {
+    return """
+      {
+          "categories": [
+              {
+                  "id": "CategoUid01",
+                  "name": "cat 1",
+                  "shortName": "cat 1",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categoryOptions": []
+              },
+              {
+                  "id": "CategoUid02",
+                  "name": "cat 2",
+                  "shortName": "cat 2",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categoryOptions": []
+              }
+          ],
+          "categoryCombos": [
+              {
+                  "id": "CatComUid01",
+                  "name": "cat combo 1",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categories": [
+                      {
+                          "id": "CategoUid01"
+                      },
+                      {
+                          "id": "CategoUid02"
+                      }
+                  ]
+              }
+          ]
+      }
+      """;
+  }
+
+  private String getCatComboWithAdditionalCategory() {
+    return """
+      {
+          "categories": [
+              {
+                  "id": "CategoUid01",
+                  "name": "cat 1",
+                  "shortName": "cat 1",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categoryOptions": []
+              },
+              {
+                  "id": "CategoUid02",
+                  "name": "cat 2",
+                  "shortName": "cat 2",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categoryOptions": []
+              },
+               {
+                  "id": "CategoUid03",
+                  "name": "cat 3",
+                  "shortName": "cat 3",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categoryOptions": []
+              }
+          ],
+          "categoryCombos": [
+              {
+                  "id": "CatComUid01",
+                  "name": "cat combo 1",
+                  "dataDimensionType": "DISAGGREGATION",
+                  "categories": [
+                      {
+                          "id": "CategoUid01"
+                      },
+                      {
+                          "id": "CategoUid02"
+                      },
+                       {
+                          "id": "CategoUid03"
+                      }
+                  ]
+              }
+          ]
+      }
+      """;
   }
 }
