@@ -47,7 +47,7 @@ import org.springframework.context.annotation.Configuration;
 public class FieldsConfig {
 
   @Bean
-  public ObjectMapper jsonFilterMapper() {
+  public ObjectMapper jsonFilterMapper(FieldsPropertyFilter fieldsPropertyFilter) {
     // reuse the same configuration as the primary ObjectMapper bean adding field filter on top of
     // it
     ObjectMapper mapper = configureMapper(new ObjectMapper());
@@ -62,8 +62,7 @@ public class FieldsConfig {
     // Pre-configure the filter as its stateless. This means every ObjectWriter will already have
     // the filter setup.
     SimpleFilterProvider filterProvider =
-        new SimpleFilterProvider()
-            .addFilter(FieldsPropertyFilter.FILTER_ID, new FieldsPropertyFilter());
+        new SimpleFilterProvider().addFilter(FieldsPropertyFilter.FILTER_ID, fieldsPropertyFilter);
     mapper.setFilterProvider(filterProvider);
 
     return mapper;

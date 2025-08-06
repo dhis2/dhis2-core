@@ -30,15 +30,24 @@
 package org.hisp.dhis.fieldfiltering.better;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import java.lang.reflect.Array;
-import java.util.Collection;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
+import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
 
   public static final String FILTER_ID = "better-fields-filter";
@@ -46,9 +55,7 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
   /** Key under which fields are stored for filtering during serialization. */
   public static final String FIELDS_ATTRIBUTE = "fields";
 
-  public FieldsPropertyFilter() {
-    // Stateless filter - relies on provider attributes
-  }
+  private final ObjectMapper objectMapper;
 
   @Override
   public void serializeAsField(
@@ -79,6 +86,10 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
   }
 
+  // TODO(ivo) docs
+  // Apply transformations using existing FieldTransformer instances
+  // Use hybrid approach: JsonNode transformation for compatibility
+  // Only pay the double serialization cost when transformations are used
   private void serializeUsingTransformations(
       Object pojo,
       JsonGenerator jgen,
@@ -86,21 +97,24 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       PropertyWriter writer,
       List<Fields.Transformation> transformations)
       throws Exception {
-    String field = writer.getName();
-    Object value = extractFieldValue(pojo, writer);
+    // Create an ObjectNode with only the field and its value for the transformers to mutate
+    Object fieldValue = extractFieldValue(pojo, writer);
+    JsonNode fieldNode = objectMapper.valueToTree(fieldValue);
+    ObjectNode result = objectMapper.createObjectNode();
+    result.set(writer.getName(), fieldNode);
 
     for (Fields.Transformation transformation : transformations) {
       try {
-        TransformationResult result = applyTransformation(field, value, transformation);
-        value = result.value;
-        field = result.field;
+        FieldTransformer transformer = createFieldTransformer(transformation);
+        transformer.apply(writer.getName(), result.get(writer.getName()), result);
       } catch (Exception e) {
         // TODO(ivo) continue with last valid value or throw?
         break;
       }
     }
 
-    provider.defaultSerializeField(field, value, jgen);
+    jgen.writeFieldName(result.fieldNames().next());
+    jgen.writeTree(result.values().next());
   }
 
   // TODO(ivo) error handling
@@ -115,34 +129,20 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     return null;
   }
 
-  TransformationResult applyTransformation(
-      String field, Object value, Transformation transformation) {
+  /**
+   * Creates a FieldTransformer instance from a Fields.Transformation. Uses existing transformer
+   * implementations for compatibility.
+   */
+  private FieldTransformer createFieldTransformer(Transformation transformation) {
     return switch (transformation.getName()) {
-      case "isEmpty" -> applyIsEmpty(field, value);
-      case "rename" -> applyRename(field, value, transformation.getArguments());
-      default -> new TransformationResult(field, value);
+      case "isEmpty" -> IsEmptyFieldTransformer.INSTANCE;
+      case "rename" -> {
+        List<String> parameters = List.of(transformation.getArguments());
+        FieldPathTransformer fieldPathTransformer =
+            new FieldPathTransformer(transformation.getName(), parameters);
+        yield new RenameFieldTransformer(fieldPathTransformer);
+      }
+      default -> null;
     };
   }
-
-  TransformationResult applyIsEmpty(String field, Object value) {
-    boolean isEmpty = checkIfEmpty(value);
-    return new TransformationResult(field, isEmpty);
-  }
-
-  boolean checkIfEmpty(Object value) {
-    if (value == null) return true;
-    if (value instanceof Collection<?> collection) return collection.isEmpty();
-    if (value instanceof String string) return string.isEmpty();
-    if (value.getClass().isArray()) return Array.getLength(value) == 0;
-    return false;
-  }
-
-  // TODO(ivo) is it useful to define a Transformation type? (String field, Object value, String[]
-  // arguments) -> TransformationResult
-  // TODO(ivo) we should have validated that there is one argument in the parser
-  TransformationResult applyRename(String field, Object value, String[] arguments) {
-    return new TransformationResult(arguments[0], value);
-  }
-
-  record TransformationResult(String field, Object value) {}
 }
