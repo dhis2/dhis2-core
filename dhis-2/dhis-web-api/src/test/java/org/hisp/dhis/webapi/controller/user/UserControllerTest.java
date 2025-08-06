@@ -124,15 +124,17 @@ class UserControllerTest {
   void updateUserGroups() {
     when(userService.getUser("def2")).thenReturn(user);
 
+    UserDetails currentUserDetails = UserDetails.fromUser(currentUser);
+
     if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
-      userController.updateUserGroups("def2", parsedUser, currentUser);
+      userController.updateUserGroups("def2", parsedUser, currentUserDetails);
     }
 
     verify(userGroupService)
         .updateUserGroups(
             same(user),
             (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
-            same(currentUser));
+            same(currentUserDetails));
   }
 
   @Test
