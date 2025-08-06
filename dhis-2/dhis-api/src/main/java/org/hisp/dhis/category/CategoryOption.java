@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -74,7 +75,9 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -85,7 +88,11 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -172,10 +179,16 @@ public class CategoryOption extends BaseMetadataObject
 
   @Column(name = "sharing")
   @Type(type = "jsbObjectSharing")
-  private Sharing sharing;
+  private Sharing sharing = new Sharing();
 
-  // Transient fields for DimensionalItemObject interface
+  // -----------------------------------------------------------------------------
+  // Transient fields
+  // -----------------------------------------------------------------------------
+
   @Transient private QueryModifiers queryMods;
+
+  /** Access information for this object. Applies to current user. */
+  @Transient private transient Access access;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -462,13 +475,6 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AttributeValues getAttributeValues() {
     return attributeValues;
   }
@@ -502,9 +508,63 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @Gist(included = Include.FALSE)
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getCreatedBy() {
+    return createdBy;
+  }
+
+  @Override
+  @OpenApi.Ignore
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getUser() {
+    return createdBy;
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public Access getAccess() {
+    return access;
+  }
+
+  @Override
+  public void setAccess(Access access) {
+    this.access = access;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+
     return sharing;
   }
 
@@ -539,63 +599,7 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   // -------------------------------------------------------------------------
-  // Deprecated methods for non-mapped properties
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Deprecated
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  @Override
-  @Deprecated
-  public boolean isFavorite() {
-    return false;
-  }
-
-  @Override
-  @Deprecated
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  @Deprecated
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  @Deprecated
-  public User getUser() {
-    return getCreatedBy();
-  }
-
-  @Override
-  @Deprecated
-  public void setUser(User user) {
-    setCreatedBy(user);
-  }
-
-  @Override
-  @Deprecated
-  public void setCreatedBy(User createdBy) {
-    this.createdBy = createdBy;
-  }
-
-  @Override
-  @Deprecated
-  public Access getAccess() {
-    return null;
-  }
-
-  @Override
-  @Deprecated
-  public void setAccess(Access access) {}
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
+  // Getters
   // -------------------------------------------------------------------------
 
   @JsonProperty
@@ -768,5 +772,33 @@ public class CategoryOption extends BaseMetadataObject
     }
 
     return getSharing().getUserGroups().values();
+  }
+
+  // -------------------------------------------------------------------------
+  // Deprecated methods for non-mapped properties
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Deprecated(forRemoval = true, since = "44")
+  public Set<String> getFavorites() {
+    return Set.of();
+  }
+
+  @Override
+  @Deprecated(forRemoval = true, since = "44")
+  public boolean isFavorite() {
+    return false;
+  }
+
+  @Override
+  @Deprecated(forRemoval = true, since = "44")
+  public boolean setAsFavorite(UserDetails user) {
+    return false;
+  }
+
+  @Override
+  @Deprecated(forRemoval = true, since = "44")
+  public boolean removeAsFavorite(UserDetails user) {
+    return false;
   }
 }
