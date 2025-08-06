@@ -180,6 +180,8 @@ class CSVTest {
             null,
             Map.of("age", ">15", "gender", "f"),
             "HllvX50cXC0",
+            null,
+            null,
             "202506",
             "9",
             null,

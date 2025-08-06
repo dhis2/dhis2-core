@@ -224,7 +224,8 @@ public class DataValueSMSListener extends CommandSMSListener {
       String coc = getUid(code.getOptionId());
       String pe = period.getIsoDate();
       DataEntryValue.Input dv =
-          new DataEntryValue.Input(de, ou, coc, null, null, pe, value, null, null, null);
+          new DataEntryValue.Input(
+              de, ou, coc, null, null, null, null, pe, value, null, null, null);
       dataEntryService.upsertValue(false, ds, dataEntryService.decodeValue(ds, dv));
     }
 
@@ -261,7 +262,8 @@ public class DataValueSMSListener extends CommandSMSListener {
     String ou = getUid(orgUnit);
     String pe = period.getIsoDate();
     DataEntryValue.Input dv =
-        new DataEntryValue.Input(de, ou, null, null, null, pe, "" + val, null, null, null);
+        new DataEntryValue.Input(
+            de, ou, null, null, null, null, null, pe, "" + val, null, null, null);
     dataEntryService.upsertValue(false, ds, dataEntryService.decodeValue(ds, dv));
   }
 

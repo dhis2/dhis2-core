@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
@@ -108,7 +109,6 @@ public interface DataEntryStore {
    * alphabetically ordered concatenation to get a lookup key for the result map.
    *
    * @param dataSet the dataset for context
-   * @param categories the identifier of a category that is used to sort the options alphabetically
    * @param attributeOptions the identifier of a category option that is concatenated into a key
    * @return A map from a concatenated key to an AOC UID. The key is composed of the options of the
    *     AOC in alphabetical order of the categories
@@ -142,6 +142,15 @@ public interface DataEntryStore {
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty dataElements,
       @Nonnull Stream<String> dataElementIds);
+
+  Map<String, Map<Set<String>, String>> getCategoryComboAocIdMapping(Stream<String> categoryCombos);
+
+  DataEntryValue.Input getPartialDataValue(
+      @Nonnull UID dataElement,
+      @Nonnull UID orgUnit,
+      @CheckForNull UID categoryOptionCombo,
+      @CheckForNull UID attributeOptionCombo,
+      @Nonnull String period);
 
   /**
    * Find the datasets a data element can be used with to allow grouping data values into groups of

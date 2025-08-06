@@ -135,7 +135,8 @@ public class DataEntryIO {
         if (dvs.moveToStartElement("annotation", "dataValue")) value = dvs.getElementValue();
         // values also get group ou, pe set because of potential merge
         values.add(
-            new DataEntryValue.Input(de, ou, coc, co, null, pe, value, comment, followup, deleted));
+            new DataEntryValue.Input(
+                de, ou, coc, co, null, null, null, pe, value, comment, followup, deleted));
       }
       DataEntryGroup.Input adxGroup =
           new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, aco, values);
@@ -184,7 +185,8 @@ public class DataEntryIO {
           if ("Off".equalsIgnoreCase(value)) value = "false";
         }
         values.add(
-            new DataEntryValue.Input(de, null, coc, null, null, null, value, null, null, null));
+            new DataEntryValue.Input(
+                de, null, coc, null, null, null, null, null, value, null, null, null));
       }
     }
     return List.of(new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values));
@@ -252,6 +254,8 @@ public class DataEntryIO {
               dvs.getAttributeValue("categoryOptionCombo"),
               null,
               dvs.getAttributeValue("attributeOptionCombo"),
+              null,
+              null,
               dvs.getAttributeValue("period"),
               dvs.getAttributeValue("value"),
               dvs.getAttributeValue("comment"),
@@ -307,6 +311,8 @@ public class DataEntryIO {
                       dv.getString("categoryOptionCombo").string(),
                       null,
                       dv.getString("attributeOptionCombo").string(),
+                      null,
+                      null,
                       dv.getString("period").string(),
                       dv.getString("value").string(),
                       dv.getString("comment").string(),

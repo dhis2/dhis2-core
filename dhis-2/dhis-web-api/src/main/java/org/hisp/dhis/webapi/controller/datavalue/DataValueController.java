@@ -148,7 +148,8 @@ public class DataValueController {
     CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo(cc, cp);
     String aocId = aoc == null ? null : aoc.getUid();
     DataEntryValue.Input dv =
-        new DataEntryValue.Input(de, ou, co, null, aocId, pe, value, comment, followUp, null);
+        new DataEntryValue.Input(
+            de, ou, co, null, aocId, null, null, pe, value, comment, followUp, null);
     dataEntryService.upsertValue(force, ds, dataEntryService.decodeValue(ds, dv));
   }
 

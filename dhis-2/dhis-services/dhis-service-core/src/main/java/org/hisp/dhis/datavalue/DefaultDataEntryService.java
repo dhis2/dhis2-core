@@ -100,13 +100,17 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
   @Transactional(readOnly = true)
   public DataEntryGroup decodeGroupPartialUpdate(DataEntryGroup.Input group)
       throws BadRequestException {
-    // FIXME
-    return decodeGroup(group);
+    return decodeGroup(group, true);
   }
 
   @Override
   @Transactional(readOnly = true)
   public DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException {
+    return decodeGroup(group, false);
+  }
+
+  private DataEntryGroup decodeGroup(DataEntryGroup.Input group, boolean partial)
+      throws BadRequestException {
     UnaryOperator<String> isoOf = UnaryOperator.identity();
     UnaryOperator<String> dsOf = UnaryOperator.identity();
     UnaryOperator<String> deOf = UnaryOperator.identity();
@@ -160,9 +164,12 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
     }
     Map<String, List<String>> categoriesByDe = null;
     Map<String, Map<Set<String>, String>> cocByOptionsByDe = null;
+    Map<String, Map<Set<String>, String>> aocOptionsByCc = null;
     for (DataEntryValue.Input dv : values) {
+      // PE
       String pe = isoOf.apply(dv.period());
       if (pe == null) throw new BadRequestException(ErrorCode.E8100, i, dv);
+      // DE
       String deVal = dv.dataElement();
       if (deVal == null) deVal = deGroup;
       if (deVal == null) throw new BadRequestException(ErrorCode.E8102, i, dv);
@@ -170,6 +177,7 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
       if (deUID == null) throw new BadRequestException(ErrorCode.E8103, i, deVal);
       UID de = decodeUID(deUID);
       if (de == null) throw new BadRequestException(ErrorCode.E8104, i, deUID);
+      // OU
       String ouVal = dv.orgUnit();
       if (ouVal == null) ouVal = ouGroup;
       if (ouVal == null) throw new BadRequestException(ErrorCode.E8105, i, dv);
@@ -177,6 +185,7 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
       if (ouUID == null) throw new BadRequestException(ErrorCode.E8107, i, ouVal);
       UID ou = decodeUID(ouUID);
       if (ou == null) throw new BadRequestException(ErrorCode.E8106, i, ouUID);
+      // COC
       String cocVal = dv.categoryOptionCombo();
       Map<String, String> co = dv.categoryOptions();
       String cocUID = null;
@@ -203,17 +212,41 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
       }
       UID coc = decodeUID(cocUID);
       if (coc == null && cocUID != null) throw new BadRequestException(ErrorCode.E8109, i, cocUID);
+      // AOC
       String aocVal = dv.attributeOptionCombo();
       if (aocVal == null) aocVal = aocGroup;
+      String aCc = dv.attributeCombo();
+      if (aocVal == null && aCc != null) {
+        if (aocOptionsByCc == null)
+          aocOptionsByCc =
+              store.getCategoryComboAocIdMapping(
+                  values.stream().map(DataEntryValue.Input::attributeCombo));
+        Map<Set<String>, String> aocByOptions = aocOptionsByCc.get(aCc);
+        if (aocByOptions == null) throw new BadRequestException(ErrorCode.E8126, i, aCc);
+        aocVal = aocByOptions.get(dv.attributeOptions());
+        if (aocVal == null)
+          throw new BadRequestException(ErrorCode.E8127, i, aCc, dv.attributeOptions());
+      }
       String aocUID = aocOf.apply(aocVal);
       if (aocUID == null && aocVal != null)
         throw new BadRequestException(ErrorCode.E8110, i, aocVal);
       UID aoc = decodeUID(aocUID);
       if (aoc == null && aocUID != null) throw new BadRequestException(ErrorCode.E8111, i, aocUID);
 
-      decoded.add(
-          new DataEntryValue(
-              i++, de, ou, coc, aoc, pe, dv.value(), dv.comment(), dv.followUp(), null));
+      String value = dv.value();
+      String comment = dv.comment();
+      Boolean followUp = dv.followUp();
+      // auto-fill current value on partial update
+      if (partial && (value == null || comment == null || followUp == null)) {
+        // note: this is done 1 by 1 assuming this never sees much use in true bulk
+        DataEntryValue.Input dvOld = store.getPartialDataValue(de, ou, coc, aoc, pe);
+        if (dvOld == null) throw new BadRequestException(ErrorCode.E8128, i, dv);
+        if (value == null) value = dvOld.value();
+        if (comment == null) comment = dvOld.comment();
+        if (followUp == null) followUp = dvOld.followUp();
+      }
+      // add the value
+      decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, null));
     }
     return new DataEntryGroup(ds, decoded);
   }

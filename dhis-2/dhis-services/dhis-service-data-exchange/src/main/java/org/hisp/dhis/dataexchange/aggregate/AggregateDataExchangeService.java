@@ -267,6 +267,8 @@ public class AggregateDataExchangeService {
         v.getCategoryOptionCombo(),
         null,
         v.getAttributeOptionCombo(),
+        null,
+        null,
         v.getPeriod(),
         v.getValue(),
         v.getComment(),

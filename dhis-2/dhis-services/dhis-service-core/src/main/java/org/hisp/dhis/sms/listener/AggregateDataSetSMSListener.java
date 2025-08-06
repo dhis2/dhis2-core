@@ -201,7 +201,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     String de = value.getDataElement().getUid();
     String coc = value.getCategoryOptionCombo().getUid();
     return new DataEntryValue.Input(
-        de, null, coc, null, null, null, value.getValue(), null, null, null);
+        de, null, coc, null, null, null, null, null, value.getValue(), null, null, null);
   }
 
   private static Object toIdentifier(DataEntryValue dv) {

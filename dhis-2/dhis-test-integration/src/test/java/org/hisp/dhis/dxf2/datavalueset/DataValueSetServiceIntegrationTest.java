@@ -1314,7 +1314,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   private DataEntryValue.Input getDataValue(
       String dataElement, String period, String orgUnit, String value) {
     return new DataEntryValue.Input(
-        dataElement, orgUnit, null, null, null, period, value, "comment", false, null);
+        dataElement, orgUnit, null, null, null, null, null, period, value, "comment", false, null);
   }
 
   private void assertImportDataValues(ImportSummary summary) {

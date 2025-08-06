@@ -655,6 +655,10 @@ public enum ErrorCode {
       "Value ${index:{0}} value `${value:{1}}` is no valid option for data element ${element:{2}}`"),
   E8124("Value ${index:{0}} comment is restricted to options and does not allow ${comment:{1}}`"),
   E8125("Value ${index:{0}} comment too long (max ${max:{1}} characters)`"),
+  E8126("Value ${index:{0}} category combo not found: `${combo:{1}}`"),
+  E8127(
+      "Value ${index:{0}} category combo ${combo:{1}} has no option combo for options: `${options:{2}}`"),
+  E8128("Value ${index:{0}} for partial update does not exist: `${dv:{1}}`"),
   ;
 
   private final String message;

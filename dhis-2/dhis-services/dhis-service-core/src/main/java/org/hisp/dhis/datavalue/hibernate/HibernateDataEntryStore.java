@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
@@ -238,7 +239,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             SELECT array_agg(${co_id})
             FROM unnest(co_coc.categoryoptionids) AS options(categoryoptionid)
             INNER JOIN categoryoption co ON options.categoryoptionid = co.categoryoptionid
-          ) AS category_option_ids,
+          ),
           coc.uid
         FROM (
         -- 2. expand effective CCs used to a mapping of options IDs as array for each COC
@@ -269,26 +270,91 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             Map.entry("co_id", columnName("co", categoryOptions)));
     String sql = replace(sqlTemplate, vars);
     String[] de = dataElementIds.distinct().toArray(String[]::new);
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows =
-        getSession()
-            .createNativeQuery(sql)
-            .setParameter("ds", dataSet.getValue())
+    return listAsStringMapOfSetMap(
+        sql, q -> q.setParameter("ds", dataSet.getValue()).setParameter("de", de));
+  }
+
+  @Override
+  public Map<String, Map<Set<String>, String>> getCategoryComboAocIdMapping(
+      Stream<String> categoryCombos) {
+    String sql =
+        """
+        SELECT
+          co_coc.cc_ids,
+          (
+            -- 3. translate option ids (PK) to external ID property used
+            SELECT array_agg(co.uid)
+            FROM unnest(co_coc.categoryoptionids) AS options(categoryoptionid)
+            INNER JOIN categoryoption co ON options.categoryoptionid = co.categoryoptionid
+          ),
+          coc.uid
+        FROM (
+        -- 2. expand effective CCs used to a mapping of options IDs as array for each COC
+        -- the first column has all DEs (of the scope) that use the same CC
+          SELECT
+           array_agg(cc.cc_id) AS cc_ids,
+           ARRAY(SELECT DISTINCT unnest(array_agg(coc_co.categoryoptionid))) AS categoryoptionids,
+           coc_co.categoryoptioncomboid
+          FROM (
+            -- 1. extract CC scope (to have same SQL shape as in COC query)
+            SELECT
+              cc_raw.uid AS cc_id,
+              cc_raw.categorycomboid
+            FROM categorycombo cc_raw
+            WHERE cc_raw.uid IN (:cc)
+          ) cc
+          JOIN categorycombos_optioncombos cc_coc ON cc.categorycomboid = cc_coc.categorycomboid
+          JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          GROUP BY coc_co.categoryoptioncomboid, cc.categorycomboid
+        ) co_coc
+        JOIN categoryoptioncombo coc ON co_coc.categoryoptioncomboid = coc.categoryoptioncomboid""";
+    String[] cc = categoryCombos.filter(Objects::nonNull).distinct().toArray(String[]::new);
+    return listAsStringMapOfSetMap(sql, q -> q.setParameterList("cc", cc));
+  }
+
+  @Override
+  public DataEntryValue.Input getPartialDataValue(
+      @Nonnull UID dataElement,
+      @Nonnull UID orgUnit,
+      @CheckForNull UID categoryOptionCombo,
+      @CheckForNull UID attributeOptionCombo,
+      @Nonnull String period) {
+    String sql =
+        """
+      SELECT dv.value, dv.comment, dv.followup, dv.deleted
+      FROM datavalue dv
+      WHERE dv.dataelementid = (SELECT de.dataelementid FROM dataelement de WHERE de.uid = :de)
+        AND dv.sourceid = (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = :ou)
+        AND dv.categoryoptioncomboid = (SELECT coc.categoryoptioncomboid FROM categoryoptioncombo coc WHERE coc.uid = :coc)
+        AND dv.attributeoptioncomboid = (SELECT aoc.categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
+        AND dv.periodid = (SELECT pe.periodid FROM period pe WHERE pe.iso = :iso)
+      """;
+    String de = dataElement.getValue();
+    String ou = orgUnit.getValue();
+    UID defaultCoc =
+        categoryOptionCombo == null || attributeOptionCombo == null
+            ? getDefaultCategoryOptionComboUid()
+            : null;
+    String coc =
+        categoryOptionCombo == null ? defaultCoc.getValue() : categoryOptionCombo.getValue();
+    String aoc =
+        attributeOptionCombo == null ? defaultCoc.getValue() : attributeOptionCombo.getValue();
+    List<Object[]> rows =
+        createNativeRawQuery(sql)
             .setParameter("de", de)
-            .stream();
-    Map<String, Map<Set<String>, String>> res = new HashMap<>(de.length);
-    rows.forEach(
-        row -> {
-          Set<String> ccOptions = Set.of((String[]) row[1]);
-          String coc = (String) row[2];
-          String[] ccDataElements = (String[]) row[0];
-          for (String ccDe : ccDataElements) {
-            Map<Set<String>, String> mapping =
-                res.computeIfAbsent(ccDe, key -> new HashMap<>(de.length));
-            mapping.put(ccOptions, coc);
-          }
-        });
-    return res;
+            .setParameter("ou", ou)
+            .setParameter("coc", coc)
+            .setParameter("aoc", aoc)
+            .setParameter("pe", period)
+            .list();
+    if (rows.isEmpty()) return null; // does not exist
+    Object[] row0 = rows.get(0);
+    String value = (String) row0[0];
+    String comment = (String) row0[1];
+    Boolean followUp = (Boolean) row0[2];
+    Boolean deleted = (Boolean) row0[3];
+    return new DataEntryValue.Input(
+        de, ou, coc, null, aoc, null, null, period, value, comment, followUp, deleted);
   }
 
   @Override
@@ -912,51 +978,72 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
                 .setParameterList("ou", ou));
   }
 
-  private Map<String, DateRange> listAsMapOfDateRange(
-      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
-    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows = (Stream<Object[]>) query.stream();
-    return rows.collect(
-        toMap(row -> (String) row[0], row -> new DateRange((Date) row[1], (Date) row[2])));
-  }
-
-  @Nonnull
-  private Map<String, Set<String>> listAsStringsMapOfSet(
-      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
-    return listAsStringsMapOfArray(sql, setParameters, Set::of);
-  }
-
-  @Nonnull
-  private Map<String, List<String>> listAsStringsMapOfList(
-      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
-    return listAsStringsMapOfArray(sql, setParameters, List::of);
-  }
-
-  @Nonnull
-  private <C> Map<String, C> listAsStringsMapOfArray(
-      @Language("sql") String sql,
-      UnaryOperator<NativeQuery<?>> setParameters,
-      Function<String[], C> f) {
-    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows = (Stream<Object[]>) query.stream();
-    return rows.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
-  }
-
-  @Nonnull
-  private Map<String, String> listAsStringsMap(
-      @Language("sql") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
-    NativeQuery<?> query = setParameters.apply(getSession().createNativeQuery(sql));
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows = (Stream<Object[]>) query.stream();
-    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+  @SuppressWarnings("unchecked")
+  private NativeQuery<Object[]> createNativeRawQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql);
   }
 
   @Nonnull
   @SuppressWarnings("unchecked")
   private List<String> listAsStrings(
       @Language("SQL") String sql, UnaryOperator<NativeQuery<?>> setParameters) {
-    return (List<String>) setParameters.apply(getSession().createNativeQuery(sql)).list();
+    return (List<String>) setParameters.apply(createNativeRawQuery(sql)).list();
+  }
+
+  private Map<String, DateRange> listAsMapOfDateRange(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
+    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
+    Stream<Object[]> rows = query.stream();
+    return rows.collect(
+        toMap(row -> (String) row[0], row -> new DateRange((Date) row[1], (Date) row[2])));
+  }
+
+  @Nonnull
+  private Map<String, Set<String>> listAsStringsMapOfSet(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
+    return listAsStringsMapOfArray(sql, setParameters, Set::of);
+  }
+
+  @Nonnull
+  private Map<String, List<String>> listAsStringsMapOfList(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
+    return listAsStringsMapOfArray(sql, setParameters, List::of);
+  }
+
+  @Nonnull
+  private <C> Map<String, C> listAsStringsMapOfArray(
+      @Language("SQL") String sql,
+      UnaryOperator<NativeQuery<Object[]>> setParameters,
+      Function<String[], C> f) {
+    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
+    Stream<Object[]> rows = query.stream();
+    return rows.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
+  }
+
+  @Nonnull
+  private Map<String, String> listAsStringsMap(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
+    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
+    Stream<Object[]> rows = query.stream();
+    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+  }
+
+  @Nonnull
+  private Map<String, Map<Set<String>, String>> listAsStringMapOfSetMap(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
+    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
+    Stream<Object[]> rows = query.stream();
+    Map<String, Map<Set<String>, String>> res = new HashMap<>();
+    rows.forEach(
+        row -> {
+          Set<String> ccOptions = Set.of((String[]) row[1]);
+          String coc = (String) row[2];
+          String[] ccDataElements = (String[]) row[0];
+          for (String ccDe : ccDataElements) {
+            Map<Set<String>, String> mapping = res.computeIfAbsent(ccDe, key -> new HashMap<>());
+            mapping.put(ccOptions, coc);
+          }
+        });
+    return res;
   }
 }

@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
 import lombok.Data;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
@@ -71,20 +71,19 @@ public class DataValueFollowUpRequest {
 
   @JsonProperty private Boolean followup;
 
-  @JsonIgnore
-  public boolean hasAttribute() {
-    return attribute != null;
-  }
-
   public DataEntryValue.Input toDataEntryValue() {
-    // TODO specifying AOC via combo and options
-    // note: null here means "keep current value"
+    // note: here null for non-key properties means "keep current value"
+    // because this uses partial update later
+    String attributeCombo = attribute == null ? null : attribute.getCombo();
+    Set<String> attributeOptions = attribute == null ? null : attribute.getOptions();
     return new DataEntryValue.Input(
         dataElement,
         orgUnit,
         categoryOptionCombo,
         null,
         attributeOptionCombo,
+        attributeCombo,
+        attributeOptions,
         period,
         null,
         null,

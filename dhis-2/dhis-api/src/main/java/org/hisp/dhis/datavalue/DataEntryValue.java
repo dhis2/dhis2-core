@@ -32,8 +32,11 @@ package org.hisp.dhis.datavalue;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -102,8 +105,9 @@ public record DataEntryValue(
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,
-
-      // TODO attributeOptions CC+COs UIDs
+      @CheckForNull @OpenApi.Property({UID.class, CategoryCombo.class}) String attributeCombo,
+      @CheckForNull @OpenApi.Property({UID[].class, CategoryOption.class})
+          Set<String> attributeOptions,
       @CheckForNull String period,
       @CheckForNull String value,
       @CheckForNull String comment,
