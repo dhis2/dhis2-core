@@ -2014,7 +2014,7 @@
                   </exec>
                   <!-- @formatter:off -->
                   <echo file="${project.build.outputDirectory}/build.properties">
-                    build.version=${project.version}
+build.version=${project.version}
 build.time=${now}
 build.revision=${revision}
 jasperreports.version=${jasperreports.version}
