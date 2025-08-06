@@ -271,6 +271,7 @@
               <licenseHeader>
                 <file>${rootDir}/license-header</file>
               </licenseHeader>
+              <toggleOffOn/>
             </java>
             <pom>
               <toggleOffOn>
