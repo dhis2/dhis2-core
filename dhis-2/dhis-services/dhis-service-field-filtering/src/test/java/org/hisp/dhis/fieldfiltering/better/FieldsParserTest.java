@@ -386,7 +386,7 @@ class FieldsParserTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        // TODO old parser ignores this, I think this should be invalid
+        // TODO(ivo) old parser ignores this, I think this should be invalid
         "[value]"
       })
   void betterParserFailsOnBlockWithoutName(String input) {
@@ -546,23 +546,30 @@ class FieldsParserTest {
   }
 
   // TODO(ivo) transformers: error handling, like I think we should not allow duplicate transformers
-  // TODO(ivo) transformers: test what happens with transformers on presets
+  // * validate the transformations
+  //   * names/args (like required or none needed) in the parser? or what does the current one do?
+  //   * what happens with duplicate transformers? we should err. which transformers can be combined
+  // and
+  //  which cannot?
+  //   * reject unknown transformers
 
-  // TODO(ivo) only used in tests: FieldFilterParser.parseWithPrefix can be removed
+  //  @Test
+  //  void betterParserFailsOnUnkownTransformation() {
+  //    Exception exception =
+  //        assertThrows(IllegalArgumentException.class, () ->
+  // FieldsParser.parse("field::unknown"));
+  //
+  //    assertContains("Unbalanced", exception.getMessage());
+  //  }
   @Test
-  void testParseWithPrefix1() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix("a,b", "prefix");
+  void testParserSortsTransformationsWithRenameLast() {
+    Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
 
-    assertFieldPathContains(fieldPaths, "prefix.a");
-    assertFieldPathContains(fieldPaths, "prefix.b");
-  }
+    List<Transformation> actual = fields.getTransformations("field");
+    List<Transformation> expected =
+        List.of(new Transformation("isEmpty"), new Transformation("rename", "newName"));
 
-  @Test
-  void testParseWithPrefix2() {
-    List<FieldPath> fieldPaths = FieldFilterParser.parseWithPrefix("aaa[a],bbb[b]", "prefix");
-
-    assertFieldPathContains(fieldPaths, "prefix.aaa.a");
-    assertFieldPathContains(fieldPaths, "prefix.bbb.b");
+    assertEquals(expected, actual);
   }
 
   public static void assertFields(List<ExpectField> expectFields, Fields fields) {
@@ -687,16 +694,5 @@ class FieldsParserTest {
     Set<String> actual =
         fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
     assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
-  }
-
-  @Test
-  void testParserSortsTransformationsWithRenameLast() {
-    Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
-
-    List<Transformation> actual = fields.getTransformations("field");
-    List<Transformation> expected =
-        List.of(new Transformation("isEmpty"), new Transformation("rename", "newName"));
-
-    assertEquals(expected, actual);
   }
 }

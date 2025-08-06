@@ -68,9 +68,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This test ensures that simple POJOs like Tracker view classes can be serialized and field
- * filtered to JSON by Jackson. The test also ensures the better field filtering is backwards
- * compatible with the current {@link FieldFilterParser} and {@link FieldFilterService}. Due to how
- * the current field filtering is built cannot ensure most of this using unit tests.
+ * filtered to JSON by Jackson. This test makes sure the filters Spring/Jackson configuration works
+ * and that the better field filtering is backwards compatible with the current {@link
+ * FieldFilterParser} and {@link FieldFilterService}.
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -138,11 +138,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "*,dataValues[value]",
         "dataValues[value]",
         "dataValues[value",
-        "dataValues~isEmpty",
-        "dataValues::isEmpty",
-        "dataValues|isEmpty",
-        "event::isEmpty",
-        "dataValues|rename(hasDataValues)~isEmpty", // rename must be applied last
         "dataValues[dataElement,!value]",
         "dataValues::rename(values)[dataElement,!value]",
         "event,*,dataValues[!value]",
@@ -163,6 +158,22 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "relationships[!unknownfield]",
         "relationships[f rom[trackedEntity[ org Unit ]",
         "relationships[from[trackedEntity[ :simple ]",
+        // transformations
+        "dataValues~unknown",
+        "dataValues~isEmpty",
+        "dataValues|isEmpty",
+        "dataValues::isEmpty",
+        "notes::isEmpty",
+        "event::isEmpty",
+        "dataValues::isNotEmpty",
+        "notes::isNotEmpty",
+        "event::isNotEmpty",
+        "event::rename(nonEvent)",
+        "dataValues|rename(hasDataValues)~isEmpty", // rename must be applied last
+        "notes[:all,value~rename(text)]",
+        "notes::size",
+        "event::size",
+        "relationships[bidirectional::size]",
       })
   void betterFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
       throws JsonProcessingException {

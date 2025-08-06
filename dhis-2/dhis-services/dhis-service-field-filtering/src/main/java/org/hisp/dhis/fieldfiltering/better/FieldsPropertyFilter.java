@@ -43,7 +43,9 @@ import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.fieldfiltering.FieldTransformer;
 import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -109,21 +111,18 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
       for (Fields.Transformation transformation : transformations) {
         try {
           FieldTransformer transformer = createFieldTransformer(transformation);
-          if (transformer != null) {
-            transformer.apply(fieldName, result.get(fieldName), result);
-          }
+          transformer.apply(fieldName, result.get(fieldName), result);
         } catch (Exception e) {
           // TODO(ivo) continue with last valid value or throw?
           break;
         }
       }
 
-      // write the transformed result to the output stream
-      // field name may have been changed by rename transformation
+      // write the transformed result to the output stream (field name may have been changed by
+      // rename transformation)
       String finalFieldName = result.fieldNames().next();
-      JsonNode finalValue = result.get(finalFieldName);
       jgen.writeFieldName(finalFieldName);
-      jgen.writeTree(finalValue);
+      jgen.writeTree(result.get(finalFieldName));
     }
   }
 
@@ -134,12 +133,14 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
   private FieldTransformer createFieldTransformer(Transformation transformation) {
     return switch (transformation.getName()) {
       case "isEmpty" -> IsEmptyFieldTransformer.INSTANCE;
+      case "isNotEmpty" -> IsNotEmptyFieldTransformer.INSTANCE;
       case "rename" -> {
         List<String> parameters = List.of(transformation.getArguments());
         FieldPathTransformer fieldPathTransformer =
             new FieldPathTransformer(transformation.getName(), parameters);
         yield new RenameFieldTransformer(fieldPathTransformer);
       }
+      case "size" -> SizeFieldTransformer.INSTANCE;
       default -> null;
     };
   }
