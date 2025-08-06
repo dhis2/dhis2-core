@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.feedback;
+package org.hisp.dhis.util;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum ImportReportMode {
-  /** Gives full import report, including object reports for valid objects. */
-  FULL,
+import javax.annotation.Nullable;
 
-  /** Returns import report where valid object report has been filtered out. */
-  ERRORS,
+public class ExceptionUtils {
 
   /**
-   * Works the same as ERRORS, but in addition it will also report references that are not owned by
-   * the object.
+   * Some exceptions (e.g. Database) can have deeply-nested root causes and may have a very vague
+   * top-level message, which may not be very helpful to log/return. This method checks if a more
+   * detailed, user-friendly message is available and returns it if found.
+   *
+   * <p>For example, instead of returning: <b><i>org.hibernate.exception.GenericJDBCException: could
+   * not execute statement</i></b> , potentially returning: <b><i>"PSQLException: ERROR: cannot
+   * execute UPDATE in a read-only transaction"</i></b>.
+   *
+   * @param ex exception to check
+   * @return detailed message or original exception message
    */
-  ERRORS_NOT_OWNER,
+  @Nullable
+  public static String getHelpfulMessage(Exception ex) {
+    Throwable cause = ex.getCause();
 
-  /**
-   * Gives full import report, including object reports for valid objects and names (if available).
-   */
-  DEBUG
+    if (cause != null) {
+      Throwable rootCause = cause.getCause();
+      if (rootCause != null) {
+        return rootCause.getMessage();
+      }
+    }
+    return ex.getMessage();
+  }
 }

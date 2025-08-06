@@ -40,6 +40,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -80,7 +81,8 @@ public class JsonPatchManager {
       return null;
     }
 
-    Schema schema = schemaService.getSchema(object.getClass());
+    Class realClass = HibernateProxyUtils.getRealClass(object);
+    Schema schema = schemaService.getSchema(realClass);
     JsonNode node = jsonMapper.valueToTree(object);
 
     // since valueToTree does not properly handle our deeply nested classes,
@@ -92,8 +94,7 @@ public class JsonPatchManager {
 
     node = patch.apply(node);
     return (T)
-        jsonToObject(
-            node, object.getClass(), jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
+        jsonToObject(node, realClass, jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
   }
 
   private <T> void handleCollectionUpdates(T object, Schema schema, ObjectNode node) {

@@ -33,8 +33,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

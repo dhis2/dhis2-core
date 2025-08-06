@@ -25,39 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+package org.hisp.dhis.dxf2.common;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AbstractWebMessageResponse implements WebMessageResponse {
+public enum ImportReportMode {
+  /** Gives full import report, including object reports for valid objects. */
+  FULL,
+
+  /** Returns import report where valid object report has been filtered out. */
+  ERRORS,
+
   /**
-   * Optional type property. Since we are using the somewhat generic name 'response' for the data
-   * part of the message, this can be used to signal what kind of response this is.
-   *
-   * <p>Some examples might be 'ImportCount', 'ImportSummary', etc.
+   * Works the same as ERRORS, but in addition it will also report references that are not owned by
+   * the object.
    */
-  private String responseType;
+  ERRORS_NOT_OWNER,
 
-  public AbstractWebMessageResponse() {
-    this.responseType = getClass().getSimpleName().replaceFirst("WebMessageResponse", "");
-  }
-
-  public AbstractWebMessageResponse(String responseType) {
-    this.responseType = responseType;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getResponseType() {
-    return responseType;
-  }
-
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
-  }
+  /**
+   * Gives full import report, including object reports for valid objects and names (if available).
+   */
+  DEBUG
 }

@@ -31,8 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.partition;
 import static java.lang.System.nanoTime;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode.ERRORS;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.dxf2.common.ImportReportMode.ERRORS;
+import static org.hisp.dhis.notification.NotificationLevel.INFO;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;

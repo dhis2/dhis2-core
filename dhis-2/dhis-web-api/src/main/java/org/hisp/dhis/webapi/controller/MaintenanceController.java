@@ -36,13 +36,12 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryManager;
+import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.util.CategoryUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -84,9 +83,7 @@ public class MaintenanceController {
 
   @Autowired private List<AnalyticsTableService> analyticsTableService;
 
-  @Autowired private CategoryManager categoryManager;
-
-  @Autowired private CategoryUtils categoryUtils;
+  @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @Autowired private AppManager appManager;
 
@@ -215,7 +212,7 @@ public class MaintenanceController {
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCategoryOptionCombos() {
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
   }
 
   @RequestMapping(
@@ -230,7 +227,8 @@ public class MaintenanceController {
       return conflict("CategoryCombo does not exist: " + uid);
     }
 
-    return importSummaries(categoryUtils.addAndPruneOptionCombos(categoryCombo));
+    return importSummaries(
+        categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(categoryCombo));
   }
 
   @RequestMapping(

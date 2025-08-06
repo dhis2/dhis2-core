@@ -200,6 +200,7 @@ public enum SettingKey {
       String.class,
       false,
       false),
+  AZURE_MAPS_API_KEY("keyAzureMapsApiKey", "", String.class, false, false),
   LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
   METADATAVERSION_ENABLED("keyVersionEnabled", Boolean.FALSE, Boolean.class),
   METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
@@ -254,6 +255,9 @@ public enum SettingKey {
 
   /** The offset of years used during period generation during the analytics export process. */
   ANALYTICS_MAX_PERIOD_YEARS_OFFSET("keyAnalyticsPeriodYearsOffset", -1, Integer.class),
+
+  ANALYTICS_DOWNLOAD_COMBINATION_LIMIT(
+      "keyAnalyticsDownloadCombinationLimit", 20000, Integer.class),
 
   /** Max trackedentityinstance records that can be retrieved from database. */
   TRACKED_ENTITY_MAX_LIMIT("KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class),

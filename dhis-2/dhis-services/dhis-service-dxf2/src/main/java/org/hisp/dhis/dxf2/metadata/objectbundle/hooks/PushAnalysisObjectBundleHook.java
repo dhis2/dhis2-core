@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.notification;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-/**
- * @author Lars Helge Overland
- */
-public enum NotificationLevel {
-  OFF,
-  DEBUG,
-  /**
-   * Similar to {@link #DEBUG} but is replaced (not appended) by any later message including
-   * messages of type {@code LOOP}.
-   */
-  LOOP,
-  INFO,
-  WARN,
-  ERROR;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
+import org.springframework.stereotype.Component;
 
-  public boolean isOff() {
-    return this == OFF;
+@Slf4j
+@Component
+public class PushAnalysisObjectBundleHook extends AbstractObjectBundleHook<PushAnalysis> {
+
+  @Override
+  public void preUpdate(
+      PushAnalysis pushAnalysisUpdate, PushAnalysis pushAnalysisPersisted, ObjectBundle bundle) {
+    // If the Dashboard in the PushAnalysis update is not in the Dashboard preheat, add it
+    // This eliminates NullPointerExceptions when connecting references
+    Dashboard dashboardUpdate = pushAnalysisUpdate.getDashboard();
+    Dashboard dashboardPersisted = pushAnalysisPersisted.getDashboard();
+
+    if (dashboardUpdate != null
+        && dashboardPersisted != null
+        && dashboardUpdate.getUid().equals(dashboardPersisted.getUid())) {
+      Dashboard dashboardPreheat =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), pushAnalysisUpdate.getDashboard());
+      if (dashboardPreheat == null) {
+        bundle.getPreheat().put(bundle.getPreheatIdentifier(), dashboardPersisted);
+      }
+    }
   }
 }

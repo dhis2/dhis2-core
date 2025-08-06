@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;

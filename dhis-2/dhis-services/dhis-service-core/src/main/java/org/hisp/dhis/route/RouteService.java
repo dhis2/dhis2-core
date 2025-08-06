@@ -81,7 +81,7 @@ public class RouteService {
 
   @Autowired @Getter @Setter private RestTemplate restTemplate;
 
-  private static List<String> allowedRequestHeaders =
+  protected static List<String> allowedRequestHeaders =
       List.of(
           "accept",
           "accept-encoding",
@@ -89,6 +89,7 @@ public class RouteService {
           "x-requested-with",
           "user-agent",
           "cache-control",
+          "content-type",
           "if-match",
           "if-modified-since",
           "if-none-match",

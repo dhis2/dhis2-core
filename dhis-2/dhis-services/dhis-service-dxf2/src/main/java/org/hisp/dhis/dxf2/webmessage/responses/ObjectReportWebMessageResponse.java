@@ -32,9 +32,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
 import org.springframework.util.Assert;
 
 /**

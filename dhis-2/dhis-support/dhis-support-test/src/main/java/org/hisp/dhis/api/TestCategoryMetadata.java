@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,58 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage.responses;
+package org.hisp.dhis.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.webmessage.AbstractWebMessageResponse;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JsonPropertyOrder({"type", "created", "updated", "deleted"})
-public class ImportCountWebMessageResponse extends AbstractWebMessageResponse {
-  private int created;
+@Data
+@AllArgsConstructor
+public class TestCategoryMetadata {
+  private CategoryCombo cc1;
+  private Category c1;
+  private Category c2;
+  private CategoryOption co1;
+  private CategoryOption co2;
+  private CategoryOption co3;
+  private CategoryOption co4;
+  private CategoryOptionCombo coc1;
+  private CategoryOptionCombo coc2;
+  private CategoryOptionCombo coc3;
+  private CategoryOptionCombo coc4;
 
-  private int updated;
-
-  private int deleted;
-
-  public ImportCountWebMessageResponse(int created, int updated, int deleted) {
-    this.created = created;
-    this.updated = updated;
-    this.deleted = deleted;
+  public Set<String> getCocNames() {
+    return Set.of(coc1.getName(), coc2.getName(), coc3.getName(), coc4.getName());
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getCreated() {
-    return created;
+  public Set<String> getCoNames() {
+    return Set.of(co1.getName(), co2.getName(), co3.getName(), co4.getName());
   }
 
-  public void setCreated(int created) {
-    this.created = created;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getUpdated() {
-    return updated;
-  }
-
-  public void setUpdated(int updated) {
-    this.updated = updated;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getDeleted() {
-    return deleted;
-  }
-
-  public void setDeleted(int deleted) {
-    this.deleted = deleted;
+  public Set<CategoryOption> getCategoryOptions() {
+    return Set.of(co1, co2, co3, co4);
   }
 }

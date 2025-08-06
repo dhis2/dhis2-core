@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 

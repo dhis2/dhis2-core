@@ -38,6 +38,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.scheduling.JobType;
 
 /**
