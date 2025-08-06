@@ -30,6 +30,7 @@
 package org.hisp.dhis.category;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -55,10 +56,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
@@ -69,14 +73,10 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.LinkableObject;
 import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TotalAggregationType;
-import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -85,8 +85,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -94,6 +96,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  */
 @JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
 @Entity
+@Setter
 @Table(name = "categoryoption")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class CategoryOption extends BaseMetadataObject
@@ -169,8 +172,7 @@ public class CategoryOption extends BaseMetadataObject
   private Sharing sharing;
 
   // Transient fields for DimensionalItemObject interface
-  @Transient
-  private QueryModifiers queryMods;
+  @Transient private QueryModifiers queryMods;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -181,6 +183,44 @@ public class CategoryOption extends BaseMetadataObject
   public CategoryOption(String name) {
     this.name = name;
     this.shortName = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+
+    return result;
+  }
+
+  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof BaseIdentifiableObject other
+            && getRealClass(this) == getRealClass(obj)
+            && typedEquals(other);
+  }
+
+  /**
+   * Equality check against typed identifiable object. This method is not vulnerable to proxy
+   * issues, where an uninitialized object class type fails comparison to a real class.
+   *
+   * @param other the identifiable object to compare this object against.
+   * @return true if equal.
+   */
+  public final boolean typedEquals(IdentifiableObject other) {
+    if (other == null) {
+      return false;
+    }
+    return Objects.equals(getUid(), other.getUid())
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName());
   }
 
   // -------------------------------------------------------------------------
@@ -486,6 +526,8 @@ public class CategoryOption extends BaseMetadataObject
       return code;
     } else if (idScheme.is(IdentifiableProperty.ID)) {
       return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
     }
     return null;
   }
@@ -566,18 +608,10 @@ public class CategoryOption extends BaseMetadataObject
     return startDate;
   }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getEndDate() {
     return endDate;
-  }
-
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
   }
 
   @JsonProperty
@@ -588,20 +622,12 @@ public class CategoryOption extends BaseMetadataObject
     return organisationUnits;
   }
 
-  public void setOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    this.organisationUnits = organisationUnits;
-  }
-
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categories", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
   public Set<Category> getCategories() {
     return categories;
-  }
-
-  public void setCategories(Set<Category> categories) {
-    this.categories = categories;
   }
 
   @JsonProperty
@@ -612,10 +638,6 @@ public class CategoryOption extends BaseMetadataObject
     return categoryOptionCombos;
   }
 
-  public void setCategoryOptionCombos(Set<CategoryOptionCombo> categoryOptionCombos) {
-    this.categoryOptionCombos = categoryOptionCombos;
-  }
-
   @JsonProperty("categoryOptionGroups")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0)
@@ -624,18 +646,10 @@ public class CategoryOption extends BaseMetadataObject
     return groups;
   }
 
-  public void setGroups(Set<CategoryOptionGroup> groups) {
-    this.groups = groups;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ObjectStyle getStyle() {
     return style;
-  }
-
-  public void setStyle(ObjectStyle style) {
-    this.style = style;
   }
 
   @JsonProperty
@@ -643,10 +657,6 @@ public class CategoryOption extends BaseMetadataObject
   @PropertyRange(min = 2)
   public String getFormName() {
     return formName;
-  }
-
-  public void setFormName(String formName) {
-    this.formName = formName;
   }
 
   /** Returns the form name, or the name if it does not exist. */
@@ -719,28 +729,4 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @Deprecated
   public void setOwner(String owner) {}
-
-  // -------------------------------------------------------------------------
-  // Setters for mapped properties
-  // -------------------------------------------------------------------------
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setShortName(String shortName) {
-    this.shortName = shortName;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
 }
