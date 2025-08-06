@@ -30,11 +30,13 @@
 package org.hisp.dhis.datavalue;
 
 /**
- * In contrast to data entry as handled by {@link DataEntryService} this service deal with data that
- * originates from a programmatic source such as predictors. As such this data does not have to
- * adhere to all constraints that data entry does.
+ * In contrast to data entry as handled by {@link DataEntryService} this service is used when data
+ * should be written to database more directly without the validation constraints that data entry
+ * enforces.
  *
- * <p>This can also be used in test data setup.
+ * <p>This should only be used when data originates from a programmatic sources such as predictors.
+ * Another use case is when test setup needs some data to test with without requiring a fully valid
+ * metadata model to support further data entry with validation.
  *
  * @author Jan Bernitt
  * @since 2.43
@@ -43,6 +45,10 @@ public interface DataInjectionService {
 
   /**
    * Legacy support API to add or update one or more values.
+   *
+   * <p>This API uses {@link DataValue} not because it was the best choice but because this required
+   * fewer changes in legacy code for the time being. At some point this should be updated to use a
+   * dedicated record class.
    *
    * @param values the values to create or update
    * @return number of values written

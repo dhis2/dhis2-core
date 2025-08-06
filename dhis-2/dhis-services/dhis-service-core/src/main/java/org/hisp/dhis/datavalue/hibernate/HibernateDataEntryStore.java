@@ -190,7 +190,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public Map<String, List<String>> getDataElementCocCategories(
-      UID dataSet, IdProperty categories, IdProperty dataElements, Stream<String> dataElementIds) {
+      @Nonnull UID dataSet,
+      @Nonnull IdProperty categories,
+      @Nonnull IdProperty dataElements,
+      @Nonnull Stream<String> dataElementIds) {
     @Language("SQL")
     String sqlTemplate =
         """
@@ -276,7 +279,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public Map<String, Map<Set<String>, String>> getCategoryComboAocIdMapping(
-      Stream<String> categoryCombos) {
+      @Nonnull Stream<String> categoryCombos) {
     String sql =
         """
         SELECT

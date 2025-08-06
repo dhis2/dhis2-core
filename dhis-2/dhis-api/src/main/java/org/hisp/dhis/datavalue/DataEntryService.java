@@ -71,7 +71,7 @@ public interface DataEntryService {
    * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
    *     is missing, a referenced object doesn't exist
    */
-  DataEntryGroup decodeGroup(DataEntryGroup.Input group) throws BadRequestException;
+  DataEntryGroup decodeGroup(@Nonnull DataEntryGroup.Input group) throws BadRequestException;
 
   /**
    * Same as {@link #decodeGroup(DataEntryGroup.Input)} except that the decoding will assume that
@@ -81,12 +81,16 @@ public interface DataEntryService {
    * on field does not need to load the data value but can state the keys fields + the fields to
    * override.
    *
+   * <p>When COC and/or AOC of the provided {@link DataEntryValue.Input} values are null this means
+   * they are the default COC.
+   *
    * @param group the group data as submitted by a user
    * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
    *     is missing, a referenced object doesn't exist, or the referenced value (key combination)
    *     does not exist yet.
    */
-  DataEntryGroup decodeGroupPartialUpdate(DataEntryGroup.Input group) throws BadRequestException;
+  DataEntryGroup decodeGroupPartialUpdate(@Nonnull DataEntryGroup.Input group)
+      throws BadRequestException;
 
   /**
    * Splits entered data values into groups, one group for each target data set. The data set is
@@ -99,7 +103,7 @@ public interface DataEntryService {
    * @throws ConflictException in case there are data elements that are not connected to any data
    *     set
    */
-  List<DataEntryGroup> splitGroup(DataEntryGroup mixed) throws ConflictException;
+  List<DataEntryGroup> splitGroup(@Nonnull DataEntryGroup mixed) throws ConflictException;
 
   /**
    * Data entry of a single value. Support for data entry cell by cell as performed in the data
@@ -120,7 +124,7 @@ public interface DataEntryService {
    * as possible target for the values based on the data elements this is a conflict.
    *
    * @param options for the entry
-   * @param request the data to enter
+   * @param group the data to enter
    * @param progress to track processing progress
    * @return a summary of the import
    * @throws ConflictException in case of validation errors, mainly these are: can the current user
@@ -129,7 +133,9 @@ public interface DataEntryService {
    *     limits?
    */
   DataEntrySummary upsertGroup(
-      DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
+      @Nonnull DataEntryGroup.Options options,
+      @Nonnull DataEntryGroup group,
+      @Nonnull JobProgress progress)
       throws ConflictException;
 
   /**
@@ -143,11 +149,30 @@ public interface DataEntryService {
    * @throws ConflictException in case of validation errors
    * @throws BadRequestException in case the submitted key is formally invalid
    */
-  boolean deleteValue(boolean force, @CheckForNull UID dataSet, DataEntryKey key)
+  boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryKey key)
       throws ConflictException, BadRequestException;
 
+  /**
+   * Soft-deletes all values in the group (marks them as deleted).
+   *
+   * <p>This is semantically the same as using {@link #upsertGroup(DataEntryGroup.Options,
+   * DataEntryGroup, JobProgress)} which values that all have {@link DataEntryValue#deleted()} set
+   * to {@code true} but this does not require deleted to be true yet and also might provide better
+   * performance in some cases.
+   *
+   * @param options for error and validation control
+   * @param group the values to delete (these do not have to have deleted set to true yet)
+   * @param progress to track processing progress
+   * @return a summary of the deletion
+   * @throws ConflictException in case of validation errors, mainly these are: can the current user
+   *     write to the target data set? is the metadata consistent with the references used for the
+   *     data values? is the data reported in time? Are values formally correct and within their
+   *     limits?
+   */
   DataEntrySummary deleteGroup(
-      DataEntryGroup.Options options, DataEntryGroup request, JobProgress progress)
+      @Nonnull DataEntryGroup.Options options,
+      @Nonnull DataEntryGroup group,
+      @Nonnull JobProgress progress)
       throws ConflictException;
 
   /**

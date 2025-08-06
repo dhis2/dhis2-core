@@ -135,16 +135,49 @@ public interface DataEntryStore {
    *     alphabetically
    */
   Map<String, List<String>> getDataElementCocCategories(
-      UID dataSet, IdProperty categories, IdProperty dataElements, Stream<String> dataElementIds);
+      @Nonnull UID dataSet,
+      @Nonnull IdProperty categories,
+      @Nonnull IdProperty dataElements,
+      @Nonnull Stream<String> dataElementIds);
 
+  /**
+   * Lookup of COC-IDs by CO-IDs of the CCs of multiple DEs.
+   *
+   * @param dataSet the DS for scope (influences which CC is used by data elements)
+   * @param categoryOptions what ID property to extract for the category options
+   * @param dataElements what ID to match for the given data element IDs
+   * @param dataElementIds the scope of data elements to fetch
+   * @return for each data element (key1) a mapping from the options (key2) to the COC (value) for
+   *     the key option combination
+   */
   Map<String, Map<Set<String>, String>> getDataElementCocIdMapping(
       @Nonnull UID dataSet,
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty dataElements,
       @Nonnull Stream<String> dataElementIds);
 
-  Map<String, Map<Set<String>, String>> getCategoryComboAocIdMapping(Stream<String> categoryCombos);
+  /**
+   * Lookup of AOC-IDs by CO-IDs for the CCs provided (as used for AOC).
+   *
+   * @param categoryCombos the scope of CCs to fetch
+   * @return for each CC (key1) a mapping from the options (key2) to the AOC (value) for the key
+   *     option combination
+   */
+  Map<String, Map<Set<String>, String>> getCategoryComboAocIdMapping(
+      @Nonnull Stream<String> categoryCombos);
 
+  /**
+   * Loading of individual values by key in case a partial update is performed where not all data
+   * parts of a data value are provided.
+   *
+   * @param dataElement DE key
+   * @param orgUnit OU key
+   * @param categoryOptionCombo COC key (null => default)
+   * @param attributeOptionCombo AOC key (null => default)
+   * @param period ISO period value
+   * @return the current value for the given key or null if no such value exists
+   */
+  @CheckForNull
   DataEntryValue.Input getPartialDataValue(
       @Nonnull UID dataElement,
       @Nonnull UID orgUnit,
