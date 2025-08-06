@@ -506,6 +506,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
+  public void updateUserRole(UserRole userRole, UserDetails userDetails) {
+    userRoleStore.update(userRole, userDetails);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public UserRole getUserRole(String uid) {
     return userRoleStore.getByUid(uid);

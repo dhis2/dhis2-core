@@ -626,6 +626,44 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @DisplayName(
+      "Test that a user can also delete a user without UserRole write access, see: DHIS2-19693")
+  void testReplicateUserNoRoleAuth() {
+    systemSettingManager.saveSystemSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES, Boolean.TRUE);
+
+    UserRole replicateRole =
+        createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE");
+    userService.addUserRole(replicateRole);
+    String roleUid = userService.getUserRoleByName("ROLE_REPLICATE").getUid();
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleUid + "'}]}]")
+        .content(HttpStatus.OK);
+
+    peter = userService.getUser(this.peter.getUid());
+    assertTrue(
+        peter
+            .getAllAuthorities()
+            .containsAll(Set.of("F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE")));
+    switchContextToUser(this.peter);
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .content());
+
+    User peter2 = userService.getUserByUsername("peter2");
+
+    // Then
+    DELETE("/users/" + peter2.getUid()).content(HttpStatus.OK);
+  }
+
+  @Test
   void testReplicateUser() {
     assertWebMessage(
         "Created",
