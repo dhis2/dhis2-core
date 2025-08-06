@@ -30,7 +30,6 @@
 package org.hisp.dhis.category;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,6 +52,7 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -80,6 +80,7 @@ import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
@@ -90,6 +91,8 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Abyot Asalefew
@@ -190,37 +193,33 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  public boolean equals(Object other) {
+    if (other == null) {
+      return false;
+    }
+    if (!HibernateProxyUtils.getRealClass(other).isAssignableFrom(CategoryOption.class)) {
+      return false;
+    }
+
+    CategoryOption obj = (CategoryOption) other;
+
+    return Objects.equals(getUid(), obj.getUid())
+        && Objects.equals(getCode(), obj.getCode())
+        && Objects.equals(getName(), obj.getName())
+        && Objects.equals(getShortName(), obj.getShortName())
+        && Objects.equals(getDescription(), obj.getDescription())
+        && Objects.equals(queryMods, obj.queryMods);
+  }
+
+  @Override
   public int hashCode() {
     int result = getUid() != null ? getUid().hashCode() : 0;
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-
+    result = 31 * result + (getFormName() != null ? getFormName().hashCode() : 0);
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
     return result;
-  }
-
-  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj
-        || obj instanceof BaseIdentifiableObject other
-            && getRealClass(this) == getRealClass(obj)
-            && typedEquals(other);
-  }
-
-  /**
-   * Equality check against typed identifiable object. This method is not vulnerable to proxy
-   * issues, where an uninitialized object class type fails comparison to a real class.
-   *
-   * @param other the identifiable object to compare this object against.
-   * @return true if equal.
-   */
-  public final boolean typedEquals(IdentifiableObject other) {
-    if (other == null) {
-      return false;
-    }
-    return Objects.equals(getUid(), other.getUid())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getName(), other.getName());
   }
 
   // -------------------------------------------------------------------------
@@ -395,13 +394,10 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public QueryModifiers getQueryMods() {
     return queryMods;
-  }
-
-  @Override
-  public void setQueryMods(QueryModifiers queryMods) {
-    this.queryMods = queryMods;
   }
 
   // -------------------------------------------------------------------------
@@ -729,4 +725,48 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @Deprecated
   public void setOwner(String owner) {}
+
+  // -------------------------------------------------------------------------
+  // Sharing helpers
+  // -------------------------------------------------------------------------
+
+  public void setExternalAccess(boolean externalAccess) {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+
+    sharing.setExternal(externalAccess);
+  }
+
+  public void setPublicAccess(String access) {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+
+    sharing.setPublicAccess(access);
+  }
+
+  public String getPublicAccess() {
+    if (sharing != null) {
+      return sharing.getPublicAccess();
+    }
+
+    return null;
+  }
+
+  public Collection<UserAccess> getUserAccesses() {
+    if (sharing == null || getSharing().getUsers() == null) {
+      return Collections.emptyList();
+    }
+
+    return getSharing().getUsers().values();
+  }
+
+  public Collection<UserGroupAccess> getUserGroupAccesses() {
+    if (sharing == null || getSharing().getUserGroups() == null) {
+      return Collections.emptyList();
+    }
+
+    return getSharing().getUserGroups().values();
+  }
 }
