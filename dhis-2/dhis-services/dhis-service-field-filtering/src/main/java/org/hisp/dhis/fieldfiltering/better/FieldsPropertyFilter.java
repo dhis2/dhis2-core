@@ -34,9 +34,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
@@ -69,16 +69,10 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     if (current.test(writer.getName())) {
-      // Standard field serialization
       Fields children = current.getChildren(writer.getName());
       provider.setAttribute(FIELDS_ATTRIBUTE, children);
 
-      List<Fields.Transformation> transformations = current.getTransformations(writer.getName());
-      if (transformations.isEmpty()) {
-        writer.serializeAsField(pojo, jgen, provider);
-      } else {
-        serializeUsingTransformations(pojo, jgen, provider, writer, transformations);
-      }
+      serialize(pojo, jgen, provider, writer, current);
 
       provider.setAttribute(FIELDS_ATTRIBUTE, current);
     } else if (!jgen.canOmitFields()) { // since 2.3
@@ -86,47 +80,51 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     }
   }
 
-  // TODO(ivo) docs
-  // Apply transformations using existing FieldTransformer instances
-  // Use hybrid approach: JsonNode transformation for compatibility
-  // Only pay the double serialization cost when transformations are used
-  private void serializeUsingTransformations(
+  /**
+   * Serializes a field with optional transformations. Uses hybrid approach: normal serialization
+   * for no transformations, TokenBuffer capture + transformation for fields with transformations.
+   */
+  private void serialize(
       Object pojo,
       JsonGenerator jgen,
       SerializerProvider provider,
       PropertyWriter writer,
-      List<Fields.Transformation> transformations)
+      Fields current)
       throws Exception {
-    // Create an ObjectNode with only the field and its value for the transformers to mutate
-    Object fieldValue = extractFieldValue(pojo, writer);
-    JsonNode fieldNode = objectMapper.valueToTree(fieldValue);
-    ObjectNode result = objectMapper.createObjectNode();
-    result.set(writer.getName(), fieldNode);
+    List<Fields.Transformation> transformations = current.getTransformations(writer.getName());
+    if (transformations.isEmpty()) {
+      writer.serializeAsField(pojo, jgen, provider);
+    } else {
+      // serialize applying any filters and capture output in buffer for later transformations
+      TokenBuffer tokenBuffer = new TokenBuffer(objectMapper, false);
+      writer.serializeAsField(pojo, tokenBuffer, provider);
+      // create ObjectNode from buffer for transformations to mutate
+      JsonNode filteredFieldNode = objectMapper.readTree(tokenBuffer.asParser());
+      // transformations are applied on single-field object like {"fieldName": filteredValue}
+      String fieldName = filteredFieldNode.fieldNames().next();
+      JsonNode fieldValue = filteredFieldNode.get(fieldName);
+      ObjectNode result = objectMapper.createObjectNode();
+      result.set(fieldName, fieldValue);
 
-    for (Fields.Transformation transformation : transformations) {
-      try {
-        FieldTransformer transformer = createFieldTransformer(transformation);
-        transformer.apply(writer.getName(), result.get(writer.getName()), result);
-      } catch (Exception e) {
-        // TODO(ivo) continue with last valid value or throw?
-        break;
+      for (Fields.Transformation transformation : transformations) {
+        try {
+          FieldTransformer transformer = createFieldTransformer(transformation);
+          if (transformer != null) {
+            transformer.apply(fieldName, result.get(fieldName), result);
+          }
+        } catch (Exception e) {
+          // TODO(ivo) continue with last valid value or throw?
+          break;
+        }
       }
-    }
 
-    jgen.writeFieldName(result.fieldNames().next());
-    jgen.writeTree(result.values().next());
-  }
-
-  // TODO(ivo) error handling
-  private Object extractFieldValue(Object pojo, PropertyWriter writer) {
-    if (writer instanceof BeanPropertyWriter beanWriter) {
-      try {
-        return beanWriter.get(pojo);
-      } catch (Exception e) {
-        return null;
-      }
+      // write the transformed result to the output stream
+      // field name may have been changed by rename transformation
+      String finalFieldName = result.fieldNames().next();
+      JsonNode finalValue = result.get(finalFieldName);
+      jgen.writeFieldName(finalFieldName);
+      jgen.writeTree(finalValue);
     }
-    return null;
   }
 
   /**
