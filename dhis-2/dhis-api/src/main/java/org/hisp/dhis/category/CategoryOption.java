@@ -376,12 +376,24 @@ public class CategoryOption extends BaseMetadataObject
     return DimensionItemType.CATEGORY_OPTION;
   }
 
+  /**
+   * Category options do not have legendSets, so this method is deprecated.
+   *
+   * @return
+   */
   @Override
+  @Deprecated(forRemoval = true, since = "44")
   public List<LegendSet> getLegendSets() {
     return List.of();
   }
 
+  /**
+   * Category options do not have a legend set, so this method is deprecated.
+   *
+   * @return
+   */
   @Override
+  @Deprecated(forRemoval = true, since = "44")
   public LegendSet getLegendSet() {
     return null;
   }
@@ -779,12 +791,14 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonIgnore
   @Deprecated(forRemoval = true, since = "44")
   public Set<String> getFavorites() {
     return Set.of();
   }
 
   @Override
+  @JsonIgnore
   @Deprecated(forRemoval = true, since = "44")
   public boolean isFavorite() {
     return false;
