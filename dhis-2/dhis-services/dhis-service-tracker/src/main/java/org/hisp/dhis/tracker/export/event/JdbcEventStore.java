@@ -994,7 +994,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getOrgUnitSql(
-      EventQueryParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+      EventQueryParams params, UserDetails user, MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
       case CAPTURE -> createCaptureSql(user, params, mapSqlParameterSource);
       case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
@@ -1006,12 +1006,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createCaptureSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     return createCaptureScopeQuery(user, params, mapSqlParameterSource, "");
   }
 
   private String createAccessibleSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
     if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, params, mapSqlParameterSource);
@@ -1023,7 +1023,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createDescendantsSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
@@ -1037,7 +1037,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createChildrenSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
@@ -1061,7 +1061,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createSelectedSql(
-      User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
@@ -1087,7 +1087,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * @return a getSql clause to add to the main query
    */
   private String createCaptureScopeQuery(
-      User user,
+      UserDetails user,
       EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       String orgUnitMatcher) {
@@ -1134,7 +1134,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * @return a getSql clause to add to the main query
    */
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-      User user, EventQueryParams params, String orgUnitMatcher) {
+      UserDetails user, EventQueryParams params, String orgUnitMatcher) {
     String sql =
         " (exists(select ss.organisationunitid "
             + " from userteisearchorgunits ss "
@@ -1170,8 +1170,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return program != null && (program.isProtected() || program.isClosed());
   }
 
-  private boolean isUserSearchScopeNotSet(User user) {
-    return user.getTeiSearchOrganisationUnits().isEmpty();
+  private boolean isUserSearchScopeNotSet(UserDetails user) {
+    return user.getUserSearchOrgUnitIds().isEmpty();
   }
 
   private String eventStatusSql(
