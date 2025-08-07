@@ -151,7 +151,7 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDataRead() throws Exception {
+  void testDataRead() {
     User user1 = createUserWithAuth("user1", "DATA_READ");
     User user2 = createUserWithAuth("user2", "DATA_READ");
     User user3 = createUserWithAuth("user3", "DATA_READ");

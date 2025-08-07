@@ -85,20 +85,6 @@ public class TextUtils {
   }
 
   /**
-   * Returns a list of tokens based on the given string.
-   *
-   * @param string the string.
-   * @return the list of tokens.
-   */
-  public static List<String> getTokens(String string) {
-    if (string == null) {
-      return null;
-    }
-
-    return new ArrayList<>(Arrays.asList(string.split("\\s")));
-  }
-
-  /**
    * Gets the sub string of the given string. If the beginIndex is larger than the length of the
    * string, the empty string is returned. If the beginIndex + the length is larger than the length
    * of the string, the part of the string following the beginIndex is returned. Method is
@@ -204,7 +190,7 @@ public class TextUtils {
    * @return the chopped string.
    */
   public static String removeNewlines(String string) {
-    return string.replaceAll("\r", EMPTY).replaceAll("\n", EMPTY);
+    return string.replace("\r", EMPTY).replace("\n", EMPTY);
   }
 
   /**
@@ -461,7 +447,7 @@ public class TextUtils {
    * @return a human friendly name.
    */
   public static String getPrettyEnumName(Enum<?> enumeration) {
-    return StringUtils.capitalize(enumeration.name().replaceAll("_", " ").toLowerCase());
+    return StringUtils.capitalize(enumeration.name().replace("_", " ").toLowerCase());
   }
 
   /**

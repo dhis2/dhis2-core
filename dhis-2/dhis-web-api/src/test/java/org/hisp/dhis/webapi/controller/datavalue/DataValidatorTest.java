@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Date;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -45,10 +44,7 @@ import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserService;
-import org.joda.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,12 +66,6 @@ class DataValidatorTest {
   @Mock private DataValidator dataValidator;
   @Mock private UserService userService;
 
-  private Period peJan;
-
-  private Period peFeb;
-
-  private Period peMar;
-
   private DataSet dsA;
 
   private DataElement deA;
@@ -83,10 +73,6 @@ class DataValidatorTest {
   private CategoryOption coA;
 
   private CategoryOptionCombo cocA;
-
-  private Date jan15;
-
-  private Date feb15;
 
   @BeforeEach
   public void setUp() {
@@ -99,10 +85,6 @@ class DataValidatorTest {
             accessManager,
             userService);
 
-    peJan = createPeriod("202001");
-    peFeb = createPeriod("202002");
-    peMar = createPeriod("202003");
-
     dsA = new DataSet("dataSet", new MonthlyPeriodType());
     deA = new DataElement();
     coA = new CategoryOption();
@@ -112,32 +94,6 @@ class DataValidatorTest {
     deA.getDataSetElements().addAll(dsA.getDataSetElements());
 
     cocA.addCategoryOption(coA);
-
-    jan15 = getDate(2020, 1, 15);
-    feb15 = getDate(2020, 2, 15);
-  }
-
-  /**
-   * Creates a date.
-   *
-   * @param year the year.
-   * @param month the month.
-   * @param day the day of month.
-   * @return a date.
-   */
-  private static Date getDate(int year, int month, int day) {
-    LocalDateTime dateTime = new LocalDateTime(year, month, day, 0, 0);
-    return dateTime.toDate();
-  }
-
-  /**
-   * Creates a period.
-   *
-   * @param isoPeriod the ISO period string.
-   * @return a {@link Period}.
-   */
-  private static Period createPeriod(String isoPeriod) {
-    return PeriodType.getPeriodFromIsoString(isoPeriod);
   }
 
   @Test

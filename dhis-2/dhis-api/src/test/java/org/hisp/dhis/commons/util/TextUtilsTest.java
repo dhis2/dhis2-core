@@ -64,7 +64,7 @@ class TextUtilsTest {
   }
 
   @Test
-  public void testRemoveNonEssentialChars() {
+  void testRemoveNonEssentialChars() {
     String same = "abcdefghijkl-";
     assertEquals(same, TextUtils.removeNonEssentialChars(same));
 
@@ -87,17 +87,8 @@ class TextUtilsTest {
   }
 
   @Test
-  void testGetTokens() {
-    assertEquals(
-        List.of("John", "Doe", "Main", "Road", "25"), TextUtils.getTokens("John Doe Main Road 25"));
-    assertEquals(
-        List.of("Ted,Johnson", "Upper-Road", "45"),
-        TextUtils.getTokens("Ted,Johnson Upper-Road 45"));
-  }
-
-  @Test
   void testRemoveLastOr() {
-    assertEquals(null, TextUtils.removeLastOr(null));
+    assertNull(TextUtils.removeLastOr(null));
     assertEquals("", TextUtils.removeLastOr(""));
     assertEquals(
         "or name='tom' or name='john' ", TextUtils.removeLastOr("or name='tom' or name='john' or"));
@@ -111,7 +102,7 @@ class TextUtilsTest {
 
   @Test
   void testRemoveLastAnd() {
-    assertEquals(null, TextUtils.removeLastAnd(null));
+    assertNull(TextUtils.removeLastAnd(null));
     assertEquals("", TextUtils.removeLastAnd(""));
     assertEquals(
         "and name='tom' and name='john' ",
@@ -128,7 +119,7 @@ class TextUtilsTest {
   void testRemoveLastComma() {
     String nullValue = null;
 
-    assertEquals(null, TextUtils.removeLastComma(nullValue));
+    assertNull(TextUtils.removeLastComma(nullValue));
     assertEquals("", TextUtils.removeLastComma(""));
     assertEquals("tom", TextUtils.removeLastComma("tom"));
     assertEquals("tom,john", TextUtils.removeLastComma("tom,john,"));
@@ -235,31 +226,25 @@ class TextUtilsTest {
 
   @Test
   void testReplaceWithNull() {
+    Map<String, String> vars =
+        new MapBuilder<String, String>().put("first_name", "John").put("last_name", null).build();
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            TextUtils.replace(
-                "Welcome ${first_name} ${last_name}",
-                new MapBuilder<String, String>()
-                    .put("first_name", "John")
-                    .put("last_name", null)
-                    .build()));
+        () -> TextUtils.replace("Welcome ${first_name} ${last_name}", vars));
   }
 
   @Test
   void testReplaceVarUndefined() {
+    Map<String, String> vars = Map.of("first_name", "John");
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            TextUtils.replace("Welcome ${first_name} ${last_name}", Map.of("first_name", "John")));
+        () -> TextUtils.replace("Welcome ${first_name} ${last_name}", vars));
   }
 
   @Test
   void testReplaceVarUnused() {
-    assertEquals(
-        "Welcome John",
-        TextUtils.replace(
-            "Welcome ${first_name}", Map.of("first_name", "John", "last_name", "Bond")));
+    Map<String, String> vars = Map.of("first_name", "John", "last_name", "Bond");
+    assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", vars));
   }
 
   @Test

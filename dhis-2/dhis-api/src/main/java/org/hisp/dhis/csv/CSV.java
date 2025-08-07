@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -144,7 +145,7 @@ public final class CSV {
     addDeserializer(Boolean.class, Boolean::parseBoolean);
     addDeserializer(boolean.class, Boolean::parseBoolean);
     addDeserializer(UID.class, UID::of);
-    // TODO add period + locale + date types
+    addDeserializer(Locale.class, Locale::new);
   }
 
   private static Function<String, ?> getDeserializer(RecordComponent c) {

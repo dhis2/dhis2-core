@@ -135,7 +135,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   private DataSet dataSet;
 
   @BeforeEach
-  public void initTest() throws SmsCompressionException, ConflictException {
+  void initTest() throws SmsCompressionException, ConflictException {
     subject =
         new AggregateDataSetSMSListener(
             incomingSmsService,

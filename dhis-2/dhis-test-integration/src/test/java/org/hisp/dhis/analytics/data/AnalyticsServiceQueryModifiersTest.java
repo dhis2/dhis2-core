@@ -121,7 +121,7 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
   List<String> result;
 
   @BeforeAll
-  void setUp() throws Exception {
+  void setUp() {
     jan = createPeriod("2022-01");
     feb = createPeriod("2022-02");
     mar = createPeriod("2022-03");

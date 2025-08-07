@@ -153,7 +153,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testUpdataDataValue() throws Exception {
+  void testUpdataDataValue() {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "2");
     addDataValues(dataValueA, dataValueB);
@@ -170,7 +170,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteAndGetDataValue() throws Exception {
+  void testDeleteAndGetDataValue() {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouD, optionCombo, optionCombo, "3");
@@ -512,7 +512,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataValueCountLastUpdatedBetween() throws Exception {
+  void testGetDataValueCountLastUpdatedBetween() {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "3");

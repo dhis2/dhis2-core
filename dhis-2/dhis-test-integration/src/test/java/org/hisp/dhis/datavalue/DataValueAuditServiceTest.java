@@ -339,7 +339,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled
-  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() throws Exception {
+  void testGetDataValueAuditWithFakeCreateDeleteAndUndelete() {
     DataElement dataElement = createDataElement('F');
     DataValue dataValue =
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");

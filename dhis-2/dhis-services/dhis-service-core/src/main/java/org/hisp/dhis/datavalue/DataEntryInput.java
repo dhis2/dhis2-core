@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import lombok.AccessLevel;
@@ -87,7 +88,7 @@ public final class DataEntryInput {
       XMLReader dvs = XMLFactory.getXMLReader(wrapAndCheckCompressionFormat(in));
       XMLStreamReader reader = dvs.getXmlStreamReader();
       while (reader.hasNext()) {
-        if (reader.next() == XMLStreamReader.START_ELEMENT) {
+        if (reader.next() == XMLStreamConstants.START_ELEMENT) {
           String rootTag = reader.getLocalName();
           if ("dataValueSet".equals(rootTag)) return fromDxf2Xml(dvs, options);
           if ("adx".equals(rootTag)) return fromAdxXml(dvs, options);

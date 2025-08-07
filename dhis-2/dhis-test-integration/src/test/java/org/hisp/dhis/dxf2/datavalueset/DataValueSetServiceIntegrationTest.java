@@ -751,7 +751,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValuesUpdateIgnore)),
             transitory());
 
-    assertEquals(3, summary.succeeded());
+    assertEquals(3, summary2.succeeded());
 
     // then the ignore count should be 2 and the updated count should be 1
     assertImportDataValues(new ImportSummary());

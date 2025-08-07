@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,15 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataapproval.DataApproval;
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -152,22 +147,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     assertEquals("DataSet" + uniqueCharacter, dataSet.getName());
     assertEquals("DataSetShort" + uniqueCharacter, dataSet.getShortName());
     assertEquals(periodType, dataSet.getPeriodType());
-  }
-
-  private void approveData(DataSet dataSet, Period period, OrganisationUnit unit) {
-    DataApprovalLevel level = new DataApprovalLevel("Level A", unit.getLevel(), null);
-    levelService.addDataApprovalLevel(level);
-    DataApprovalWorkflow workflow =
-        new DataApprovalWorkflow(
-            "Workflow A", period.getPeriodType(), categoryCombo, newHashSet(level));
-    dataApprovalService.addWorkflow(workflow);
-    dataSet.assignWorkflow(workflow);
-    dataSet.addOrganisationUnit(unit);
-    dataSetService.updateDataSet(dataSet);
-    DataApproval approval =
-        new DataApproval(
-            level, workflow, period, unit, attributeOptionCombo, false, new Date(), superUser);
-    approvalService.approveData(newArrayList(approval));
   }
 
   // -------------------------------------------------------------------------

@@ -138,8 +138,6 @@ class DataValueListenerTest extends TestBase {
 
   private DataValue fetchedDataValue;
 
-  private DataValue updatedDataValue;
-
   private DataElement dataElement;
 
   private DataElement dataElementB;
