@@ -144,11 +144,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Captor private ArgumentCaptor<String> sql;
 
   private static final String DEFAULT_COLUMNS =
-      "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
-          + "createdbydisplayname"
-          + ","
-          + "lastupdatedbydisplayname"
-          + ",lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
+      """
+      enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,\
+      lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),\
+      longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus""";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 

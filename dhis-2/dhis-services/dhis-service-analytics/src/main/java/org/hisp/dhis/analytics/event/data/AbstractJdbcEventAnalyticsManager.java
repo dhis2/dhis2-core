@@ -924,6 +924,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * Returns an encoded column name.
    *
    * @param item the {@link QueryItem}.
+   * @return the encoded column name.
    */
   protected String getColumn(QueryItem item) {
     return quoteAlias(item.getItemName());
@@ -938,6 +939,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param item the {@link QueryItem}.
    * @param startDate the start date.
    * @param endDate the end date.
+   * @return a SQL select statement.
    */
   protected String getSelectSql(QueryFilter filter, QueryItem item, Date startDate, Date endDate) {
     if (item.isProgramIndicator()) {
@@ -950,6 +952,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
+  /**
+   * Returns a SQL statement.
+   *
+   * @param filter the {@link QueryFilter}.
+   * @param item the {@link QueryItem}.
+   * @param params the {@link EventQueryParams}.
+   * @return a SQL select statement.
+   */
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
