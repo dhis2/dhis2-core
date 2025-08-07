@@ -316,7 +316,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public DataEntryValue.Input getPartialDataValue(
+  public DataEntryValue getPartialDataValue(
       @Nonnull UID dataElement,
       @Nonnull UID orgUnit,
       @CheckForNull UID categoryOptionCombo,
@@ -332,32 +332,29 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         AND dv.attributeoptioncomboid = (SELECT aoc.categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
         AND dv.periodid = (SELECT pe.periodid FROM period pe WHERE pe.iso = :iso)
       """;
-    String de = dataElement.getValue();
-    String ou = orgUnit.getValue();
-    UID defaultCoc =
-        categoryOptionCombo == null || attributeOptionCombo == null
-            ? getDefaultCategoryOptionComboUid()
-            : null;
-    String coc =
-        categoryOptionCombo == null ? defaultCoc.getValue() : categoryOptionCombo.getValue();
-    String aoc =
-        attributeOptionCombo == null ? defaultCoc.getValue() : attributeOptionCombo.getValue();
+    if (categoryOptionCombo == null) categoryOptionCombo = getDefaultCategoryOptionComboUid();
+    if (attributeOptionCombo == null) attributeOptionCombo = getDefaultCategoryOptionComboUid();
     List<Object[]> rows =
         createNativeRawQuery(sql)
-            .setParameter("de", de)
-            .setParameter("ou", ou)
-            .setParameter("coc", coc)
-            .setParameter("aoc", aoc)
+            .setParameter("de", dataElement.getValue())
+            .setParameter("ou", orgUnit.getValue())
+            .setParameter("coc", categoryOptionCombo.getValue())
+            .setParameter("aoc", attributeOptionCombo.getValue())
             .setParameter("pe", period)
             .list();
     if (rows.isEmpty()) return null; // does not exist
     Object[] row0 = rows.get(0);
-    String value = (String) row0[0];
-    String comment = (String) row0[1];
-    Boolean followUp = (Boolean) row0[2];
-    Boolean deleted = (Boolean) row0[3];
-    return new DataEntryValue.Input(
-        de, ou, coc, null, aoc, null, null, period, value, comment, followUp, deleted);
+    return new DataEntryValue(
+        0,
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        attributeOptionCombo,
+        period,
+        (String) row0[0],
+        (String) row0[1],
+        (Boolean) row0[2],
+        (Boolean) row0[3]);
   }
 
   @Override

@@ -237,17 +237,19 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
       String value = dv.value();
       String comment = dv.comment();
       Boolean followUp = dv.followUp();
+      Boolean deleted = dv.deleted();
       // auto-fill current value on partial update
-      if (partial && (value == null || comment == null || followUp == null)) {
+      if (partial && (value == null || comment == null || followUp == null || deleted == null)) {
         // note: this is done 1 by 1 assuming this never sees much use in true bulk
-        DataEntryValue.Input dvOld = store.getPartialDataValue(de, ou, coc, aoc, pe);
+        DataEntryValue dvOld = store.getPartialDataValue(de, ou, coc, aoc, pe);
         if (dvOld == null) throw new BadRequestException(ErrorCode.E8128, i, dv);
         if (value == null) value = dvOld.value();
         if (comment == null) comment = dvOld.comment();
         if (followUp == null) followUp = dvOld.followUp();
+        if (deleted == null) deleted = dvOld.deleted();
       }
       // add the value
-      decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, null));
+      decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, deleted));
     }
     return new DataEntryGroup(ds, decoded);
   }
@@ -289,10 +291,24 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
   }
 
   @Override
+  @Transactional
   public int upsertValues(DataValue... values) {
     if (values == null || values.length == 0) return 0;
-
     return store.upsertValues(DataValue.toDataEntryValues(List.of(values)));
+  }
+
+  @Override
+  @Transactional
+  public int upsertValues(DataEntryValue... values) {
+    if (values == null || values.length == 0) return 0;
+    return store.upsertValues(List.of(values));
+  }
+
+  @Override
+  @Transactional
+  public int upsertValues(DataEntryValue.Input... values) throws BadRequestException {
+    if (values == null || values.length == 0) return 0;
+    return store.upsertValues(decodeGroup(new DataEntryGroup.Input(List.of(values))).values());
   }
 
   @Override

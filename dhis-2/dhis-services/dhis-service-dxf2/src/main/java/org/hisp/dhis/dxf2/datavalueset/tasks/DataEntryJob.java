@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DataValueSetImportJob implements Job {
+public class DataEntryJob implements Job {
 
   private final FileResourceService fileResourceService;
   private final Notifier notifier;

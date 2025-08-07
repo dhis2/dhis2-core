@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.datavalue;
 
+import org.hisp.dhis.feedback.BadRequestException;
+
 /**
  * In contrast to data entry as handled by {@link DataEntryService} this service is used when data
  * should be written to database more directly without the validation constraints that data entry
@@ -54,4 +56,8 @@ public interface DataInjectionService {
    * @return number of values written
    */
   int upsertValues(DataValue... values);
+
+  int upsertValues(DataEntryValue... values);
+
+  int upsertValues(DataEntryValue.Input... values) throws BadRequestException;
 }

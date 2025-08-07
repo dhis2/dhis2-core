@@ -112,5 +112,29 @@ public record DataEntryValue(
       @CheckForNull String value,
       @CheckForNull String comment,
       @CheckForNull Boolean followUp,
-      @CheckForNull Boolean deleted) {}
+      @CheckForNull Boolean deleted) {
+
+    public Input(
+        String dataElement,
+        String orgUnit,
+        String categoryOptionCombo,
+        String attributeOptionCombo,
+        String period,
+        String value,
+        String comment) {
+      this(
+          dataElement,
+          orgUnit,
+          categoryOptionCombo,
+          null,
+          attributeOptionCombo,
+          null,
+          null,
+          period,
+          value,
+          comment,
+          null,
+          null);
+    }
+  }
 }

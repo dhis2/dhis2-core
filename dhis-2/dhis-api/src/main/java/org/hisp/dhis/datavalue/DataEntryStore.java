@@ -178,7 +178,7 @@ public interface DataEntryStore {
    * @return the current value for the given key or null if no such value exists
    */
   @CheckForNull
-  DataEntryValue.Input getPartialDataValue(
+  DataEntryValue getPartialDataValue(
       @Nonnull UID dataElement,
       @Nonnull UID orgUnit,
       @CheckForNull UID categoryOptionCombo,
