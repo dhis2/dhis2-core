@@ -44,7 +44,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -301,14 +300,6 @@ public interface UserService {
   User getUserByOpenId(@Nonnull String openId);
 
   /**
-   * Retrieves the User associated with the User with the given LDAP ID.
-   *
-   * @param ldapId the ldapId of the User.
-   * @return the User.
-   */
-  User getUserByLdapId(String ldapId);
-
-  /**
    * Encodes and sets the password of the User. Due to business logic required on password updates
    * the password for a user should only be changed using this method or {@link
    * #encodeAndSetPassword(User, String) encodeAndSetPassword} and not directly on the User or User
@@ -376,12 +367,12 @@ public interface UserService {
   void updateUserRole(UserRole userRole);
 
   /**
-   * Retrieves the UserRole with the given identifier.
+   * Updates a UserRole.
    *
-   * @param id the identifier of the UserRole to retrieve.
-   * @return the UserRole.
+   * @param userRole the UserRole.
+   * @param userDetails the UserDetails to update with
    */
-  UserRole getUserRole(long id);
+  void updateUserRole(UserRole userRole, UserDetails userDetails);
 
   /**
    * Retrieves the UserRole with the given identifier.
@@ -398,50 +389,6 @@ public interface UserService {
    * @return the UserRole.
    */
   UserRole getUserRoleByName(String name);
-
-  /**
-   * Deletes a UserRole.
-   *
-   * @param userRole the UserRole to delete.
-   */
-  void deleteUserRole(UserRole userRole);
-
-  /**
-   * Retrieves all UserRole.
-   *
-   * @return a List of UserRole.
-   */
-  List<UserRole> getAllUserRoles();
-
-  /**
-   * Retrieves UserRole with the given UIDs.
-   *
-   * @param uids the UIDs.
-   * @return a List of UserRolea.
-   */
-  List<UserRole> getUserRolesByUid(@Nonnull Collection<String> uids);
-
-  /**
-   * Retrieves all UserRole.
-   *
-   * @return a List of UserRole.
-   */
-  List<UserRole> getUserRolesBetween(int first, int max);
-
-  /**
-   * Retrieves all UserRole.
-   *
-   * @return a List of UserRoles.
-   */
-  List<UserRole> getUserRolesBetweenByName(String name, int first, int max);
-
-  /**
-   * Returns the number of UserRoles which are associated with the given DataSet.
-   *
-   * @param dataSet the DataSet.
-   * @return number of UserRoles.
-   */
-  int countDataSetUserRoles(DataSet dataSet);
 
   /**
    * @return IDs of the roles the current user can issue
@@ -587,14 +534,6 @@ public interface UserService {
    * @return list of linked user accounts.
    */
   List<UserLookup> getLinkedUserAccounts(@Nonnull User actingUser);
-
-  /**
-   * List all sessions of the user.
-   *
-   * @param userUid the user UID.
-   * @return a list of SessionInformation.
-   */
-  List<SessionInformation> listSessions(String userUid);
 
   /**
    * List all sessions of the user.
@@ -807,15 +746,6 @@ public interface UserService {
   boolean canCreatePrivate(String type);
 
   /**
-   * Checks whether current user can view instances of the object. Depends on system setting for
-   * require add to view objects.
-   *
-   * @param type Type to check for view access.
-   * @return true of false depending on outcome of check.
-   */
-  boolean canView(String type);
-
-  /**
    * Checks whether current user has update access to object.
    *
    * @param identifiableObject Object to check for update access.
@@ -863,8 +793,6 @@ public interface UserService {
    */
   boolean canDataRead(IdentifiableObject identifiableObject);
 
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
-
   /**
    * Generate a new email verification token for the user and set it on the user object.
    *
@@ -890,14 +818,6 @@ public interface UserService {
    * @return true if the email was verified successfully, false otherwise.
    */
   boolean verifyEmail(String token);
-
-  /**
-   * Check if the current user has verified their email address.
-   *
-   * @param currentUser the current user.
-   * @return true if the email is verified, false otherwise.
-   */
-  boolean isEmailVerified(User currentUser);
 
   /**
    * Retrieves the user associated with the given email verification token.
@@ -936,10 +856,9 @@ public interface UserService {
    * @param existingUser the user to replicate
    * @param username the username for the new user
    * @param password the password for the new user
-   * @param currentUser the current user performing the replication
    * @return the newly created user replica
    * @throws ConflictException if validation fails
    */
-  User replicateUser(User existingUser, String username, String password, UserDetails currentUser)
+  User replicateUser(User existingUser, String username, String password)
       throws ConflictException, NotFoundException, BadRequestException;
 }

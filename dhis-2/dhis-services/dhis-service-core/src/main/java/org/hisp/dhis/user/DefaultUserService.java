@@ -87,7 +87,6 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -560,20 +559,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void deleteUserRole(UserRole userRole) {
-    userRoleStore.delete(userRole);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getAllUserRoles() {
-    return userRoleStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserRole getUserRole(long id) {
-    return userRoleStore.get(id);
+  public void updateUserRole(UserRole userRole, UserDetails userDetails) {
+    userRoleStore.update(userRole, userDetails);
   }
 
   @Override
@@ -586,30 +573,6 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public UserRole getUserRoleByName(String name) {
     return userRoleStore.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesByUid(@Nonnull Collection<String> uids) {
-    return userRoleStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesBetween(int first, int max) {
-    return userRoleStore.getAllOrderedName(first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesBetweenByName(String name, int first, int max) {
-    return userRoleStore.getAllLikeName(name, first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataSetUserRoles(DataSet dataSet) {
-    return userRoleStore.countDataSetUserRoles(dataSet);
   }
 
   @Override
@@ -681,12 +644,6 @@ public class DefaultUserService implements UserService {
     }
 
     return user;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByLdapId(String ldapId) {
-    return userStore.getUserByLdapId(ldapId);
   }
 
   @Override
@@ -990,11 +947,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
-    return userStore.getCurrentUserGroupInfo(userUID);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public User getUserByEmail(String email) {
     return userStore.getUserByEmail(email);
@@ -1045,15 +997,6 @@ public class DefaultUserService implements UserService {
     }
 
     return userLookups;
-  }
-
-  @Override
-  public List<SessionInformation> listSessions(String userUID) {
-    User user = userStore.getByUid(userUID);
-    if (user == null) {
-      return List.of();
-    }
-    return sessionRegistry.getAllSessions(createUserDetails(user), true);
   }
 
   @Override
@@ -1410,13 +1353,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public boolean canView(String type) {
-    boolean requireAddToView = settingsProvider.getCurrentSettings().getRequireAddToView();
-
-    return !requireAddToView || (canCreatePrivate(type) || canCreatePublic(type));
-  }
-
-  @Override
   public boolean canCreatePrivate(String type) {
     Class<? extends IdentifiableObject> klass = aclService.classForType(type);
 
@@ -1558,11 +1494,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public boolean isEmailVerified(User user) {
-    return user.isEmailVerified();
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public User getUserByVerifiedEmail(String email) {
     return userStore.getUserByVerifiedEmail(email);
@@ -1576,9 +1507,10 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public User replicateUser(
-      User existingUser, String username, String password, UserDetails currentUser)
+  public User replicateUser(User existingUser, String username, String password)
       throws ConflictException, NotFoundException, BadRequestException {
+
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (!ValidationUtils.usernameIsValid(username, false)) {
       throw new ConflictException("Username is not valid");
@@ -1611,7 +1543,14 @@ public class DefaultUserService implements UserService {
     userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
-    userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
+
+    Set<String> allowedKeys = UserSettings.keysWithDefaults();
+    Map<String, String> filteredMap =
+        settings.toMap().entrySet().stream()
+            .filter(e -> allowedKeys.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    userSettingsService.putAll(filteredMap, userReplica.getUsername());
 
     return userReplica;
   }

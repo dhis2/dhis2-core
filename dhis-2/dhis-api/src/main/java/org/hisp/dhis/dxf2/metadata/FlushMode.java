@@ -33,9 +33,9 @@ package org.hisp.dhis.dxf2.metadata;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum FlushMode {
-  /** Flush for every db write. */
-  OBJECT,
-
   /** Let the importer decide the flushing. */
   AUTO,
+
+  /** Flush for every db write. */
+  OBJECT,
 }
