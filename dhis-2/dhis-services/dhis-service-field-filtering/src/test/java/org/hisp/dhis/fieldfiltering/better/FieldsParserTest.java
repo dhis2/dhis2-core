@@ -550,13 +550,24 @@ class FieldsParserTest {
     assertFalse(fields.includes("relationships.from.value"));
   }
 
-  // TODO(ivo) transformers: disallow duplicate transformers per field (write down current behavior)
   @Test
   void betterParserFailsOnMissingRequiredTransformerArg() {
     Exception exception =
         assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse("field1::rename"));
 
     assertContains("rename applied to field", exception.getMessage());
+  }
+
+  @Test
+  void betterParserFailsOnDuplicateTransformers() {
+    Exception exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                FieldsParser.parse(
+                    "field1::isEmpty~isEmpty,field2::isNotEmpty,field3::size::size"));
+
+    assertContains("Duplicate transformers", exception.getMessage());
   }
 
   @Test

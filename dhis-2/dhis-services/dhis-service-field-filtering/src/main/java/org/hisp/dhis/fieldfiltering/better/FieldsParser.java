@@ -44,6 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.schema.Schema;
 
 public class FieldsParser {
@@ -362,29 +363,37 @@ public class FieldsParser {
 
   private static Map<String, List<Fields.Transformation>> mapTransformations(
       Map<String, List<Transformation>> transformations) {
-    Set<String> unknown =
+    String unknown =
         transformations.entrySet().stream()
             .flatMap(e -> e.getValue().stream())
             .map(t -> t.name)
             .filter(n -> !FieldsTransformer.TRANSFORMERS.containsKey(n))
-            .collect(Collectors.toSet());
+            .collect(Collectors.joining(", "));
     if (!unknown.isEmpty()) {
       throw new IllegalArgumentException(
           "Invalid field transformer(s): "
-              + String.join(", ", unknown)
+              + unknown
               + ". Valid ones are: "
               + FieldsTransformer.TRANSFORMERS.keySet());
     }
 
-    // TODO(ivo) fail on duplicate transformations per field
-    //    Set<String> duplicates = CollectionUtils.findDuplicates(names);
-    //    if (!duplicates.isEmpty()){
-    //      throw new IllegalArgumentException(
-    //          "Invalid field transformer(s): "
-    //              + unknown
-    //              + ". Valid ones are: "
-    //              + FieldsTransformer.TRANSFORMERS.keySet());
-    //    }
+    String duplicates =
+        transformations.entrySet().stream()
+            .map(
+                e -> {
+                  Set<String> transformers =
+                      CollectionUtils.findDuplicates(
+                          e.getValue().stream().map(t -> t.name).toList());
+                  if (!transformers.isEmpty()) {
+                    return "'" + e.getKey() + "' " + String.join(", ", transformers);
+                  }
+                  return null;
+                })
+            .filter(Objects::nonNull)
+            .collect(Collectors.joining(", "));
+    if (!duplicates.isEmpty()) {
+      throw new IllegalArgumentException("Duplicate transformers for fields: " + duplicates + ".");
+    }
 
     String errors =
         transformations.entrySet().stream()

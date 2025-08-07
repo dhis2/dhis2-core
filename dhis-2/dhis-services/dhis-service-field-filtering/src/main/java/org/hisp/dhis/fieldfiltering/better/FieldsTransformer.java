@@ -103,42 +103,46 @@ public class FieldsTransformer {
     if (!parent.isObject()) {
       return;
     }
+    if (!value.isArray()) {
+      return;
+    }
 
     if (key == null) {
       key = "id";
     }
 
-    if (value.isArray()) {
-      ObjectNode objectNode = ((ArrayNode) value).arrayNode().objectNode();
+    ObjectNode objectNode = ((ArrayNode) value).arrayNode().objectNode();
 
-      for (JsonNode node : value) {
-        if (node.isObject() && node.has(key)) {
-          String propertyName = node.get(key).asText();
+    for (JsonNode node : value) {
+      if (node.isObject() && node.has(key)) {
+        String propertyName = node.get(key).asText();
 
-          if (!objectNode.has(propertyName) && StringUtils.hasText(propertyName)) {
-            objectNode.set(propertyName, node);
-          } else if (objectNode.has(propertyName)) {
-            JsonNode jsonNode = objectNode.get(propertyName);
+        if (!objectNode.has(propertyName) && StringUtils.hasText(propertyName)) {
+          objectNode.set(propertyName, node);
+        } else if (objectNode.has(propertyName)) {
+          JsonNode jsonNode = objectNode.get(propertyName);
 
-            if (jsonNode.isArray()) {
-              ((ArrayNode) jsonNode).add(node);
-            } else {
-              ArrayNode arrayNode = objectNode.arrayNode();
-              arrayNode.add(jsonNode);
-              arrayNode.add(node);
+          if (jsonNode.isArray()) {
+            ((ArrayNode) jsonNode).add(node);
+          } else {
+            ArrayNode arrayNode = objectNode.arrayNode();
+            arrayNode.add(jsonNode);
+            arrayNode.add(node);
 
-              objectNode.set(propertyName, arrayNode);
-            }
+            objectNode.set(propertyName, arrayNode);
           }
         }
       }
-
-      ((ObjectNode) parent).replace(field, objectNode);
     }
+
+    ((ObjectNode) parent).replace(field, objectNode);
   }
 
   public static void pluck(String field, JsonNode parent, JsonNode value, String pluckField) {
     if (!parent.isObject()) {
+      return;
+    }
+    if (!value.isArray()) {
       return;
     }
 
@@ -146,19 +150,17 @@ public class FieldsTransformer {
       pluckField = "id";
     }
 
-    if (value.isArray()) {
-      ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
+    ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
 
-      for (JsonNode node : value) {
-        if (node.isObject() && node.has(pluckField)) {
-          arrayNode.add(node.get(pluckField));
-        } else {
-          arrayNode.add(node);
-        }
+    for (JsonNode node : value) {
+      if (node.isObject() && node.has(pluckField)) {
+        arrayNode.add(node.get(pluckField));
+      } else {
+        arrayNode.add(node);
       }
-
-      ((ObjectNode) parent).replace(field, arrayNode);
     }
+
+    ((ObjectNode) parent).replace(field, arrayNode);
   }
 
   public static void rename(String field, JsonNode parent, JsonNode value, String argument) {
@@ -189,7 +191,7 @@ public class FieldsTransformer {
   }
 
   public static String requireOneArg(
-      @Nonnull String transformer, String field, @Nullable String... arguments) {
+      @Nonnull String transformer, @Nonnull String field, @Nullable String... arguments) {
     if (arguments == null) {
       return transformer
           + " applied to field "
