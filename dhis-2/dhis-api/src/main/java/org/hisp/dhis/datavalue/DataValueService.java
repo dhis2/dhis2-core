@@ -33,6 +33,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -212,4 +213,14 @@ public interface DataValueService {
    * @return true, if any value exist, otherwise false
    */
   boolean dataValueExists(CategoryCombo combo);
+
+  /**
+   * If a CategoryCombo is being updated, check whether it has any associated data, which may become
+   * inaccessible if new CategoryOptionCombos are created.
+   *
+   * @param entity existing entity
+   * @param newEntity new/updated entity
+   */
+  void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
+      throws ConflictException;
 }
