@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -183,7 +183,7 @@ public abstract class TimeFieldSqlRenderer {
   private String getDateRangeCondition(
       ColumnWithDateRange dateRangeColumn, EventQueryParams params) {
     String dateRangeColumnName = dateRangeColumn.getColumn();
-    if (handleEnrollmentOrgUnitFilter(params)) {
+    if (hasEnrollmentOrgUnitFilter(params)) {
       dateRangeColumnName = "ax." + dateRangeColumnName;
     }
 

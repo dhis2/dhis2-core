@@ -59,7 +59,7 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.handleEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
@@ -525,7 +525,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
-      } else if (handleEnrollmentOrgUnitFilter(params, queryItem)) {
+      } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, queryItem)) {
         return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
         return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
@@ -958,7 +958,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
-    } else if (handleEnrollmentOrgUnitFilter(params, item)) {
+    } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, item)) {
       return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
@@ -1083,7 +1083,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
 
     String join = EMPTY;
-    if (handleEnrollmentOrgUnitFilter(params)) {
+    if (hasEnrollmentOrgUnitFilter(params)) {
       join =
           " join analytics_event_"
               + params.getProgram().getUid()

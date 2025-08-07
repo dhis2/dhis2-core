@@ -53,7 +53,7 @@ public class EnrollmentOrgUnitFilterHandler {
    * @param item the {@link QueryItem}.
    * @return true if handling is required, false otherwise.
    */
-  public static boolean handleEnrollmentOrgUnitFilter(EventQueryParams params, QueryItem item) {
+  public static boolean hasEnrollmentOrgUnitFilter(EventQueryParams params, QueryItem item) {
     return params.hasOrgUnitFilterInItem()
         && params.getEndpointAction() == AGGREGATE
         && params.getEndpointItem() == ENROLLMENT
@@ -66,7 +66,7 @@ public class EnrollmentOrgUnitFilterHandler {
    * @param params the {@link EventQueryParams}.
    * @return true if handling is required, false otherwise.
    */
-  public static boolean handleEnrollmentOrgUnitFilter(EventQueryParams params) {
+  public static boolean hasEnrollmentOrgUnitFilter(EventQueryParams params) {
     return params.hasOrgUnitFilterInItem()
         && params.getEndpointAction() == AGGREGATE
         && params.getEndpointItem() == ENROLLMENT;
