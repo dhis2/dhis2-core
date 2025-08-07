@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import javax.annotation.Nullable;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
+import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.springframework.stereotype.Component;
 
-/**
- * Web API equivalent of an {@code ImportSummary}.
- *
- * @author Jan Bernitt
- */
-public interface JsonImportSummary extends JsonObject {
-  default String getResponseType() {
-    return getString("responseType").string();
+@Component
+@RequiredArgsConstructor
+public class CategoryComboObjectBundleHook extends AbstractObjectBundleHook<CategoryCombo> {
+
+  private final DataValueService dataValueService;
+
+  @Override
+  public void validate(CategoryCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    checkIfDataBecomesInaccessible(combo, bundle, addReports);
   }
 
-  default String getStatus() {
-    return getString("status").string();
-  }
+  private void checkIfDataBecomesInaccessible(
+      CategoryCombo updatedCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    CategoryCombo existingCombo = bundle.getPreheat().get(PreheatIdentifier.UID, updatedCombo);
 
-  default JsonStats getStats() {
-    return get("stats", JsonStats.class);
-  }
-
-  default JsonList<JsonTypeReport> getTypeReports() {
-    return getList("typeReports", JsonTypeReport.class);
-  }
-
-  default <T extends IdentifiableObject> @Nullable JsonTypeReport getTypeReport(Class<T> clazz) {
-    return getList("typeReports", JsonTypeReport.class).stream()
-        .filter(tr -> tr.getString("klass").string().equals(clazz.getName()))
-        .findFirst()
-        .orElse(null);
-  }
-
-  default JsonImportCount getImportCount() {
-    return get("importCount", JsonImportCount.class);
-  }
-
-  default JsonList<JsonImportConflict> getConflicts() {
-    return getList("conflicts", JsonImportConflict.class);
+    try {
+      dataValueService.checkNoDataValueBecomesInaccessible(existingCombo, updatedCombo);
+    } catch (ConflictException e) {
+      addReports.accept(
+          new ErrorReport(CategoryCombo.class, ErrorCode.E1120, existingCombo.getName()));
+    }
   }
 }
