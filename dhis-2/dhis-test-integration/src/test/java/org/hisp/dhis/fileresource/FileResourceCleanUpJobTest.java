@@ -32,6 +32,7 @@ package org.hisp.dhis.fileresource;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +42,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
@@ -87,6 +89,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
+  @Autowired private DataInjectionService dataInjectionService;
+
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
@@ -124,7 +128,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     dataValueA = createFileResourceDataValue('A', content);
     assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
 
-    dataValueService.deleteDataValue(dataValueA);
+    deleteDataValue(dataValueA);
 
     cleanUpJob.execute(null, JobProgress.noop());
 
@@ -149,7 +153,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     content = "fileResourceC".getBytes(StandardCharsets.UTF_8);
     FileResource fileResource = createFileResource('C', content);
     dataValueB.setValue(fileResource.getUid());
-    dataValueService.updateDataValue(dataValueB);
+    addDataValues(dataValueB);
     fileResource.setAssigned(true);
 
     DataValueAudit audit = dataValueAuditService.getDataValueAudits(dataValueB).get(0);
@@ -261,7 +265,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
 
     fileResourceService.updateFileResource(fileResource);
-    dataValueService.addDataValue(dataValue);
+    addDataValues(dataValue);
 
     return dataValue;
   }
@@ -278,5 +282,15 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
     fileResourceService.updateFileResource(fileResource);
     return externalFileResource;
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
+  }
+
+  private void deleteDataValue(DataValue dv) {
+    dv.setDeleted(true);
+    addDataValues(dv);
   }
 }

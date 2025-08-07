@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -68,12 +69,15 @@ import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -146,6 +150,8 @@ public class DataAnalysisController {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataValueService dataValueService;
+
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private StdDevOutlierAnalysisService stdDevOutlierAnalysisService;
 
@@ -413,7 +419,8 @@ public class DataAnalysisController {
 
   @PostMapping(value = "/followup/mark", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public @ResponseBody void markDataValues(@RequestBody UpdateFollowUpForDataValuesRequest params) {
+  public @ResponseBody void markDataValues(@RequestBody UpdateFollowUpForDataValuesRequest params)
+      throws ConflictException {
     log.info("markDataValues from DataAnalysisController input " + params);
 
     List<DataValue> dataValues = new ArrayList<>();
@@ -437,8 +444,11 @@ public class DataAnalysisController {
       }
     }
 
-    if (dataValues.size() > 0) {
-      dataValueService.updateDataValues(dataValues);
+    if (!dataValues.isEmpty()) {
+      dataEntryService.upsertGroup(
+          new DataEntryGroup.Options(false, true, false),
+          new DataEntryGroup(null, DataValue.toDataEntryValues(dataValues)),
+          transitory());
     }
   }
 

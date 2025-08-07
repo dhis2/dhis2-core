@@ -37,14 +37,17 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -72,14 +75,14 @@ public class DataSetValueController {
 
   private final MinMaxDataElementService minMaxValueService;
 
-  private final DataSetService dataSetService;
+  private final DataEntryService dataEntryService;
 
   private final CompleteDataSetRegistrationService registrationService;
 
   private final DataValidator dataValidator;
 
   @GetMapping("/dataValues")
-  public DataValuesDto getDataValueSet(DataSetValueQueryParams params) {
+  public DataValuesDto getDataValueSet(DataSetValueQueryParams params) throws ConflictException {
     DataSet ds = dataValidator.getAndValidateDataSet(params.getDs());
     Period pe = dataValidator.getAndValidatePeriod(params.getPe());
     OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
@@ -98,7 +101,11 @@ public class DataSetValueController {
     List<MinMaxDataElement> minMaxValues =
         minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
 
-    LockStatus lockStatus = dataSetService.getLockStatus(ds, pe, ou, ao);
+    // de is not relevant but required, so we use any of the set
+    UID de = UID.of(ds.getDataElements().iterator().next());
+    LockStatus lockStatus =
+        dataEntryService.getEntryStatus(
+            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(ao), pe.getIsoDate()));
 
     CompleteDataSetRegistration registration =
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, ao);

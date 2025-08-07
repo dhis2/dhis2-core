@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
+import javax.annotation.CheckForNull;
 
 /**
- * Reads {@link DataValueSet} from PDF input.
+ * A data value tuple when doing an insert or update operation.
  *
- * @author Jan Bernitt
+ * @since 2.43
  */
-@AllArgsConstructor
-final class PdfDataValueSetReader implements DataValueSetReader {
-  private final InputStream in;
-
-  @Override
-  public DataValueSet readHeader() {
-    return PdfDataEntryFormUtil.getDataValueSet(in);
-  }
-
-  @Override
-  public DataValueEntry readNext() {
-    return null; // header contains the values
-  }
-
-  @Override
-  public void close() {
-    try {
-      in.close();
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
-  }
-}
+public record DataEntryRow(
+    long de,
+    long pe,
+    long ou,
+    long coc,
+    long aoc,
+    @CheckForNull String value,
+    @CheckForNull String comment,
+    @CheckForNull Boolean followup,
+    boolean deleted) {}

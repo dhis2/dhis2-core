@@ -45,9 +45,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 @JacksonXmlRootElement(localName = "importSummary", namespace = DxfNamespaces.DXF_2_0)
 @OpenApi.Shared(name = "ImportTypesSummary")
 public class ImportSummary {
-  private ImportCount importCount = new ImportCount();
+  private final ImportCount importCount = new ImportCount();
 
-  private List<ImportTypeSummary> importTypeSummaries = new ArrayList<>();
+  private final List<ImportTypeSummary> importTypeSummaries = new ArrayList<>();
 
   public ImportSummary() {}
 
@@ -57,10 +57,6 @@ public class ImportSummary {
     return importCount;
   }
 
-  public void setImportCount(ImportCount importCount) {
-    this.importCount = importCount;
-  }
-
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "typeSummaries", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "typeSummary", namespace = DxfNamespaces.DXF_2_0)
@@ -68,20 +64,9 @@ public class ImportSummary {
     return importTypeSummaries;
   }
 
-  public void setImportTypeSummaries(List<ImportTypeSummary> importTypeSummaries) {
-    this.importTypeSummaries = importTypeSummaries;
-  }
-
   // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
-
-  public void incrementImportCount(ImportCount importCount) {
-    this.importCount.incrementImported(importCount.getImported());
-    this.importCount.incrementUpdated(importCount.getUpdated());
-    this.importCount.incrementIgnored(importCount.getIgnored());
-    this.importCount.incrementDeleted(importCount.getDeleted());
-  }
 
   @Override
   public String toString() {

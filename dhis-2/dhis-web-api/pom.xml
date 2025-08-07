@@ -132,10 +132,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.jclouds</groupId>
-      <artifactId>jclouds-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.vdurmont</groupId>
       <artifactId>semver4j</artifactId>
     </dependency>

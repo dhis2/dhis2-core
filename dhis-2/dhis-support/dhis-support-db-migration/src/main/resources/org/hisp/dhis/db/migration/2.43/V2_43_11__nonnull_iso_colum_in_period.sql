@@ -1,0 +1,2 @@
+ALTER TABLE period
+  ALTER COLUMN iso SET NOT NULL;

@@ -483,20 +483,21 @@ public abstract class AbstractFullReadOnlyController<
 
   private List<T> getEntityList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query<T> query =
-        BadRequestException.on(
-            QueryParserException.class,
-            () -> queryService.getQueryFromUrl(getEntityClass(), params));
-    query.add(additionalFilters);
+    try {
+      Query<T> query = queryService.getQueryFromUrl(getEntityClass(), params);
+      query.add(additionalFilters);
 
-    query.setDefaultOrder();
-    query.setDefaults(params.getDefaults());
+      query.setDefaultOrder();
+      query.setDefaults(params.getDefaults());
 
-    modifyGetObjectList(params, query);
+      modifyGetObjectList(params, query);
 
-    List<T> res = queryService.query(query);
-    getEntityListPostProcess(params, res);
-    return res;
+      List<T> res = queryService.query(query);
+      getEntityListPostProcess(params, res);
+      return res;
+    } catch (QueryParserException ex) {
+      throw new BadRequestException(ex.getMessage());
+    }
   }
 
   protected void modifyGetObjectList(P params, Query<T> query) {
@@ -507,13 +508,14 @@ public abstract class AbstractFullReadOnlyController<
 
   private long countGetObjectList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query<T> query =
-        BadRequestException.on(
-            QueryParserException.class,
-            () -> queryService.getQueryFromUrl(getEntityClass(), params));
-    query.add(additionalFilters);
-    modifyGetObjectList(params, query);
-    return queryService.count(query);
+    try {
+      Query<T> query = queryService.getQueryFromUrl(getEntityClass(), params);
+      query.add(additionalFilters);
+      modifyGetObjectList(params, query);
+      return queryService.count(query);
+    } catch (QueryParserException ex) {
+      throw new BadRequestException(ex.getMessage());
+    }
   }
 
   private void cachePrivate(HttpServletResponse response) {

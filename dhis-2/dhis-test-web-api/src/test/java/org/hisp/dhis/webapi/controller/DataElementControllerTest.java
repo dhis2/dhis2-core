@@ -51,7 +51,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
@@ -65,7 +65,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DataElementControllerTest extends H2ControllerIntegrationTestBase {
+class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
 
   CategoryCombo catComboA;
   CategoryCombo catComboB;
@@ -341,6 +341,7 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
                     "name": "ds 3",
                     "shortName": "ds 3",
                     "periodType": "Monthly",
+                    "organisationUnits": [{"id": "OrgUnitUid3"}],
                     "dataSetElements": [
                         {
                             "dataElement": {

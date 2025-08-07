@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.hisp.dhis.audit.AuditOperationType;
@@ -57,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueAuditService dataValueAuditService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -133,10 +134,8 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueB = createDataValue(dataElementB, periodB, orgUnitB, optionCombo, optionCombo, "2");
     dataValueC = createDataValue(dataElementC, periodC, orgUnitC, optionCombo, optionCombo, "3");
     dataValueD = createDataValue(dataElementD, periodD, orgUnitD, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
   }
 
   @Test
@@ -280,7 +279,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetDataValueAuditWithFakeCreate2() {
     dataValueA.setValue("10");
-    dataValueService.updateDataValue(dataValueA);
+    addDataValues(dataValueA);
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
@@ -325,7 +324,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValueA, "30", dataValueA.getStoredBy(), AuditOperationType.UPDATE));
 
-    dataValueService.deleteDataValue(dataValueA);
+    deleteDataValue(dataValueA);
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
@@ -346,7 +345,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
         createDataValue(dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1");
 
     dataElementService.addDataElement(dataElement);
-    dataValueService.addDataValue(dataValue);
+    addDataValues(dataValue);
 
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValue, "10", dataValue.getStoredBy(), AuditOperationType.UPDATE));
@@ -357,7 +356,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     dataValueAuditService.addDataValueAudit(
         new DataValueAudit(dataValue, "30", dataValue.getStoredBy(), AuditOperationType.UPDATE));
 
-    dataValueService.deleteDataValue(dataValue);
+    deleteDataValue(dataValue);
 
     List<DataValueAudit> audits =
         dataValueAuditService.getDataValueAudits(
@@ -365,7 +364,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(List.of(), audits);
 
-    dataValueService.addDataValue(dataValue);
+    addDataValues(dataValue);
 
     audits =
         dataValueAuditService.getDataValueAudits(
@@ -378,5 +377,15 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     assertEquals(AuditOperationType.UPDATE, audits.get(3).getAuditType());
     assertEquals(AuditOperationType.UPDATE, audits.get(4).getAuditType());
     assertEquals(AuditOperationType.CREATE, audits.get(5).getAuditType());
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
+  }
+
+  private void deleteDataValue(DataValue dv) {
+    dv.setDeleted(true);
+    addDataValues(dv);
   }
 }
