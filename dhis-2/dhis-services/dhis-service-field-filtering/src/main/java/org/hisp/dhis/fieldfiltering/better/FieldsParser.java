@@ -475,12 +475,7 @@ public class FieldsParser {
     }
   }
 
-  public record Transformation(String name, String... arguments) {
-    public Transformation(String name, String... arguments) {
-      this.name = name;
-      this.arguments = arguments.clone();
-    }
-
+  record Transformation(String name, String... arguments) {
     @Override
     public @Nonnull String toString() {
       return name + "(" + String.join(",", arguments) + ")";
