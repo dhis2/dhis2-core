@@ -163,8 +163,6 @@ public class MeController {
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user, GetObjectParams params) {
 
-    UserDetails userDetails = UserDetails.fromUser(user);
-
     List<String> fields = params.getFields();
     if (fields == null || fields.isEmpty()) fields = List.of("*");
 
@@ -177,7 +175,7 @@ public class MeController {
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
     List<String> dataSets =
-        dataSetService.getUserDataRead(userDetails).stream()
+        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
             .map(IdentifiableObject::getUid)
             .toList();
 
