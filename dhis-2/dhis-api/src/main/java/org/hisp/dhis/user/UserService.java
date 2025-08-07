@@ -307,6 +307,13 @@ public interface UserService {
   void updateUserRole(UserRole userRole);
 
   /**
+   * Updates a UserRole without checking ACLs.
+   *
+   * @param userRole the UserRole.
+   */
+  void updateUserRoleNoAcl(UserRole userRole);
+
+  /**
    * Retrieves the UserRole with the given identifier.
    *
    * @param id the identifier of the UserRole to retrieve.
