@@ -131,7 +131,7 @@ class TextUtilsTest {
   void testRemoveLastCommaStringBuilder() {
     StringBuilder nullValue = null;
 
-    assertEquals(null, TextUtils.removeLastComma(nullValue));
+    assertNull(TextUtils.removeLastComma(nullValue));
     assertEquals("", TextUtils.removeLastComma(new StringBuilder()).toString());
     assertEquals("tom", TextUtils.removeLastComma(new StringBuilder("tom")).toString());
     assertEquals("tom,john", TextUtils.removeLastComma(new StringBuilder("tom,john,")).toString());

@@ -37,10 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -88,10 +84,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
 
   private OrganisationUnit unitF;
 
-  private CategoryCombo categoryCombo;
-
-  private CategoryOptionCombo attributeOptionCombo;
-
   private User superUser;
 
   @Autowired private DataSetService dataSetService;
@@ -101,12 +93,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PeriodService periodService;
-
-  @Autowired private DataApprovalService approvalService;
-
-  @Autowired private DataApprovalService dataApprovalService;
-
-  @Autowired private DataApprovalLevelService levelService;
 
   @Autowired private AclService aclService;
 
@@ -131,8 +117,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(unitD);
     organisationUnitService.addOrganisationUnit(unitE);
     organisationUnitService.addOrganisationUnit(unitF);
-    categoryCombo = categoryService.getDefaultCategoryCombo();
-    attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
     superUser =
         createAndAddUser(
