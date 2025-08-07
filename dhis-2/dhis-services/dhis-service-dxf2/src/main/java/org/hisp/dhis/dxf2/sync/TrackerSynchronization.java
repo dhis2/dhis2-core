@@ -183,10 +183,30 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging {
         format("Page %d synchronisation failed.", queryParams.getPage()));
   }
 
+  private void filterOutAttributesMarkedWithSkipSynchronizationFlag(TrackedEntityInstances teis) {
+    for (TrackedEntityInstance tei : teis.getTrackedEntityInstances()) {
+      tei.setAttributes(
+              tei.getAttributes().stream()
+                      .filter(att -> !att.isSkipSynchronization())
+                      .collect(Collectors.toList()));
+
+      tei.setEnrollments(
+              tei.getEnrollments().stream().map(enrollment -> {
+                enrollment.setAttributes(enrollment.getAttributes().stream().filter(att -> !att.isSkipSynchronization()).collect(Collectors.toList()));
+                enrollment.setEvents(enrollment.getEvents().stream().map(event -> {
+                  event.setDataValues(event.getDataValues().stream().filter(dv -> !dv.isSkipSynchronization()).collect(Collectors.toSet()));
+                  return event;
+                }).collect(Collectors.toList()));
+              return enrollment;
+              }).collect(Collectors.toList()));
+    }
+  }
+
   private boolean sendSyncRequest(
       PagedDataSynchronisationContext context, List<TrackedEntityInstance> dtoTeis) {
     TrackedEntityInstances teis = new TrackedEntityInstances();
     teis.setTrackedEntityInstances(dtoTeis);
+    filterOutAttributesMarkedWithSkipSynchronizationFlag(teis);
     SystemInstance instance = context.getInstance();
 
     RequestCallback requestCallback =
