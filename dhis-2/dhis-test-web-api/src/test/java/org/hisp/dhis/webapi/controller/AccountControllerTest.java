@@ -254,7 +254,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(HttpStatus.FOUND, success);
     assertEquals("http://localhost/login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
-    assertTrue(userService.isEmailVerified(user));
+    assertTrue(user.isEmailVerified());
 
     HttpResponse failure = GET("/account/verifyEmail?token=" + token);
     assertStatus(HttpStatus.FOUND, failure);
@@ -275,7 +275,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     assertNotNull(token);
 
     user = userService.getUser(user.getId());
-    assertFalse(userService.isEmailVerified(user));
+    assertFalse(user.isEmailVerified());
   }
 
   @Test
@@ -295,7 +295,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(HttpStatus.FOUND, success);
     assertEquals("http://localhost/login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
-    assertTrue(userService.isEmailVerified(user));
+    assertTrue(user.isEmailVerified());
   }
 
   @Test

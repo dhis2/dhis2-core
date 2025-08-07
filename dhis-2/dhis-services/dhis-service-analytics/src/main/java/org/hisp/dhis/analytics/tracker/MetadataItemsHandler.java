@@ -376,7 +376,7 @@ public class MetadataItemsHandler {
         .forEach(
             item ->
                 metadataItemMap.put(
-                    item.getItemId(),
+                    getItemIdWithProgramStageIdPrefix(item),
                     new MetadataItem(
                         item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
 

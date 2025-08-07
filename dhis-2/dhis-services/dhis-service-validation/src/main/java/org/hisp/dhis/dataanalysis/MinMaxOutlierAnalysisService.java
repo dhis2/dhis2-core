@@ -31,6 +31,7 @@ package org.hisp.dhis.dataanalysis;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;
@@ -58,6 +60,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService")
 public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
+  private static final EnumSet<ValueType> POS_INT_TYPES =
+      EnumSet.of(ValueType.INTEGER_POSITIVE, ValueType.INTEGER_ZERO_OR_POSITIVE);
+
   private final DataAnalysisStore dataAnalysisStore;
 
   private final MinMaxDataElementService minMaxDataElementService;
@@ -95,10 +100,9 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
   public void generateMinMaxValues(
       OrganisationUnit orgUnit, Collection<DataElement> dataElements, Double stdDevFactor) {
     log.info(
-        "Starting min-max value generation, no of data elements: "
-            + dataElements.size()
-            + ", parent: "
-            + orgUnit.getUid());
+        "Starting min-max value generation, data elements: {}, parent: '{}'",
+        dataElements.size(),
+        orgUnit.getUid());
 
     Date from = new DateTime(1, 1, 1, 1, 1).toDate();
 
@@ -129,14 +133,10 @@ public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
                       MathUtils.getHighBound(
                           measures.getStandardDeviation(), stdDevFactor, measures.getAverage()));
 
-          switch (dataElement.getValueType()) {
-            case INTEGER_POSITIVE:
-            case INTEGER_ZERO_OR_POSITIVE:
-              min = Math.max(0, min); // Cannot be < 0
-              break;
-            case INTEGER_NEGATIVE:
-              max = Math.min(0, max); // Cannot be > 0
-              break;
+          if (POS_INT_TYPES.contains(dataElement.getValueType())) {
+            min = Math.max(0, min); // Cannot be < 0
+          } else if (ValueType.INTEGER_NEGATIVE == dataElement.getValueType()) {
+            max = Math.min(0, max); // Cannot be > 0
           }
 
           OrganisationUnit ou = new OrganisationUnit();

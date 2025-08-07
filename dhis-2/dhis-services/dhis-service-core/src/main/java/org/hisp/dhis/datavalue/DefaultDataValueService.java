@@ -32,15 +32,19 @@ package org.hisp.dhis.datavalue;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -212,5 +216,18 @@ public class DefaultDataValueService implements DataValueService {
   @Override
   public boolean dataValueExistsForDataElement(@Nonnull UID uid) {
     return dataValueStore.dataValueExistsForDataElement(uid.getValue());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
+      throws ConflictException {
+
+    Set<String> oldCategories = IdentifiableObjectUtils.getUidsAsSet(entity.getCategories());
+    Set<String> newCategories = IdentifiableObjectUtils.getUidsAsSet(newEntity.getCategories());
+
+    if (!Objects.equals(oldCategories, newCategories) && dataValueStore.dataValueExists(entity)) {
+      throw new ConflictException(ErrorCode.E1120);
+    }
   }
 }
