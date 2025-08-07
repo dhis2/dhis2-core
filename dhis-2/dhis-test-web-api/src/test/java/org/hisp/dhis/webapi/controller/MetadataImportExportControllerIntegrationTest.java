@@ -87,7 +87,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
   @DisplayName(
       "Importing an existing CategoryCombo, which has no data values, with an additional Category succeeds")
   void importingCategoryComboNewCategoryNoDataTest() {
-    // Given existing metadata (including 1 CategoryCombo exists with 2 Categories)
+    // Given existing metadata (including 1 CategoryCombo with 2 Categories)
     JsonImportSummary initialImport =
         POST("/metadata", Body(metadataImport()))
             .content()
@@ -112,7 +112,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
   @DisplayName(
       "Importing an existing CategoryCombo, which has data values, with an additional Category fails")
   void importingCategoryComboNewCategoryWitDataTest() {
-    // Given existing metadata (including 1 CategoryCombo exists with 2 Categories)
+    // Given existing metadata (including 1 CategoryCombo with 2 Categories)
     JsonImportSummary initialImport =
         POST("/metadata", Body(metadataImport()))
             .content()
@@ -153,9 +153,9 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
 
   @Test
   @DisplayName(
-      "Importing an existing CategoryCombo, which has data values, with its original Categories succeeds")
+      "Importing an existing CategoryCombo, which has no data values, with its original Categories succeeds")
   void importingCategoryComboNoChangeWitDataTest() {
-    // Given existing metadata (including 1 CategoryCombo exists with 2 Categories)
+    // Given existing metadata (including 1 CategoryCombo with 2 Categories)
     JsonImportSummary initialImport =
         POST("/metadata", Body(metadataImport()))
             .content()
