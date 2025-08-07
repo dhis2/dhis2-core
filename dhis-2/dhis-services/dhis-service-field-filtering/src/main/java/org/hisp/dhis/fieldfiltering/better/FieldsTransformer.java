@@ -37,6 +37,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.springframework.util.StringUtils;
 
+/**
+ * {@link FieldsTransformer.Function} work by mutating the {@link ObjectNode} field/value. They
+ * reuse most of the logic from {@link org.hisp.dhis.fieldfiltering.transformers}.
+ */
 public class FieldsTransformer {
   public static Map<String, Function> TRANSFORMERS =
       Map.of(
@@ -53,56 +57,42 @@ public class FieldsTransformer {
           "size",
           FieldsTransformer::size);
   public static Map<String, Validator> TRANSFORMERS_VALIDATOR =
-      Map.of("rename", FieldsTransformer::requireOneArg);
+      Map.of("rename", FieldsTransformer::requireOneArgument);
 
   public interface Function {
-    void apply(
-        @Nonnull String field,
-        @Nonnull JsonNode parent,
-        @Nonnull JsonNode value,
-        @Nullable String argument);
+    void transform(@Nonnull String field, @Nonnull ObjectNode parent, @Nullable String argument);
   }
 
   /**
-   * Validates the arguments to a field transformer.
+   * Validates the argument(s) to a field transformer.
    *
    * <p>Return an error message if the argument does not conform to the transformer and {@code null}
    * if it does.
    */
   public interface Validator {
     @Nullable
-    String validate(@Nonnull String transformer, String field, @Nullable String... arguments);
+    String validate(
+        @Nonnull String transformer, @Nonnull String field, @Nullable String... arguments);
   }
 
-  // TODO(ivo) can I get rid of the guard as all will be called with an object, I mean these are
-  // field transformers, as such they will always be applied to a field/property
-  // TODO(ivo) how about passing in ObjectNode only, instead of parent/value
-  public static void isEmpty(String field, JsonNode parent, JsonNode value, String argument) {
-    if (!parent.isObject()) {
-      return;
-    }
+  public static void isEmpty(String field, ObjectNode parent, String argument) {
+    JsonNode value = parent.get(field);
 
     if (value.isArray()) {
-      // overwrite array node with true/false depending on empty status
-      ((ObjectNode) parent).put(field, value.isEmpty());
+      parent.put(field, value.isEmpty());
     }
   }
 
-  public static void isNotEmpty(String field, JsonNode parent, JsonNode value, String argument) {
-    if (!parent.isObject()) {
-      return;
-    }
+  public static void isNotEmpty(String field, ObjectNode parent, String argument) {
+    JsonNode value = parent.get(field);
 
     if (value.isArray()) {
-      // overwrite array node with true/false depending on empty status
-      ((ObjectNode) parent).put(field, !value.isEmpty());
+      parent.put(field, !value.isEmpty());
     }
   }
 
-  public static void keyBy(String field, JsonNode parent, JsonNode value, String key) {
-    if (!parent.isObject()) {
-      return;
-    }
+  public static void keyBy(String field, ObjectNode parent, String key) {
+    JsonNode value = parent.get(field);
     if (!value.isArray()) {
       return;
     }
@@ -135,13 +125,11 @@ public class FieldsTransformer {
       }
     }
 
-    ((ObjectNode) parent).replace(field, objectNode);
+    parent.replace(field, objectNode);
   }
 
-  public static void pluck(String field, JsonNode parent, JsonNode value, String pluckField) {
-    if (!parent.isObject()) {
-      return;
-    }
+  public static void pluck(String field, ObjectNode parent, String pluckField) {
+    JsonNode value = parent.get(field);
     if (!value.isArray()) {
       return;
     }
@@ -160,37 +148,34 @@ public class FieldsTransformer {
       }
     }
 
-    ((ObjectNode) parent).replace(field, arrayNode);
+    parent.replace(field, arrayNode);
   }
 
-  public static void rename(String field, JsonNode parent, JsonNode value, String argument) {
-    if (!parent.isObject()) {
-      return;
-    }
+  public static void rename(String field, ObjectNode parent, String newField) {
+    JsonNode value = parent.get(field);
 
-    value = ((ObjectNode) parent).remove(field);
-    ((ObjectNode) parent).set(argument, value);
+    parent.remove(field);
+    parent.set(newField, value);
   }
 
-  public static void size(String field, JsonNode parent, JsonNode value, String argument) {
-    if (!parent.isObject()) {
-      return;
-    }
+  public static void size(String field, ObjectNode parent, String argument) {
+    JsonNode value = parent.get(field);
 
+    // TODO(ivo) apart from array/text this is a noop right? why are there more than 2 cases?
     if (value.isArray()) {
-      ((ObjectNode) parent).put(field, value.size());
+      parent.put(field, value.size());
     } else if (value.isTextual()) {
-      ((ObjectNode) parent).put(field, value.asText().length());
+      parent.put(field, value.asText().length());
     } else if (value.isInt()) {
-      ((ObjectNode) parent).put(field, value.asInt());
+      parent.put(field, value.asInt());
     } else if (value.isLong()) {
-      ((ObjectNode) parent).put(field, value.asLong());
+      parent.put(field, value.asLong());
     } else if (value.isDouble() || value.isFloat()) {
-      ((ObjectNode) parent).put(field, value.asDouble());
+      parent.put(field, value.asDouble());
     }
   }
 
-  public static String requireOneArg(
+  public static String requireOneArgument(
       @Nonnull String transformer, @Nonnull String field, @Nullable String... arguments) {
     if (arguments == null) {
       return transformer
