@@ -57,7 +57,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
@@ -92,7 +92,7 @@ public class AggregateDataExchangeService {
 
   private final DataQueryService dataQueryService;
 
-  private final DataEntryIO dataEntryIO;
+  private final DataEntryPipeline dataEntryPipeline;
 
   private final AclService aclService;
 
@@ -244,7 +244,7 @@ public class AggregateDataExchangeService {
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
 
-    return dataEntryIO.importData(
+    return dataEntryPipeline.importData(
         List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
   }
 

@@ -37,43 +37,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
  * @author bobj
  */
 public interface AdxDataService {
-  // --------------------------------------------------------------------------
-  // ADX standard constants
-  // --------------------------------------------------------------------------
-
-  String NAMESPACE = "urn:ihe:qrph:adx:2015";
-
-  String ROOT = "adx";
-
-  String GROUP = "group";
-
-  String DATASET = "dataSet";
-
-  String PERIOD = "period";
-
-  String ORGUNIT = "orgUnit";
-
-  String DATAELEMENT = "dataElement";
-
-  String DATAVALUE = "dataValue";
-
-  String VALUE = "value";
-
-  String ANNOTATION = "annotation";
-
-  String ERROR = "error";
-
-  // --------------------------------------------------------------------------
-  // DHIS 2 specific constants
-  // --------------------------------------------------------------------------
-
-  String CATOPTCOMBO = "categoryOptionCombo";
-
-  String ATTOPTCOMBO = "attributeOptionCombo";
-
-  // --------------------------------------------------------------------------
-  // Methods
-  // --------------------------------------------------------------------------
 
   DataExportParams getFromUrl(DataValueSetQueryParams params);
 
@@ -82,7 +45,6 @@ public interface AdxDataService {
    *
    * @param params the data export params.
    * @param out the output stream to write to.
-   * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
    * @throws AdxException for conflicts during export process.
    */
   void writeDataValueSet(DataExportParams params, OutputStream out) throws AdxException;

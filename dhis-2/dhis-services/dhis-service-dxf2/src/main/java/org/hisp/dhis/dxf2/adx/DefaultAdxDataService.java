@@ -135,8 +135,8 @@ public class DefaultAdxDataService implements AdxDataService {
 
     XMLWriter adxWriter = XMLFactory.getXMLWriter(out);
 
-    adxWriter.openElement(AdxDataService.ROOT);
-    adxWriter.writeAttribute("xmlns", AdxDataService.NAMESPACE);
+    adxWriter.openElement("adx");
+    adxWriter.writeAttribute("xmlns", "urn:ihe:qrph:adx:2015");
 
     IdSchemes idSchemes = params.getOutputIdSchemes();
     IdScheme ouScheme = idSchemes.getOrgUnitIdScheme();
@@ -146,7 +146,7 @@ public class DefaultAdxDataService implements AdxDataService {
     for (DataSet dataSet : params.getDataSets()) {
       AdxDataSetMetadata metadata = new AdxDataSetMetadata(dataSet, idSchemes);
 
-      for (CategoryOptionCombo aoc : getAttribuetOptionCombos(dataSet, params)) {
+      for (CategoryOptionCombo aoc : getAttributeOptionCombos(dataSet, params)) {
         Map<String, String> attributeDimensions =
             metadata.getExplodedCategoryAttributes(aoc.getId());
 
@@ -178,20 +178,18 @@ public class DefaultAdxDataService implements AdxDataService {
               currentPeriod = dv.getPeriod();
               currentOrgUnit = dv.getSource();
 
-              adxWriter.openElement(AdxDataService.GROUP);
-              adxWriter.writeAttribute(AdxDataService.DATASET, dataSet.getPropertyValue(dsScheme));
-              adxWriter.writeAttribute(AdxDataService.PERIOD, AdxPeriod.serialize(currentPeriod));
-              adxWriter.writeAttribute(
-                  AdxDataService.ORGUNIT, currentOrgUnit.getPropertyValue(ouScheme));
+              adxWriter.openElement("group");
+              adxWriter.writeAttribute("dataSet", dataSet.getPropertyValue(dsScheme));
+              adxWriter.writeAttribute("period", AdxPeriod.serialize(currentPeriod));
+              adxWriter.writeAttribute("orgUnit", currentOrgUnit.getPropertyValue(ouScheme));
 
               for (Map.Entry<String, String> e : attributeDimensions.entrySet()) {
                 adxWriter.writeAttribute(e.getKey(), e.getValue());
               }
             }
-            adxWriter.openElement(AdxDataService.DATAVALUE);
+            adxWriter.openElement("dataValue");
 
-            adxWriter.writeAttribute(
-                AdxDataService.DATAELEMENT, dv.getDataElement().getPropertyValue(deScheme));
+            adxWriter.writeAttribute("dataElement", dv.getDataElement().getPropertyValue(deScheme));
 
             CategoryOptionCombo coc = dv.getCategoryOptionCombo();
 
@@ -203,10 +201,10 @@ public class DefaultAdxDataService implements AdxDataService {
             }
 
             if (dv.getDataElement().getValueType().isNumeric()) {
-              adxWriter.writeAttribute(AdxDataService.VALUE, dv.getValue());
+              adxWriter.writeAttribute("value", dv.getValue());
             } else {
-              adxWriter.writeAttribute(AdxDataService.VALUE, "0");
-              adxWriter.openElement(AdxDataService.ANNOTATION);
+              adxWriter.writeAttribute("value", "0");
+              adxWriter.openElement("annotation");
               adxWriter.writeCharacters(dv.getValue());
               adxWriter.closeElement(); // ANNOTATION
             }
@@ -248,7 +246,7 @@ public class DefaultAdxDataService implements AdxDataService {
     return identifiableObjectManager.getByCode(clazz, id);
   }
 
-  private Set<CategoryOptionCombo> getAttribuetOptionCombos(
+  private Set<CategoryOptionCombo> getAttributeOptionCombos(
       DataSet dataSet, DataExportParams params) {
     Set<CategoryOptionCombo> aocs = dataSet.getCategoryCombo().getOptionCombos();
 

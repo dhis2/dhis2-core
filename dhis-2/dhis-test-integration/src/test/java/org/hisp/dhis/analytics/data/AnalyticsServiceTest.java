@@ -73,7 +73,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.Expression;
@@ -215,7 +215,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IndicatorService indicatorService;
 
   @Autowired private DataSetService dataSetService;
-  @Autowired private DataEntryIO dataEntryIO;
+  @Autowired private DataEntryPipeline dataEntryPipeline;
 
   @Autowired private ExpressionService expressionService;
 
@@ -424,7 +424,8 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private void setUpDataValues() throws IOException {
     // Read data values from CSV files
-    dataEntryIO.importCsv(new ClassPathResource("analytics/csv/dataValues.csv").getInputStream());
+    dataEntryPipeline.importCsv(
+        new ClassPathResource("analytics/csv/dataValues.csv").getInputStream());
     assertEquals(
         32,
         dataValueService.getAllDataValues().size(),

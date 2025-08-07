@@ -64,7 +64,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DataEntryIO {
+public class DataEntryPipeline {
 
   private final DataEntryService service;
   private final SystemSettingsProvider settings;
@@ -72,18 +72,13 @@ public class DataEntryIO {
   public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing XML data");
     return importData(
-        progress.runStage(() -> DataEntryInput.fromDfxXml(in, options)), options, progress);
-  }
-
-  public ImportSummary importAdx(InputStream in, ImportOptions options, JobProgress progress) {
-    progress.startingStage("Deserializing XML data");
-    return importData(
-        progress.runStage(() -> DataEntryInput.fromAdxXml(in, options)), options, progress);
+        progress.runStage(() -> DataEntryInput.fromXml(in, options)), options, progress);
   }
 
   public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing PDF data");
-    return importData(progress.runStage(() -> DataEntryInput.fromPdf(in, options)), options, progress);
+    return importData(
+        progress.runStage(() -> DataEntryInput.fromPdf(in, options)), options, progress);
   }
 
   public ImportSummary importCsv(InputStream in) {
@@ -94,7 +89,8 @@ public class DataEntryIO {
     if (!options.isFirstRowIsHeader())
       throw new UnsupportedOperationException("CSV without header row is no longer supported.");
     progress.startingStage("Deserializing CVS data");
-    return importData(progress.runStage(() -> DataEntryInput.fromCsv(in, options)), options, progress);
+    return importData(
+        progress.runStage(() -> DataEntryInput.fromCsv(in, options)), options, progress);
   }
 
   public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {

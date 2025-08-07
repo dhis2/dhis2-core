@@ -615,6 +615,9 @@ public enum ErrorCode {
   E8003("Data set detection failed, found no set for data element(s): `${elements:{0}}`"),
   E8004("Data set UID not valid: `${id:{0}}`"),
   E8005("Data set not found: `${id:{0}}`"),
+  E8006("PDF file error : ${error:{0}}"),
+  E8007("XML file error : ${error:{0}}"),
+
   // set level current user access issues: Current user cannot enter...
   E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
   E8011("Current user cannot enter data for org unit(s): `${units:{0}}`"),

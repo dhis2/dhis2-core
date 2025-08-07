@@ -33,7 +33,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -57,7 +57,7 @@ public class DataValueSetImportJob implements Job {
 
   private final FileResourceService fileResourceService;
   private final Notifier notifier;
-  private final DataEntryIO dataEntryIO;
+  private final DataEntryPipeline dataEntryPipeline;
 
   @Override
   public JobType getJobType() {
@@ -79,11 +79,11 @@ public class DataValueSetImportJob implements Job {
       boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
-            case "application/json" -> dataEntryIO.importJson(input, options, progress);
-            case "application/csv" -> dataEntryIO.importCsv(input, options, progress);
-            case "application/pdf" -> dataEntryIO.importPdf(input, options, progress);
-            case "application/xml" -> dataEntryIO.importXml(input, options, progress);
-            case "application/adx+xml" -> dataEntryIO.importAdx(input, options, progress);
+            case "application/json" -> dataEntryPipeline.importJson(input, options, progress);
+            case "application/csv" -> dataEntryPipeline.importCsv(input, options, progress);
+            case "application/pdf" -> dataEntryPipeline.importPdf(input, options, progress);
+            case "application/xml", "application/adx+xml" ->
+                dataEntryPipeline.importXml(input, options, progress);
             default -> {
               unknownFormat = true;
               yield null;

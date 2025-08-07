@@ -60,7 +60,7 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -87,7 +87,7 @@ import org.springframework.core.io.ClassPathResource;
 class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private AdxDataService adxDataService;
 
-  @Autowired private DataEntryIO dataEntryIO;
+  @Autowired private DataEntryPipeline dataEntryPipeline;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -490,7 +490,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
     importOptions.setIdSchemes(idSchemes);
-    dataEntryIO.importAdx(in, importOptions, transitory());
+    dataEntryPipeline.importXml(in, importOptions, transitory());
 
     DataValue dataValue = dataValueService.getAllDataValues().get(0);
     assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
@@ -507,13 +507,13 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
     importOptions.setIdSchemes(idSchemes);
-    dataEntryIO.importAdx(in, importOptions, transitory());
+    dataEntryPipeline.importXml(in, importOptions, transitory());
 
     // wait for a small period so created & lastUpdated times are different & can be checked
     Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
 
     InputStream in2 = new ClassPathResource("adx/importDatesUpdate.adx.xml").getInputStream();
-    dataEntryIO.importAdx(in2, importOptions, transitory());
+    dataEntryPipeline.importXml(in2, importOptions, transitory());
 
     DataValue dataValue = dataValueService.getAllDataValues().get(0);
     assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
@@ -560,7 +560,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     InputStream in = new ClassPathResource(filePath).getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     importOptions.setIdSchemes(idSchemes);
-    dataEntryIO.importAdx(in, importOptions, transitory());
+    dataEntryPipeline.importXml(in, importOptions, transitory());
     List<DataValue> dataValues = dataValueService.getAllDataValues();
     assertContainsOnly(
         List.of(

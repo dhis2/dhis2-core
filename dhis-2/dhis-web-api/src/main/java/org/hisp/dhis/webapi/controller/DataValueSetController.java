@@ -58,7 +58,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.datavalue.DataEntryIO;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
@@ -100,7 +100,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataValueSetController {
 
   private final DataValueSetService dataValueSetService;
-  private final DataEntryIO dataEntryIO;
+  private final DataEntryPipeline dataEntryPipeline;
   private final AdxDataService adxDataService;
   private final UserService userService;
   private final JobExecutionService jobExecutionService;
@@ -236,7 +236,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
     return importSummary(
-        dataEntryIO.importXml(request.getInputStream(), importOptions, transitory()));
+        dataEntryPipeline.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
@@ -248,7 +248,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
     return importSummary(
-        dataEntryIO.importAdx(request.getInputStream(), importOptions, transitory()));
+        dataEntryPipeline.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -260,7 +260,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
     return importSummary(
-        dataEntryIO.importJson(request.getInputStream(), importOptions, transitory()));
+        dataEntryPipeline.importJson(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = "application/csv")
@@ -272,7 +272,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
     return importSummary(
-        dataEntryIO.importCsv(request.getInputStream(), importOptions, transitory()));
+        dataEntryPipeline.importCsv(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
@@ -284,7 +284,7 @@ public class DataValueSetController {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
     return importSummary(
-        dataEntryIO.importPdf(request.getInputStream(), importOptions, transitory()));
+        dataEntryPipeline.importPdf(request.getInputStream(), importOptions, transitory()));
   }
 
   // -------------------------------------------------------------------------
