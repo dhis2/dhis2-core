@@ -34,6 +34,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,7 +53,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 import org.hisp.dhis.schema.Schema;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -262,6 +262,7 @@ class FieldsParserTest {
                 new ExpectField(false, "group.code"),
                 new ExpectField(true, "group.hello")))
 
+        // TODO(ivo) adapt the tests to use real transformers
         //        // testParseWithTransformer1
         //        Arguments.of(
         //            "name::x(a;b),id~y(a;b;c),code|z(t)",
@@ -581,18 +582,22 @@ class FieldsParserTest {
   }
 
   // TODO(ivo) how to test it now that these are functions?
-  @Disabled
   @Test
   void testParserSortsTransformationsWithRenameLast() {
     Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
 
     List<Transformation> actual = fields.getTransformations("field");
-    List<Transformation> expected =
-        List.of(
-            new Transformation(FieldsTransformer::isEmpty, null),
-            new Transformation(FieldsTransformer::rename, "newName"));
 
-    assertEquals(expected, actual);
+    assertEquals(2, actual.size());
+    assertTransformation("isEmpty", null, actual.get(0));
+    assertTransformation("rename", "newName", actual.get(1));
+  }
+
+  private static void assertTransformation(
+      String expectedName, String expectedArg, Transformation actual) {
+    assertAll(
+        () -> assertEquals(expectedName, actual.name(), "Transformer name mismatch"),
+        () -> assertEquals(expectedArg, actual.argument(), "Transformer argument mismatch"));
   }
 
   public static void assertFields(List<ExpectField> expectFields, Fields fields) {

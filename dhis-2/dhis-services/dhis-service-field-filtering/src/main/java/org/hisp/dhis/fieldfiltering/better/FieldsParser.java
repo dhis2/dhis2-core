@@ -436,7 +436,7 @@ public class FieldsParser {
                     String argument =
                         (t.arguments == null || t.arguments.length == 0) ? null : t.arguments[0];
                     return new Fields.Transformation(
-                        FieldsTransformer.TRANSFORMERS.get(t.name), argument);
+                        t.name, FieldsTransformer.TRANSFORMERS.get(t.name), argument);
                   })
               .toList();
       result.put(entry.getKey(), ts);

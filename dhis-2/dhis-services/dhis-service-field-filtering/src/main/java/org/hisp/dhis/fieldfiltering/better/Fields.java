@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -153,15 +152,6 @@ public final class Fields implements Predicate<String> {
    * Represents a field transformation like rename or isEmpty like {@code
    * "dataSets~isNotEmpty~rename(hasDataSets)}.
    */
-  @Getter
-  @EqualsAndHashCode
-  public static final class Transformation {
-    private final FieldsTransformer.Function transformer;
-    private final String argument;
-
-    public Transformation(FieldsTransformer.Function transformer, String argument) {
-      this.transformer = transformer;
-      this.argument = argument;
-    }
-  }
+  public record Transformation(
+      String name, FieldsTransformer.Function transformer, String argument) {}
 }

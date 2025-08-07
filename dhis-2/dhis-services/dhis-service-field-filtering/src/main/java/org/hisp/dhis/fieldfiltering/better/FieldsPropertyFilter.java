@@ -115,7 +115,7 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     result.set(fieldName, fieldValue);
 
     for (Fields.Transformation transformation : transformations) {
-      transformation.getTransformer().transform(fieldName, result, transformation.getArgument());
+      transformation.transformer().transform(fieldName, result, transformation.argument());
     }
 
     // write the transformed result to the output stream (field name may have been changed by
