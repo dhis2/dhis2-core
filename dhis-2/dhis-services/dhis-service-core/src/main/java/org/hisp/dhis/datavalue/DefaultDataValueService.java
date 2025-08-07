@@ -369,13 +369,14 @@ public class DefaultDataValueService implements DataValueService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
       throws ConflictException {
 
     Set<String> oldCategories = IdentifiableObjectUtils.getUidsAsSet(entity.getCategories());
     Set<String> newCategories = IdentifiableObjectUtils.getUidsAsSet(newEntity.getCategories());
 
-    if (!Objects.equals(oldCategories, newCategories) && dataValueExists(entity)) {
+    if (!Objects.equals(oldCategories, newCategories) && dataValueStore.dataValueExists(entity)) {
       throw new ConflictException(ErrorCode.E1120);
     }
   }
