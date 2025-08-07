@@ -32,16 +32,11 @@ package org.hisp.dhis.period;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * @author Kristian Nordal
  */
 public interface PeriodService {
-  // -------------------------------------------------------------------------
-  // Period
-  // -------------------------------------------------------------------------
-
   /**
    * Adds a Period.
    *
@@ -112,16 +107,6 @@ public interface PeriodService {
   List<Period> getPeriodsBetweenDates(PeriodType periodType, Date startDate, Date endDate);
 
   /**
-   * Returns all Periods with either i) start and end date between the given start and end date or
-   * ii) start date before the given start date and end date after the given end date.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return a list of Periods.
-   */
-  List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate);
-
-  /**
    * Returns Periods where at least one its days are between the given start date and end date.
    *
    * @param startDate the start date.
@@ -178,16 +163,6 @@ public interface PeriodService {
   List<Period> getPeriods(Period lastPeriod, int previousPeriods);
 
   /**
-   * Populates the name property of Period with the formatted name for the Periods in the given
-   * collection.
-   *
-   * @param periods the collection of Periods.
-   * @param format the I18nFormat.
-   * @return a collection of Periods.
-   */
-  Collection<Period> namePeriods(Collection<Period> periods, I18nFormat format);
-
-  /**
    * Checks if the given Period is associated with the current session. If not, replaces the Period
    * with a Period associated with the current session. Persists the Period if not already
    * persisted.
@@ -216,14 +191,6 @@ public interface PeriodService {
    * @return a list of Periods.
    */
   List<Period> reloadIsoPeriods(List<String> isoPeriods);
-
-  /**
-   * Returns a PeriodHierarchy instance.
-   *
-   * @param periods the Periods to include in the PeriodHierarchy.
-   * @return a PeriodHierarchy instance.
-   */
-  PeriodHierarchy getPeriodHierarchy(Collection<Period> periods);
 
   /**
    * Returns how many days into period date is. If date is before period.startDate, returns 0. If
@@ -273,15 +240,4 @@ public interface PeriodService {
   default PeriodType getPeriodType(PeriodTypeEnum periodType) {
     return getPeriodTypeByName(periodType.getName());
   }
-
-  // -------------------------------------------------------------------------
-  // RelativePeriods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Deletes a RelativePeriods instance.
-   *
-   * @param relativePeriods the RelativePeriods instance.
-   */
-  void deleteRelativePeriods(RelativePeriods relativePeriods);
 }

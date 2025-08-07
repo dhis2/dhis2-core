@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.period;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +40,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,12 +103,6 @@ public class DefaultPeriodService implements PeriodService {
   @Transactional(readOnly = true)
   public List<Period> getPeriodsBetweenDates(PeriodType periodType, Date startDate, Date endDate) {
     return periodStore.getPeriodsBetweenDates(periodType, startDate, endDate);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate) {
-    return periodStore.getPeriodsBetweenOrSpanningDates(startDate, endDate);
   }
 
   @Override
@@ -180,16 +171,6 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Period> namePeriods(Collection<Period> periods, I18nFormat format) {
-    for (Period period : periods) {
-      period.setName(format.formatPeriod(period));
-    }
-
-    return new ArrayList<>(periods);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Period getPeriodFromDates(Date startDate, PeriodType periodType) {
     return periodStore.getPeriodFromDates(startDate, periodType);
   }
@@ -223,31 +204,6 @@ public class DefaultPeriodService implements PeriodService {
   @IndirectTransactional
   public List<Period> reloadIsoPeriods(List<String> isoPeriods) {
     return isoPeriods.stream().map(this::reloadIsoPeriod).toList();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public PeriodHierarchy getPeriodHierarchy(Collection<Period> periods) {
-    PeriodHierarchy hierarchy = new PeriodHierarchy();
-
-    for (Period period : periods) {
-      hierarchy
-          .getIntersectingPeriods()
-          .put(
-              period.getId(),
-              new HashSet<>(
-                  getIdentifiers(
-                      getIntersectingPeriods(period.getStartDate(), period.getEndDate()))));
-      hierarchy
-          .getPeriodsBetween()
-          .put(
-              period.getId(),
-              new HashSet<>(
-                  getIdentifiers(
-                      getPeriodsBetweenDates(period.getStartDate(), period.getEndDate()))));
-    }
-
-    return hierarchy;
   }
 
   @Override
@@ -291,9 +247,4 @@ public class DefaultPeriodService implements PeriodService {
   // PeriodType
   // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void deleteRelativePeriods(RelativePeriods relativePeriods) {
-    periodStore.deleteRelativePeriods(relativePeriods);
-  }
 }
