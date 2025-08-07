@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.BiFunction;
@@ -145,8 +146,7 @@ public class FieldsParser {
             if (parser.pendingTransformation.isEmpty()) {
               parser.pendingTransformation = token.value.trim();
             } else {
-              parser.currentTransformation.add(
-                  new Fields.Transformation(parser.pendingTransformation));
+              parser.currentTransformation.add(new Transformation(parser.pendingTransformation));
               parser.pendingTransformation = token.value.trim();
             }
           } else if (parser.currentField == null) {
@@ -161,8 +161,7 @@ public class FieldsParser {
         case TILDE:
         case PIPE:
           if (parser.pendingTransformation != null && !parser.pendingTransformation.isEmpty()) {
-            parser.currentTransformation.add(
-                new Fields.Transformation(parser.pendingTransformation));
+            parser.currentTransformation.add(new Transformation(parser.pendingTransformation));
           }
           parser.pendingTransformation = "";
           break;
@@ -185,7 +184,7 @@ public class FieldsParser {
         case PAREN_CLOSE:
           if (parser.parsingTransformationParams) {
             parser.currentTransformation.add(
-                new Fields.Transformation(
+                new Transformation(
                     parser.pendingTransformation,
                     parser.transformationParams.toArray(new String[0])));
             parser.pendingTransformation = null;
@@ -282,7 +281,7 @@ public class FieldsParser {
     final Set<String> unexcludableTokens;
 
     String currentField = null;
-    List<Fields.Transformation> currentTransformation = new ArrayList<>();
+    List<Transformation> currentTransformation = new ArrayList<>();
     boolean isExclusion = false;
 
     String pendingTransformation = null;
@@ -296,7 +295,7 @@ public class FieldsParser {
     void consumeCurrentField(FieldsAccumulator accumulator) {
       if (currentField != null && !currentField.isEmpty()) {
         if (pendingTransformation != null && !pendingTransformation.isEmpty()) {
-          currentTransformation.add(new Fields.Transformation(pendingTransformation));
+          currentTransformation.add(new Transformation(pendingTransformation));
         }
         accumulator.add(
             currentField, isExclusion, unexcludableTokens, new ArrayList<>(currentTransformation));
@@ -355,14 +354,62 @@ public class FieldsParser {
       fields.removeAll(acc.excludes);
     }
 
-    Map<String, List<Fields.Transformation>> sortedTransformations = new HashMap<>();
-    for (Entry<String, List<Fields.Transformation>> entry : acc.transformations.entrySet()) {
-      List<Fields.Transformation> sorted =
+    Map<String, List<Fields.Transformation>> transformations =
+        mapTransformations(acc.transformations);
+
+    return new Fields(includesAll, fields, children, transformations);
+  }
+
+  private static Map<String, List<Fields.Transformation>> mapTransformations(
+      Map<String, List<Transformation>> transformations) {
+    Set<String> unknown =
+        transformations.entrySet().stream()
+            .flatMap(e -> e.getValue().stream())
+            .map(t -> t.name)
+            .filter(n -> !FieldsTransformer.TRANSFORMERS.containsKey(n))
+            .collect(Collectors.toSet());
+    if (!unknown.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Invalid field transformer(s): "
+              + String.join(", ", unknown)
+              + ". Valid ones are: "
+              + FieldsTransformer.TRANSFORMERS.keySet());
+    }
+
+    // TODO(ivo) fail on duplicate transformations per field
+    //    Set<String> duplicates = CollectionUtils.findDuplicates(names);
+    //    if (!duplicates.isEmpty()){
+    //      throw new IllegalArgumentException(
+    //          "Invalid field transformer(s): "
+    //              + unknown
+    //              + ". Valid ones are: "
+    //              + FieldsTransformer.TRANSFORMERS.keySet());
+    //    }
+
+    String errors =
+        transformations.entrySet().stream()
+            .flatMap(
+                e ->
+                    e.getValue().stream()
+                        .map(
+                            t ->
+                                FieldsTransformer.TRANSFORMERS_VALIDATOR
+                                    .getOrDefault(t.name, (name, f, a) -> null)
+                                    .validate(t.name, e.getKey(), t.arguments)))
+            .filter(Objects::nonNull)
+            .collect(Collectors.joining(", "));
+    if (!errors.isEmpty()) {
+      throw new IllegalArgumentException(errors);
+    }
+
+    Map<String, List<Transformation>> sortedTransformations = new HashMap<>();
+    for (Entry<String, List<Transformation>> entry : transformations.entrySet()) {
+      List<Transformation> sorted =
           entry.getValue().stream()
               .sorted(
                   (t1, t2) -> {
-                    boolean t1IsRename = "rename".equals(t1.getName());
-                    boolean t2IsRename = "rename".equals(t2.getName());
+                    boolean t1IsRename = "rename".equals(t1.name());
+                    boolean t2IsRename = "rename".equals(t2.name());
                     if (t1IsRename && !t2IsRename) return 1;
                     if (!t1IsRename && t2IsRename) return -1;
                     return 0;
@@ -371,7 +418,21 @@ public class FieldsParser {
       sortedTransformations.put(entry.getKey(), sorted);
     }
 
-    return new Fields(includesAll, fields, children, sortedTransformations);
+    Map<String, List<Fields.Transformation>> result = new HashMap<>(transformations.size());
+    for (Entry<String, List<Transformation>> entry : sortedTransformations.entrySet()) {
+      List<Fields.Transformation> ts =
+          entry.getValue().stream()
+              .map(
+                  t -> {
+                    String argument =
+                        (t.arguments == null || t.arguments.length == 0) ? null : t.arguments[0];
+                    return new Fields.Transformation(
+                        FieldsTransformer.TRANSFORMERS.get(t.name), argument);
+                  })
+              .toList();
+      result.put(entry.getKey(), ts);
+    }
+    return result;
   }
 
   /**
@@ -382,13 +443,13 @@ public class FieldsParser {
     Set<String> includes = new HashSet<>();
     final Set<String> excludes = new HashSet<>();
     final Map<String, FieldsAccumulator> children = new HashMap<>();
-    final Map<String, List<Fields.Transformation>> transformations = new HashMap<>();
+    final Map<String, List<Transformation>> transformations = new HashMap<>();
 
     void add(
         String field,
         boolean isExclusion,
         Set<String> unexcludableTokens,
-        List<Fields.Transformation> transformers) {
+        List<Transformation> transformers) {
       if (!isExclusion || unexcludableTokens.contains(field)) {
         this.includes.add(field);
       } else {
@@ -402,6 +463,18 @@ public class FieldsParser {
 
     FieldsAccumulator getOrCreateChild(String field) {
       return children.computeIfAbsent(field, k -> new FieldsAccumulator());
+    }
+  }
+
+  public record Transformation(String name, String... arguments) {
+    public Transformation(String name, String... arguments) {
+      this.name = name;
+      this.arguments = arguments.clone();
+    }
+
+    @Override
+    public @Nonnull String toString() {
+      return name + "(" + String.join(",", arguments) + ")";
     }
   }
 }

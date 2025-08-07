@@ -159,7 +159,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "relationships[f rom[trackedEntity[ org Unit ]",
         "relationships[from[trackedEntity[ :simple ]",
         // transformations
-        "dataValues~unknown",
         "dataValues~isEmpty",
         "dataValues|isEmpty",
         "dataValues::isEmpty",

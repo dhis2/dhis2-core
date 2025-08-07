@@ -33,19 +33,51 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.springframework.util.StringUtils;
 
 public class FieldsTransformer {
   public static Map<String, Function> TRANSFORMERS =
-      Map.of("isEmpty", FieldsTransformer::isEmpty, "isNotEmpty", FieldsTransformer::isNotEmpty);
+      Map.of(
+          "isEmpty",
+          FieldsTransformer::isEmpty,
+          "isNotEmpty",
+          FieldsTransformer::isNotEmpty,
+          "keyBy",
+          FieldsTransformer::keyBy,
+          "pluck",
+          FieldsTransformer::pluck,
+          "rename",
+          FieldsTransformer::rename,
+          "size",
+          FieldsTransformer::size);
+  public static Map<String, Validator> TRANSFORMERS_VALIDATOR =
+      Map.of("rename", FieldsTransformer::requireOneArg);
 
   public interface Function {
-    void apply(String field, JsonNode value, JsonNode parent);
+    void apply(
+        @Nonnull String field,
+        @Nonnull JsonNode parent,
+        @Nonnull JsonNode value,
+        @Nullable String argument);
   }
 
-  // TODO(ivo) can I get rid of the guard as all will be called with an object
-  // TODO(ivo) change signature order to parent, value
-  public static void isEmpty(String field, JsonNode value, JsonNode parent) {
+  /**
+   * Validates the arguments to a field transformer.
+   *
+   * <p>Return an error message if the argument does not conform to the transformer and {@code null}
+   * if it does.
+   */
+  public interface Validator {
+    @Nullable
+    String validate(@Nonnull String transformer, String field, @Nullable String... arguments);
+  }
+
+  // TODO(ivo) can I get rid of the guard as all will be called with an object, I mean these are
+  // field transformers, as such they will always be applied to a field/property
+  // TODO(ivo) how about passing in ObjectNode only, instead of parent/value
+  public static void isEmpty(String field, JsonNode parent, JsonNode value, String argument) {
     if (!parent.isObject()) {
       return;
     }
@@ -56,7 +88,7 @@ public class FieldsTransformer {
     }
   }
 
-  public static void isNotEmpty(String field, JsonNode value, JsonNode parent) {
+  public static void isNotEmpty(String field, JsonNode parent, JsonNode value, String argument) {
     if (!parent.isObject()) {
       return;
     }
@@ -65,30 +97,23 @@ public class FieldsTransformer {
       // overwrite array node with true/false depending on empty status
       ((ObjectNode) parent).put(field, !value.isEmpty());
     }
-
-    return;
   }
 
-  // TODO(ivo) fix this by passing args into interface
-  public static void keyBy(String field, JsonNode value, JsonNode parent) {
+  public static void keyBy(String field, JsonNode parent, JsonNode value, String key) {
     if (!parent.isObject()) {
       return;
     }
 
-    String keyByFieldName = "id";
-
-    //    if (!fieldPathTransformer.getParameters().isEmpty()) {
-    //      keyByFieldName = fieldPathTransformer.getParameters().get(0);
-    //    }
-    //
-    //    String fieldName = getFieldName(path);
+    if (key == null) {
+      key = "id";
+    }
 
     if (value.isArray()) {
       ObjectNode objectNode = ((ArrayNode) value).arrayNode().objectNode();
 
       for (JsonNode node : value) {
-        if (node.isObject() && node.has(keyByFieldName)) {
-          String propertyName = node.get(keyByFieldName).asText();
+        if (node.isObject() && node.has(key)) {
+          String propertyName = node.get(key).asText();
 
           if (!objectNode.has(propertyName) && StringUtils.hasText(propertyName)) {
             objectNode.set(propertyName, node);
@@ -110,5 +135,80 @@ public class FieldsTransformer {
 
       ((ObjectNode) parent).replace(field, objectNode);
     }
+  }
+
+  public static void pluck(String field, JsonNode parent, JsonNode value, String pluckField) {
+    if (!parent.isObject()) {
+      return;
+    }
+
+    if (pluckField == null) {
+      pluckField = "id";
+    }
+
+    if (value.isArray()) {
+      ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
+
+      for (JsonNode node : value) {
+        if (node.isObject() && node.has(pluckField)) {
+          arrayNode.add(node.get(pluckField));
+        } else {
+          arrayNode.add(node);
+        }
+      }
+
+      ((ObjectNode) parent).replace(field, arrayNode);
+    }
+  }
+
+  public static void rename(String field, JsonNode parent, JsonNode value, String argument) {
+    if (!parent.isObject()) {
+      return;
+    }
+
+    value = ((ObjectNode) parent).remove(field);
+    ((ObjectNode) parent).set(argument, value);
+  }
+
+  public static void size(String field, JsonNode parent, JsonNode value, String argument) {
+    if (!parent.isObject()) {
+      return;
+    }
+
+    if (value.isArray()) {
+      ((ObjectNode) parent).put(field, value.size());
+    } else if (value.isTextual()) {
+      ((ObjectNode) parent).put(field, value.asText().length());
+    } else if (value.isInt()) {
+      ((ObjectNode) parent).put(field, value.asInt());
+    } else if (value.isLong()) {
+      ((ObjectNode) parent).put(field, value.asLong());
+    } else if (value.isDouble() || value.isFloat()) {
+      ((ObjectNode) parent).put(field, value.asDouble());
+    }
+  }
+
+  public static String requireOneArg(
+      @Nonnull String transformer, String field, @Nullable String... arguments) {
+    if (arguments == null) {
+      return transformer
+          + " applied to field "
+          + field
+          + " requires exactly one non-blank argument";
+    }
+    if (arguments.length != 1) {
+      return transformer
+          + " applied to field "
+          + field
+          + " requires exactly one non-blank argument";
+    }
+    if (arguments[0].isBlank()) {
+      return transformer
+          + " applied to field "
+          + field
+          + " requires exactly one non-blank argument";
+    }
+
+    return null;
   }
 }

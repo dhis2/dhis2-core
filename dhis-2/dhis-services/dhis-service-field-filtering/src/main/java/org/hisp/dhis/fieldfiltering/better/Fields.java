@@ -153,23 +153,15 @@ public final class Fields implements Predicate<String> {
    * Represents a field transformation like rename or isEmpty like {@code
    * "dataSets~isNotEmpty~rename(hasDataSets)}.
    */
+  @Getter
   @EqualsAndHashCode
   public static final class Transformation {
-    @Getter private final String name;
-    private final String[] arguments;
+    private final FieldsTransformer.Function transformer;
+    private final String argument;
 
-    public Transformation(String name, String... arguments) {
-      this.name = name;
-      this.arguments = arguments.clone();
-    }
-
-    public String[] getArguments() {
-      return arguments.clone();
-    }
-
-    @Override
-    public String toString() {
-      return name + "(" + String.join(",", arguments) + ")";
+    public Transformation(FieldsTransformer.Function transformer, String argument) {
+      this.transformer = transformer;
+      this.argument = argument;
     }
   }
 }

@@ -39,15 +39,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
-import org.hisp.dhis.fieldfiltering.FieldTransformer;
-import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
-import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
-import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
-import org.hisp.dhis.fieldfiltering.transformers.KeyByFieldTransformer;
-import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
-import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
-import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -85,8 +76,19 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
   }
 
   /**
-   * Serializes a field with optional transformations. Uses hybrid approach: normal serialization
-   * for no transformations, TokenBuffer capture + transformation for fields with transformations.
+   * Serializes a field with optional transformations. Uses hybrid approach:
+   *
+   * <ol>
+   *   <li>objects are serialized/filtered directly if they do not need to be transformed
+   *   <li>objects are serialized/filtered to Jacksons' {@code JsonNode} which is then mutated by
+   *       transformation(s)
+   * </ol>
+   *
+   * This means that objects can be streamed to JSON if no transformations are needed.
+   * Transformations then come with the penalty of double (de)serialization. This approach is an
+   * improvement over the field filtering added in 2.38 where we always paid the cost of double
+   * (de)serialization. Some of the transformations need access to JSON type information. We could
+   * likely serialize/filter/transform the JSON stream if that would not be necessary.
    */
   private void serialize(
       Object pojo,
@@ -98,60 +100,30 @@ public class FieldsPropertyFilter extends SimpleBeanPropertyFilter {
     List<Fields.Transformation> transformations = current.getTransformations(writer.getName());
     if (transformations.isEmpty()) {
       writer.serializeAsField(pojo, jgen, provider);
-    } else {
-      // serialize applying any filters and capture output in buffer for later transformations
-      TokenBuffer tokenBuffer = new TokenBuffer(objectMapper, false);
-      writer.serializeAsField(pojo, tokenBuffer, provider);
-      // create ObjectNode from buffer for transformations to mutate
-      JsonNode filteredFieldNode = objectMapper.readTree(tokenBuffer.asParser());
-      // transformations are applied on single-field object like {"fieldName": filteredValue}
-      String fieldName = filteredFieldNode.fieldNames().next();
-      JsonNode fieldValue = filteredFieldNode.get(fieldName);
-      ObjectNode result = objectMapper.createObjectNode();
-      result.set(fieldName, fieldValue);
-
-      for (Fields.Transformation transformation : transformations) {
-        try {
-          FieldTransformer transformer = createFieldTransformer(transformation);
-          transformer.apply(fieldName, result.get(fieldName), result);
-        } catch (Exception e) {
-          // TODO(ivo) continue with last valid value or throw?
-          break;
-        }
-      }
-
-      // write the transformed result to the output stream (field name may have been changed by
-      // rename transformation)
-      String finalFieldName = result.fieldNames().next();
-      jgen.writeFieldName(finalFieldName);
-      jgen.writeTree(result.get(finalFieldName));
+      return;
     }
-  }
 
-  private FieldTransformer createFieldTransformer(Transformation transformation) {
-    return switch (transformation.getName()) {
-      case "isEmpty" -> IsEmptyFieldTransformer.INSTANCE;
-      case "isNotEmpty" -> IsNotEmptyFieldTransformer.INSTANCE;
-      case "keyBy" -> {
-        List<String> parameters = List.of(transformation.getArguments());
-        FieldPathTransformer fieldPathTransformer =
-            new FieldPathTransformer(transformation.getName(), parameters);
-        yield new KeyByFieldTransformer(fieldPathTransformer);
-      }
-      case "pluck" -> {
-        List<String> parameters = List.of(transformation.getArguments());
-        FieldPathTransformer fieldPathTransformer =
-            new FieldPathTransformer(transformation.getName(), parameters);
-        yield new PluckFieldTransformer(fieldPathTransformer);
-      }
-      case "rename" -> {
-        List<String> parameters = List.of(transformation.getArguments());
-        FieldPathTransformer fieldPathTransformer =
-            new FieldPathTransformer(transformation.getName(), parameters);
-        yield new RenameFieldTransformer(fieldPathTransformer);
-      }
-      case "size" -> SizeFieldTransformer.INSTANCE;
-      default -> null;
-    };
+    // serialize applying any filters and capture output in buffer for later transformations
+    TokenBuffer tokenBuffer = new TokenBuffer(objectMapper, false);
+    writer.serializeAsField(pojo, tokenBuffer, provider);
+    // create ObjectNode from buffer for transformations to mutate
+    JsonNode filteredFieldNode = objectMapper.readTree(tokenBuffer.asParser());
+    // transformations are applied on single-field object like {"fieldName": filteredValue}
+    String fieldName = filteredFieldNode.fieldNames().next();
+    JsonNode fieldValue = filteredFieldNode.get(fieldName);
+    ObjectNode result = objectMapper.createObjectNode();
+    result.set(fieldName, fieldValue);
+
+    for (Fields.Transformation transformation : transformations) {
+      transformation
+          .getTransformer()
+          .apply(fieldName, result, result.get(fieldName), transformation.getArgument());
+    }
+
+    // write the transformed result to the output stream (field name may have been changed by
+    // rename transformation)
+    String finalFieldName = result.fieldNames().next();
+    jgen.writeFieldName(finalFieldName);
+    jgen.writeTree(result.get(finalFieldName));
   }
 }
