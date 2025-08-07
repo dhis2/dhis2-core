@@ -29,11 +29,12 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
@@ -47,6 +48,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,10 +106,10 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     dataElementService.addDataElement(deB);
     dataElementService.addDataElement(deC);
     dataElementService.addDataElement(deD);
-    peA = createPeriod(getDay(5), getDay(6));
-    peB = createPeriod(getDay(6), getDay(7));
-    peC = createPeriod(getDay(7), getDay(8));
-    peX = createPeriod(getDay(27), getDay(28));
+    peA = PeriodType.getPeriodType(DAILY).createPeriod(getDay(5));
+    peB = peA.next();
+    peC = peB.next();
+    peX = PeriodType.getPeriodType(DAILY).createPeriod(getDay(27));
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     ouC = createOrganisationUnit('C');
@@ -153,7 +155,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testUpdataDataValue() {
+  void testUpdateDataValue() {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "2");
     addDataValues(dataValueA, dataValueB);
@@ -235,19 +237,14 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
             .setPeriods(Set.of(peA, peB, peC))
             .setOrganisationUnits(Set.of(ouA));
     List<DataValue> values = dataValueService.getDataValues(params);
-    assertEquals(3, values.size());
-    assertTrue(values.contains(dataValueA));
-    assertTrue(values.contains(dataValueC));
-    assertTrue(values.contains(dataValueI));
+    assertEquals(Set.of("1", "3", "9"), values.stream().map(DataValue::getValue).collect(toSet()));
     params =
         new DataExportParams()
             .setDataElements(Set.of(deB))
             .setPeriods(Set.of(peA))
             .setOrganisationUnits(Set.of(ouA, ouB));
     values = dataValueService.getDataValues(params);
-    assertEquals(2, values.size());
-    assertTrue(values.contains(dataValueE));
-    assertTrue(values.contains(dataValueF));
+    assertEquals(Set.of("5", "6"), values.stream().map(DataValue::getValue).collect(toSet()));
   }
 
   @Test

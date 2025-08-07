@@ -135,64 +135,6 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetPeriod() {
-    List<PeriodType> periodTypes = periodStore.getAllPeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeB, getDay(2), getDay(3));
-    Period periodD = new Period(periodTypeB, getDay(3), getDay(4));
-    Period periodE = new Period(periodTypeA, getDay(3), getDay(4));
-    periodStore.addPeriod(periodA);
-    long idA = periodA.getId();
-    periodStore.addPeriod(periodB);
-    long idB = periodB.getId();
-    periodStore.addPeriod(periodC);
-    long idC = periodC.getId();
-    periodStore.addPeriod(periodD);
-    long idD = periodD.getId();
-    periodStore.addPeriod(periodE);
-    long idE = periodE.getId();
-    periodA = periodStore.getPeriod(periodA.getIsoDate());
-    assertNotNull(periodA);
-    assertEquals(idA, periodA.getId());
-    assertEquals(periodTypeA, periodA.getPeriodType());
-    assertEquals(getDay(1), periodA.getStartDate());
-    assertEquals(getDay(2), periodA.getEndDate());
-    periodB = periodStore.getPeriod(periodB.getIsoDate());
-    assertNotNull(periodB);
-    assertEquals(idB, periodB.getId());
-    assertEquals(periodTypeA, periodB.getPeriodType());
-    assertEquals(getDay(2), periodB.getStartDate());
-    assertEquals(getDay(3), periodB.getEndDate());
-    periodC = periodStore.getPeriod(periodC.getIsoDate());
-    assertNotNull(periodC);
-    assertEquals(idC, periodC.getId());
-    assertEquals(periodTypeB, periodC.getPeriodType());
-    assertEquals(getDay(2), periodC.getStartDate());
-    assertEquals(getDay(3), periodC.getEndDate());
-    periodD = periodStore.getPeriod(periodD.getIsoDate());
-    assertNotNull(periodD);
-    assertEquals(idD, periodD.getId());
-    assertEquals(periodTypeB, periodD.getPeriodType());
-    assertEquals(getDay(3), periodD.getStartDate());
-    assertEquals(getDay(4), periodD.getEndDate());
-    periodE = periodStore.getPeriod(periodE.getIsoDate());
-    assertNotNull(periodE);
-    assertEquals(idE, periodE.getId());
-    assertEquals(periodTypeA, periodE.getPeriodType());
-    assertEquals(getDay(3), periodE.getStartDate());
-    assertEquals(getDay(4), periodE.getEndDate());
-    assertNull(periodStore.getPeriod(new Period(periodTypeB, getDay(1), getDay(2)).getIsoDate()));
-    assertNull(periodStore.getPeriod(new Period(periodTypeA, getDay(1), getDay(3)).getIsoDate()));
-    assertNull(periodStore.getPeriod(new Period(periodTypeB, getDay(1), getDay(5)).getIsoDate()));
-    assertNull(periodStore.getPeriod(new Period(periodTypeB, getDay(4), getDay(3)).getIsoDate()));
-    assertNull(periodStore.getPeriod(new Period(periodTypeA, getDay(5), getDay(6)).getIsoDate()));
-  }
-
-  @Test
   void testGetAllPeriods() {
     PeriodType periodType = periodStore.getAllPeriodTypes().iterator().next();
     Period periodA = new Period(periodType, getDay(1), getDay(1));

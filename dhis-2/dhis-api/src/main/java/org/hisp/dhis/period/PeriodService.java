@@ -46,9 +46,8 @@ public interface PeriodService {
    * Adds a Period.
    *
    * @param period the Period to add.
-   * @return a generated unique id of the added Period.
    */
-  long addPeriod(Period period);
+  void addPeriod(Period period);
 
   /**
    * Deletes a Period.
@@ -77,11 +76,10 @@ public interface PeriodService {
    * Returns a Period.
    *
    * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
    * @param periodType the PeriodType of the Period
    * @return the Period matching the dates and periodtype, or null if no match.
    */
-  Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType);
+  Period getPeriodFromDates(Date startDate, PeriodType periodType);
 
   /**
    * Returns all persisted Periods.

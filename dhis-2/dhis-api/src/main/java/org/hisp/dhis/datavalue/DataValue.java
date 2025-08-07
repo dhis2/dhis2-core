@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -54,7 +53,6 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Kristian Nordal
  */
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Auditable(scope = AuditScope.AGGREGATE)
 public class DataValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
@@ -70,17 +68,15 @@ public class DataValue implements Serializable {
   // Persistent properties
   // -------------------------------------------------------------------------
 
-  @Setter @EqualsAndHashCode.Include @AuditAttribute private DataElement dataElement;
+  @Setter @AuditAttribute private DataElement dataElement;
 
-  @Setter @EqualsAndHashCode.Include @AuditAttribute private Period period;
+  @Setter @AuditAttribute private Period period;
 
-  @Setter @EqualsAndHashCode.Include @AuditAttribute private OrganisationUnit source;
+  @Setter @AuditAttribute private OrganisationUnit source;
 
-  @Setter @EqualsAndHashCode.Include @AuditAttribute
-  private CategoryOptionCombo categoryOptionCombo;
+  @Setter @AuditAttribute private CategoryOptionCombo categoryOptionCombo;
 
-  @Setter @Getter @EqualsAndHashCode.Include @AuditAttribute
-  private CategoryOptionCombo attributeOptionCombo;
+  @Setter @Getter @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
 
   @AuditAttribute private String value;
 
@@ -254,6 +250,37 @@ public class DataValue implements Serializable {
 
   public boolean isFollowup() {
     return followup != null && followup;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (!(obj instanceof DataValue other)) {
+      return false;
+    }
+
+    return dataElement.equals(other.getDataElement())
+        && period.equals(other.getPeriod())
+        && source.equals(other.getSource())
+        && categoryOptionCombo.equals(other.getCategoryOptionCombo())
+        && attributeOptionCombo.equals(other.getAttributeOptionCombo());
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+
+    result = result * prime + dataElement.hashCode();
+    result = result * prime + period.hashCode();
+    result = result * prime + source.hashCode();
+    result = result * prime + categoryOptionCombo.hashCode();
+    result = result * prime + attributeOptionCombo.hashCode();
+
+    return result;
   }
 
   @Override

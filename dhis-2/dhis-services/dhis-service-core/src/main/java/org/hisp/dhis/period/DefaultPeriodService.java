@@ -61,9 +61,8 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @IndirectTransactional
-  public long addPeriod(Period period) {
+  public void addPeriod(Period period) {
     periodStore.addPeriod(period);
-    return period.getId();
   }
 
   @Override
@@ -82,12 +81,7 @@ public class DefaultPeriodService implements PeriodService {
   @Transactional(readOnly = true)
   public Period getPeriod(String isoPeriod) {
     Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
-
-    if (period != null) {
-      period = periodStore.getPeriod(isoPeriod);
-    }
-
-    return period;
+    return period == null ? null : periodStore.reloadPeriod(period);
   }
 
   @Override
@@ -174,11 +168,8 @@ public class DefaultPeriodService implements PeriodService {
     PeriodType periodType = lastPeriod.getPeriodType();
 
     for (int i = 0; i < previousPeriods; ++i) {
-      Period pe =
-          getPeriodFromDates(lastPeriod.getStartDate(), lastPeriod.getEndDate(), periodType);
-
+      Period pe = getPeriodFromDates(lastPeriod.getStartDate(), periodType);
       periods.add(pe != null ? pe : lastPeriod);
-
       lastPeriod = periodType.getPreviousPeriod(lastPeriod);
     }
 
@@ -199,8 +190,8 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @Transactional(readOnly = true)
-  public Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType) {
-    return periodStore.getPeriodFromDates(startDate, endDate, periodType);
+  public Period getPeriodFromDates(Date startDate, PeriodType periodType) {
+    return periodStore.getPeriodFromDates(startDate, periodType);
   }
 
   @Override

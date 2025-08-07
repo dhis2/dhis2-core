@@ -169,53 +169,62 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       boolean includeDeleted) {
     Period storedPeriod = periodStore.reloadPeriod(period);
 
-    if (storedPeriod == null) {
-      return null;
-    }
+    if (storedPeriod == null) return null;
 
-    String includeDeletedSql = includeDeleted ? "" : "and dv.deleted = false ";
-
-    String hql =
-        "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period "
-            + includeDeletedSql
-            + "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
+    String sql =
+        includeDeleted
+            ? """
+        SELECT * FROM DataValue dv
+        WHERE dv.dataelementid =:de
+          AND dv.periodid =:pe
+          AND dv.attributeoptioncomboid =:aoc
+          AND dv.categoryoptioncomboid =:coc
+          AND dv.sourceid =:ou
+        """
+            : """
+        SELECT * FROM DataValue dv
+        WHERE dv.dataelementid =:de
+          AND dv.periodid =:pe
+          AND dv.attributeoptioncomboid =:aoc
+          AND dv.categoryoptioncomboid =:coc
+          AND dv.sourceid =:ou
+          AND dv.deleted = false
+        """;
 
     return getSingleResult(
-        getQuery(hql)
-            .setParameter("dataElement", dataElement)
-            .setParameter("period", storedPeriod)
-            .setParameter("source", source)
-            .setParameter("attributeOptionCombo", attributeOptionCombo)
-            .setParameter("categoryOptionCombo", categoryOptionCombo));
+        nativeSynchronizedTypedQuery(sql)
+            .setParameter("de", dataElement.getId())
+            .setParameter("pe", storedPeriod.getId())
+            .setParameter("ou", source.getId())
+            .setParameter("aoc", attributeOptionCombo.getId())
+            .setParameter("coc", categoryOptionCombo.getId()));
   }
 
   @Override
   public DataValue getSoftDeletedDataValue(DataValue dataValue) {
     Period storedPeriod = periodStore.reloadPeriod(dataValue.getPeriod());
 
-    if (storedPeriod == null) {
-      return null;
-    }
+    if (storedPeriod == null) return null;
 
     dataValue.setPeriod(storedPeriod);
 
     String sql =
         """
-        select * from datavalue \
-        where dataelementid = :deid \
-        and periodid = :periodid \
-        and attributeoptioncomboid = :attributeOptionCombo \
-        and categoryoptioncomboid = :categoryOptionCombo \
-        and sourceid = :sourceid \
-        and deleted is true""";
+        SELECT * FROM datavalue
+        WHERE dataelementid = :de
+          AND periodid = :pe
+          AND attributeoptioncomboid = :aoc
+          AND categoryoptioncomboid = :coc
+          AND sourceid = :ou
+          AND deleted is true""";
 
     return getSingleResult(
         nativeSynchronizedTypedQuery(sql)
-            .setParameter("deid", dataValue.getDataElement().getId())
-            .setParameter("periodid", storedPeriod.getId())
-            .setParameter("attributeOptionCombo", dataValue.getAttributeOptionCombo().getId())
-            .setParameter("categoryOptionCombo", dataValue.getCategoryOptionCombo().getId())
-            .setParameter("sourceid", dataValue.getSource().getId()));
+            .setParameter("de", dataValue.getDataElement().getId())
+            .setParameter("pe", storedPeriod.getId())
+            .setParameter("aoc", dataValue.getAttributeOptionCombo().getId())
+            .setParameter("coc", dataValue.getCategoryOptionCombo().getId())
+            .setParameter("ou", dataValue.getSource().getId()));
   }
 
   @Override

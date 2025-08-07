@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -73,8 +72,12 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataEntryPipeline;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryInput;
+import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -215,7 +218,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IndicatorService indicatorService;
 
   @Autowired private DataSetService dataSetService;
-  @Autowired private DataEntryPipeline dataEntryPipeline;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private ExpressionService expressionService;
 
@@ -256,7 +259,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------
 
   @BeforeAll
-  void setUp() throws IOException {
+  void setUp() throws Exception {
 
     setUpMetadata();
     setUpDataValues();
@@ -422,10 +425,18 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     reportingRateB = new ReportingRate(dataSetB);
   }
 
-  private void setUpDataValues() throws IOException {
+  private void setUpDataValues() throws Exception {
     // Read data values from CSV files
-    dataEntryPipeline.importCsv(
-        new ClassPathResource("analytics/csv/dataValues.csv").getInputStream());
+    List<DataEntryGroup.Input> groups =
+        DataEntryInput.fromCsv(
+            new ClassPathResource("analytics/csv/dataValues.csv").getInputStream(),
+            new ImportOptions());
+    assertEquals(
+        32,
+        dataInjectionService.upsertValues(
+            groups.stream()
+                .flatMap(g -> g.values().stream())
+                .toArray(DataEntryValue.Input[]::new)));
     assertEquals(
         32,
         dataValueService.getAllDataValues().size(),

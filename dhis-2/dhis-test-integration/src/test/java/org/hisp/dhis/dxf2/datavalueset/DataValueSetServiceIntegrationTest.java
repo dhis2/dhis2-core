@@ -1110,8 +1110,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             readFile("dxf2/datavalueset/dataValueSetNonStrict.xml"), options, transitory());
 
     assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
-    assertEquals(2, summary.getImportCount().getImported());
-    assertEquals(0, summary.getImportCount().getUpdated());
+    assertEquals(0, summary.getImportCount().getImported());
+    assertEquals(2, summary.getImportCount().getUpdated());
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(1, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());

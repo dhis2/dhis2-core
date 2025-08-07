@@ -53,20 +53,11 @@ public interface PeriodStore extends GenericStore<Period> {
   /**
    * Returns a Period.
    *
-   * @param isoPeriod ISO value
-   * @return the Period matching ISO value, or null if no match.
-   */
-  Period getPeriod(String isoPeriod);
-
-  /**
-   * Returns a Period.
-   *
    * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
    * @param periodType the PeriodType of the Period
    * @return the Period matching the dates and periodtype, or null if no match.
    */
-  Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType);
+  Period getPeriodFromDates(Date startDate, PeriodType periodType);
 
   /**
    * Returns all Periods with start date after or equal the specified start date and end date before

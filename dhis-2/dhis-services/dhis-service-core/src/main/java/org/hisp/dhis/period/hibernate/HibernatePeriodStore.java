@@ -161,13 +161,6 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   }
 
   @Override
-  public Period getPeriod(String isoPeriod) {
-    String sql = "SELECT * FROM period p WHERE p.iso =:iso";
-    return getSingleResult(
-        getSession().createNativeQuery(sql, Period.class).setParameter("iso", isoPeriod));
-  }
-
-  @Override
   public List<Period> getPeriodsBetweenDates(Date startDate, Date endDate) {
     String sql = "SELECT * FROM period p WHERE p.startdate >=:start AND p.enddate <=:end";
     return getSession()
@@ -238,20 +231,8 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   }
 
   @Override
-  public Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType) {
-    String sql =
-        """
-      SELECT * FROM period p
-      WHERE p.startdate = :start
-        AND p.enddate = :end
-        AND p.periodtypeid = (SELECT periodtypeid FROM periodtype WHERE name = :type)""";
-
-    return getSingleResult(
-        getSession()
-            .createNativeQuery(sql, Period.class)
-            .setParameter("start", startDate)
-            .setParameter("end", endDate)
-            .setParameter("type", periodType.getName()));
+  public Period getPeriodFromDates(Date startDate, PeriodType periodType) {
+    return reloadPeriod(periodType.createPeriod(startDate));
   }
 
   @Override
