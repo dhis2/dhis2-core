@@ -146,7 +146,7 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetPeriodsBetweenDates() {
-    Period periodA = PeriodType.getPeriodType(PeriodTypeEnum.DAILY).createPeriod(getDay(1));
+    Period periodA = PeriodType.getPeriodType(PeriodTypeEnum.DAILY).createPeriod(getDay(2));
     Period periodB = periodA.next();
     Period periodC = periodB.next();
     Period periodD = periodC.next();
@@ -154,7 +154,7 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
     periodService.addPeriod(periodB);
     periodService.addPeriod(periodC);
     periodService.addPeriod(periodD);
-    List<Period> periods = periodService.getPeriodsBetweenDates(getDay(0), getDay(1));
+    List<Period> periods = periodService.getPeriodsBetweenDates(getDay(1), getDay(1));
     assertNotNull(periods);
     assertEquals(0, periods.size());
     periods = periodService.getPeriodsBetweenDates(getDay(1), getDay(2));
@@ -164,9 +164,9 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
     periods = periodService.getPeriodsBetweenDates(getDay(2), getDay(4));
     assertNotNull(periods);
     assertEquals(3, periods.size());
+    assertTrue(periods.contains(periodA));
     assertTrue(periods.contains(periodB));
     assertTrue(periods.contains(periodC));
-    assertTrue(periods.contains(periodD));
     periods = periodService.getPeriodsBetweenDates(getDay(1), getDay(5));
     assertNotNull(periods);
     assertEquals(4, periods.size());
@@ -201,11 +201,11 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
     periodService.addPeriod(periodJ);
     List<Period> periods = periodService.getIntersectingPeriods(getDay(3), getDay(10));
     assertEquals(8, periods.size());
-    assertTrue(periods.contains(periodB));
     assertTrue(periods.contains(periodC));
     assertTrue(periods.contains(periodD));
     assertTrue(periods.contains(periodE));
     assertTrue(periods.contains(periodF));
+    assertTrue(periods.contains(periodG));
     assertTrue(periods.contains(periodH));
     assertTrue(periods.contains(periodI));
     assertTrue(periods.contains(periodJ));
