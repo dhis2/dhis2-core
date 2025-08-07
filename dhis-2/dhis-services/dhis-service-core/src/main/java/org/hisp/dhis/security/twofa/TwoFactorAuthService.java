@@ -125,7 +125,7 @@ public class TwoFactorAuthService {
     if (!configurationProvider.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3045);
     }
-    if (!userService.isEmailVerified(user)) {
+    if (!user.isEmailVerified()) {
       throw new ConflictException(ErrorCode.E3043);
     }
     Email2FACode email2FACode = generateEmail2FACode();
@@ -255,7 +255,7 @@ public class TwoFactorAuthService {
     if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)) {
       throw new ConflictException(ErrorCode.E3048);
     }
-    if (!userService.isEmailVerified(user)) {
+    if (!user.isEmailVerified()) {
       throw new ConflictException(ErrorCode.E3043);
     }
 

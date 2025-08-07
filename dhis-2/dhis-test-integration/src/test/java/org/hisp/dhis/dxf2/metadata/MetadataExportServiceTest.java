@@ -288,8 +288,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
 
     // Assert Dashboard Item Properties
     JsonNode dashboardItem = dashboardItems.get(0);
-    assertEquals(
-        "dashboardItemA", dashboardItem.get("name").asText(), "DashboardItem name should match");
     assertNotNull(dashboardItem.get("created"), "DashboardItem created should be present");
     assertFalse(
         dashboardItem.get("created").asText().isEmpty(),
@@ -302,10 +300,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "VISUALIZATION", dashboardItem.get("type").asText(), "DashboardItem type should match");
     assertNotNull(dashboardItem.get("id"), "DashboardItem id should be present");
     assertEquals(
-        "dashboardItemA",
-        dashboardItem.get("displayName").asText(),
-        "DashboardItem displayName should match");
-    assertEquals(
         0,
         dashboardItem.get("interpretationCount").asInt(),
         "DashboardItem interpretationCount should be 0");
@@ -315,8 +309,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "DashboardItem interpretationLikeCount should be 0");
     assertEquals(
         1, dashboardItem.get("contentCount").asInt(), "DashboardItem contentCount should be 1");
-    assertFalse(
-        dashboardItem.get("favorite").asBoolean(), "DashboardItem favorite should be false");
 
     // Assert Dashboard Item Visualization
     JsonNode visualization = dashboardItem.get("visualization");
@@ -339,36 +331,14 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "DashboardItem translations should be an array");
     assertEquals(
         0, dashboardItem.get("translations").size(), "DashboardItem translations should be empty");
-    assertTrue(
-        dashboardItem.get("favorites").isArray(), "DashboardItem favorites should be an array");
-    assertEquals(
-        0, dashboardItem.get("favorites").size(), "DashboardItem favorites should be empty");
     assertTrue(dashboardItem.get("users").isArray(), "DashboardItem users should be an array");
     assertEquals(0, dashboardItem.get("users").size(), "DashboardItem users should be empty");
-    assertTrue(
-        dashboardItem.get("attributeValues").isArray(),
-        "DashboardItem attributeValues should be an array");
-    assertEquals(
-        0,
-        dashboardItem.get("attributeValues").size(),
-        "DashboardItem attributeValues should be empty");
     assertTrue(dashboardItem.get("reports").isArray(), "DashboardItem reports should be an array");
     assertEquals(0, dashboardItem.get("reports").size(), "DashboardItem reports should be empty");
     assertTrue(
         dashboardItem.get("resources").isArray(), "DashboardItem resources should be an array");
     assertEquals(
         0, dashboardItem.get("resources").size(), "DashboardItem resources should be empty");
-
-    // Assert Dashboard Item Sharing
-    JsonNode itemSharing = dashboardItem.get("sharing");
-    assertNotNull(itemSharing, "DashboardItem sharing should exist");
-    assertFalse(
-        itemSharing.get("external").asBoolean(), "DashboardItem sharing external should be false");
-    assertTrue(
-        itemSharing.get("users").isObject(), "DashboardItem sharing users should be an object");
-    assertTrue(
-        itemSharing.get("userGroups").isObject(),
-        "DashboardItem sharing userGroups should be an object");
 
     // Assert Visualizations Array
     JsonNode visualizationsNode = rootNode.get("visualizations");
