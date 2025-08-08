@@ -38,8 +38,8 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -47,7 +47,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
@@ -57,8 +56,10 @@ import org.hisp.dhis.webapi.webdomain.StartDateTime;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class EnrollmentRequestParams implements PageRequestParams, FieldsRequestParam {
+public class EnrollmentRequestParams
+    implements PageRequestParams /* TODO(ivo) bring back FieldsRequestParam once we are done */ {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+  static final Fields DEFAULT_FIELDS_PARAM_PARSED = FieldsParser.parse(DEFAULT_FIELDS_PARAM);
 
   @OpenApi.Description(
 """
@@ -132,5 +133,5 @@ will take more time to return.**
   private boolean includeDeleted = false;
 
   @OpenApi.Property(value = String[].class)
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+  private Fields fields = DEFAULT_FIELDS_PARAM_PARSED;
 }

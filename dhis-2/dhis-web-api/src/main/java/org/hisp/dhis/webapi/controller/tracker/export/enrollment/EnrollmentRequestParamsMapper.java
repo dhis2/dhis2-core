@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -101,10 +100,7 @@ class EnrollmentRequestParamsMapper {
             .enrollments(enrollmentRequestParams.getEnrollments())
             .fields(
                 EnrollmentFields.of(
-                    f ->
-                        fieldFilterService.filterIncludes(
-                            Enrollment.class, enrollmentRequestParams.getFields(), f),
-                    FieldPath.FIELD_PATH_SEPARATOR));
+                    enrollmentRequestParams.getFields()::includes, FieldPath.FIELD_PATH_SEPARATOR));
 
     mapOrderParam(builder, enrollmentRequestParams.getOrder());
 
