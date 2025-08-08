@@ -75,7 +75,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
       "Operation not supported on ApiToken";
 
   private static final List<String> VALID_METHODS =
-      List.of("GET", "POST", "PATCH", "PUT", "DELETE");
+      List.of("HEAD", "GET", "POST", "PATCH", "PUT", "DELETE");
 
   private final ApiTokenService apiTokenService;
 
