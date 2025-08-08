@@ -108,8 +108,6 @@ class EventsExportController {
 
   private final EventService eventService;
 
-  private final EventRequestParamsMapper eventParamsMapper;
-
   private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
   private final RequestHandler requestHandler;
@@ -118,12 +116,10 @@ class EventsExportController {
 
   public EventsExportController(
       EventService eventService,
-      EventRequestParamsMapper eventParamsMapper,
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
       RequestHandler requestHandler,
       EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
-    this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
     this.eventChangeLogService = eventChangeLogService;
@@ -151,7 +147,7 @@ class EventsExportController {
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       EventOperationParams eventOperationParams =
-          eventParamsMapper.map(requestParams, idSchemeParams);
+          EventRequestParamsMapper.map(requestParams, idSchemeParams);
       org.hisp.dhis.tracker.Page<Event> eventsPage =
           eventService.findEvents(eventOperationParams, pageParams);
 
@@ -258,7 +254,7 @@ class EventsExportController {
       EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException, ForbiddenException, WebMessageException {
     EventOperationParams eventOperationParams =
-        eventParamsMapper.map(requestParams, idSchemeParams);
+        EventRequestParamsMapper.map(requestParams, idSchemeParams);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =

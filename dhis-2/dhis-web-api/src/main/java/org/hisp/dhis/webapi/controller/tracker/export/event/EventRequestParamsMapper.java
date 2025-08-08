@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -57,18 +56,15 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link EventsExportController} stored in {@link EventRequestParams} to
  * {@link EventOperationParams} which is used to fetch events from the DB.
  */
-@Component
-@RequiredArgsConstructor
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  public EventOperationParams map(
+  public static EventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
@@ -155,7 +151,8 @@ class EventRequestParamsMapper {
     }
   }
 
-  private void mapOrderParam(EventOperationParamsBuilder builder, List<OrderCriteria> orders) {
+  private static void mapOrderParam(
+      EventOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
     }
@@ -169,7 +166,7 @@ class EventRequestParamsMapper {
     }
   }
 
-  private void mapDataElementFilterParam(
+  private static void mapDataElementFilterParam(
       EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
     if (dataElementFilters == null || dataElementFilters.isEmpty()) {
       return;
@@ -184,7 +181,7 @@ class EventRequestParamsMapper {
     }
   }
 
-  private void mapAttributeFilterParam(
+  private static void mapAttributeFilterParam(
       EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> attributeFilters) {
     if (attributeFilters == null || attributeFilters.isEmpty()) {
       return;
@@ -199,7 +196,7 @@ class EventRequestParamsMapper {
     }
   }
 
-  private void validateUpdateDurationParams(EventRequestParams eventRequestParams)
+  private static void validateUpdateDurationParams(EventRequestParams eventRequestParams)
       throws BadRequestException {
     if (eventRequestParams.getUpdatedWithin() != null
         && (eventRequestParams.getUpdatedAfter() != null
