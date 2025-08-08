@@ -29,12 +29,10 @@
  */
 package org.hisp.dhis.fieldfiltering.better;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -60,13 +58,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Tests the better {@link FieldsParser} and its backwards compatibility with the current {@link
+ * Tests the {@link FieldsParser} and its backwards compatibility with the current {@link
  * FieldFilterParser}. Some tests are ported over from {@code FieldFilterParserTest}. Comments
  * indicate where the tests differ.
  */
 class FieldsParserTest {
 
-  record ExpectField(boolean included, String dotPath, Transformation... transformations) {}
+  /**
+   * {@link Fields.Transformation} has a reference to a transformer function which makes it
+   * impossible to use {@code assertEquals} as lambdas are not equal even though they point to the
+   * same function. Using this record to make asserting easier.
+   */
+  record ExpectTransformation(String name, String argument) {}
+
+  record ExpectField(boolean included, String dotPath, ExpectTransformation... transformations) {}
 
   @ParameterizedTest
   @MethodSource("providerEqualBehavior")
@@ -260,87 +265,91 @@ class FieldsParserTest {
                 new ExpectField(false, "code"),
                 new ExpectField(true, "group"),
                 new ExpectField(false, "group.code"),
-                new ExpectField(true, "group.hello")))
+                new ExpectField(true, "group.hello"))),
 
         // TODO(ivo) adapt the tests to use real transformers
-        //        // testParseWithTransformer1
-        //        Arguments.of(
-        //            "name::x(a;b),id~y(a;b;c),code|z(t)",
-        //            List.of(
-        //                new ExpectField(true, "name", new Transformation("x", "a", "b")),
-        //                new ExpectField(true, "id", new Transformation("y", "a", "b", "c")),
-        //                new ExpectField(true, "code", new Transformation("z", "t")))),
-        //
-        //        // testParseWithTransformer2
-        //        Arguments.of(
-        //            "groups[name::x(a;b)]",
-        //            List.of(
-        //                new ExpectField(true, "groups"),
-        //                new ExpectField(true, "groups.name", new Transformation("x", "a", "b")))),
-        //
-        //        // testParseWithTransformer3
-        //        Arguments.of(
-        //            "groups[name::x(a;b), code~y(a)]",
-        //            List.of(
-        //                new ExpectField(true, "groups"),
-        //                new ExpectField(true, "groups.name", new Transformation("x", "a", "b")),
-        //                new ExpectField(true, "groups.code", new Transformation("y", "a")))),
-        //
-        //        // testParseWithTransformer4
-        //        Arguments.of(
-        //            "name::rename(n),groups[name]",
-        //            List.of(
-        //                new ExpectField(true, "name", new Transformation("rename", "n")),
-        //                new ExpectField(true, "groups"),
-        //                new ExpectField(true, "groups.name"))),
-        //
-        //        // testParseWithTransformer5
-        //        Arguments.of(
-        //            "name::rename(n),groups::rename(g)[name::rename(n)]",
-        //            List.of(
-        //                new ExpectField(true, "name", new Transformation("rename", "n")),
-        //                new ExpectField(true, "groups", new Transformation("rename", "g")),
-        //                new ExpectField(true, "groups.name", new Transformation("rename", "n")))),
-        //
-        //        // testParseWithTransformer6
-        //        Arguments.of(
-        //            "name::rename(n),groups::rename(g)[name]",
-        //            List.of(
-        //                new ExpectField(true, "name", new Transformation("rename", "n")),
-        //                new ExpectField(true, "groups", new Transformation("rename", "g")),
-        //                new ExpectField(true, "groups.name"))),
-        //
-        //        // testParseWithTransformer7
-        //        Arguments.of(
-        //            "name::size,group::isEmpty",
-        //            List.of(
-        //                new ExpectField(true, "name", new Transformation("size")),
-        //                new ExpectField(true, "group", new Transformation("isEmpty")))),
-        //
-        //        // testParseWithTransformer8
-        //        Arguments.of(
-        //            "name::rename(n)",
-        //            List.of(new ExpectField(true, "name", new Transformation("rename", "n")))),
-        //
-        //        // testParseWithMultipleTransformers
-        //        Arguments.of(
-        //            "name::size::rename(n)",
-        //            List.of(
-        //                new ExpectField(
-        //                    true, "name", new Transformation("size"), new Transformation("rename",
-        // "n")))),
-        //
-        //        // testMixedBlockWithTransformation
-        //        Arguments.of(
-        //            "id,categoryCombo[categoryOptionCombos~size],displayName",
-        //            List.of(
-        //                new ExpectField(true, "id"),
-        //                new ExpectField(true, "categoryCombo"),
-        //                new ExpectField(
-        //                    true, "categoryCombo.categoryOptionCombos", new
-        // Transformation("size")),
-        //                new ExpectField(true, "displayName"))));
-        );
+        // adapted current transformer tests as the better parser includes validation of args
+        // testParseWithTransformer1
+        Arguments.of(
+            "name::rename(a),id~rename(b),code|rename(c)",
+            List.of(
+                new ExpectField(true, "name", new ExpectTransformation("rename", "a")),
+                new ExpectField(true, "id", new ExpectTransformation("rename", "b")),
+                new ExpectField(true, "code", new ExpectTransformation("rename", "c")))),
+
+        // testParseWithTransformer2
+        Arguments.of(
+            "groups[name::rename(a)]",
+            List.of(
+                new ExpectField(true, "groups"),
+                new ExpectField(true, "groups.name", new ExpectTransformation("rename", "a")))),
+
+        // testParseWithTransformer3
+        Arguments.of(
+            "groups[name::rename(a), code~isNotEmpty()]",
+            List.of(
+                new ExpectField(true, "groups"),
+                new ExpectField(true, "groups.name", new ExpectTransformation("rename", "a")),
+                new ExpectField(
+                    true, "groups.code", new ExpectTransformation("isNotEmpty", null)))),
+
+        // testParseWithTransformer4
+        Arguments.of(
+            "name::rename(n),groups[name]",
+            List.of(
+                new ExpectField(true, "name", new ExpectTransformation("rename", "n")),
+                new ExpectField(true, "groups"),
+                new ExpectField(true, "groups.name"))),
+
+        // testParseWithTransformer5
+        Arguments.of(
+            "name::rename(n),groups::rename(g)[name::rename(n)]",
+            List.of(
+                new ExpectField(true, "name", new ExpectTransformation("rename", "n")),
+                new ExpectField(true, "groups", new ExpectTransformation("rename", "g")),
+                new ExpectField(true, "groups.name", new ExpectTransformation("rename", "n")))),
+
+        // testParseWithTransformer6
+        Arguments.of(
+            "name::rename(n),groups::rename(g)[name]",
+            List.of(
+                new ExpectField(true, "name", new ExpectTransformation("rename", "n")),
+                new ExpectField(true, "groups", new ExpectTransformation("rename", "g")),
+                new ExpectField(true, "groups.name"))),
+
+        // testParseWithTransformer7
+        Arguments.of(
+            "name::size,group::isEmpty",
+            List.of(
+                new ExpectField(true, "name", new ExpectTransformation("size", null)),
+                new ExpectField(true, "group", new ExpectTransformation("isEmpty", null)))),
+
+        // testParseWithTransformer8
+        Arguments.of(
+            "name::rename(n)",
+            List.of(new ExpectField(true, "name", new ExpectTransformation("rename", "n")))),
+
+        // testParseWithMultipleTransformers
+        Arguments.of(
+            "name::size::rename(n)",
+            List.of(
+                new ExpectField(
+                    true,
+                    "name",
+                    new ExpectTransformation("size", null),
+                    new ExpectTransformation("rename", "n")))),
+
+        // testMixedBlockWithExpectTransformation
+        Arguments.of(
+            "id,categoryCombo[categoryOptionCombos~size],displayName",
+            List.of(
+                new ExpectField(true, "id"),
+                new ExpectField(true, "categoryCombo"),
+                new ExpectField(
+                    true,
+                    "categoryCombo.categoryOptionCombos",
+                    new ExpectTransformation("size", null)),
+                new ExpectField(true, "displayName"))));
   }
 
   // The following tests show where the current and better implementations differ. Some differences
@@ -552,9 +561,24 @@ class FieldsParserTest {
   }
 
   @Test
-  void betterParserFailsOnMissingRequiredTransformerArg() {
+  void testParserSortsTransformationsWithRenameLast() {
+    Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
+
+    List<Transformation> actual = fields.getTransformations("field");
+
+    assertEquals(
+        List.of(
+            new ExpectTransformation("isEmpty", null),
+            new ExpectTransformation("rename", "newName")),
+        actual.stream().map(toExpectTransformation()).toList());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"field1::rename", "field1::rename()", "field1::rename(first;second;third)"})
+  void betterParserFailsOnMissingRequiredRenameTransformerArgument(String input) {
     Exception exception =
-        assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse("field1::rename"));
+        assertThrows(IllegalArgumentException.class, () -> FieldsParser.parse(input));
 
     assertContains("rename applied to field", exception.getMessage());
   }
@@ -579,25 +603,6 @@ class FieldsParserTest {
             () -> FieldsParser.parse("field1::unknown,field2~unknown2"));
 
     assertStartsWith("Invalid field transformer(s):", exception.getMessage());
-  }
-
-  // TODO(ivo) how to test it now that these are functions?
-  @Test
-  void testParserSortsTransformationsWithRenameLast() {
-    Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
-
-    List<Transformation> actual = fields.getTransformations("field");
-
-    assertEquals(2, actual.size());
-    assertTransformation("isEmpty", null, actual.get(0));
-    assertTransformation("rename", "newName", actual.get(1));
-  }
-
-  private static void assertTransformation(
-      String expectedName, String expectedArg, Transformation actual) {
-    assertAll(
-        () -> assertEquals(expectedName, actual.name(), "Transformer name mismatch"),
-        () -> assertEquals(expectedArg, actual.argument(), "Transformer argument mismatch"));
   }
 
   public static void assertFields(List<ExpectField> expectFields, Fields fields) {
@@ -634,12 +639,19 @@ class FieldsParserTest {
           actual == null ? List.of() : actual,
           "Expected no transformations for field " + expected.dotPath);
     } else {
+      List<ExpectTransformation> expectedTransformations = List.of(expected.transformations);
       assertNotEmpty(actual, "Expected transformations for field " + expected.dotPath);
+      List<ExpectTransformation> actualTransformations =
+          actual.stream().map(toExpectTransformation()).toList();
       assertEquals(
-          List.of(expected.transformations),
-          actual,
+          expectedTransformations,
+          actualTransformations,
           "Transformations mismatch for field " + expected.dotPath);
     }
+  }
+
+  private static Function<Transformation, ExpectTransformation> toExpectTransformation() {
+    return t -> new ExpectTransformation(t.name(), t.argument());
   }
 
   private static void assertFields(
@@ -707,21 +719,22 @@ class FieldsParserTest {
               + Arrays.toString(expected.transformations)
               + " for field "
               + expected.dotPath);
-      // TODO(ivo) fix assertion
-      //      List<Transformation> actualTransformations =
-      //          actual.getTransformers().stream()
-      //              .map(t -> new Transformation(t.getName(), t.getParameters().get(0)))
-      //              .toList();
-      //      assertEquals(
-      //          List.of(expected.transformations),
-      //          actualTransformations,
-      //          "Transformations mismatch for field " + expected.dotPath);
+      List<ExpectTransformation> actualTransformations =
+          actual.getTransformers().stream()
+              .map(
+                  t ->
+                      new ExpectTransformation(
+                          t.getName(),
+                          (t.getParameters() == null || t.getParameters().isEmpty())
+                              ? null
+                              : t.getParameters().get(0).isEmpty()
+                                  ? null
+                                  : t.getParameters().get(0)))
+              .toList();
+      assertEquals(
+          List.of(expected.transformations),
+          actualTransformations,
+          "Transformations mismatch for field " + expected.dotPath);
     }
-  }
-
-  private void assertFieldPathContains(List<FieldPath> fieldPaths, String expected) {
-    Set<String> actual =
-        fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
-    assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
   }
 }

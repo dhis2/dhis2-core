@@ -151,6 +151,10 @@ public final class Fields implements Predicate<String> {
   /**
    * Represents a field transformation like rename or isEmpty like {@code
    * "dataSets~isNotEmpty~rename(hasDataSets)}.
+   *
+   * <p>Users are allowed to pass multiple arguments to transformers with {@code
+   * fields=field::rename(one;two;three)}. Since our transformers use at most one we'll only forward
+   * one to simplify their logic.
    */
   public record Transformation(
       String name, FieldsTransformer.Function transformer, String argument) {}
