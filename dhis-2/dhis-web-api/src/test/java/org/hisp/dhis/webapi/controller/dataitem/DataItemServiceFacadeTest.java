@@ -111,7 +111,6 @@ class DataItemServiceFacadeTest {
     currentUser.setUsername("anyUser");
 
     // When
-    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
     injectSecurityContext(UserDetails.fromUser(currentUser));
 
     when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))

@@ -57,7 +57,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -106,7 +105,7 @@ public class DataItemQueryController {
   public ResponseEntity<RootNode> getJson(
       @RequestParam Map<String, String> urlParameters,
       OrderParams orderParams,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws QueryParserException {
     log.debug("Looking for data items (JSON response)");
 
@@ -122,7 +121,7 @@ public class DataItemQueryController {
   public ResponseEntity<RootNode> getXml(
       @RequestParam Map<String, String> urlParameters,
       OrderParams orderParams,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     log.debug("Looking for data items (XML response)");
 
     return getDimensionalItems(currentUser, urlParameters, orderParams);
@@ -138,7 +137,7 @@ public class DataItemQueryController {
    * @return the complete root node
    */
   private ResponseEntity<RootNode> getDimensionalItems(
-      final User currentUser,
+      final UserDetails currentUser,
       final Map<String, String> urlParameters,
       final OrderParams orderParams) {
     // Defining the input params.
@@ -175,10 +174,10 @@ public class DataItemQueryController {
   }
 
   private void checkAuthorization(
-      User currentUser, Set<Class<? extends BaseIdentifiableObject>> entities) {
+      UserDetails currentUser, Set<Class<? extends BaseIdentifiableObject>> entities) {
     if (isNotEmpty(entities)) {
       for (Class<? extends BaseIdentifiableObject> entity : entities) {
-        if (!aclService.canRead(UserDetails.fromUser(currentUser), entity)) {
+        if (!aclService.canRead(currentUser, entity)) {
           throw new IllegalQueryException(
               new ErrorMessage(E3012, currentUser.getUsername(), entity.getSimpleName()));
         }

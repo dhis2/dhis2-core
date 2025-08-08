@@ -53,7 +53,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -129,7 +129,7 @@ class ResponseHandler {
   void addPaginationToNode(
       RootNode rootNode,
       Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-      User currentUser,
+      UserDetails currentUser,
       WebOptions options,
       Set<String> filters) {
     if (options.hasPaging() && isNotEmpty(targetEntities)) {
@@ -169,7 +169,7 @@ class ResponseHandler {
   }
 
   private String createPageCountingCacheKey(
-      User currentUser,
+      UserDetails currentUser,
       Set<Class<? extends BaseIdentifiableObject>> targetEntities,
       Set<String> filters,
       WebOptions options) {
