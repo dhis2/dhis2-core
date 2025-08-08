@@ -62,9 +62,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(Enrollment.class)
+@OpenApi.EntityType(org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class)
 @OpenApi.Document(
-    entity = org.hisp.dhis.program.Enrollment.class,
+    entity = org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class,
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/enrollments")

@@ -43,7 +43,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
@@ -54,7 +53,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -73,8 +71,6 @@ class EnrollmentRequestParamsMapperTest {
 
   private static final UID TRACKED_ENTITY_UID = UID.of("DGbr8GHG4li");
 
-  @Mock private FieldFilterService fieldFilterService;
-
   @InjectMocks private EnrollmentRequestParamsMapper mapper;
 
   @Test
@@ -83,7 +79,7 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID));
     enrollmentRequestParams.setProgram(PROGRAM_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
   }

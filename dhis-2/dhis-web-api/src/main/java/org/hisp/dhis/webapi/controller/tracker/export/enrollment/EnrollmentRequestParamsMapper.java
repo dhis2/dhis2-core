@@ -36,10 +36,8 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
@@ -49,22 +47,17 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link EnrollmentsExportController} stored in {@link
  * EnrollmentRequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments
  * from the service.
  */
-@Component
-@RequiredArgsConstructor
 class EnrollmentRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       EnrollmentMapper.ORDERABLE_FIELDS.keySet();
 
-  private final FieldFilterService fieldFilterService;
-
-  public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
+  public static EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
@@ -107,7 +100,8 @@ class EnrollmentRequestParamsMapper {
     return builder.build();
   }
 
-  private void mapOrderParam(EnrollmentOperationParamsBuilder builder, List<OrderCriteria> orders) {
+  private static void mapOrderParam(
+      EnrollmentOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
     }
@@ -120,7 +114,8 @@ class EnrollmentRequestParamsMapper {
     }
   }
 
-  private void validateRequestParams(EnrollmentRequestParams params) throws BadRequestException {
+  private static void validateRequestParams(EnrollmentRequestParams params)
+      throws BadRequestException {
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
       throw new BadRequestException(
           "`program` and `trackedEntityType` cannot be specified simultaneously");
