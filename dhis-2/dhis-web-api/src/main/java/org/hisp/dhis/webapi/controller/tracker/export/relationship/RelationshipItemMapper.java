@@ -122,12 +122,10 @@ interface RelationshipItemMapper {
   RelationshipItem.Event map(TrackerEvent event);
 
   @Mapping(target = "event", source = "uid")
-  @Mapping(target = "program", source = "enrollment.program.uid")
+  @Mapping(target = "program", source = "programStage.program.uid")
   @Mapping(target = "programStage", source = "programStage.uid")
-  @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
   @Mapping(target = "occurredAt", source = "occurredDate")
-  @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")

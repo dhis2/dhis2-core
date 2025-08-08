@@ -1345,7 +1345,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     List<String> expected =
         new java.util.ArrayList<>(
             Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
-                .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
+                .sorted(
+                    Comparator.comparing(event -> event.getProgramStage().getProgram().getUid()))
                 .map(SingleEvent::getUid)
                 .toList());
 
@@ -1371,7 +1372,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     List<String> expected =
         new java.util.ArrayList<>(
             Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
-                .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
+                .sorted(
+                    Comparator.comparing(event -> event.getProgramStage().getProgram().getUid()))
                 .map(SingleEvent::getUid)
                 .toList());
     Collections.reverse(expected);

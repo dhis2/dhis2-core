@@ -629,16 +629,13 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .occurredAt(newDate)
-                      .scheduledAt(newDate)
-                      .build();
+              e.setOccurredAt(newDate);
+              e.setScheduledAt(newDate);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 

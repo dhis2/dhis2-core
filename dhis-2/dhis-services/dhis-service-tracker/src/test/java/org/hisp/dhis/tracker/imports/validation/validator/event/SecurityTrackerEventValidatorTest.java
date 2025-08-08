@@ -190,7 +190,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForCreateStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -218,7 +218,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldPassValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForUpdateStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -250,7 +250,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForDeleteStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -282,7 +282,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveReadAccessToTrackedEntityTypeForCreateStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -315,7 +315,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveReadAccessToTrackedEntityTypeForUpdateAndDeleteStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -348,7 +348,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveReadAccessToProgramForCreateStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -381,7 +381,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveReadAccessToProgramForUpdateAndDeleteStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -414,7 +414,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToProgramStageForCreateStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -447,7 +447,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToProgramStageForUpdateAndDeleteStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -482,7 +482,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     UID enrollmentUid = UID.generate();
     MetadataIdentifier attributeOptionComboUid =
         MetadataIdentifier.ofUid(categoryOptionCombo.getUid());
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -518,7 +518,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForUpdateAndDeleteStrategy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -553,7 +553,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
       names = {"UPDATE", "DELETE"})
   void shouldPassValidationWhenDeletingOrUpdatingTrackerEvent(TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -590,7 +590,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
       mode = EnumSource.Mode.INCLUDE,
       names = {"CREATE"})
   void shouldPassValidationWhenCreatingTrackerEvent(TrackerImportStrategy strategy) {
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
@@ -627,7 +627,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
       names = {"CREATE"})
   void shouldPassValidationWhenCreatingTrackerEventAndEnrollmentIsInBundle(
       TrackerImportStrategy strategy) {
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(UID.generate())
@@ -671,7 +671,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
     UID enrollmentUid = UID.generate();
     UID eventUid = UID.generate();
     OrganisationUnit captureScopeOrgUnit = createOrganisationUnit('B');
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(eventUid)
             .enrollment(enrollmentUid)
@@ -720,7 +720,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void
       shouldPassValidationWhenUpdateEventAndUserWithAuthorityToCompleteDoNotHaveOrgUnitInCaptureScope() {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -750,7 +750,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   @Test
   void shouldPassValidationWhenUpdateEventAndUserHasAuthorityToUpdateCompletedEvents() {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -784,7 +784,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
       names = {"CREATE"})
   void shouldFailWhenCreatingEventThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy(
       TrackerImportStrategy strategy) {
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(UID.generate())
@@ -818,7 +818,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
       shouldPassValidationWhenUpdatingEventThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy(
           TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -852,7 +852,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   void shouldFailWhenDeletingEventThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy(
       TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)
@@ -881,7 +881,7 @@ class SecurityTrackerEventValidatorTest extends TestBase {
   @Test
   void shouldFailValidationWhenUpdatingCompletedEventAndUserHasNoAuthorityToUncompleteEvent() {
     UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .event(UID.generate())
             .enrollment(enrollmentUid)

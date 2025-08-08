@@ -37,7 +37,6 @@ import org.hisp.dhis.tracker.imports.preheat.supplier.DefaultsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DuplicateRelationshipSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EnrollmentsWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventCategoryOptionComboSupplier;
-import org.hisp.dhis.tracker.imports.preheat.supplier.EventProgramEnrollmentSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventProgramStageMapSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.FileResourceSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.OrgUnitValueTypeSupplier;
@@ -59,7 +58,6 @@ public class TrackerPreheatConfig {
           ClassBasedSupplier.class,
           DefaultsSupplier.class,
           TrackedEntityEnrollmentSupplier.class,
-          EventProgramEnrollmentSupplier.class,
           EnrollmentsWithAtLeastOneEventSupplier.class,
           EventProgramStageMapSupplier.class,
           ProgramOrgUnitsSupplier.class,

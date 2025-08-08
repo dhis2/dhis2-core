@@ -40,11 +40,10 @@ alter table if exists trackerevent
     add constraint fk_trackerevent_programstageid foreign key (programstageid) references programstage (programstageid);
 
 alter table if exists singleevent
-    add constraint fk_singleevent_assigneduserid foreign key (assigneduserid) references userinfo (userinfoid),
-    add constraint fk_singleevent_attributeoptioncomboid foreign key (attributeoptioncomboid) references categoryoptioncombo (categoryoptioncomboid),
-    add constraint fk_singleevent_organisationunitid foreign key (organisationunitid) references organisationunit (organisationunitid),
-    add constraint fk_singleevent_enrollmentid foreign key (enrollmentid) references enrollment (enrollmentid),
-    add constraint fk_singleevent_programstageid foreign key (programstageid) references programstage (programstageid);
+    add constraint fk_singleevent_assigneduserid FOREIGN KEY (assigneduserid) REFERENCES userinfo(userinfoid),
+    add constraint fk_singleevent_attributeoptioncomboid FOREIGN KEY (attributeoptioncomboid) REFERENCES categoryoptioncombo(categoryoptioncomboid),
+    add constraint fk_singleevent_organisationunitid FOREIGN KEY (organisationunitid) REFERENCES organisationunit(organisationunitid),
+    add constraint fk_singleevent_programstageid FOREIGN KEY (programstageid) REFERENCES programstage(programstageid);
 
 alter table if exists relationshipitem
     drop constraint fk_relationshipitem_trackereventid,
@@ -85,12 +84,23 @@ alter table if exists singleevent_notes
 alter table if exists singleevent_notes
     add constraint fk_singleevent_notes_eventid foreign key (eventid) references singleevent (eventid);
 
-alter table singleevent drop column code;
-alter table trackerevent drop column code;
-
 create sequence if not exists trackerevent_sequence;
 create sequence if not exists singleevent_sequence;
 select setval('trackerevent_sequence', max(eventid)) FROM trackerevent;
 select setval('singleevent_sequence', max(eventid)) FROM singleevent;
+
+alter table trackerevent drop column code;
+alter table singleevent drop column code;
+alter table singleevent drop column scheduleddate;
+alter table singleevent drop column enrollmentid;
+
+delete from enrollment where enrollmentid in (
+    select en.enrollmentid
+    from enrollment en
+    join program p on en.programid = p.programid
+    where p.type = 'WITHOUT_REGISTRATION'
+    );
+
+alter table enrollment alter column trackedentityid set not null;
 
 drop table if exists event;
