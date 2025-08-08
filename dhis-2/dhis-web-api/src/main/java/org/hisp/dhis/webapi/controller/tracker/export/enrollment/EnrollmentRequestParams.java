@@ -47,6 +47,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
@@ -56,8 +57,7 @@ import org.hisp.dhis.webapi.webdomain.StartDateTime;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class EnrollmentRequestParams
-    implements PageRequestParams /* TODO(ivo) bring back FieldsRequestParam once we are done */ {
+public class EnrollmentRequestParams implements PageRequestParams, FieldsRequestParam {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
   static final Fields DEFAULT_FIELDS_PARAM_PARSED = FieldsParser.parse(DEFAULT_FIELDS_PARAM);
 

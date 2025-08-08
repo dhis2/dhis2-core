@@ -43,7 +43,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -291,11 +290,9 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  // TODO(ivo) adapt to streaming once all controllers use the new Fields and we can switch the
-  // FieldsRequestParam to Fields
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{event}/changeLogs")
-  ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
+  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog> getEventChangeLogsByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
@@ -311,7 +308,11 @@ class EventsExportController {
     org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.export.event.EventChangeLog> page =
         eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
-    return requestHandler.serve(
-        request, "changeLogs", page.withMappedItems(EVENT_CHANGE_LOG_MAPPER::map), requestParams);
+    org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog>
+        mappedPage = page.withMappedItems(EVENT_CHANGE_LOG_MAPPER::map);
+
+    return new FilteredPage<>(
+        Page.withPager("changeLogs", mappedPage, getRequestURL(request)),
+        requestParams.getFields());
   }
 }

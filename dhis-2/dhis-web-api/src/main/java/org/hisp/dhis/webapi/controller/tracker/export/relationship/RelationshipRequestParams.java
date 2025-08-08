@@ -41,14 +41,14 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
 @OpenApi.Shared(name = "RelationshipRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class RelationshipRequestParams
-    implements PageRequestParams /* TODO(ivo) bring back FieldsRequestParam once we are done */ {
+public class RelationshipRequestParams implements PageRequestParams, FieldsRequestParam {
   static final String DEFAULT_FIELDS_PARAM =
       "relationship,relationshipType,createdAtClient,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
   static final Fields DEFAULT_FIELDS_PARAM_PARSED = FieldsParser.parse(DEFAULT_FIELDS_PARAM);

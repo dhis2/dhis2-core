@@ -42,7 +42,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -363,13 +362,14 @@ class TrackedEntitiesExportController {
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{trackedEntity}/changeLogs")
-  ResponseEntity<Page<ObjectNode>> getTrackedEntityChangeLog(
-      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
-          UID trackedEntity,
-      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
-      ChangeLogRequestParams requestParams,
-      HttpServletRequest request)
-      throws NotFoundException, BadRequestException, ForbiddenException {
+  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog>
+      getTrackedEntityChangeLog(
+          @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+              UID trackedEntity,
+          @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
+          ChangeLogRequestParams requestParams,
+          HttpServletRequest request)
+          throws NotFoundException, BadRequestException, ForbiddenException {
 
     TrackedEntityChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(
@@ -383,10 +383,11 @@ class TrackedEntitiesExportController {
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             trackedEntity, program, operationParams, pageParams);
 
-    return requestHandler.serve(
-        request,
-        "changeLogs",
-        page.withMappedItems(TRACKED_ENTITY_CHANGE_LOG_MAPPER::map),
-        requestParams);
+    org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog>
+        mappedPage = page.withMappedItems(TRACKED_ENTITY_CHANGE_LOG_MAPPER::map);
+
+    return new FilteredPage<>(
+        Page.withPager("changeLogs", mappedPage, getRequestURL(request)),
+        requestParams.getFields());
   }
 }
