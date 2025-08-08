@@ -105,31 +105,22 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes() {
-    Set<TrackedEntityAttribute> result = new HashSet<>();
-
-    Query<TrackedEntityAttribute> programTeaQuery =
+  public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
+    Query<TrackedEntityAttribute> query =
         getSession()
-            .createQuery(
-                "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true and ptea.attribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
-    Query<TrackedEntityAttribute> tetypeAttributeQuery =
-        getSession()
-            .createQuery(
-                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true and teta.trackedEntityAttribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
-    Query<TrackedEntityAttribute> uniqueAttributeQuery =
-        getSession().createQuery("from TrackedEntityAttribute tea where tea.unique=true");
+            .createNativeQuery(
+                """
+        SELECT tea.trackedentityattributeid, tea.name
+        FROM trackedentityattribute tea
+        WHERE tea.trigramindexable = true
+        AND (
+            NOT tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            OR NOT tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+        """,
+                TrackedEntityAttribute.class);
 
-    List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
-    List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes =
-        tetypeAttributeQuery.list();
-    List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
-
-    result.addAll(programSearchableTrackedEntityAttributes);
-    result.addAll(trackedEntityTypeSearchableAttributes);
-    result.addAll(uniqueAttributes);
-
-    return result;
+    return new HashSet<>(query.list());
   }
 
   @Override
