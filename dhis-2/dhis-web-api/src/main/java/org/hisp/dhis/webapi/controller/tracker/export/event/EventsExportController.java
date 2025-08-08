@@ -170,20 +170,8 @@ class EventsExportController {
     return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
   }
 
-  @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
-  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsAsJsonGzip(
-      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
-      throws BadRequestException, ForbiddenException, WebMessageException {
-    validatePaginationParameters(requestParams);
-
-    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        getEventsList(requestParams, idSchemeParams);
-
-    return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
-  }
-
-  @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
-  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsAsJsonZip(
+  @GetMapping(produces = {CONTENT_TYPE_JSON_GZIP, CONTENT_TYPE_JSON_ZIP})
+  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsAsJsonCompressed(
       EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
@@ -307,7 +295,8 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  // TODO(ivo) adapt to streaming needs its fields to switch over to Fields
+  // TODO(ivo) adapt to streaming once all controllers use the new Fields and we can switch the
+  // FieldsRequestParam to Fields
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{event}/changeLogs")
   ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
