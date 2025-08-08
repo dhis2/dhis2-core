@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_CONTENT_DISPOSITION;
+import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -94,6 +97,8 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
   protected void writeInternal(
       @Nonnull Object filteredObject, @Nonnull HttpOutputMessage outputMessage)
       throws IOException, HttpMessageNotWritableException {
+    setCompressionHeaders(filteredObject, outputMessage);
+
     if (outputMessage instanceof StreamingHttpOutputMessage) {
       writeStreaming(filteredObject, (StreamingHttpOutputMessage) outputMessage);
     } else {
@@ -183,6 +188,40 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
       return zip;
     }
     return original;
+  }
+
+  private void setCompressionHeaders(Object filteredObject, HttpOutputMessage outputMessage) {
+    org.springframework.http.MediaType mediaType = outputMessage.getHeaders().getContentType();
+    if (mediaType == null) {
+      return;
+    }
+
+    String filename = getFilename(filteredObject);
+    String mediaTypeStr = mediaType.toString();
+    if (CONTENT_TYPE_JSON_GZIP.equals(mediaTypeStr)) {
+      outputMessage
+          .getHeaders()
+          .set(HEADER_CONTENT_DISPOSITION, "attachment; filename=" + filename + ".json.gz");
+      outputMessage
+          .getHeaders()
+          .set(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    } else if (CONTENT_TYPE_JSON_ZIP.equals(mediaTypeStr)) {
+      outputMessage
+          .getHeaders()
+          .set(HEADER_CONTENT_DISPOSITION, "attachment; filename=" + filename + ".json.zip");
+      outputMessage
+          .getHeaders()
+          .set(HEADER_CONTENT_TRANSFER_ENCODING, BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    }
+  }
+
+  private String getFilename(Object filteredObject) {
+    if (filteredObject instanceof FilteredPage<?> filteredPage) {
+      return filteredPage.page().getKey();
+    } else if (filteredObject instanceof FilteredEntity<?>) {
+      return "data";
+    }
+    return "data";
   }
 
   /**

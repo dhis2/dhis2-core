@@ -32,8 +32,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
-import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
@@ -45,7 +43,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -61,7 +58,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.fileresource.ImageFileDimension;
@@ -106,8 +102,6 @@ class EventsExportController {
 
   private static final String EVENT_CSV_FILE = EVENTS + ".csv";
 
-  private static final String EVENT_JSON_FILE = EVENTS + ".json";
-
   private static final String GZIP_EXT = ".gz";
 
   private static final String ZIP_EXT = ".zip";
@@ -120,10 +114,6 @@ class EventsExportController {
 
   private final RequestHandler requestHandler;
 
-  private final FieldFilterService fieldFilterService;
-
-  private final ObjectMapper objectMapper;
-
   private final EventChangeLogService eventChangeLogService;
 
   public EventsExportController(
@@ -131,15 +121,11 @@ class EventsExportController {
       EventRequestParamsMapper eventParamsMapper,
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
       RequestHandler requestHandler,
-      FieldFilterService fieldFilterService,
-      ObjectMapper objectMapper,
       EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
-    this.fieldFilterService = fieldFilterService;
-    this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
 
     assertUserOrderableFieldsAreSupported(
@@ -185,51 +171,27 @@ class EventsExportController {
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
-  void getEventsAsJsonGzip(
-      EventRequestParams requestParams,
-      TrackerIdSchemeParams idSchemeParams,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
-      HttpServletResponse response)
-      throws BadRequestException, IOException, ForbiddenException, WebMessageException {
+  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsAsJsonGzip(
+      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
+      throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + GZIP_EXT);
-    ResponseHeader.addContentTransferEncodingBinary(response);
-    response.setContentType(CONTENT_TYPE_JSON_GZIP);
-
-    // TODO(ivo) can we move the JSON gzip into our http converter?
-    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(events, fields);
-
-    writeGzip(
-        response.getOutputStream(), Page.withoutPager(EVENTS, objectNodes), objectMapper.writer());
+    return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
-  void getEventsAsJsonZip(
-      EventRequestParams requestParams,
-      TrackerIdSchemeParams idSchemeParams,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
-      HttpServletResponse response)
-      throws BadRequestException, ForbiddenException, IOException, WebMessageException {
+  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsAsJsonZip(
+      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
+      throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
 
-    ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + ZIP_EXT);
-    ResponseHeader.addContentTransferEncodingBinary(response);
-    response.setContentType(CONTENT_TYPE_JSON_ZIP);
-
-    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(events, fields);
-
-    writeZip(
-        response.getOutputStream(),
-        Page.withoutPager(EVENTS, objectNodes),
-        objectMapper.writer(),
-        EVENT_JSON_FILE);
+    return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
