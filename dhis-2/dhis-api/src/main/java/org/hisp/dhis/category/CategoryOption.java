@@ -65,7 +65,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -105,8 +108,8 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
-@Entity
 @Setter
+@Entity
 @Table(name = "categoryoption")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class CategoryOption extends BaseMetadataObject
@@ -151,7 +154,7 @@ public class CategoryOption extends BaseMetadataObject
 
   @Column(name = "attributeValues")
   @Type(type = "jsbAttributeValues")
-  private AttributeValues attributeValues;
+  private AttributeValues attributeValues = AttributeValues.empty();
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
@@ -485,8 +488,10 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Property(AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
   public AttributeValues getAttributeValues() {
     return attributeValues;
   }
