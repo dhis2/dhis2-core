@@ -23,7 +23,7 @@
     },
     {
       "name": "dataElementOrgUnitTypeFilter",
-      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_5_YEARS&filter=PFDfvmGpsR3.n1rtSHYf6O6:IN:ImspTQPwCqd,&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-07-01",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_5_YEARS&filter=PFDfvmGpsR3.n1rtSHYf6O6:IN:ImspTQPwCqd&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-07-01",
       "version": {
         "min": 43
       }
