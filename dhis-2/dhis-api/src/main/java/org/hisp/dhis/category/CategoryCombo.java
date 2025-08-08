@@ -154,18 +154,6 @@ public class CategoryCombo extends BaseMetadataObject
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
   // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
-
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  @Transient private transient String href;
-
-  // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
