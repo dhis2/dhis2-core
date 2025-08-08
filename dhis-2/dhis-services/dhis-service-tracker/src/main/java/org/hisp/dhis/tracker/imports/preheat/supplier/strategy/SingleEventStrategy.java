@@ -79,10 +79,7 @@ public class SingleEventStrategy extends HibernateGenericStore<SingleEvent>
                     """
                         select ev
                         from SingleEvent as ev
-                        join ev.programStage as ps
-                        join ps.program as p
                         where ev.uid in (:uids)
-                        and p.programType = 'WITHOUT_REGISTRATION'
                         """,
                     SingleEvent.class)
                 .setParameter("uids", uidsPartition)

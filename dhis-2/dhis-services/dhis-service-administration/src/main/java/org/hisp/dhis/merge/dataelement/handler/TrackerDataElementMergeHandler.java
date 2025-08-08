@@ -41,21 +41,24 @@ import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
+import org.hisp.dhis.program.SingleEventStore;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.springframework.stereotype.Component;
 
@@ -75,7 +78,8 @@ public class TrackerDataElementMergeHandler {
   private final ProgramRuleVariableStore programRuleVariableStore;
   private final ProgramRuleActionStore programRuleActionStore;
   private final ProgramIndicatorStore programIndicatorStore;
-  private final EventStore eventStore;
+  private final TrackerEventStore trackerEventStore;
+  private final SingleEventStore singleEventStore;
   private final TrackerEventChangeLogService trackerEventChangeLogService;
   private final SingleEventChangeLogService singleEventChangeLogService;
 
@@ -221,19 +225,21 @@ public class TrackerDataElementMergeHandler {
     Set<UID> sourceDeUids = UID.of(sources.toArray(new DataElement[0]));
     DataMergeStrategy mergeStrategy = request.getDataMergeStrategy();
 
-    // TODO(DHIS2-19702): Should we consider single events
     if (DataMergeStrategy.DISCARD == mergeStrategy) {
       log.info(mergeStrategy + " dataMergeStrategy being used, deleting source event data values");
-      eventStore.deleteEventDataValuesWithDataElement(sourceDeUids);
+      trackerEventStore.deleteEventDataValuesWithDataElement(sourceDeUids);
+      singleEventStore.deleteEventDataValuesWithDataElement(sourceDeUids);
     } else if (DataMergeStrategy.LAST_UPDATED == mergeStrategy) {
       log.info(mergeStrategy + " dataMergeStrategy being used, merging source event data values");
-      eventStore.mergeEventDataValuesWithDataElement(sourceDeUids, UID.of(target));
+      trackerEventStore.mergeEventDataValuesWithDataElement(sourceDeUids, UID.of(target));
+      singleEventStore.mergeEventDataValuesWithDataElement(sourceDeUids, UID.of(target));
     }
   }
 
   /**
-   * Method handling {@link EventChangeLog}s. They will either be deleted or left as is, based on
-   * whether the source {@link DataElement}s are being deleted or not.
+   * Method handling {@link TrackerEventChangeLog}s and {@link SingleEventChangeLog}s. They will
+   * either be deleted or left as is, based on whether the source {@link DataElement}s are being
+   * deleted or not.
    *
    * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
    * @param mergeRequest merge request

@@ -29,42 +29,41 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.UID;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Abyot Asalefew
- */
-public interface EventStore extends IdentifiableObjectStore<TrackerEvent> {
+@Component
+@RequiredArgsConstructor
+public class SingleEventDeletionHandler extends IdObjectDeletionHandler<SingleEvent> {
+  @Override
+  protected void registerHandler() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
 
-  /**
-   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
-   * used to determine which event data value is kept when merging. Any remaining source
-   * eventDataValues are then deleted.
-   *
-   * @param sourceDataElements dataElements to determine which eventDataValues to merge
-   * @param targetDataElement dataElement to use when merging source eventDataValues
-   */
-  void mergeEventDataValuesWithDataElement(
-      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent where programstageid = :id limit 1",
+        Map.of("id", programStage.getId()));
+  }
 
-  /**
-   * delete all eventDataValues which have any of the sourceDataElements
-   *
-   * @param sourceDataElements dataElements to determine which eventDataValues to delete
-   */
-  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
+  private DeletionVeto allowDeleteProgram(Program program) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
+        Map.of("id", program.getId()));
+  }
 
-  /**
-   * Updates all {@link TrackerEvent}s with references to {@link CategoryOptionCombo}s, to use the
-   * coc reference.
-   *
-   * @param cocs {@link CategoryOptionCombo}s to update
-   * @param coc {@link CategoryOptionCombo} to use as the new value
-   */
-  void setAttributeOptionCombo(Set<Long> cocs, long coc);
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent where eventdatavalues ?? :uid limit 1",
+        Map.of("uid", dataElement.getUid()));
+  }
 }

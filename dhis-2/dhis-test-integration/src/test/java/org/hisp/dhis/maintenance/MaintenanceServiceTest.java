@@ -63,6 +63,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
@@ -82,6 +83,8 @@ import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
@@ -99,13 +102,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private TrackerEventService eventService;
+  @Autowired private TrackerEventService trackerEventService;
+
+  @Autowired private SingleEventService singleEventService;
 
   @Autowired private RelationshipService relationshipService;
 
   @Autowired private ProgramMessageService programMessageService;
 
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
+
+  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -143,7 +150,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollment;
 
-  private TrackerEvent event;
+  private TrackerEvent trackerEvent;
+
+  private SingleEvent singleEvent;
 
   private TrackedEntity trackedEntity;
 
@@ -198,14 +207,23 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         enrollment.getTrackedEntity(), enrollment.getProgram(), organisationUnit);
-    event = new TrackerEvent();
-    event.setEnrollment(enrollment);
-    event.setProgramStage(stageA);
-    event.setUid(UID.generate().getValue());
-    event.setOrganisationUnit(organisationUnit);
-    event.setEnrollment(enrollment);
-    event.setOccurredDate(new Date());
-    event.setAttributeOptionCombo(coA);
+    trackerEvent = new TrackerEvent();
+    trackerEvent.setEnrollment(enrollment);
+    trackerEvent.setProgramStage(stageA);
+    trackerEvent.setUid(UID.generate().getValue());
+    trackerEvent.setOrganisationUnit(organisationUnit);
+    trackerEvent.setEnrollment(enrollment);
+    trackerEvent.setOccurredDate(new Date());
+    trackerEvent.setAttributeOptionCombo(coA);
+
+    singleEvent = new SingleEvent();
+    singleEvent.setEnrollment(enrollment);
+    singleEvent.setProgramStage(stageA);
+    singleEvent.setUid(UID.generate().getValue());
+    singleEvent.setOrganisationUnit(organisationUnit);
+    singleEvent.setOccurredDate(new Date());
+    singleEvent.setAttributeOptionCombo(coA);
+
     TrackerEvent eventWithTeAssociation = new TrackerEvent();
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setProgramStage(stageA);
@@ -293,7 +311,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedEventsWithAProgramMessage() {
+  void testDeleteSoftDeletedTrackerEventsWithAProgramMessage() {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -304,19 +322,46 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .text("text")
             .recipients(programMessageRecipients)
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
-            .trackerEvent(event)
+            .trackerEvent(trackerEvent)
             .build();
-    manager.save(event);
-    UID idA = UID.of(event);
+    manager.save(trackerEvent);
+    UID idA = UID.of(trackerEvent);
     programMessageService.saveProgramMessage(message);
-    assertTrue(eventService.exists(idA));
-    manager.delete(event);
-    assertFalse(eventService.exists(idA));
-    assertTrue(eventExistsIncludingDeleted(event.getUid()));
+    assertTrue(trackerEventService.exists(idA));
+    manager.delete(trackerEvent);
+    assertFalse(trackerEventService.exists(idA));
+    assertTrue(trackerEventExistsIncludingDeleted(trackerEvent.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
 
-    assertFalse(eventExistsIncludingDeleted(event.getUid()));
+    assertFalse(trackerEventExistsIncludingDeleted(trackerEvent.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedSingleEventsWithAProgramMessage() {
+    ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
+    programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
+    programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
+    programMessageRecipients.setOrganisationUnit(organisationUnit);
+    ProgramMessage message =
+        ProgramMessage.builder()
+            .subject("subject")
+            .text("text")
+            .recipients(programMessageRecipients)
+            .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
+            .singleEvent(singleEvent)
+            .build();
+    manager.save(singleEvent);
+    UID idA = UID.of(singleEvent);
+    programMessageService.saveProgramMessage(message);
+    assertTrue(singleEventService.exists(idA));
+    manager.delete(singleEvent);
+    assertFalse(singleEventService.exists(idA));
+    assertTrue(singleEventExistsIncludingDeleted(singleEvent.getUid()));
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(trackerEventExistsIncludingDeleted(singleEvent.getUid()));
   }
 
   @Test
@@ -372,7 +417,30 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedEventLinkedToARelationshipItem() {
+  void testDeleteSoftDeletedSingleEventLinkedToADataValueChangeLog() {
+    DataElement dataElement = createDataElement('A');
+    dataElementService.addDataElement(dataElement);
+    SingleEvent eventA = new SingleEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(program.getProgramStageByStage(1));
+    eventA.setUid(UID.generate().getValue());
+    eventA.setAttributeOptionCombo(coA);
+    eventA.setOrganisationUnit(organisationUnit);
+    manager.save(eventA);
+    singleEventChangeLogService.addEventChangeLog(
+        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
+    assertTrue(singleEventService.findEvent(UID.of(eventA)).isPresent());
+    manager.delete(eventA);
+    assertFalse(singleEventService.findEvent(UID.of(eventA)).isPresent());
+    assertTrue(singleEventExistsIncludingDeleted(eventA.getUid()));
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(singleEventExistsIncludingDeleted(eventA.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedTrackerEventLinkedToARelationshipItem() {
     RelationshipType rType = createRelationshipType('A');
     rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     rType.getFromConstraint().setProgram(program);
@@ -400,18 +468,61 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertTrue(eventService.exists(idA));
+    assertTrue(trackerEventService.exists(idA));
     assertTrue(relationshipService.findRelationship(UID.of(r)).isPresent());
     manager.delete(eventA);
-    assertFalse(eventService.exists(idA));
+    assertFalse(trackerEventService.exists(idA));
     manager.delete(r);
     assertFalse(relationshipService.findRelationship(UID.of(r)).isPresent());
-    assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
+    assertTrue(trackerEventExistsIncludingDeleted(eventA.getUid()));
     assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
 
-    assertFalse(eventExistsIncludingDeleted(eventA.getUid()));
+    assertFalse(trackerEventExistsIncludingDeleted(eventA.getUid()));
+    assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
+  }
+
+  @Test
+  void testDeleteSoftDeletedSingleEventLinkedToARelationshipItem() {
+    RelationshipType rType = createRelationshipType('A');
+    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    rType.getFromConstraint().setProgram(program);
+    rType.getFromConstraint().setProgramStage(program.getProgramStageByStage(1));
+    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
+    relationshipTypeService.addRelationshipType(rType);
+    SingleEvent eventA = new SingleEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(program.getProgramStageByStage(1));
+    eventA.setUid(UID.generate().getValue());
+    eventA.setAttributeOptionCombo(coA);
+    eventA.setOrganisationUnit(organisationUnit);
+    manager.save(eventA);
+    UID idA = UID.of(eventA);
+    Relationship r = new Relationship();
+    RelationshipItem rItem1 = new RelationshipItem();
+    rItem1.setSingleEvent(eventA);
+    RelationshipItem rItem2 = new RelationshipItem();
+    rItem2.setTrackedEntity(trackedEntity);
+    r.setFrom(rItem1);
+    r.setTo(rItem2);
+    r.setRelationshipType(rType);
+    r.setKey(RelationshipUtils.generateRelationshipKey(r));
+    r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
+    manager.save(r);
+    assertTrue(singleEventService.exists(idA));
+    assertTrue(relationshipService.findRelationship(UID.of(r)).isPresent());
+    manager.delete(eventA);
+    assertFalse(singleEventService.exists(idA));
+    manager.delete(r);
+    assertFalse(relationshipService.findRelationship(UID.of(r)).isPresent());
+    assertTrue(singleEventExistsIncludingDeleted(eventA.getUid()));
+    assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
+
+    maintenanceService.deleteSoftDeletedEvents();
+
+    assertFalse(singleEventExistsIncludingDeleted(eventA.getUid()));
     assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
   }
 
@@ -501,10 +612,16 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             "select exists(select 1 from trackedentity where uid=?)", Boolean.class, uid));
   }
 
-  private boolean eventExistsIncludingDeleted(String uid) {
+  private boolean trackerEventExistsIncludingDeleted(String uid) {
     return Boolean.TRUE.equals(
         jdbcTemplate.queryForObject(
-            "select exists(select 1 from event where uid=?)", Boolean.class, uid));
+            "select exists(select 1 from trackerevent where uid=?)", Boolean.class, uid));
+  }
+
+  private boolean singleEventExistsIncludingDeleted(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from singleevent where uid=?)", Boolean.class, uid));
   }
 
   private boolean relationshipExistsIncludingDeleted(String uid) {
