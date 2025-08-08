@@ -171,7 +171,8 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging {
     List<TrackedEntityInstance> dtoTeis =
         teiService.getTrackedEntityInstances(
             queryParams, TrackedEntityInstanceParams.DATA_SYNCHRONIZATION, true, true);
-    final Map<String, Set<String>> psdeSkipMap = programStageDataElementService
+    final Map<String, Set<String>> psdeSkipMap =
+        programStageDataElementService
             .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 
     if (log.isDebugEnabled()) {
@@ -192,46 +193,54 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging {
   }
 
   /**
-   * Filters out data marked with skip synchronization flag from the TEIs structure.
-   * This includes:
-   * - TEI attributes with skipSynchronization=true
-   * - Enrollment attributes with skipSynchronization=true
-   * - Event data values where the data element is in the skip map
+   * Filters out data marked with the skip synchronization flag from the TEIs structure. This includes:
+   * TrackedEntityInstances and Enrollments attributes with skipSynchronization and Event data values where the data
+   * element is in psdeSkipMap
    *
    * @param teis The TrackedEntityInstances to filter
    * @param psdeSkipMap Map of program stage ID to data elements IDs that should be skipped
    */
   private void filterDataWithSkipSynchronizationFlag(
-          TrackedEntityInstances teis, Map<String, Set<String>> psdeSkipMap) {
-    teis.getTrackedEntityInstances().forEach(tei -> {
-      filterTeiAttributes(tei);
+      TrackedEntityInstances teis, Map<String, Set<String>> psdeSkipMap) {
+    teis.getTrackedEntityInstances()
+        .forEach(
+            tei -> {
+              filterTeiAttributes(tei);
 
-      tei.getEnrollments().forEach(enrollment -> {
-        filterEnrollmentAttributes(enrollment);
-        filterEnrollmentEvents(enrollment, psdeSkipMap);
-      });
-  });
+              tei.getEnrollments()
+                  .forEach(
+                      enrollment -> {
+                        filterEnrollmentAttributes(enrollment);
+                        filterEnrollmentEvents(enrollment, psdeSkipMap);
+                      });
+            });
   }
 
   private void filterTeiAttributes(TrackedEntityInstance tei) {
-    tei.setAttributes(tei.getAttributes().stream()
+    tei.setAttributes(
+        tei.getAttributes().stream()
             .filter(att -> !att.isSkipSynchronization())
             .collect(Collectors.toList()));
   }
 
   private void filterEnrollmentAttributes(Enrollment enrollment) {
-    enrollment.setAttributes(enrollment.getAttributes().stream()
+    enrollment.setAttributes(
+        enrollment.getAttributes().stream()
             .filter(att -> !att.isSkipSynchronization())
             .collect(Collectors.toList()));
   }
 
   private void filterEnrollmentEvents(Enrollment enrollment, Map<String, Set<String>> psdeSkipMap) {
-    enrollment.getEvents().forEach(event -> {
-      Set<String> skipIds = psdeSkipMap.get(event.getProgramStage());
-      event.setDataValues(event.getDataValues().stream()
-              .filter(dv -> skipIds == null || !skipIds.contains(dv.getDataElement()))
-              .collect(Collectors.toSet()));
-    });
+    enrollment
+        .getEvents()
+        .forEach(
+            event -> {
+              Set<String> skipIds = psdeSkipMap.get(event.getProgramStage());
+              event.setDataValues(
+                  event.getDataValues().stream()
+                      .filter(dv -> skipIds == null || !skipIds.contains(dv.getDataElement()))
+                      .collect(Collectors.toSet()));
+            });
   }
 
   private boolean sendSyncRequest(
