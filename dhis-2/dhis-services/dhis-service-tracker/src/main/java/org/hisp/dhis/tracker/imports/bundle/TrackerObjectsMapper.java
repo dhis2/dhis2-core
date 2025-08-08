@@ -400,7 +400,7 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
-  // To remove when refactoring ProgramNotificationInstanceController
+  // TODO(tracker): To remove when refactoring ProgramNotificationInstanceController
   @Deprecated
   public static TrackerEvent map(SingleEvent singleEvent) {
     if (singleEvent == null) {
