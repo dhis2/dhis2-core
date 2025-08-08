@@ -244,9 +244,6 @@ public class TrackerPreheat {
   /** A Map of trackedEntity uid connected to Enrollments */
   @Getter @Setter private Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
-  /** A Map of program uid and without registration {@see Enrollment}. */
-  private final Map<String, Enrollment> enrollmentsWithoutRegistration = new HashMap<>();
-
   /**
    * A map of valid users by username that are present in the payload. A user not available in this
    * cache means, payload's username or uid is invalid. These users are primarily used to represent
@@ -538,14 +535,6 @@ public class TrackerPreheat {
     if (relationship.getRelationshipType().isBidirectional()) {
       existingRelationships.add(relationship.getInvertedKey());
     }
-  }
-
-  public Enrollment getEnrollmentsWithoutRegistration(String programUid) {
-    return enrollmentsWithoutRegistration.get(programUid);
-  }
-
-  public void putEnrollmentsWithoutRegistration(String programUid, Enrollment enrollment) {
-    this.enrollmentsWithoutRegistration.put(programUid, enrollment);
   }
 
   public void addProgramOwners(List<TrackedEntityProgramOwnerOrgUnit> tepos) {

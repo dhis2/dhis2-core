@@ -170,7 +170,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     Enrollment enrollment =
         enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     compareEnrollmentBasicProperties(enrollment, trackerObjects.getEnrollments().get(0));
@@ -190,7 +190,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getUpdated());
     enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     enrollment = enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     compareEnrollmentBasicProperties(enrollment, updatedEnrollment);
     assertNotNull(enrollment.getCompletedBy());
@@ -202,14 +202,14 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
     enrollments = manager.getAll(Enrollment.class).stream().filter(en -> !en.isDeleted()).toList();
-    assertEquals(1, enrollments.size());
+    assertEquals(0, enrollments.size());
   }
 
   @Test
@@ -218,7 +218,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.stream().filter(en -> !en.isDeleted()).count());
+    assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     manager.clear();
     manager.flush();
@@ -226,14 +226,14 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
     enrollments = manager.getAll(Enrollment.class);
-    assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
+    assertEquals(0, enrollments.stream().filter(en -> !en.isDeleted()).count());
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getCreated());
     enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.stream().filter(en -> !en.isDeleted()).count());
+    assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
   }
 
   @Test
@@ -243,7 +243,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);

@@ -53,7 +53,6 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
-import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.joda.time.LocalDateTime;
@@ -440,13 +439,12 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  SingleEvent.builderFromEvent(e).occurredAt(newDate).build();
+              e.setOccurredAt(newDate);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -456,13 +454,12 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  SingleEvent.builderFromEvent(e).geometry(newGeometry).build();
+              e.setGeometry(newGeometry);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -472,13 +469,12 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  SingleEvent.builderFromEvent(e).geometry(null).build();
+              e.setGeometry(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 

@@ -80,7 +80,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity;
   private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
-  private org.hisp.dhis.tracker.imports.domain.Event event;
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent event;
 
   private OrganisationUnit organisationUnit;
 
@@ -534,7 +534,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
-    org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = importEventProgram();
 
     SingleEvent eventBeforeDeletion = getSingleEvent(ev.getUid());
 
@@ -614,16 +614,13 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     return user;
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent importEventProgram()
+      throws IOException {
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
-    org.hisp.dhis.tracker.imports.domain.Event ev =
-        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(
-                trackerObjects.getEvents().get(0))
-            .enrollment(null)
-            .event(UID.generate())
-            .programStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null))
-            .program(MetadataIdentifier.of(TrackerIdScheme.UID, "BFcipDERJne", null))
-            .build();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = trackerObjects.getEvents().get(0);
+    ev.setEvent(UID.generate());
+    ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
+    ev.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, "BFcipDERJne", null));
 
     assertNoErrors(
         trackerImportService.importTracker(

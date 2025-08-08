@@ -71,8 +71,6 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   private OrganisationUnit ouC;
 
-  private OrganisationUnit ouD;
-
   private TrackedEntity trackedEntityA;
 
   private TrackedEntity trackedEntityB;
@@ -125,14 +123,9 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     manager.save(eventB);
     manager.save(eventC);
 
-    ouD = createOrganisationUnit('D');
-    manager.save(ouD);
-    Enrollment enrollment = createEnrollment(prA, null, ouD);
-    manager.save(enrollment);
-
-    SingleEvent singleEventA = createSingleEvent(psA, enrollment, ouD);
-    SingleEvent singleEventB = createSingleEvent(psA, enrollment, ouB);
-    SingleEvent singleEventC = createSingleEvent(psA, enrollment, ouD);
+    SingleEvent singleEventA = createSingleEvent(psA, ouA);
+    SingleEvent singleEventB = createSingleEvent(psA, ouB);
+    SingleEvent singleEventC = createSingleEvent(psA, ouA);
     manager.save(singleEventA);
     manager.save(singleEventB);
     manager.save(singleEventC);
@@ -159,13 +152,13 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Test
   void testMigrateSingleEvents() {
-    assertEquals(2, getSingleEventCount(ouD));
+    assertEquals(2, getSingleEventCount(ouA));
     assertEquals(1, getSingleEventCount(ouB));
     assertEquals(0, getSingleEventCount(ouC));
     OrgUnitMergeRequest request =
-        new OrgUnitMergeRequest.Builder().addSource(ouD).addSource(ouB).withTarget(ouC).build();
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
     mergeHandler.mergeSingleEvents(request);
-    assertEquals(0, getSingleEventCount(ouD));
+    assertEquals(0, getSingleEventCount(ouA));
     assertEquals(0, getSingleEventCount(ouB));
     assertEquals(3, getSingleEventCount(ouC));
   }
