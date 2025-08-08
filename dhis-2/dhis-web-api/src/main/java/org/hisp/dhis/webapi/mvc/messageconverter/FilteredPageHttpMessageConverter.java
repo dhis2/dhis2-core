@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -36,9 +39,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,61 +58,88 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Component;
 
 /**
- * HttpMessageConverter for trackers {@link FilteredPage} that handles streaming of field filtered
- * JSON pages directly to the HTTPs response body's output stream.
+ * HttpMessageConverter for trackers {@link FilteredPage} and {@link FilteredEntity} that handles
+ * streaming of field filtered JSON pages and entities directly to the HTTP response body's output
+ * stream. Supports compression variants (gzip, zip) based on media type.
  */
 @Component
-public class FilteredPageHttpMessageConverter
-    extends AbstractHttpMessageConverter<FilteredPage<?>> {
+public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 
   @Qualifier("jsonFilterMapper")
   private final ObjectMapper filterMapper;
 
   public FilteredPageHttpMessageConverter(
       @Qualifier("jsonFilterMapper") ObjectMapper filterMapper) {
-    super(org.springframework.http.MediaType.APPLICATION_JSON);
+    super(
+        org.springframework.http.MediaType.APPLICATION_JSON,
+        org.springframework.http.MediaType.valueOf(CONTENT_TYPE_JSON_GZIP),
+        org.springframework.http.MediaType.valueOf(CONTENT_TYPE_JSON_ZIP));
     this.filterMapper = filterMapper;
   }
 
   @Override
   protected boolean supports(@Nonnull Class<?> clazz) {
-    return FilteredPage.class.isAssignableFrom(clazz);
+    return FilteredPage.class.isAssignableFrom(clazz)
+        || FilteredEntity.class.isAssignableFrom(clazz);
   }
 
   @Nonnull
   @Override
-  protected FilteredPage<?> readInternal(
-      @Nonnull Class<? extends FilteredPage<?>> clazz, @Nonnull HttpInputMessage inputMessage)
+  protected Object readInternal(@Nonnull Class<?> clazz, @Nonnull HttpInputMessage inputMessage)
       throws HttpMessageNotReadableException {
-    throw new UnsupportedOperationException("Reading FilteredPage is not supported");
+    throw new UnsupportedOperationException("Reading filtered objects is not supported");
   }
 
   @Override
   protected void writeInternal(
-      @Nonnull FilteredPage<?> filteredPage, @Nonnull HttpOutputMessage outputMessage)
+      @Nonnull Object filteredObject, @Nonnull HttpOutputMessage outputMessage)
       throws IOException, HttpMessageNotWritableException {
     if (outputMessage instanceof StreamingHttpOutputMessage) {
-      writeStreaming(filteredPage, (StreamingHttpOutputMessage) outputMessage);
+      writeStreaming(filteredObject, (StreamingHttpOutputMessage) outputMessage);
     } else {
-      writeStandard(filteredPage, outputMessage);
+      writeStandard(filteredObject, outputMessage);
     }
   }
 
-  private void writeStreaming(
-      FilteredPage<?> filteredPage, StreamingHttpOutputMessage streamingMessage) {
+  private void writeStreaming(Object filteredObject, StreamingHttpOutputMessage streamingMessage) {
     streamingMessage.setBody(
         outputStream -> {
           try {
-            writePageToStream(filteredPage, outputStream);
+            writeObjectToStream(
+                filteredObject, outputStream, streamingMessage.getHeaders().getContentType());
           } catch (IOException e) {
             throw new RuntimeException("Failed to write streaming response", e);
           }
         });
   }
 
-  private void writeStandard(FilteredPage<?> filteredPage, HttpOutputMessage outputMessage)
+  private void writeStandard(Object filteredObject, HttpOutputMessage outputMessage)
       throws IOException {
-    writePageToStream(filteredPage, outputMessage.getBody());
+    writeObjectToStream(
+        filteredObject, outputMessage.getBody(), outputMessage.getHeaders().getContentType());
+  }
+
+  private void writeObjectToStream(
+      Object filteredObject,
+      OutputStream outputStream,
+      org.springframework.http.MediaType mediaType)
+      throws IOException {
+    OutputStream targetStream = wrapStreamForCompression(outputStream, mediaType);
+
+    try {
+      if (filteredObject instanceof FilteredPage<?> filteredPage) {
+        writePageToStream(filteredPage, targetStream);
+      } else if (filteredObject instanceof FilteredEntity<?> filteredEntity) {
+        writeEntityToStream(filteredEntity, targetStream);
+      } else {
+        throw new IllegalArgumentException(
+            "Unsupported filtered object type: " + filteredObject.getClass());
+      }
+    } finally {
+      if (targetStream != outputStream) {
+        targetStream.close();
+      }
+    }
   }
 
   private void writePageToStream(FilteredPage<?> filteredPage, OutputStream outputStream)
@@ -119,6 +153,36 @@ public class FilteredPageHttpMessageConverter
     try (JsonGenerator generator = writer.getFactory().createGenerator(outputStream)) {
       writer.writeValue(generator, page);
     }
+  }
+
+  private void writeEntityToStream(FilteredEntity<?> filteredEntity, OutputStream outputStream)
+      throws IOException {
+    Object entity = filteredEntity.entity();
+    Fields fields = filteredEntity.fields();
+
+    ObjectWriter writer =
+        filterMapper.writer().withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields);
+
+    try (JsonGenerator generator = writer.getFactory().createGenerator(outputStream)) {
+      writer.writeValue(generator, entity);
+    }
+  }
+
+  private OutputStream wrapStreamForCompression(
+      OutputStream original, org.springframework.http.MediaType mediaType) throws IOException {
+    if (mediaType == null) {
+      return original;
+    }
+
+    String mediaTypeStr = mediaType.toString();
+    if (CONTENT_TYPE_JSON_GZIP.equals(mediaTypeStr)) {
+      return new GZIPOutputStream(original);
+    } else if (CONTENT_TYPE_JSON_ZIP.equals(mediaTypeStr)) {
+      ZipOutputStream zip = new ZipOutputStream(original);
+      zip.putNextEntry(new ZipEntry("data.json"));
+      return zip;
+    }
+    return original;
   }
 
   /**

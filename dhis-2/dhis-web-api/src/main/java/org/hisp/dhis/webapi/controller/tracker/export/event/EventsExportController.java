@@ -78,6 +78,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -283,13 +284,12 @@ class EventsExportController {
 
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
-  void getEventByUid(
-      HttpServletResponse response,
+  FilteredEntity<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           Fields fields,
       TrackerIdSchemeParams idSchemeParams)
-      throws WebMessageException, IOException, NotFoundException {
+      throws WebMessageException, NotFoundException {
     MappingErrors errors = new MappingErrors(idSchemeParams);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
         EVENTS_MAPPER.map(
@@ -301,9 +301,7 @@ class EventsExportController {
                 EventFields.of(fields::includes, FieldPath.FIELD_PATH_SEPARATOR)));
     ensureNoMappingErrors(errors);
 
-    // TODO(ivo) oh boy, so here we have a filtered event not a filtered page, can we also handle
-    // this in the converter?
-    requestHandler.serve(response, event, fields);
+    return new FilteredEntity<>(event, fields);
   }
 
   private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsList(
@@ -347,6 +345,7 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
+  // TODO(ivo) adapt to streaming needs its fields to switch over to Fields
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{event}/changeLogs")
   ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
