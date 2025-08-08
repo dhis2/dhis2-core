@@ -118,7 +118,7 @@ class RepeatedEventsValidatorTest extends TestBase {
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
     // given
-    Event event = notRepeatableEvent();
+    TrackerEvent event = notRepeatableEvent();
     Enrollment enrollment = new Enrollment();
     enrollment.setUid(event.getEnrollment().getValue());
 
@@ -208,8 +208,8 @@ class RepeatedEventsValidatorTest extends TestBase {
     when(preheat.getProgramStage(
             MetadataIdentifier.ofUid(NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION)))
         .thenReturn(notRepeatebleProgramStageWithRegistration());
-    Event eventEnrollmentA = notRepeatableEvent();
-    Event eventEnrollmentB = notRepeatableEvent();
+    TrackerEvent eventEnrollmentA = notRepeatableEvent();
+    TrackerEvent eventEnrollmentB = notRepeatableEvent();
     eventEnrollmentB.setEnrollment(ENROLLMENT_B);
     List<Event> events = List.of(eventEnrollmentA, eventEnrollmentB);
     bundle.setEvents(events);
@@ -261,7 +261,7 @@ class RepeatedEventsValidatorTest extends TestBase {
         .build();
   }
 
-  private Event notRepeatableEvent() {
+  private TrackerEvent notRepeatableEvent() {
     return TrackerEvent.builder()
         .event(UID.generate())
         .enrollment(ENROLLMENT_A)

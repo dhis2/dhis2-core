@@ -1397,18 +1397,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Single event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void singleEventMergeTest() throws ConflictException {
     // given
-    Enrollment enrollment = createEnrollment(program, null, ou1);
-    identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
 
-    SingleEvent e1 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e1 = createSingleEvent(stage, ou1);
     e1.setAttributeOptionCombo(coc1);
-    SingleEvent e2 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
     e2.setAttributeOptionCombo(coc1);
-    SingleEvent e3 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
     e3.setAttributeOptionCombo(coc1);
-    SingleEvent e4 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
@@ -1627,18 +1625,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Single event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
   void singleEventMergeDiscardTest() throws ConflictException {
     // given
-    Enrollment enrollment = createEnrollment(program, null, ou1);
-    identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
 
-    SingleEvent e1 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e1 = createSingleEvent(stage, ou1);
     e1.setAttributeOptionCombo(coc1);
-    SingleEvent e2 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
     e2.setAttributeOptionCombo(coc1);
-    SingleEvent e3 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
     e3.setAttributeOptionCombo(coc1);
-    SingleEvent e4 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
@@ -1876,18 +1872,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Last updated Single event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
   void singleEventMergeSourcesDeletedTest() throws ConflictException {
     // given
-    Enrollment enrollment = createEnrollment(program, null, ou1);
-    identifiableObjectManager.save(enrollment);
-    ProgramStage stage = createProgramStage('t', 2);
+    ProgramStage stage = createProgramStage('t', program);
     identifiableObjectManager.save(stage);
 
-    SingleEvent e1 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e1 = createSingleEvent(stage, ou1);
     e1.setAttributeOptionCombo(coc1);
-    SingleEvent e2 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
     e2.setAttributeOptionCombo(coc1);
-    SingleEvent e3 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
     e3.setAttributeOptionCombo(coc1);
-    SingleEvent e4 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
@@ -2958,11 +2952,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   void singleEventChangeLogMergeTest()
       throws ConflictException, NotFoundException, BadRequestException {
     // given
-    Enrollment enrollment = createEnrollment(program, null, ou1);
-    identifiableObjectManager.save(enrollment);
     ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
-    SingleEvent e = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e = createSingleEvent(stage, ou1);
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
     EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();

@@ -1929,18 +1929,16 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "Single event attributeOptionCombo references to source COCs are replaced with target COC when using LAST_UPDATED")
   void singleEventMergeTest() throws ConflictException {
     // given
-    Enrollment enrollment = createEnrollment(program, null, ou1);
-    manager.save(enrollment);
-    ProgramStage stage = createProgramStage('s', 2);
+    ProgramStage stage = createProgramStage('s', program);
     manager.save(stage);
 
-    SingleEvent e1 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e1 = createSingleEvent(stage, ou1);
     e1.setAttributeOptionCombo(cocDuplicate);
-    SingleEvent e2 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
     e2.setAttributeOptionCombo(cocDuplicate2);
-    SingleEvent e3 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
     e3.setAttributeOptionCombo(cocTarget);
-    SingleEvent e4 = createSingleEvent(stage, enrollment, ou1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
     e4.setAttributeOptionCombo(cocRandom);
 
     manager.save(List.of(e1, e2, e3, e4));

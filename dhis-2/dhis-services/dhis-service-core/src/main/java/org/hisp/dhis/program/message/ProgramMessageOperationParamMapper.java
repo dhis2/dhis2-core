@@ -74,7 +74,7 @@ public class ProgramMessageOperationParamMapper {
         ObjectUtils.firstNonNull(
             enrollment == null ? null : enrollment.getProgram(),
             trackerEvent.map(e -> e.getEnrollment().getProgram()).orElse(null),
-            singleEvent.map(e -> e.getEnrollment().getProgram()).orElse(null));
+            singleEvent.map(e -> e.getProgramStage().getProgram()).orElse(null));
     currentUserHasAccess(program);
 
     return ProgramMessageQueryParams.builder()

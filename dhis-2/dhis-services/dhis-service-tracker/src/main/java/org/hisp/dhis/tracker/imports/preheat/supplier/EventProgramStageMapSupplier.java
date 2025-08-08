@@ -34,6 +34,7 @@ import java.util.Objects;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -93,7 +94,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
 
     List<UID> enrollmentUids =
         trackerObjects.getEvents().stream()
-            .map(Event::getEnrollment)
+            .map(TrackerEvent::getEnrollment)
             .filter(Objects::nonNull)
             .distinct()
             .toList();

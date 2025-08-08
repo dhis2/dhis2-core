@@ -56,7 +56,7 @@ public class SingleEventDeletionHandler extends IdObjectDeletionHandler<SingleEv
   private DeletionVeto allowDeleteProgram(Program program) {
     return vetoIfExists(
         VETO,
-        "select 1 from singleevent ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
+        "select 1 from singleevent ev join programstage ps on ps.programstageid=ev.programstageid where ps.programid = :id limit 1",
         Map.of("id", program.getId()));
   }
 

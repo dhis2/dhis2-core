@@ -28,9 +28,6 @@
 
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
-    <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                 column="enrollmentid" not-null="true" foreign-key="fk_singleevent_enrollmentid" />
-
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_singleevent_programstageid" />
 

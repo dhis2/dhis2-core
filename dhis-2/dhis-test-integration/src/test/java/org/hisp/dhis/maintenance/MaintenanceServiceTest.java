@@ -217,7 +217,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     trackerEvent.setAttributeOptionCombo(coA);
 
     singleEvent = new SingleEvent();
-    singleEvent.setEnrollment(enrollment);
     singleEvent.setProgramStage(stageA);
     singleEvent.setUid(UID.generate().getValue());
     singleEvent.setOrganisationUnit(organisationUnit);
@@ -421,7 +420,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     SingleEvent eventA = new SingleEvent();
-    eventA.setEnrollment(enrollment);
     eventA.setProgramStage(program.getProgramStageByStage(1));
     eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
@@ -493,7 +491,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
     SingleEvent eventA = new SingleEvent();
-    eventA.setEnrollment(enrollment);
     eventA.setProgramStage(program.getProgramStageByStage(1));
     eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
