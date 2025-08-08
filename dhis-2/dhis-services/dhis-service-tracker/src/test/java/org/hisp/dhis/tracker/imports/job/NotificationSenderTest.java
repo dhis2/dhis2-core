@@ -246,7 +246,7 @@ class NotificationSenderTest {
 
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, times(1))
-        .sendProgramRuleTriggeredEventNotifications(any(), any());
+        .sendProgramRuleTriggeredEventNotifications(any(), any(SingleEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -277,7 +277,7 @@ class NotificationSenderTest {
 
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, times(1))
-        .sendProgramRuleTriggeredEventNotifications(any(), any());
+        .sendProgramRuleTriggeredEventNotifications(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 

@@ -27,61 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
-
-import java.util.Date;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
+package org.hisp.dhis.test.webapi.json.domain;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * Web API equivalent of a {@link org.hisp.dhis.program.notification.ProgramNotificationInstance}.
  */
-@Data
-@Builder
-public class ProgramMessageQueryParams {
-  private Set<String> organisationUnit;
+public interface JsonProgramNotificationInstance extends JsonIdentifiableObject {
 
-  private ProgramMessageStatus messageStatus;
-
-  private Enrollment enrollment;
-
-  private TrackerEvent trackerEvent;
-
-  private SingleEvent singleEvent;
-
-  private Date afterDate;
-
-  private Date beforeDate;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasOrganisationUnit() {
-    return organisationUnit != null;
+  default JsonIdentifiableObject getEvent() {
+    return get("event", JsonIdentifiableObject.class);
   }
 
-  public boolean hasEnrollment() {
-    return enrollment != null;
-  }
-
-  public boolean hasTrackerEvent() {
-    return trackerEvent != null;
-  }
-
-  public boolean hasSingleEvent() {
-    return singleEvent != null;
-  }
-
-  public boolean hasPaging() {
-    return page != null && pageSize != null;
+  default JsonIdentifiableObject getEnrollment() {
+    return get("enrollment", JsonIdentifiableObject.class);
   }
 }

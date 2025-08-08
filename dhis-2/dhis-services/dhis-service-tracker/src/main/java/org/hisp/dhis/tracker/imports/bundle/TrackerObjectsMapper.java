@@ -400,7 +400,8 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
-  // TODO: should we remove this method when we will separate the event tables?
+  // TODO(tracker): To remove when refactoring ProgramNotificationInstanceController
+  @Deprecated
   public static TrackerEvent map(SingleEvent singleEvent) {
     if (singleEvent == null) {
       return null;

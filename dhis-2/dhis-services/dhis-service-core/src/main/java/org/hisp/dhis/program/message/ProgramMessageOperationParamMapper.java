@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -40,6 +41,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
@@ -59,14 +61,34 @@ public class ProgramMessageOperationParamMapper {
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
       throws NotFoundException {
+    // TODO(DHIS2-19702): Refactor this method
+    Optional<TrackerEvent> trackerEvent = Optional.empty();
+    Optional<SingleEvent> singleEvent = Optional.empty();
     Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
-    TrackerEvent event = getEntity(operationParams.getEvent(), TrackerEvent.class);
+    if (operationParams.getEvent() != null) {
+      trackerEvent = findEntity(operationParams.getEvent(), TrackerEvent.class);
+      if (trackerEvent.isEmpty()) {
+        throw new NotFoundException(
+            String.format("Event: %s does not exist.", operationParams.getEvent().getValue()));
+      }
 
-    currentUserHasAccess(enrollment, event);
+      if (trackerEvent.get().getEnrollment().getProgram().isWithoutRegistration()) {
+        singleEvent = findEntity(operationParams.getEvent(), SingleEvent.class);
+        trackerEvent = Optional.empty();
+      }
+    }
+
+    Program program =
+        ObjectUtils.firstNonNull(
+            enrollment == null ? null : enrollment.getProgram(),
+            trackerEvent.map(e -> e.getEnrollment().getProgram()).orElse(null),
+            singleEvent.map(e -> e.getEnrollment().getProgram()).orElse(null));
+    currentUserHasAccess(program);
 
     return ProgramMessageQueryParams.builder()
         .enrollment(enrollment)
-        .event(event)
+        .trackerEvent(trackerEvent.orElse(null))
+        .singleEvent(singleEvent.orElse(null))
         .afterDate(operationParams.getAfterDate())
         .messageStatus(operationParams.getMessageStatus())
         .beforeDate(operationParams.getBeforeDate())
@@ -90,23 +112,27 @@ public class ProgramMessageOperationParamMapper {
                         "%s: %s does not exist.", klass.getSimpleName(), entity.getValue())));
   }
 
-  private void currentUserHasAccess(Enrollment enrollment, TrackerEvent event) {
-    Enrollment entity =
-        ObjectUtils.firstNonNull(
-            enrollment, Optional.ofNullable(event).map(TrackerEvent::getEnrollment).orElse(null));
-
+  private <T extends BaseIdentifiableObject> Optional<T> findEntity(UID entity, Class<T> klass) {
     if (entity == null) {
-      throw new IllegalQueryException("Enrollment or Event has to be provided");
+      return Optional.empty();
     }
 
+    return Optional.ofNullable(manager.get(klass, entity.getValue()));
+  }
+
+  private void currentUserHasAccess(Program program) {
     List<Program> programs = programService.getCurrentUserPrograms();
     String currentUser = CurrentUserUtil.getCurrentUsername();
 
-    if (!programs.contains(entity.getProgram())) {
+    if (programs.stream()
+        .map(IdentifiableObject::getUid)
+        .filter(uid -> uid.equals(program.getUid()))
+        .findAny()
+        .isEmpty()) {
       throw new IllegalQueryException(
           String.format(
               "User:%s does not have access to the required program:%s",
-              currentUser, entity.getProgram().getName()));
+              currentUser, program.getName()));
     }
   }
 }
