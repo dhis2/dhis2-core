@@ -192,7 +192,7 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
 
     List<String> dataElementsPresentInProgramRules =
-        programRuleService.getDataElementsPresentInProgramRules();
+        programRuleActonService.getDataElementsPresentInProgramRuleActions();
 
     assertContainsOnly(List.of("TvctPPhpD8u", "h4w96yEMlzO"), dataElementsPresentInProgramRules);
   }
@@ -249,7 +249,7 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
 
     List<String> trackedEntityAttributesPresentInProgramRules =
-        programRuleService.getTrackedEntityAttributesPresentInProgramRules();
+        programRuleActonService.getTrackedEntityAttributesPresentInProgramRuleActions();
 
     assertContainsOnly(
         List.of("TvctPPhpD8u", "h4w96yEMlzO"), trackedEntityAttributesPresentInProgramRules);
