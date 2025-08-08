@@ -193,9 +193,9 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging {
   }
 
   /**
-   * Filters out data marked with the skip synchronization flag from the TEIs structure. This includes:
-   * TrackedEntityInstances and Enrollments attributes with skipSynchronization and Event data values where the data
-   * element is in psdeSkipMap
+   * Filters out data marked with the skip synchronization flag from the TEIs structure. This
+   * includes: TrackedEntityInstances and Enrollments attributes with skipSynchronization and Event
+   * data values where the data element is in psdeSkipMap
    *
    * @param teis The TrackedEntityInstances to filter
    * @param psdeSkipMap Map of program stage ID to data elements IDs that should be skipped
