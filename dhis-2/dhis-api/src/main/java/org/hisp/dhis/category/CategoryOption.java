@@ -83,6 +83,8 @@ import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TotalAggregationType;
+import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -91,12 +93,16 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -150,7 +156,7 @@ public class CategoryOption extends BaseMetadataObject
 
   @Column(name = "translations")
   @Type(type = "jblTranslations")
-  private Set<Translation> translations = new HashSet<>();
+  private TranslationProperty translations = new TranslationProperty();
 
   @Column(name = "attributeValues")
   @Type(type = "jsbAttributeValues")
@@ -188,10 +194,7 @@ public class CategoryOption extends BaseMetadataObject
   // Transient fields
   // -----------------------------------------------------------------------------
 
-  @Transient private QueryModifiers queryMods;
-
-  /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
+  @Transient private transient QueryModifiers queryMods;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -460,15 +463,19 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(whenPersisted = false)
   @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return name;
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getCreated() {
     return created;
   }
@@ -476,12 +483,17 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was last updated.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getLastUpdated() {
     return lastUpdated;
   }
 
-  @Override
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getLastUpdatedBy() {
     return lastUpdatedBy;
@@ -516,12 +528,12 @@ public class CategoryOption extends BaseMetadataObject
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    return translations;
+    return translations.getTranslations();
   }
 
   @Override
   public void setTranslations(Set<Translation> translations) {
-    this.translations = translations;
+    this.translations.setTranslations(translations);
   }
 
   @Override
@@ -695,8 +707,9 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORTNAME")
   public String getDisplayShortName() {
-    return shortName;
+    return translations.getTranslation("SHORTNAME", shortName);
   }
 
   @Override
@@ -709,18 +722,17 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
   public String getDisplayDescription() {
-    return description;
+    return translations.getTranslation("DESCRIPTION", description);
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public String getDisplayProperty(DisplayProperty property) {
     return switch (property) {
       case SHORTNAME -> getDisplayShortName();
       case NAME -> getDisplayName();
-      default -> getDisplayName();
     };
   }
 
@@ -732,20 +744,18 @@ public class CategoryOption extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public String getHref() {
-    return "/categoryOptions/" + getUid();
+    return href;
   }
 
   @Override
-  @Deprecated
-  public void setHref(String href) {}
-
-  // -------------------------------------------------------------------------
-  // Additional IdentifiableObject methods
-  // -------------------------------------------------------------------------
+  public void setHref(String href) {
+    this.href = href;
+  }
 
   @Override
-  @Deprecated
-  public void setOwner(String owner) {}
+  public void setOwner(String owner) {
+    getSharing().setOwner(owner);
+  }
 
   // -------------------------------------------------------------------------
   // Sharing helpers
