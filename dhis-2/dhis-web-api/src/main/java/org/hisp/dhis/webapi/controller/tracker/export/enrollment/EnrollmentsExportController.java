@@ -77,12 +77,8 @@ class EnrollmentsExportController {
 
   private final EnrollmentService enrollmentService;
 
-  private final EnrollmentRequestParamsMapper paramsMapper;
-
-  public EnrollmentsExportController(
-      EnrollmentService enrollmentService, EnrollmentRequestParamsMapper paramsMapper) {
+  public EnrollmentsExportController(EnrollmentService enrollmentService) {
     this.enrollmentService = enrollmentService;
-    this.paramsMapper = paramsMapper;
 
     assertUserOrderableFieldsAreSupported(
         "enrollment", EnrollmentMapper.ORDERABLE_FIELDS, enrollmentService.getOrderableFields());
@@ -99,7 +95,7 @@ class EnrollmentsExportController {
       EnrollmentRequestParams requestParams, HttpServletRequest request)
       throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
-    EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
+    EnrollmentOperationParams operationParams = EnrollmentRequestParamsMapper.map(requestParams);
 
     if (requestParams.isPaging()) {
       PageParams pageParams =

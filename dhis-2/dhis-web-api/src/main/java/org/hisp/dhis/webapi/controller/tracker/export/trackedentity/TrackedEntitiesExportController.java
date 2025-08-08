@@ -57,9 +57,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.PageParams;
@@ -92,9 +92,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(TrackedEntity.class)
+@OpenApi.EntityType(org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity.class)
 @OpenApi.Document(
-    entity = org.hisp.dhis.trackedentity.TrackedEntity.class,
+    entity = org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity.class,
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/trackedEntities")
@@ -109,8 +109,8 @@ class TrackedEntitiesExportController {
    * requested. Make sure this is kept in sync with the columns we promise to return in the CSV. See
    * {@link CsvTrackedEntity}.
    */
-  private static final List<FieldPath> CSV_FIELDS =
-      FieldFilterParser.parse(
+  private static final Fields CSV_FIELDS =
+      FieldsParser.parse(
           "trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,storedBy,createdBy,updatedBy,attributes");
 
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
@@ -127,8 +127,6 @@ class TrackedEntitiesExportController {
 
   private final TrackedEntityService trackedEntityService;
 
-  private final TrackedEntityRequestParamsMapper paramsMapper;
-
   private final CsvService<TrackedEntity> entityCsvService;
 
   private final RequestHandler requestHandler;
@@ -137,12 +135,10 @@ class TrackedEntitiesExportController {
 
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
-      TrackedEntityRequestParamsMapper paramsMapper,
       CsvService<TrackedEntity> csvEventService,
       RequestHandler requestHandler,
       TrackedEntityChangeLogService trackedEntityChangeLogService) {
     this.trackedEntityService = trackedEntityService;
-    this.paramsMapper = paramsMapper;
     this.entityCsvService = csvEventService;
     this.requestHandler = requestHandler;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
@@ -317,9 +313,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
       throws IOException, ForbiddenException, NotFoundException, WebMessageException {
     TrackedEntityFields trackedEntityFields =
-        TrackedEntityFields.of(
-            f -> CSV_FIELDS.stream().anyMatch(fp -> fp.toFullPath().equals(f)),
-            FieldPath.FIELD_PATH_SEPARATOR);
+        TrackedEntityFields.of(CSV_FIELDS::includes, FieldPath.FIELD_PATH_SEPARATOR);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     TrackedEntity trackedEntity =

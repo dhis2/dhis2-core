@@ -45,6 +45,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.better.Fields;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
@@ -68,21 +69,14 @@ class TrackedEntityRequestParamsMapper {
   public static TrackedEntityOperationParams map(
       TrackedEntityRequestParams trackedEntityRequestParams, UserDetails user)
       throws BadRequestException {
-
     return mapCommon(
         trackedEntityRequestParams, trackedEntityRequestParams.getFields()::includes, user);
   }
 
   public static TrackedEntityOperationParams map(
-      TrackedEntityRequestParams trackedEntityRequestParams,
-      List<FieldPath> csvFields,
-      UserDetails user)
+      TrackedEntityRequestParams trackedEntityRequestParams, Fields fields, UserDetails user)
       throws BadRequestException {
-
-    return mapCommon(
-        trackedEntityRequestParams,
-        f -> csvFields.stream().anyMatch(fp -> fp.toFullPath().equals(f)),
-        user);
+    return mapCommon(trackedEntityRequestParams, fields::includes, user);
   }
 
   private static TrackedEntityOperationParams mapCommon(

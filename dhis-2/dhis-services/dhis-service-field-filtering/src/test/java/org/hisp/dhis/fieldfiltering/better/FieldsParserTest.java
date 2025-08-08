@@ -267,7 +267,6 @@ class FieldsParserTest {
                 new ExpectField(false, "group.code"),
                 new ExpectField(true, "group.hello"))),
 
-        // TODO(ivo) adapt the tests to use real transformers
         // adapted current transformer tests as the better parser includes validation of args
         // testParseWithTransformer1
         Arguments.of(

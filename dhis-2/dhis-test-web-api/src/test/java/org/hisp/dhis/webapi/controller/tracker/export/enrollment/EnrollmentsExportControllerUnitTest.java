@@ -68,8 +68,7 @@ class EnrollmentsExportControllerUnitTest {
 
     Exception exception =
         assertThrows(
-            IllegalStateException.class,
-            () -> new EnrollmentsExportController(enrollmentService, paramsMapper));
+            IllegalStateException.class, () -> new EnrollmentsExportController(enrollmentService));
 
     assertAll(
         () ->
