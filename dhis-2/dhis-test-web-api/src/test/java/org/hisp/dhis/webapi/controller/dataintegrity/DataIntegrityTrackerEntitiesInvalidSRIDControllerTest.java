@@ -55,7 +55,7 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
         50,
         trackedEntityWithInvalidSRID.getUid(),
         "trackedentity",
-        null,
+        "Expected SRID 4326 but found 0",
         true);
   }
 

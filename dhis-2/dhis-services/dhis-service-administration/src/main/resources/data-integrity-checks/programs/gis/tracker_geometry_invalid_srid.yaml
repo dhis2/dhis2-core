@@ -51,17 +51,17 @@ summary_sql: >-
   FROM invalid_geom;
 
 details_sql: >-
-  SELECT uid, table_name as name,
-         'Expected SRID 4326 but found ' || srid AS comment
+  SELECT uid, (table_name || '-' || uid) AS name,
+  'Expected SRID 4326 but found ' || srid AS comment
   FROM (
-    SELECT 'trackedentity' AS table_name, uid, ST_SRID(geometry) AS srid
-    FROM trackedentity WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-    UNION ALL
-    SELECT 'enrollment' AS table_name, uid, ST_SRID(geometry) AS srid
-    FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
-    UNION ALL
-    SELECT 'event' AS table_name, uid, ST_SRID(geometry) AS srid
-    FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  SELECT 'trackedentity' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM trackedentity WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  UNION ALL
+  SELECT 'enrollment' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  UNION ALL
+  SELECT 'event' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
   ) AS invalid_geometries;
 
 introduction: >
