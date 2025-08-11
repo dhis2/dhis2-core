@@ -1,0 +1,37 @@
+{
+  "visualizations": [
+    {
+      "name": "Viz test x1",
+      "filterDimensions": [
+        "ou"
+      ],
+      "dataDimensionItems": [
+        {
+          "expressionDimensionItem": {
+            "id": "ExpUid00001"
+          },
+          "dataDimensionItemType": "EXPRESSION_DIMENSION_ITEM"
+        }
+      ],
+      "type": "PIVOT_TABLE",
+      "columnDimensions": [
+        "dx"
+      ],
+      "rowDimensions": [
+        "pe"
+      ],
+      "numberType": "VALUE",
+      "id": "VizUid00001"
+    }
+  ],
+  "expressionDimensionItems": [
+    {
+      "name": "Expression test",
+      "shortName": "Exp test",
+      "dimensionItemType": "EXPRESSION_DIMENSION_ITEM",
+      "expression": "1+2",
+      "dimensionItem": "ExpUid00001",
+      "id": "ExpUid00001"
+    }
+  ]
+}
