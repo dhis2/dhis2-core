@@ -292,7 +292,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testUserGroupRecipient() {
+  void testUserGroupRecipientWithDisabledUser() {
     when(programInstanceStore.get(anyLong())).thenReturn(programInstances.iterator().next());
 
     when(messageService.sendMessage(any()))
@@ -316,7 +316,6 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
     MockMessage mockMessage = sentInternalMessages.iterator().next();
 
-    assertTrue(mockMessage.users.contains(userA));
     assertTrue(mockMessage.users.contains(userB));
   }
 
@@ -492,7 +491,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testDataElementRecipientWithInternalRecipients() {
+  void testDataElementRecipientWithInternalRecipientsWithOneDisabledUser() {
     when(programStageInstanceStore.get(anyLong()))
         .thenReturn(programStageInstances.iterator().next());
 
@@ -527,7 +526,6 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
     assertEquals(1, sentInternalMessages.size());
 
-    assertTrue(sentInternalMessages.iterator().next().users.contains(userA));
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
   }
 
@@ -730,6 +728,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     userA = makeUser("U");
     userA.setPhoneNumber(USERA_PHONE_NUMBER);
     userA.getOrganisationUnits().add(lvlTwoLeftLeft);
+    userA.setDisabled(true);
 
     userB = makeUser("V");
     userB.setPhoneNumber(USERB_PHONE_NUMBER);
