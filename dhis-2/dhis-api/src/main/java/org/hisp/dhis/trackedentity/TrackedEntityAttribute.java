@@ -111,7 +111,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   private QueryOperator preferredSearchOperator;
 
   @OpenApi.Description(
-      "Set of `QueryOperator` that cannot be used with the current Tracked Entity Attribute.")
+      "Set of `QueryOperator`s that cannot be used with the current Tracked Entity Attribute.")
   private Set<QueryOperator> blockedSearchOperators = EnumSet.noneOf(QueryOperator.class);
 
   private Boolean trigramIndexable = false;
