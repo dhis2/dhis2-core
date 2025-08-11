@@ -102,8 +102,8 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest {
     assertTrue(apiToken1.getMethodAllowedList().getAllowedMethods().contains("GET"));
     assertTrue(apiToken1.getMethodAllowedList().getAllowedMethods().contains("POST"));
     assertTrue(apiToken1.getMethodAllowedList().getAllowedMethods().contains("PATCH"));
-    assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("DELETE"));
-    assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("HEAD"));
+    assertTrue(apiToken1.getMethodAllowedList().getAllowedMethods().contains("DELETE"));
+    assertTrue(apiToken1.getMethodAllowedList().getAllowedMethods().contains("HEAD"));
     assertTrue(
         apiToken1.getRefererAllowedList().getAllowedReferrers().contains("http://hostname1.com"));
     assertTrue(
