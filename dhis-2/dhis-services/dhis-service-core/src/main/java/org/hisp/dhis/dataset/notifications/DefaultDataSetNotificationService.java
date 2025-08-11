@@ -451,9 +451,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       return Set.of();
     }
 
-    Set<User> members = userGroup.getMembers();
-
-    return members.stream()
+    return userGroup.getMembers().stream()
         .filter(
             user ->
                 user != null
