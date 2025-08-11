@@ -78,10 +78,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = Icon.class,
     classifiers = {"team:platform", "purpose:support"})
 public class ApiTokenController extends AbstractCrudController<ApiToken, GetObjectListParams> {
-  public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
   private static final List<String> VALID_METHODS =
-      List.of("GET", "POST", "PATCH", "PUT", "DELETE");
+      List.of("HEAD", "GET", "POST", "PATCH", "PUT", "DELETE");
 
   public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis(30);
 
