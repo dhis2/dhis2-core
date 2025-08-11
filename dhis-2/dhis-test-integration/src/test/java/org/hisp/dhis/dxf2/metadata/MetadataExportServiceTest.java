@@ -239,14 +239,13 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest {
     assertNotNull(createdBy.get("id"), "Created by id should be present");
     assertEquals("UserCodeA", createdBy.get("code").asText(), "CreatedBy code should match");
     assertEquals(
-        "FirstNameA SurnameA",
-        createdBy.get("name").asText(),
-        "CreatedBy name should match");
+        "FirstNameA SurnameA", createdBy.get("name").asText(), "CreatedBy name should match");
     assertEquals(
         "FirstNameA SurnameA",
         createdBy.get("displayName").asText(),
         "CreatedBy displayName should match");
-    assertEquals("usernamea", createdBy.get("username").asText(), "CreatedBy username should match");
+    assertEquals(
+        "usernamea", createdBy.get("username").asText(), "CreatedBy username should match");
 
     // Assert Dashboard LastUpdatedBy User
     JsonNode lastUpdatedBy = exportedDashboard.get("lastUpdatedBy");
