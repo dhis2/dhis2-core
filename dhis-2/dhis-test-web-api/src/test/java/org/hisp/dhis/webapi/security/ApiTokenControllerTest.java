@@ -108,7 +108,6 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest {
         token.getRefererAllowedList().getAllowedReferrers().contains("http://hostname2.com"));
     assertTrue(
         token.getRefererAllowedList().getAllowedReferrers().contains("http://hostname3.com"));
-
   }
 
   @Test

@@ -74,6 +74,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ApiTokenController extends AbstractCrudController<ApiToken> {
+  public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
   private static final List<String> VALID_METHODS =
       List.of("HEAD", "GET", "POST", "PATCH", "PUT", "DELETE");
