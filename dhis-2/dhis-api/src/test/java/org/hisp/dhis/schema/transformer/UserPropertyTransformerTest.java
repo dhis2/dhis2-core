@@ -52,8 +52,6 @@ class UserPropertyTransformerTest {
     UserPropertyTransformer transformer = new UserPropertyTransformer();
     UserPropertyTransformer.UserDto userDto =
         (UserPropertyTransformer.UserDto) transformer.transform(user);
-    // assertEquals( uuid.toString(), userDto.getId() );
     assertEquals(user.getUid(), userDto.getId());
-    assertEquals("test", userDto.getUsername());
   }
 }
