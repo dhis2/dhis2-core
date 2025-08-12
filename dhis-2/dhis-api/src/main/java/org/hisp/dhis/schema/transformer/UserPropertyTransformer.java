@@ -132,7 +132,6 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
     public String getDisplayName() {
       return displayName;
     }
-
   }
 
   public static final class JacksonSerialize extends StdSerializer<User> {
