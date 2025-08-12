@@ -35,13 +35,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -220,6 +223,25 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         List.of("L0", "L1", "L1x", "L21", "L22", "L2x", "L31", "L32", "L3x"),
         toOrganisationUnitNames(GET("/organisationUnits?levelSorted=true").content()));
+  }
+
+  @Test
+  void testGetUserRoleUsersAreTransformed() {
+    User user = makeUser("Y");
+    user.setEmail("y@y.org");
+
+    OrganisationUnit organisationUnit = manager.get(OrganisationUnit.class, ou0);
+    user.addOrganisationUnit(organisationUnit);
+    userService.addUser(user);
+
+    JsonObject userInRole =
+        GET("/organisationUnits/{id}?fields=users[*]", ou0)
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    assertFalse(userInRole.has("email"), "email should not be exposed");
+    assertEquals(user.getUid(), userInRole.getString("id").string());
   }
 
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {
