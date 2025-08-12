@@ -39,7 +39,7 @@ jobs:
           LATEST_IM_TAG=$(git ls-remote --tags --sort='v:refname' https://github.com/dhis2-sre/im-manager | tail -1 | awk '{print $2}')
           echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: dhis2-sre/im-manager
           ref: ${{ env.LATEST_IM_TAG }}
