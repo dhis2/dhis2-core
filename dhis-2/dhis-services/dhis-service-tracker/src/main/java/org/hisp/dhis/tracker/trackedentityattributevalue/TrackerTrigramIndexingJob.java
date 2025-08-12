@@ -65,7 +65,7 @@ public class TrackerTrigramIndexingJob implements Job {
 
   @Override
   public JobType getJobType() {
-    return JobType.TRACKER_SEARCH_OPTIMIZATION;
+    return JobType.TRACKER_TRIGRAM_INDEX_MAINTENANCE;
   }
 
   @Override
