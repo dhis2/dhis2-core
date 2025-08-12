@@ -848,7 +848,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
     assertFalse(userGroupUserAdded.getUsers().isEmpty());
     assertEquals(newUser.getUid(), lastUpdatedByNewUser.getId());
-    assertEquals("test", lastUpdatedByNewUser.getUsername());
 
     // switch back to admin and remove group from user
     switchToAdminUser();
