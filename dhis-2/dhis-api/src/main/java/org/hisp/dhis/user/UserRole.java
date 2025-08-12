@@ -44,7 +44,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.Authorities;
 
 /**
  * @author Nguyen Hong Duc
