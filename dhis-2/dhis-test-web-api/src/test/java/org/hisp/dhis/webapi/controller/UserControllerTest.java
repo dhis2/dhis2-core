@@ -1104,4 +1104,23 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertNull(userByUsername.getSecret());
   }
+
+  @Test
+  void testGetUserRoleUsersAreTransformed() {
+    UserRole role = createUserRole('X');
+    User user = makeUser("Y");
+    user.setEmail("y@y.org");
+    userService.addUser(user);
+    role.getMembers().add(user);
+    manager.save(role);
+
+    JsonObject userInRole =
+        GET("/userRoles/{id}?fields=users[*]", role.getUid())
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    assertFalse(userInRole.has("email"), "email should not be exposed");
+    assertEquals(user.getUid(), userInRole.getString("id").string());
+  }
 }
