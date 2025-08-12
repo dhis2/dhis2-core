@@ -761,7 +761,7 @@ public class DefaultPdfDataEntryFormService implements PdfDataEntryFormService {
     checkbox.setBorderWidth(1);
     checkbox.setBorderColor(Color.BLACK);
 
-    PdfFormField checkboxfield = checkbox.getCheckField();
+    PdfFormField checkboxfield = checkbox.getFullField();
     checkboxfield.setFieldName(
         strfldName + "_" + PdfFieldCell.TPYEDEFINE_NAME + PdfFieldCell.TYPE_CHECKBOX);
 
