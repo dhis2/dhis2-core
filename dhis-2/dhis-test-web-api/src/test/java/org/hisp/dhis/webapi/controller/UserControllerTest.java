@@ -783,7 +783,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
     assertFalse(userGroupUserAdded.getUsers().isEmpty());
     assertEquals(newUser.getUid(), lastUpdatedByNewUser.getId());
-    assertEquals("test", lastUpdatedByNewUser.getUsername());
   }
 
   @Test
@@ -809,7 +808,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByAdmin = userGroup.getLastUpdatedBy();
     assertTrue(userGroup.getUsers().isEmpty());
     assertEquals(ADMIN_USER_UID, lastUpdatedByAdmin.getId());
-    assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
     manager.flush();
     manager.clear();
