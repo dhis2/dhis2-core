@@ -34,6 +34,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 
 /**
@@ -48,7 +49,9 @@ public class ProgramMessageQueryParams {
 
   private Enrollment enrollment;
 
-  private TrackerEvent event;
+  private TrackerEvent trackerEvent;
+
+  private SingleEvent singleEvent;
 
   private Date afterDate;
 
@@ -70,8 +73,12 @@ public class ProgramMessageQueryParams {
     return enrollment != null;
   }
 
-  public boolean hasEvent() {
-    return event != null;
+  public boolean hasTrackerEvent() {
+    return trackerEvent != null;
+  }
+
+  public boolean hasSingleEvent() {
+    return singleEvent != null;
   }
 
   public boolean hasPaging() {

@@ -348,9 +348,8 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE -> {
-        TrackerEvent event = preheat.getTrackerEvent(relationship.getFrom().getEvent());
-        SingleEvent singleEvent = preheat.getSingleEvent(relationship.getFrom().getEvent());
-        fromItem.setEvent(event != null ? event : map(singleEvent));
+        fromItem.setTrackerEvent(preheat.getTrackerEvent(relationship.getFrom().getEvent()));
+        fromItem.setSingleEvent(preheat.getSingleEvent(relationship.getFrom().getEvent()));
       }
     }
     dbRelationship.setFrom(fromItem);
@@ -365,9 +364,8 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE -> {
-        TrackerEvent event = preheat.getTrackerEvent(relationship.getTo().getEvent());
-        SingleEvent singleEvent = preheat.getSingleEvent(relationship.getTo().getEvent());
-        toItem.setEvent(event != null ? event : map(singleEvent));
+        toItem.setTrackerEvent(preheat.getTrackerEvent(relationship.getTo().getEvent()));
+        toItem.setSingleEvent(preheat.getSingleEvent(relationship.getTo().getEvent()));
       }
     }
     dbRelationship.setTo(toItem);
@@ -402,7 +400,8 @@ public class TrackerObjectsMapper {
     return dbNote;
   }
 
-  // TODO: should we remove this method when we will separate the event tables?
+  // TODO(tracker): To remove when refactoring ProgramNotificationInstanceController
+  @Deprecated
   public static TrackerEvent map(SingleEvent singleEvent) {
     if (singleEvent == null) {
       return null;

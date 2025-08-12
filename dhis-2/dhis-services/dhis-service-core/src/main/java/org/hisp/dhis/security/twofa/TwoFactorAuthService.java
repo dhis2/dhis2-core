@@ -125,7 +125,7 @@ public class TwoFactorAuthService {
     if (!configurationProvider.isEnabled(ConfigurationKey.EMAIL_2FA_ENABLED)) {
       throw new ConflictException(ErrorCode.E3045);
     }
-    if (!userService.isEmailVerified(user)) {
+    if (!user.isEmailVerified()) {
       throw new ConflictException(ErrorCode.E3043);
     }
     Email2FACode email2FACode = generateEmail2FACode();
@@ -223,7 +223,9 @@ public class TwoFactorAuthService {
    */
   @Transactional
   public void privileged2FADisable(
-      @Nonnull User currentUser, @Nonnull String userUid, @Nonnull Consumer<ErrorReport> errors)
+      @Nonnull UserDetails currentUser,
+      @Nonnull String userUid,
+      @Nonnull Consumer<ErrorReport> errors)
       throws ForbiddenException, NotFoundException {
     User user = userService.getUser(userUid);
     if (user == null) {
@@ -233,11 +235,7 @@ public class TwoFactorAuthService {
         || !userService.canCurrentUserCanModify(currentUser, user, errors)) {
       throw new ForbiddenException(ErrorCode.E3021);
     }
-    UserDetails actingUser = UserDetails.fromUser(currentUser);
-    if (actingUser == null) {
-      throw new NotFoundException(ErrorCode.E6201);
-    }
-    reset2FA(user.getUsername(), actingUser);
+    reset2FA(user.getUsername(), currentUser);
   }
 
   /**
@@ -257,7 +255,7 @@ public class TwoFactorAuthService {
     if (!user.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)) {
       throw new ConflictException(ErrorCode.E3048);
     }
-    if (!userService.isEmailVerified(user)) {
+    if (!user.isEmailVerified()) {
       throw new ConflictException(ErrorCode.E3043);
     }
 

@@ -104,7 +104,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  private final Date incidentDate = new Date();
+  private final Date occurredDate = new Date();
 
   private User admin;
 
@@ -267,7 +267,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.save(relationshipA, false);
 
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
-    eventA.setOccurredDate(incidentDate);
+    eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(to));

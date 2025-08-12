@@ -53,14 +53,6 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   void save(@Nonnull T object, @Nonnull UserDetails userDetails, boolean clearSharing);
 
   /**
-   * Saves the given object instance.
-   *
-   * @param object the object instance.
-   * @param user the user currently in the security context.
-   */
-  void save(@Nonnull T object, @Nonnull User user);
-
-  /**
    * Updates the given object instance.
    *
    * @param object the object instance.

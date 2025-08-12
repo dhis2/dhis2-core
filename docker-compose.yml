@@ -20,9 +20,9 @@ x-db-base: &db-base
   volumes:
     - db-dump:/docker-entrypoint-initdb.d/
   environment:
-    POSTGRES_USER: dhis
-    POSTGRES_DB: dhis
-    POSTGRES_PASSWORD: &postgres_password dhis
+    POSTGRES_USER: ${DB_USERNAME}
+    POSTGRES_DB: ${DB_NAME:-dhis}
+    POSTGRES_PASSWORD: &postgres_password ${DB_USERNAME}
     PGPASSWORD: *postgres_password # needed by psql in healthcheck
   healthcheck:
     test:
@@ -50,6 +50,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      DB_HOSTNAME: ${DB_HOSTNAME:-db}
+      DB_NAME: ${DB_NAME:-dhis}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
 
   db:
     <<: *db-base

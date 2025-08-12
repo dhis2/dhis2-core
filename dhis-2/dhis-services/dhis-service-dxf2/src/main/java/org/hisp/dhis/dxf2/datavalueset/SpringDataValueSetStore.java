@@ -55,9 +55,7 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
@@ -71,13 +69,9 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.dxf2.datavalueset.DataValueSetStore")
 public class SpringDataValueSetStore implements DataValueSetStore {
   private final JdbcTemplate jdbcTemplate;
-  private final UserService userService;
 
-  public SpringDataValueSetStore(UserService userService, JdbcTemplate jdbcTemplate) {
-    checkNotNull(userService);
+  public SpringDataValueSetStore(JdbcTemplate jdbcTemplate) {
     checkNotNull(jdbcTemplate);
-
-    this.userService = userService;
     this.jdbcTemplate = jdbcTemplate;
   }
 
@@ -347,8 +341,8 @@ public class SpringDataValueSetStore implements DataValueSetStore {
               + "' ";
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (currentUser != null && !currentUser.isSuper()) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!currentUser.isSuper()) {
       sql += getAttributeOptionComboClause(currentUser);
     }
 
@@ -368,7 +362,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
    * @param user the user.
    * @return an SQL filter clause.
    */
-  private String getAttributeOptionComboClause(User user) {
+  private String getAttributeOptionComboClause(UserDetails user) {
     return "and dv.attributeoptioncomboid not in ("
         + "select distinct(cocco.categoryoptioncomboid) "
         + "from categoryoptioncombos_categoryoptions as cocco "
@@ -379,7 +373,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
         + "from categoryoption co  "
         + " where "
         + JpaQueryUtils.generateSQlQueryForSharingCheck(
-            "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
+            "co.sharing", user, AclService.LIKE_READ_DATA)
         + ") )";
   }
 

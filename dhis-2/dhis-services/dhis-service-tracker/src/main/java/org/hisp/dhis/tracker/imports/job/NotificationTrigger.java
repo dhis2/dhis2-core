@@ -35,6 +35,7 @@ package org.hisp.dhis.tracker.imports.job;
 public enum NotificationTrigger {
   ENROLLMENT,
   ENROLLMENT_COMPLETION,
-  EVENT_COMPLETION,
+  TRACKER_EVENT_COMPLETION,
+  SINGLE_EVENT_COMPLETION,
   NONE
 }
