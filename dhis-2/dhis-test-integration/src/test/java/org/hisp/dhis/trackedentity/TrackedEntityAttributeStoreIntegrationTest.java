@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -87,9 +87,8 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     Set<TrackedEntityAttribute> indexableAttributes =
         attributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
-    assertContainsOnly(Set.of(attributeW, attributeY, attributeZ), indexableAttributes);
-    assertTrue(indexableAttributes.contains(attributeW));
-    assertTrue(indexableAttributes.contains(attributeY));
+    assertContainsOnly(
+        getUids(Set.of(attributeW, attributeY, attributeZ)), getUids(indexableAttributes));
   }
 
   @Test

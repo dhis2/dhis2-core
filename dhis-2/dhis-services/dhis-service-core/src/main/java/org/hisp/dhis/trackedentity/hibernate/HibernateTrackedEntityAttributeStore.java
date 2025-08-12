@@ -32,11 +32,11 @@ package org.hisp.dhis.trackedentity.hibernate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
@@ -106,21 +106,30 @@ public class HibernateTrackedEntityAttributeStore
 
   @Override
   public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
-    Query<TrackedEntityAttribute> query =
+    List<Object[]> results =
         getSession()
             .createNativeQuery(
                 """
-        SELECT tea.trackedentityattributeid, tea.name
+        SELECT tea.trackedentityattributeid, tea.uid, tea.name
         FROM trackedentityattribute tea
         WHERE tea.trigramindexable = true
         AND (
             NOT tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
             OR NOT tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
         )
-        """,
-                TrackedEntityAttribute.class);
+        """)
+            .getResultList();
 
-    return new HashSet<>(query.list());
+    Set<TrackedEntityAttribute> trackedEntityAttributes = new HashSet<>();
+    for (Object[] row : results) {
+      TrackedEntityAttribute tea = new TrackedEntityAttribute();
+      tea.setId(((BigInteger) row[0]).intValue());
+      tea.setUid((String) row[1]);
+      tea.setName((String) row[2]);
+      trackedEntityAttributes.add(tea);
+    }
+
+    return trackedEntityAttributes;
   }
 
   @Override
