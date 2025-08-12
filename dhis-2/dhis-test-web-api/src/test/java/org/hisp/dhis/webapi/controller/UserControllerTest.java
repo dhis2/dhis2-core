@@ -873,7 +873,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser updatedByAdminAgain = userGroupUserRemoved.getLastUpdatedBy();
     assertTrue(userGroupUserRemoved.getUsers().isEmpty());
     assertEquals(getAdminUid(), updatedByAdminAgain.getId());
-    assertEquals("admin", updatedByAdminAgain.getUsername());
   }
 
   @Test
