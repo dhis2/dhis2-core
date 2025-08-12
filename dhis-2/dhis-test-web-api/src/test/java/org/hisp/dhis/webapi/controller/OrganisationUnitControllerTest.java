@@ -80,4 +80,23 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
                     + "}",
                 name, name)));
   }
+
+  @Test
+  void testGetUserRoleUsersAreTransformed() {
+    User user = makeUser("Y");
+    user.setEmail("y@y.org");
+
+    OrganisationUnit organisationUnit = manager.get(OrganisationUnit.class, ou0);
+    user.addOrganisationUnit(organisationUnit);
+    userService.addUser(user);
+
+    JsonObject userInRole =
+        GET("/organisationUnits/{id}?fields=users[*]", ou0)
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    assertFalse(userInRole.has("email"), "email should not be exposed");
+    assertEquals(user.getUid(), userInRole.getString("id").string());
+  }
 }
