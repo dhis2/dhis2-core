@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.program.message;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -47,6 +48,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 
 /**
@@ -64,6 +66,10 @@ public class ProgramMessage extends BaseIdentifiableObject implements Serializab
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   private Enrollment enrollment;
+
+  @JsonIgnore private TrackerEvent trackerEvent;
+
+  @JsonIgnore private SingleEvent singleEvent;
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -93,8 +99,12 @@ public class ProgramMessage extends BaseIdentifiableObject implements Serializab
     return this.enrollment != null;
   }
 
-  public boolean hasEvent() {
-    return this.event != null;
+  public boolean hasTrackerEvent() {
+    return this.trackerEvent != null;
+  }
+
+  public boolean hasSingleEvent() {
+    return this.singleEvent != null;
   }
 
   @JsonPOJOBuilder(withPrefix = "")
@@ -104,7 +114,8 @@ public class ProgramMessage extends BaseIdentifiableObject implements Serializab
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("uid", uid)
-        .add("event", event)
+        .add("tracker trackerEvent", trackerEvent)
+        .add("single trackerEvent", singleEvent)
         .add("enrollment", enrollment)
         .add("recipients", recipients)
         .add("delivery channels", deliveryChannels)

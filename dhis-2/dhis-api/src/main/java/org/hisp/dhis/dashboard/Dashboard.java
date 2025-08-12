@@ -94,9 +94,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
- * Encapsulates information about an embedded dashboard. An embedded dashboard is typically loaded
- * from an external provider.
- *
  * @author Lars Helge Overland
  */
 @Setter
@@ -172,6 +169,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   // ----------------------------------------------------------------
   // Transient properties
   // ----------------------------------------------------------------
+
   @Transient private transient String href;
 
   @Transient private transient Access access;
@@ -194,7 +192,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   }
 
   // -------------------------------------------------------------------------
-  // Getters and setters
+  // Getters
   // -------------------------------------------------------------------------
 
   @Override

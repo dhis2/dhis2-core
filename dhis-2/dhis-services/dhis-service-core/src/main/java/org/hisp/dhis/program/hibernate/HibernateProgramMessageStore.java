@@ -90,8 +90,11 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
     if (params.hasEnrollment()) {
       hql.append(helper.whereAnd()).append("pm.enrollment = :enrollment");
     }
-    if (params.hasEvent()) {
-      hql.append(helper.whereAnd()).append("pm.event = :event");
+    if (params.hasTrackerEvent()) {
+      hql.append(helper.whereAnd()).append("pm.trackerEvent = :trackerEvent");
+    }
+    if (params.hasSingleEvent()) {
+      hql.append(helper.whereAnd()).append("pm.singleEvent = :singleEvent");
     }
     if (params.getMessageStatus() != null) {
       hql.append(helper.whereAnd()).append("pm.messageStatus = :messageStatus");
@@ -108,8 +111,11 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
     if (params.hasEnrollment()) {
       query.setParameter("enrollment", params.getEnrollment());
     }
-    if (params.hasEvent()) {
-      query.setParameter("event", params.getEvent());
+    if (params.hasTrackerEvent()) {
+      query.setParameter("trackerEvent", params.getTrackerEvent());
+    }
+    if (params.hasSingleEvent()) {
+      query.setParameter("singleEvent", params.getSingleEvent());
     }
     if (params.getMessageStatus() != null) {
       query.setParameter("messageStatus", params.getMessageStatus());

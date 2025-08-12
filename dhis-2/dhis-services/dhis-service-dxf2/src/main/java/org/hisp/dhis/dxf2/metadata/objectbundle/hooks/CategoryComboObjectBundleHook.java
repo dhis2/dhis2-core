@@ -34,9 +34,12 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -44,10 +47,24 @@ import org.springframework.stereotype.Component;
 public class CategoryComboObjectBundleHook extends AbstractObjectBundleHook<CategoryCombo> {
 
   private final CategoryService categoryService;
+  private final DataValueService dataValueService;
 
   @Override
   public void validate(CategoryCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     checkIsValid(combo, addReports);
+    checkIfDataBecomesInaccessible(combo, bundle, addReports);
+  }
+
+  private void checkIfDataBecomesInaccessible(
+      CategoryCombo updatedCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    CategoryCombo existingCombo = bundle.getPreheat().get(PreheatIdentifier.UID, updatedCombo);
+
+    try {
+      dataValueService.checkNoDataValueBecomesInaccessible(existingCombo, updatedCombo);
+    } catch (ConflictException e) {
+      addReports.accept(
+          new ErrorReport(CategoryCombo.class, ErrorCode.E1120, existingCombo.getName()));
+    }
   }
 
   private void checkIsValid(CategoryCombo combo, Consumer<ErrorReport> addReports) {
