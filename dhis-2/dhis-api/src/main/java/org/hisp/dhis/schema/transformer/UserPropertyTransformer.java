@@ -148,8 +148,6 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
       gen.writeStringField("code", user.getCode());
       gen.writeStringField("name", user.getName());
       gen.writeStringField("displayName", user.getDisplayName());
-      gen.writeStringField("username", user.getUsername());
-
       gen.writeEndObject();
     }
   }
@@ -177,12 +175,7 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
 
       if (node.has("code")) {
         String code = node.get("code").asText();
-
         user.setCode(code);
-      }
-
-      if (node.has("username")) {
-        user.setUsername(node.get("username").asText());
       }
 
       return user;
