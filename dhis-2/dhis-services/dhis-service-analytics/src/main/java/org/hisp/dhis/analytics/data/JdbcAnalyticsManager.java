@@ -527,15 +527,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                     String ouCol = quoteAlias(LEVEL_PREFIX + unit.getLevel());
                     Integer level = params.getDataApprovalLevels().get(unit);
 
-                    return "("
-                        + ouCol
-                        + " = '"
-                        + unit.getUid()
-                        + "' and "
-                        + quoteAlias(APPROVALLEVEL)
-                        + " <= "
-                        + level
-                        + ")";
+                    return String.format(
+                        "(%s = '%s' and %s <= %s)",
+                        ouCol, unit.getUid(), quoteAlias(APPROVALLEVEL), level);
                   })
               .collect(Collectors.joining(" or ")));
 
