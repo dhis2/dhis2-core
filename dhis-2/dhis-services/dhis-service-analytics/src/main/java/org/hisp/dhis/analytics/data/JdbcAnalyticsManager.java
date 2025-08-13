@@ -546,15 +546,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " ("
-              + "("
+              + " (("
               + quoteAlias("ouopeningdate")
               + " <= '"
               + toMediumDate(params.getStartDateRestriction())
               + "' or "
               + quoteAlias("ouopeningdate")
-              + " is null) and "
-              + "("
+              + " is null) and ("
               + quoteAlias("oucloseddate")
               + " >= '"
               + toMediumDate(params.getEndDateRestriction())
@@ -566,15 +564,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDateRestriction()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " ("
-              + "("
+              + " (("
               + quoteAlias("costartdate")
               + " <= '"
               + toMediumDate(params.getStartDateRestriction())
               + "' or "
               + quoteAlias("costartdate")
-              + " is null) and "
-              + "("
+              + " is null) and ("
               + quoteAlias("coenddate")
               + " >= '"
               + toMediumDate(params.getEndDateRestriction())
