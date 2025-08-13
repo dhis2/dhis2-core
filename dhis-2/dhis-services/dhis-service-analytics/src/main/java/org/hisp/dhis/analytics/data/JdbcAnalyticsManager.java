@@ -656,18 +656,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     String fromSourceClause = getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS;
     String whereClause = getWhereClause(params, tableType);
 
-    return "(select "
-        + dimensionColumns
-        + ","
-        + valueColumns
-        + " "
-        + "from "
-        + fromSourceClause
-        + " "
-        + whereClause
-        + "group by "
-        + dimensionColumns
-        + ")";
+    // spotless:off
+    return "(select " + dimensionColumns + "," + valueColumns + " " + 
+        "from " + fromSourceClause + " " + whereClause + 
+        "group by " + dimensionColumns + ")";
+    // spotless:on
   }
 
   /**
