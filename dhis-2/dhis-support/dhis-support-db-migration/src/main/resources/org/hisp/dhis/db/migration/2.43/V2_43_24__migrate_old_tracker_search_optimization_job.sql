@@ -1,3 +1,2 @@
-update jobconfiguration
-set name = 'Tracker trigram index maintenance'
+delete from jobconfiguration
 where name = 'Tracker search optimization';

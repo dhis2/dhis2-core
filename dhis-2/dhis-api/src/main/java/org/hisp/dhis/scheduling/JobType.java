@@ -275,8 +275,6 @@ public enum JobType {
               "relativePeriods", "/api/periodTypes/relativePeriodTypes",
               "validationRuleGroups", "/api/validationRuleGroups");
       case PUSH_ANALYSIS -> Map.of("pushAnalysis", "/api/pushAnalysis");
-      case TRACKER_TRIGRAM_INDEX_MAINTENANCE ->
-          Map.of("attributes", "/api/trackedEntityAttributes/indexable");
       case PREDICTOR ->
           Map.of(
               "predictors", "/api/predictors",
