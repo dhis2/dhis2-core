@@ -620,11 +620,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (!params.isSkipPartitioning() && params.hasPartitions()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " "
-              + quoteAlias("year")
-              + " in ("
-              + TextUtils.getCommaDelimitedString(params.getPartitions().getPartitions())
-              + ") ");
+              + String.format(
+                  " %s in (%s) ",
+                  quoteAlias("year"),
+                  TextUtils.getCommaDelimitedString(params.getPartitions().getPartitions())));
     }
 
     // ---------------------------------------------------------------------
@@ -732,35 +731,16 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
     String fromSourceClause = getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS;
 
-    return "(select "
-        + columns
-        + ",row_number() over ("
-        + "partition by "
-        + partitionColumns
-        + " "
-        + "order by peenddate "
-        + order
-        + ", pestartdate "
-        + order
-        + ") as pe_rank "
-        + "from "
-        + fromSourceClause
-        + " "
-        + "where "
-        + quoteAlias(PESTARTDATE)
-        + " >= '"
-        + toMediumDate(earliestDate)
-        + "' "
-        + "and "
-        + quoteAlias(PEENDDATE)
-        + " <= '"
-        + toMediumDate(latestDate)
-        + "' "
-        + "and ("
-        + quoteAlias(VALUE)
-        + " is not null or "
-        + quoteAlias(TEXTVALUE)
-        + " is not null))";
+    // spotless:off
+    return 
+        "(select " + columns + ",row_number() over (" + 
+        "partition by " + partitionColumns + " " + 
+        "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " + 
+        "from " + fromSourceClause + " " + 
+        "where " + quoteAlias(PESTARTDATE) + " >= '" + toMediumDate(earliestDate) + "' " + 
+        "and " + quoteAlias(PEENDDATE) + " <= '" + toMediumDate(latestDate) + "' " + 
+        "and (" + quoteAlias(VALUE) + " is not null or " + quoteAlias(TEXTVALUE) + " is not null))";
+    // spotless:on
   }
 
   /**
