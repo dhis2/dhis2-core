@@ -29,9 +29,13 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
 import java.util.Arrays;
@@ -165,13 +169,13 @@ public class EventDataQueryRequest {
   public <T extends EventDataQueryRequest> T copyTo(T request) {
     EventDataQueryRequest queryRequest = request;
     queryRequest.program = this.program;
-    queryRequest.stage = this.stage;
+    queryRequest.stage = getStageInValue(this.value, this.stage);
     queryRequest.startDate = this.startDate;
     queryRequest.endDate = this.endDate;
     queryRequest.dimension = new HashSet<>(this.dimension);
     queryRequest.filter = new HashSet<>(this.filter);
     queryRequest.headers = new LinkedHashSet<>(this.headers);
-    queryRequest.value = this.value;
+    queryRequest.value = getDimensionValue(this.value);
     queryRequest.aggregationType = this.aggregationType;
     queryRequest.skipMeta = this.skipMeta;
     queryRequest.skipData = this.skipData;
@@ -216,6 +220,35 @@ public class EventDataQueryRequest {
 
   public boolean hasStartEndDate() {
     return startDate != null && endDate != null;
+  }
+
+  /**
+   * Returns the program stage uid defined in the given "valueParam", or else the default stage.
+   *
+   * @param valueParam the "value" param that might contain a stage prefixing the dimension.
+   * @param defaultStage the default stage.
+   * @return the program stage uid.
+   */
+  private static String getStageInValue(String valueParam, String defaultStage) {
+    if (isNotBlank(valueParam) && valueParam.contains(DIMENSION_IDENTIFIER_SEP)) {
+      return substringBefore(valueParam, DIMENSION_IDENTIFIER_SEP);
+    }
+
+    return defaultStage;
+  }
+
+  /**
+   * Returns the dimension uid defined in the "valueParam".
+   *
+   * @param valueParam the "value" param that might contain a stage prefixing the dimension.
+   * @return the dimension uid.
+   */
+  private static String getDimensionValue(String valueParam) {
+    if (isNotBlank(valueParam) && valueParam.contains(DIMENSION_IDENTIFIER_SEP)) {
+      return substringAfter(valueParam, DIMENSION_IDENTIFIER_SEP);
+    }
+
+    return valueParam;
   }
 
   public static class ExtendedEventDataQueryRequestBuilder extends EventDataQueryRequestBuilder {
