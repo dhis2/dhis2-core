@@ -544,59 +544,39 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       StringBuilder sql,
       AnalyticsTableType tableType) {
     if (params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction()) {
+      // spotless:off
       sql.append(
-          sqlHelper.whereAnd()
-              + " (("
-              + quoteAlias("ouopeningdate")
-              + " <= '"
-              + toMediumDate(params.getStartDateRestriction())
-              + "' or "
-              + quoteAlias("ouopeningdate")
-              + " is null) and ("
-              + quoteAlias("oucloseddate")
-              + " >= '"
-              + toMediumDate(params.getEndDateRestriction())
-              + "' or "
-              + quoteAlias("oucloseddate")
-              + " is null)) ");
+          sqlHelper.whereAnd() + 
+              " ((" + quoteAlias("ouopeningdate") + " <= '" + toMediumDate(params.getStartDateRestriction()) + 
+              "' or " + quoteAlias("ouopeningdate") + " is null) and (" + 
+              quoteAlias("oucloseddate") + " >= '" + toMediumDate(params.getEndDateRestriction()) + 
+              "' or " + quoteAlias("oucloseddate") + " is null)) ");
+      // spotless:on
     }
 
     if (params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDateRestriction()) {
+      // spotless:off
       sql.append(
-          sqlHelper.whereAnd()
-              + " (("
-              + quoteAlias("costartdate")
-              + " <= '"
-              + toMediumDate(params.getStartDateRestriction())
-              + "' or "
-              + quoteAlias("costartdate")
-              + " is null) and ("
-              + quoteAlias("coenddate")
-              + " >= '"
-              + toMediumDate(params.getEndDateRestriction())
-              + "' or "
-              + quoteAlias("coenddate")
-              + " is null)) ");
+          sqlHelper.whereAnd() + 
+              " ((" + quoteAlias("costartdate") + " <= '" + toMediumDate(params.getStartDateRestriction()) + 
+              "' or " + quoteAlias("costartdate") + " is null) and (" + 
+              quoteAlias("coenddate") + " >= '" + toMediumDate(params.getEndDateRestriction()) + 
+              "' or " + quoteAlias("coenddate") + " is null)) ");
+      // spotless:on
     }
 
     if (tableType.isPeriodDimension() && params.hasStartDate()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " "
-              + quoteAlias(PESTARTDATE)
-              + "  >= '"
-              + toMediumDate(params.getStartDate())
-              + "' ");
+              + String.format(
+                  " %s >= '%s' ", quoteAlias(PESTARTDATE), toMediumDate(params.getStartDate())));
     }
 
     if (tableType.isPeriodDimension() && params.hasEndDate()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " "
-              + quoteAlias(PEENDDATE)
-              + " <= '"
-              + toMediumDate(params.getEndDate())
-              + "' ");
+              + String.format(
+                  " %s <= '%s' ", quoteAlias(PEENDDATE), toMediumDate(params.getEndDate())));
     }
 
     if (params.isTimely()) {
