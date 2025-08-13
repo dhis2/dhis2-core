@@ -29,8 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
@@ -79,5 +83,24 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
                     + "'code':'Org code'"
                     + "}",
                 name, name)));
+  }
+
+  @Test
+  void testGetUserRoleUsersAreTransformed() {
+    User user = makeUser("Y");
+    user.setEmail("y@y.org");
+
+    OrganisationUnit organisationUnit = manager.get(OrganisationUnit.class, ou0);
+    user.addOrganisationUnit(organisationUnit);
+    userService.addUser(user);
+
+    JsonObject userInRole =
+        GET("/organisationUnits/{id}?fields=users[*]", ou0)
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    assertFalse(userInRole.has("email"), "email should not be exposed");
+    assertEquals(user.getUid(), userInRole.getString("id").string());
   }
 }
