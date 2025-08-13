@@ -1,2 +1,2 @@
 delete from jobconfiguration
-where name = 'Tracker search optimization';
+where jobtype = 'TRACKER_SEARCH_OPTIMIZATION';
