@@ -59,7 +59,6 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
@@ -899,7 +898,6 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.programs = programs;
   }
 
-  @OpenApi.Property(UserPropertyTransformer.UserDto[].class)
   @JsonProperty("users")
   @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
