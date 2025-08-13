@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -351,6 +352,18 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
                     .get(
                         bundle.getPreheatIdentifier(),
                         dataDimensionItem.getProgramAttribute().getAttribute()));
+      }
+
+      // handle expression dimension item
+      ExpressionDimensionItem expressionDimensionItem =
+          dataDimensionItem.getExpressionDimensionItem();
+      if (expressionDimensionItem != null) {
+        ExpressionDimensionItem expressionDimensionItemBundle =
+            bundle.getPreheat().get(bundle.getPreheatIdentifier(), expressionDimensionItem);
+        // use bundle object if available to avoid transient exception
+        if (expressionDimensionItemBundle != null) {
+          dataDimensionItem.setExpressionDimensionItem(expressionDimensionItemBundle);
+        }
       }
 
       preheatService.connectReferences(
