@@ -30,6 +30,7 @@ package org.hisp.dhis.organisationunit;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -71,6 +72,8 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
@@ -895,8 +898,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.programs = programs;
   }
 
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonProperty("users")
+  @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "userItem", namespace = DxfNamespaces.DXF_2_0)
   public Set<User> getUsers() {
