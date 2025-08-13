@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -40,6 +41,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 
 /**
  * @author Nguyen Hong Duc
@@ -103,7 +106,9 @@ public class UserRole extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "userObject", namespace = DxfNamespaces.DXF_2_0)
   public List<User> getUsers() {
