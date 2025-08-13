@@ -191,7 +191,7 @@ public enum JobType {
    *     (System User will not work).
    */
   public boolean isValidUserRequiredForJob() {
-    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE;
+    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE || this == META_DATA_SYNC;
   }
 
   /**

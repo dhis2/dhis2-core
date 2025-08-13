@@ -166,6 +166,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
@@ -1702,6 +1703,19 @@ public abstract class TestBase {
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
     return enrollment;
+  }
+
+  public static SingleEvent createSingleEvent(
+      ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
+    SingleEvent event = new SingleEvent();
+    event.setAutoFields();
+    event.setProgramStage(programStage);
+    event.setEnrollment(enrollment);
+    event.setOrganisationUnit(organisationUnit);
+    if (categoryService != null) {
+      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
+    }
+    return event;
   }
 
   public static TrackerEvent createEvent(
