@@ -168,8 +168,8 @@ public class TwoFactorAuthUtils {
 
     try {
       byte[] decodedSecretBytes = Base32.decode(secret);
-      if (decodedSecretBytes == null || (decodedSecretBytes.length != 20
-          && decodedSecretBytes.length != 10)) {
+      if (decodedSecretBytes == null
+          || (decodedSecretBytes.length != 20 && decodedSecretBytes.length != 10)) {
         log.warn("TOTP secret decoding failed, is null or invalid length");
         return false;
       }
