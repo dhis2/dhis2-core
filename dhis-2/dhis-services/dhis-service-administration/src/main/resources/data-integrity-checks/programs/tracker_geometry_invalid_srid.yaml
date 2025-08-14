@@ -1,0 +1,89 @@
+# Copyright (c) 2004-2025, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice, this
+# list of conditions and the following disclaimer in the documentation and/or
+# other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: tracker_geometry_invalid_srid
+description: Tracker entities with geometry not using SRID 4326
+section: Tracker
+section_order: 4
+severity: WARNING
+details_id_type: tracker
+
+summary_sql: >-
+  WITH all_geom AS (
+      SELECT 'trackedentityinstance' AS table_name, geometry FROM trackedentityinstance
+      WHERE geometry IS NOT NULL
+      UNION ALL
+      SELECT 'programinstance' AS table_name, geometry FROM programinstance
+      WHERE geometry IS NOT NULL
+      UNION ALL
+      SELECT 'programstageinstance' AS table_name, geometry FROM programstageinstance
+      WHERE geometry IS NOT NULL
+  ),
+       invalid_geom AS (
+           SELECT * FROM all_geom WHERE ST_SRID(geometry) != 4326
+       )
+  SELECT COUNT(*) AS value,
+         100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM all_geom), 0) AS percent
+  FROM invalid_geom;
+
+details_sql: >-
+  SELECT uid, (table_name || '-' || uid) AS name,
+  'Expected SRID 4326 but found ' || srid AS comment
+  FROM (
+  SELECT 'trackedentityinstance' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM trackedentityinstance WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  UNION ALL
+  SELECT 'programinstance' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM programinstance WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  UNION ALL
+  SELECT 'programstageinstance' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM programstageinstance WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  ) AS invalid_geometries;
+
+introduction: >
+  Geometry data in DHIS2 should conform to the WGS 84 coordinate system (SRID 4326).
+  Tracker records (TrackedEntityInstance, ProgramInstance, or ProgramStageInstance) using a different
+  spatial reference system may lead to unexpected results or errors in GIS-based features.
+  This integrity check identifies such geometry records that do not use SRID 4326.
+
+recommendation: >-
+  To correct this issue, update the SRID of the affected records to 4326 using the SQL queries below:
+
+    UPDATE trackedentityinstance
+    SET geometry = ST_SetSRID(geometry, 4326)
+    WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
+
+    UPDATE programinstance
+    SET geometry = ST_SetSRID(geometry, 4326)
+    WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
+
+    UPDATE programstageinstance
+    SET geometry = ST_SetSRID(geometry, 4326)
+    WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
+
+  Make sure to back up your database and run this fix in a testing or staging environment before applying to production.
+is_slow: true
