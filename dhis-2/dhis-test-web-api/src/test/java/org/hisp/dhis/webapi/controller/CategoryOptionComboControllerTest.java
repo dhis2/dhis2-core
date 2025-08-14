@@ -267,4 +267,32 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     assertStatus(
         HttpStatus.OK, DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
   }
+
+  @Test
+  @DisplayName("Calls to POST /categoryOptionCombos should be rejected")
+  void postCategoryOptionCombosRejectedTest() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Creating a single CategoryOptionCombo is forbidden through this endpoint",
+        POST("/categoryOptionCombos", coc()).content(HttpStatus.CONFLICT).as(JsonWebMessage.class));
+  }
+
+  private String coc() {
+    return """
+          {
+            "code": "new coc",
+            "name": "new coc",
+            "categoryCombo": {
+              "id": "bjDvmb4bfuf"
+            },
+            "categoryOptions": [
+              {
+                "id": "xYerKDKCefk"
+              }
+            ]
+          }
+      """;
+  }
 }
