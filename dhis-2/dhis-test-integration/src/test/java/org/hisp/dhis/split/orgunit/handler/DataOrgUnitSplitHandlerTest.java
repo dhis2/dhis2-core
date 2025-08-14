@@ -30,6 +30,7 @@
 package org.hisp.dhis.split.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.util.stream.Stream;
@@ -42,8 +43,8 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -72,7 +73,7 @@ class DataOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -185,8 +186,9 @@ class DataOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
             .getSingleResult();
   }
 
-  private void addDataValues(DataValue... dataValues) {
-    Stream.of(dataValues).forEach(dataValueService::addDataValue);
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 
   private void addDataApprovals(DataApproval... dataApprovals) {

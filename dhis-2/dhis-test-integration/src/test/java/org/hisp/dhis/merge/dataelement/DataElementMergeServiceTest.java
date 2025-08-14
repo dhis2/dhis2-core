@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -64,6 +65,7 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -175,6 +177,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventStore eventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataInjectionService dataInjectionService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -2410,9 +2413,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
     DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2758,5 +2759,10 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     return changeLogs.stream()
         .filter(cl -> dataElements.contains(cl.dataElement().getUid()))
         .toList();
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

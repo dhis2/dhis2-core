@@ -70,20 +70,6 @@ public interface DataValueStore {
   // -------------------------------------------------------------------------
 
   /**
-   * Adds a DataValue.
-   *
-   * @param dataValue the DataValue to add.
-   */
-  void addDataValue(DataValue dataValue);
-
-  /**
-   * Updates a DataValue.
-   *
-   * @param dataValue the DataValue to update.
-   */
-  void updateDataValue(DataValue dataValue);
-
-  /**
    * Deletes all data values for the given organisation unit.
    *
    * @param organisationUnit the organisation unit.

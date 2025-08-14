@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Set;
@@ -60,6 +61,8 @@ class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataValueService dataValueService;
+
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -129,12 +132,17 @@ class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(categoryOptionComboAC);
 
     DataValue dataValueA = new DataValue(deA, peA, ouA, categoryOptionComboAB, null, "1");
-    dataValueService.addDataValue(dataValueA);
+    addDataValues(dataValueA);
   }
 
   @Test
   void testExistsAnyValue() {
     assertTrue(dataValueService.dataValueExists(categoryComboAB));
     assertFalse(dataValueService.dataValueExists(categoryComboAC));
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

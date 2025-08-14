@@ -92,98 +92,50 @@ public class AdxPeriod {
     }
 
     try {
-      Period period;
-      PeriodType periodType = null;
       Date startDate = DateUtils.toMediumDate(tokens[0]);
       Calendar cal = Calendar.getInstance();
       cal.setTime(startDate);
       Duration duration = Duration.valueOf(tokens[1]);
 
-      switch (duration) {
-        case P1D:
-          periodType = new DailyPeriodType();
-          break;
-        case P7D:
-          switch (cal.get(Calendar.DAY_OF_WEEK)) {
-            case MONDAY:
-              periodType = new WeeklyPeriodType();
-              break;
-            case WEDNESDAY:
-              periodType = new WeeklyWednesdayPeriodType();
-              break;
-            case THURSDAY:
-              periodType = new WeeklyThursdayPeriodType();
-              break;
-            case SATURDAY:
-              periodType = new WeeklySaturdayPeriodType();
-              break;
-            case SUNDAY:
-              periodType = new WeeklySundayPeriodType();
-              break;
-            default:
-              throw new IllegalArgumentException(periodString + " is invalid weekly type");
-          }
-          break;
-        case P14D:
-          periodType = new BiWeeklyPeriodType();
-          break;
-        case P1M:
-          periodType = new MonthlyPeriodType();
-          break;
-        case P2M:
-          periodType = new BiMonthlyPeriodType();
-          break;
-        case P3M:
-          periodType = new QuarterlyPeriodType();
-          break;
-        case P6M:
-          switch (cal.get(Calendar.MONTH)) {
-            case JANUARY:
-            case JULY:
-              periodType = new SixMonthlyPeriodType();
-              break;
-            case APRIL:
-            case OCTOBER:
-              periodType = new SixMonthlyAprilPeriodType();
-              break;
-            case NOVEMBER:
-            case MAY:
-              periodType = new SixMonthlyNovemberPeriodType();
-              break;
-            default:
-              throw new IllegalArgumentException(periodString + " is invalid sixmonthly type");
-          }
-          break;
-        case P1Y:
-          switch (cal.get(Calendar.MONTH)) {
-            case JANUARY:
-              periodType = new YearlyPeriodType();
-              break;
-            case APRIL:
-              periodType = new FinancialAprilPeriodType();
-              break;
-            case JULY:
-              periodType = new FinancialJulyPeriodType();
-              break;
-            case OCTOBER:
-              periodType = new FinancialOctoberPeriodType();
-              break;
-            case NOVEMBER:
-              periodType = new FinancialNovemberPeriodType();
-              break;
-            default:
-              throw new IllegalArgumentException(periodString + " is invalid yearly type");
-          }
-          break;
-      }
+      PeriodType periodType =
+          switch (duration) {
+            case P1D -> new DailyPeriodType();
+            case P7D ->
+                switch (cal.get(Calendar.DAY_OF_WEEK)) {
+                  case MONDAY -> new WeeklyPeriodType();
+                  case WEDNESDAY -> new WeeklyWednesdayPeriodType();
+                  case THURSDAY -> new WeeklyThursdayPeriodType();
+                  case SATURDAY -> new WeeklySaturdayPeriodType();
+                  case SUNDAY -> new WeeklySundayPeriodType();
+                  default ->
+                      throw new IllegalArgumentException(periodString + " is invalid weekly type");
+                };
+            case P14D -> new BiWeeklyPeriodType();
+            case P1M -> new MonthlyPeriodType();
+            case P2M -> new BiMonthlyPeriodType();
+            case P3M -> new QuarterlyPeriodType();
+            case P6M ->
+                switch (cal.get(Calendar.MONTH)) {
+                  case JANUARY, JULY -> new SixMonthlyPeriodType();
+                  case APRIL, OCTOBER -> new SixMonthlyAprilPeriodType();
+                  case NOVEMBER, MAY -> new SixMonthlyNovemberPeriodType();
+                  default ->
+                      throw new IllegalArgumentException(
+                          periodString + " is invalid sixmonthly type");
+                };
+            case P1Y ->
+                switch (cal.get(Calendar.MONTH)) {
+                  case JANUARY -> new YearlyPeriodType();
+                  case APRIL -> new FinancialAprilPeriodType();
+                  case JULY -> new FinancialJulyPeriodType();
+                  case OCTOBER -> new FinancialOctoberPeriodType();
+                  case NOVEMBER -> new FinancialNovemberPeriodType();
+                  default ->
+                      throw new IllegalArgumentException(periodString + " is invalid yearly type");
+                };
+          };
 
-      if (periodType != null) {
-        period = periodType.createPeriod(startDate);
-      } else {
-        throw new IllegalArgumentException("Failed to create period type from " + duration);
-      }
-
-      return period;
+      return periodType.createPeriod(startDate);
 
     } catch (IllegalArgumentException ex) {
       throw new IllegalArgumentException(tokens[1] + " is not a supported duration type");

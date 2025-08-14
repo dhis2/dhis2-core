@@ -83,10 +83,10 @@ final class LineBuffer {
       } else if (c == '"') {
         int nextQuote = next('"', from + 1);
         res.add(str(from + 1, nextQuote));
-        from = skipIndent(next(',', skipIndent(nextQuote + 1)));
+        from = skipIndent(next(',', skipIndent(nextQuote + 1)) + 1);
       } else {
         int nextComma = next(',', from);
-        res.add(str(from, nextComma));
+        res.add(str(from, nextComma).trim());
         from = skipIndent(nextComma + 1);
       }
     }

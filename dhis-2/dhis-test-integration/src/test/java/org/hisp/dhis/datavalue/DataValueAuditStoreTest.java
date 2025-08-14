@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import org.hisp.dhis.audit.AuditOperationType;
@@ -54,7 +55,7 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueAuditService dataValueAuditService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataInjectionService dataInjectionService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CategoryService categoryService;
   @Autowired private PeriodService periodService;
@@ -109,12 +110,7 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
     dataValueB2 = createDataValue(dataElementB, periodC, orgUnitB, coc2, coc2, "4");
     dataValueC1 = createDataValue(dataElementC, periodC, orgUnitC, coc3, coc3, "5");
     dataValueC2 = createDataValue(dataElementC, periodA, orgUnitC, coc3, coc3, "6");
-    dataValueService.addDataValue(dataValueA1);
-    dataValueService.addDataValue(dataValueA2);
-    dataValueService.addDataValue(dataValueB1);
-    dataValueService.addDataValue(dataValueB2);
-    dataValueService.addDataValue(dataValueC1);
-    dataValueService.addDataValue(dataValueC2);
+    addDataValues(dataValueA1, dataValueA2, dataValueB1, dataValueB2, dataValueC1, dataValueC2);
   }
 
   @Test
@@ -211,5 +207,10 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
     assertTrue(
         dvaCoc3After.containsAll(List.of(dataValueAuditC1, dataValueAuditC2)),
         "Retrieved entries should contain both audits referencing cat opt combo 3");
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

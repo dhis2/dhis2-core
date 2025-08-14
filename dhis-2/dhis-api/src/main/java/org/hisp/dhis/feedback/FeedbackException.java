@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,63 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.feedback;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.text.MessageFormat;
+import javax.annotation.Nonnull;
+import lombok.Getter;
 
-/**
- * @author Lars Helge Overland
- */
-public class PeriodHierarchy {
-  private Map<Long, Set<Long>> intersectingPeriods = new HashMap<>();
+@Getter
+public abstract class FeedbackException extends Exception implements Error {
 
-  private Map<Long, Set<Long>> periodsBetween = new HashMap<>();
+  @Nonnull private final ErrorCode code;
+  @Nonnull private final Object[] args;
 
-  public Map<Long, Set<Long>> getIntersectingPeriods() {
-    return intersectingPeriods;
+  FeedbackException(String msg, @Nonnull ErrorCode code) {
+    super(msg);
+    this.code = code;
+    this.args = new Object[0];
   }
 
-  public Set<Long> getIntersectingPeriods(Period period) {
-    return new HashSet<>(intersectingPeriods.get(period.getId()));
-  }
-
-  public Set<Long> getIntersectingPeriods(Collection<Period> periods) {
-    periods = new HashSet<>(periods);
-
-    Set<Long> set = new HashSet<>();
-
-    for (Period period : periods) {
-      if (intersectingPeriods.containsKey(period.getId())) {
-        set.addAll(intersectingPeriods.get(period.getId()));
-      }
-    }
-
-    return set;
-  }
-
-  public Map<Long, Set<Long>> getPeriodsBetween() {
-    return periodsBetween;
-  }
-
-  public Set<Long> getPeriodsBetween(Period period) {
-    return new HashSet<>(periodsBetween.get(period.getId()));
-  }
-
-  public Set<Long> getPeriodsBetween(Collection<Period> periods) {
-    periods = new HashSet<>(periods);
-
-    Set<Long> set = new HashSet<>();
-
-    for (Period period : periods) {
-      if (periodsBetween.containsKey(period.getId())) {
-        set.addAll(periodsBetween.get(period.getId()));
-      }
-    }
-
-    return set;
+  FeedbackException(@Nonnull ErrorCode code, @Nonnull Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+    this.args = args;
   }
 }
