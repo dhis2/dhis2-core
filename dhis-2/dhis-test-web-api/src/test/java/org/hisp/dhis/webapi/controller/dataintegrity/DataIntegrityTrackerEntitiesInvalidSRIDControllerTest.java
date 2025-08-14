@@ -49,7 +49,7 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
     setUp();
     assertHasDataIntegrityIssues(
         "tracker",
-        "tracker_geometry_invalid_srid.yaml",
+        "tracker_geometry_invalid_srid",
         50,
         trackedEntityWithInvalidSRID.getUid(),
         "trackedentity",
@@ -59,13 +59,13 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
 
   @Test
   void testTrackedEntitiesWithNoData() {
-    assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid.yaml", false);
+    assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid", false);
   }
 
   @Test
   void testTrackedEntitiesWithValidSRID() {
     setUpValidData();
-    assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid.yaml", true);
+    assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid", true);
   }
 
   private void setUp() {
@@ -93,6 +93,7 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
 
     manager.save(trackedEntityWithValidSRID);
     manager.save(trackedEntityWithInvalidSRID);
+    manager.flush();
   }
 
   private void setUpValidData() {
@@ -113,5 +114,6 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
     trackedEntityWithValidSRID.setGeometry(point);
 
     manager.save(trackedEntityWithValidSRID);
+    manager.flush();
   }
 }
