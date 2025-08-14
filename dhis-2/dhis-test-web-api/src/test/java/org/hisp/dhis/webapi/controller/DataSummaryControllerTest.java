@@ -142,5 +142,32 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .asMap(JsonValue.class)
         .keys()
         .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Event count keys should be integers"));
+    content
+        .get("trackerEventCount")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(
+            value ->
+                assertTrue(value.isInteger(), "Tracker event count values should be integers"));
+    content
+        .get("trackerEventCount")
+        .asMap(JsonValue.class)
+        .keys()
+        .forEach(
+            key ->
+                assertTrue(key.matches("\\d{1,2}"), "Tracker event count keys should be integers"));
+    content
+        .get("singleEventCount")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(
+            value -> assertTrue(value.isInteger(), "Single event count values should be integers"));
+    content
+        .get("singleEventCount")
+        .asMap(JsonValue.class)
+        .keys()
+        .forEach(
+            key ->
+                assertTrue(key.matches("\\d{1,2}"), "Single event count keys should be integers"));
   }
 }

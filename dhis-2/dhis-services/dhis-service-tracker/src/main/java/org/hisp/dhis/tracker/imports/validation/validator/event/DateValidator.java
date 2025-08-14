@@ -48,6 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -63,7 +64,7 @@ class DateValidator implements Validator<Event> {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(event.getProgram());
 
-    if (event.getOccurredAt() == null && occurredAtDateIsMandatory(event, program)) {
+    if (event.getOccurredAt() == null && occurredAtDateIsMandatory(event)) {
       reporter.addError(event, E1031, event);
       return;
     }
@@ -130,8 +131,8 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private boolean occurredAtDateIsMandatory(Event event, Program program) {
-    if (program.isWithoutRegistration()) {
+  private boolean occurredAtDateIsMandatory(Event event) {
+    if (event instanceof SingleEvent) {
       return true;
     }
 
