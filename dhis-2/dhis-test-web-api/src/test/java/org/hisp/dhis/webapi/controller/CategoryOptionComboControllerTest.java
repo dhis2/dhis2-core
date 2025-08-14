@@ -54,6 +54,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -266,5 +267,108 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     // Can delete the duplicated default COC
     assertStatus(
         HttpStatus.OK, DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
+  }
+
+  @Test
+  @DisplayName("Updating an existing CategoryOptionCombo's CategoryCombo is prohibited")
+  void updatingCategoryOptionCombosCategoryComboProhibitedTest() {
+    // Given an existing category option combo
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("X");
+    CategoryOptionCombo coc1 = categoryMetadata.coc1();
+
+    // When trying to update its category combo
+    CategoryCombo newCategoryCombo = createCategoryCombo("Y");
+    categoryService.addCategoryCombo(newCategoryCombo);
+    @Language("json5")
+    String cocWithUpdatedCatCombo =
+        cocWithCcAndCos(
+            newCategoryCombo.getUid(),
+            categoryMetadata.co1().getUid(),
+            categoryMetadata.co3().getUid());
+
+    // Then it is prohibited
+    assertEquals(
+        "Category option combos cannot have their category combo updated after creation",
+        PUT("/categoryOptionCombos/" + coc1.getUid(), cocWithUpdatedCatCombo)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class)
+            .getFirstTypeReportErrorMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "Updating an existing CategoryOptionCombo's with different CategoryOptions is prohibited")
+  void updatingCategoryOptionCombosDiffCategoryOptionsProhibitedTest() {
+    // Given existing category metadata
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("Y");
+
+    // When trying to update a CategoryOptionCombo with different CategoryOptions
+    CategoryOptionCombo coc1 = categoryMetadata.coc1();
+    @Language("json5")
+    String cocWithUpdatedCatOptions =
+        cocWithCcAndCos(
+            coc1.getCategoryCombo().getUid(),
+            categoryMetadata.co2().getUid(),
+            categoryMetadata.co4().getUid());
+
+    // Then it is prohibited
+    assertEquals(
+        "Category option combos cannot have their category options updated after creation",
+        PUT("/categoryOptionCombos/" + coc1.getUid(), cocWithUpdatedCatOptions)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class)
+            .getFirstTypeReportErrorMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "Updating an existing CategoryOptionCombo's with empty CategoryOptions is prohibited")
+  void updatingCategoryOptionCombosNoCategoryOptionsProhibitedTest() {
+    // Given existing category metadata
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("Y");
+
+    // When trying to update a CategoryOptionCombo with empty CategoryOptions
+    CategoryOptionCombo coc1 = categoryMetadata.coc1();
+    @Language("json5")
+    String cocWithEmptyCatOptions = cocEmptyOptions(coc1.getCategoryCombo().getUid());
+
+    // Then it is prohibited
+    assertEquals(
+        "Category option combos cannot have their category options updated after creation",
+        PUT("/categoryOptionCombos/" + coc1.getUid(), cocWithEmptyCatOptions)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class)
+            .getFirstTypeReportErrorMessage());
+  }
+
+  private String cocWithCcAndCos(String cc, String co1, String co2) {
+    return """
+          {
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+        """
+        .formatted(cc, co1, co2);
+  }
+
+  private String cocEmptyOptions(String cc) {
+    return """
+          {
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": []
+          }
+        """
+        .formatted(cc);
   }
 }

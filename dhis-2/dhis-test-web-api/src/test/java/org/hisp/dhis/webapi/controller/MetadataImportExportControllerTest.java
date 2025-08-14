@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.feedback.ErrorCode.E1129;
+import static org.hisp.dhis.feedback.ErrorCode.E1130;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -56,17 +59,20 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonProgram;
 import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -857,6 +863,122 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .getObject(0)
             .getString("id")
             .string());
+  }
+
+  @Test
+  @DisplayName("Updating an existing CategoryOptionCombo's CategoryCombo is prohibited")
+  void updatingCategoryOptionCombosCategoryComboProhibitedTest() {
+    // Given an existing category option combo
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("X");
+    CategoryOptionCombo coc1 = categoryMetadata.coc1();
+
+    // When trying to update its category combo
+    CategoryCombo newCategoryCombo = createCategoryCombo("Y");
+    categoryService.addCategoryCombo(newCategoryCombo);
+    @Language("json5")
+    String cocWithUpdatedCatCombo =
+        cocWithCcAndCos(
+            coc1.getUid(),
+            newCategoryCombo.getUid(),
+            categoryMetadata.co1().getUid(),
+            categoryMetadata.co3().getUid());
+
+    // Then it is prohibited
+    JsonWebMessage importSummary =
+        POST("/metadata", cocWithUpdatedCatCombo)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    JsonTypeReport typeReport =
+        importSummary
+            .getResponse()
+            .as(JsonImportSummary.class)
+            .getTypeReport(CategoryOptionCombo.class);
+    JsonObjectReport objectReport = typeReport.getObjectReport(CategoryOptionCombo.class);
+    JsonErrorReport jsonErrorReport = objectReport.getErrorReports().get(0);
+    assertEquals(
+        "Category option combos cannot have their category combo updated after creation",
+        jsonErrorReport.getMessage());
+    assertEquals(E1129, jsonErrorReport.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("Updating an existing CategoryOptionCombo's CategoryOptions is prohibited")
+  void updatingCategoryOptionCombosCategoryOptionsProhibitedTest() {
+    // Given an existing category option combo
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("D");
+    CategoryOptionCombo coc1 = categoryMetadata.coc1();
+
+    // When trying to update its category options
+    @Language("json5")
+    String cocWithUpdatedCatOptions =
+        cocWithCcAndCos(
+            coc1.getCategoryCombo().getUid(),
+            categoryMetadata.co2().getUid(),
+            categoryMetadata.co4().getUid());
+
+    // Then it is prohibited
+    JsonWebMessage importSummary =
+        POST("/metadata", cocWithUpdatedCatOptions)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    JsonTypeReport typeReport =
+        importSummary
+            .getResponse()
+            .as(JsonImportSummary.class)
+            .getTypeReport(CategoryOptionCombo.class);
+    JsonObjectReport objectReport = typeReport.getObjectReport(CategoryOptionCombo.class);
+    JsonErrorReport jsonErrorReport = objectReport.getErrorReports().get(0);
+    assertEquals(
+        "Category option combos cannot have their category options updated after creation",
+        jsonErrorReport.getMessage());
+    assertEquals(E1130, jsonErrorReport.getErrorCode());
+  }
+
+  private String cocWithCcAndCos(String coc, String cc, String co1, String co2) {
+    return """
+          {
+            "categoryOptionCombos": [
+              {
+                "id": "%s",
+                "categoryCombo": {
+                  "id": "%s"
+                },
+                "categoryOptions": [
+                  {
+                    "id": "%s"
+                  },
+                  {
+                    "id": "%s"
+                  }
+                ]
+              }
+            ]
+          }
+        """
+        .formatted(coc, cc, co1, co2);
+  }
+
+  private String cocWithCcAndCos(String cc, String co1, String co2) {
+    return """
+          {
+            "categoryOptionCombos": [
+              {
+                "categoryCombo": {
+                  "id": "%s"
+                },
+                "categoryOptions": [
+                  {
+                    "id": "%s"
+                  },
+                  {
+                    "id": "%s"
+                  }
+                ]
+              }
+            ]
+          }
+        """
+        .formatted(cc, co1, co2);
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {

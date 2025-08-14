@@ -29,11 +29,15 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -49,11 +53,68 @@ public class CategoryOptionComboObjectBundleHook
 
   @Override
   public void validate(
-      CategoryOptionCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+      CategoryOptionCombo categoryOptionCombo,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
 
-    checkNonStandardDefaultCatOptionCombo(combo, addReports);
-    checkIsValid(combo, addReports);
+    checkNonStandardDefaultCatOptionCombo(categoryOptionCombo, addReports);
+    checkIsValid(categoryOptionCombo, addReports);
+
+    //    checkCategoryComboUpdate(categoryOptionCombo, bundle, addReports);
+    //    checkCategoryOptionsUpdate(categoryOptionCombo, bundle, addReports);
   }
+
+  private void checkCategoryComboUpdate(
+      CategoryOptionCombo updatedCoc, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    CategoryOptionCombo existingCoc =
+        bundle.getPreheat().get(bundle.getPreheatIdentifier(), updatedCoc);
+    if (existingCoc == null) return;
+
+    CategoryCombo existingCategoryCombo =
+        bundle.getPreheat().get(bundle.getPreheatIdentifier(), existingCoc.getCategoryCombo());
+
+    // get updated CC from bundle category option combo
+    CategoryCombo updatedCategoryCombo =
+        categoryService.getCategoryCombo(updatedCoc.getCategoryCombo().getUid());
+
+    // if no existing CC, try bundle in case new CC in update import
+    if (updatedCategoryCombo == null) {
+      updatedCategoryCombo =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), updatedCoc.getCategoryCombo());
+
+      if (updatedCategoryCombo == null) {
+        // nothing in bundle
+      }
+    }
+
+    if (!existingCategoryCombo.equals(updatedCategoryCombo)) {
+      addReports.accept(
+          new ErrorReport(
+              CategoryOptionCombo.class, ErrorCode.E1129, updatedCategoryCombo.getUid()));
+    }
+  }
+
+  //  private void checkCategoryOptionsUpdate(
+  //      CategoryOptionCombo updatedCategoryOptionCombo,
+  //      ObjectBundle bundle,
+  //      Consumer<ErrorReport> addReports) {
+  //    Set<CategoryOption> existingCategoryOptions =
+  // existingCategoryOptionCombo.getCategoryOptions();
+  //
+  //    // get existing COs from bundle category option combo
+  //    Set<CategoryOption> updatedCategoryOptions =
+  //        new HashSet<>(
+  //            categoryService.getCategoryOptionsByUid(
+  //                updatedCategoryOptionCombo.getCategoryOptions().stream()
+  //                    .map(BaseIdentifiableObject::getUid)
+  //                    .toList()));
+  //
+  //    if (!existingCategoryOptions.equals(updatedCategoryOptions)) {
+  //      addReports.accept(
+  //          new ErrorReport(
+  //              CategoryOptionCombo.class, ErrorCode.E1130, updatedCategoryOptionCombo.getUid()));
+  //    }
+  //  }
 
   private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {
     try {

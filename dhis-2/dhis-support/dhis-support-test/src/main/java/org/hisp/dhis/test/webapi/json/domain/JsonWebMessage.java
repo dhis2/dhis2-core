@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
+import javax.annotation.Nullable;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -68,5 +69,9 @@ public interface JsonWebMessage extends JsonObject {
 
   default JsonObject getResponse() {
     return getObject("response");
+  }
+
+  default @Nullable String getFirstTypeReportErrorMessage() {
+    return getResponse().as(JsonTypeReport.class).getErrorReports().get(0).getMessage();
   }
 }

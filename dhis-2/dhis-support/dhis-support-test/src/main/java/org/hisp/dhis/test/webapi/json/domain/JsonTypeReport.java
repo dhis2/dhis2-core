@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -45,6 +46,13 @@ public interface JsonTypeReport extends JsonObject {
 
   default JsonList<JsonObjectReport> getObjectReports() {
     return getList("objectReports", JsonObjectReport.class);
+  }
+
+  default <T extends IdentifiableObject> JsonObjectReport getObjectReport(Class<T> clazz) {
+    return getObjectReports().stream()
+        .filter(or -> or.getString("klass").string().equals(clazz.getName()))
+        .findFirst()
+        .orElse(null);
   }
 
   default JsonList<JsonErrorReport> getErrorReports() {
