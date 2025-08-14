@@ -93,14 +93,12 @@ class SystemSettingsTests extends ApiTest {
 
     systemSettingActions.post(
         APPLICATION_FOOTER_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
-    // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + DEFAULT_INTRO);
 
     systemSettingActions.post(
         APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
-    // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + ENGLISH_INTRO);
@@ -108,7 +106,6 @@ class SystemSettingsTests extends ApiTest {
 
     systemSettingActions.post(
         APPLICATION_INTRO_KEY, CONTENT_TYPE_TEXT_PLAIN, new JsonObject(), params);
-    // ------------------------
 
     params = new QueryParamsBuilder();
     params.add("value=" + FRENCH_INTRO);

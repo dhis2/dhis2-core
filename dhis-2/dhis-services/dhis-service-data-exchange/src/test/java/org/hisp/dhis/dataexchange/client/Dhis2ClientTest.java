@@ -133,6 +133,9 @@ class Dhis2ClientTest {
     assertEquals(
         "https://play.dhis2.org/2.38.0/api/system/info",
         client.getResolvedUriBuilder("system/info").build().toUriString());
+    assertEquals(
+        "https://play.dhis2.org/2.38.0/api/analytics/dataValueSets",
+        client.getResolvedUriBuilder("analytics/dataValueSets").build().toUriString());
   }
 
   @Test

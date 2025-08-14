@@ -62,8 +62,11 @@
     <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
                  column="enrollmentid" foreign-key="fk_programmessage_programinstanceid" not-null="false" />
 
-    <many-to-one name="event" class="org.hisp.dhis.program.TrackerEvent"
-                 column="eventid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
+    <many-to-one name="trackerEvent" class="org.hisp.dhis.program.TrackerEvent"
+                 column="trackereventid" foreign-key="fk_programmessage_trackereventid" not-null="false" />
+
+      <many-to-one name="singleEvent" class="org.hisp.dhis.program.SingleEvent"
+                   column="singleeventid" foreign-key="fk_programmessage_singleeventid" not-null="false" />
 
   </class>
 

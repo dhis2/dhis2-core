@@ -277,4 +277,8 @@ public class Sharing implements Serializable {
     }
     return access.substring(0, 3) + access.substring(1, 2) + access.substring(4);
   }
+
+  public static Sharing empty() {
+    return builder().build();
+  }
 }

@@ -115,7 +115,11 @@ public class TrigramSummaryController {
         }
       }
 
-      indexableAttributes.removeAll(allIndexedAttributes);
+      Set<Long> idsToRemove =
+          allIndexedAttributes.stream()
+              .map(TrackedEntityAttribute::getId)
+              .collect(Collectors.toSet());
+      indexableAttributes.removeIf(attr -> idsToRemove.contains(attr.getId()));
     }
 
     trigramSummary.setIndexedAttributes(
