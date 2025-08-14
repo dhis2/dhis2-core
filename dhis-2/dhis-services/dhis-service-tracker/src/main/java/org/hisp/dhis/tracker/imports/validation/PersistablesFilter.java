@@ -175,6 +175,10 @@ class PersistablesFilter {
       collectPersistables(TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities());
       collectPersistables(Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments());
       collectPersistables(TrackerEvent.class, TRACKER_EVENT_PARENTS, bundle.getTrackerEvents());
+      collectPersistables(
+          TrackerEvent.class,
+          TRACKER_EVENT_PARENTS,
+          bundle.getProgramRuleScheduledEvents().values().stream().toList());
       collectPersistables(Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships());
     }
   }

@@ -138,7 +138,6 @@ public class ValidationReport {
 
   /** Returns the size of all the Tracker DTO that did not pass validation */
   public long size() {
-
     return this.getErrors().stream().map(Error::getUid).distinct().count();
   }
 
