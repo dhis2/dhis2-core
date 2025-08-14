@@ -341,8 +341,10 @@ public class MetadataItemsHandler {
 
     if (params.hasValueDimension()) {
       DimensionalItemObject value = params.getValue();
+      String key = params.hasStageInValue() ? params.getRequestValue() : value.getUid();
+
       metadataItemMap.put(
-          value.getUid(),
+          key,
           new MetadataItem(
               value.getDisplayProperty(params.getDisplayProperty()),
               includeDetails ? value.getUid() : null,
