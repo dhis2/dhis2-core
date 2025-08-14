@@ -29,11 +29,17 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.feedback.ErrorCode.E1130;
+
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -53,6 +59,37 @@ public class CategoryOptionComboObjectBundleHook
 
     checkNonStandardDefaultCatOptionCombo(combo, addReports);
     checkIsValid(combo, addReports);
+    checkIsExpectedState(combo, bundle, addReports);
+  }
+
+  private void checkIsExpectedState(
+      CategoryOptionCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // get all provided cocs with cc
+    List<CategoryOptionCombo> persistedCocs = bundle.getObjects(CategoryOptionCombo.class, true);
+    List<CategoryOptionCombo> newCocs = bundle.getObjects(CategoryOptionCombo.class, false);
+
+    List<CategoryOptionCombo> providedCocs =
+        CollectionUtils.combinedUnmodifiableView(persistedCocs, newCocs);
+
+    // get only cocs with same imported coc cc
+    // todo only use uid?? in case uninitialized
+    Set<CategoryOptionCombo> allProvidedCocsForCc =
+        providedCocs.stream()
+            .filter(
+                coc -> coc.getCategoryCombo().getUid().equals(combo.getCategoryCombo().getUid()))
+            .collect(Collectors.toSet());
+
+    // get all generated cocs from cc
+    CategoryCombo categoryCombo =
+        bundle.getPreheat().get(bundle.getPreheatIdentifier(), combo.getCategoryCombo());
+    Set<CategoryOptionCombo> genCocs = categoryCombo.generateOptionCombosSet();
+
+    // check if all provided match generated
+    if (genCocs.size() != allProvidedCocsForCc.size()) {
+      addReports.accept(
+          new ErrorReport(
+              CategoryOptionCombo.class, E1130, allProvidedCocsForCc.size(), genCocs.size()));
+    }
   }
 
   private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {

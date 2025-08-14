@@ -56,6 +56,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
@@ -857,6 +858,305 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .getObject(0)
             .getString("id")
             .string());
+  }
+
+  @Test
+  @DisplayName("Importing expected CategoryOptionCombos should succeed")
+  void importExpectedCocsTest() {
+    // Given category metadata exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("a");
+
+    // When importing COCs that match the generated COC state
+    JsonImportSummary report =
+        POST("/metadata", Body(cocsMatchExpectedState(categoryMetadata)))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("OK", report.getStatus());
+    assertEquals(4, report.getStats().getUpdated());
+  }
+
+  @Test
+  @DisplayName("Importing fewer CategoryOptionCombos than expected should fail")
+  void importFewerCocsTest() {
+    // Given category metadata exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("b");
+
+    // When importing COCs that do not match the generated COC state (fewer supplied)
+    JsonImportSummary report =
+        POST("/metadata", Body(fewerCocs(categoryMetadata)))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("Conflict", report.getStatus());
+    assertEquals(3, report.getStats().getIgnored());
+  }
+
+  @Test
+  @DisplayName("Importing more CategoryOptionCombos than expected should fail")
+  void importMoreCocsTest() {
+    // Given category metadata exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("b");
+
+    // When importing COCs that do not match the generated COC state (more supplied)
+    JsonImportSummary report =
+        POST("/metadata", Body(moreCocs(categoryMetadata)))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("Conflict", report.getStatus());
+    assertEquals(5, report.getStats().getIgnored());
+  }
+
+  private String cocsMatchExpectedState(TestCategoryMetadata metadata) {
+    return """
+      {
+        "categoryOptionCombos": [
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+        ]
+      }
+      """
+        .formatted(
+            metadata.coc1().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc2().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co4().getUid(),
+            metadata.coc3().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc4().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co4().getUid());
+  }
+
+  private String moreCocs(TestCategoryMetadata metadata) {
+    return """
+      {
+        "categoryOptionCombos": [
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "NewCocUid01",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+        ]
+      }
+      """
+        .formatted(
+            metadata.coc1().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc2().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co4().getUid(),
+            metadata.coc3().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc4().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co4().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co4().getUid());
+  }
+
+  private String fewerCocs(TestCategoryMetadata metadata) {
+    return """
+      {
+        "categoryOptionCombos": [
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+        ]
+      }
+      """
+        .formatted(
+            metadata.coc1().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc2().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co4().getUid(),
+            metadata.coc3().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co3().getUid());
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {

@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -424,5 +425,21 @@ public class CollectionUtils {
     Map<K, V> merged = new HashMap<>(m1);
     merged.putAll(m2);
     return Map.copyOf(merged);
+  }
+
+  public static <T> List<T> combinedUnmodifiableView(List<? extends T> l1, List<? extends T> l2) {
+    return Collections.unmodifiableList(
+        new AbstractList<>() {
+          @Override
+          public T get(int index) {
+            if (index < l1.size()) return l1.get(index);
+            return l2.get(index - l1.size());
+          }
+
+          @Override
+          public int size() {
+            return l1.size() + l2.size();
+          }
+        });
   }
 }
