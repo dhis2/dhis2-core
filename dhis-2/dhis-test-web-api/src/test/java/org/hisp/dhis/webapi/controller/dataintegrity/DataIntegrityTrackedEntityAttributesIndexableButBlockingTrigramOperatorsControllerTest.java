@@ -37,7 +37,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsControllerTest
+class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsControllerTest
     extends AbstractDataIntegrityIntegrationTest {
 
   private TrackedEntityAttribute teaA;
