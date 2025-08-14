@@ -139,6 +139,55 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   }
 
   @Test
+  void testLoginWithTOTP2FAWithDeprecatedSecretLength() {
+    User admin = userService.getUserByUsername("admin");
+    String secret = Base32.encode(generateSecureRandomBytes(10));
+    admin.setSecret(secret);
+    admin.setTwoFactorType(TwoFactorType.TOTP_ENABLED);
+    userService.updateUser(admin);
+
+    JsonLoginResponse wrong2FaCodeResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("INCORRECT_TWO_FACTOR_CODE_TOTP", wrong2FaCodeResponse.getLoginStatus());
+    Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
+
+    Totp totp = new Totp(secret);
+    String code = totp.now();
+    loginWith2FACode(code);
+  }
+
+  @Test
+  void testLoginWithTOTP2FAWithIncorrectSecretLength() {
+    User admin = userService.getUserByUsername("admin");
+    String secret = Base32.encode(generateSecureRandomBytes(15));
+    admin.setSecret(secret);
+    admin.setTwoFactorType(TwoFactorType.TOTP_ENABLED);
+    userService.updateUser(admin);
+
+    JsonLoginResponse wrong2FaCodeResponse =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("INCORRECT_TWO_FACTOR_CODE_TOTP", wrong2FaCodeResponse.getLoginStatus());
+    Assertions.assertNull(wrong2FaCodeResponse.getRedirectUrl());
+
+    Totp totp = new Totp(secret);
+    String code = totp.now();
+
+    JsonLoginResponse ok2FaCodeResponse =
+        POST(
+                "/auth/login",
+                "{'username':'admin','password':'district','twoFactorCode':'%s'}".formatted(code))
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+    assertEquals("INCORRECT_TWO_FACTOR_CODE_TOTP", ok2FaCodeResponse.getLoginStatus());
+  }
+
+  @Test
   void testLoginEmail2FA() {
     User admin = userService.getUserByUsername("admin");
     String emailAddress = "valid.x@email.com";
