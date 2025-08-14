@@ -29,15 +29,15 @@
  */
 package org.hisp.dhis.webapi.controller.trigramsummary;
 
+import static org.hisp.dhis.common.QueryOperator.EW;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController.DEFAULT_FIELDS_PARAM;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -47,23 +47,18 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummary;
 import org.hisp.dhis.webapi.controller.tracker.export.trigramsummary.TrigramSummaryController;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,7 +67,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @Transactional
-class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrigramSummaryControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final List<FieldPath> DEFAULT_FIELDS =
       FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
@@ -91,14 +87,6 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
 
   private TrigramSummaryController controller;
 
-  private OrganisationUnit orgUnit;
-
-  private Program program;
-
-  private TrackedEntity trackedEntity;
-
-  private Enrollment enrollment;
-
   private TrackedEntityAttribute teaA;
 
   private TrackedEntityAttribute teaB;
@@ -109,18 +97,6 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
 
   private TrackedEntityAttribute teaE;
 
-  private TrackedEntityAttribute teaF;
-
-  ProgramTrackedEntityAttribute pteaA;
-
-  ProgramTrackedEntityAttribute pteaB;
-
-  TrackedEntityTypeAttribute tetaA;
-
-  TrackedEntityTypeAttribute tetaB;
-
-  TrackedEntityType trackedEntityType;
-
   @BeforeEach
   void setUp() {
     controller =
@@ -130,76 +106,34 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
             contextService,
             aclService,
             fieldFilterService);
-    orgUnit = createOrganisationUnit('A');
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
 
-    program = createProgram('A');
+    Program program = createProgram('A');
     manager.save(program);
 
     teaA = createTrackedEntityAttribute('A');
+    teaA.setTrigramIndexable(true);
     teaB = createTrackedEntityAttribute('B');
+    teaB.setBlockedSearchOperators(Set.of(LIKE, EW));
     teaC = createTrackedEntityAttribute('C');
+    teaC.setTrigramIndexable(true);
+    teaC.setBlockedSearchOperators(Set.of(LIKE, EW));
     teaD = createTrackedEntityAttribute('D');
+    teaD.setTrigramIndexable(true);
+    teaD.setBlockedSearchOperators(Set.of(LIKE));
     teaE = createTrackedEntityAttribute('E');
-    teaF = createTrackedEntityAttribute('F');
-    teaF.setUnique(true);
+    teaE.setTrigramIndexable(true);
+    teaE.setBlockedSearchOperators(Set.of(EW));
     manager.save(teaA);
     manager.save(teaB);
     manager.save(teaC);
     manager.save(teaD);
     manager.save(teaE);
-    manager.save(teaF);
-
-    trackedEntityType = createTrackedEntityType('A');
-    manager.save(trackedEntityType);
-
-    tetaA = new TrackedEntityTypeAttribute();
-    tetaA.setSearchable(true);
-    tetaA.setTrackedEntityType(trackedEntityType);
-    tetaA.setTrackedEntityAttribute(teaA);
-    manager.save(tetaA);
-    trackedEntityType.getTrackedEntityTypeAttributes().add(tetaA);
-
-    tetaB = new TrackedEntityTypeAttribute();
-    tetaB.setSearchable(false);
-    tetaB.setTrackedEntityType(trackedEntityType);
-    tetaB.setTrackedEntityAttribute(teaD);
-    manager.save(tetaB);
-    trackedEntityType.getTrackedEntityTypeAttributes().add(tetaB);
-
-    manager.update(trackedEntityType);
-
-    pteaA = new ProgramTrackedEntityAttribute();
-    pteaA.setSearchable(true);
-    pteaA.setAttribute(teaB);
-    pteaA.setProgram(program);
-    manager.save(pteaA);
-
-    pteaB = new ProgramTrackedEntityAttribute();
-    pteaB.setSearchable(false);
-    pteaB.setAttribute(teaE);
-    pteaB.setProgram(program);
-    manager.save(pteaB);
-
-    program.getProgramAttributes().add(pteaA);
-    program.getProgramAttributes().add(pteaB);
-    manager.update(program);
-
-    trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
-    manager.save(trackedEntity);
-
-    enrollment = new Enrollment(program, trackedEntity, orgUnit);
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(EnrollmentStatus.COMPLETED);
-    enrollment.setFollowup(true);
-    manager.save(enrollment);
   }
 
   @Test
   void getTrigramIndexSummaryWhenNoIndexesAreCreated() {
-
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(new ArrayList<>());
 
@@ -208,48 +142,41 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(trigramSummary);
     assertAttributeList(
         trigramSummary.getIndexableAttributes(),
-        Set.of("\"AttributeA\"", "\"AttributeB\"", "\"AttributeF\""));
+        Set.of(teaA.getName(), teaD.getName(), teaE.getName()));
     assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of());
     assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of());
   }
 
   @Test
   void getTrigramIndexSummaryWithOneIndexAlreadyCreated() {
-
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
-        .thenReturn(List.of(teaB.getId()));
+        .thenReturn(List.of(teaA.getId()));
 
     TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
 
     assertNotNull(trigramSummary);
     assertAttributeList(
-        trigramSummary.getIndexableAttributes(), Set.of("\"AttributeA\"", "\"AttributeF\""));
-    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of("\"AttributeB\""));
+        trigramSummary.getIndexableAttributes(), Set.of(teaD.getName(), teaE.getName()));
+    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of(teaA.getName()));
     assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of());
   }
 
   @Test
   void getTrigramIndexSummaryWithAnObsoleteIndex() {
-
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
-        .thenReturn(List.of(teaB.getId(), teaC.getId()));
+        .thenReturn(List.of(teaA.getId(), teaB.getId()));
     TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
 
     assertNotNull(trigramSummary);
     assertAttributeList(
-        trigramSummary.getIndexableAttributes(), Set.of("\"AttributeA\"", "\"AttributeF\""));
-    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of("\"AttributeB\""));
-    assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of("\"AttributeC\""));
+        trigramSummary.getIndexableAttributes(), Set.of(teaD.getName(), teaE.getName()));
+    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of(teaA.getName()));
+    assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of(teaB.getName()));
   }
 
   private static void assertAttributeList(List<ObjectNode> attributes, Set<String> expected) {
-    assertAll(
-        () -> assertEquals(expected.size(), attributes.size()),
-        () ->
-            assertEquals(
-                expected,
-                attributes.stream()
-                    .map(e -> e.get("displayName").toString())
-                    .collect(Collectors.toSet())));
+    assertContainsOnly(
+        expected,
+        attributes.stream().map(e -> e.get("displayName").asText()).collect(Collectors.toSet()));
   }
 }
