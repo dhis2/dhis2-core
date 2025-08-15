@@ -717,6 +717,15 @@ public abstract class TestBase {
     return category;
   }
 
+  public static Category createCategory(char categoryUniqueIdentifier) {
+    Category category =
+        new Category("Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION);
+    category.setAutoFields();
+    category.setShortName(category.getName());
+
+    return category;
+  }
+
   /**
    * @param identifier A unique string to identify the category.
    * @param categoryOptions the category options.
