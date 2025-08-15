@@ -451,7 +451,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       return Set.of();
     }
 
-    Set<User> set = new HashSet<>();
+    Set<User> recipients = new HashSet<>();
     for (User user : userGroup.getMembers()) {
       if (user != null
           && !user.isDisabled()
@@ -460,10 +460,10 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
               user.getOrganisationUnits().stream()
                   .map(OrganisationUnit::getUid)
                   .collect(toSet()))) {
-        set.add(user);
+        recipients.add(user);
       }
     }
-    return set;
+    return recipients;
   }
 
   private void sendInternalDhisMessages(
