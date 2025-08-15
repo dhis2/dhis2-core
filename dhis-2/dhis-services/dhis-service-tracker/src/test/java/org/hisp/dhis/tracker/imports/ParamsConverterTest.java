@@ -32,14 +32,14 @@ package org.hisp.dhis.tracker.imports;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
 
 import java.util.List;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
@@ -222,8 +221,8 @@ class ParamsConverterTest extends TestBase {
       names = {"UPDATE", "DELETE"})
   void shouldSuccessToConvertEventsWithDeleteOrUpdateStrategyWhenEventsArePresentInPreheat(
       TrackerImportStrategy importStrategy) {
-    trackerPreheat.putEvent(trackerEventFromDB());
-    trackerPreheat.putEvent(singleEventFromDB());
+    trackerPreheat.putTrackerEvent(trackerEventFromDB());
+    trackerPreheat.putSingleEvent(singleEventFromDB());
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(importStrategy).build();
@@ -235,11 +234,11 @@ class ParamsConverterTest extends TestBase {
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
     assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(TRACKER_EVENT_UID));
+        List.of(TRACKER_EVENT_UID),
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList());
     assertContainsOnly(
-        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList(),
-        List.of(SINGLE_EVENT_UID));
+        List.of(SINGLE_EVENT_UID),
+        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList());
   }
 
   @ParameterizedTest
@@ -264,51 +263,55 @@ class ParamsConverterTest extends TestBase {
     assertIsEmpty(trackerBundle.getSingleEvents());
   }
 
-  private TrackerEvent trackerEvent() {
-    return TrackerEvent.builder().event(TRACKER_EVENT_UID).build();
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent() {
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+        .event(TRACKER_EVENT_UID)
+        .build();
   }
 
-  private TrackerEvent singleEvent() {
-    return TrackerEvent.builder().event(SINGLE_EVENT_UID).build();
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent singleEvent() {
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+        .event(SINGLE_EVENT_UID)
+        .build();
   }
 
-  private TrackerEvent trackerEventWithProgram() {
-    return TrackerEvent.builder()
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEventWithProgram() {
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .event(TRACKER_EVENT_UID)
         .program(MetadataIdentifier.ofUid(programWithRegistration))
         .build();
   }
 
-  private TrackerEvent singleEventWithProgram() {
-    return TrackerEvent.builder()
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent singleEventWithProgram() {
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .event(SINGLE_EVENT_UID)
         .program(MetadataIdentifier.ofUid(programWithoutRegistration))
         .build();
   }
 
-  private TrackerEvent trackerEventWithProgramStage() {
-    return TrackerEvent.builder()
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEventWithProgramStage() {
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .event(TRACKER_EVENT_UID)
         .programStage(MetadataIdentifier.ofUid(programStageWithRegistration))
         .build();
   }
 
-  private TrackerEvent singleEventWithProgramStage() {
-    return TrackerEvent.builder()
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent singleEventWithProgramStage() {
+    return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .event(SINGLE_EVENT_UID)
         .programStage(MetadataIdentifier.ofUid(programStageWithoutRegistration))
         .build();
   }
 
-  private Event trackerEventFromDB() {
-    Event event = new Event();
+  private TrackerEvent trackerEventFromDB() {
+    TrackerEvent event = new TrackerEvent();
     event.setUid(TRACKER_EVENT_UID.getValue());
     event.setProgramStage(programStageWithRegistration);
     return event;
   }
 
-  private Event singleEventFromDB() {
-    Event event = new Event();
+  private SingleEvent singleEventFromDB() {
+    SingleEvent event = new SingleEvent();
     event.setUid(SINGLE_EVENT_UID.getValue());
     event.setProgramStage(programStageWithoutRegistration);
     return event;

@@ -37,7 +37,8 @@ import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
@@ -74,7 +75,6 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           notificationTemplateService.createNotificationInstance(
               template, notification.scheduledAt());
-      notificationInstance.setEvent(null);
       notificationInstance.setEnrollment(enrollment);
 
       programNotificationInstanceService.save(notificationInstance);
@@ -87,7 +87,7 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, Event event) {
+  public void send(Notification notification, TrackerEvent event) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
@@ -100,8 +100,7 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           notificationTemplateService.createNotificationInstance(
               template, notification.scheduledAt());
-      notificationInstance.setEvent(event);
-      notificationInstance.setEnrollment(null);
+      notificationInstance.setTrackerEvent(event);
 
       programNotificationInstanceService.save(notificationInstance);
     } else {
@@ -110,6 +109,23 @@ public class NotificationSender {
 
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, event.getEnrollment());
+    }
+  }
+
+  @Transactional
+  public void send(Notification notification, SingleEvent singleEvent) {
+    ProgramNotificationTemplate template = getNotificationTemplate(notification);
+
+    if (notification.scheduledAt() != null) {
+      ProgramNotificationInstance notificationInstance =
+          notificationTemplateService.createNotificationInstance(
+              template, notification.scheduledAt());
+
+      notificationInstance.setSingleEvent(singleEvent);
+
+      programNotificationInstanceService.save(notificationInstance);
+    } else {
+      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, singleEvent);
     }
   }
 

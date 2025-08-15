@@ -103,8 +103,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   static final String[] EXPORTABLE_EVENT_STATUSES = {"'COMPLETED'", "'ACTIVE'", "'SCHEDULE'"};
 
-  private final List<AnalyticsTableColumn> fixedColumns;
-
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -133,7 +131,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         periodDataProvider,
         columnMapper,
         sqlBuilder);
-    fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override
@@ -405,7 +402,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>(fixedColumns);
+    List<AnalyticsTableColumn> columns =
+        EventAnalyticsColumn.getColumns(sqlBuilder, useCentroidForOuColumns());
     columns.addAll(getAttributeCategoryColumns(program));
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
@@ -751,5 +749,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
+  }
+
+  private boolean useCentroidForOuColumns() {
+    return settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics();
   }
 }

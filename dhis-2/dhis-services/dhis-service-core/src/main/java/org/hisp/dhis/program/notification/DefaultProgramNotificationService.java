@@ -50,7 +50,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +69,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -91,7 +91,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service("org.hisp.dhis.program.notification.ProgramNotificationService")
-public class DefaultProgramNotificationService extends HibernateGenericStore<Event>
+public class DefaultProgramNotificationService extends HibernateGenericStore<TrackerEvent>
     implements ProgramNotificationService {
   private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
       (iwt) ->
@@ -116,7 +116,9 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
   private final NotificationMessageRenderer<Enrollment> programNotificationRenderer;
 
-  private final NotificationMessageRenderer<Event> programStageNotificationRenderer;
+  private final NotificationMessageRenderer<TrackerEvent> programStageNotificationRenderer;
+
+  private final NotificationMessageRenderer<SingleEvent> singleEventNotificationRenderer;
 
   private final ProgramNotificationTemplateService notificationTemplateService;
 
@@ -129,19 +131,21 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
       MessageService messageService,
       IdentifiableObjectManager manager,
       NotificationMessageRenderer<Enrollment> programNotificationRenderer,
-      NotificationMessageRenderer<Event> programStageNotificationRenderer,
+      NotificationMessageRenderer<TrackerEvent> programStageNotificationRenderer,
+      NotificationMessageRenderer<SingleEvent> singleEventNotificationRenderer,
       ProgramNotificationTemplateService notificationTemplateService,
       NotificationTemplateMapper notificationTemplateMapper,
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       ProgramNotificationInstanceService notificationInstanceService) {
-    super(entityManager, jdbcTemplate, publisher, Event.class, false);
+    super(entityManager, jdbcTemplate, publisher, TrackerEvent.class, false);
     this.programMessageService = programMessageService;
     this.messageService = messageService;
     this.manager = manager;
     this.programNotificationRenderer = programNotificationRenderer;
     this.programStageNotificationRenderer = programStageNotificationRenderer;
+    this.singleEventNotificationRenderer = singleEventNotificationRenderer;
     this.notificationTemplateService = notificationTemplateService;
     this.notificationTemplateMapper = notificationTemplateMapper;
     this.notificationInstanceService = notificationInstanceService;
@@ -213,16 +217,27 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
                                   iwt.getProgramNotificationTemplate(),
                                   List.of(iwt.getProgramNotificationInstance().getEnrollment())));
 
-              Stream<MessageBatch> eventBatches =
+              Stream<MessageBatch> trackerEventBatches =
                   instancesWithTemplates.stream()
-                      .filter(this::hasEvent)
+                      .filter(this::hasTrackerEvent)
                       .map(
                           iwt ->
-                              createEventMessageBatch(
+                              createTrackerEventMessageBatch(
                                   iwt.getProgramNotificationTemplate(),
-                                  List.of(iwt.getProgramNotificationInstance().getEvent())));
+                                  List.of(iwt.getProgramNotificationInstance().getTrackerEvent())));
 
-              return Stream.concat(enrollmentBatches, eventBatches).collect(toList());
+              Stream<MessageBatch> singleEventBatches =
+                  instancesWithTemplates.stream()
+                      .filter(this::hasSingleEvent)
+                      .map(
+                          iwt ->
+                              createSingleEventMessageBatch(
+                                  iwt.getProgramNotificationTemplate(),
+                                  List.of(iwt.getProgramNotificationInstance().getSingleEvent())));
+
+              return Stream.concat(
+                      Stream.concat(singleEventBatches, trackerEventBatches), enrollmentBatches)
+                  .collect(toList());
             });
 
     progress.startingStage("Sending message batches", batches.size(), SKIP_ITEM_OUTLIER);
@@ -239,10 +254,19 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
                 batches.stream().mapToInt(MessageBatch::messageCount).sum()));
   }
 
-  private boolean hasEvent(NotificationInstanceWithTemplate notificationInstanceWithTemplate) {
+  private boolean hasTrackerEvent(
+      NotificationInstanceWithTemplate notificationInstanceWithTemplate) {
     return Optional.of(notificationInstanceWithTemplate)
         .map(NotificationInstanceWithTemplate::getProgramNotificationInstance)
-        .filter(ProgramNotificationInstance::hasEvent)
+        .filter(ProgramNotificationInstance::hasTrackerEvent)
+        .isPresent();
+  }
+
+  private boolean hasSingleEvent(
+      NotificationInstanceWithTemplate notificationInstanceWithTemplate) {
+    return Optional.of(notificationInstanceWithTemplate)
+        .map(NotificationInstanceWithTemplate::getProgramNotificationInstance)
+        .filter(ProgramNotificationInstance::hasSingleEvent)
         .isPresent();
   }
 
@@ -297,8 +321,14 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
   @Override
   @Transactional
-  public void sendEventCompletionNotifications(long eventId) {
-    sendEventNotifications(manager.get(Event.class, eventId));
+  public void sendTrackerEventCompletionNotifications(long eventId) {
+    sendTrackerEventNotifications(manager.get(TrackerEvent.class, eventId));
+  }
+
+  @Override
+  @Transactional
+  public void sendSingleEventCompletionNotifications(long eventId) {
+    sendSingleEventNotifications(manager.get(SingleEvent.class, eventId));
   }
 
   @Override
@@ -327,13 +357,23 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   @Transactional
   public void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, Event event) {
-    MessageBatch messageBatch = createEventMessageBatch(template, Collections.singletonList(event));
+      ProgramNotificationTemplate template, TrackerEvent event) {
+    MessageBatch messageBatch =
+        createTrackerEventMessageBatch(template, Collections.singletonList(event));
     sendAll(messageBatch);
   }
 
   @Override
-  public List<Event> getWithScheduledNotifications(
+  @Transactional
+  public void sendProgramRuleTriggeredEventNotifications(
+      ProgramNotificationTemplate template, SingleEvent event) {
+    MessageBatch messageBatch =
+        createSingleEventMessageBatch(template, Collections.singletonList(event));
+    sendAll(messageBatch);
+  }
+
+  @Override
+  public List<TrackerEvent> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate) {
     if (notificationDate == null
         || !SCHEDULED_EVENT_TRIGGERS.contains(template.getNotificationTrigger())) {
@@ -349,7 +389,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
             notificationDate, template.getRelativeScheduledDays() * -1);
 
     String hql =
-        "select distinct ev from Event as ev "
+        "select distinct ev from TrackerEvent as ev "
             + "inner join ev.programStage as ps "
             + "where :notificationTemplate in elements(ps.notificationTemplates) "
             + "and ev.scheduledDate is not null "
@@ -368,22 +408,23 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   protected void preProcessPredicates(
       CriteriaBuilder builder,
-      List<Function<Root<Event>, jakarta.persistence.criteria.Predicate>> predicates) {
+      List<Function<Root<TrackerEvent>, jakarta.persistence.criteria.Predicate>> predicates) {
     predicates.add(root -> builder.equal(root.get("deleted"), false));
   }
 
   @Override
-  protected Event postProcessObject(Event event) {
+  protected TrackerEvent postProcessObject(TrackerEvent event) {
     return (event == null || event.isDeleted()) ? null : event;
   }
 
   private MessageBatch createScheduledMessageBatchForDay(
       ProgramNotificationTemplate template, Date day) {
-    List<Event> events = getWithScheduledNotifications(template, day);
 
+    // Single events cannot be scheduled.
+    List<TrackerEvent> events = getWithScheduledNotifications(template, day);
     List<Enrollment> enrollments = getEnrollmentsWithScheduledNotifications(template, day);
 
-    MessageBatch eventBatch = createEventMessageBatch(template, events);
+    MessageBatch eventBatch = createTrackerEventMessageBatch(template, events);
     MessageBatch psBatch = createEnrollmentMessageBatch(template, enrollments);
 
     return new MessageBatch(eventBatch, psBatch);
@@ -442,7 +483,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         .collect(toList());
   }
 
-  private void sendEventNotifications(Event event) {
+  private void sendTrackerEventNotifications(TrackerEvent event) {
     if (event == null) {
       return;
     }
@@ -454,7 +495,24 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
     }
 
     for (ProgramNotificationTemplate template : templates) {
-      MessageBatch batch = createEventMessageBatch(template, Lists.newArrayList(event));
+      MessageBatch batch = createTrackerEventMessageBatch(template, Lists.newArrayList(event));
+      sendAll(batch);
+    }
+  }
+
+  private void sendSingleEventNotifications(SingleEvent event) {
+    if (event == null) {
+      return;
+    }
+
+    Set<ProgramNotificationTemplate> templates = resolveTemplates(event);
+
+    if (templates.isEmpty()) {
+      return;
+    }
+
+    for (ProgramNotificationTemplate template : templates) {
+      MessageBatch batch = createSingleEventMessageBatch(template, List.of(event));
       sendAll(batch);
     }
   }
@@ -472,8 +530,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
     }
   }
 
-  private MessageBatch createEventMessageBatch(
-      ProgramNotificationTemplate template, List<Event> events) {
+  private MessageBatch createTrackerEventMessageBatch(
+      ProgramNotificationTemplate template, List<TrackerEvent> events) {
     MessageBatch batch = new MessageBatch();
 
     if (template.getNotificationRecipient().isExternalRecipient()) {
@@ -485,6 +543,25 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
       batch.dhisMessages.addAll(
           events.stream()
               .map(event -> createDhisMessage(event, template))
+              .collect(Collectors.toSet()));
+    }
+
+    return batch;
+  }
+
+  private MessageBatch createSingleEventMessageBatch(
+      ProgramNotificationTemplate template, List<SingleEvent> events) {
+    MessageBatch batch = new MessageBatch();
+
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.addAll(
+          events.stream()
+              .map(event -> createProgramMessage(event, template))
+              .collect(Collectors.toSet()));
+    } else {
+      batch.dhisMessages.addAll(
+          events.stream()
+              .map(event -> createSingleEventDhisMessage(event, template))
               .collect(Collectors.toSet()));
     }
 
@@ -510,7 +587,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
     return batch;
   }
 
-  private ProgramMessage createProgramMessage(Event event, ProgramNotificationTemplate template) {
+  private ProgramMessage createProgramMessage(
+      TrackerEvent event, ProgramNotificationTemplate template) {
     NotificationMessage message = programStageNotificationRenderer.render(event, template);
 
     return ProgramMessage.builder()
@@ -519,7 +597,21 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         .recipients(
             resolveProgramStageNotificationRecipients(template, event.getOrganisationUnit(), event))
         .deliveryChannels(Sets.newHashSet(template.getDeliveryChannels()))
-        .event(event)
+        .trackerEvent(event)
+        .notificationTemplate(Optional.ofNullable(template.getUid()).orElse(StringUtils.EMPTY))
+        .build();
+  }
+
+  private ProgramMessage createProgramMessage(
+      SingleEvent event, ProgramNotificationTemplate template) {
+    NotificationMessage message = singleEventNotificationRenderer.render(event, template);
+
+    return ProgramMessage.builder()
+        .subject(message.getSubject())
+        .text(message.getMessage())
+        .recipients(resolveSingleEventNotificationRecipients(template, event))
+        .deliveryChannels(Sets.newHashSet(template.getDeliveryChannels()))
+        .singleEvent(event)
         .notificationTemplate(Optional.ofNullable(template.getUid()).orElse(StringUtils.EMPTY))
         .build();
   }
@@ -541,18 +633,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   }
 
   private Set<User> resolveDhisMessageRecipients(
-      ProgramNotificationTemplate template,
-      @Nullable Enrollment enrollment,
-      @Nullable Event event) {
-    if (enrollment == null && event == null) {
-      throw new IllegalArgumentException(
-          "Either of the arguments [enrollment, event] must be non-null");
-    }
-
+      ProgramNotificationTemplate template, OrganisationUnit orgUnit) {
     Set<User> userGroupMembers = Sets.newHashSet();
-
-    OrganisationUnit orgUnit =
-        enrollment != null ? enrollment.getOrganisationUnit() : event.getOrganisationUnit();
 
     Set<OrganisationUnit> orgUnitInHierarchy = Sets.newHashSet();
 
@@ -607,7 +689,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   }
 
   private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
-      ProgramNotificationTemplate template, OrganisationUnit organisationUnit, Event event) {
+      ProgramNotificationTemplate template, OrganisationUnit organisationUnit, TrackerEvent event) {
     ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
     if (template.getNotificationRecipient() == ProgramNotificationRecipient.DATA_ELEMENT
@@ -630,6 +712,27 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
       return resolveRecipients(template, organisationUnit, trackedEntity, event.getEnrollment());
     }
+  }
+
+  private ProgramMessageRecipients resolveSingleEventNotificationRecipients(
+      ProgramNotificationTemplate template, SingleEvent event) {
+    ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+
+    if (template.getNotificationRecipient() == ProgramNotificationRecipient.DATA_ELEMENT
+        && template.getRecipientDataElement() != null) {
+      List<String> recipientList =
+          event.getEventDataValues().stream()
+              .filter(dv -> template.getRecipientDataElement().getUid().equals(dv.getDataElement()))
+              .map(EventDataValue::getValue)
+              .toList();
+
+      if (template.getDeliveryChannels().contains(DeliveryChannel.SMS)) {
+        recipients.getPhoneNumbers().addAll(recipientList);
+      } else if (template.getDeliveryChannels().contains(DeliveryChannel.EMAIL)) {
+        recipients.getEmailAddresses().addAll(recipientList);
+      }
+    }
+    return recipients;
   }
 
   private ProgramMessageRecipients resolveRecipients(
@@ -675,17 +778,33 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         .collect(Collectors.toSet());
   }
 
-  private Set<ProgramNotificationTemplate> resolveTemplates(Event event) {
+  private Set<ProgramNotificationTemplate> resolveTemplates(TrackerEvent event) {
     return event.getProgramStage().getNotificationTemplates().stream()
         .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
         .collect(Collectors.toSet());
   }
 
-  private DhisMessage createDhisMessage(Event event, ProgramNotificationTemplate template) {
+  private Set<ProgramNotificationTemplate> resolveTemplates(SingleEvent event) {
+    return event.getProgramStage().getNotificationTemplates().stream()
+        .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
+        .collect(Collectors.toSet());
+  }
+
+  private DhisMessage createDhisMessage(TrackerEvent event, ProgramNotificationTemplate template) {
     DhisMessage dhisMessage = new DhisMessage();
 
     dhisMessage.message = programStageNotificationRenderer.render(event, template);
-    dhisMessage.recipients = resolveDhisMessageRecipients(template, null, event);
+    dhisMessage.recipients = resolveDhisMessageRecipients(template, event.getOrganisationUnit());
+
+    return dhisMessage;
+  }
+
+  private DhisMessage createSingleEventDhisMessage(
+      SingleEvent event, ProgramNotificationTemplate template) {
+    DhisMessage dhisMessage = new DhisMessage();
+
+    dhisMessage.message = singleEventNotificationRenderer.render(event, template);
+    dhisMessage.recipients = resolveDhisMessageRecipients(template, event.getOrganisationUnit());
 
     return dhisMessage;
   }
@@ -696,7 +815,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
     dhisMessage.message = programNotificationRenderer.render(enrollment, template);
 
-    dhisMessage.recipients = resolveDhisMessageRecipients(template, enrollment, null);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit());
 
     return dhisMessage;
   }

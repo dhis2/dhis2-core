@@ -119,7 +119,10 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
               week,
               calendar,
               PeriodType.MAP_WEEK_TYPE.get(periodType.getName()),
-              new DateTimeUnit(year, 1, 1));
+              periodType.adjustToStartOfWeek(
+                  new DateTimeUnit(year, 1, 4),
+                  calendar)); // in ISO week first week of the year should contain the 4th day of
+      // the year
 
       end = calendar.plusWeeks(start, 1);
       end = calendar.minusDays(end, 1);
@@ -392,18 +395,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       return new DateTimeUnit(
           date.getYear(), date.getMonthValue(), date.getDayOfMonth(), calendar.isIso8601());
     } else {
-      DateTimeUnit date =
-          new DateTimeUnit(
-              year, adjustedDate.getMonth(), adjustedDate.getDay(), calendar.isIso8601());
-
-      // since we rewind to start of week, we might end up in the previous
-      // years weeks, so we check and forward if needed
-      if (calendar.isoWeek(date) == calendar.weeksInYear(year)) {
-        date = calendar.plusWeeks(date, 1);
-      }
-
-      date = calendar.plusWeeks(date, week - 1);
-      return date;
+      return calendar.plusWeeks(adjustedDate, week - 1);
     }
   }
 }

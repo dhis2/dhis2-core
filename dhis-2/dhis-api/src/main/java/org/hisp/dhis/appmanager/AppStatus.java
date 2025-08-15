@@ -47,7 +47,7 @@ public enum AppStatus {
   APPROVED("approved"),
   PENDING("pending"),
   NOT_APPROVED("not_approved"),
-  DELETION_IN_PROGRESS("deletion_in_progress");
+  FAILED_TO_WRITE_BUNDLED_APP_INFO("failed_to_write_bundled_app_info");
 
   private final String message;
 

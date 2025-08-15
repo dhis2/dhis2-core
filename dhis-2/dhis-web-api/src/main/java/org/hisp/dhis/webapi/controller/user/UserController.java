@@ -31,10 +31,12 @@ package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsAsSet;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.F_REPLICATE_USER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -43,6 +45,7 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -51,18 +54,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -89,11 +88,9 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -149,6 +146,8 @@ public class UserController
   @Autowired private PasswordValidationService passwordValidationService;
 
   @Autowired private TwoFactorAuthService twoFactorAuthService;
+
+  @Autowired private EntityManager entityManager;
 
   // -------------------------------------------------------------------------
   // GET
@@ -290,20 +289,23 @@ public class UserController
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-    if (!"dataApprovalWorkflows".equals(pvProperty)) {
+
+    if ("dataApprovalWorkflows".equals(pvProperty)) {
+      return getDataApprovalWorkflows(pvUid, currentUser);
+    } else {
       return super.getObjectProperty(pvUid, pvProperty, fields, currentUser, response);
     }
+  }
 
+  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(String pvUid, UserDetails currentUser)
+      throws NotFoundException, ForbiddenException {
     User user = userService.getUser(pvUid);
-
     if (user == null) {
       throw new NotFoundException("User not found: " + pvUid);
     }
-
     if (!aclService.canRead(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to access this user.");
     }
-
     return ResponseEntity.ok(userControllerUtils.getUserDataApprovalWorkflows(user));
   }
 
@@ -322,11 +324,8 @@ public class UserController
   }
 
   private WebMessage postObject(User user) throws ForbiddenException, ConflictException {
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    validateCreateUser(user, currentUser);
-
-    return postObject(getObjectReport(createUser(user, currentUser)));
+    validateCreateUser(user);
+    return postObject(getObjectReport(createUser(user)));
   }
 
   @PostMapping(value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE)
@@ -349,12 +348,8 @@ public class UserController
 
   private WebMessage postInvite(HttpServletRequest request, User user)
       throws ForbiddenException, ConflictException {
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    validateInviteUser(user, currentUser);
-
-    ObjectReport objectReport = inviteUser(user, currentUser, request);
+    validateInviteUser(user);
+    ObjectReport objectReport = inviteUser(user, request);
 
     return postObject(objectReport);
   }
@@ -378,14 +373,12 @@ public class UserController
   private void postInvites(HttpServletRequest request, Users users)
       throws ForbiddenException, ConflictException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
     for (User user : users.getUsers()) {
-      validateInviteUser(user, currentUser);
+      validateInviteUser(user);
     }
 
     for (User user : users.getUsers()) {
-      inviteUser(user, currentUser, request);
+      inviteUser(user, request);
     }
   }
 
@@ -427,7 +420,7 @@ public class UserController
     if (errorCode != null) {
       throw new ConflictException(errorCode);
     }
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (!aclService.canUpdate(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to update this user.");
     }
@@ -448,18 +441,13 @@ public class UserController
   @PostMapping("/{uid}/replica")
   @ResponseBody
   public WebMessage replicateUser(@PathVariable String uid, HttpServletRequest request)
-      throws IOException,
-          ForbiddenException,
-          ConflictException,
-          NotFoundException,
-          BadRequestException {
+      throws IOException, ForbiddenException, ConflictException {
     User existingUser = userService.getUser(uid);
     if (existingUser == null) {
       return conflict("User not found: " + uid);
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    validateCreateUser(existingUser, currentUser);
+    validateCreateUser(existingUser);
 
     Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
 
@@ -492,38 +480,20 @@ public class UserController
     PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
 
     if (!result.isValid()) {
-      return conflict(result.getErrorMessage());
+      throw new ConflictException(result.getErrorMessage());
     }
 
-    User userReplica = new User();
-    metadataMergeService.merge(
-        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
-    copyAttributeValues(userReplica);
-    userReplica.setId(0);
-    userReplica.setUuid(UUID.randomUUID());
-    userReplica.setUid(CodeGenerator.generateUid());
-    userReplica.setCode(null);
-    userReplica.setCreated(new Date());
-    userReplica.setCreatedBy(currentUser);
-    userReplica.setLdapId(null);
-    userReplica.setOpenId(null);
-    userReplica.setUsername(username);
-    userReplica.setLastLogin(null);
-    userService.encodeAndSetPassword(userReplica, password);
-
-    userService.addUser(userReplica);
-
-    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
-
-    // ---------------------------------------------------------------------
-    // Replicate user settings
-    // ---------------------------------------------------------------------
-
-    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
-    userSettingsService.putAll(settings.toMap(), userReplica.getUsername());
-
-    return created("User replica created")
-        .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());
+    try {
+      User userReplica = userService.replicateUser(existingUser, username, password);
+      return created("User replica created")
+          .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());
+    } catch (ConflictException e) {
+      return conflict(e.getMessage());
+    } catch (NotFoundException e) {
+      return notFound(e.getMessage());
+    } catch (BadRequestException e) {
+      return badRequest(e.getMessage());
+    }
   }
 
   @PostMapping("/{uid}/enabled")
@@ -560,7 +530,8 @@ public class UserController
    */
   @PostMapping("/{uid}/twoFA/disabled")
   @ResponseBody
-  public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
+  public WebMessage disableTwoFa(
+      @PathVariable("uid") String uid, @CurrentUser UserDetails currentUser)
       throws ForbiddenException, NotFoundException {
     List<ErrorReport> errors = new ArrayList<>();
     twoFactorAuthService.privileged2FADisable(currentUser, uid, errors::add);
@@ -595,7 +566,7 @@ public class UserController
       throws ConflictException, ForbiddenException, NotFoundException {
     User user = getEntity(userUid);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canUpdate(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to update this user.");
@@ -649,11 +620,11 @@ public class UserController
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
-  protected void updateUserGroups(String userUid, User parsed, User currentUser) {
+  protected void updateUserGroups(String userUid, User parsed, UserDetails currentUser) {
     User user = userService.getUser(userUid);
 
     if (currentUser != null && currentUser.getId() == user.getId()) {
-      currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      currentUser = CurrentUserUtil.getCurrentUserDetails();
     }
 
     Collection<String> uids = getUidsAsSet(parsed.getGroups());
@@ -681,7 +652,7 @@ public class UserController
 
   @Override
   protected void preDeleteEntity(User entity) throws ConflictException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (!userService.canAddOrUpdateUser(getUids(entity.getGroups()), currentUser)
         || !currentUser.canModifyUser(entity)) {
@@ -703,12 +674,11 @@ public class UserController
    *
    * @param user the user.
    */
-  private void validateCreateUser(User user, User currentUser)
-      throws ForbiddenException, ConflictException {
+  private void validateCreateUser(User user) throws ForbiddenException, ConflictException {
 
-    UserDetails userDetails = UserDetails.fromUser(currentUser);
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!aclService.canCreate(userDetails, getEntityClass())) {
+    if (!aclService.canCreate(currentUser, getEntityClass())) {
       throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
@@ -720,7 +690,7 @@ public class UserController
     List<String> uids = getUids(user.getGroups());
 
     for (String uid : uids) {
-      if (!userGroupService.canAddOrRemoveMember(uid, userDetails)) {
+      if (!userGroupService.canAddOrRemoveMember(uid, currentUser)) {
         throw new ConflictException("You don't have permissions to add user to user group: " + uid);
       }
     }
@@ -731,7 +701,7 @@ public class UserController
    *
    * @param user user object parsed from the POST request.
    */
-  private ImportReport createUser(User user, User currentUser) {
+  private ImportReport createUser(User user) {
     MetadataImportParams importParams =
         new MetadataImportParams()
             .setImportReportMode(ImportReportMode.FULL)
@@ -741,7 +711,8 @@ public class UserController
         importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
     if (importReport.getStatus() == Status.OK && importReport.getStats().created() == 1) {
-      userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);
+      userGroupService.addUserToGroups(
+          user, getUids(user.getGroups()), CurrentUserUtil.getCurrentUserDetails());
     }
 
     return importReport;
@@ -752,13 +723,12 @@ public class UserController
    *
    * @param user the user.
    */
-  private void validateInviteUser(User user, User currentUser)
-      throws ForbiddenException, ConflictException {
+  private void validateInviteUser(User user) throws ForbiddenException, ConflictException {
     if (user == null) {
       throw new ConflictException("User is not present");
     }
 
-    validateCreateUser(user, currentUser);
+    validateCreateUser(user);
 
     ErrorCode errorCode = userService.validateInvite(user);
 
@@ -767,7 +737,7 @@ public class UserController
     }
   }
 
-  private ObjectReport inviteUser(User user, User currentUser, HttpServletRequest request) {
+  private ObjectReport inviteUser(User user, HttpServletRequest request) {
     RestoreOptions restoreOptions =
         user.getUsername() == null || user.getUsername().isEmpty()
             ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
@@ -775,7 +745,7 @@ public class UserController
 
     userService.prepareUserForInvite(user);
 
-    ImportReport importReport = createUser(user, currentUser);
+    ImportReport importReport = createUser(user);
     ObjectReport objectReport = getObjectReport(importReport);
 
     if (importReport.getStatus() == Status.OK
@@ -792,25 +762,6 @@ public class UserController
 
   private static ObjectReport getObjectReport(ImportReport importReport) {
     return importReport.getFirstObjectReport();
-  }
-
-  /**
-   * Make a copy of any existing attribute values, so they can be saved as new attribute values.
-   * Don't copy unique values.
-   *
-   * @param userReplica user for which to copy attribute values.
-   */
-  private void copyAttributeValues(User userReplica) {
-    if (userReplica.getAttributeValues().isEmpty()) return;
-
-    List<String> uniqueAttributeIds =
-        attributeService.getAttributesByIds(userReplica.getAttributeValues().keys()).stream()
-            .filter(Attribute::isUnique)
-            .map(Attribute::getUid)
-            .toList();
-
-    userReplica.setAttributeValues(
-        userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 
   private void mergeLastLoginAttribute(User source, User target) {
@@ -894,8 +845,7 @@ public class UserController
             .elements()
             .forEachRemaining(node -> groupIds.add(node.get("id").asText()));
 
-        User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-        userGroupService.updateUserGroups(user, groupIds, currentUser);
+        userGroupService.updateUserGroups(user, groupIds, CurrentUserUtil.getCurrentUserDetails());
       }
     }
   }

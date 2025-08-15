@@ -32,11 +32,11 @@ package org.hisp.dhis.trackedentity.hibernate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
@@ -105,31 +105,31 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes() {
-    Set<TrackedEntityAttribute> result = new HashSet<>();
-
-    Query<TrackedEntityAttribute> programTeaQuery =
+  public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
+    List<Object[]> results =
         getSession()
-            .createQuery(
-                "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true and ptea.attribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
-    Query<TrackedEntityAttribute> tetypeAttributeQuery =
-        getSession()
-            .createQuery(
-                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true and teta.trackedEntityAttribute.valueType in ('TEXT','LONG_TEXT','PHONE_NUMBER','EMAIL','USERNAME','URL')");
-    Query<TrackedEntityAttribute> uniqueAttributeQuery =
-        getSession().createQuery("from TrackedEntityAttribute tea where tea.unique=true");
+            .createNativeQuery(
+                """
+        SELECT tea.trackedentityattributeid, tea.uid, tea.name
+        FROM trackedentityattribute tea
+        WHERE tea.trigramindexable = true
+        AND (
+            NOT tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            OR NOT tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+        """)
+            .getResultList();
 
-    List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
-    List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes =
-        tetypeAttributeQuery.list();
-    List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
+    Set<TrackedEntityAttribute> trackedEntityAttributes = new HashSet<>();
+    for (Object[] row : results) {
+      TrackedEntityAttribute tea = new TrackedEntityAttribute();
+      tea.setId(((BigInteger) row[0]).intValue());
+      tea.setUid((String) row[1]);
+      tea.setName((String) row[2]);
+      trackedEntityAttributes.add(tea);
+    }
 
-    result.addAll(programSearchableTrackedEntityAttributes);
-    result.addAll(trackedEntityTypeSearchableAttributes);
-    result.addAll(uniqueAttributes);
-
-    return result;
+    return trackedEntityAttributes;
   }
 
   @Override

@@ -19,7 +19,7 @@
     <property name="notificationTemplate" />
 
     <property name="translations" type="jblTranslations"/>
-    
+
     <set name="deliveryChannels" table="programmessage_deliverychannels" fetch="select">
       <key column="programmessagedeliverychannelsid" />
       <element column="deliverychannel">
@@ -30,7 +30,7 @@
         </type>
         </element>
     </set>
-       
+
      <property name="messageStatus" length="50">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.message.ProgramMessageStatus</param>
@@ -38,12 +38,12 @@
         <param name="type">12</param>
       </type>
     </property>
-    
+
     <component name="recipients" class="org.hisp.dhis.program.message.ProgramMessageRecipients">
 
      <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
       column="trackedEntityId" foreign-key="fk_programmessage_trackedentityinstanceid" not-null="false" />
-     
+
      <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
       column="organisationUnitId" foreign-key="fk_programmessage_organisationunitid" not-null="false" />
 
@@ -51,19 +51,22 @@
       <key column="programmessagephonenumberid" />
       <element type="text"  column="phoneNumber" />
      </set>
-    
+
      <set name="emailAddresses" table="programmessage_emailAddresses" fetch="join">
       <key column="programmessageemailAddressid" />
       <element type="text" column="email" />
      </set>
 
     </component>
-       
+
     <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
                  column="enrollmentid" foreign-key="fk_programmessage_programinstanceid" not-null="false" />
 
-    <many-to-one name="event" class="org.hisp.dhis.program.Event"
-                 column="eventid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
+    <many-to-one name="trackerEvent" class="org.hisp.dhis.program.TrackerEvent"
+                 column="trackereventid" foreign-key="fk_programmessage_trackereventid" not-null="false" />
+
+      <many-to-one name="singleEvent" class="org.hisp.dhis.program.SingleEvent"
+                   column="singleeventid" foreign-key="fk_programmessage_singleeventid" not-null="false" />
 
   </class>
 

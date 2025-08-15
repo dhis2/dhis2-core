@@ -58,11 +58,11 @@ public interface UserGroupService {
 
   boolean canAddOrRemoveMember(String uid, UserDetails currentUser);
 
-  void addUserToGroups(User user, @Nonnull Collection<String> uids, User currentUser);
+  void addUserToGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
 
   void removeUserFromGroups(User user, @Nonnull Collection<String> uids);
 
-  void updateUserGroups(User user, @Nonnull Collection<String> uids, User currentUser);
+  void updateUserGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
 
   List<UserGroup> getAllUserGroups();
 

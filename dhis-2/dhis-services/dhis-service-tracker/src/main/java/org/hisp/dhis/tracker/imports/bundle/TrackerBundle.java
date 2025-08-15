@@ -116,8 +116,11 @@ public class TrackerBundle {
   /** Notifications for enrollments. */
   @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();
 
-  /** Notifications for events. */
-  @Builder.Default private Map<UID, List<Notification>> eventNotifications = new HashMap<>();
+  /** Notifications for tracker events. */
+  @Builder.Default private Map<UID, List<Notification>> trackerEventNotifications = new HashMap<>();
+
+  /** Notifications for single events. */
+  @Builder.Default private Map<UID, List<Notification>> singleEventNotifications = new HashMap<>();
 
   /** Rule action executors for enrollments. */
   @Builder.Default
@@ -157,6 +160,10 @@ public class TrackerBundle {
     return findById(this.getTrackerEvents(), uid);
   }
 
+  public Optional<SingleEvent> findSingleEventByUid(@Nonnull UID uid) {
+    return findById(this.getSingleEvents(), uid);
+  }
+
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
     return findById(this.getEvents(), uid);
   }
@@ -192,8 +199,12 @@ public class TrackerBundle {
     return Map.copyOf(enrollmentNotifications);
   }
 
-  public Map<UID, List<Notification>> getEventNotifications() {
-    return Map.copyOf(eventNotifications);
+  public Map<UID, List<Notification>> getTrackerEventNotifications() {
+    return Map.copyOf(trackerEventNotifications);
+  }
+
+  public Map<UID, List<Notification>> getSingleEventNotifications() {
+    return Map.copyOf(singleEventNotifications);
   }
 
   public void setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

@@ -96,7 +96,6 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -106,6 +105,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -123,7 +123,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -176,7 +176,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private DataElement deSource1;
@@ -1292,13 +1292,13 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     ProgramStage stage = createProgramStage('s', 2);
     identifiableObjectManager.save(stage);
 
-    Event e1 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e1 = createEvent(stage, enrollment, ou1);
     e1.setAttributeOptionCombo(coc1);
-    Event e2 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e2 = createEvent(stage, enrollment, ou1);
     e2.setAttributeOptionCombo(coc1);
-    Event e3 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e3 = createEvent(stage, enrollment, ou1);
     e3.setAttributeOptionCombo(coc1);
-    Event e4 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e4 = createEvent(stage, enrollment, ou1);
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
@@ -1340,7 +1340,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     // then
-    List<Event> eventSources =
+    List<TrackerEvent> eventSources =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -1353,7 +1353,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                 })
             .toList();
 
-    List<Event> targetEvents =
+    List<TrackerEvent> targetEvents =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -1402,13 +1402,13 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     ProgramStage stage = createProgramStage('s', 2);
     identifiableObjectManager.save(stage);
 
-    Event e1 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e1 = createEvent(stage, enrollment, ou1);
     e1.setAttributeOptionCombo(coc1);
-    Event e2 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e2 = createEvent(stage, enrollment, ou1);
     e2.setAttributeOptionCombo(coc1);
-    Event e3 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e3 = createEvent(stage, enrollment, ou1);
     e3.setAttributeOptionCombo(coc1);
-    Event e4 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e4 = createEvent(stage, enrollment, ou1);
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
@@ -1451,7 +1451,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     // then
-    List<Event> eventSources =
+    List<TrackerEvent> eventSources =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -1463,7 +1463,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                       collect, Set.of(deSource1.getUid(), deSource2.getUid()));
                 })
             .toList();
-    List<Event> targetEvents =
+    List<TrackerEvent> targetEvents =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -1474,7 +1474,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                   return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
                 })
             .toList();
-    List<Event> randomEvents =
+    List<TrackerEvent> randomEvents =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -1527,13 +1527,13 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     ProgramStage stage = createProgramStage('t', 2);
     identifiableObjectManager.save(stage);
 
-    Event e1 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e1 = createEvent(stage, enrollment, ou1);
     e1.setAttributeOptionCombo(coc1);
-    Event e2 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e2 = createEvent(stage, enrollment, ou1);
     e2.setAttributeOptionCombo(coc1);
-    Event e3 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e3 = createEvent(stage, enrollment, ou1);
     e3.setAttributeOptionCombo(coc1);
-    Event e4 = createEvent(stage, enrollment, ou1);
+    TrackerEvent e4 = createEvent(stage, enrollment, ou1);
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
@@ -1581,7 +1581,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     // then
-    List<Event> eventSources =
+    List<TrackerEvent> eventSources =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -1593,7 +1593,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                       collect, Set.of(deSource1.getUid(), deSource2.getUid()));
                 })
             .toList();
-    List<Event> targetEvents =
+    List<TrackerEvent> targetEvents =
         eventStore.getAll().stream()
             .filter(
                 e -> {
@@ -2555,7 +2555,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
-    Event e = createEvent(stage, enrollment, ou1);
+    TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
     EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
@@ -2576,14 +2576,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     // then
     List<EventChangeLog> sourceEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deSource1.getUid(), deSource2.getUid()));
 
     List<EventChangeLog> targetEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deTarget.getUid()));
@@ -2612,7 +2612,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
     identifiableObjectManager.save(stage);
-    Event e = createEvent(stage, enrollment, ou1);
+    TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
     EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
@@ -2634,14 +2634,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     // then
     List<EventChangeLog> sourceEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deSource1.getUid(), deSource2.getUid()));
 
     List<EventChangeLog> targetEventChangeLogs =
         filterByDataElement(
-            eventChangeLogService
+            trackerEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deTarget.getUid()));
@@ -2656,8 +2656,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
   }
 
-  private void addEventChangeLog(Event event, DataElement dataElement, String currentValue) {
-    eventChangeLogService.addEventChangeLog(
+  private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
+    trackerEventChangeLogService.addEventChangeLog(
         event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
@@ -2756,7 +2756,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   private List<EventChangeLog> filterByDataElement(
       List<EventChangeLog> changeLogs, Set<String> dataElements) {
     return changeLogs.stream()
-        .filter(cl -> dataElements.contains(cl.getDataElement().getUid()))
+        .filter(cl -> dataElements.contains(cl.dataElement().getUid()))
         .toList();
   }
 }

@@ -38,17 +38,18 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.event.EventService;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerEventService {
+public interface TrackerEventService extends EventService {
   /**
    * Get a file for an events' data element under the privileges of the currently authenticated
    * user.
@@ -70,7 +71,7 @@ public interface TrackerEventService {
    * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
    */
   @Nonnull
-  Optional<Event> findEvent(@Nonnull UID uid);
+  Optional<TrackerEvent> findEvent(@Nonnull UID uid);
 
   /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
@@ -79,7 +80,7 @@ public interface TrackerEventService {
    * relationships and specify different {@code idSchemes}.
    */
   @Nonnull
-  Event getEvent(UID uid) throws NotFoundException;
+  TrackerEvent getEvent(UID uid) throws NotFoundException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
@@ -87,14 +88,15 @@ public interface TrackerEventService {
    * TrackerIdSchemeParams}.
    */
   @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, TrackerEventFields fields)
+  TrackerEvent getEvent(
+      UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, TrackerEventFields fields)
       throws NotFoundException;
 
   /**
    * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> findEvents(@Nonnull TrackerEventOperationParams params)
+  List<TrackerEvent> findEvents(@Nonnull TrackerEventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -102,7 +104,7 @@ public interface TrackerEventService {
    * user.
    */
   @Nonnull
-  Page<Event> findEvents(
+  Page<TrackerEvent> findEvents(
       @Nonnull TrackerEventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 

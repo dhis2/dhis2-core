@@ -182,6 +182,16 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   }
 
   @Override
+  public @Nonnull Set<Long> getManagedGroupLongIds() {
+    return user.getManagedGroupLongIds();
+  }
+
+  @Override
+  public @Nonnull Set<Long> getUserRoleLongIds() {
+    return user.getUserRoleLongIds();
+  }
+
+  @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
     return user.hasAnyAuthority(auths);
   }

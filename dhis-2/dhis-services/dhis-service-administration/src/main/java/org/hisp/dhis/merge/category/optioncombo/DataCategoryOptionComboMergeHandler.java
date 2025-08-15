@@ -61,8 +61,8 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
+import org.hisp.dhis.program.TrackerEvent;
 import org.springframework.stereotype.Component;
 
 /**
@@ -153,10 +153,10 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   /**
-   * Deletes {@link Event}s if the {@link DataMergeStrategy}s is {@link DataMergeStrategy#DISCARD}.
-   * Otherwise, reassigns source {@link Event}s attributeOptionCombos to the target {@link
-   * CategoryOptionCombo} if the {@link DataMergeStrategy}s is {@link
-   * DataMergeStrategy#LAST_UPDATED}.
+   * Deletes {@link TrackerEvent}s if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#DISCARD}. Otherwise, reassigns source {@link TrackerEvent}s
+   * attributeOptionCombos to the target {@link CategoryOptionCombo} if the {@link
+   * DataMergeStrategy}s is {@link DataMergeStrategy#LAST_UPDATED}.
    */
   public void handleEvents(
       @Nonnull List<CategoryOptionCombo> sources,
@@ -182,7 +182,7 @@ public class DataCategoryOptionComboMergeHandler {
           "delete from event where attributeoptioncomboid in (%s)".formatted(aocIds));
     } else {
       log.info("Merging source events as dataMergeStrategy is LAST_UPDATED");
-
+      // TODO(DHIS2-19702): Should we consider single events?
       eventStore.setAttributeOptionCombo(
           sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
           target.getId());

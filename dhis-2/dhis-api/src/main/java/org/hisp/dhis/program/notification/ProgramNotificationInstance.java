@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.program.notification;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -42,7 +43,8 @@ import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
 
 /**
@@ -68,10 +70,14 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private Enrollment enrollment;
 
+  @JsonIgnore private TrackerEvent trackerEvent;
+
+  @JsonIgnore private SingleEvent singleEvent;
+
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private Event event;
+  private TrackerEvent event;
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -85,7 +91,11 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject {
     return enrollment != null;
   }
 
-  public boolean hasEvent() {
-    return event != null;
+  public boolean hasTrackerEvent() {
+    return trackerEvent != null;
+  }
+
+  public boolean hasSingleEvent() {
+    return singleEvent != null;
   }
 }

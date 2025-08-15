@@ -38,17 +38,18 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.event.EventService;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface SingleEventService {
+public interface SingleEventService extends EventService {
   /**
    * Get a file for an events' data element under the privileges of the currently authenticated
    * user.
@@ -64,22 +65,22 @@ public interface SingleEventService {
       throws NotFoundException, ForbiddenException;
 
   /**
-   * Finds the event that matches the given {@code UID} based on the privileges of the currently
-   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
-   *
-   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
-   */
-  @Nonnull
-  Optional<Event> findEvent(@Nonnull UID uid);
-
-  /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
    * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
    * #getEvent(UID, TrackerIdSchemeParams, SingleEventFields)} instead to also get the events
    * relationships and specify different {@code idSchemes}.
    */
   @Nonnull
-  Event getEvent(UID uid) throws NotFoundException;
+  SingleEvent getEvent(UID uid) throws NotFoundException;
+
+  /**
+   * Finds the event that matches the given {@code UID} based on the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
+   *
+   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
+   */
+  @Nonnull
+  Optional<SingleEvent> findEvent(@Nonnull UID uid);
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
@@ -87,14 +88,15 @@ public interface SingleEventService {
    * TrackerIdSchemeParams}.
    */
   @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, SingleEventFields fields)
+  SingleEvent getEvent(
+      UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, SingleEventFields fields)
       throws NotFoundException;
 
   /**
    * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> findEvents(@Nonnull SingleEventOperationParams params)
+  List<SingleEvent> findEvents(@Nonnull SingleEventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -102,7 +104,8 @@ public interface SingleEventService {
    * user.
    */
   @Nonnull
-  Page<Event> findEvents(@Nonnull SingleEventOperationParams params, @Nonnull PageParams pageParams)
+  Page<SingleEvent> findEvents(
+      @Nonnull SingleEventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**

@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import lombok.Getter;
@@ -81,9 +82,15 @@ public enum QueryOperator {
   private static final Set<QueryOperator> LIKE_BASED_OPERATORS =
       EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW);
 
+  private static final Set<QueryOperator> MULTI_TEXT_OPERATORS =
+      EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW, NE, NEQ, IN, EQ, IEQ, NULL, NNULL);
+
   private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
 
   private static final Set<QueryOperator> UNARY_OPERATORS = EnumSet.of(NULL, NNULL);
+
+  private static final Set<QueryOperator> TRACKER_OPERATORS =
+      EnumSet.of(EQ, GT, GE, LT, LE, LIKE, IN, SW, EW, NULL, NNULL);
 
   private final String value;
 
@@ -137,6 +144,10 @@ public enum QueryOperator {
     return IN == this;
   }
 
+  public boolean isMultiTextSupported() {
+    return MULTI_TEXT_OPERATORS.contains(this);
+  }
+
   public boolean isComparison() {
     return COMPARISON_OPERATORS.contains(this);
   }
@@ -147,5 +158,28 @@ public enum QueryOperator {
 
   public boolean isUnary() {
     return UNARY_OPERATORS.contains(this);
+  }
+
+  public static Set<QueryOperator> getTrackerOperators() {
+    return Collections.unmodifiableSet(TRACKER_OPERATORS);
+  }
+
+  /**
+   * Case‑insensitive operators are analytics specific and should not be used in tracker, because
+   * the values there, are already converted to lowercase before comparison. For now, we are not
+   * enforcing this rule in the API, so those operators can still be used. Adding such validation
+   * would be a breaking change, and we are not ready for that yet.
+   *
+   * <p>This method should therefore be used to map case‑insensitive operators, which are analytics
+   * specific, to their case‑sensitive equivalents.
+   */
+  public QueryOperator stripCaseVariant() {
+    return switch (this) {
+      case IEQ -> EQ;
+      case NIEQ -> NEQ;
+      case ILIKE -> LIKE;
+      case NILIKE -> NLIKE;
+      default -> this;
+    };
   }
 }

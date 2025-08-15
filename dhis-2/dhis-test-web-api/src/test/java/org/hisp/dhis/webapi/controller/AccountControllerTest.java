@@ -252,15 +252,13 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse success = GET("/account/verifyEmail?token=" + token);
     assertStatus(HttpStatus.FOUND, success);
-    assertEquals(
-        "http://localhost/dhis-web-login/#/email-verification-success", success.header("Location"));
+    assertEquals("http://localhost/login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
-    assertTrue(userService.isEmailVerified(user));
+    assertTrue(user.isEmailVerified());
 
     HttpResponse failure = GET("/account/verifyEmail?token=" + token);
     assertStatus(HttpStatus.FOUND, failure);
-    assertEquals(
-        "http://localhost/dhis-web-login/#/email-verification-failure", failure.header("Location"));
+    assertEquals("http://localhost/login/#/email-verification-failure", failure.header("Location"));
   }
 
   @Test
@@ -277,7 +275,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     assertNotNull(token);
 
     user = userService.getUser(user.getId());
-    assertFalse(userService.isEmailVerified(user));
+    assertFalse(user.isEmailVerified());
   }
 
   @Test
@@ -295,10 +293,9 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse success = GET("/account/verifyEmail?token=" + token);
     assertStatus(HttpStatus.FOUND, success);
-    assertEquals(
-        "http://localhost/dhis-web-login/#/email-verification-success", success.header("Location"));
+    assertEquals("http://localhost/login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
-    assertTrue(userService.isEmailVerified(user));
+    assertTrue(user.isEmailVerified());
   }
 
   @Test
@@ -307,7 +304,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     HttpResponse response = GET("/account/verifyEmail?token=WRONGTOKEN");
     assertStatus(HttpStatus.FOUND, response);
     String location = response.header("Location");
-    assertEquals("http://localhost/dhis-web-login/#/email-verification-failure", location);
+    assertEquals("http://localhost/login/#/email-verification-failure", location);
   }
 
   @Test

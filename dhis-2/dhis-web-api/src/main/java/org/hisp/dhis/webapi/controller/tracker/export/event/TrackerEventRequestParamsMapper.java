@@ -200,6 +200,12 @@ public class TrackerEventRequestParamsMapper {
       return;
     }
 
+    attributeFilters.replaceAll(
+        (uid, filters) ->
+            filters.stream()
+                .map(qf -> new QueryFilter(qf.getOperator().stripCaseVariant(), qf.getFilter()))
+                .toList());
+
     for (Entry<UID, List<QueryFilter>> entry : attributeFilters.entrySet()) {
       if (entry.getValue().isEmpty()) {
         builder.filterByAttribute(entry.getKey());

@@ -145,4 +145,70 @@ class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegr
 
     assertEquals("M5zQapPyTZI", executedBy2);
   }
+
+  @Test
+  @DisplayName("META_DATA_SYNC job should have an executedBy value when job set up")
+  void metadataSyncJobHasExecutedByValueTest() {
+
+    // given a metadata sync job is set up
+    @Language("json5")
+    String job =
+        """
+        {
+             "name": "metadata-sync-job-1",
+             "jobType": "META_DATA_SYNC",
+             "cronExpression": "0 0 22 ? * *"
+         }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job));
+
+    // when retrieving the job config
+    HttpResponse get = GET("/jobConfigurations/" + jobId);
+    assertEquals(HttpStatus.OK, get.status());
+    String executedBy = get.content().getString("executedBy").string();
+
+    // then the executedBy value should be that of the job creator
+    assertEquals("M5zQapPyTZI", executedBy);
+  }
+
+  @Test
+  @DisplayName(
+      "META_DATA_SYNC job should have an executedBy value when job is updated without that value")
+  void metadataSyncJobHasExecutedByValueOnUpdateTest() {
+    // given a metadata sync job is set up
+    @Language("json5")
+    String job =
+        """
+        {
+             "name": "metadata-sync-job-2",
+             "jobType": "META_DATA_SYNC",
+             "cronExpression": "0 0 21 ? * *"
+         }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job));
+
+    HttpResponse get = GET("/jobConfigurations/" + jobId);
+    String executedBy = get.content().getString("executedBy").string();
+
+    // and the executedBy value is set
+    assertEquals("M5zQapPyTZI", executedBy);
+
+    // when that job is updated (e.g. new cron expression)
+    @Language("json5")
+    String jobUpdated =
+        """
+        {
+             "name": "metadata-sync-job-2",
+             "jobType": "META_DATA_SYNC",
+             "cronExpression": "0 0 20 ? * *"
+         }
+        """;
+    assertStatus(HttpStatus.OK, PUT("/jobConfigurations/" + jobId, jobUpdated));
+
+    // then the executedBy value should still be that of the job creator
+    HttpResponse get2 = GET("/jobConfigurations/" + jobId);
+    String executedBy2 = get2.content().getString("executedBy").string();
+
+    assertEquals("M5zQapPyTZI", executedBy2);
+  }
 }

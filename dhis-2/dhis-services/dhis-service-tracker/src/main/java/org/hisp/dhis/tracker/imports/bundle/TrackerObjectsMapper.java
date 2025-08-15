@@ -42,9 +42,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -61,7 +62,7 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * TrackerObjectsMapper maps tracker domain objects to Hibernate objects so they can be persisted in
  * the DB. This class provides static methods to convert imported domain objects such as {@link
- * TrackedEntity}, {@link Enrollment}, {@link Event}, and {@link Relationship} into their
+ * TrackedEntity}, {@link Enrollment}, {@link TrackerEvent}, and {@link Relationship} into their
  * corresponding database entities. It gets existing records from the database through the preheat
  * and maps the incoming data accordingly, ensuring that all necessary fields are populated
  * correctly. All the values that should be set by the system are set here (eg. createdAt,
@@ -176,16 +177,16 @@ public class TrackerObjectsMapper {
     return dbEnrollment;
   }
 
-  public static @Nonnull Event map(
+  public static @Nonnull TrackerEvent map(
       @Nonnull TrackerPreheat preheat,
-      @Nonnull org.hisp.dhis.tracker.imports.domain.Event event,
+      @Nonnull org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       @Nonnull UserDetails user) {
-    Event dbEvent = preheat.getEvent(event.getEvent());
+    TrackerEvent dbEvent = preheat.getTrackerEvent(event.getEvent());
 
     Date now = new Date();
 
     if (dbEvent == null) {
-      dbEvent = new Event();
+      dbEvent = new TrackerEvent();
       dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
       dbEvent.setStoredBy(event.getStoredBy());
@@ -205,6 +206,78 @@ public class TrackerObjectsMapper {
 
     dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
     dbEvent.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
+
+    dbEvent.setGeometry(event.getGeometry());
+
+    EventStatus currentStatus = event.getStatus();
+    EventStatus previousStatus = dbEvent.getStatus();
+    if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
+      dbEvent.setCompletedDate(
+          event.getCompletedAt() == null ? now : DateUtils.fromInstant(event.getCompletedAt()));
+      dbEvent.setCompletedBy(user.getUsername());
+    }
+
+    if (currentStatus != EventStatus.COMPLETED) {
+      dbEvent.setCompletedDate(null);
+      dbEvent.setCompletedBy(null);
+    }
+    dbEvent.setStatus(currentStatus);
+
+    if (event.getAttributeOptionCombo().isNotBlank()) {
+      dbEvent.setAttributeOptionCombo(
+          preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()));
+    } else {
+      dbEvent.setAttributeOptionCombo(preheat.getDefault(CategoryOptionCombo.class));
+    }
+
+    if (Boolean.TRUE.equals(programStage.isEnableUserAssignment())
+        && event.getAssignedUser() != null
+        && !event.getAssignedUser().isEmpty()) {
+      Optional<User> assignedUser =
+          preheat.getUserByUsername(event.getAssignedUser().getUsername());
+      assignedUser.ifPresent(dbEvent::setAssignedUser);
+    }
+
+    if (isNotEmpty(event.getNotes())) {
+      dbEvent
+          .getNotes()
+          .addAll(
+              event.getNotes().stream()
+                  .map(note -> map(preheat, note, user))
+                  .collect(Collectors.toSet()));
+    }
+
+    return dbEvent;
+  }
+
+  public static @Nonnull SingleEvent mapSingleEvent(
+      @Nonnull TrackerPreheat preheat,
+      @Nonnull org.hisp.dhis.tracker.imports.domain.SingleEvent event,
+      @Nonnull UserDetails user) {
+    SingleEvent dbEvent = preheat.getSingleEvent(event.getEvent());
+
+    Date now = new Date();
+
+    if (dbEvent == null) {
+      dbEvent = new SingleEvent();
+      dbEvent.setUid(event.getEvent().getValue());
+      dbEvent.setCreated(now);
+      dbEvent.setStoredBy(event.getStoredBy());
+      dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
+    }
+    dbEvent.setLastUpdated(now);
+    dbEvent.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
+    dbEvent.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
+    dbEvent.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
+
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
+    dbEvent.setOrganisationUnit(organisationUnit);
+    Program program = preheat.getProgram(event.getProgram());
+    dbEvent.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
+    dbEvent.setProgramStage(programStage);
+
+    dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
 
     dbEvent.setGeometry(event.getGeometry());
 
@@ -274,8 +347,10 @@ public class TrackerObjectsMapper {
               preheat.getTrackedEntity(relationship.getFrom().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
           fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
-      case PROGRAM_STAGE_INSTANCE ->
-          fromItem.setEvent(preheat.getEvent(relationship.getFrom().getEvent()));
+      case PROGRAM_STAGE_INSTANCE -> {
+        fromItem.setTrackerEvent(preheat.getTrackerEvent(relationship.getFrom().getEvent()));
+        fromItem.setSingleEvent(preheat.getSingleEvent(relationship.getFrom().getEvent()));
+      }
     }
     dbRelationship.setFrom(fromItem);
 
@@ -288,8 +363,10 @@ public class TrackerObjectsMapper {
               preheat.getTrackedEntity(relationship.getTo().getTrackedEntity()));
       case PROGRAM_INSTANCE ->
           toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
-      case PROGRAM_STAGE_INSTANCE ->
-          toItem.setEvent(preheat.getEvent(relationship.getTo().getEvent()));
+      case PROGRAM_STAGE_INSTANCE -> {
+        toItem.setTrackerEvent(preheat.getTrackerEvent(relationship.getTo().getEvent()));
+        toItem.setSingleEvent(preheat.getSingleEvent(relationship.getTo().getEvent()));
+      }
     }
     dbRelationship.setTo(toItem);
 
@@ -321,6 +398,44 @@ public class TrackerObjectsMapper {
     dbNote.setNoteText(note.getValue());
 
     return dbNote;
+  }
+
+  // TODO(tracker): To remove when refactoring ProgramNotificationInstanceController
+  @Deprecated
+  public static TrackerEvent map(SingleEvent singleEvent) {
+    if (singleEvent == null) {
+      return null;
+    }
+
+    TrackerEvent event = new TrackerEvent();
+    event.setId(singleEvent.getId());
+    event.setUid(singleEvent.getUid());
+    event.setCreated(singleEvent.getCreated());
+    event.setCreatedBy(singleEvent.getCreatedBy());
+    event.setCreatedAtClient(singleEvent.getCreatedAtClient());
+    event.setCreatedByUserInfo(singleEvent.getCreatedByUserInfo());
+    event.setStoredBy(singleEvent.getStoredBy());
+    event.setLastUpdated(singleEvent.getLastUpdated());
+    event.setLastUpdatedBy(singleEvent.getLastUpdatedBy());
+    event.setLastUpdatedAtClient(singleEvent.getLastUpdatedAtClient());
+    event.setLastUpdatedByUserInfo(singleEvent.getLastUpdatedByUserInfo());
+    event.setOccurredDate(singleEvent.getOccurredDate());
+    event.setCompletedBy(singleEvent.getCompletedBy());
+    event.setCompletedDate(singleEvent.getCompletedDate());
+
+    event.setProgramStage(singleEvent.getProgramStage());
+    event.setEnrollment(singleEvent.getEnrollment());
+    event.setOrganisationUnit(singleEvent.getOrganisationUnit());
+    event.setRelationshipItems(singleEvent.getRelationshipItems());
+
+    event.setAssignedUser(singleEvent.getAssignedUser());
+    event.setAttributeOptionCombo(singleEvent.getAttributeOptionCombo());
+    event.setEventDataValues(singleEvent.getEventDataValues());
+    event.setGeometry(singleEvent.getGeometry());
+    event.setStatus(singleEvent.getStatus());
+    event.setNotes(singleEvent.getNotes());
+
+    return event;
   }
 
   private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {

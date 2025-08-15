@@ -144,11 +144,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Captor private ArgumentCaptor<String> sql;
 
   private static final String DEFAULT_COLUMNS =
-      "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
-          + "createdbydisplayname"
-          + ","
-          + "lastupdatedbydisplayname"
-          + ",lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
+      """
+      enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,\
+      lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),\
+      longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus""";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -164,7 +163,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             new PostgreSqlBuilder(),
             dataElementService);
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder);
+    when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(

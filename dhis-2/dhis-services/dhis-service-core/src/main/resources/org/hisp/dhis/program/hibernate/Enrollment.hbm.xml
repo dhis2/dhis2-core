@@ -61,7 +61,7 @@
 
     <set name="events" order-by="occurreddate,scheduleddate" inverse="true">
       <key column="enrollmentid"/>
-      <one-to-many class="org.hisp.dhis.program.Event"/>
+      <one-to-many class="org.hisp.dhis.program.TrackerEvent"/>
     </set>
 
     <set name="relationshipItems" inverse="true">

@@ -37,9 +37,19 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import static org.hisp.dhis.user.UserConstants.BCRYPT_PATTERN;
+import static org.hisp.dhis.user.UserConstants.DEFAULT_APPLICATION_TITLE;
+import static org.hisp.dhis.user.UserConstants.EMAIL_TOKEN_EXPIRY_MILLIS;
+import static org.hisp.dhis.user.UserConstants.LOGIN_MAX_FAILED_ATTEMPTS;
+import static org.hisp.dhis.user.UserConstants.PW_NO_INTERNAL_LOGIN;
+import static org.hisp.dhis.user.UserConstants.RECAPTCHA_VERIFY_URL;
+import static org.hisp.dhis.user.UserConstants.RECOVER_MAX_ATTEMPTS;
+import static org.hisp.dhis.user.UserConstants.RESTORE_PATH;
+import static org.hisp.dhis.user.UserConstants.TBD_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -65,16 +75,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -87,6 +101,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.MetadataMergeParams;
+import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -112,7 +128,6 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
-  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3_600_000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
@@ -127,6 +142,9 @@ public class DefaultUserService implements UserService {
   private final MessageSender emailMessageSender;
   private final I18nManager i18nManager;
   private final ObjectMapper jsonMapper;
+  private final MetadataMergeService metadataMergeService;
+  private final AttributeService attributeService;
+  private final EntityManager entityManager;
 
   private final Cache<String> userDisplayNameCache;
   private final Cache<Integer> userFailedLoginAttemptCache;
@@ -147,7 +165,10 @@ public class DefaultUserService implements UserService {
       PasswordManager passwordManager,
       AclService aclService,
       OrganisationUnitService organisationUnitService,
-      SessionRegistry sessionRegistry) {
+      SessionRegistry sessionRegistry,
+      MetadataMergeService metadataMergeService,
+      AttributeService attributeService,
+      EntityManager entityManager) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -162,6 +183,9 @@ public class DefaultUserService implements UserService {
     checkNotNull(emailMessageSender);
     checkNotNull(i18nManager);
     checkNotNull(jsonMapper);
+    checkNotNull(metadataMergeService);
+    checkNotNull(attributeService);
+    checkNotNull(entityManager);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -177,6 +201,9 @@ public class DefaultUserService implements UserService {
     this.emailMessageSender = emailMessageSender;
     this.i18nManager = i18nManager;
     this.jsonMapper = jsonMapper;
+    this.metadataMergeService = metadataMergeService;
+    this.attributeService = attributeService;
+    this.entityManager = entityManager;
     this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache(0);
     this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache(0);
     this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
@@ -365,19 +392,12 @@ public class DefaultUserService implements UserService {
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
     params.setDisjointRoles(!canSeeOwnRoles);
 
-    if (!params.hasUser()) {
-      // TODO: MAS: Refactor to use userDetails instead of User in params
-      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
-      if (!hasCurrentUser) {
-        params.setUser(null);
-      } else {
-        String currentUsername = CurrentUserUtil.getCurrentUsername();
-        User currentUser = getUserByUsername(currentUsername);
-        params.setUser(currentUser);
-      }
+    if (!params.hasUserDetails() && CurrentUserUtil.hasCurrentUser()) {
+      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+      params.setUserDetails(currentUserDetails);
     }
 
-    if (params.hasUser() && params.getUser().isSuper()) {
+    if (params.hasUserDetails() && params.getUserDetails().isSuper()) {
       params.setCanManage(false);
       params.setAuthSubset(false);
       params.setDisjointRoles(false);
@@ -389,15 +409,27 @@ public class DefaultUserService implements UserService {
       params.setInactiveSince(cal.getTime());
     }
 
-    if (params.hasUser()) {
+    if (params.hasUserDetails()) {
       UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
       if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
-        params.setOrganisationUnits(params.getUser().getOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
         params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
       } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
-        params.setOrganisationUnits(params.getUser().getDataViewOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserDataOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
       } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
-        params.setOrganisationUnits(params.getUser().getTeiSearchOrganisationUnits());
+        params.setOrganisationUnits(
+            params.getUserDetails().getUserSearchOrgUnitIds().stream()
+                .map(organisationUnitService::getOrganisationUnit)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
       }
     }
   }
@@ -411,19 +443,32 @@ public class DefaultUserService implements UserService {
    */
   private void validateUserQueryParams(UserQueryParams params) throws ConflictException {
     if (params.isCanManage()
-        && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
+        && (params.getUserDetails() == null || !hasManagedGroups(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get managed users as user does not have any managed groups");
     }
-    if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
+    if (params.isAuthSubset()
+        && (params.getUserDetails() == null || !hasAuthorities(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get users with authority subset as user does not have any authorities");
     }
     if (params.isDisjointRoles()
-        && (params.getUser() == null || !params.getUser().hasUserRoles())) {
+        && (params.getUserDetails() == null || !hasUserRoles(params.getUserDetails()))) {
       throw new ConflictException(
           "Cannot get users with disjoint roles as user does not have any user roles");
     }
+  }
+
+  private boolean hasManagedGroups(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getManagedGroupLongIds().isEmpty();
+  }
+
+  private boolean hasAuthorities(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getAllAuthorities().isEmpty();
+  }
+
+  private boolean hasUserRoles(UserDetails userDetails) {
+    return userDetails != null && !userDetails.getUserRoleIds().isEmpty();
   }
 
   @Override
@@ -455,13 +500,13 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups) {
-    return canAddOrUpdateUser(userGroups, getUserByUsername(CurrentUserUtil.getCurrentUsername()));
+    return canAddOrUpdateUser(userGroups, CurrentUserUtil.getCurrentUserDetails());
   }
 
   // TODO: MAS refactor to use user details instead of user
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
+  public boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser) {
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -514,20 +559,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void deleteUserRole(UserRole userRole) {
-    userRoleStore.delete(userRole);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getAllUserRoles() {
-    return userRoleStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserRole getUserRole(long id) {
-    return userRoleStore.get(id);
+  public void updateUserRole(UserRole userRole, UserDetails userDetails) {
+    userRoleStore.update(userRole, userDetails);
   }
 
   @Override
@@ -540,30 +573,6 @@ public class DefaultUserService implements UserService {
   @Transactional(readOnly = true)
   public UserRole getUserRoleByName(String name) {
     return userRoleStore.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesByUid(@Nonnull Collection<String> uids) {
-    return userRoleStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesBetween(int first, int max) {
-    return userRoleStore.getAllOrderedName(first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesBetweenByName(String name, int first, int max) {
-    return userRoleStore.getAllLikeName(name, first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataSetUserRoles(DataSet dataSet) {
-    return userRoleStore.countDataSetUserRoles(dataSet);
   }
 
   @Override
@@ -593,7 +602,7 @@ public class DefaultUserService implements UserService {
     }
 
     if (user.isExternalAuth()) {
-      user.setPassword(UserService.PW_NO_INTERNAL_LOGIN);
+      user.setPassword(PW_NO_INTERNAL_LOGIN);
 
       return; // Set unusable, not-encoded password if external authentication
     }
@@ -607,7 +616,7 @@ public class DefaultUserService implements UserService {
     }
 
     // Encode and set password
-    Matcher matcher = UserService.BCRYPT_PATTERN.matcher(rawPassword);
+    Matcher matcher = BCRYPT_PATTERN.matcher(rawPassword);
     if (matcher.matches()) {
       throw new IllegalArgumentException(
           "Raw password looks like bcrypt encoded password, this is most likely a bug");
@@ -635,12 +644,6 @@ public class DefaultUserService implements UserService {
     }
 
     return user;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByLdapId(String ldapId) {
-    return userStore.getUserByLdapId(ldapId);
   }
 
   @Override
@@ -692,7 +695,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
+  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, UserDetails currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
@@ -715,10 +718,14 @@ public class DefaultUserService implements UserService {
     return errors;
   }
 
+  // TODO: MAS. This needs refactoring, can be unnecessary expensive, can be moved to the DB
   private void checkIsInOrgUnitHierarchy(
-      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
+      Set<OrganisationUnit> organisationUnits, UserDetails currentUser, List<ErrorReport> errors) {
     for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
+      // We have to fetch the org unit in order to get the full path
+      OrganisationUnit fetchedOrgUnit =
+          organisationUnitService.getOrganisationUnit(orgUnit.getUid());
+      boolean inUserHierarchy = fetchedOrgUnit.isDescendant(currentUser.getUserOrgUnitIds());
       if (!inUserHierarchy) {
         errors.add(
             new ErrorReport(
@@ -738,7 +745,8 @@ public class DefaultUserService implements UserService {
    * @param currentUser the user performing the action.
    * @param errors the list of error reports to add to.
    */
-  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserGroups(
+      User user, UserDetails currentUser, List<ErrorReport> errors) {
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
     if (canAdd) {
       return;
@@ -768,7 +776,8 @@ public class DefaultUserService implements UserService {
    * @param currentUser the user performing the action.
    * @param errors the list of error reports to add to.
    */
-  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
+  private void checkHasAccessToUserRoles(
+      User user, UserDetails currentUser, List<ErrorReport> errors) {
     Set<UserRole> userRoles = user.getUserRoles();
 
     boolean canGrantOwnUserRoles = settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
@@ -794,7 +803,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
+  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, UserDetails currentUser) {
 
     List<ErrorReport> errors = new ArrayList<>();
 
@@ -889,6 +898,17 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsSafe(@Nonnull String userUid) {
+    User user = userStore.getByUid(userUid);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public UserDetails createUserDetails(User user) {
     if (user == null) {
       return null;
@@ -905,7 +925,8 @@ public class DefaultUserService implements UserService {
         enabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
       log.info(
           String.format(
-              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
+              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b,"
+                  + " user non-expired: %b, account non-locked: %b",
               username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
@@ -926,11 +947,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
-    return userStore.getCurrentUserGroupInfo(userUID);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public User getUserByEmail(String email) {
     return userStore.getUserByEmail(email);
@@ -939,7 +955,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canCurrentUserCanModify(
-      User currentUser, User userToModify, Consumer<ErrorReport> errors) {
+      UserDetails currentUser, User userToModify, Consumer<ErrorReport> errors) {
     if (!aclService.canUpdate(currentUser, userToModify)) {
       errors.accept(
           new ErrorReport(
@@ -981,15 +997,6 @@ public class DefaultUserService implements UserService {
     }
 
     return userLookups;
-  }
-
-  @Override
-  public List<SessionInformation> listSessions(String userUID) {
-    User user = userStore.getByUid(userUID);
-    if (user == null) {
-      return List.of();
-    }
-    return sessionRegistry.getAllSessions(createUserDetails(user), true);
   }
 
   @Override
@@ -1316,7 +1323,8 @@ public class DefaultUserService implements UserService {
 
     if (!validToken) {
       log.warn(
-          "Could not verify restore token; error=restore_token_does_not_match_supplied_token; username: {}",
+          "Could not verify restore token; error=restore_token_does_not_match_supplied_token;"
+              + " username: {}",
           user.getUsername());
       return ErrorCode.E6208;
     }
@@ -1342,13 +1350,6 @@ public class DefaultUserService implements UserService {
   public boolean canCreatePrivate(IdentifiableObject identifiableObject) {
     return !aclService.isShareable(identifiableObject)
         || aclService.canMakePrivate(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
-  }
-
-  @Override
-  public boolean canView(String type) {
-    boolean requireAddToView = settingsProvider.getCurrentSettings().getRequireAddToView();
-
-    return !requireAddToView || (canCreatePrivate(type) || canCreatePublic(type));
   }
 
   @Override
@@ -1493,11 +1494,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public boolean isEmailVerified(User user) {
-    return user.isEmailVerified();
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public User getUserByVerifiedEmail(String email) {
     return userStore.getUserByVerifiedEmail(email);
@@ -1507,5 +1503,68 @@ public class DefaultUserService implements UserService {
   @Override
   public void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername) {
     userStore.setActiveLinkedAccounts(actingUser, activeUsername);
+  }
+
+  @Override
+  @Transactional
+  public User replicateUser(User existingUser, String username, String password)
+      throws ConflictException, NotFoundException, BadRequestException {
+
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+
+    if (!ValidationUtils.usernameIsValid(username, false)) {
+      throw new ConflictException("Username is not valid");
+    }
+
+    if (getUserByUsername(username) != null) {
+      throw new ConflictException("Username already taken: " + username);
+    }
+
+    Session session = entityManager.unwrap(Session.class);
+
+    User userReplica = new User();
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
+    copyAttributeValues(userReplica);
+    userReplica.setId(0);
+    userReplica.setUuid(UUID.randomUUID());
+    userReplica.setUid(CodeGenerator.generateUid());
+    userReplica.setCode(null);
+    userReplica.setCreated(new Date());
+    userReplica.setCreatedBy(session.getReference(User.class, currentUser.getId()));
+    userReplica.setLdapId(null);
+    userReplica.setOpenId(null);
+    userReplica.setUsername(username);
+    userReplica.setLastLogin(null);
+    encodeAndSetPassword(userReplica, password);
+
+    addUser(userReplica);
+
+    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
+
+    UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
+
+    Set<String> allowedKeys = UserSettings.keysWithDefaults();
+    Map<String, String> filteredMap =
+        settings.toMap().entrySet().stream()
+            .filter(e -> allowedKeys.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    userSettingsService.putAll(filteredMap, userReplica.getUsername());
+
+    return userReplica;
+  }
+
+  private void copyAttributeValues(User userReplica) {
+    if (userReplica.getAttributeValues().isEmpty()) return;
+
+    List<String> uniqueAttributeIds =
+        attributeService.getAttributesByIds(userReplica.getAttributeValues().keys()).stream()
+            .filter(Attribute::isUnique)
+            .map(Attribute::getUid)
+            .toList();
+
+    userReplica.setAttributeValues(
+        userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
   }
 }

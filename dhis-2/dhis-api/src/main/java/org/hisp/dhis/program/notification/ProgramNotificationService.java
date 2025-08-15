@@ -32,7 +32,8 @@ package org.hisp.dhis.program.notification;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -67,12 +68,20 @@ public interface ProgramNotificationService {
   void sendScheduledNotifications(JobProgress progress);
 
   /**
-   * Send completion notifications for the Event. If the ProgramStage is not configured with
+   * Send completion notifications for tracker event. If the ProgramStage is not configured with
    * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
    *
-   * @param eventId the event id.
+   * @param eventId the trackerEvent id.
    */
-  void sendEventCompletionNotifications(long eventId);
+  void sendTrackerEventCompletionNotifications(long eventId);
+
+  /**
+   * Send completion notifications for single event. If the ProgramStage is not configured with
+   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param eventId the singleEvent id.
+   */
+  void sendSingleEventCompletionNotifications(long eventId);
 
   /**
    * Send completion notifications for the Enrollment triggered by ProgramRule evaluation. {@link
@@ -85,14 +94,24 @@ public interface ProgramNotificationService {
       ProgramNotificationTemplate template, Enrollment enrollment);
 
   /**
-   * Send completion notifications for the Event triggered by ProgramRule evaluation. {@link
+   * Send completion notifications for the tracker event triggered by ProgramRule evaluation. {@link
    * ProgramNotificationTemplate templates}, nothing will happen.
    *
    * @param template ProgramNotificationTemplate to send
-   * @param event the event.
+   * @param event the trackerEvent.
    */
   void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, Event event);
+      ProgramNotificationTemplate template, TrackerEvent event);
+
+  /**
+   * Send completion notifications for the single event triggered by ProgramRule evaluation. {@link
+   * ProgramNotificationTemplate templates}, nothing will happen.
+   *
+   * @param template ProgramNotificationTemplate to send
+   * @param event the singleEvent.
+   */
+  void sendProgramRuleTriggeredEventNotifications(
+      ProgramNotificationTemplate template, SingleEvent event);
 
   /**
    * Send completion notifications for the Enrollment. If the Program is not configured with
@@ -119,7 +138,7 @@ public interface ProgramNotificationService {
    * @return a list of Event.
    */
   @Deprecated
-  List<Event> getWithScheduledNotifications(
+  List<TrackerEvent> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
 
   /**

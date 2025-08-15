@@ -117,6 +117,7 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
       AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
       DataOrgUnitMergeHandler dataHandler,
       TrackerOrgUnitMergeHandler trackerHandler) {
+    // TODO(DHIS2-19702): Should we consider single events?
     return ImmutableList.<OrgUnitMergeHandler>builder()
         .add((r) -> metadataHandler.mergeDataSets(r))
         .add((r) -> metadataHandler.mergePrograms(r))

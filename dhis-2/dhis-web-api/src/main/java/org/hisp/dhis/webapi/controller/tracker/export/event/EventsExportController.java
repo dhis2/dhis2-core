@@ -64,18 +64,22 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -91,7 +95,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(Event.class)
+@OpenApi.EntityType(TrackerEvent.class)
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/events")
@@ -127,7 +131,9 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
-  private final EventChangeLogService eventChangeLogService;
+  private final SingleEventChangeLogService singleEventChangeLogService;
+
+  private final TrackerEventChangeLogService trackerEventChangeLogService;
 
   private final ProgramService programService;
 
@@ -142,7 +148,8 @@ class EventsExportController {
       RequestHandler requestHandler,
       FieldFilterService fieldFilterService,
       ObjectMapper objectMapper,
-      EventChangeLogService eventChangeLogService,
+      SingleEventChangeLogService singleEventChangeLogService,
+      TrackerEventChangeLogService trackerEventChangeLogService,
       ProgramService programService,
       IdentifiableObjectManager manager) {
     this.trackerEventService = trackerEventService;
@@ -153,7 +160,8 @@ class EventsExportController {
     this.requestHandler = requestHandler;
     this.fieldFilterService = fieldFilterService;
     this.objectMapper = objectMapper;
-    this.eventChangeLogService = eventChangeLogService;
+    this.singleEventChangeLogService = singleEventChangeLogService;
+    this.trackerEventChangeLogService = trackerEventChangeLogService;
     this.programService = programService;
     this.manager = manager;
 
@@ -184,7 +192,7 @@ class EventsExportController {
                 requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
         TrackerEventOperationParams trackerEventOperationParams =
             trackerEventParamsMapper.map(requestParams, idSchemeParams);
-        org.hisp.dhis.tracker.Page<Event> eventsPage =
+        org.hisp.dhis.tracker.Page<TrackerEvent> eventsPage =
             trackerEventService.findEvents(trackerEventOperationParams, pageParams);
 
         MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -207,7 +215,7 @@ class EventsExportController {
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       SingleEventOperationParams singleEventOperationParams =
           singleEventParamsMapper.map(requestParams, idSchemeParams);
-      org.hisp.dhis.tracker.Page<Event> eventsPage =
+      org.hisp.dhis.tracker.Page<SingleEvent> eventsPage =
           singleEventService.findEvents(singleEventOperationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -357,13 +365,13 @@ class EventsExportController {
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
   ResponseEntity<ObjectNode> getEventByUid(
-      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
       throws NotFoundException, WebMessageException {
     MappingErrors errors = new MappingErrors(idSchemeParams);
-    Event event;
+    org.hisp.dhis.webapi.controller.tracker.view.Event eventView;
     Program program = getProgramFromEvent(uid);
     if (program.isRegistration()) {
       org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields eventFields =
@@ -372,7 +380,8 @@ class EventsExportController {
                   fieldFilterService.filterIncludes(
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
-      event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+      TrackerEvent event = trackerEventService.getEvent(uid, idSchemeParams, eventFields);
+      eventView = EVENTS_MAPPER.map(idSchemeParams, errors, event);
     } else {
       org.hisp.dhis.tracker.export.singleevent.SingleEventFields eventFields =
           org.hisp.dhis.tracker.export.singleevent.SingleEventFields.of(
@@ -380,11 +389,10 @@ class EventsExportController {
                   fieldFilterService.filterIncludes(
                       org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
               FieldPath.FIELD_PATH_SEPARATOR);
-      event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+      SingleEvent event = singleEventService.getEvent(uid, idSchemeParams, eventFields);
+      eventView = EVENTS_MAPPER.map(idSchemeParams, errors, event);
     }
 
-    org.hisp.dhis.webapi.controller.tracker.view.Event eventView =
-        EVENTS_MAPPER.map(idSchemeParams, errors, event);
     ensureNoMappingErrors(errors);
 
     return requestHandler.serve(eventView, fields);
@@ -404,7 +412,7 @@ class EventsExportController {
 
   @Nonnull
   private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
-    Event event = manager.get(Event.class, eventUID);
+    TrackerEvent event = manager.get(TrackerEvent.class, eventUID);
     if (event == null) {
       throw new NotFoundException(Event.class, eventUID);
     }
@@ -444,7 +452,7 @@ class EventsExportController {
 
   @GetMapping("/{event}/dataValues/{dataElement}/file")
   ResponseEntity<InputStreamResource> getEventDataValueFile(
-      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
@@ -466,7 +474,7 @@ class EventsExportController {
 
   @GetMapping("/{event}/dataValues/{dataElement}/image")
   ResponseEntity<InputStreamResource> getEventDataValueImage(
-      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
@@ -484,22 +492,39 @@ class EventsExportController {
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{event}/changeLogs")
   ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
-      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
       throws NotFoundException, BadRequestException {
-    EventChangeLogOperationParams operationParams =
-        ChangeLogRequestParamsMapper.map(
-            eventChangeLogService.getOrderableFields(),
-            eventChangeLogService.getFilterableFields(),
-            requestParams);
+    Program program = getProgramFromEvent(event);
+    if (program.isRegistration()) {
+      EventChangeLogOperationParams operationParams =
+          ChangeLogRequestParamsMapper.map(
+              trackerEventChangeLogService.getOrderableFields(),
+              trackerEventChangeLogService.getFilterableFields(),
+              requestParams);
 
-    PageParams pageParams =
-        PageParams.of(requestParams.getPage(), requestParams.getPageSize(), false);
-    org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.export.event.EventChangeLog> page =
-        eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
+      PageParams pageParams =
+          PageParams.of(requestParams.getPage(), requestParams.getPageSize(), false);
+      org.hisp.dhis.tracker.Page<EventChangeLog> page =
+          trackerEventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
-    return requestHandler.serve(
-        request, "changeLogs", page.withMappedItems(EVENT_CHANGE_LOG_MAPPER::map), requestParams);
+      return requestHandler.serve(
+          request, "changeLogs", page.withMappedItems(EVENT_CHANGE_LOG_MAPPER::map), requestParams);
+    } else {
+      EventChangeLogOperationParams operationParams =
+          ChangeLogRequestParamsMapper.map(
+              singleEventChangeLogService.getOrderableFields(),
+              singleEventChangeLogService.getFilterableFields(),
+              requestParams);
+
+      PageParams pageParams =
+          PageParams.of(requestParams.getPage(), requestParams.getPageSize(), false);
+      org.hisp.dhis.tracker.Page<EventChangeLog> page =
+          singleEventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
+
+      return requestHandler.serve(
+          request, "changeLogs", page.withMappedItems(EVENT_CHANGE_LOG_MAPPER::map), requestParams);
+    }
   }
 }

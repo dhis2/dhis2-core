@@ -53,6 +53,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ColumnMapper {
 
   private final SqlBuilder sqlBuilder;
+  private final SystemSettingsProvider settingsProvider;
   private static final EnumSet<ValueType> NO_INDEX_VAL_TYPES =
       EnumSet.of(ValueType.TEXT, ValueType.LONG_TEXT);
 
@@ -257,6 +259,43 @@ public class ColumnMapper {
   }
 
   /**
+   * Wraps the base query format with ST_Centroid if the column is geometry and the current settings
+   * allow it.
+   *
+   * @param column the column name.
+   * @param baseFormat the base SQL format string.
+   * @return the format string, optionally wrapped with ST_Centroid.
+   */
+  private String wrapWithCentroid(String column, String baseFormat) {
+    return column.equals("geometry")
+            && this.settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics()
+        ? "ST_Centroid(" + baseFormat + ")"
+        : baseFormat;
+  }
+
+  /**
+   * Builds an organization unit select subquery.
+   *
+   * @param column the column name.
+   * @param columnExpression the column expression for the where clause.
+   * @param alias the alias for the result.
+   * @return an org unit select query.
+   */
+  private String buildOrgUnitSelectSubquery(String column, String columnExpression, String alias) {
+    String baseFormat =
+        "(select ou.${column} from ${organisationunit} ou where ou.uid = ${columnExpression})";
+    String finalFormat = wrapWithCentroid(column, baseFormat) + " as ${alias}";
+
+    return replaceQualify(
+        sqlBuilder,
+        finalFormat,
+        Map.of(
+            "column", column,
+            "columnExpression", columnExpression,
+            "alias", alias));
+  }
+
+  /**
    * Returns a org unit select query.
    *
    * @param attribute the {@link TrackedEntityAttribute}.
@@ -264,21 +303,11 @@ public class ColumnMapper {
    * @return an org unit select query.
    */
   private String getOrgUnitSelectSubquery(TrackedEntityAttribute attribute, String column) {
-    String format =
-        """
-                    (select ou.${column} from ${organisationunit} ou \
-                    where ou.uid = ${columnExpression}) as ${alias}""";
     String valueColumn = getValueColumn(attribute);
     String columnExpression = getColumnExpression(attribute.getValueType(), valueColumn);
     String alias = quote(attribute.getUid());
 
-    return replaceQualify(
-        sqlBuilder,
-        format,
-        Map.of(
-            "column", column,
-            "columnExpression", columnExpression,
-            "alias", alias));
+    return buildOrgUnitSelectSubquery(column, columnExpression, alias);
   }
 
   /**
@@ -289,20 +318,10 @@ public class ColumnMapper {
    * @return an org unit select query.
    */
   private String getOrgUnitSelectSubquery(DataElement dataElement, String column) {
-    String format =
-        """
-            (select ou.${column} from ${organisationunit} ou \
-            where ou.uid = ${columnExpression}) as ${alias}""";
     String columnExpression =
         sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
     String alias = quote(dataElement.getUid());
 
-    return replaceQualify(
-        sqlBuilder,
-        format,
-        Map.of(
-            "column", column,
-            "columnExpression", columnExpression,
-            "alias", alias));
+    return buildOrgUnitSelectSubquery(column, columnExpression, alias);
   }
 }

@@ -86,6 +86,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -118,6 +119,7 @@ public final class DatabasePoolUtils {
             .put(CONNECTION_DRIVER_CLASS, ANALYTICS_CONNECTION_DRIVER_CLASS)
             .put(CONNECTION_POOL_MAX_SIZE, ANALYTICS_CONNECTION_POOL_MAX_SIZE)
             .put(CONNECTION_POOL_TEST_QUERY, ANALYTICS_CONNECTION_POOL_TEST_QUERY)
+            .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
             /* hikari-specific */
             .put(CONNECTION_POOL_TIMEOUT, ANALYTICS_CONNECTION_POOL_TIMEOUT)
             .put(CONNECTION_POOL_VALIDATION_TIMEOUT, ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT)
@@ -127,7 +129,6 @@ public final class DatabasePoolUtils {
                 CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS,
                 ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS)
             .put(CONNECTION_POOL_ACQUIRE_RETRY_DELAY, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY)
-            .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
             .put(CONNECTION_POOL_MIN_SIZE, ANALYTICS_CONNECTION_POOL_MIN_SIZE)
             .put(CONNECTION_POOL_INITIAL_SIZE, ANALYTICS_CONNECTION_POOL_INITIAL_SIZE)
             .put(CONNECTION_POOL_TEST_ON_CHECKIN, ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKIN)
@@ -150,6 +151,7 @@ public final class DatabasePoolUtils {
   }
 
   public enum DbPoolType {
+    @Deprecated(since = "v43", forRemoval = true)
     C3P0,
     HIKARI,
     UNPOOLED
@@ -180,9 +182,9 @@ public final class DatabasePoolUtils {
 
     final DataSource dataSource =
         switch (dbPoolType) {
-          case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
           case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
+          case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           default ->
               throw new IllegalArgumentException(
                   TextUtils.format(
@@ -190,6 +192,7 @@ public final class DatabasePoolUtils {
                       config.getDbPoolType()));
         };
 
+    logC3p0UnusedSettingsWarning(dhisConfig, dbPoolType);
     testConnection(dataSource);
     return dataSource;
   }
@@ -286,9 +289,14 @@ public final class DatabasePoolUtils {
   }
 
   /** Create a data source based on a C3p0 connection pool. */
+  @Deprecated(since = "v43", forRemoval = true)
   private static ComboPooledDataSource createC3p0DbPool(
       String username, String password, String driverClassName, String jdbcUrl, DbPoolConfig config)
       throws PropertyVetoException {
+
+    log.warn(
+        "Using deprecated `c3p0` in `db.pool.type` DHIS2 configuration setting. It is highly recommended to set `db.pool.type` to `hikari` in your `dhis.conf`. Future versions of DHIS2 will drop support for C3P0");
+
     ConfigKeyMapper mapper = config.getMapper();
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
@@ -357,6 +365,51 @@ public final class DatabasePoolUtils {
     pooledDataSource.setNumHelperThreads(numHelperThreads);
 
     return pooledDataSource;
+  }
+
+  private static void logC3p0UnusedSettingsWarning(
+      DhisConfigurationProvider dhisConfig, DbPoolType dbPoolType) {
+
+    if (!dbPoolType.equals(DbPoolType.C3P0)) {
+      Consumer<ConfigurationKey> logConsumer =
+          configurationKey ->
+              log.warn(
+                  "`{}` C3P0 setting is not used anymore because the default database pool type is set to `hikari` since DHIS2 v43. Remove this C3P0 setting from your `dhis.conf`. Future versions of DHIS2 may stop giving this warning",
+                  configurationKey.getKey());
+
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_MIN_SIZE, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_MIN_SIZE, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_INITIAL_SIZE, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_INITIAL_SIZE, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_ACQUIRE_INCR, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_ACQUIRE_RETRY_DELAY, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR, logConsumer);
+      applyIfPropertyExists(
+          dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_DELAY, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, logConsumer);
+      applyIfPropertyExists(
+          dhisConfig, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_IDLE_CON_TEST_PERIOD, logConsumer);
+      applyIfPropertyExists(
+          dhisConfig, ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_TEST_ON_CHECKOUT, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKOUT, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_TEST_ON_CHECKIN, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKIN, logConsumer);
+      applyIfPropertyExists(dhisConfig, CONNECTION_POOL_NUM_THREADS, logConsumer);
+      applyIfPropertyExists(dhisConfig, ANALYTICS_CONNECTION_POOL_NUM_THREADS, logConsumer);
+    }
+  }
+
+  private static void applyIfPropertyExists(
+      DhisConfigurationProvider dhisConfig,
+      ConfigurationKey configurationKey,
+      Consumer<ConfigurationKey> consumer) {
+    if (dhisConfig.hasProperty(configurationKey)) {
+      consumer.accept(configurationKey);
+    }
   }
 
   /** Creates a data source with no connection pool. */

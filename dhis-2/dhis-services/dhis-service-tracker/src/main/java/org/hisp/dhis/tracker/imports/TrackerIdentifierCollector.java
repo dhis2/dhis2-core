@@ -45,6 +45,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -147,7 +149,8 @@ public class TrackerIdentifierCollector {
     events.forEach(
         event -> {
           addIdentifier(identifiers, Enrollment.class, event.getEnrollment());
-          addIdentifier(identifiers, Event.class, event.getEvent());
+          addIdentifier(identifiers, TrackerEvent.class, event.getEvent());
+          addIdentifier(identifiers, SingleEvent.class, event.getEvent());
           addIdentifier(identifiers, Program.class, event.getProgram());
           addIdentifier(identifiers, ProgramStage.class, event.getProgramStage());
           addIdentifier(identifiers, OrganisationUnit.class, event.getOrgUnit());
@@ -177,14 +180,16 @@ public class TrackerIdentifierCollector {
             addIdentifier(
                 identifiers, TrackedEntity.class, relationship.getFrom().getTrackedEntity());
             addIdentifier(identifiers, Enrollment.class, relationship.getFrom().getEnrollment());
-            addIdentifier(identifiers, Event.class, relationship.getFrom().getEvent());
+            addIdentifier(identifiers, TrackerEvent.class, relationship.getFrom().getEvent());
+            addIdentifier(identifiers, SingleEvent.class, relationship.getFrom().getEvent());
           }
 
           if (Objects.nonNull(relationship.getTo())) {
             addIdentifier(
                 identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity());
             addIdentifier(identifiers, Enrollment.class, relationship.getTo().getEnrollment());
-            addIdentifier(identifiers, Event.class, relationship.getTo().getEvent());
+            addIdentifier(identifiers, TrackerEvent.class, relationship.getTo().getEvent());
+            addIdentifier(identifiers, SingleEvent.class, relationship.getTo().getEvent());
           }
         });
   }

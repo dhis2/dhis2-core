@@ -143,9 +143,9 @@ class OAuth2Test extends BaseE2ETest {
     driver.get(
         serverHostUrl
             + "/oauth2/authorize?response_type=code&client_id=dhis2-client&redirect_uri=http://localhost:9090/oauth2/code/dhis2-client&scope=openid%20email");
-    wait.until(ExpectedConditions.urlContains(serverHostUrl + "/dhis-web-login/"));
+    wait.until(ExpectedConditions.urlContains(serverHostUrl + "/login/"));
     String currentUrl = driver.getCurrentUrl();
-    assertEquals(serverHostUrl + "/dhis-web-login/", currentUrl);
+    assertEquals(serverHostUrl + "/login/", currentUrl);
 
     // Wait for the login page to load
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input#username")));

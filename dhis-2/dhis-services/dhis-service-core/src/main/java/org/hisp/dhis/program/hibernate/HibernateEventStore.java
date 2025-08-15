@@ -37,8 +37,8 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Repository;
  */
 @Slf4j
 @Repository("org.hisp.dhis.program.EventStore")
-public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
+public class HibernateEventStore extends SoftDeleteHibernateObjectStore<TrackerEvent>
     implements EventStore {
 
   public HibernateEventStore(
@@ -58,7 +58,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
+    super(entityManager, jdbcTemplate, publisher, TrackerEvent.class, aclService, false);
   }
 
   @Override

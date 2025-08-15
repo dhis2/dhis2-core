@@ -331,6 +331,10 @@ public enum ErrorCode {
   E4079(
       "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
   E4080("Program `{0}` category mapping `{1}` has an invalid option mapping `{1}`"),
+  E4081(
+      "The preferred search operator `{0}` provided for the tracked entity attribute `{1}` is not part of the supported tracker operators `{2}`"),
+  E4082(
+      "The preferred search operator `{0}` is blocked for the selected tracked entity attribute `{1}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -352,7 +356,7 @@ public enum ErrorCode {
 
   /* Preheat */
   E5000(
-      "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}."),
+      "Found matching object for reference, but import strategy is CREATE. Identifier was {0}, and object was {1}."),
   E5001("No matching object for reference. Identifier was {0}, and object was {1}."),
   E5002("Invalid reference {0} on object {1} for association `{2}`"),
   E5003("Property `{0}` with value `{1}` on object {2} already exists on object {3}"),

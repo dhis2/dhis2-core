@@ -86,7 +86,7 @@ public enum JobType {
   MONITORING(MonitoringJobParameters.class),
   PUSH_ANALYSIS(PushAnalysisJobParameters.class),
   HTML_PUSH_ANALYTICS(HtmlPushAnalyticsJobParameters.class),
-  TRACKER_SEARCH_OPTIMIZATION(TrackerTrigramIndexJobParameters.class),
+  TRACKER_TRIGRAM_INDEX_MAINTENANCE(TrackerTrigramIndexJobParameters.class),
   PREDICTOR(PredictorJobParameters.class),
   MATERIALIZED_SQL_VIEW_UPDATE(SqlViewUpdateParameters.class),
   DISABLE_INACTIVE_USERS(DisableInactiveUsersJobParameters.class),
@@ -191,7 +191,7 @@ public enum JobType {
    *     (System User will not work).
    */
   public boolean isValidUserRequiredForJob() {
-    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE;
+    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE || this == META_DATA_SYNC;
   }
 
   /**
@@ -275,8 +275,6 @@ public enum JobType {
               "relativePeriods", "/api/periodTypes/relativePeriodTypes",
               "validationRuleGroups", "/api/validationRuleGroups");
       case PUSH_ANALYSIS -> Map.of("pushAnalysis", "/api/pushAnalysis");
-      case TRACKER_SEARCH_OPTIMIZATION ->
-          Map.of("attributes", "/api/trackedEntityAttributes/indexable");
       case PREDICTOR ->
           Map.of(
               "predictors", "/api/predictors",

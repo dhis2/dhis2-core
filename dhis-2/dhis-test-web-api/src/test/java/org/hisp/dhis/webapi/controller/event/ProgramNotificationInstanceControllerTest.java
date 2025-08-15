@@ -33,27 +33,30 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.test.webapi.json.domain.JsonProgramNotificationInstance;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -63,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -70,34 +74,31 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
 
   private Enrollment enrollment;
 
-  private Event event;
+  private TrackerEvent trackerEvent;
+
+  private SingleEvent singleEvent;
 
   private ProgramNotificationInstance enrollmentNotification1;
 
   private ProgramNotificationInstance enrollmentNotification2;
 
-  private ProgramNotificationInstance eventNotification;
+  private ProgramNotificationInstance trackerEventNotification;
 
-  @BeforeEach
-  void setUp() {
-    OrganisationUnit orgUnit = createOrganisationUnit('A');
-    manager.save(orgUnit);
+  private ProgramNotificationInstance singleEventNotification;
 
-    User user = createAndAddUser("tester", orgUnit, ALL.name());
-    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
-    this.userService.updateUser(user);
+  private User user;
 
-    Program prA = createProgram('A', Set.of(), orgUnit);
-    manager.save(prA);
-    ProgramStage psA = createProgramStage('A', prA);
-    manager.save(psA);
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
-    manager.save(trackedEntityType);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit, trackedEntityType);
-    manager.save(trackedEntityA);
-    enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
-    manager.save(enrollment);
-    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntityA, prA, orgUnit);
+  @BeforeAll
+  void setUp() throws IOException {
+    testSetup.importMetadata();
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+    testSetup.importTrackerData();
+
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
+    enrollment = manager.get(Enrollment.class, "nxP7UnKhomJ");
+    trackerEvent = manager.get(TrackerEvent.class, "pTzf9KYMk72");
+    singleEvent = manager.get(SingleEvent.class, "QRYjLTiJTrA");
 
     enrollmentNotification1 = new ProgramNotificationInstance();
     enrollmentNotification1.setName("enrollment A notification 1");
@@ -109,25 +110,87 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     enrollmentNotification2.setEnrollment(enrollment);
     programNotificationInstanceService.save(enrollmentNotification2);
 
-    event = createEvent(psA, enrollment, orgUnit);
-    manager.save(event);
-    eventNotification = new ProgramNotificationInstance();
-    eventNotification.setName("event A notification");
-    eventNotification.setEvent(event);
-    programNotificationInstanceService.save(eventNotification);
-    manager.flush();
+    trackerEventNotification = new ProgramNotificationInstance();
+    trackerEventNotification.setName("tracker event notification");
+    trackerEventNotification.setTrackerEvent(trackerEvent);
+    programNotificationInstanceService.save(trackerEventNotification);
 
+    singleEventNotification = new ProgramNotificationInstance();
+    singleEventNotification.setName("single event notification");
+    singleEventNotification.setSingleEvent(singleEvent);
+    programNotificationInstanceService.save(singleEventNotification);
+
+    user = createAndAddUser("tester", orgUnit, ALL.name());
+    user.setTeiSearchOrganisationUnits(
+        Set.of(orgUnit, manager.get(OrganisationUnit.class, "DiszpKrYNg8")));
+    this.userService.updateUser(user);
+    manager.flush();
+  }
+
+  @BeforeEach
+  void setupUser() {
     switchContextToUser(user);
   }
 
   @Test
-  void shouldGetProgramNotificationWhenPassingEventParams() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?event={uid}", event.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
+  void shouldFailToGetProgramNotificationsWhenNoEventOrEnrollmentParamIsSpecified() {
+    assertEquals(
+        "Enrollment or Event must be specified.",
+        GET("/programNotificationInstances").error(HttpStatus.BAD_REQUEST).getMessage());
+  }
 
-    assertEquals(eventNotification.getName(), list.get(0).getName());
+  @Test
+  void shouldFailToGetProgramNotificationsWhenEventDoesNotExist() {
+    assertEquals(
+        HttpStatus.NOT_FOUND,
+        GET("/programNotificationInstances?event={uid}", UID.generate()).status());
+  }
+
+  @Test
+  void shouldFailToGetProgramNotificationsWhenEnrollmentDoesNotExist() {
+    assertEquals(
+        HttpStatus.NOT_FOUND,
+        GET("/programNotificationInstances?enrollment={uid}", UID.generate()).status());
+  }
+
+  @Test
+  void shouldGetProgramNotificationWhenPassingEventParamsForATrackerEvent() {
+    JsonList<JsonProgramNotificationInstance> list =
+        GET("/programNotificationInstances?event={uid}", trackerEvent.getUid())
+            .content(HttpStatus.OK)
+            .getList("programNotificationInstances", JsonProgramNotificationInstance.class);
+    assertAll(
+        () -> assertEquals(1, list.size()),
+        () -> assertEquals(trackerEventNotification.getName(), list.get(0).getName()),
+        () -> assertEquals(trackerEvent.getUid(), list.get(0).getEvent().getId()));
+  }
+
+  @Test
+  void shouldGetProgramNotificationWhenPassingEventParamsForASingleEvent() {
+    JsonList<JsonProgramNotificationInstance> list =
+        GET("/programNotificationInstances?event={uid}", singleEvent.getUid())
+            .content(HttpStatus.OK)
+            .getList("programNotificationInstances", JsonProgramNotificationInstance.class);
+    assertAll(
+        () -> assertEquals(1, list.size()),
+        () -> assertEquals(singleEventNotification.getName(), list.get(0).getName()),
+        () -> assertEquals(singleEvent.getUid(), list.get(0).getEvent().getId()));
+  }
+
+  @Test
+  void shouldGetProgramNotificationWhenPassingEnrollmentParams() {
+    JsonList<JsonProgramNotificationInstance> list =
+        GET("/programNotificationInstances?enrollment={uid}", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("programNotificationInstances", JsonProgramNotificationInstance.class);
+    assertAll(
+        () -> assertEquals(2, list.size()),
+        () -> assertEquals(enrollment.getUid(), list.get(0).getEnrollment().getId()),
+        () -> assertEquals(enrollment.getUid(), list.get(1).getEnrollment().getId()),
+        () ->
+            assertContainsOnly(
+                List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+                list.toList(JsonIdentifiableObject::getName)));
   }
 
   @Test

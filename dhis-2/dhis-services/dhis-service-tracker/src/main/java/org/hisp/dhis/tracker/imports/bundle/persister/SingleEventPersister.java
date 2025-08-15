@@ -52,16 +52,15 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -73,33 +72,34 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class SingleEventPersister
-    extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.SingleEvent, Event> {
-  private final EventChangeLogService eventChangeLogService;
+    extends AbstractTrackerPersister<
+        org.hisp.dhis.tracker.imports.domain.SingleEvent, org.hisp.dhis.program.SingleEvent> {
+  private final SingleEventChangeLogService singleEventChangeLogService;
 
   public SingleEventPersister(
       ReservedValueService reservedValueService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      EventChangeLogService eventChangeLogService) {
+      SingleEventChangeLogService eventChangeLogService) {
     super(reservedValueService, trackedEntityChangeLogService);
-    this.eventChangeLogService = eventChangeLogService;
+    this.singleEventChangeLogService = eventChangeLogService;
   }
 
   @Override
-  protected void updatePreheat(TrackerPreheat preheat, Event event) {
-    preheat.putEvents(Collections.singletonList(event));
+  protected void updatePreheat(TrackerPreheat preheat, SingleEvent event) {
+    preheat.putSingleEvents(Collections.singletonList(event));
   }
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, Event event, List<NotificationTrigger> triggers) {
+      TrackerBundle bundle, SingleEvent event, List<NotificationTrigger> triggers) {
 
     return TrackerNotificationDataBundle.builder()
-        .klass(Event.class)
-        .eventNotifications(bundle.getEventNotifications().get(UID.of(event)))
+        .klass(SingleEvent.class)
+        .singleEventNotifications(bundle.getSingleEventNotifications().get(UID.of(event)))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
-        .event(event)
+        .singleEvent(event)
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
         .build();
@@ -108,11 +108,11 @@ public class SingleEventPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent entity) {
-    Event persistedEvent = preheat.getEvent(entity.getUid());
+    SingleEvent persistedEvent = preheat.getSingleEvent(entity.getUid());
     List<NotificationTrigger> triggers = new ArrayList<>();
     // If the event is new and has been completed
     if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
-      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      triggers.add(NotificationTrigger.SINGLE_EVENT_COMPLETION);
       return triggers;
     }
 
@@ -120,7 +120,7 @@ public class SingleEventPersister
     if (persistedEvent != null
         && persistedEvent.getStatus() != entity.getStatus()
         && entity.getStatus() == EventStatus.COMPLETED) {
-      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      triggers.add(NotificationTrigger.SINGLE_EVENT_COMPLETION);
       return triggers;
     }
 
@@ -128,24 +128,23 @@ public class SingleEventPersister
   }
 
   @Override
-  protected Event convert(
+  protected SingleEvent convert(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.SingleEvent event) {
-    return TrackerObjectsMapper.map(bundle.getPreheat(), event, bundle.getUser());
+    return TrackerObjectsMapper.mapSingleEvent(bundle.getPreheat(), event, bundle.getUser());
   }
 
   @Override
-  protected Event cloneEntityProperties(
+  protected SingleEvent cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent event) {
-    Event originalEvent = preheat.getEvent(event.getUid());
+    SingleEvent originalEvent = preheat.getSingleEvent(event.getUid());
 
     if (originalEvent == null) {
-      return new Event();
+      return new SingleEvent();
     }
 
-    Event clonedEvent = new Event();
+    SingleEvent clonedEvent = new SingleEvent();
     clonedEvent.setUid(originalEvent.getUid());
     clonedEvent.setOccurredDate(originalEvent.getOccurredDate());
-    clonedEvent.setScheduledDate(originalEvent.getScheduledDate());
     clonedEvent.setGeometry(originalEvent.getGeometry());
 
     return clonedEvent;
@@ -157,7 +156,7 @@ public class SingleEventPersister
   }
 
   @Override
-  protected List<SingleEvent> getByType(TrackerBundle bundle) {
+  protected List<org.hisp.dhis.tracker.imports.domain.SingleEvent> getByType(TrackerBundle bundle) {
     return bundle.getSingleEvents();
   }
 
@@ -166,7 +165,7 @@ public class SingleEventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
-      Event hibernateEntity,
+      SingleEvent hibernateEntity,
       UserDetails user) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
@@ -176,18 +175,18 @@ public class SingleEventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
-      Event payloadEntity,
-      Event currentEntity,
+      SingleEvent payloadEntity,
+      SingleEvent currentEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    eventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
+    singleEventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
   }
 
   private void handleDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
-      Event event,
+      SingleEvent event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(event)
@@ -204,11 +203,11 @@ public class SingleEventPersister
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
+            singleEventChangeLogService.addEventChangeLog(
                 event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
+            singleEventChangeLogService.addEventChangeLog(
                 event,
                 dataElement,
                 dbDataValue.getValue(),
@@ -218,7 +217,7 @@ public class SingleEventPersister
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
+            singleEventChangeLogService.addEventChangeLog(
                 event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
@@ -227,7 +226,7 @@ public class SingleEventPersister
 
   private void saveDataValue(
       DataValue dv,
-      Event event,
+      SingleEvent event,
       DataElement dataElement,
       UserDetails user,
       EntityManager entityManager,
@@ -254,7 +253,7 @@ public class SingleEventPersister
   private void updateDataValue(
       EventDataValue eventDataValue,
       DataValue dv,
-      Event event,
+      SingleEvent event,
       DataElement dataElement,
       UserDetails user,
       EntityManager entityManager,
@@ -273,7 +272,7 @@ public class SingleEventPersister
 
   private void deleteDataValue(
       EventDataValue eventDataValue,
-      Event event,
+      SingleEvent event,
       DataElement dataElement,
       EntityManager entityManager,
       TrackerPreheat preheat) {
@@ -288,12 +287,12 @@ public class SingleEventPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.SingleEvent trackerDto,
-      Event entity) {
+      SingleEvent entity) {
     // DO NOTHING. Event creation does not create ownership records.
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntities(Event entity) {
+  protected Set<UID> getUpdatedTrackedEntities(SingleEvent entity) {
     return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
         .map(e -> UID.of(e.getTrackedEntity()))

@@ -37,8 +37,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -76,7 +77,8 @@ public interface RelationshipItemMapper {
             relationshipItem.getTrackedEntity()));
     result.setEnrollment(
         map(RelationshipItemFields.all().getEnrollmentFields(), relationshipItem.getEnrollment()));
-    result.setEvent(map(relationshipItem.getEvent()));
+    result.setTrackerEvent(map(relationshipItem.getTrackerEvent()));
+    result.setSingleEvent(map(relationshipItem.getSingleEvent()));
     return result;
   }
 
@@ -116,7 +118,8 @@ public interface RelationshipItemMapper {
       result.setEnrollment(map(fields.getEnrollmentFields(), relationshipItem.getEnrollment()));
     }
     if (fields.isIncludesEvent()) {
-      result.setEvent(map(relationshipItem.getEvent()));
+      result.setTrackerEvent(map(relationshipItem.getTrackerEvent()));
+      result.setSingleEvent(map(relationshipItem.getSingleEvent()));
     }
     return result;
   }
@@ -126,7 +129,7 @@ public interface RelationshipItemMapper {
       @Context RelationshipItemFields.EnrollmentFields fields, Set<Enrollment> enrollments);
 
   // these are needed to make mapstruct map these collections using the entity @Mappers
-  Set<Event> mapEvents(Set<Event> events);
+  Set<TrackerEvent> mapEvents(Set<TrackerEvent> events);
 
   default TrackedEntity map(
       @Context RelationshipItemFields.TrackedEntityFields fields, TrackedEntity trackedEntity) {
@@ -255,7 +258,31 @@ public interface RelationshipItemMapper {
   @Mapping(target = "completedBy")
   @Mapping(target = "assignedUser")
   @Mapping(target = "geometry")
-  Event map(Event event);
+  TrackerEvent map(TrackerEvent event);
+
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "enrollment", qualifiedByName = "mapEnrollmentForEvent")
+  @Mapping(target = "programStage")
+  @Mapping(target = "organisationUnit")
+  @Mapping(target = "occurredDate")
+  @Mapping(target = "created")
+  @Mapping(target = "createdAtClient")
+  @Mapping(target = "lastUpdated")
+  @Mapping(target = "lastUpdatedAtClient")
+  @Mapping(target = "attributeOptionCombo")
+  @Mapping(target = "completedDate")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "status")
+  @Mapping(target = "eventDataValues")
+  @Mapping(target = "notes")
+  @Mapping(target = "storedBy")
+  @Mapping(target = "deleted")
+  @Mapping(target = "completedBy")
+  @Mapping(target = "assignedUser")
+  @Mapping(target = "geometry")
+  SingleEvent map(SingleEvent event);
 
   // relationshipItem.event.enrollment is only exported as UID
   @Named("mapEnrollmentForEvent")
