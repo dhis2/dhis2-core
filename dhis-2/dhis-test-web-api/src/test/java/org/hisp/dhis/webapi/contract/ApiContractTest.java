@@ -3,6 +3,7 @@ package org.hisp.dhis.webapi.contract;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.ValidationMessage;
@@ -33,6 +34,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * This test class executes tests against all contracts from the dhis2-api-contracts repo. There is
+ * 1 parameterized test which iterates over all contracts found.
+ */
 @Slf4j
 @Transactional
 class ApiContractTest extends H2ControllerIntegrationTestBase {
@@ -46,29 +51,33 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   @MethodSource("getContracts")
   @DisplayName("Test API contracts")
   void contractTest(Contract contract)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
+          JsonProcessingException {
     assertGetRequestContract(contract);
   }
 
   private void assertGetRequestContract(Contract contract)
-      throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-    // create type
+      throws InvocationTargetException,
+          NoSuchMethodException,
+          IllegalAccessException,
+          JsonProcessingException {
+    // Given a object exists
     IdentifiableObject identifiableObject = createTypeAndSave(contract);
 
-    // make GET call for type
+    // When a GET call is made for that object
     HttpResponse response = GET(contract.requestUrl().replace("{id}", identifiableObject.getUid()));
 
-    // assert HTTP status code
+    // Then the HTTP status code should match
     assertEquals(contract.responseStatus(), response.status().code(), "HTTP status code mismatch");
 
-    // assert response against json schema
-    try {
-      String json = response.content().toJson();
-      Set<ValidationMessage> errors = contract.jsonSchema().validate(mapper.readTree(json));
-      assertTrue(errors.isEmpty(), "Valid JSON should pass schema validation, errors: " + errors);
-    } catch (Exception e) {
-      log.error(e.getMessage());
-    }
+    // And the response body should not have any JSON schema validation errors
+    Set<ValidationMessage> errors =
+        contract.jsonSchema().validate(mapper.readTree(response.content().toJson()));
+    assertTrue(
+        errors.isEmpty(),
+        () -> String.format("Valid JSON should pass schema validation, errors: %s", errors));
   }
 
   private IdentifiableObject createTypeAndSave(Contract contract)
@@ -93,7 +102,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   }
 
   /**
-   * Reads in contracts from a jar at class path /contracts. Returns a set of instantiated {@link
+   * Reads in contracts from a jar at classpath /contracts. Returns a set of instantiated {@link
    * Contract}s.
    *
    * @return set of instantiated {@link * Contract}s.
