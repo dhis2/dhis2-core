@@ -84,6 +84,11 @@ public class CategoryOptionComboObjectBundleHook
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), combo.getCategoryCombo());
     Set<CategoryOptionCombo> genCocs = categoryCombo.generateOptionCombosSet();
 
+    if (genCocs.size() == 0) {
+      // might be impossible to gen from new cc (has c but no co), get cos from bundle?
+      // get cc from bundle
+    }
+
     // check if all provided match generated
     if (genCocs.size() != allProvidedCocsForCc.size()) {
       addReports.accept(
