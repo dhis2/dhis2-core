@@ -313,7 +313,7 @@ public interface UserDetails
     return isInUserHierarchy(orgUnitPath, getUserDataOrgUnitIds());
   }
 
-  default boolean isInUserHierarchy(
+  static boolean isInUserHierarchy(
       @CheckForNull String orgUnitPath, @Nonnull Set<String> orgUnitIds) {
     if (orgUnitPath == null) return false;
     for (String uid : orgUnitPath.split("/")) if (orgUnitIds.contains(uid)) return true;
