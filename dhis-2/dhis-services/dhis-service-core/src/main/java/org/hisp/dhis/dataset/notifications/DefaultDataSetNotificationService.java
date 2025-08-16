@@ -37,11 +37,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -451,19 +451,19 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       return Set.of();
     }
 
-    return userGroup.getMembers().stream()
-        .filter(
-            user ->
-                user != null
-                    && !user.isDisabled()
-                    && Objects.requireNonNull(
-                            UserDetails.createUserDetails(user, true, true, null, null, null, null))
-                        .isInUserHierarchy(
-                            registration.getSource().getUid(),
-                            user.getOrganisationUnits().stream()
-                                .map(OrganisationUnit::getUid)
-                                .collect(toSet())))
-        .collect(toSet());
+    Set<User> recipients = new HashSet<>();
+    for (User user : userGroup.getMembers()) {
+      if (user != null
+          && !user.isDisabled()
+          && UserDetails.isInUserHierarchy(
+              registration.getSource().getPath(),
+              user.getOrganisationUnits().stream()
+                  .map(OrganisationUnit::getUid)
+                  .collect(toSet()))) {
+        recipients.add(user);
+      }
+    }
+    return recipients;
   }
 
   private void sendInternalDhisMessages(
