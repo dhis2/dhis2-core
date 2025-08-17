@@ -212,32 +212,26 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
-  public boolean equals(Object other) {
-    if (other == null) {
-      return false;
-    }
-    if (!HibernateProxyUtils.getRealClass(other).isAssignableFrom(CategoryOption.class)) {
-      return false;
-    }
-
-    CategoryOption obj = (CategoryOption) other;
-
-    return Objects.equals(getUid(), obj.getUid())
-        && Objects.equals(getCode(), obj.getCode())
-        && Objects.equals(getName(), obj.getName())
-        && Objects.equals(getShortName(), obj.getShortName())
-        && Objects.equals(getDescription(), obj.getDescription())
-        && Objects.equals(queryMods, obj.queryMods);
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof CategoryOption other
+            && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName())
+            && Objects.equals(getShortName(), other.getShortName())
+            && Objects.equals(getDescription(), other.getDescription())
+            && Objects.equals(queryMods, other.queryMods);
   }
 
   @Override
   public int hashCode() {
-    int result = getUid() != null ? getUid().hashCode() : 0;
+    int result = getUid() != null ? getUid().hashCode() : 0; // BaseIdentifiableObject
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-    result = 31 * result + (getFormName() != null ? getFormName().hashCode() : 0);
-    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0); // BaseNameableObject
     result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
+    result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0); // BaseDimensionalItemObject
     return result;
   }
 
@@ -686,11 +680,6 @@ public class CategoryOption extends BaseMetadataObject
   @PropertyRange(min = 2)
   public String getFormName() {
     return formName;
-  }
-
-  /** Returns the form name, or the name if it does not exist. */
-  public String getFormNameFallback() {
-    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
   }
 
   // -------------------------------------------------------------------------
