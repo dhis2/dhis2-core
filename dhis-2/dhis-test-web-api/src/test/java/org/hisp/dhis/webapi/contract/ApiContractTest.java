@@ -85,7 +85,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // get type from contract
     String type = contract.name();
 
-    // change to lowercase to use to get schema
+    // change to lowercase to use to get schema //todo change contract to have lower?
     String typeLowerCase = Character.toLowerCase(type.charAt(0)) + type.substring(1);
     Schema schema = schemaService.getSchemaBySingularName(typeLowerCase);
 
@@ -93,7 +93,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     Class<?> klass = schema.getKlass();
 
     // invoke 'create' test method in TestBase to create an object to save and test against
-    // it is expected that the create+'type' method exists. Create one if none exist.
+    // it is expected that the create+'type' method exists. Create one if not.
     Method method = TestBase.class.getMethod("create" + type, char.class);
     Object createdType = method.invoke(null, 'a');
     IdentifiableObject identifiableObject = (IdentifiableObject) klass.cast(createdType);
