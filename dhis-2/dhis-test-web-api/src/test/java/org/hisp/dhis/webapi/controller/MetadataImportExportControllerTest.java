@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -861,7 +862,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  @DisplayName("Importing expected CategoryOptionCombos should succeed")
+  @DisplayName("Importing (update) expected CategoryOptionCombos should succeed")
   void importExpectedCocsTest() {
     // Given category metadata exists
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("a");
@@ -879,28 +880,28 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  @DisplayName("Importing fewer CategoryOptionCombos than expected should fail")
+  @DisplayName("Importing (update) fewer CategoryOptionCombos than expected should fail")
   void importFewerCocsTest() {
     // Given category metadata exists
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("b");
 
-    // When importing COCs that do not match the generated COC state (fewer supplied)
+    // When importing COCs that do not match the generated COC state (3 supplied, 4 expected)
     JsonImportSummary report =
         POST("/metadata", Body(fewerCocs(categoryMetadata)))
             .contentUnchecked()
             .get("response")
             .as(JsonImportSummary.class);
 
-    // Then the import is successful and the COCs show as updated
-    assertEquals("Conflict", report.getStatus());
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
     assertEquals(3, report.getStats().getIgnored());
   }
 
   @Test
-  @DisplayName("Importing more CategoryOptionCombos than expected should fail")
+  @DisplayName("Importing (update) more CategoryOptionCombos than expected should fail")
   void importMoreCocsTest() {
     // Given category metadata exists
-    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("b");
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("c");
 
     // When importing COCs that do not match the generated COC state (more supplied)
     JsonImportSummary report =
@@ -909,9 +910,68 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .get("response")
             .as(JsonImportSummary.class);
 
-    // Then the import is successful and the COCs show as updated
-    assertEquals("Conflict", report.getStatus());
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
     assertEquals(5, report.getStats().getIgnored());
+  }
+
+  @Test
+  @DisplayName("Importing (create) expected CategoryOptionCombos should succeed")
+  void importCreateExpectedCocsTest() {
+    // When importing COCs that match the generated COC state
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_expected_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as created (4 cocs + 7 other metadata)
+    assertEquals("OK", report.getStatus());
+    assertEquals(11, report.getStats().getCreated());
+  }
+
+  @Test
+  @DisplayName("Importing (create) fewer CategoryOptionCombos than expected should fail")
+  void importCreateFewerCocsTest() {
+    // When importing COCs that do not match the generated COC state (3 supplied, 4 expected)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_fewer_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(10, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getCreated());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    assertEquals(
+        "Importing CategoryOptionCombos size 3 does not match expected size 4",
+        errorReport.getMessage());
+
+    System.out.println("test");
+  }
+
+  @Test
+  @DisplayName("Importing (create) more CategoryOptionCombos than expected should fail")
+  void importCreateMoreCocsTest() {
+    // When importing COCs that do not match the generated COC state (more supplied)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_more_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(12, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getCreated());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    assertEquals(
+        "Importing CategoryOptionCombos size 5 does not match expected size 4",
+        errorReport.getMessage());
   }
 
   private String cocsMatchExpectedState(TestCategoryMetadata metadata) {

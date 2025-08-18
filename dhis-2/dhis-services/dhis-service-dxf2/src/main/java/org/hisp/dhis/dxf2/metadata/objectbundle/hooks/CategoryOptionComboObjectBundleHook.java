@@ -34,11 +34,11 @@ import static org.hisp.dhis.feedback.ErrorCode.E1130;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ConflictException;
@@ -68,21 +68,24 @@ public class CategoryOptionComboObjectBundleHook
     List<CategoryOptionCombo> persistedCocs = bundle.getObjects(CategoryOptionCombo.class, true);
     List<CategoryOptionCombo> newCocs = bundle.getObjects(CategoryOptionCombo.class, false);
 
+    // all cocs provided in import
     List<CategoryOptionCombo> providedCocs =
         CollectionUtils.combinedUnmodifiableView(persistedCocs, newCocs);
 
     // get only cocs with same imported coc cc
     // todo only use uid?? in case uninitialized
-    Set<CategoryOptionCombo> allProvidedCocsForCc =
+    List<CategoryOptionCombo> allProvidedCocsForCc =
         providedCocs.stream()
             .filter(
                 coc -> coc.getCategoryCombo().getUid().equals(combo.getCategoryCombo().getUid()))
-            .collect(Collectors.toSet());
+            .toList();
 
     // get all generated cocs from cc
     CategoryCombo categoryCombo =
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), combo.getCategoryCombo());
     Set<CategoryOptionCombo> genCocs = categoryCombo.generateOptionCombosSet();
+
+    // todo transform to coc DTO
 
     if (genCocs.size() == 0) {
       // might be impossible to gen from new cc (has c but no co), get cos from bundle?
@@ -122,4 +125,18 @@ public class CategoryOptionComboObjectBundleHook
               CategoryOptionCombo.class, ErrorCode.E1122, categoryOptionCombo.getName()));
     }
   }
+
+  record CategoryOptionDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
+
+  record CategoryDto(UID uid, Set<UID> categoryCombos, Set<UID> categoryOptions) {}
+
+  record CategoryComboDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
+
+  record CategoryOptionComboDto(UID uid, UID categoryCombo, Set<UID> categoryOptions) {}
+
+  record CategoryModelDto(
+      CategoryCombo categoryComboDto,
+      Set<CategoryOptionDto> optionDtos,
+      Set<CategoryDto> categoryDtos,
+      Set<CategoryOptionComboDto> optionComboDtos) {}
 }
