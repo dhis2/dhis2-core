@@ -1,0 +1,71 @@
+---
+name: tracked_entity_attributes_wrong_trigram_index_configuration
+description: Tracked entity attributes eligible for trigram indexing but misconfigured so the partial trigram index is not created.
+section: Tracked entity attributes
+section_order: 1
+summary_sql: >-
+    select count(*) as value, 100 * count(*) / nullif((select count(*) from trackedentityattribute), 0) as percent
+    from trackedentityattribute tea
+    where 
+    (
+        tea.trigramindexable = true
+        and tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+        and tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+    )
+    or (
+        tea.trigramindexable = false
+        and (
+            not tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            or not tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+    )
+    or (
+        tea.trigramindexable = true
+        and (
+            not tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            or not tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+        and tea.mincharacterstosearch < 3
+    );
+details_sql: >-
+    select uid, name
+    from trackedentityattribute tea
+    where 
+    (
+        tea.trigramindexable = true
+        and tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+        and tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+    )
+    or (
+        tea.trigramindexable = false
+        and (
+            not tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            or not tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+    )
+    or (
+        tea.trigramindexable = true
+        and (
+            not tea.blockedsearchoperators @> CAST('["LIKE"]' AS jsonb)
+            or not tea.blockedsearchoperators @> CAST('["EW"]' AS jsonb)
+        )
+        and tea.mincharacterstosearch < 3
+    );
+details_id_type: trackedEntityAttributes
+severity: WARNING
+introduction: >
+    A partial trigram index can be created on the `trackedentityattributevalue` table for a Tracked Entity Attribute (TEA) if the TEA has the trigram indexable flag set to true and supports at least one of the operators: `LIKE` or `EW`.
+    This means a TEA with the flag set to true but blocking both operators will never have a trigram index.
+    The same applies if the TEA does not block those operators but the flag is set to false.
+    Even if both conditions are met, the index will not be used if the `minCharactersToSearch` field is lower than 3.
+    The `TRACKER_TRIGRAM_INDEX_MAINTENANCE` job in the scheduler app is responsible for creating these indexes.
+recommendation:
+    Depending on your needs, we recommend the following actions for the listed Tracked Entity Attributes.
+
+    If you need to create the index,
+    1. Set the `trigramIndexable` flag on the TEA.
+    2. Unblock either the `LIKE` or `EW` operators on the TEA.
+    3. Make sure the `minCharactersToSearch` field is greater than or equal to 3 on the TEA, so the trigram index can be used.
+    
+    If you don't need the index, unset the `trigramIndexable` flag and, if appropriate, block both the `LIKE` and `EW` operators.
+is_slow: FALSE

@@ -91,4 +91,4 @@ checks:
   - users/users_with_invalid_usernames.yaml
   - users/users_with_all_authority.yaml
   - file_resources/file_resources_no_icon.yaml
-  - tracked_entity_attributes/indexable_tracked_entity_attributes_block_trigram_operators.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_wrong_trigram_index_configuration.yaml

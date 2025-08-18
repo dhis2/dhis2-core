@@ -42,35 +42,38 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
   private TrackedEntityAttribute teaA;
   private TrackedEntityAttribute teaB;
+  private Set<TrackedEntityAttribute> attributes;
 
   @BeforeEach
   void setUp() {
     teaA = createTrackedEntityAttribute('A');
     teaA.setName("teaA");
-    teaA.setTrigramIndexable(true);
+    teaA.setBlockedSearchOperators(Set.of(LIKE, EW));
     teaB = createTrackedEntityAttribute('B');
-    teaA.setName("teaB");
-    teaB.setTrigramIndexable(true);
+    teaB.setName("teaB");
+    teaB.setBlockedSearchOperators(Set.of(LIKE, EW));
+    attributes = Set.of(teaA, teaB);
 
     manager.save(teaA);
     manager.save(teaB);
   }
 
   @Test
-  void testTrackedEntityAttributesNotBlockingTrigramOperators() {
+  void testTrackedEntityAttributesWithBasicConfiguration() {
     assertHasNoDataIntegrityIssues(
         "trackedEntityAttributes",
-        "indexable_tracked_entity_attributes_block_trigram_operators",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
         true);
   }
 
   @Test
-  void testTrackedEntityAttributesBlockingTrigramOperatorsInOneTrackedEntityAttribute() {
+  void testTrackedEntityAttributesWithIndexableFlagAndBlockingTrigramOperatorsInOneAttribute() {
+    enableIndexableFlag(Set.of(teaA));
     blockTrigramOperators(Set.of(teaA));
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "indexable_tracked_entity_attributes_block_trigram_operators",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -79,12 +82,13 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
   }
 
   @Test
-  void testTrackedEntityAttributesBlockingTrigramOperatorsInAllTrackedEntityAttribute() {
-    blockTrigramOperators(Set.of(teaA, teaB));
+  void testTrackedEntityAttributesWithIndexableFlagAndBlockingTrigramOperatorsInAllAttributes() {
+    enableIndexableFlag(attributes);
+    blockTrigramOperators(attributes);
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "indexable_tracked_entity_attributes_block_trigram_operators",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
@@ -92,10 +96,86 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
         true);
   }
 
+  @Test
+  void testTrackedEntityAttributesWithoutIndexableFlagAllowsTrigramOperatorsInOneAttribute() {
+    unblockTrigramOperators(Set.of(teaA));
+
+    assertHasDataIntegrityIssues(
+        "trackedEntityAttributes",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        50,
+        Set.of(teaA.getUid()),
+        Set.of(teaA.getName()),
+        Set.of(),
+        true);
+  }
+
+  @Test
+  void testTrackedEntityAttributesWithoutIndexableFlagAllowsTrigramOperatorsInAllAttributes() {
+    unblockTrigramOperators(attributes);
+
+    assertHasDataIntegrityIssues(
+        "trackedEntityAttributes",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        100,
+        Set.of(teaA.getUid(), teaB.getUid()),
+        Set.of(teaA.getName(), teaB.getName()),
+        Set.of(),
+        true);
+  }
+
+  @Test
+  void
+      testTrackedEntityAttributesWithIndexableFlagAndAllowsTrigramOperatorsInOneAttributeButMinCharactersLowerThanThree() {
+    enableIndexableFlag(Set.of(teaA));
+    unblockTrigramOperators(Set.of(teaA));
+
+    assertHasDataIntegrityIssues(
+        "trackedEntityAttributes",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        50,
+        Set.of(teaA.getUid()),
+        Set.of(teaA.getName()),
+        Set.of(),
+        true);
+  }
+
+  @Test
+  void
+      testTrackedEntityAttributesWithIndexableFlagAndAllowsTrigramOperatorsInAllAttributesButMinCharactersLowerThanThree() {
+    enableIndexableFlag(attributes);
+    unblockTrigramOperators(attributes);
+
+    assertHasDataIntegrityIssues(
+        "trackedEntityAttributes",
+        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        100,
+        Set.of(teaA.getUid(), teaB.getUid()),
+        Set.of(teaA.getName(), teaB.getName()),
+        Set.of(),
+        true);
+  }
+
+  private void enableIndexableFlag(Set<TrackedEntityAttribute> attributes) {
+    attributes.forEach(
+        attr -> {
+          attr.setTrigramIndexable(true);
+          manager.update(attr);
+        });
+  }
+
   private void blockTrigramOperators(Set<TrackedEntityAttribute> attributes) {
     attributes.forEach(
         attr -> {
           attr.setBlockedSearchOperators(Set.of(LIKE, EW));
+          manager.update(attr);
+        });
+  }
+
+  private void unblockTrigramOperators(Set<TrackedEntityAttribute> attributes) {
+    attributes.forEach(
+        attr -> {
+          attr.setBlockedSearchOperators(Set.of());
           manager.update(attr);
         });
   }
