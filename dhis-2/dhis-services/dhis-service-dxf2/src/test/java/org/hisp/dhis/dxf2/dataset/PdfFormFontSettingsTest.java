@@ -32,11 +32,11 @@ package org.hisp.dhis.dxf2.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
 import java.util.Locale;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.junit.jupiter.api.Test;
+import org.openpdf.text.Font;
+import org.openpdf.text.FontFactory;
 
 class PdfFormFontSettingsTest {
 

@@ -44,8 +44,6 @@ import static org.hisp.dhis.system.util.PDFUtils.resetPaddings;
 
 import com.csvreader.CsvWriter;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfPTable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -104,6 +102,8 @@ import org.htmlparser.nodes.TagNode;
 import org.htmlparser.tags.CompositeTag;
 import org.htmlparser.tags.TableRow;
 import org.htmlparser.tags.TableTag;
+import org.openpdf.text.Document;
+import org.openpdf.text.pdf.PdfPTable;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**

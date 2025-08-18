@@ -29,16 +29,6 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.HeaderFooter;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.AcroFields;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfReader;
 import java.awt.Color;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -49,6 +39,16 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
+import org.openpdf.text.Document;
+import org.openpdf.text.Element;
+import org.openpdf.text.Font;
+import org.openpdf.text.HeaderFooter;
+import org.openpdf.text.PageSize;
+import org.openpdf.text.Phrase;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.AcroFields;
+import org.openpdf.text.pdf.PdfPCell;
+import org.openpdf.text.pdf.PdfReader;
 
 /**
  * @author James Chang

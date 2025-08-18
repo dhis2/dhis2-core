@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.PdfWriter;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.openpdf.text.Document;
+import org.openpdf.text.Rectangle;
+import org.openpdf.text.pdf.PdfWriter;
 
 /**
  * @author James Chang
