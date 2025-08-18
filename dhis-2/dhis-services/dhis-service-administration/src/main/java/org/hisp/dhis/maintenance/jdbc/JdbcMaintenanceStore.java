@@ -120,9 +120,13 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
   @Override
   public int hardDeleteTrackerEvents(
-      List<String> eventsToDelete, String eventSelect, String eventDelete) {
-    String pmSelect = "(select id from programmessage where trackereventid in " + eventSelect + ")";
-
+      List<String> trackerEventsToDelete,
+      String trackerEventSelect,
+      String trackerEventDeleteQuery) {
+    String pmSelect =
+        "(select id from programmessage where trackereventid in " + trackerEventSelect + ")";
+    String noteSelect =
+        "(select noteid from trackerevent_notes where eventid in " + trackerEventSelect + ")";
     /*
      * Delete event values, event value audits, event notes, events
      *
@@ -137,34 +141,33 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete related events notes
-          "delete from trackerevent_notes where eventid in " + eventSelect,
-          """
-            delete from note where noteid not in
-            (select noteid from trackerevent_notes
-              union all select noteid from singleevent_notes
-              union all select noteid from enrollment_notes)""",
+          "delete from trackerevent_notes where eventid in " + trackerEventSelect,
+          "delete from note where noteid in" + noteSelect,
           // delete other objects related to events
-          "delete from relationshipitem where trackereventid in " + eventSelect,
-          "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
-          "delete from trackereventchangelog where eventid in " + eventSelect,
-          "delete from programmessage where trackereventid in " + eventSelect,
-          "delete from programnotificationinstance where trackereventid in " + eventSelect,
+          "delete from relationshipitem where trackereventid in " + trackerEventSelect,
+          "delete from trackedentitydatavalueaudit where eventid in " + trackerEventSelect,
+          "delete from trackereventchangelog where eventid in " + trackerEventSelect,
+          "delete from programmessage where trackereventid in " + trackerEventSelect,
+          "delete from programnotificationinstance where trackereventid in " + trackerEventSelect,
           // finally delete the events
-          eventDelete
+          trackerEventDeleteQuery
         };
 
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
 
-    if (result > 0 && !eventsToDelete.isEmpty()) {
-      auditHardDeletedEntity(eventsToDelete, TrackerEvent.class);
+    if (result > 0 && !trackerEventsToDelete.isEmpty()) {
+      auditHardDeletedEntity(trackerEventsToDelete, TrackerEvent.class);
     }
     return result;
   }
 
   @Override
   public int hardDeleteSingleEvents(
-      List<String> eventsToDelete, String eventSelect, String eventDelete) {
-    String pmSelect = "(select id from programmessage where singleeventid in " + eventSelect + ")";
+      List<String> singleEventsToDelete, String singleEventSelect, String singleEventDeleteQuery) {
+    String pmSelect =
+        "(select id from programmessage where singleeventid in " + singleEventSelect + ")";
+    String noteSelect =
+        "(select noteid from singleevent_notes where eventid in " + singleEventSelect + ")";
 
     /*
      * Delete event values, event value audits, event notes, events
@@ -180,26 +183,22 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage_phonenumbers where programmessagephonenumberid in "
               + pmSelect,
           // delete related events notes
-          "delete from singleevent_notes where eventid in " + eventSelect,
-          """
-            delete from note where noteid not in
-            (select noteid from trackerevent_notes
-              union all select noteid from singleevent_notes
-              union all select noteid from enrollment_notes)""",
+          "delete from singleevent_notes where eventid in " + singleEventSelect,
+          "delete from note where noteid in" + noteSelect,
           // delete other objects related to events
-          "delete from relationshipitem where singleeventid in " + eventSelect,
-          "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
-          "delete from singleeventchangelog where eventid in " + eventSelect,
-          "delete from programmessage where singleeventid in " + eventSelect,
-          "delete from programnotificationinstance where singleeventid in " + eventSelect,
+          "delete from relationshipitem where singleeventid in " + singleEventSelect,
+          "delete from trackedentitydatavalueaudit where eventid in " + singleEventSelect,
+          "delete from singleeventchangelog where eventid in " + singleEventSelect,
+          "delete from programmessage where singleeventid in " + singleEventSelect,
+          "delete from programnotificationinstance where singleeventid in " + singleEventSelect,
           // finally delete the events
-          eventDelete
+          singleEventDeleteQuery
         };
 
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
 
-    if (result > 0 && !eventsToDelete.isEmpty()) {
-      auditHardDeletedEntity(eventsToDelete, SingleEvent.class);
+    if (result > 0 && !singleEventsToDelete.isEmpty()) {
+      auditHardDeletedEntity(singleEventsToDelete, SingleEvent.class);
     }
     return result;
   }
@@ -249,6 +248,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
     String pmSelect =
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
+    String noteSelect =
+        "(select noteid from enrollment_notes where eventid in " + enrollmentSelect + ")";
 
     /*
      * Delete event values, event value audits, event notes, events,
@@ -267,11 +268,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           // delete notes linked to both enrollments and events
           "delete from trackerevent_notes where eventid in " + eventSelect,
           "delete from enrollment_notes where enrollmentid in " + enrollmentSelect,
-          """
-            delete from note where noteid not in
-            (select noteid from trackerevent_notes
-              union all select noteid from singleevent_notes
-              union all select noteid from enrollment_notes)""",
+          "delete from note where noteid in" + noteSelect,
           // delete other entries linked to events
           "delete from relationshipitem where trackereventid in " + eventSelect,
           "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,

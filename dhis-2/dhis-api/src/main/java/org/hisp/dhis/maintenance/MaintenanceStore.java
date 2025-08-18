@@ -60,10 +60,12 @@ public interface MaintenanceStore {
   int deleteSoftDeletedEvents();
 
   int hardDeleteTrackerEvents(
-      List<String> eventsToDelete, String eventSelect, String eventDeleteQuery);
+      List<String> trackerEventsToDelete,
+      String trackerEventSelect,
+      String trackerEventDeleteQuery);
 
   int hardDeleteSingleEvents(
-      List<String> eventsToDelete, String eventSelect, String eventDeleteQuery);
+      List<String> singleEventsToDelete, String singleEventSelect, String singleEventDeleteQuery);
 
   /**
    * Permanently deletes relationships which have been soft deleted, i.e. relationships where the
