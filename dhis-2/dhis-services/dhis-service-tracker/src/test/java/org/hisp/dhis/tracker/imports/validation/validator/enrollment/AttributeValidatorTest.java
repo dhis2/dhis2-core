@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -41,10 +42,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -57,11 +61,15 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -141,6 +149,17 @@ class AttributeValidatorTest {
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
+  }
+
+  static Stream<Arguments> validImageFormats() {
+    return Constant.VALID_IMAGE_FORMATS.stream().map(Arguments::of);
+  }
+
+  static Stream<Arguments> invalidImageFormats() {
+    Set<String> invalidCandidates = Set.of("exe", "dat", "pdf", "docx");
+    return invalidCandidates.stream()
+        .filter(fmt -> !Constant.VALID_IMAGE_FORMATS.contains(fmt))
+        .map(Arguments::of);
   }
 
   @Test
@@ -514,5 +533,57 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, ValidationCode.E1006);
+  }
+
+  @ParameterizedTest(name = "Should pass when format={0}")
+  @MethodSource("validImageFormats")
+  void shouldPassValidationWhenImageFileResourceHasValidFormat(String format) {
+    runImageValidationTest(format, true);
+  }
+
+  @ParameterizedTest(name = "Should fail when format={0}")
+  @MethodSource("invalidImageFormats")
+  void shouldFailValidationWhenImageFileResourceHasInvalidFormat(String format) {
+    runImageValidationTest(format, false);
+  }
+
+  private void runImageValidationTest(String format, boolean shouldPass) {
+    String fileResUid = CodeGenerator.generateUid();
+    TrackedEntityAttribute imageAttr =
+        new TrackedEntityAttribute(
+            "profilePic", "User profile image", ValueType.IMAGE, false, false);
+    imageAttr.setUid("imageAttrUid");
+
+    Attribute imageAttribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(imageAttr.getUid()))
+            .value(fileResUid)
+            .build();
+
+    FileResource fileResource = mock(FileResource.class);
+    when(fileResource.getUid()).thenReturn(fileResUid);
+    when(fileResource.getFormat()).thenReturn(format);
+    when(fileResource.getContentMd5()).thenReturn("file");
+    when(preheat.get(FileResource.class, fileResUid)).thenReturn(fileResource);
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            java.util.Collections.singletonList(
+                new ProgramTrackedEntityAttribute(program, imageAttr, false, false)));
+
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("imageAttrUid")))
+        .thenReturn(imageAttr);
+
+    when(enrollment.getAttributes())
+        .thenReturn(java.util.Collections.singletonList(imageAttribute));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    if (shouldPass) {
+      assertNoErrors(reporter);
+    } else {
+      assertHasError(reporter, enrollment, ValidationCode.E1007);
+    }
   }
 }
