@@ -166,7 +166,7 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("Deleting source events as dataMergeStrategy is DISCARD");
+      log.info("Deleting source tracker events as dataMergeStrategy is DISCARD");
       String aocIds =
           sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
 
@@ -202,7 +202,7 @@ public class DataCategoryOptionComboMergeHandler {
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("Deleting source events as dataMergeStrategy is DISCARD");
+      log.info("Deleting source single events as dataMergeStrategy is DISCARD");
       String aocIds =
           sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
 
