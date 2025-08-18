@@ -249,7 +249,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     String pmSelect =
         "(select id from programmessage where enrollmentid in " + enrollmentSelect + " )";
     String noteSelect =
-        "(select noteid from enrollment_notes where eventid in " + enrollmentSelect + ")";
+        "(select noteid from enrollment_notes where enrollmentid in " + enrollmentSelect + ")";
 
     /*
      * Delete event values, event value audits, event notes, events,
