@@ -1,5 +1,5 @@
 ---
-name: tracked_entity_attributes_wrong_trigram_index_configuration
+name: tracked_entity_attributes_invalid_trigram_search_configuration
 description: Tracked entity attributes eligible for trigram indexing but misconfigured so the partial trigram index is not created.
 section: Tracked entity attributes
 section_order: 1

@@ -62,7 +62,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
   void testTrackedEntityAttributesWithBasicConfiguration() {
     assertHasNoDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         true);
   }
 
@@ -73,7 +73,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -88,7 +88,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
@@ -102,7 +102,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -116,7 +116,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
@@ -132,7 +132,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -148,7 +148,7 @@ class DataIntegrityTrackedEntityAttributesIndexableButBlockingTrigramOperatorsCo
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_wrong_trigram_index_configuration",
+        "tracked_entity_attributes_invalid_trigram_search_configuration",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
