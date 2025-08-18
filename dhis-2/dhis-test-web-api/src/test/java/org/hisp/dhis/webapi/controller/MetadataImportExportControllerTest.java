@@ -895,6 +895,11 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Then the import fails and the COCs show as ignored
     assertEquals("ERROR", report.getStatus());
     assertEquals(3, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    assertEquals(
+        "Importing CategoryOptionCombos size 3 does not match expected size 4",
+        errorReport.getMessage());
   }
 
   @Test
@@ -913,6 +918,11 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Then the import fails and the COCs show as ignored
     assertEquals("ERROR", report.getStatus());
     assertEquals(5, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    assertEquals(
+        "Importing CategoryOptionCombos size 5 does not match expected size 4",
+        errorReport.getMessage());
   }
 
   @Test
@@ -949,8 +959,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(
         "Importing CategoryOptionCombos size 3 does not match expected size 4",
         errorReport.getMessage());
-
-    System.out.println("test");
   }
 
   @Test

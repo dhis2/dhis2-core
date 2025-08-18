@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -87,9 +88,11 @@ public class CategoryOptionComboObjectBundleHook
 
     // todo transform to coc DTO
 
-    if (genCocs.size() == 0) {
+    if (genCocs.isEmpty()) {
       // might be impossible to gen from new cc (has c but no co), get cos from bundle?
       // get cc from bundle
+      CombinationGenerator<UID> generator =
+          CombinationGenerator.newInstance(getCosAsLists(categoryCombo, bundle));
     }
 
     // check if all provided match generated
@@ -98,6 +101,12 @@ public class CategoryOptionComboObjectBundleHook
           new ErrorReport(
               CategoryOptionCombo.class, E1130, allProvidedCocsForCc.size(), genCocs.size()));
     }
+  }
+
+  private List<List<UID>> getCosAsLists(CategoryCombo categoryCombo, ObjectBundle bundle) {
+    // get categories from CC
+    // get list of cos from categories
+    return List.of();
   }
 
   private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {
