@@ -16,7 +16,7 @@
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
     <tomcat.version>11.0.9</tomcat.version>
-    <jib.version>3.4.5</jib.version>
+    <jib.version>3.4.6</jib.version>
     <jib.from.image>tomcat:${tomcat.version}-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
