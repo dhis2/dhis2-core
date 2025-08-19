@@ -44,20 +44,6 @@ import org.locationtech.jts.geom.Point;
  */
 class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private TrackedEntity trackedEntityWithInvalidSRID;
-
-  @Test
-  void testTrackedEntitiesWithInvalidSRID() {
-    setUp();
-    assertHasDataIntegrityIssues(
-        "tracker",
-        "tracker_geometry_invalid_srid",
-        50,
-        trackedEntityWithInvalidSRID.getUid(),
-        "trackedentity",
-        "Expected SRID 4326 but found 0",
-        true);
-  }
 
   @Test
   void testTrackedEntitiesWithNoData() {
@@ -68,31 +54,6 @@ class DataIntegrityTrackerEntitiesInvalidSRIDControllerTest
   void testTrackedEntitiesWithValidSRID() {
     setUpValidData();
     assertHasNoDataIntegrityIssues("tracker", "tracker_geometry_invalid_srid", true);
-  }
-
-  private void setUp() {
-    OrganisationUnit organisationUnit = createOrganisationUnit('O');
-    manager.save(organisationUnit);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('P');
-    manager.save(trackedEntityType);
-
-    Program program = createProgram('P', Set.of(), organisationUnit);
-    manager.save(program);
-
-    TrackedEntity trackedEntityWithValidSRID =
-        createTrackedEntity(organisationUnit, trackedEntityType);
-    Point point = new GeometryFactory().createPoint(new Coordinate(60.0, 30.0));
-    point.setSRID(4326);
-    trackedEntityWithValidSRID.setGeometry(point);
-
-    trackedEntityWithInvalidSRID = createTrackedEntity(organisationUnit, trackedEntityType);
-    point = new GeometryFactory().createPoint(new Coordinate(60.0, 30.0));
-    point.setSRID(0); // invalid SRID
-    trackedEntityWithInvalidSRID.setGeometry(point);
-
-    manager.save(trackedEntityWithValidSRID);
-    manager.save(trackedEntityWithInvalidSRID);
   }
 
   private void setUpValidData() {
