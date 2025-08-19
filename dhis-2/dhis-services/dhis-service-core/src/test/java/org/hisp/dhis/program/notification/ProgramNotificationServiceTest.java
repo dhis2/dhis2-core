@@ -48,7 +48,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -88,7 +87,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Zubair Asghar.
  */
-@Slf4j
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationServiceTest extends TestBase {
