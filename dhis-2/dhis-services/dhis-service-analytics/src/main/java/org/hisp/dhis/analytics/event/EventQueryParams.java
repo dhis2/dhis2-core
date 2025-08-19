@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -42,6 +43,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
@@ -58,6 +60,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -726,7 +729,7 @@ public class EventQueryParams extends DataQueryParams {
         .filter(QueryItem::hasLegendSet)
         .map(i -> i.getLegendSet().getLegends())
         .flatMap(Set::stream)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /** Get options for option sets part of items and item filters. */
@@ -735,7 +738,7 @@ public class EventQueryParams extends DataQueryParams {
         .filter(QueryItem::hasOptionSet)
         .map(q -> q.getOptionSet().getOptions())
         .flatMap(List::stream)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /**
@@ -1015,6 +1018,21 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasFilterPeriods() {
     return isNotEmpty(getFilterPeriods());
+  }
+
+  /**
+   * Verifies whether there is an org. unit filter associated with a query item.
+   *
+   * @return true if the org. unit filter is present, false otherwise.
+   */
+  public boolean hasOrgUnitFilterInItem() {
+    Set<QueryItem> itemsSet =
+        Stream.concat(getItems().stream(), getItemFilters().stream())
+            .filter(QueryItem::hasFilter)
+            .filter(item -> item.getValueType() == ORGANISATION_UNIT)
+            .collect(toSet());
+
+    return isNotEmpty(itemsSet);
   }
 
   public boolean hasHeaders() {
