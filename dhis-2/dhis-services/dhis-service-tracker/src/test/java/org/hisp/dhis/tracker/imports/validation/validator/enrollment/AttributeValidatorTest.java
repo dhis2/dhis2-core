@@ -157,9 +157,7 @@ class AttributeValidatorTest {
 
   static Stream<Arguments> invalidImageFormats() {
     Set<String> invalidCandidates = Set.of("exe", "dat", "pdf", "docx");
-    return invalidCandidates.stream()
-        .filter(fmt -> !Constant.VALID_IMAGE_FORMATS.contains(fmt))
-        .map(Arguments::of);
+    return invalidCandidates.stream().map(Arguments::of);
   }
 
   @Test
