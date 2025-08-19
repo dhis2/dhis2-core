@@ -84,7 +84,8 @@ class RepeatedEventsValidator implements Validator<List<TrackerEvent>> {
             e ->
                 bundle
                     .getPreheat()
-                    .hasProgramStageWithEvents(e.getProgramStage(), e.getEnrollment().getValue()))
+                    .hasProgramStageWithTrackerEvents(
+                        e.getProgramStage(), e.getEnrollment().getValue()))
         .forEach(e -> reporter.addError(e, ValidationCode.E1039, e.getProgramStage()));
   }
 }

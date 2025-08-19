@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
+public class TrackerEventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
   private static final String PS_UID = "programStageUid";
 
   private static final String PI_UID = "enrollmentUid";
@@ -70,7 +70,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           + " and ps.uid in (:programStageUids) "
           + " and en.uid in (:enrollmentUids) ";
 
-  protected EventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
+  protected TrackerEventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
@@ -106,7 +106,9 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           SQL,
           parameters,
           (RowCallbackHandler)
-              rs -> preheat.addProgramStageWithEvents(rs.getString(PS_UID), rs.getString(PI_UID)));
+              rs ->
+                  preheat.addProgramStageWithTrackerEvents(
+                      rs.getString(PS_UID), rs.getString(PI_UID)));
     }
   }
 }

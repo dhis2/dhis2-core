@@ -125,7 +125,7 @@ class RepeatedEventsValidatorTest extends TestBase {
     // when
     bundle.setStrategy(event, TrackerImportStrategy.CREATE);
 
-    when(preheat.hasProgramStageWithEvents(
+    when(preheat.hasProgramStageWithTrackerEvents(
             event.getProgramStage(), event.getEnrollment().getValue()))
         .thenReturn(true);
     bundle.setEvents(List.of(event));

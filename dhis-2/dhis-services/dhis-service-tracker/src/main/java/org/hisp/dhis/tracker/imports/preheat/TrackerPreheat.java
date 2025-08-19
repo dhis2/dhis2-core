@@ -263,7 +263,7 @@ public class TrackerPreheat {
   @Getter @Setter private List<UID> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
   /** A list of Program Stage UID having 1 or more Events */
-  private final List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
+  private final List<Pair<String, String>> programStageWithTrackerEvents = Lists.newArrayList();
 
   /** idScheme map */
   @Getter @Setter private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
@@ -611,14 +611,14 @@ public class TrackerPreheat {
     return get(TrackedEntityAttribute.class, id);
   }
 
-  public TrackerPreheat addProgramStageWithEvents(String programStageUid, String enrollmentUid) {
-    this.programStageWithEvents.add(Pair.of(programStageUid, enrollmentUid));
-    return this;
+  public void addProgramStageWithTrackerEvents(String programStageUid, String enrollmentUid) {
+    this.programStageWithTrackerEvents.add(Pair.of(programStageUid, enrollmentUid));
   }
 
-  public boolean hasProgramStageWithEvents(MetadataIdentifier programStage, String enrollmentUid) {
+  public boolean hasProgramStageWithTrackerEvents(
+      MetadataIdentifier programStage, String enrollmentUid) {
     ProgramStage ps = this.getProgramStage(programStage);
-    return this.programStageWithEvents.contains(Pair.of(ps.getUid(), enrollmentUid));
+    return this.programStageWithTrackerEvents.contains(Pair.of(ps.getUid(), enrollmentUid));
   }
 
   /** Checks if an entity exists in the DB. */
