@@ -961,7 +961,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     List<String> columnsWithNoAliases = eventSubject.removeAliases(columnsWithAliases);
 
     // Then
-    assertTrue(columnsWithNoAliases.size() == columnsWithAliases.size());
+    assertEquals(columnsWithAliases.size(), columnsWithNoAliases.size());
     assertTrue(columnsWithNoAliases.contains("columnA"));
     assertTrue(columnsWithNoAliases.contains("columnB"));
     assertTrue(columnsWithNoAliases.contains("columnC"));
