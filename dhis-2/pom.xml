@@ -104,7 +104,7 @@
     <spring-authorization-server.version>1.5.1</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.3</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.4.2</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -118,7 +118,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.7.1.RELEASE</lettuce.version>
+    <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-database-postgresql.version>11.8.2</flyway-database-postgresql.version>
