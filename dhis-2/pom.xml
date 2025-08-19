@@ -205,7 +205,7 @@
     <commons-io.version>2.20.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <jakarta-email.version>1.6.7</jakarta-email.version>
+    <jakarta-email.version>2.0.2</jakarta-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
     <httpcomponents-client5.version>5.5</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
