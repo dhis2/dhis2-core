@@ -969,7 +969,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testgetGroupByColumnNamesWithoutAliases() {
+  void testGetGroupByColumnNamesWithoutAliases() {
+    // Given
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
@@ -996,8 +997,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withSkipMeta(false)
             .build();
 
+    // When
     List<String> columns = eventSubject.getGroupByColumnNames(params, false);
 
+    // Then
     assertThat(columns, hasSize(3));
     assertThat(
         columns,
