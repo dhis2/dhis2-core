@@ -1,6 +1,6 @@
 ---
 name: tracked_entity_attributes_invalid_trigram_search_configuration
-description: Tracked entity attributes eligible for trigram indexing but misconfigured so the partial trigram index is not created.
+description: Tracked entity attributes having a suboptimal search configuration that potentially results in slower search performance when searching tracked entities using those attributes.
 section: Tracked entity attributes
 section_order: 1
 summary_sql: >-
