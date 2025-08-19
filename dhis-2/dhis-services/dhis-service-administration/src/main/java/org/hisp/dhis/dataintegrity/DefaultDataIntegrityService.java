@@ -511,6 +511,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("orgunits_compulsory_group_count");
     checks.add("indicators_violating_exclusive_group_sets");
     checks.add("tracker_geometry_invalid_srid");
+    checks.add("tracked_entity_attributes_run_trigram_index_job");
     return checks;
   }
 
