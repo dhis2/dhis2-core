@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -58,13 +61,13 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     assertGetRequestContract(contract);
   }
 
-  private void assertGetRequestContract(Contract contract)
+  private <T extends IdentifiableObject> void assertGetRequestContract(Contract contract)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
           JsonProcessingException {
     // Given a object exists
-    IdentifiableObject identifiableObject = createTypeAndSave(contract);
+    T identifiableObject = createTypeAndSave(contract);
 
     // When a GET call is made for that object
     HttpResponse response = GET(contract.requestUrl().replace("{id}", identifiableObject.getUid()));
@@ -72,15 +75,19 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // Then the HTTP status code should match
     assertEquals(contract.responseStatus(), response.status().code(), "HTTP status code mismatch");
 
+    // test string schema
+    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
+    JsonSchema testSchema = factory.getSchema(jsSchema());
+
     // And the response body should not have any JSON schema validation errors
     Set<ValidationMessage> errors =
-        contract.jsonSchema().validate(mapper.readTree(response.content().toJson()));
+        testSchema.validate(mapper.readTree(response.content().toJson()));
     assertTrue(
         errors.isEmpty(),
         () -> String.format("Valid JSON should pass schema validation, errors: %s", errors));
   }
 
-  private IdentifiableObject createTypeAndSave(Contract contract)
+  private <T extends IdentifiableObject> T createTypeAndSave(Contract contract)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     // get type from contract
     String type = contract.name();
@@ -96,7 +103,8 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // it is expected that the create+'type' method exists. Create one if not.
     Method method = TestBase.class.getMethod("create" + type, char.class);
     Object createdType = method.invoke(null, 'a');
-    IdentifiableObject identifiableObject = (IdentifiableObject) klass.cast(createdType);
+    Object createdType1 = klass.cast(createdType);
+    T identifiableObject = (T) createdType1;
     manager.save(identifiableObject);
     return identifiableObject;
   }
@@ -144,5 +152,153 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
       log.error(e.getMessage());
     }
     return contracts;
+  }
+
+  private String jsSchema() {
+    return """
+    {
+        "type": "object",
+        "properties": {
+            "code": {
+                "type": "string"
+            },
+            "dataDimensionType": {
+                "type": "string",
+                "enum": [
+                    "DISAGGREGATION",
+                    "ATTRIBUTE"
+                ],
+                "default": "DISAGGREGATION"
+            },
+            "id": {
+                "type": "string"
+            },
+            "displayName": {
+                "type": "string"
+            },
+            "created": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "createdBy": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "code",
+                    "displayName",
+                    "username"
+                ],
+                "additionalProperties": false
+            },
+            "href": {
+                "type": "string",
+                "format": "uri"
+            },
+            "lastUpdated": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "lastUpdatedBy": {
+                "$ref": "#/properties/createdBy"
+            },
+            "sharing": {
+                "type": "object",
+                "properties": {
+                    "public": {
+                        "type": "string",
+                        "const": "rw------"
+                    }
+                },
+                "required": [
+                    "public"
+                ],
+                "additionalProperties": false
+            },
+            "access": {
+                "type": "object",
+                "properties": {
+                    "delete": {
+                        "type": "boolean"
+                    },
+                    "externalize": {
+                        "type": "boolean"
+                    },
+                    "manage": {
+                        "type": "boolean"
+                    },
+                    "read": {
+                        "type": "boolean"
+                    },
+                    "update": {
+                        "type": "boolean"
+                    },
+                    "write": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "read": {
+                                "type": "boolean"
+                            },
+                            "write": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "read",
+                            "write"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "delete",
+                    "externalize",
+                    "manage",
+                    "read",
+                    "update",
+                    "write"
+                ],
+                "additionalProperties": false
+            },
+            "displayShortName": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "id",
+            "displayName",
+            "created",
+            "createdBy",
+            "href",
+            "lastUpdated",
+            "sharing",
+            "access",
+            "displayShortName"
+        ],
+        "additionalProperties": false
+    }
+    """;
   }
 }
