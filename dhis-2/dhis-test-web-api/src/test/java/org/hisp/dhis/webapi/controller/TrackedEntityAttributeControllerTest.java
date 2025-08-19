@@ -88,59 +88,20 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
   }
 
   @Test
-  void getIndexableOnlyAttributes() {
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of(teaA.getName(), teaB.getName()));
-  }
-
-  @Test
   void getAllAttributes() {
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=false").content(HttpStatus.OK);
+    JsonObject json = GET("/trackedEntityAttributes").content(HttpStatus.OK);
 
     assertAttributeList(
         json, Set.of(teaA.getName(), teaB.getName(), teaC.getName(), teaD.getName()));
   }
 
   @Test
-  void getIndexableAttributesAndFilterByIdShouldThrowError() {
-    assertEquals(
-        "indexableOnly parameter cannot be set if a separate filter for id is specified",
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=id:eq:ImspTQPwCqd")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void getIndexableAttributesAndFilterByOtherParameters() {
-    JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]")
-            .content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of(teaB.getName()));
-  }
-
-  @Test
   void getAttributesWithNameFilter() {
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeB,AttributeC]")
+        GET("/trackedEntityAttributes?filter=name:in:[AttributeB,AttributeC]")
             .content(HttpStatus.OK);
 
     assertAttributeList(json, Set.of(teaB.getName(), teaC.getName()));
-  }
-
-  @Test
-  void shouldNotFailIfNoIndexableAttributesAreConfigured() {
-    teaA.setTrigramIndexable(false);
-    manager.update(teaA);
-    teaB.setTrigramIndexable(false);
-    manager.update(teaB);
-
-    JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]")
-            .content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of());
   }
 
   @Test
@@ -149,8 +110,7 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
-            .content(HttpStatus.OK);
+        GET("/trackedEntityAttributes?filter=name:in:[AttributeA]&fields=*").content(HttpStatus.OK);
 
     assertAttributePreferredOperator(json, Set.of(LIKE.name()));
   }
@@ -161,8 +121,7 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
-            .content(HttpStatus.OK);
+        GET("/trackedEntityAttributes?filter=name:in:[AttributeA]&fields=*").content(HttpStatus.OK);
 
     assertAttributeBlockedOperators(json, Set.of(LIKE.name(), NNULL.name()));
   }
