@@ -154,6 +154,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   private User userLvlTwoLeftLeft;
 
+  private User userLvlTwoLeftLeftDisabled;
+
   private User userLvlTwoLeftRight;
 
   private User userLvlOneLeft;
@@ -569,19 +571,31 @@ class ProgramNotificationServiceTest extends TestBase {
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
     TrackerEvent event = trackerEvents.iterator().next();
-
     programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
     // no message when no template is attached
     assertEquals(0, sentInternalMessages.size());
-
     event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
 
     programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
     assertEquals(1, sentInternalMessages.size());
-
+    assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
+    sentInternalMessages.clear();
+
+    programNotificationTemplate.setNotifyUsersInHierarchyOnly(true);
+    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
+    assertEquals(1, sentInternalMessages.size());
+    assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
+    assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
+    sentInternalMessages.clear();
+
+    programNotificationTemplate.setNotifyUsersInHierarchyOnly(false);
+    programNotificationTemplate.setNotifyParentOrganisationUnitOnly(true);
+    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
+    assertEquals(1, sentInternalMessages.size());
+    assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
+    assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
+    sentInternalMessages.clear();
   }
 
   @Test
@@ -722,6 +736,7 @@ class ProgramNotificationServiceTest extends TestBase {
     assertTrue(users.contains(userLvlOneLeft));
     assertTrue(users.contains(userRoot));
 
+    assertFalse(users.contains(userLvlTwoLeftLeftDisabled));
     assertFalse(users.contains(userLvlTwoLeftRight));
     assertFalse(users.contains(userLvlOneRight));
   }
@@ -920,10 +935,15 @@ class ProgramNotificationServiceTest extends TestBase {
     userB = makeUser("V");
     userB.setPhoneNumber(USERB_PHONE_NUMBER);
     userB.getOrganisationUnits().add(lvlTwoLeftLeft);
+    userB.getOrganisationUnits().add(lvlOneLeft);
 
     userGroup = createUserGroup('G', Sets.newHashSet(userA, userB));
 
     // User based on hierarchy
+    userLvlTwoLeftLeftDisabled = makeUser("D");
+    userLvlTwoLeftLeftDisabled.setDisabled(true);
+    userLvlTwoLeftLeftDisabled.getOrganisationUnits().add(lvlTwoLeftLeft);
+    lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftLeftDisabled);
 
     userLvlTwoLeftLeft = makeUser("K");
     userLvlTwoLeftLeft.getOrganisationUnits().add(lvlTwoLeftLeft);
