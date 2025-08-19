@@ -94,7 +94,7 @@
     <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
+    <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
     <dhis-json-tree.version>1.8</dhis-json-tree.version>
 
@@ -227,7 +227,7 @@
     <testcontainers.version>1.21.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.27</swagger.version>
+    <swagger.version>2.1.32</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
