@@ -789,22 +789,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause, boolean omitAlias) {
-    String baseQuery =
-        format(
-            "(select %s"
-                + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
-                + "and trackedentityattributeid="
-                + attribute.getId()
-                + dataClause
-                + ")"
-                + getClosingParentheses(fromType),
-            fromType);
+    String aliasClause = omitAlias ? "" : " as " + quote(attribute.getUid());
 
-    if (omitAlias) {
-      return baseQuery;
-    } else {
-      return baseQuery + " as " + quote(attribute.getUid());
-    }
+    return format(
+        "(select %s from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+            + "and trackedentityattributeid=%d%s)%s%s",
+        fromType, attribute.getId(), dataClause, getClosingParentheses(fromType), aliasClause);
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
