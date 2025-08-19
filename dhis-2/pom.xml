@@ -116,7 +116,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.7.1.RELEASE</lettuce.version>
+    <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -139,7 +139,7 @@
 
     <!-- Jackson -->
     <jackson.version>2.14.3</jackson.version>
-    <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
+    <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
     <!-- JAXB -->
@@ -225,7 +225,7 @@
     <testcontainers.version>1.21.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.31</swagger.version>
+    <swagger.version>2.1.32</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
