@@ -494,7 +494,7 @@ class ProgramNotificationServiceTest extends TestBase {
     sentInternalMessages.clear();
 
     programNotificationTemplate.setNotifyUsersInHierarchyOnly(true);
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
+    programNotificationService.sendEventCompletionNotifications(event.getId());
     assertEquals(1, sentInternalMessages.size());
     assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
@@ -502,7 +502,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
     programNotificationTemplate.setNotifyUsersInHierarchyOnly(false);
     programNotificationTemplate.setNotifyParentOrganisationUnitOnly(true);
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
+    programNotificationService.sendEventCompletionNotifications(event.getId());
     assertEquals(1, sentInternalMessages.size());
     assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
