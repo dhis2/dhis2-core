@@ -37,6 +37,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
@@ -93,6 +94,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         periodDataProvider,
         sqlBuilder);
   }
+
+  private static final Pattern ALIAS_PATTERN = Pattern.compile("\\s+as\\s+\\S+$");
 
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
@@ -266,6 +269,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     String sqlWithAlias = selectForInsert(attribute, fromType, dataClause);
     // Remove the alias part (everything from " as " to the end)
-    return sqlWithAlias.replaceAll("\\s+as\\s+\\S+$", "");
+    return ALIAS_PATTERN.matcher(sqlWithAlias).replaceAll("");
   }
 }
