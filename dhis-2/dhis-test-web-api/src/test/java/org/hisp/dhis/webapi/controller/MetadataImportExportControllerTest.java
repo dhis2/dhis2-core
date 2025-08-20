@@ -880,6 +880,31 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
+  @DisplayName(
+      "Importing (update) expected number, but different CategoryOptionCombos, should fail")
+  void importExpectedCocsDifferentTest() {
+    // Given category metadata exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("a");
+
+    // When importing COCs that match expected number, but differ from the generated COC state
+    JsonImportSummary report =
+        POST("/metadata", Body(cocsDifferExpectedNumState(categoryMetadata)))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(4, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    assertEquals(
+        "Importing CategoryOptionCombo state does not match expected generated state",
+        errorReport.getMessage());
+  }
+
+  @Test
   @DisplayName("Importing (update) fewer CategoryOptionCombos than expected should fail")
   void importFewerCocsTest() {
     // Given category metadata exists
@@ -938,6 +963,30 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Then the import is successful and the COCs show as created (4 cocs + 7 other metadata)
     assertEquals("OK", report.getStatus());
     assertEquals(11, report.getStats().getCreated());
+  }
+
+  @Test
+  @DisplayName(
+      "Importing (create) expected number, but different CategoryOptionCombos, should fail")
+  void importExpectedCocsDifferentCreateTest() {
+    // When importing COCs that match expected number, but differ from the generated COC state
+    JsonImportSummary report =
+        POST(
+                "/metadata",
+                Path.of("metadata/category/cat_model_expected_num_but_different_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(11, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    assertEquals(
+        "Importing CategoryOptionCombo state does not match expected generated state",
+        errorReport.getMessage());
   }
 
   @Test
@@ -1054,6 +1103,88 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             metadata.cc1().getUid(),
             metadata.co1().getUid(),
             metadata.co4().getUid(),
+            metadata.coc3().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc4().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co2().getUid(),
+            metadata.co4().getUid());
+  }
+
+  private String cocsDifferExpectedNumState(TestCategoryMetadata metadata) {
+    return """
+      {
+        "categoryOptionCombos": [
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          },
+          {
+            "id": "%s",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+        ]
+      }
+      """
+        .formatted(
+            metadata.coc1().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co3().getUid(),
+            metadata.coc2().getUid(),
+            metadata.cc1().getUid(),
+            metadata.co1().getUid(),
+            metadata.co2().getUid(),
             metadata.coc3().getUid(),
             metadata.cc1().getUid(),
             metadata.co2().getUid(),

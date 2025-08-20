@@ -29,12 +29,14 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.feedback.ErrorCode.E1130;
-
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -64,7 +66,7 @@ public class CategoryOptionComboObjectBundleHook
   }
 
   private void checkIsExpectedState(
-      CategoryOptionCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+      CategoryOptionCombo optionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     // get all provided cocs with cc
     List<CategoryOptionCombo> persistedCocs = bundle.getObjects(CategoryOptionCombo.class, true);
     List<CategoryOptionCombo> newCocs = bundle.getObjects(CategoryOptionCombo.class, false);
@@ -74,39 +76,97 @@ public class CategoryOptionComboObjectBundleHook
         CollectionUtils.combinedUnmodifiableView(persistedCocs, newCocs);
 
     // get only cocs with same imported coc cc
-    // todo only use uid?? in case uninitialized
     List<CategoryOptionCombo> allProvidedCocsForCc =
         providedCocs.stream()
             .filter(
-                coc -> coc.getCategoryCombo().getUid().equals(combo.getCategoryCombo().getUid()))
+                coc ->
+                    coc.getCategoryCombo().getUid().equals(optionCombo.getCategoryCombo().getUid()))
             .toList();
 
     // get all generated cocs from cc
     CategoryCombo categoryCombo =
-        bundle.getPreheat().get(bundle.getPreheatIdentifier(), combo.getCategoryCombo());
+        bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
     Set<CategoryOptionCombo> genCocs = categoryCombo.generateOptionCombosSet();
 
-    // todo transform to coc DTO
+    ExpectedSizeResult expectedSizeResult =
+        checkExpectedSize(allProvidedCocsForCc, genCocs, categoryCombo, bundle, addReports);
+
+    // check state if expected size is true
+    if (expectedSizeResult.isExpectedSize) {
+      // expected
+      List<List<UID>> expectedCos = expectedSizeResult.expectedCocs;
+      Set<HashSet<UID>> expectedSetOfCos =
+          expectedCos.stream().map(HashSet::new).collect(Collectors.toSet());
+
+      // provided
+      Set<Set<UID>> providedSetOfCos = cocsToCoUids(allProvidedCocsForCc);
+
+      if (!expectedSetOfCos.equals(providedSetOfCos)) {
+        addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1131));
+      }
+    }
+  }
+
+  private Set<Set<UID>> cocsToCoUids(List<CategoryOptionCombo> allProvidedCocsForCc) {
+    Set<Set<UID>> providedSetOfCos = new HashSet<>();
+    for (CategoryOptionCombo coc : allProvidedCocsForCc) {
+      providedSetOfCos.add(
+          coc.getCategoryOptions().stream()
+              .map(co -> UID.of(co.getUid()))
+              .collect(Collectors.toSet()));
+    }
+    return providedSetOfCos;
+  }
+
+  private ExpectedSizeResult checkExpectedSize(
+      List<CategoryOptionCombo> allProvidedCocsForCc,
+      Set<CategoryOptionCombo> genCocs,
+      CategoryCombo categoryCombo,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
+    CombinationGenerator<UID> generator =
+        CombinationGenerator.newInstance(getCosAsLists(categoryCombo, bundle));
+    List<List<UID>> combinations = generator.getCombinations();
 
     if (genCocs.isEmpty()) {
       // might be impossible to gen from new cc (has c but no co), get cos from bundle?
       // get cc from bundle
-      CombinationGenerator<UID> generator =
-          CombinationGenerator.newInstance(getCosAsLists(categoryCombo, bundle));
+      if (combinations.size() != allProvidedCocsForCc.size()) {
+        addNewErrorReport(addReports, allProvidedCocsForCc.size(), combinations.size());
+        return new ExpectedSizeResult(false, combinations);
+      }
+      // check if all provided match generated
+    } else if (genCocs.size() != allProvidedCocsForCc.size()) {
+      addNewErrorReport(addReports, allProvidedCocsForCc.size(), genCocs.size());
+      return new ExpectedSizeResult(false, combinations);
     }
+    return new ExpectedSizeResult(true, combinations);
+  }
 
-    // check if all provided match generated
-    if (genCocs.size() != allProvidedCocsForCc.size()) {
-      addReports.accept(
-          new ErrorReport(
-              CategoryOptionCombo.class, E1130, allProvidedCocsForCc.size(), genCocs.size()));
-    }
+  private void addNewErrorReport(
+      Consumer<ErrorReport> addReports, int providedSize, int expectedSize) {
+    addReports.accept(
+        new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1130, providedSize, expectedSize));
   }
 
   private List<List<UID>> getCosAsLists(CategoryCombo categoryCombo, ObjectBundle bundle) {
-    // get categories from CC
+    // get categories from CC or bundle if empty
+    List<Category> categories =
+        bundle.getPreheat().getAll(bundle.getPreheatIdentifier(), categoryCombo.getCategories());
+    List<List<UID>> categoryOptionLists = new ArrayList<>();
+
+    if (categories.isEmpty()) {
+      categories = categoryCombo.getCategories();
+    }
+    // get options from bundle
+
+    for (Category category : categories) {
+      // get options matching category uid
+      categoryOptionLists.add(
+          category.getCategoryOptions().stream().map(co -> UID.of(co.getUid())).toList());
+    }
     // get list of cos from categories
-    return List.of();
+    return categoryOptionLists;
   }
 
   private void checkIsValid(CategoryOptionCombo combo, Consumer<ErrorReport> addReports) {
@@ -135,17 +195,19 @@ public class CategoryOptionComboObjectBundleHook
     }
   }
 
-  record CategoryOptionDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
+  record ExpectedSizeResult(boolean isExpectedSize, List<List<UID>> expectedCocs) {}
 
-  record CategoryDto(UID uid, Set<UID> categoryCombos, Set<UID> categoryOptions) {}
-
-  record CategoryComboDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
-
-  record CategoryOptionComboDto(UID uid, UID categoryCombo, Set<UID> categoryOptions) {}
-
-  record CategoryModelDto(
-      CategoryCombo categoryComboDto,
-      Set<CategoryOptionDto> optionDtos,
-      Set<CategoryDto> categoryDtos,
-      Set<CategoryOptionComboDto> optionComboDtos) {}
+  //  record CategoryOptionDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
+  //
+  //  record CategoryDto(UID uid, Set<UID> categoryCombos, Set<UID> categoryOptions) {}
+  //
+  //  record CategoryComboDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
+  //
+  //  record CategoryOptionComboDto(UID uid, UID categoryCombo, Set<UID> categoryOptions) {}
+  //
+  //  record CategoryModelDto(
+  //      CategoryCombo categoryComboDto,
+  //      Set<CategoryOptionDto> optionDtos,
+  //      Set<CategoryDto> categoryDtos,
+  //      Set<CategoryOptionComboDto> optionComboDtos) {}
 }

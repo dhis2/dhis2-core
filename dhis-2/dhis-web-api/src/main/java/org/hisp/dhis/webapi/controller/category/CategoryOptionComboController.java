@@ -34,13 +34,20 @@ import static org.hisp.dhis.security.Authorities.F_CATEGORY_OPTION_COMBO_MERGE;
 import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
@@ -92,6 +99,42 @@ public class CategoryOptionComboController
     return WebMessageUtils.mergeReport(report);
   }
 
+  @Beta
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping(value = "/projectedState", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody ProjectedCategoryOptionComboState projectedCategoryOptionComboState(
+      @RequestBody ProvidedCategoryOptionComboState providedState) {
+    log.info("CategoryOptionCombo projectedState request received: {}", providedState);
+
+    CombinationGenerator<CategoryOptionDto> generator =
+        CombinationGenerator.newInstance(getCosAsLists(providedState));
+    List<List<CategoryOptionDto>> combinations = generator.getCombinations();
+
+    Set<CategoryOptionComboDto> combinedOptionCombos = new HashSet<>();
+    for (List<CategoryOptionDto> combination : combinations) {
+      CategoryOptionComboDto coc1 =
+          new CategoryOptionComboDto(providedState.categoryCombo.id, new HashSet<>(combination));
+      combinedOptionCombos.add(coc1);
+    }
+
+    ProjectedCategoryOptionComboState generatedCategoryOptionComboState =
+        new ProjectedCategoryOptionComboState(combinedOptionCombos);
+    log.info("Generated CategoryOptionCombo state: {}", generatedCategoryOptionComboState);
+    return generatedCategoryOptionComboState;
+  }
+
+  private List<List<CategoryOptionDto>> getCosAsLists(
+      ProvidedCategoryOptionComboState providedState) {
+    Set<CategoryDto> categories = providedState.categories;
+    List<List<CategoryOptionDto>> categoryOptionLists = new ArrayList<>();
+
+    for (CategoryDto category : categories) {
+      categoryOptionLists.add(
+          category.categoryOptions.stream().map(co -> new CategoryOptionDto(co.id)).toList());
+    }
+    return categoryOptionLists;
+  }
+
   /**
    * Creating a single CategoryOptionCombo is not allowed. They should be either:
    *
@@ -110,4 +153,25 @@ public class CategoryOptionComboController
     log.info("postJsonObject");
     return WebMessageUtils.conflict(E1129);
   }
+
+  public record ProjectedCategoryOptionComboState(
+      @JsonProperty Set<CategoryOptionComboDto> projectedCategoryOptionCombos) {}
+
+  public record ProvidedCategoryOptionComboState(
+      @JsonProperty CategoryComboDto categoryCombo,
+      @JsonProperty Set<CategoryDto> categories,
+      @JsonProperty Set<CategoryOptionDto> categoryOptions) {}
+
+  public record CategoryDto(
+      @JsonProperty UID id, @JsonProperty Set<CategoryOptionDto> categoryOptions) {}
+
+  public record CategoryComboDto(@JsonProperty UID id, @JsonProperty Set<CategoryDto> categories) {}
+
+  public record CategoryOptionDto(@JsonProperty UID id) {}
+
+  public record CategoryOptionComboDto(
+      @JsonProperty UID categoryCombo, @JsonProperty Set<CategoryOptionDto> categoryOptions) {}
 }
+
+
+
