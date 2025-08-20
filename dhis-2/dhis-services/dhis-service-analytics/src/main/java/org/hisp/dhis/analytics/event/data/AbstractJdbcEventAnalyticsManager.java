@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.getIfNull;
@@ -58,6 +59,8 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -522,6 +525,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
+      } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, queryItem)) {
+        return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
         return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
@@ -963,6 +968,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
+    } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, item)) {
+      return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
     }
@@ -1071,19 +1078,34 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-    sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
-    String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
     String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
+    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
+    String orgUnitColumns = orgUnitLevels;
 
+    if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
+      orgUnitColumns = ORGUNIT_DIM_ID;
+    }
+
+    List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
     String columns =
-        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
-            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
-            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
+        list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
+
+    String join = EMPTY;
+    if (hasEnrollmentOrgUnitFilter(params)) {
+      join =
+          " join analytics_event_"
+              + params.getProgram().getUid()
+              + " ev on ev.enrollment = ax.enrollment "
+              + whereClause
+              + " and ev.eventstatus != 'SCHEDULE'"; // We work only with non-scheduled events.
+    } else {
+      sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
+    }
 
     sql =
-        "select count("
+        "select count(distinct "
             + OUTER_SQL_ALIAS
             + ".enrollment) as "
             + COL_VALUE
@@ -1091,6 +1113,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             + columns
             + " from ("
             + sql
+            + join
             + ") "
             + OUTER_SQL_ALIAS
             + " group by "
@@ -1282,7 +1305,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 groupingBy(
                     queryItem ->
                         queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem() == ENROLLMENT));
+                            && params.getEndpointItem() == ENROLLMENT
+                            && params.isComingFromQuery()));
 
     // Groups repeatable conditions based on PSI.DEID
     Map<String, List<String>> repeatableConditionsByIdentifier =
@@ -1356,6 +1380,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+    Map<UUID, String> sqlConditionByGroup = getUuidConditionMap(params);
+
+    if (sqlConditionByGroup.values().isEmpty()) {
+      return EMPTY;
+    }
+
+    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+  }
+
+  protected Map<UUID, String> getUuidConditionMap(EventQueryParams params) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1364,11 +1398,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     QueryItem::getGroupUUID,
                     mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
 
-    if (sqlConditionByGroup.values().isEmpty()) {
-      return "";
-    }
-
-    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+    return sqlConditionByGroup;
   }
 
   /**
@@ -2142,7 +2172,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(columnMapper::getColumnsForAttribute)
             .flatMap(Collection::stream)
             .map(AnalyticsTableColumn::getName)
-            .collect(Collectors.toSet());
+            .collect(toSet());
 
     String expressions =
         params.getItems().stream()

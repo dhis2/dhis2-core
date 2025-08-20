@@ -393,6 +393,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.github.dhis2</groupId>
       <artifactId>dhis2-api-contracts</artifactId>
       <version>0.1.0</version>
