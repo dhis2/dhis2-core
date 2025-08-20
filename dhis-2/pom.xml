@@ -93,7 +93,7 @@
     <dhis2-rule-engine.version>2.1.8.3</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
+    <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
     <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
 
