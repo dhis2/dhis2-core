@@ -142,6 +142,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   private User userLvlTwoLeftLeft;
 
+  private User userLvlTwoLeftLeftDisabled;
+
   private User userLvlTwoLeftRight;
 
   private User userLvlOneLeft;
@@ -607,6 +609,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     assertTrue(users.contains(userLvlOneLeft));
     assertTrue(users.contains(userRoot));
 
+    assertFalse(users.contains(userLvlTwoLeftLeftDisabled));
     assertFalse(users.contains(userLvlTwoLeftRight));
     assertFalse(users.contains(userLvlOneRight));
   }
@@ -734,10 +737,15 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     userB = makeUser("V");
     userB.setPhoneNumber(USERB_PHONE_NUMBER);
     userB.getOrganisationUnits().add(lvlTwoLeftLeft);
+    userB.getOrganisationUnits().add(lvlOneLeft);
 
     userGroup = createUserGroup('G', Sets.newHashSet(userA, userB));
 
     // User based on hierarchy
+    userLvlTwoLeftLeftDisabled = makeUser("D");
+    userLvlTwoLeftLeftDisabled.setDisabled(true);
+    userLvlTwoLeftLeftDisabled.getOrganisationUnits().add(lvlTwoLeftLeft);
+    lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftLeftDisabled);
 
     userLvlTwoLeftLeft = makeUser("K");
     userLvlTwoLeftLeft.getOrganisationUnits().add(lvlTwoLeftLeft);
