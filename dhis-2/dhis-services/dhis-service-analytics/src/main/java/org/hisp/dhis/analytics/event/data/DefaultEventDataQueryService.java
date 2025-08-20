@@ -148,7 +148,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
     }
 
-    ProgramStage ps = programStageService.getProgramStage(request.getStage());
+    ProgramStage ps =
+        programStageService.getProgramStage(
+            request.getStageInValue(request.getValue(), request.getStage()));
 
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());

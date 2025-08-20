@@ -229,7 +229,7 @@ public class EventDataQueryRequest {
    * @param defaultStage the default stage.
    * @return the program stage uid.
    */
-  private static String getStageInValue(String valueParam, String defaultStage) {
+  public static String getStageInValue(String valueParam, String defaultStage) {
     if (isNotBlank(valueParam) && valueParam.contains(DIMENSION_IDENTIFIER_SEP)) {
       return substringBefore(valueParam, DIMENSION_IDENTIFIER_SEP);
     }
