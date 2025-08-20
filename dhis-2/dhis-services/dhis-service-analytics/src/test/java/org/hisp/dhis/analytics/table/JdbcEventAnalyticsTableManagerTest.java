@@ -104,6 +104,7 @@ import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -152,7 +153,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
-  private List<AnalyticsTableColumn> periodColumns =
+  private final List<AnalyticsTableColumn> periodColumns =
       PeriodType.getAvailablePeriodTypes().stream()
           .map(
               pt -> {
@@ -474,6 +475,126 @@ class JdbcEventAnalyticsTableManagerTest {
             d5.getUid() + "_geom", GEOMETRY, toAlias(aliasD5_geo, d5.getUid()), IndexType.GIST)
         // element d5 also creates a Name column
         .addColumn(d5.getUid() + "_name", TEXT, toAlias(aliasD5_name, d5.getUid() + "_name"))
+        .withDefaultColumns(subject.getFixedColumns())
+        .build()
+        .verify();
+  }
+
+  @Test
+  @DisplayName("Verify that the OU centroid is used when the setting is enabled")
+  void verifyGetTableWithOuTeisUseCentroid() {
+    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(systemSettingManager.getBooleanSetting(SettingKey.ANALYTICS_EVENTS_OU_CENTROID))
+        .thenReturn(true);
+
+    Program program = createProgram('A');
+
+    DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
+
+    ProgramStage ps1 = createProgramStage('A', Set.of(d1));
+
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
+    tea.setId(9999);
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(program, tea);
+
+    program.setProgramAttributes(List.of(programTrackedEntityAttribute));
+
+    program.setProgramStages(Set.of(ps1));
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+
+    final String teaSubquery =
+        "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and trackedentityattributeid=9999)";
+
+    String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
+    String aliasTea =
+        "(select ou.uid from organisationunit ou where ou.uid = " + teaSubquery + ") as \"%s\"";
+    String aliasTeaGeo =
+        "ST_Centroid((select ou.geometry from organisationunit ou where ou.uid = "
+            + teaSubquery
+            + ")) as \"%s\"";
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .withToday(today)
+            .build();
+
+    when(periodDataProvider.getAvailableYears(DATABASE))
+        .thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    new AnalyticsTableAsserter.Builder(tables.get(0))
+        .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withTableType(AnalyticsTableType.EVENT)
+        .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
+        .addColumns(periodColumns)
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
+        .addColumn(
+            tea.getUid(), TEXT, toAlias(aliasTea, tea.getUid())) // ValueType.ORGANISATION_UNIT
+        .addColumn(
+            tea.getUid() + "_geom", GEOMETRY, toAlias(aliasTeaGeo, tea.getUid()), IndexType.GIST)
+        .withDefaultColumns(subject.getFixedColumns())
+        .build()
+        .verify();
+  }
+
+  @Test
+  @DisplayName("Verify that the OU geometry centroid is used when the setting is enabled")
+  void verifyGetTableWithOuGeometryUseCentroid() {
+    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(systemSettingManager.getBooleanSetting(SettingKey.ANALYTICS_EVENTS_OU_CENTROID))
+        .thenReturn(true);
+
+    Program program = createProgram('A');
+
+    DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
+
+    ProgramStage ps1 = createProgramStage('A', Set.of(d1));
+
+    program.setProgramStages(Set.of(ps1));
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+
+    String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .withToday(today)
+            .build();
+
+    when(periodDataProvider.getAvailableYears(DATABASE))
+        .thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    new AnalyticsTableAsserter.Builder(tables.get(0))
+        .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withTableType(AnalyticsTableType.EVENT)
+        .withColumnSize(55 + OU_NAME_HIERARCHY_COUNT)
+        .addColumns(periodColumns)
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasD1, d1.getUid())) // ValueType.TEXT
+        .addColumn("ougeometry", GEOMETRY, "ST_Centroid(ou.geometry)", IndexType.GIST)
         .withDefaultColumns(subject.getFixedColumns())
         .build()
         .verify();
