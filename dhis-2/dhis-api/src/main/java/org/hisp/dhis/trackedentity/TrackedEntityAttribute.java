@@ -44,6 +44,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -102,10 +103,15 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Boolean skipSynchronization = false;
 
+  @OpenApi.Description(
+      "Minimum number of characters required to search within the current Tracked Entity Attribute. A value of 0 means no minimum.")
   private int minCharactersToSearch;
 
+  @OpenApi.Description("Suggested `QueryOperator` to use for the current Tracked Entity Attribute.")
   private QueryOperator preferredSearchOperator;
 
+  @OpenApi.Description(
+      "Set of `QueryOperator`s that cannot be used with the current Tracked Entity Attribute.")
   private Set<QueryOperator> blockedSearchOperators = EnumSet.noneOf(QueryOperator.class);
 
   private Boolean trigramIndexable = false;

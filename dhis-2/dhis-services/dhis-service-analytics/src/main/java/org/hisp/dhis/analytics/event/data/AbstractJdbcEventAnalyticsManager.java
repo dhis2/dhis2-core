@@ -33,9 +33,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -58,6 +59,8 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -522,6 +525,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
+      } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, queryItem)) {
+        return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
         return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
@@ -530,7 +535,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           getColumnAndAlias(queryItem, isAggregated, queryItem.getItemName());
       return ColumnAndAlias.ofColumnAndAlias(
           columnAndAlias.getColumn(),
-          defaultIfNull(columnAndAlias.getAlias(), queryItem.getItemName()));
+          getIfNull(columnAndAlias.getAlias(), queryItem.getItemName()));
     } else if (queryItem.isText()
         && !isGroupByClause
         && hasOrderByClauseForQueryItem(queryItem, params)) {
@@ -924,6 +929,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * Returns an encoded column name.
    *
    * @param item the {@link QueryItem}.
+   * @return the encoded column name.
    */
   protected String getColumn(QueryItem item) {
     return quoteAlias(item.getItemName());
@@ -938,6 +944,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param item the {@link QueryItem}.
    * @param startDate the start date.
    * @param endDate the end date.
+   * @return a SQL select statement.
    */
   protected String getSelectSql(QueryFilter filter, QueryItem item, Date startDate, Date endDate) {
     if (item.isProgramIndicator()) {
@@ -950,9 +957,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
+  /**
+   * Returns a SQL statement.
+   *
+   * @param filter the {@link QueryFilter}.
+   * @param item the {@link QueryItem}.
+   * @param params the {@link EventQueryParams}.
+   * @return a SQL select statement.
+   */
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
+    } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, item)) {
+      return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
     }
@@ -1061,19 +1078,34 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-    sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
-    String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
     String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
+    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
+    String orgUnitColumns = orgUnitLevels;
 
+    if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
+      orgUnitColumns = ORGUNIT_DIM_ID;
+    }
+
+    List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
     String columns =
-        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
-            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
-            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
+        list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
+
+    String join = EMPTY;
+    if (hasEnrollmentOrgUnitFilter(params)) {
+      join =
+          " join analytics_event_"
+              + params.getProgram().getUid()
+              + " ev on ev.enrollment = ax.enrollment "
+              + whereClause
+              + " and ev.eventstatus != 'SCHEDULE'"; // We work only with non-scheduled events.
+    } else {
+      sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
+    }
 
     sql =
-        "select count("
+        "select count(distinct "
             + OUTER_SQL_ALIAS
             + ".enrollment) as "
             + COL_VALUE
@@ -1081,6 +1113,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             + columns
             + " from ("
             + sql
+            + join
             + ") "
             + OUTER_SQL_ALIAS
             + " group by "
@@ -1272,7 +1305,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 groupingBy(
                     queryItem ->
                         queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem() == ENROLLMENT));
+                            && params.getEndpointItem() == ENROLLMENT
+                            && params.isComingFromQuery()));
 
     // Groups repeatable conditions based on PSI.DEID
     Map<String, List<String>> repeatableConditionsByIdentifier =
@@ -1346,6 +1380,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+    Map<UUID, String> sqlConditionByGroup = getUuidConditionMap(params);
+
+    if (sqlConditionByGroup.values().isEmpty()) {
+      return EMPTY;
+    }
+
+    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+  }
+
+  protected Map<UUID, String> getUuidConditionMap(EventQueryParams params) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1354,11 +1398,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     QueryItem::getGroupUUID,
                     mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
 
-    if (sqlConditionByGroup.values().isEmpty()) {
-      return "";
-    }
-
-    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+    return sqlConditionByGroup;
   }
 
   /**
@@ -2132,7 +2172,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(columnMapper::getColumnsForAttribute)
             .flatMap(Collection::stream)
             .map(AnalyticsTableColumn::getName)
-            .collect(Collectors.toSet());
+            .collect(toSet());
 
     String expressions =
         params.getItems().stream()
@@ -2646,28 +2686,26 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
     final String filterSql =
         """
-                select
-                  enrollment,
-                  %s as value
-                from
-                    (select
-                        enrollment,
-                        %s,
-                        row_number() over (
-                            partition by enrollment
-                            order by
-                                occurreddate desc,
-                                created desc
-                        ) as rn
-                    from
-                        %s
-                    where
-                        eventstatus != 'SCHEDULE'
-                        %s %s
-                    ) ranked
-                where
-                    rn = 1
-                """;
+        select enrollment, %s as value
+        from
+            (select
+                enrollment,
+                %s,
+                row_number() over (
+                    partition by enrollment
+                    order by
+                        occurreddate desc,
+                        created desc
+                ) as rn
+            from
+                %s
+            where
+                eventstatus != 'SCHEDULE'
+                %s %s
+            ) ranked
+        where
+            rn = 1
+        """;
 
     return queryItems.stream()
         .map(
@@ -2736,23 +2774,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String eventTableName, String colName, QueryItem item, CteDefinition baseAggregatedCte) {
     String template =
         """
+        select
+            evt.enrollment,
+            evt.${colName} as value
+        from (
             select
                 evt.enrollment,
-                evt.${colName} as value
-            from (
-                select
-                    evt.enrollment,
-                    evt.${colName},
-                    row_number() over (
-                        partition by evt.enrollment
-                        order by occurreddate desc, created desc
-                    ) as rn
-                from ${eventTableName} evt
-                join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
-                where evt.eventstatus != 'SCHEDULE'
-                  and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
-            where evt.rn = 1
-            """;
+                evt.${colName},
+                row_number() over (
+                    partition by evt.enrollment
+                    order by occurreddate desc, created desc
+                ) as rn
+            from ${eventTableName} evt
+            join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
+            where evt.eventstatus != 'SCHEDULE'
+                and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
+        where evt.rn = 1
+        """;
 
     Map<String, String> values = new HashMap<>();
     values.put("colName", colName);
@@ -2780,14 +2818,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private void addExistsCte(CteContext cteContext, QueryItem item, String eventTableName) {
     String template =
         """
-            select distinct
-                enrollment
-            from
-                ${eventTableName}
-            where
-                eventstatus != 'SCHEDULE'
-                and ps = '${programStageUid}'
-            """;
+        select distinct enrollment
+        from ${eventTableName}
+        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'
+        """;
 
     Map<String, String> values = new HashMap<>();
     values.put("eventTableName", eventTableName);
@@ -2811,17 +2845,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String eventTableName, String colName, QueryItem item, boolean hasRowContext) {
     String template =
         """
-            select
-                enrollment,
-                ${colName} as value,${rowContext}
-                row_number() over (
-                    partition by enrollment
-                    order by occurreddate desc, created desc
-                ) as rn
-            from ${eventTableName}
-            where eventstatus != 'SCHEDULE'
-              and ps = '${programStageUid}'
-            """;
+        select
+            enrollment,
+            ${colName} as value,${rowContext}
+            row_number() over (
+                partition by enrollment
+                order by occurreddate desc, created desc
+            ) as rn
+        from ${eventTableName}
+        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'
+        """;
 
     Map<String, String> values = new HashMap<>();
     values.put("colName", colName);

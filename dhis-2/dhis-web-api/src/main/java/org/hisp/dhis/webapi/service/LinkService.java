@@ -43,7 +43,6 @@ public interface LinkService {
    *
    * @param pager Pager instance to update with prev/next links
    * @param klass Class type which is paged
-   * @see org.hisp.dhis.common.Pager
    */
   void generatePagerLinks(Pager pager, Class<?> klass);
 
@@ -52,7 +51,6 @@ public interface LinkService {
    *
    * @param pager Pager instance to update with prev/next links
    * @param relativeApiEndpoint API endpoint to be paged
-   * @see org.hisp.dhis.common.Pager
    */
   void generatePagerLinks(Pager pager, String relativeApiEndpoint);
 
@@ -63,8 +61,6 @@ public interface LinkService {
    *
    * @param object Object (can be collection) to set HREFs on
    * @param deepScan Generate links also on deeper levels (only one level down)
-   * @see javax.servlet.http.HttpServletRequest
-   * @see ContextService
    */
   <T> void generateLinks(T object, boolean deepScan);
 
@@ -74,7 +70,6 @@ public interface LinkService {
    * @param object Object (can be collection) to set HREFs on
    * @param hrefBase Used as starting point of HREF
    * @param deepScan Generate links also on deeper levels (only one level down)
-   * @see javax.servlet.http.HttpServletRequest
    */
   <T> void generateLinks(T object, String hrefBase, boolean deepScan);
 

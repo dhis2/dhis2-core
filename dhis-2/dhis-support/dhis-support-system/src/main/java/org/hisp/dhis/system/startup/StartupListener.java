@@ -40,18 +40,8 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-/**
- * Implementation of {@link javax.servlet.ServletContextListener} which hooks into the context
- * initialization and executes the configured {@link StartupRoutineExecutor}.
- *
- * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
- */
 @Slf4j
 public class StartupListener implements ServletContextListener {
-  // -------------------------------------------------------------------------
-  // ServletContextListener implementation
-  // -------------------------------------------------------------------------
-
   @Override
   public void contextInitialized(ServletContextEvent event) {
     WebApplicationContext applicationContext =
@@ -64,7 +54,6 @@ public class StartupListener implements ServletContextListener {
       startupRoutineExecutor.execute();
     } catch (Exception ex) {
       log.error(DebugUtils.getStackTrace(ex));
-
       throw new RuntimeException("Failed to run startup routines: " + ex.getMessage(), ex);
     }
   }
