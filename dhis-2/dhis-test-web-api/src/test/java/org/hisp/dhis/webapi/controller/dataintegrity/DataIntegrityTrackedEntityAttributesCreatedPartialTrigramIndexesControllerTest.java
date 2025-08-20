@@ -78,7 +78,7 @@ class DataIntegrityTrackedEntityAttributesCreatedPartialTrigramIndexesController
   @Test
   void testTrackedEntityAttributesWithNoTrigramIndexesCreated() {
     assertHasNoDataIntegrityIssues(
-        "trackedEntityAttributes", "tracked_entity_attributes_created_trigram_indexes", true);
+        "trackedEntityAttributes", "tracked_entity_attributes_trigram_index_overview", true);
   }
 
   @Test
@@ -87,7 +87,7 @@ class DataIntegrityTrackedEntityAttributesCreatedPartialTrigramIndexesController
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_created_trigram_indexes",
+        "tracked_entity_attributes_trigram_index_overview",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -101,7 +101,7 @@ class DataIntegrityTrackedEntityAttributesCreatedPartialTrigramIndexesController
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_created_trigram_indexes",
+        "tracked_entity_attributes_trigram_index_overview",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
