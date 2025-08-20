@@ -304,7 +304,7 @@ public class ValidationUtils {
   private static String validateImage(TrackerBundle bundle, String value) {
     FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
 
-    return Constant.VALID_IMAGE_FORMATS.contains(fileResource.getFormat())
+    return !Constant.VALID_IMAGE_FORMATS.contains(fileResource.getFormat())
         ? "File resource with uid '"
             + value
             + "' is using invalid image format "

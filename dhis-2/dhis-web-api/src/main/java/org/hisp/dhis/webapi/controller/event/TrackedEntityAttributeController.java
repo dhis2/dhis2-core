@@ -37,11 +37,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -72,9 +68,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/trackedEntityAttributes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class TrackedEntityAttributeController
-    extends AbstractCrudController<
-        TrackedEntityAttribute,
-        TrackedEntityAttributeController.GetTrackedEntityAttributeObjectListParams> {
+    extends AbstractCrudController<TrackedEntityAttribute, GetObjectListParams> {
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -83,17 +77,6 @@ public class TrackedEntityAttributeController
   @Autowired private ReservedValueService reservedValueService;
 
   @Autowired private ContextService context;
-
-  @Data
-  @EqualsAndHashCode(callSuper = true)
-  public static final class GetTrackedEntityAttributeObjectListParams extends GetObjectListParams {
-    @OpenApi.Description(
-        """
-      Limits the results to searchable attributes of type `TEXT`, `LONG_TEXT`, `PHONE_NUMBER`, `EMAIL`, `USERNAME`, `URL`
-      as well as unique attributes. Can be combined with further `filter`s.
-      """)
-    boolean indexableOnly;
-  }
 
   @GetMapping(
       value = "/{id}/generateAndReserve",
@@ -187,28 +170,6 @@ public class TrackedEntityAttributeController
     }
 
     return result;
-  }
-
-  @Override
-  protected void addProgrammaticModifiers(GetTrackedEntityAttributeObjectListParams params) {
-    if (!params.isIndexableOnly()) return;
-
-    List<String> filters = params.getFilters();
-    if (filters != null && filters.stream().anyMatch(f -> f.startsWith("id:"))) {
-      throw new IllegalArgumentException(
-          "indexableOnly parameter cannot be set if a separate filter for id is specified");
-    }
-
-    Set<TrackedEntityAttribute> indexableTeas =
-        trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
-
-    String filter =
-        "id:in:"
-            + indexableTeas.stream()
-                .map(IdentifiableObject::getUid)
-                .collect(Collectors.joining(",", "[", "]"));
-
-    params.addFilter(filter);
   }
 
   private TrackedEntityAttribute getTrackedEntityAttribute(String id) throws WebMessageException {
