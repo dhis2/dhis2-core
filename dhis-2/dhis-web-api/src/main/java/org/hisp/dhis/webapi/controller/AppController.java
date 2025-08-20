@@ -273,7 +273,7 @@ public class AppController {
     }
 
     if (!appManager.deleteApp(appToDelete, deleteAppData)) {
-      throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
+      throw new WebMessageException(badRequest("App cannot be deleted."));
     }
   }
 
