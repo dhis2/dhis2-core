@@ -202,7 +202,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
         });
   }
 
-  public void createTrigramIndexes(Set<TrackedEntityAttribute> attributes) {
+  private void createTrigramIndexes(Set<TrackedEntityAttribute> attributes) {
     attributes.forEach(
         attr -> {
           String query = String.format(TRIGRAM_INDEX_CREATE_QUERY, attr.getId(), attr.getId());
