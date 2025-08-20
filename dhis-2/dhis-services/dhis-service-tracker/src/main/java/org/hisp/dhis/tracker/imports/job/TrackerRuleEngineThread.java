@@ -34,6 +34,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -98,7 +99,9 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
     }
 
     notifier.notify(
-        sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed");
+        sideEffectDataBundle.getJobConfiguration(),
+        NotificationLevel.DEBUG,
+        "Tracker Rule-engine side effects completed");
   }
 
   public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
