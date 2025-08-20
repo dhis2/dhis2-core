@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
+class DataIntegrityTrackedEntityAttributesTrigramIndexOutOfSyncControllerTest
     extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
