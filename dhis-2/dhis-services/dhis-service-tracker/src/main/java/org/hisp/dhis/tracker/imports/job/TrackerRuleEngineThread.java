@@ -34,6 +34,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -82,6 +83,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
 
     notifier.notify(
         notificationDataBundle.getJobConfiguration(),
+        NotificationLevel.DEBUG,
         "Tracker Rule-engine notifications completed");
   }
 
