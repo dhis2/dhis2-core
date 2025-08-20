@@ -210,7 +210,8 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
   @Test
   void shouldReturnWarningIfEventAlreadyExists() {
     injectSecurityContextUser(importUser);
-
+    createProgramRuleWithAction(
+        'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageA, programStageB);
     JsonImportReport importReport =
         POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-11-11"))
             .content(HttpStatus.OK)
