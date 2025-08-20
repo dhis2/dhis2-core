@@ -1,36 +1,28 @@
 -- https://dhis2.atlassian.net/browse/DHIS2-19965
 
-UPDATE event
-SET geometry = ST_SetSRID(geometry, 4326)
-WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
-
-UPDATE enrollment
-SET geometry = ST_SetSRID(geometry, 4326)
-WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
-
-UPDATE trackedentity
-SET geometry = ST_SetSRID(geometry, 4326)
-WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326;
-
--- Add CHECK constraints for all tables
-
 ALTER TABLE event
-    ADD CONSTRAINT enforce_event_geometry
-        CHECK (
-            geometry IS NULL OR
-            (ST_SRID(geometry) = 4326 AND GeometryType(geometry) IN ('POINT', 'POLYGON', 'MULTIPOLYGON'))
-            );
+ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
+  USING CASE
+         WHEN geometry IS NULL THEN NULL
+         WHEN ST_SRID(geometry) = 0 THEN ST_SetSRID(geometry, 4326)
+         WHEN ST_SRID(geometry) = 4326 THEN geometry
+         ELSE ST_Transform(geometry, 4326)
+END;
 
 ALTER TABLE enrollment
-    ADD CONSTRAINT enforce_enrollment_geometry
-        CHECK (
-            geometry IS NULL OR
-            (ST_SRID(geometry) = 4326 AND GeometryType(geometry) IN ('POINT', 'POLYGON', 'MULTIPOLYGON'))
-            );
+ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
+  USING CASE
+         WHEN geometry IS NULL THEN NULL
+         WHEN ST_SRID(geometry) = 0 THEN ST_SetSRID(geometry, 4326)
+         WHEN ST_SRID(geometry) = 4326 THEN geometry
+         ELSE ST_Transform(geometry, 4326)
+END;
 
 ALTER TABLE trackedentity
-    ADD CONSTRAINT enforce_trackedentity_geometry
-        CHECK (
-            geometry IS NULL OR
-            (ST_SRID(geometry) = 4326 AND GeometryType(geometry) IN ('POINT', 'POLYGON', 'MULTIPOLYGON'))
-            );
+ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
+  USING CASE
+         WHEN geometry IS NULL THEN NULL
+         WHEN ST_SRID(geometry) = 0 THEN ST_SetSRID(geometry, 4326)
+         WHEN ST_SRID(geometry) = 4326 THEN geometry
+         ELSE ST_Transform(geometry, 4326)
+END;
