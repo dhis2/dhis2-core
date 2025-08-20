@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.job;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.notification.NotificationLevel;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
@@ -105,7 +106,9 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
     }
 
     notifier.notify(
-        sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed");
+        sideEffectDataBundle.getJobConfiguration(),
+        NotificationLevel.DEBUG,
+        "Tracker Rule-engine side effects completed");
   }
 
   public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
