@@ -80,6 +80,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
         () -> String.format("Valid JSON should pass schema validation, errors: %s", errors));
   }
 
+  @SuppressWarnings("unchecked")
   private <T extends IdentifiableObject> T createTypeAndSave(Contract contract)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     // get type from contract
@@ -96,8 +97,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // it is expected that the create+'type' method exists. Create one if not.
     Method method = TestBase.class.getMethod("create" + type, char.class);
     Object createdType = method.invoke(null, 'a');
-    Object createdType1 = klass.cast(createdType);
-    T identifiableObject = (T) createdType1;
+    T identifiableObject = (T) klass.cast(createdType);
     manager.save(identifiableObject);
     return identifiableObject;
   }
