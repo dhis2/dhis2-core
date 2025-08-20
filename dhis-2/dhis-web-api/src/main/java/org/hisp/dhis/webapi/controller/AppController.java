@@ -272,11 +272,9 @@ public class AppController {
       throw new WebMessageException(notFound("App does not exist: " + app));
     }
 
-    if (appToDelete.isBundled()) {
+    if (!appManager.deleteApp(appToDelete, deleteAppData)) {
       throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
     }
-
-    appManager.deleteApp(appToDelete, deleteAppData);
   }
 
   @SuppressWarnings("unchecked")

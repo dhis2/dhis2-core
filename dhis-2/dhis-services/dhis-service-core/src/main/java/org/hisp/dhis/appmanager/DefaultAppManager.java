@@ -195,6 +195,7 @@ public class DefaultAppManager implements AppManager {
 
   private void cacheApp(@Nonnull App app) {
     if (app.getAppState() == AppStatus.OK) {
+      app.setBundled(bundledAppManager.isBundledApp(app));
       appCache.put(app.getKey(), app);
       registerDatastoreProtection(app);
     }
@@ -290,8 +291,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public App getApp(String appName) {
-    // Checks for app.getUrlFriendlyName which is the key of AppMap
-
+    // Checks for app.getUrlFriendlyName which is the key of appCache
     Optional<App> appOptional = appCache.getIfPresent(appName);
     if (appOptional.isPresent() && this.isAccessible(appOptional.get())) {
       return appOptional.get();
@@ -440,9 +440,7 @@ public class DefaultAppManager implements AppManager {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", CodeGenerator.generateUid());
       Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
       try {
-        App app = installAppZipFile(tempFile.toFile(), bundledAppInfo);
-        app.setBundled(true);
-        return app;
+        return installAppZipFile(tempFile.toFile(), bundledAppInfo);
       } finally {
         Files.deleteIfExists(tempFile);
       }
@@ -500,10 +498,14 @@ public class DefaultAppManager implements AppManager {
   @Override
   public boolean deleteApp(@Nonnull App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
-    if (appOpt.isEmpty()) return false;
+    if (appOpt.isEmpty()) {
+      return false;
+    }
 
-    // Bundled apps cannot be deleted
-    if (appOpt.get().isBundled()) return false;
+    // Originally bundled apps cannot be deleted, only overridden bundled apps can be deleted.
+    if (bundledAppManager.isOriginallyBundledApp(appOpt.get())) {
+      return false;
+    }
 
     App appFromCache = appOpt.get();
     appCache.put(app.getKey(), appFromCache);
@@ -511,10 +513,9 @@ public class DefaultAppManager implements AppManager {
     jCloudsAppStorageService.deleteApp(app);
     reloadApps();
 
-    boolean isBundledAppOverride = app.isBundled();
     // If a bundled version exists it will replace the deleted override.
     // In that case, deleting the app should not remove the namespace protection
-    if (!isBundledAppOverride) {
+    if (!app.isBundled()) {
       unregisterDatastoreProtection(app);
     }
     if (deleteAppData) {
