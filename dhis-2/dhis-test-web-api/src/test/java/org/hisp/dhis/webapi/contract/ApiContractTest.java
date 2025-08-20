@@ -6,9 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -75,13 +72,9 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // Then the HTTP status code should match
     assertEquals(contract.responseStatus(), response.status().code(), "HTTP status code mismatch");
 
-    // test string schema
-    JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-    JsonSchema testSchema = factory.getSchema(jsSchema());
-
     // And the response body should not have any JSON schema validation errors
     Set<ValidationMessage> errors =
-        testSchema.validate(mapper.readTree(response.content().toJson()));
+        contract.jsonSchema().validate(mapper.readTree(response.content().toJson()));
     assertTrue(
         errors.isEmpty(),
         () -> String.format("Valid JSON should pass schema validation, errors: %s", errors));
@@ -110,10 +103,10 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   }
 
   /**
-   * Reads in contracts from a jar at classpath /contracts. Returns a set of instantiated {@link
-   * Contract}s.
+   * Reads in JSON contracts from a jar at classpath /contracts. Returns a set of instantiated
+   * {@link Contract}s.
    *
-   * @return set of instantiated {@link * Contract}s.
+   * @return set of instantiated {@link Contract}s.
    * @throws URISyntaxException URISyntaxException
    */
   private static Set<Contract> getContracts() throws URISyntaxException {
@@ -126,23 +119,18 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
 
     // impl for jar
     try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-      Path path = fileSystem.getPath("/contracts");
+      Path contractsPath = fileSystem.getPath("/contracts");
 
-      try (Stream<Path> paths = Files.walk(path)) {
+      try (Stream<Path> paths = Files.walk(contractsPath)) {
         paths
             .filter(Files::isRegularFile)
             .filter(
-                path1 ->
-                    path1.toString().endsWith(".json") && path1.toString().contains("-contract"))
+                path -> path.toString().endsWith(".json") && path.toString().contains("-contract"))
             .forEach(
                 filePath -> {
                   try {
-                    String jsonContent = Files.readString(filePath);
-                    JsonNode jsonNode = mapper.readTree(jsonContent);
-
-                    Class<?> clazz;
-                    clazz = Class.forName("org.hisp.dhis.webapi.contract.Contract");
-                    contracts.add((Contract) mapper.treeToValue(jsonNode, clazz));
+                    JsonNode jsonNode = mapper.readTree(Files.readString(filePath));
+                    contracts.add(mapper.treeToValue(jsonNode, Contract.class));
                   } catch (Exception e) {
                     log.error(e.getMessage());
                   }
@@ -152,153 +140,5 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
       log.error(e.getMessage());
     }
     return contracts;
-  }
-
-  private String jsSchema() {
-    return """
-    {
-        "type": "object",
-        "properties": {
-            "code": {
-                "type": "string"
-            },
-            "dataDimensionType": {
-                "type": "string",
-                "enum": [
-                    "DISAGGREGATION",
-                    "ATTRIBUTE"
-                ],
-                "default": "DISAGGREGATION"
-            },
-            "id": {
-                "type": "string"
-            },
-            "displayName": {
-                "type": "string"
-            },
-            "created": {
-                "type": "string",
-                "format": "date-time"
-            },
-            "createdBy": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "code": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "displayName": {
-                        "type": "string"
-                    },
-                    "username": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "name",
-                    "code",
-                    "displayName",
-                    "username"
-                ],
-                "additionalProperties": false
-            },
-            "href": {
-                "type": "string",
-                "format": "uri"
-            },
-            "lastUpdated": {
-                "type": "string",
-                "format": "date-time"
-            },
-            "lastUpdatedBy": {
-                "$ref": "#/properties/createdBy"
-            },
-            "sharing": {
-                "type": "object",
-                "properties": {
-                    "public": {
-                        "type": "string",
-                        "const": "rw------"
-                    }
-                },
-                "required": [
-                    "public"
-                ],
-                "additionalProperties": false
-            },
-            "access": {
-                "type": "object",
-                "properties": {
-                    "delete": {
-                        "type": "boolean"
-                    },
-                    "externalize": {
-                        "type": "boolean"
-                    },
-                    "manage": {
-                        "type": "boolean"
-                    },
-                    "read": {
-                        "type": "boolean"
-                    },
-                    "update": {
-                        "type": "boolean"
-                    },
-                    "write": {
-                        "type": "boolean"
-                    },
-                    "data": {
-                        "type": "object",
-                        "properties": {
-                            "read": {
-                                "type": "boolean"
-                            },
-                            "write": {
-                                "type": "boolean"
-                            }
-                        },
-                        "required": [
-                            "read",
-                            "write"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                "required": [
-                    "delete",
-                    "externalize",
-                    "manage",
-                    "read",
-                    "update",
-                    "write"
-                ],
-                "additionalProperties": false
-            },
-            "displayShortName": {
-                "type": "string"
-            }
-        },
-        "required": [
-            "id",
-            "displayName",
-            "created",
-            "createdBy",
-            "href",
-            "lastUpdated",
-            "sharing",
-            "access",
-            "displayShortName"
-        ],
-        "additionalProperties": false
-    }
-    """;
   }
 }

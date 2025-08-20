@@ -393,9 +393,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.david-mackessy</groupId>
+      <groupId>com.github.dhis2</groupId>
       <artifactId>dhis2-api-contracts</artifactId>
-      <version>8.0.0</version>
+      <version>0.1.0</version>
     </dependency>
   </dependencies>
 
