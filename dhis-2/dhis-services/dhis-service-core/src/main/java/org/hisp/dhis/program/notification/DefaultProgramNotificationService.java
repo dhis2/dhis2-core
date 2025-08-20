@@ -576,6 +576,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         orgUnitInHierarchy.addAll(orgUnit.getAncestors());
 
         return userGroupMembers.stream()
+            .filter(User::isEnabled)
             .filter(r -> orgUnitInHierarchy.contains(r.getOrganisationUnit()))
             .collect(Collectors.toSet());
 
@@ -584,6 +585,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         OrganisationUnit parentOrgUnit = orgUnit.getParent();
 
         return userGroupMembers.stream()
+            .filter(User::isEnabled)
             .filter(u -> u.getOrganisationUnit().equals(parentOrgUnit))
             .collect(Collectors.toSet());
       }
