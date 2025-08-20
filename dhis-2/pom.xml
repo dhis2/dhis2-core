@@ -92,7 +92,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.3</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.4.2</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -105,7 +105,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.7.1.RELEASE</lettuce.version>
+    <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -204,7 +204,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.12.2</junit.version>
+    <junit.version>5.13.4</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <mockserver-client-java.version>5.15.0</mockserver-client-java.version>
     <powermock.version>2.0.9</powermock.version>
@@ -222,7 +222,7 @@
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-    <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
+    <maven-exec-plugin.version>3.5.1</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
