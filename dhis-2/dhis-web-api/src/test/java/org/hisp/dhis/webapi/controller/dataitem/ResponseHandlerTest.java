@@ -65,6 +65,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,7 +133,7 @@ class ResponseHandlerTest {
 
     // When
     responseHandler.addPaginationToNode(
-        anyRootNode, anyTargetEntities, anyUser, anyWebOptions, anyFilters);
+        anyRootNode, anyTargetEntities, UserDetails.fromUser(anyUser), anyWebOptions, anyFilters);
 
     // Then
     assertThat(anyRootNode, is(notNullValue()));
@@ -155,7 +156,11 @@ class ResponseHandlerTest {
 
     // When
     responseHandler.addPaginationToNode(
-        anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging, anyFilters);
+        anyRootNode,
+        anyTargetEntities,
+        UserDetails.fromUser(anyUser),
+        webOptionsNoPaging,
+        anyFilters);
 
     // Then
     assertThat(anyRootNode, is(notNullValue()));
@@ -175,7 +180,7 @@ class ResponseHandlerTest {
 
     // When
     responseHandler.addPaginationToNode(
-        anyRootNode, emptyTargetEntities, anyUser, anyWebOptions, anyFilters);
+        anyRootNode, emptyTargetEntities, UserDetails.fromUser(anyUser), anyWebOptions, anyFilters);
 
     // Then
     assertThat(anyRootNode, is(notNullValue()));

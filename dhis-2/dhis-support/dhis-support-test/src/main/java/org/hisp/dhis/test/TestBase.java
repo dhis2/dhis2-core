@@ -166,6 +166,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
@@ -1697,16 +1698,24 @@ public abstract class TestBase {
 
   public static Enrollment createEnrollment(
       Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(program, te, organisationUnit);
+    Enrollment enrollment = new Enrollment(new Date(), new Date(), te, program);
     enrollment.setAutoFields();
-
-    enrollment.setProgram(program);
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-
     return enrollment;
+  }
+
+  public static SingleEvent createSingleEvent(
+      ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
+    SingleEvent event = new SingleEvent();
+    event.setAutoFields();
+    event.setProgramStage(programStage);
+    event.setEnrollment(enrollment);
+    event.setOrganisationUnit(organisationUnit);
+    if (categoryService != null) {
+      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
+    }
+    return event;
   }
 
   public static TrackerEvent createEvent(

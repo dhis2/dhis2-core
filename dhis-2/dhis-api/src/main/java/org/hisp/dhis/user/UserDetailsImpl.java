@@ -80,7 +80,9 @@ public class UserDetailsImpl implements UserDetails {
       @JsonProperty("userSearchOrgUnitIds") Set<String> userSearchOrgUnitIds,
       @JsonProperty("userEffectiveSearchOrgUnitIds") Set<String> userEffectiveSearchOrgUnitIds,
       @JsonProperty("isSuper") boolean isSuper,
-      @JsonProperty("userRoleIds") Set<String> userRoleIds) {
+      @JsonProperty("userRoleIds") Set<String> userRoleIds,
+      @JsonProperty("managedGroupLongIds") Set<Long> managedGroupLongIds,
+      @JsonProperty("userRoleLongIds") Set<Long> userRoleLongIds) {
     return UserDetailsImpl.builder()
         .uid(uid)
         .code(code)
@@ -108,6 +110,8 @@ public class UserDetailsImpl implements UserDetails {
         .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
         .isSuper(isSuper)
         .userRoleIds(userRoleIds)
+        .managedGroupLongIds(managedGroupLongIds)
+        .userRoleLongIds(userRoleLongIds)
         .build();
   }
 

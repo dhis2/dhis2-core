@@ -38,33 +38,30 @@ import java.util.Map;
  */
 public interface ContextService {
   /**
-   * Get full path of servlet.
+   * Get servlet path.
    *
-   * @return Full HREF to servlet
-   * @see javax.servlet.http.HttpServletRequest
+   * @return the full href servlet path.
    */
   String getServletPath();
 
   /**
-   * Get HREF to context.
+   * Get context path to API.
    *
-   * @return Full HREF to context (context root)
-   * @see javax.servlet.http.HttpServletRequest
+   * @return the context path to API.
    */
   String getContextPath();
 
   /**
-   * Get HREF to Web-API.
+   * Get path to API.
    *
-   * @return Full HREF to Web-API
-   * @see javax.servlet.http.HttpServletRequest
+   * @return the API path.
    */
   String getApiPath();
 
   /**
-   * Get active HttpServletRequest
+   * Get active HttpServletRequest.
    *
-   * @return HttpServletRequest
+   * @return the active HttpServletRequest.
    */
   HttpServletRequest getRequest();
 
@@ -72,19 +69,29 @@ public interface ContextService {
    * Returns a list of values from a parameter, if the parameter doesn't exist, it will return a
    * empty list.
    *
-   * @param name Parameter to get
-   * @return List of parameter values, or empty if not found
+   * @param name the parameter to get.
+   * @return a list of parameter values, or empty if not found.
    */
   List<String> getParameterValues(String name);
 
   /**
-   * Get all parameters as a map of key => values, supports more than one pr key (so values is a
-   * collection)
+   * Get all parameters as a mapping of key to values, supports more than one value per key (so
+   * values is a collection).
    */
   Map<String, List<String>> getParameterValuesMap();
 
-  /** Get a list of fields from request */
+  /**
+   * Get a list of fields from request.
+   *
+   * @return a list of fields.
+   */
   List<String> getFieldsFromRequestOrAll();
 
-  List<String> getFieldsFromRequestOrElse(String s);
+  /**
+   * Get a list of fields from request, or the given default fields.
+   *
+   * @param fields the default fields.
+   * @return a list of fields.
+   */
+  List<String> getFieldsFromRequestOrElse(String fields);
 }

@@ -291,7 +291,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
             name = "DISABLE_INACTIVE_USERS"),
         @JsonSubTypes.Type(
             value = TrackerTrigramIndexJobParameters.class,
-            name = "TRACKER_SEARCH_OPTIMIZATION"),
+            name = "TRACKER_TRIGRAM_INDEX_MAINTENANCE"),
         @JsonSubTypes.Type(value = DataIntegrityJobParameters.class, name = "DATA_INTEGRITY"),
         @JsonSubTypes.Type(
             value = DataIntegrityDetailsJobParameters.class,

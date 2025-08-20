@@ -84,6 +84,8 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   private TrackerEvent eventA;
 
+  private SingleEvent singleEvent;
+
   private ProgramMessage programMessageA;
   private ProgramMessage programMessageB;
 
@@ -98,10 +100,18 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
     // Initialize Program and Program Stage
     Program programA = createProgram('A', new HashSet<>(), orgUnitA);
+    programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programService.addProgram(programA);
+
+    Program programB = createProgram('B', new HashSet<>(), orgUnitA);
+    programB.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    programService.addProgram(programB);
 
     ProgramStage stageA = new ProgramStage("StageA", programA);
     programStageService.saveProgramStage(stageA);
+
+    ProgramStage stageB = new ProgramStage("StageB", programB);
+    programStageService.saveProgramStage(stageB);
 
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(stageA);
@@ -121,6 +131,12 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
     eventA.setScheduledDate(new Date());
     eventA.setUid(CodeGenerator.generateUid());
+
+    Enrollment enrollment = createEnrollment(programB, null, orgUnitB);
+    manager.save(enrollment);
+
+    singleEvent = createSingleEvent(stageB, enrollment, orgUnitB);
+    singleEvent.setUid(CodeGenerator.generateUid());
 
     TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityA);
@@ -189,14 +205,14 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetProgramMessageByEvent() {
+  void shouldGetProgramMessageByTrackerEvent() {
     manager.save(enrollmentA);
     manager.save(eventA);
-    programMessageA.setEvent(eventA);
-    programMessageB.setEvent(eventA);
+    programMessageA.setTrackerEvent(eventA);
+    programMessageB.setTrackerEvent(eventA);
     programMessageStore.save(programMessageA);
     programMessageStore.save(programMessageB);
-    params.setEvent(eventA);
+    params.setTrackerEvent(eventA);
 
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
 
@@ -207,7 +223,32 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
         programMessages.get(0).getDeliveryChannels(),
         "Delivery channels should match for each program message");
     assertEquals(
-        eventA, programMessages.get(0).getEvent(), "Event should match for each program message");
+        eventA,
+        programMessages.get(0).getTrackerEvent(),
+        "Event should match for each program message");
+  }
+
+  @Test
+  void shouldGetProgramMessageBySingleEvent() {
+    manager.save(singleEvent);
+    programMessageA.setSingleEvent(singleEvent);
+    programMessageB.setSingleEvent(singleEvent);
+    programMessageStore.save(programMessageA);
+    programMessageStore.save(programMessageB);
+    params.setSingleEvent(singleEvent);
+
+    List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
+
+    assertNotNull(programMessages);
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        singleEvent,
+        programMessages.get(0).getSingleEvent(),
+        "Event should match for each program message");
   }
 
   @Test
