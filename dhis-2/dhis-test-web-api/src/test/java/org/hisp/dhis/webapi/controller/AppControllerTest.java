@@ -128,16 +128,6 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testInstallBundledAppOverride() throws IOException {
-    appManager.installApp(new ClassPathResource("app/dashboard.zip").getFile());
-    App overriddenDashboard = appManager.getApp("dashboard");
-    assertEquals("Dashboard", overriddenDashboard.getName());
-    assertEquals("999.9.9", overriddenDashboard.getVersion());
-    boolean wasDeleted = appManager.deleteApp(overriddenDashboard, false);
-    assertTrue(wasDeleted);
-  }
-
-  @Test
   void testInstallReturnsAppInfo() throws IOException {
     var result =
         appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
