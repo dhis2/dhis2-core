@@ -124,7 +124,7 @@
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.11.2</c3p0.version>
-    <HikariCP.version>6.3.0</HikariCP.version>
+    <HikariCP.version>7.0.2</HikariCP.version>
     <postgresql-driver.version>42.7.7</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
