@@ -1,6 +1,6 @@
 ---
-name: tracked_entity_attributes_run_trigram_index_job
-description: Partial trigram indexes on tracked entity attribute values must be created or dropped.
+name: tracked_entity_attributes_trigram_index_out_of_sync
+description: Partial trigram indexes on trackedentityattributevalue table must be in sync with the tracked entity attribute metadata configuration.
 section: Tracked entity attributes
 section_order: 2
 summary_sql: >-
@@ -63,7 +63,7 @@ severity: WARNING
 introduction: >
   A partial trigram index can be created on the `trackedentityattributevalue` table for a Tracked Entity Attribute (TEA) if the TEA has the trigram indexable flag set to true and supports at least one of the operators: `LIKE` or `EW`.
   If the trigram index exists but the TEA no longer meets these requirements, the index should be dropped.  
-  The `TRACKER_TRIGRAM_INDEX_MAINTENANCE` job in the scheduler app is responsible for creating and removing these indexes.
+  The `TRACKER_TRIGRAM_INDEX_MAINTENANCE` job in the scheduler app is responsible for keeping in sync, the tracked entity attribute metadata configuration and the partial trigram indexes in the database.
 recommendation: >
-  Go to the scheduler app and run the `TRACKER_TRIGRAM_INDEX_MAINTENANCE` job to create or drop partial trigram indexes on the values of the attributes listed below.
+  Go to the scheduler app and run the `TRACKER_TRIGRAM_INDEX_MAINTENANCE` job to keep the partial trigram indexes in the database up-to-date. The partial trigram indexes for the tracked entity attributes listed below need to be updated by the job.
 is_slow: FALSE

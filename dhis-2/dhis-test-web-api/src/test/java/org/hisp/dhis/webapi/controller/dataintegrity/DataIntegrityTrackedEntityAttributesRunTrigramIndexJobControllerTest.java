@@ -81,7 +81,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
   @Test
   void testTrackedEntityAttributesWithoutIndexableFlagAndIndexNotCreated() {
     assertHasNoDataIntegrityIssues(
-        "trackedEntityAttributes", "tracked_entity_attributes_run_trigram_index_job", true);
+        "trackedEntityAttributes", "tracked_entity_attributes_trigram_index_out_of_sync", true);
   }
 
   @Test
@@ -90,7 +90,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
     createTrigramIndexes(attributes);
 
     assertHasNoDataIntegrityIssues(
-        "trackedEntityAttributes", "tracked_entity_attributes_run_trigram_index_job", true);
+        "trackedEntityAttributes", "tracked_entity_attributes_trigram_index_out_of_sync", true);
   }
 
   @Test
@@ -101,7 +101,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_run_trigram_index_job",
+        "tracked_entity_attributes_trigram_index_out_of_sync",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -116,7 +116,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_run_trigram_index_job",
+        "tracked_entity_attributes_trigram_index_out_of_sync",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
@@ -130,7 +130,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_run_trigram_index_job",
+        "tracked_entity_attributes_trigram_index_out_of_sync",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -144,7 +144,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_run_trigram_index_job",
+        "tracked_entity_attributes_trigram_index_out_of_sync",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
@@ -161,7 +161,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_run_trigram_index_job",
+        "tracked_entity_attributes_trigram_index_out_of_sync",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -178,7 +178,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_run_trigram_index_job",
+        "tracked_entity_attributes_trigram_index_out_of_sync",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),

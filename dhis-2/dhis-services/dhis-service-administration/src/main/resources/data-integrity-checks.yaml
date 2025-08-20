@@ -92,4 +92,4 @@ checks:
   - users/users_with_all_authority.yaml
   - file_resources/file_resources_no_icon.yaml
   - tracked_entity_attributes/tracked_entity_attributes_invalid_trigram_search_configuration.yaml
-  - tracked_entity_attributes/tracked_entity_attributes_run_trigram_index_job.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_trigram_index_out_of_sync.yaml
