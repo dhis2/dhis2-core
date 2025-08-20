@@ -253,4 +253,19 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
             "closingParentheses", getClosingParentheses(fromType),
             "attributeUid", quote(attribute.getUid())));
   }
+
+  /**
+   * The select statement used by the table population, without the alias part.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param fromType the sql snippet related to "from" part
+   * @param dataClause the data type related clause like "NUMERIC"
+   * @return the select statement without alias
+   */
+  protected String selectForInsertWithoutAlias(
+      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+    String sqlWithAlias = selectForInsert(attribute, fromType, dataClause);
+    // Remove the alias part (everything from " as " to the end)
+    return sqlWithAlias.replaceAll("\\s+as\\s+\\S+$", "");
+  }
 }
