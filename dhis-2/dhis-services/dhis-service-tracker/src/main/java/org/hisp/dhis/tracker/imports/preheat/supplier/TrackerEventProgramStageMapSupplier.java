@@ -34,6 +34,7 @@ import java.util.Objects;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
+public class TrackerEventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
   private static final String PS_UID = "programStageUid";
 
   private static final String PI_UID = "enrollmentUid";
@@ -69,7 +70,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           + " and ps.uid in (:programStageUids) "
           + " and en.uid in (:enrollmentUids) ";
 
-  protected EventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
+  protected TrackerEventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
@@ -85,7 +86,6 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
             .filter(Objects::nonNull)
             .map(preheat::getProgramStage)
             .filter(Objects::nonNull)
-            .filter(ps -> ps.getProgram().isRegistration())
             .filter(ps -> !ps.getRepeatable())
             .map(ProgramStage::getUid)
             .distinct()
@@ -93,7 +93,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
 
     List<UID> enrollmentUids =
         trackerObjects.getEvents().stream()
-            .map(Event::getEnrollment)
+            .map(TrackerEvent::getEnrollment)
             .filter(Objects::nonNull)
             .distinct()
             .toList();
@@ -106,7 +106,9 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           SQL,
           parameters,
           (RowCallbackHandler)
-              rs -> preheat.addProgramStageWithEvents(rs.getString(PS_UID), rs.getString(PI_UID)));
+              rs ->
+                  preheat.addProgramStageWithTrackerEvents(
+                      rs.getString(PS_UID), rs.getString(PI_UID)));
     }
   }
 }

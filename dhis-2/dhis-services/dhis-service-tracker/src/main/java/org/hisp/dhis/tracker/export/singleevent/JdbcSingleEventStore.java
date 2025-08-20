@@ -68,7 +68,6 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -86,7 +85,6 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -138,7 +136,6 @@ class JdbcSingleEventStore {
   private static final String COLUMN_PROGRAM_STAGE_CODE = "ps_code";
   private static final String COLUMN_PROGRAM_STAGE_NAME = "ps_name";
   private static final String COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES = "ps_attributevalues";
-  private static final String COLUMN_ENROLLMENT_UID = "en_uid";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
   private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
   private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
@@ -206,8 +203,6 @@ class JdbcSingleEventStore {
   @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
-  private final UserService userService;
-
   private final IdentifiableObjectManager manager;
 
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
@@ -274,10 +269,6 @@ class JdbcSingleEventStore {
                   AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_ATTRIBUTE_VALUES)));
               program.setProgramType(programType);
 
-              Enrollment enrollment = new Enrollment();
-              enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
-              enrollment.setProgram(program);
-
               OrganisationUnit orgUnit = new OrganisationUnit();
               orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
               orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
@@ -292,9 +283,9 @@ class JdbcSingleEventStore {
               ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
               ps.setAttributeValues(
                   AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
+              ps.setProgram(program);
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
-              event.setEnrollment(enrollment);
               event.setProgramStage(ps);
 
               CategoryOptionCombo coc = new CategoryOptionCombo();
@@ -645,7 +636,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(getOrderFieldsForSelectClause(params.getOrder()));
 
     return selectBuilder
-        .append("en.uid as " + COLUMN_ENROLLMENT_UID + ", ")
         .append("p.type as p_type ")
         .append(getFromWhereClause(params, mapSqlParameterSource, user, hlp))
         .toString();
@@ -684,21 +674,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     StringBuilder fromBuilder =
         new StringBuilder(" from singleevent ev ")
-            .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
-            .append("inner join program p on p.programid=en.programid ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+            .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+            .append("inner join program p on p.programid=ps.programid ");
 
-    fromBuilder
-        .append(
-            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-        .append(
-            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=evou.organisationunitid) ")
-        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
+    fromBuilder.append(
+        "inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
 
-    fromBuilder
-        .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
-        .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
+    fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
@@ -952,14 +934,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(EVENT_STATUS_EQ)
             .append(":" + COLUMN_EVENT_STATUS)
             .append(" and ev.occurreddate is not null ");
-      } else if (params.getEventStatus() == EventStatus.OVERDUE) {
-        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.SCHEDULE.name());
-
-        stringBuilder
-            .append(hlp.whereAnd())
-            .append(" date(now()) > date(ev.scheduleddate) and ev.status = ")
-            .append(":" + COLUMN_EVENT_STATUS)
-            .append(" ");
       } else {
         mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, params.getEventStatus().name());
 
