@@ -31,7 +31,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
 import static org.hisp.dhis.util.ZipFileUtils.MAX_ENTRIES;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
@@ -123,6 +125,16 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(response.hasBody());
     String content = response.content("text/html");
     assertTrue(content.contains("<!doctype html>"));
+  }
+
+  @Test
+  void testInstallBundledAppOverride() throws IOException {
+    appManager.installApp(new ClassPathResource("app/dashboard.zip").getFile());
+    App overriddenDashboard = appManager.getApp("dashboard");
+    assertEquals("Dashboard", overriddenDashboard.getName());
+    assertEquals("999.9.9", overriddenDashboard.getVersion());
+    boolean wasDeleted = appManager.deleteApp(overriddenDashboard, false);
+    assertTrue(wasDeleted);
   }
 
   @Test
