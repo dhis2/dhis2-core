@@ -897,11 +897,25 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals("ERROR", report.getStatus());
     assertEquals(0, report.getStats().getUpdated());
     assertEquals(4, report.getStats().getIgnored());
+
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
     JsonErrorReport errorReport = typeReport.getFirstErrorReport();
-    assertEquals(
-        "Importing CategoryOptionCombo state does not match expected generated state",
-        errorReport.getMessage());
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String unexpectedPart = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String expectedPart = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        unexpectedPart.contains("Unexpected CategoryOptionCombo provided with CategoryOptions"));
+    assertTrue(unexpectedPart.contains(categoryMetadata.co1().getUid()));
+    assertTrue(unexpectedPart.contains(categoryMetadata.co2().getUid()));
+    assertTrue(unexpectedPart.contains(categoryMetadata.cc1().getUid()));
+
+    assertTrue(
+        expectedPart.contains("Missing expected CategoryOptionCombos with CategoryOption sets"));
+    assertTrue(expectedPart.contains(categoryMetadata.co1().getUid()));
+    assertTrue(expectedPart.contains(categoryMetadata.co4().getUid()));
   }
 
   @Test
@@ -967,7 +981,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   @DisplayName(
-      "Importing (create) expected number, but different CategoryOptionCombos, should fail")
+      "Importing (create) expected number, but with duplicate CategoryOptionCombo, should fail")
   void importExpectedCocsDifferentCreateTest() {
     // When importing COCs that match expected number, but differ from the generated COC state
     JsonImportSummary report =
@@ -982,11 +996,25 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals("ERROR", report.getStatus());
     assertEquals(0, report.getStats().getUpdated());
     assertEquals(11, report.getStats().getIgnored());
+
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
     JsonErrorReport errorReport = typeReport.getFirstErrorReport();
-    assertEquals(
-        "Importing CategoryOptionCombo state does not match expected generated state",
-        errorReport.getMessage());
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String unexpectedPart = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String expectedPart = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        unexpectedPart.contains("Unexpected CategoryOptionCombo provided with CategoryOptions"));
+    assertTrue(unexpectedPart.contains("CatOptUida1"));
+    assertTrue(unexpectedPart.contains("CatOptUida3"));
+    assertTrue(unexpectedPart.contains("CatComUida1"));
+
+    assertTrue(
+        expectedPart.contains("Missing expected CategoryOptionCombos with CategoryOption sets"));
+    assertTrue(expectedPart.contains("CatOptUida2"));
+    assertTrue(expectedPart.contains("CatOptUida3"));
   }
 
   @Test

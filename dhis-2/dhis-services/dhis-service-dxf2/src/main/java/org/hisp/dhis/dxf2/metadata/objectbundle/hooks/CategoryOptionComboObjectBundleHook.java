@@ -67,6 +67,12 @@ public class CategoryOptionComboObjectBundleHook
 
   private void checkIsExpectedState(
       CategoryOptionCombo optionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // get provided CO set
+    Set<UID> providedCocCoSet =
+        optionCombo.getCategoryOptions().stream()
+            .map(co -> UID.of(co.getUid()))
+            .collect(Collectors.toSet());
+
     // get all provided cocs with cc
     List<CategoryOptionCombo> persistedCocs = bundle.getObjects(CategoryOptionCombo.class, true);
     List<CategoryOptionCombo> newCocs = bundle.getObjects(CategoryOptionCombo.class, false);
@@ -89,7 +95,8 @@ public class CategoryOptionComboObjectBundleHook
     Set<CategoryOptionCombo> genCocs = categoryCombo.generateOptionCombosSet();
 
     ExpectedSizeResult expectedSizeResult =
-        checkExpectedSize(allProvidedCocsForCc, genCocs, categoryCombo, bundle, addReports);
+        checkExpectedSize(
+            allProvidedCocsForCc.size(), genCocs.size(), categoryCombo, bundle, addReports);
 
     // check state if expected size is true
     if (expectedSizeResult.isExpectedSize) {
@@ -98,24 +105,41 @@ public class CategoryOptionComboObjectBundleHook
       Set<Set<UID>> expectedSetOfCos =
           expectedCos.stream().map(HashSet::new).collect(Collectors.toSet());
 
-      // provided
-      Set<Set<UID>> providedSetOfCos = cocsToCoUids(allProvidedCocsForCc);
+      // provided as List, keeping duplicates for now, will check later
+      List<Set<UID>> providedListSetOfCos = cocsToCoUids(allProvidedCocsForCc);
+      Set<HashSet<UID>> providedSetSetOfCos =
+          providedListSetOfCos.stream().map(HashSet::new).collect(Collectors.toSet());
 
-      if (!expectedSetOfCos.equals(providedSetOfCos)) {
-        addReports.accept(
-            new ErrorReport(
-                CategoryOptionCombo.class,
-                ErrorCode.E1131,
-                providedSetOfCos,
-                categoryCombo.getUid(),
-                expectedSetOfCos,
-                expectedSetOfCos));
+      if (!expectedSetOfCos.equals(providedSetSetOfCos)) {
+        Set<Set<UID>> expected = new HashSet<>(expectedSetOfCos);
+        Set<Set<UID>> unexpected = new HashSet<>(providedSetSetOfCos);
+        // get expected
+        expected.removeAll(unexpected);
+        // get unexpected
+        unexpected.removeAll(expectedSetOfCos);
+
+        // add duplicate to unexpected
+        Set<Set<UID>> duplicates = getDuplicates(providedListSetOfCos);
+        if (!duplicates.isEmpty()) {
+          unexpected.addAll(duplicates);
+        }
+
+        // only add error if this COC is in the unexpected set
+        if (unexpected.contains(providedCocCoSet) || expected.contains(providedCocCoSet)) {
+          addReports.accept(
+              new ErrorReport(
+                  CategoryOptionCombo.class,
+                  ErrorCode.E1131,
+                  providedCocCoSet,
+                  categoryCombo.getUid(),
+                  expected));
+        }
       }
     }
   }
 
-  private Set<Set<UID>> cocsToCoUids(List<CategoryOptionCombo> allProvidedCocsForCc) {
-    Set<Set<UID>> providedSetOfCos = new HashSet<>();
+  private List<Set<UID>> cocsToCoUids(List<CategoryOptionCombo> allProvidedCocsForCc) {
+    List<Set<UID>> providedSetOfCos = new ArrayList<>();
     for (CategoryOptionCombo coc : allProvidedCocsForCc) {
       providedSetOfCos.add(
           coc.getCategoryOptions().stream()
@@ -126,8 +150,8 @@ public class CategoryOptionComboObjectBundleHook
   }
 
   private ExpectedSizeResult checkExpectedSize(
-      List<CategoryOptionCombo> allProvidedCocsForCc,
-      Set<CategoryOptionCombo> genCocs,
+      int numProvidedCocs,
+      int numExpectedCocs,
       CategoryCombo categoryCombo,
       ObjectBundle bundle,
       Consumer<ErrorReport> addReports) {
@@ -135,17 +159,16 @@ public class CategoryOptionComboObjectBundleHook
         CombinationGenerator.newInstance(getCosAsLists(categoryCombo, bundle));
     List<List<UID>> bundleCombinations = generator.getCombinations();
 
-    if (genCocs.isEmpty()) {
+    if (numExpectedCocs == 0) {
       // might be impossible to gen from new cc (has c but no co), get cos from bundle?
       // get cc from bundle
-      if (bundleCombinations.size() != allProvidedCocsForCc.size()) {
-        addSizeMismatchErrorReport(
-            addReports, allProvidedCocsForCc.size(), bundleCombinations.size());
+      if (bundleCombinations.size() != numProvidedCocs) {
+        addSizeMismatchErrorReport(addReports, numProvidedCocs, bundleCombinations.size());
         return new ExpectedSizeResult(false, bundleCombinations);
       }
       // check if all provided match generated
-    } else if (genCocs.size() != allProvidedCocsForCc.size()) {
-      addSizeMismatchErrorReport(addReports, allProvidedCocsForCc.size(), genCocs.size());
+    } else if (numExpectedCocs != numProvidedCocs) {
+      addSizeMismatchErrorReport(addReports, numProvidedCocs, numExpectedCocs);
       return new ExpectedSizeResult(false, bundleCombinations);
     }
     return new ExpectedSizeResult(true, bundleCombinations);
@@ -203,19 +226,17 @@ public class CategoryOptionComboObjectBundleHook
     }
   }
 
-  record ExpectedSizeResult(boolean isExpectedSize, List<List<UID>> expectedCocs) {}
+  private Set<Set<UID>> getDuplicates(List<Set<UID>> uidSet) {
+    Set<Set<UID>> uniques = new HashSet<>();
+    Set<Set<UID>> duplicates = new HashSet<>();
 
-  //  record CategoryOptionDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
-  //
-  //  record CategoryDto(UID uid, Set<UID> categoryCombos, Set<UID> categoryOptions) {}
-  //
-  //  record CategoryComboDto(UID uid, Set<UID> categories, Set<UID> categoryOptionCombos) {}
-  //
-  //  record CategoryOptionComboDto(UID uid, UID categoryCombo, Set<UID> categoryOptions) {}
-  //
-  //  record CategoryModelDto(
-  //      CategoryCombo categoryComboDto,
-  //      Set<CategoryOptionDto> optionDtos,
-  //      Set<CategoryDto> categoryDtos,
-  //      Set<CategoryOptionComboDto> optionComboDtos) {}
+    for (Set<UID> uids : uidSet) {
+      if (!uniques.add(uids)) {
+        duplicates.add(uids);
+      }
+    }
+    return duplicates;
+  }
+
+  record ExpectedSizeResult(boolean isExpectedSize, List<List<UID>> expectedCocs) {}
 }
