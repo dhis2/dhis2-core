@@ -76,7 +76,8 @@ public enum ErrorCode {
   E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
   E1129("Creating a single CategoryOptionCombo is forbidden through this endpoint"),
   E1130("Importing CategoryOptionCombos size {0} does not match expected size {1}"),
-  E1131("Importing CategoryOptionCombo state does not match expected generated state"),
+  E1131(
+      "Provided CategoryOptionCombos with CategoryOption sets: {0} for CategoryCombo: {1} does not match expected CategoryOptionCombos CategoryOption sets: {2}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),

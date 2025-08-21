@@ -95,14 +95,21 @@ public class CategoryOptionComboObjectBundleHook
     if (expectedSizeResult.isExpectedSize) {
       // expected
       List<List<UID>> expectedCos = expectedSizeResult.expectedCocs;
-      Set<HashSet<UID>> expectedSetOfCos =
+      Set<Set<UID>> expectedSetOfCos =
           expectedCos.stream().map(HashSet::new).collect(Collectors.toSet());
 
       // provided
       Set<Set<UID>> providedSetOfCos = cocsToCoUids(allProvidedCocsForCc);
 
       if (!expectedSetOfCos.equals(providedSetOfCos)) {
-        addReports.accept(new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1131));
+        addReports.accept(
+            new ErrorReport(
+                CategoryOptionCombo.class,
+                ErrorCode.E1131,
+                providedSetOfCos,
+                categoryCombo.getUid(),
+                expectedSetOfCos,
+                expectedSetOfCos));
       }
     }
   }
@@ -126,24 +133,25 @@ public class CategoryOptionComboObjectBundleHook
       Consumer<ErrorReport> addReports) {
     CombinationGenerator<UID> generator =
         CombinationGenerator.newInstance(getCosAsLists(categoryCombo, bundle));
-    List<List<UID>> combinations = generator.getCombinations();
+    List<List<UID>> bundleCombinations = generator.getCombinations();
 
     if (genCocs.isEmpty()) {
       // might be impossible to gen from new cc (has c but no co), get cos from bundle?
       // get cc from bundle
-      if (combinations.size() != allProvidedCocsForCc.size()) {
-        addNewErrorReport(addReports, allProvidedCocsForCc.size(), combinations.size());
-        return new ExpectedSizeResult(false, combinations);
+      if (bundleCombinations.size() != allProvidedCocsForCc.size()) {
+        addSizeMismatchErrorReport(
+            addReports, allProvidedCocsForCc.size(), bundleCombinations.size());
+        return new ExpectedSizeResult(false, bundleCombinations);
       }
       // check if all provided match generated
     } else if (genCocs.size() != allProvidedCocsForCc.size()) {
-      addNewErrorReport(addReports, allProvidedCocsForCc.size(), genCocs.size());
-      return new ExpectedSizeResult(false, combinations);
+      addSizeMismatchErrorReport(addReports, allProvidedCocsForCc.size(), genCocs.size());
+      return new ExpectedSizeResult(false, bundleCombinations);
     }
-    return new ExpectedSizeResult(true, combinations);
+    return new ExpectedSizeResult(true, bundleCombinations);
   }
 
-  private void addNewErrorReport(
+  private void addSizeMismatchErrorReport(
       Consumer<ErrorReport> addReports, int providedSize, int expectedSize) {
     addReports.accept(
         new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1130, providedSize, expectedSize));
