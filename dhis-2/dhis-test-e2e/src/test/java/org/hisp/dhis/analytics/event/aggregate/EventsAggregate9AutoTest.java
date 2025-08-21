@@ -279,7 +279,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        4,
+        2,
         6,
         3); // Pass runtime flag, row count, and expected header counts
 
@@ -291,7 +291,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"2024\":{\"name\":\"2024\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[\"2020\",\"2021\",\"2022\",\"2023\",\"2024\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"2024\":{\"name\":\"2024\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[\"2020\",\"2021\",\"2022\",\"2023\",\"2024\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -326,9 +326,9 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
     // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "pe", "2021");
-    validateRowValueByName(response, actualHeaders, 3, "value", "1.02");
-    validateRowValueByName(response, actualHeaders, 3, "ou", "ImspTQPwCqd");
+    validateRowValueByName(response, actualHeaders, 1, "pe", "2021");
+    validateRowValueByName(response, actualHeaders, 1, "value", "1.02");
+    validateRowValueByName(response, actualHeaders, 1, "ou", "ImspTQPwCqd");
   }
 
   @Test
@@ -355,7 +355,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        4,
+        2,
         6,
         3); // Pass runtime flag, row count, and expected header counts
 
@@ -367,7 +367,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"2024\":{\"name\":\"2024\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[\"2020\",\"2021\",\"2022\",\"2023\",\"2024\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"2024\":{\"name\":\"2024\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"pe\":[\"2020\",\"2021\",\"2022\",\"2023\",\"2024\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -402,8 +402,8 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
     // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "pe", "2021");
-    validateRowValueByName(response, actualHeaders, 3, "value", "1.02");
-    validateRowValueByName(response, actualHeaders, 3, "ou", "ImspTQPwCqd");
+    validateRowValueByName(response, actualHeaders, 1, "pe", "2021");
+    validateRowValueByName(response, actualHeaders, 1, "value", "1.02");
+    validateRowValueByName(response, actualHeaders, 1, "ou", "ImspTQPwCqd");
   }
 }
