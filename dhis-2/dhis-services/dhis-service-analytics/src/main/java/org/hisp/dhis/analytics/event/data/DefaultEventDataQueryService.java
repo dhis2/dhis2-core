@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.EventDataQueryRequest.getStageInValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -150,7 +151,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     ProgramStage ps =
         programStageService.getProgramStage(
-            request.getStageInValue(request.getValue(), request.getStage()));
+            getStageInValue(request.getValue(), request.getStage()));
 
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
