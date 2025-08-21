@@ -64,6 +64,10 @@ public class ScheduleEventHelper {
     final UID programRule = validationEffect.rule();
     final UID programStage = validationEffect.field();
 
+    if (bundle.getProgramRuleScheduledEvents().get(programStage) != null) {
+      return Optional.empty();
+    }
+
     // check for existing event
     if (bundle
         .getPreheat()

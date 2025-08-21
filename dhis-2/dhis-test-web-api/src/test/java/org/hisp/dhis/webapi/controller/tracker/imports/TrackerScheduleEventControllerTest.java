@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -180,6 +181,9 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
             .getObject("validationReport.warningReports[0]")
             .getString("warningCode")
             .string());
+
+    assertEquals(
+        1, importReport.getList("validationReport.warningReports", JsonValue.class).size());
 
     // Three tracker entities should be created:
     // one enrollment and two events (one provided in the payload, the other scheduled).
