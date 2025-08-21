@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.job;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
@@ -55,7 +56,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
   private final NotificationSender notificationSender;
   private final Notifier notifier;
 
-  private TrackerNotificationDataBundle notificationDataBundle;
+  @Setter private TrackerNotificationDataBundle notificationDataBundle;
 
   @Override
   public void call() {
@@ -85,9 +86,5 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
         notificationDataBundle.getJobConfiguration(),
         NotificationLevel.DEBUG,
         "Tracker Rule-engine notifications completed");
-  }
-
-  public void setNotificationDataBundle(TrackerNotificationDataBundle notificationDataBundle) {
-    this.notificationDataBundle = notificationDataBundle;
   }
 }
