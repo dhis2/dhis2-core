@@ -29,46 +29,33 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.QueryOperator.EW;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBase {
+class TrackedEntityAttributeControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
-
-  private OrganisationUnit orgUnit;
-
-  private Program program;
-
-  private TrackedEntity te;
-
-  private Enrollment enrollment;
 
   private TrackedEntityAttribute teaA;
 
@@ -78,238 +65,65 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
 
   private TrackedEntityAttribute teaD;
 
-  private TrackedEntityAttribute teaE;
-
-  ProgramTrackedEntityAttribute pteaA;
-
-  ProgramTrackedEntityAttribute pteaB;
-
-  TrackedEntityTypeAttribute tetaA;
-
-  TrackedEntityTypeAttribute tetaB;
-
-  TrackedEntityType trackedEntityType;
-
   @BeforeEach
   void setUp() {
-    orgUnit = createOrganisationUnit('A');
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
 
-    program = createProgram('A');
+    Program program = createProgram('A');
     manager.save(program);
 
     teaA = createTrackedEntityAttribute('A');
+    teaA.setTrigramIndexable(true);
     teaB = createTrackedEntityAttribute('B');
+    teaB.setTrigramIndexable(true);
     teaC = createTrackedEntityAttribute('C');
+    teaC.setTrigramIndexable(true);
+    teaC.setBlockedSearchOperators(Set.of(LIKE, EW));
     teaD = createTrackedEntityAttribute('D');
-    teaE = createTrackedEntityAttribute('E');
     manager.save(teaA);
     manager.save(teaB);
     manager.save(teaC);
     manager.save(teaD);
-    manager.save(teaE);
-
-    trackedEntityType = createTrackedEntityType('A');
-    manager.save(trackedEntityType);
-
-    tetaA = new TrackedEntityTypeAttribute();
-    tetaA.setSearchable(true);
-    tetaA.setTrackedEntityType(trackedEntityType);
-    tetaA.setTrackedEntityAttribute(teaA);
-    manager.save(tetaA);
-    trackedEntityType.getTrackedEntityTypeAttributes().add(tetaA);
-
-    tetaB = new TrackedEntityTypeAttribute();
-    tetaB.setSearchable(false);
-    tetaB.setTrackedEntityType(trackedEntityType);
-    tetaB.setTrackedEntityAttribute(teaD);
-    manager.save(tetaB);
-    trackedEntityType.getTrackedEntityTypeAttributes().add(tetaB);
-
-    manager.update(trackedEntityType);
-
-    pteaA = new ProgramTrackedEntityAttribute();
-    pteaA.setSearchable(true);
-    pteaA.setAttribute(teaB);
-    pteaA.setProgram(program);
-    manager.save(pteaA);
-
-    pteaB = new ProgramTrackedEntityAttribute();
-    pteaB.setSearchable(false);
-    pteaB.setAttribute(teaE);
-    pteaB.setProgram(program);
-    manager.save(pteaB);
-
-    program.getProgramAttributes().add(pteaA);
-    program.getProgramAttributes().add(pteaB);
-    manager.update(program);
-
-    te = createTrackedEntity(orgUnit, trackedEntityType);
-    manager.save(te);
-
-    enrollment = new Enrollment(program, te, orgUnit);
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(EnrollmentStatus.COMPLETED);
-    enrollment.setFollowup(true);
-    manager.save(enrollment);
-  }
-
-  @Test
-  void getIndexableOnlyAttributes() {
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeA", "AttributeB"));
-  }
-
-  @Test
-  void getIndexableOnlyAttributesWithDateAndTextValueType() {
-    teaA.setValueType(ValueType.DATE);
-    manager.update(teaA);
-    teaB.setValueType(ValueType.TEXT);
-    manager.update(teaB);
-
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeB"));
-  }
-
-  @Test
-  void getIndexableOnlyAttributesWithLongTextAndBooleanValueType() {
-    teaA.setValueType(ValueType.LONG_TEXT);
-    manager.update(teaA);
-    teaB.setValueType(ValueType.BOOLEAN);
-    manager.update(teaB);
-
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeA"));
-  }
-
-  @Test
-  void getIndexableOnlyAttributesWithNumberAndPhoneNumberValueType() {
-    teaA.setValueType(ValueType.NUMBER);
-    manager.update(teaA);
-    teaB.setValueType(ValueType.PHONE_NUMBER);
-    manager.update(teaB);
-
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeB"));
-  }
-
-  @Test
-  void getIndexableOnlyAttributesWithEmailAndPercentageValueType() {
-    teaA.setValueType(ValueType.EMAIL);
-    manager.update(teaA);
-    teaB.setValueType(ValueType.PERCENTAGE);
-    manager.update(teaB);
-
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeA"));
-  }
-
-  @Test
-  void getIndexableOnlyAttributesWithTimeAndUserNameValueType() {
-    teaA.setValueType(ValueType.TIME);
-    manager.update(teaA);
-    teaB.setValueType(ValueType.USERNAME);
-    manager.update(teaB);
-
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeB"));
-  }
-
-  @Test
-  void getIndexableOnlyAttributesWithUrlAndCoordinateValueType() {
-    teaA.setValueType(ValueType.URL);
-    manager.update(teaA);
-    teaB.setValueType(ValueType.COORDINATE);
-    manager.update(teaB);
-
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=true").content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeA"));
   }
 
   @Test
   void getAllAttributes() {
-    JsonObject json = GET("/trackedEntityAttributes?indexableOnly=false").content(HttpStatus.OK);
+    JsonObject json = GET("/trackedEntityAttributes").content(HttpStatus.OK);
 
     assertAttributeList(
-        json, Set.of("AttributeA", "AttributeB", "AttributeC", "AttributeD", "AttributeE"));
-  }
-
-  @Test
-  void getIndexableAttributesAndFilterByIdShouldThrowError() {
-    assertEquals(
-        "indexableOnly parameter cannot be set if a separate filter for id is specified",
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=id:eq:ImspTQPwCqd")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void getIndexableAttributesAndFilterByOtherParameters() {
-    JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]")
-            .content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of("AttributeB"));
+        json, Set.of(teaA.getName(), teaB.getName(), teaC.getName(), teaD.getName()));
   }
 
   @Test
   void getAttributesWithNameFilter() {
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeB,AttributeC]")
+        GET("/trackedEntityAttributes?filter=name:in:[AttributeB,AttributeC]")
             .content(HttpStatus.OK);
 
-    assertAttributeList(json, Set.of("AttributeB", "AttributeC"));
-  }
-
-  @Test
-  void shouldNotFailIfNoIndexableAttributesAreConfigured() {
-    tetaA.setSearchable(false);
-    manager.update(tetaA);
-    tetaB.setSearchable(false);
-    manager.update(tetaB);
-    pteaA.setSearchable(false);
-    manager.update(pteaA);
-    pteaB.setSearchable(false);
-    manager.update(pteaB);
-
-    JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=true&filter=name:in:[AttributeB,AttributeC]")
-            .content(HttpStatus.OK);
-
-    assertAttributeList(json, Set.of());
+    assertAttributeList(json, Set.of(teaB.getName(), teaC.getName()));
   }
 
   @Test
   void shouldContainPreferredSearchOperatorWhenSet() {
-    teaA.setPreferredSearchOperator(QueryOperator.LIKE);
+    teaA.setPreferredSearchOperator(LIKE);
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
-            .content(HttpStatus.OK);
+        GET("/trackedEntityAttributes?filter=name:in:[AttributeA]&fields=*").content(HttpStatus.OK);
 
-    assertAttributePreferredOperator(json, Set.of("LIKE"));
+    assertAttributePreferredOperator(json, Set.of(LIKE.name()));
   }
 
   @Test
   void shouldContainBlockedSearchOperatorsWhenSet() {
-    teaA.setBlockedSearchOperators(Set.of(QueryOperator.LIKE, QueryOperator.NNULL));
+    teaA.setBlockedSearchOperators(Set.of(LIKE, QueryOperator.NNULL));
     manager.update(teaA);
 
     JsonObject json =
-        GET("/trackedEntityAttributes?indexableOnly=false&filter=name:in:[AttributeA]&fields=*")
-            .content(HttpStatus.OK);
+        GET("/trackedEntityAttributes?filter=name:in:[AttributeA]&fields=*").content(HttpStatus.OK);
 
-    assertAttributeBlockedOperators(json, Set.of("LIKE", "NNULL"));
+    assertAttributeBlockedOperators(json, Set.of(LIKE.name(), NNULL.name()));
   }
 
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {

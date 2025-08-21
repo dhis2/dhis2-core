@@ -96,4 +96,25 @@ public class DefaultProgramRuleActionService implements ProgramRuleActionService
     return programRuleActionStore.getMalFormedRuleActionsByType(
         ProgramRuleActionType.HIDEPROGRAMSTAGE);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getProgramStagesUsedInScheduleEventActions() {
+    return programRuleActionStore.getProgramStagesUsedInScheduleEventActions(
+        ProgramRuleActionType.SCHEDULEEVENT);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getDataElementsPresentInProgramRuleActions() {
+    return programRuleActionStore.getDataElementsPresentInProgramRuleActions(
+        ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getTrackedEntityAttributesPresentInProgramRuleActions() {
+    return programRuleActionStore.getTrackedEntityAttributesPresentInProgramRuleActions(
+        ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
+  }
 }

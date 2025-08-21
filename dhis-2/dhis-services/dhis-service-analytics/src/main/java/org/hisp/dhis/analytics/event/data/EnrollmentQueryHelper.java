@@ -136,7 +136,7 @@ public class EnrollmentQueryHelper {
     if (!params.isOrganisationUnitMode(SELECTED) && !params.isOrganisationUnitMode(CHILDREN)) {
       Set<String> levels = new LinkedHashSet<>();
 
-      for (DimensionalItemObject itemObject : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
+      for (DimensionalItemObject itemObject : params.getDimensionOptions(ORGUNIT_DIM_ID)) {
         String level = LEVEL_PREFIX + ((OrganisationUnit) itemObject).getLevel();
         levels.add(level);
       }

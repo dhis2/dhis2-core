@@ -1,0 +1,41 @@
+---
+name: tracked_entity_attributes_trigram_index_overview
+description: Tracked entity attributes that have a partial trigram index created on the trackedentityattributevalue table.
+section: Tracked entity attributes
+section_order: 3
+summary_sql: >-
+    WITH existing_trigram_indexes AS (
+        SELECT
+        CAST(substring(indexdef FROM 'trackedentityattributeid\s*=\s*(\d+)') AS bigint) AS teaid
+        FROM pg_indexes
+        WHERE tablename = 'trackedentityattributevalue'
+        AND indexdef ILIKE '%gin_trgm_ops%'
+        AND indexdef ILIKE '%WHERE%'
+        AND indexdef ~ '[(]?\s*trackedentityattributeid\s*=\s*\d+\s*[)]?'
+    )
+    SELECT COUNT(*) AS value, 100 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM trackedentityattribute), 0) AS percent
+    FROM trackedentityattribute tea
+    WHERE tea.trackedentityattributeid IN (SELECT teaid FROM existing_trigram_indexes);
+details_sql: >-
+    WITH existing_trigram_indexes AS (
+        SELECT
+        CAST(substring(indexdef FROM 'trackedentityattributeid\s*=\s*(\d+)') AS bigint) AS teaid
+        FROM pg_indexes
+        WHERE tablename = 'trackedentityattributevalue'
+        AND indexdef ILIKE '%gin_trgm_ops%'
+        AND indexdef ILIKE '%WHERE%'
+        AND indexdef ~ '[(]?\s*trackedentityattributeid\s*=\s*\d+\s*[)]?'
+    )
+    SELECT uid, name
+    FROM trackedentityattribute tea
+    WHERE tea.trackedentityattributeid IN (SELECT teaid FROM existing_trigram_indexes);
+details_id_type: trackedEntityAttributes
+severity: INFO
+introduction: >
+    A partial trigram index can be created on the `trackedentityattributevalue` table for a Tracked Entity Attribute (TEA) if the TEA has the trigram indexable flag set to true and supports at least one of the operators: `LIKE` or `EW`.
+    The `TRACKER_TRIGRAM_INDEX_MAINTENANCE` job in the scheduler app is responsible for creating these indexes.
+    This check reports the tracked entity attributes whose related `trackedentityattributevalue` table entry has a partial trigram index.
+recommendation:
+    This check is informational only, no action is required.
+    Below is the lists of tracked entity attributes that currently have a partial trigram index on the `trackedentityattributevalue` table.
+is_slow: FALSE

@@ -54,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Component
 public class NotificationSender {
-  public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
   private final ProgramNotificationInstanceService programNotificationInstanceService;
   private final ProgramNotificationService programNotificationService;
   private final NotificationTemplateService notificationTemplateService;

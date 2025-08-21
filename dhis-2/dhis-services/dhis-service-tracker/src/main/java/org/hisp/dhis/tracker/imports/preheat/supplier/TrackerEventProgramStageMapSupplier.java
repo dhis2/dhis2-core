@@ -83,10 +83,13 @@ public class TrackerEventProgramStageMapSupplier extends JdbcAbstractPreheatSupp
     List<String> notRepeatableProgramStageUids =
         trackerObjects.getEvents().stream()
             .map(Event::getProgramStage)
-            .filter(Objects::nonNull)
             .map(preheat::getProgramStage)
             .filter(Objects::nonNull)
-            .filter(ps -> !ps.getRepeatable())
+            .map(ProgramStage::getProgram)
+            .filter(Objects::nonNull)
+            .map(program -> preheat.getProgram(program.getUid()))
+            .filter(Objects::nonNull)
+            .flatMap(program -> program.getProgramStages().stream())
             .map(ProgramStage::getUid)
             .distinct()
             .toList();
