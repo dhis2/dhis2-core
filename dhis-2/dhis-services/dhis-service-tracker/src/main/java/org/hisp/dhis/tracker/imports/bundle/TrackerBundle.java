@@ -122,6 +122,9 @@ public class TrackerBundle {
   /** Notifications for single events. */
   @Builder.Default private Map<UID, List<Notification>> singleEventNotifications = new HashMap<>();
 
+  /** TrackerEvents scheduled via program rules (e.g. follow-ups) */
+  @Builder.Default private Map<UID, TrackerEvent> programRuleScheduledEvents = new HashMap<>();
+
   /** Rule action executors for enrollments. */
   @Builder.Default
   private Map<Enrollment, List<RuleActionExecutor<Enrollment>>> enrollmentRuleActionExecutors =
