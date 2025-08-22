@@ -870,16 +870,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
-  /**
-   * Wraps the base query format with ST_Centroid if the current settings allow it.
-   *
-   * @param baseFormat the base SQL format string.
-   * @return the format string, optionally wrapped with ST_Centroid.
-   */
-  private String wrapWithCentroid(String baseFormat) {
-    return useCentroidForOuAttribute() ? "ST_Centroid(" + baseFormat + ")" : baseFormat;
-  }
-
   private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
       DataElement dataElement, String dataClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -888,17 +878,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (isSpatialSupport()) {
       String geoSql =
-          selectForInsert(
+          selectForInsertWithoutAlias(
               dataElement,
               "ou.geometry from organisationunit ou where ou.uid = (select " + columnName,
               dataClause);
-
+      // wraps the expression with ST_Centroid if configured to do so
+      String finalSqlSnippet = wrapWithCentroid(geoSql) + " as " + quote(dataElement.getUid());
       columns.add(
           AnalyticsTableColumn.builder()
               .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .columnType(AnalyticsColumnType.DYNAMIC)
               .dataType(GEOMETRY)
-              .selectExpression(geoSql)
+              .selectExpression(finalSqlSnippet)
               .indexType(IndexType.GIST)
               .build());
     }
@@ -916,6 +907,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .build());
 
     return columns;
+  }
+
+  /**
+   * Wraps the base query format with ST_Centroid if the current settings allow it.
+   *
+   * @param baseFormat the base SQL format string.
+   * @return the format string, optionally wrapped with ST_Centroid.
+   */
+  private String wrapWithCentroid(String baseFormat) {
+    return useCentroidForOuAttribute() ? "ST_Centroid(" + baseFormat + ")" : baseFormat;
   }
 
   /**
@@ -944,6 +945,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             getClosingParentheses(fromType),
             "dataElementUid",
             quote(dataElement.getUid())));
+  }
+
+  private String selectForInsertWithoutAlias(
+      DataElement dataElement, String fromType, String dataClause) {
+    String sqlWithAlias = selectForInsert(dataElement, fromType, dataClause);
+    return ALIAS_PATTERN.matcher(sqlWithAlias).replaceAll("");
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(

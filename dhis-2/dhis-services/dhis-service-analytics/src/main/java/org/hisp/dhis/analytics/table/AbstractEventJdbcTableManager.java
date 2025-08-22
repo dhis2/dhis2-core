@@ -95,7 +95,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         sqlBuilder);
   }
 
-  private static final Pattern ALIAS_PATTERN = Pattern.compile("\\s+as\\s+\\S+$");
+  protected static final Pattern ALIAS_PATTERN = Pattern.compile("\\s+as\\s+\\S+$");
 
   public static final String OU_NAME_COL_SUFFIX = "_name";
 
