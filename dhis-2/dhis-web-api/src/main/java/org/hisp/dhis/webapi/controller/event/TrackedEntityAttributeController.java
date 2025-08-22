@@ -34,13 +34,23 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -48,11 +58,13 @@ import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,16 +79,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/trackedEntityAttributes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+@RequiredArgsConstructor
 public class TrackedEntityAttributeController
     extends AbstractCrudController<TrackedEntityAttribute, GetObjectListParams> {
 
-  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TextPatternService textPatternService;
-
-  @Autowired private ReservedValueService reservedValueService;
-
-  @Autowired private ContextService context;
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
+  private final TextPatternService textPatternService;
+  private final ReservedValueService reservedValueService;
+  private final ContextService context;
 
   @GetMapping(
       value = "/{id}/generateAndReserve",
@@ -185,5 +195,50 @@ public class TrackedEntityAttributeController
     }
 
     return trackedEntityAttribute;
+  }
+
+  @Override
+  public ResponseEntity<StreamingJsonRoot<TrackedEntityAttribute>> getObjectList(
+      GetObjectListParams params, HttpServletResponse res, UserDetails currentUser)
+      throws ForbiddenException, BadRequestException, ConflictException {
+
+    ResponseEntity<StreamingJsonRoot<TrackedEntityAttribute>> response =
+        super.getObjectList(params, res, currentUser);
+    if (response.getBody() != null) {
+      Set<String> indexedAttributeUids =
+          trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      response
+          .getBody()
+          .getParams()
+          .getObjects()
+          .forEach(tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(tea.getUid())));
+    }
+
+    return response;
+  }
+
+  @Override
+  public ResponseEntity<?> getObject(
+      String pvUid,
+      GetObjectParams params,
+      UserDetails currentUser,
+      HttpServletRequest request,
+      HttpServletResponse res)
+      throws ForbiddenException, NotFoundException {
+
+    ResponseEntity<?> response = super.getObject(pvUid, params, currentUser, request, res);
+    if (response.getBody() instanceof StreamingJsonRoot<?> body && body.getParams() != null) {
+      Set<String> indexedAttributeUids =
+          trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      Optional.ofNullable(body.getParams().getObjects()).stream()
+          .flatMap(List::stream)
+          .filter(TrackedEntityAttribute.class::isInstance)
+          .map(TrackedEntityAttribute.class::cast)
+          .forEach(tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(tea.getUid())));
+    }
+
+    return response;
   }
 }

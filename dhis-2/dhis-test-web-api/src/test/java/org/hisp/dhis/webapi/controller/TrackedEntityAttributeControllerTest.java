@@ -33,9 +33,12 @@ import static org.hisp.dhis.common.QueryOperator.EW;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -47,15 +50,22 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class TrackedEntityAttributeControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private TrackedEntityAttribute teaA;
 
@@ -64,6 +74,10 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
   private TrackedEntityAttribute teaC;
 
   private TrackedEntityAttribute teaD;
+
+  private static final String TRIGRAM_INDEX_CREATE_QUERY =
+      "CREATE INDEX IF NOT EXISTS in_gin_teavalue_%d ON "
+          + "trackedentityattributevalue USING gin (trackedentityid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
 
   @BeforeEach
   void setUp() {
@@ -85,6 +99,15 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
     manager.save(teaB);
     manager.save(teaC);
     manager.save(teaD);
+  }
+
+  @AfterEach
+  void dropAllTrigramIndexes() {
+    // DDL statements like `CREATE INDEX` are not rolled back, so here I'm cleaning up after each
+    // use
+    List<Long> indexedAttributes =
+        trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
+    indexedAttributes.forEach(attr -> trackedEntityAttributeTableManager.dropTrigramIndex(attr));
   }
 
   @Test
@@ -126,6 +149,33 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
     assertAttributeBlockedOperators(json, Set.of(LIKE.name(), NNULL.name()));
   }
 
+  @Test
+  void shouldReturnCollectionOfAttributesWithExpectedTrigramIndexField() {
+    createTrigramIndexes(Set.of(teaA, teaB));
+
+    JsonObject json = GET("/trackedEntityAttributes?fields=*").content(HttpStatus.OK);
+
+    assertAttributeTrigramIndexedField(
+        json,
+        Map.of(
+            teaA.getUid(), true, teaB.getUid(), true, teaC.getUid(), false, teaD.getUid(), false));
+  }
+
+  @Test
+  void shouldReturnSingleAttributeWithExpectedTrigramIndexField() {
+    createTrigramIndexes(Set.of(teaA));
+
+    JsonObject jsonA =
+        GET("/trackedEntityAttributes/" + teaA.getUid() + "?fields=*").content(HttpStatus.OK);
+    JsonObject jsonB =
+        GET("/trackedEntityAttributes/" + teaB.getUid() + "?fields=*").content(HttpStatus.OK);
+
+    assertEquals(teaA.getUid(), jsonA.getString("id").string());
+    assertEquals(teaA.getTrigramIndexed(), jsonA.getBoolean("trigramIndexed").booleanValue());
+    assertEquals(teaB.getUid(), jsonB.getString("id").string());
+    assertEquals(teaB.getTrigramIndexed(), jsonB.getBoolean("trigramIndexed").booleanValue());
+  }
+
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {
     assertFalse(actualJson.isEmpty());
     assertEquals(expected.size(), actualJson.getArray("trackedEntityAttributes").size());
@@ -165,5 +215,28 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
             .collect(Collectors.toSet());
 
     assertContainsOnly(expected, actual);
+  }
+
+  private static void assertAttributeTrigramIndexedField(
+      JsonObject actualJson, Map<String, Boolean> expected) {
+    Map<String, Boolean> actual =
+        actualJson
+            .getArray("trackedEntityAttributes")
+            .projectAsList(v -> v.as(JsonObject.class))
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    o -> o.getString("id").string(),
+                    o -> o.getBoolean("trigramIndexed").booleanValue()));
+
+    assertMapEquals(expected, actual);
+  }
+
+  public void createTrigramIndexes(Set<TrackedEntityAttribute> attributes) {
+    attributes.forEach(
+        attr -> {
+          String query = String.format(TRIGRAM_INDEX_CREATE_QUERY, attr.getId(), attr.getId());
+          jdbcTemplate.execute(query);
+        });
   }
 }

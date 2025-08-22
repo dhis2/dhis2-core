@@ -30,6 +30,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.math.BigInteger;
@@ -130,6 +131,24 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     return trackedEntityAttributes;
+  }
+
+  @Override
+  public Set<String> getAllTrigramIndexedTrackedEntityAttributes() {
+    Query query =
+        entityManager.createNativeQuery(
+            """
+        select tea.uid
+        from pg_indexes idx
+        join trackedentityattribute tea
+          on cast(substring(idx.indexdef from 'trackedentityattributeid\\s*=\\s*(\\d+)') as bigint) = tea.trackedentityattributeid
+         and idx.tablename = 'trackedentityattributevalue'
+         and idx.indexdef ilike '%gin_trgm_ops%'
+         and idx.indexdef ilike '%WHERE%'
+         and idx.indexdef ~ '[(]?\\s*trackedentityattributeid\\s*=\\s*\\d+\\s*[)]?'
+    """);
+
+    return new HashSet<>((List<String>) query.getResultList());
   }
 
   @Override

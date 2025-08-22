@@ -116,6 +116,8 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Boolean trigramIndexable = false;
 
+  private volatile Boolean trigramIndexed = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -434,6 +436,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setTrigramIndexable(Boolean trigramIndexable) {
     this.trigramIndexable = trigramIndexable;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getTrigramIndexed() {
+    return trigramIndexed;
+  }
+
+  public void setTrigramIndexed(Boolean trigramIndexed) {
+    this.trigramIndexed = trigramIndexed;
   }
 
   @Override

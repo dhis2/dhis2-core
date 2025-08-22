@@ -144,6 +144,15 @@ public interface TrackedEntityAttributeService {
   Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes();
 
   /**
+   * Returns all {@link TrackedEntityAttribute} UIDs that have a partial trigram index on the
+   * trackedentityattributevalue table.
+   *
+   * @return a set of TrackedEntityAttribute UIDs, or an empty List if there are no
+   *     TrackedEntityAttributes that are indexed
+   */
+  Set<String> getAllTrigramIndexedTrackedEntityAttributes();
+
+  /**
    * Returns all {@link TrackedEntityAttribute}
    *
    * @return a List of all system wide uniqe TrackedEntityAttribute, or an empty List if there are

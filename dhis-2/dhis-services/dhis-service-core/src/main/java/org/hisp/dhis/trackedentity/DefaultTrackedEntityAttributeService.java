@@ -61,8 +61,6 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final TrackedEntityAttributeStore attributeStore;
-
   private final AclService aclService;
 
   private final TrackedEntityAttributeStore trackedEntityAttributeStore;
@@ -78,13 +76,13 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional
   public void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    attributeStore.delete(attribute);
+    trackedEntityAttributeStore.delete(attribute);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<TrackedEntityAttribute> getAllTrackedEntityAttributes() {
-    return attributeStore.getAll();
+    return trackedEntityAttributeStore.getAll();
   }
 
   @Override
@@ -96,51 +94,51 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityAttribute getTrackedEntityAttribute(long id) {
-    return attributeStore.get(id);
+    return trackedEntityAttributeStore.get(id);
   }
 
   @Override
   @Transactional
   public long addTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    attributeStore.save(attribute);
+    trackedEntityAttributeStore.save(attribute);
     return attribute.getId();
   }
 
   @Override
   @Transactional
   public void updateTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    attributeStore.update(attribute);
+    trackedEntityAttributeStore.update(attribute);
   }
 
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityAttribute getTrackedEntityAttributeByName(String name) {
-    return attributeStore.getByName(name);
+    return trackedEntityAttributeStore.getByName(name);
   }
 
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityAttribute getTrackedEntityAttribute(String uid) {
-    return attributeStore.getByUid(uid);
+    return trackedEntityAttributeStore.getByUid(uid);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<TrackedEntityAttribute> getTrackedEntityAttributes(@Nonnull List<String> uids) {
-    return attributeStore.getByUid(uids);
+    return trackedEntityAttributeStore.getByUid(uids);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<TrackedEntityAttribute> getTrackedEntityAttributesById(List<Long> ids) {
-    return attributeStore.getById(ids);
+    return trackedEntityAttributeStore.getById(ids);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
       boolean displayOnVisitSchedule) {
-    return attributeStore.getByDisplayOnVisitSchedule(displayOnVisitSchedule);
+    return trackedEntityAttributeStore.getByDisplayOnVisitSchedule(displayOnVisitSchedule);
   }
 
   @Override
@@ -186,7 +184,13 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Transactional(readOnly = true)
   @Override
   public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
-    return attributeStore.getAllTrigramIndexableTrackedEntityAttributes();
+    return trackedEntityAttributeStore.getAllTrigramIndexableTrackedEntityAttributes();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Set<String> getAllTrigramIndexedTrackedEntityAttributes() {
+    return trackedEntityAttributeStore.getAllTrigramIndexedTrackedEntityAttributes();
   }
 
   // -------------------------------------------------------------------------
@@ -212,12 +216,12 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
-    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
+    return trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program) {
-    return this.trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
+    return trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
   }
 }
