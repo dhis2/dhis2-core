@@ -91,7 +91,7 @@ public class CategoryOptionComboObjectBundleHook
    */
   private void checkIsExpectedState(
       CategoryOptionCombo optionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    // get provided CC
+    // get provided CC UID
     UID providedCc = UID.of(optionCombo.getCategoryCombo().getUid());
 
     // get provided CO set
@@ -100,7 +100,7 @@ public class CategoryOptionComboObjectBundleHook
             .map(co -> UID.of(co.getUid()))
             .collect(Collectors.toSet());
 
-    // get all provided cocs in bundle with same provided cc
+    // get all provided COCs in bundle with same provided CC
     List<CategoryOptionCombo> persistedCocs =
         bundle.getObjects(CategoryOptionCombo.class, true).stream()
             .filter(coc -> hasSameCcUid.test(coc, providedCc))
@@ -111,52 +111,61 @@ public class CategoryOptionComboObjectBundleHook
             .filter(coc -> hasSameCcUid.test(coc, providedCc))
             .toList();
 
-    // all cocs provided in import
+    // all COCs provided in import
     List<CategoryOptionCombo> allProvidedCocsForCc =
         CollectionUtils.combinedUnmodifiableView(persistedCocs, newCocs);
 
-    // get cc
-    CategoryCombo categoryCombo =
+    // get CC
+    CategoryCombo bundleCategoryCombo =
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
 
+    // check size
     ExpectedSizeResult expectedSizeResult =
-        checkExpectedSize(allProvidedCocsForCc.size(), categoryCombo, bundle, addReports);
+        checkExpectedSize(allProvidedCocsForCc.size(), bundleCategoryCombo, bundle, addReports);
 
-    // check state if expected size is true
+    // check state if expected size matches
     if (expectedSizeResult.isExpectedSize) {
-      // expected
-      Set<Set<UID>> expectedSetOfCos =
-          expectedSizeResult.expectedCocs.stream().map(HashSet::new).collect(Collectors.toSet());
+      checkExpectedState(
+          expectedSizeResult, allProvidedCocsForCc, addReports, providedCoSet, bundleCategoryCombo);
+    }
+  }
 
-      // provided as List, keeping duplicates for now, will check later
-      List<Set<UID>> providedListSetOfCos = cocsToCoUids(allProvidedCocsForCc);
-      Set<HashSet<UID>> providedSetSetOfCos =
-          providedListSetOfCos.stream().map(HashSet::new).collect(Collectors.toSet());
+  private void checkExpectedState(
+      ExpectedSizeResult expectedSizeResult,
+      List<CategoryOptionCombo> allProvidedCocsForCc,
+      Consumer<ErrorReport> addReports,
+      Set<UID> providedCoSet,
+      CategoryCombo bundleCategoryCombo) {
+    Set<Set<UID>> expectedSetOfCos =
+        expectedSizeResult.expectedCocs.stream().map(HashSet::new).collect(Collectors.toSet());
 
-      if (!expectedSetOfCos.equals(providedSetSetOfCos)) {
-        Set<Set<UID>> expectedCos = new HashSet<>(expectedSetOfCos);
-        Set<Set<UID>> unexpectedCos = new HashSet<>(providedSetSetOfCos);
-        // get expected
-        expectedCos.removeAll(unexpectedCos);
-        // get unexpected
-        unexpectedCos.removeAll(expectedSetOfCos);
+    // provided COs as List, keeping duplicates for now, duplicates checked below
+    List<Set<UID>> providedListSetOfCos = cocsToCoUids(allProvidedCocsForCc);
+    Set<HashSet<UID>> providedSetSetOfCos =
+        providedListSetOfCos.stream().map(HashSet::new).collect(Collectors.toSet());
 
-        // add duplicate to unexpected
-        Set<Set<UID>> duplicates = CollectionUtils.findDuplicates(providedListSetOfCos);
-        if (!duplicates.isEmpty()) {
-          unexpectedCos.addAll(duplicates);
-        }
+    if (!expectedSetOfCos.equals(providedSetSetOfCos)) {
+      // find outlying set of COs
+      Set<Set<UID>> unexpectedCos = new HashSet<>(providedSetSetOfCos);
 
-        // only add error if this COC is in the unexpected set
-        if (unexpectedCos.contains(providedCoSet)) {
-          addReports.accept(
-              new ErrorReport(
-                  CategoryOptionCombo.class,
-                  ErrorCode.E1131,
-                  providedCoSet,
-                  categoryCombo.getUid(),
-                  expectedCos));
-        }
+      // get unexpected
+      unexpectedCos.removeAll(expectedSetOfCos);
+
+      // add duplicate to unexpected
+      Set<Set<UID>> duplicates = CollectionUtils.findDuplicates(providedListSetOfCos);
+      if (!duplicates.isEmpty()) {
+        unexpectedCos.addAll(duplicates);
+      }
+
+      // only add error if the provided CO set is in the unexpected set
+      if (unexpectedCos.contains(providedCoSet)) {
+        addReports.accept(
+            new ErrorReport(
+                CategoryOptionCombo.class,
+                ErrorCode.E1131,
+                providedCoSet,
+                bundleCategoryCombo.getUid(),
+                expectedSetOfCos));
       }
     }
   }
@@ -172,7 +181,7 @@ public class CategoryOptionComboObjectBundleHook
     return providedSetOfCos;
   }
 
-  private BiPredicate<CategoryOptionCombo, UID> hasSameCcUid =
+  private final BiPredicate<CategoryOptionCombo, UID> hasSameCcUid =
       (coc, cc) -> coc.getCategoryCombo().getUid().equals(cc.getValue());
 
   private ExpectedSizeResult checkExpectedSize(
@@ -185,16 +194,15 @@ public class CategoryOptionComboObjectBundleHook
     List<List<UID>> bundleCombinations = generator.getCombinations();
 
     if (bundleCombinations.size() != numProvidedCocs) {
-        addSizeMismatchErrorReport(addReports, numProvidedCocs, bundleCombinations.size());
+      addReports.accept(
+          new ErrorReport(
+              CategoryOptionCombo.class,
+              ErrorCode.E1130,
+              numProvidedCocs,
+              bundleCombinations.size()));
         return new ExpectedSizeResult(false, bundleCombinations);
     }
     return new ExpectedSizeResult(true, bundleCombinations);
-  }
-
-  private void addSizeMismatchErrorReport(
-      Consumer<ErrorReport> addReports, int providedSize, int expectedSize) {
-    addReports.accept(
-        new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1130, providedSize, expectedSize));
   }
 
   /**
