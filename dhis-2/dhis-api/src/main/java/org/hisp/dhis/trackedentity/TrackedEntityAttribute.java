@@ -116,7 +116,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Boolean trigramIndexable = false;
 
-  private volatile Boolean trigramIndexed = false;
+  private Boolean trigramIndexed = false;
 
   // -------------------------------------------------------------------------
   // Constructors
