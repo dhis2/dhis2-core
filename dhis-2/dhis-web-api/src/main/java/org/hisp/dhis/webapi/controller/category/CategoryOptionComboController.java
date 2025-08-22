@@ -111,6 +111,3 @@ public class CategoryOptionComboController
     return WebMessageUtils.conflict(E1129);
   }
 }
-
-
-

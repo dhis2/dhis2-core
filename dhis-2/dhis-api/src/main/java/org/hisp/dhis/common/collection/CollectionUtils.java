@@ -427,7 +427,16 @@ public class CollectionUtils {
     return Map.copyOf(merged);
   }
 
-  public static <T> List<T> combinedUnmodifiableView(List<? extends T> l1, List<? extends T> l2) {
+  /**
+   * Combines 2 Lists into a memory-efficient unmodifiable view of both. Safe to perform read/get
+   * operations on. Updates on original Lists are reflected in the returned view. Can't be modified.
+   *
+   * @param l1 list 1
+   * @param l2 list 2
+   * @return combined view of both lists
+   * @param <T> type
+   */
+  public static <T> List<T> combinedUnmodifiableView(List<T> l1, List<T> l2) {
     return Collections.unmodifiableList(
         new AbstractList<>() {
           @Override

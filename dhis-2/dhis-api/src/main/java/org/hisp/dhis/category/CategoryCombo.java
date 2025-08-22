@@ -62,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
@@ -263,9 +264,9 @@ public class CategoryCombo extends BaseMetadataObject
 
   public List<List<CategoryOption>> getCategoryOptionsAsLists() {
     return categories.stream()
-        .map(Category::getCategoryOptions)
-        .filter(categoryOptions -> !categoryOptions.isEmpty())
-        .toList();
+        .filter(ca -> !ca.getCategoryOptions().isEmpty())
+        .map(ca -> ca.getCategoryOptions())
+        .collect(Collectors.toList());
   }
 
   /**
