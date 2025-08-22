@@ -148,7 +148,7 @@ public class HibernateTrackedEntityAttributeStore
          and idx.indexdef ~ '[(]?\\s*trackedentityattributeid\\s*=\\s*\\d+\\s*[)]?'
     """);
 
-    return new HashSet<>((List<String>) query.getResultList());
+    return new HashSet<>(query.getResultList());
   }
 
   @Override
