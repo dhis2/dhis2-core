@@ -32,6 +32,7 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -78,7 +79,7 @@ public interface TrackedEntityAttributeStore
    *
    * @return a Set of {@link TrackedEntityAttribute} UIDs.
    */
-  Set<String> getAllTrigramIndexedTrackedEntityAttributes();
+  Set<UID> getAllTrigramIndexedTrackedEntityAttributes();
 
   /**
    * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}

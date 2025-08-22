@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -205,14 +206,17 @@ public class TrackedEntityAttributeController
     ResponseEntity<StreamingJsonRoot<TrackedEntityAttribute>> response =
         super.getObjectList(params, res, currentUser);
     if (response.getBody() != null) {
-      Set<String> indexedAttributeUids =
+      Set<UID> indexedAttributeUids =
           trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      indexedAttributeUids.forEach(uid -> System.out.println(uid.getClass()));
 
       response
           .getBody()
           .getParams()
           .getObjects()
-          .forEach(tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(tea.getUid())));
+          .forEach(
+              tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(UID.of(tea.getUid()))));
     }
 
     return response;
@@ -229,14 +233,15 @@ public class TrackedEntityAttributeController
 
     ResponseEntity<?> response = super.getObject(pvUid, params, currentUser, request, res);
     if (response.getBody() instanceof StreamingJsonRoot<?> body && body.getParams() != null) {
-      Set<String> indexedAttributeUids =
+      Set<UID> indexedAttributeUids =
           trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
 
       Optional.ofNullable(body.getParams().getObjects()).stream()
           .flatMap(List::stream)
           .filter(TrackedEntityAttribute.class::isInstance)
           .map(TrackedEntityAttribute.class::cast)
-          .forEach(tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(tea.getUid())));
+          .forEach(
+              tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(UID.of(tea.getUid()))));
     }
 
     return response;

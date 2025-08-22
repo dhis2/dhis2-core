@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -189,7 +190,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Transactional(readOnly = true)
   @Override
-  public Set<String> getAllTrigramIndexedTrackedEntityAttributes() {
+  public Set<UID> getAllTrigramIndexedTrackedEntityAttributes() {
     return trackedEntityAttributeStore.getAllTrigramIndexedTrackedEntityAttributes();
   }
 

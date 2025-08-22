@@ -30,7 +30,6 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.math.BigInteger;
@@ -38,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
@@ -134,10 +134,11 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  public Set<String> getAllTrigramIndexedTrackedEntityAttributes() {
-    Query query =
-        entityManager.createNativeQuery(
-            """
+  public Set<UID> getAllTrigramIndexedTrackedEntityAttributes() {
+    List<String> result =
+        entityManager
+            .createNativeQuery(
+                """
         select tea.uid
         from pg_indexes idx
         join trackedentityattribute tea
@@ -146,9 +147,10 @@ public class HibernateTrackedEntityAttributeStore
          and idx.indexdef ilike '%gin_trgm_ops%'
          and idx.indexdef ilike '%WHERE%'
          and idx.indexdef ~ '[(]?\\s*trackedentityattributeid\\s*=\\s*\\d+\\s*[)]?'
-    """);
+    """)
+            .getResultList();
 
-    return new HashSet<>(query.getResultList());
+    return result.stream().map(UID::of).collect(Collectors.toSet());
   }
 
   @Override

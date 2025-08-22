@@ -32,6 +32,7 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -150,7 +151,7 @@ public interface TrackedEntityAttributeService {
    * @return a set of TrackedEntityAttribute UIDs, or an empty List if there are no
    *     TrackedEntityAttributes that are indexed
    */
-  Set<String> getAllTrigramIndexedTrackedEntityAttributes();
+  Set<UID> getAllTrigramIndexedTrackedEntityAttributes();
 
   /**
    * Returns all {@link TrackedEntityAttribute}
