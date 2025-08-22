@@ -481,7 +481,7 @@ class JdbcEventAnalyticsTableManagerTest {
   }
 
   @Test
-  @DisplayName("Verify that the OU centroid is used when the setting is enabled")
+  @DisplayName("Verify that the TEA attribute of type OU uses centroid when the setting is enabled")
   void verifyGetTableWithOuTeisUseCentroid() {
     when(databaseInfo.isSpatialSupport()).thenReturn(true);
     when(systemSettingManager.getBooleanSetting(SettingKey.ANALYTICS_EVENTS_OU_CENTROID))
@@ -545,6 +545,63 @@ class JdbcEventAnalyticsTableManagerTest {
             tea.getUid(), TEXT, toAlias(aliasTea, tea.getUid())) // ValueType.ORGANISATION_UNIT
         .addColumn(
             tea.getUid() + "_geom", GEOMETRY, toAlias(aliasTeaGeo, tea.getUid()), IndexType.GIST)
+        .withDefaultColumns(subject.getFixedColumns())
+        .build()
+        .verify();
+  }
+
+  @Test
+  @DisplayName("Verify that the DE attribute of type OU uses centroid when the setting is enabled")
+  void verifyGetTableWithOuDesUseCentroid() {
+    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    when(systemSettingManager.getBooleanSetting(SettingKey.ANALYTICS_EVENTS_OU_CENTROID))
+        .thenReturn(true);
+
+    Program program = createProgram('A');
+
+    DataElement d1 = createDataElement('Z', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    ProgramStage ps1 = createProgramStage('A', Set.of(d1));
+    program.setProgramStages(Set.of(ps1));
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+
+    final String deSubquery =
+        "(select eventdatavalues #>> '{deabcdefghZ, value}' from programstageinstance where programstageinstanceid=psi.programstageinstanceid )";
+
+    String aliasDe =
+        "(select ou.uid from organisationunit ou where ou.uid = " + deSubquery + ") as \"%s\"";
+    String aliasDeGeo =
+        "ST_Centroid((select ou.geometry from organisationunit ou where ou.uid = "
+            + deSubquery
+            + ")) as \"%s\"";
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(2)
+            .withStartTime(START_TIME)
+            .withToday(today)
+            .build();
+
+    when(periodDataProvider.getAvailableYears(DATABASE))
+        .thenReturn(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    new AnalyticsTableAsserter.Builder(tables.get(0))
+        .withTableName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withTableType(AnalyticsTableType.EVENT)
+        .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
+        .addColumns(periodColumns)
+        .addColumn(d1.getUid(), TEXT, toAlias(aliasDe, d1.getUid())) // ValueType.ORGANISATION_UNIT
+        .addColumn(
+            d1.getUid() + "_geom", GEOMETRY, toAlias(aliasDeGeo, d1.getUid()), IndexType.GIST)
         .withDefaultColumns(subject.getFixedColumns())
         .build()
         .verify();
