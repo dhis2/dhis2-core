@@ -1,42 +1,98 @@
 -- Split event table into trackerevent and singleevent tables
-alter table if exists event
-    drop constraint if exists fk_programstageinstance_assigneduserid,
-    drop constraint if exists fk_programstageinstance_attributeoptioncomboid,
-    drop constraint if exists fk_programstageinstance_organisationunitid,
-    drop constraint if exists fk_programstageinstance_programinstanceid,
-    drop constraint if exists fk_programstageinstance_programstageid;
+alter table event drop code;
 
-create table trackerevent
-(
-    like event including all
-);
-create table singleevent
-(
-    like event including all
-);
-
-insert into trackerevent
-select *
-from event
-where eventid in (
-    select ev.eventid
-    from event ev
-             join programstage ps on ev.programstageid = ps.programstageid
-             join program p on ps.programid = p.programid
-    where p.type = 'WITH_REGISTRATION'
-    );
-
-insert into singleevent
-select *
-from event
+-- Copy single events into singleevent table without any constraint
+create table singleevent as
+select * from event
 where eventid in (
     select ev.eventid
     from event ev
              join programstage ps on ev.programstageid = ps.programstageid
              join program p on ps.programid = p.programid
     where p.type = 'WITHOUT_REGISTRATION'
-    );
+);
 
+-- Delete not used columns
+alter table singleevent drop column scheduleddate;
+alter table singleevent drop column enrollmentid;
+
+-- Create primary key
+alter table singleevent add primary key (eventid);
+-- Make uid column unique
+alter table singleevent add constraint unique_singleevent_uid unique (uid);
+-- Set not null columns
+alter table singleevent alter column created set not null;
+alter table singleevent alter column occurreddate set not null;
+alter table singleevent alter column lastupdated set not null;
+alter table singleevent alter column lastsynchronized set default to_timestamp((0)::double precision);
+alter table singleevent alter column lastsynchronized set not null;
+alter table singleevent alter column programstageid set not null;
+alter table singleevent alter column attributeoptioncomboid set not null;
+alter table singleevent alter column deleted set not null;
+alter table singleevent alter column organisationunitid set not null;
+alter table singleevent alter column status set not null;
+alter table singleevent alter column eventdatavalues set default '{}'::jsonb;
+alter table singleevent alter column eventdatavalues set not null;
+
+-- Recreate indexes
+create index if not exists in_singleevent_status_occurreddate on singleevent using btree (status,occurreddate);
+create index if not exists in_singleevent_deleted_assigneduserid on singleevent using btree (deleted,assigneduserid);
+create index if not exists in_singleevent_occurreddate on singleevent using btree (occurreddate);
+create index if not exists in_singleevent_attributeoptioncomboid on singleevent using btree (attributeoptioncomboid);
+create index if not exists in_singleevent_organisationunitid on singleevent using btree (organisationunitid);
+create index if not exists in_singleevent_programstageid on singleevent using btree (programstageid);
+
+create sequence if not exists singleevent_sequence;
+select setval('singleevent_sequence', max(eventid)) from singleevent;
+
+-- Recreate foreign keys
+alter table if exists singleevent
+    add constraint fk_singleevent_assigneduserid foreign key (assigneduserid) references userinfo (userinfoid),
+    add constraint fk_singleevent_attributeoptioncomboid foreign key (attributeoptioncomboid) references categoryoptioncombo (categoryoptioncomboid),
+    add constraint fk_singleevent_organisationunitid foreign key (organisationunitid) references organisationunit (organisationunitid),
+    add constraint fk_singleevent_programstageid foreign key (programstageid) references programstage (programstageid);
+
+-- Copy tracker events into trackerevent table without any constraint
+create table trackerevent as
+select * from event
+where eventid in (
+    select ev.eventid
+    from event ev
+             join programstage ps on ev.programstageid = ps.programstageid
+             join program p on ps.programid = p.programid
+    where p.type = 'WITH_REGISTRATION'
+);
+
+-- Create primary key
+alter table trackerevent add primary key (eventid);
+-- Make uid column unique
+alter table trackerevent add constraint unique_trackerevent_uid unique (uid);
+-- Set not null columns
+alter table trackerevent alter column created set not null;
+alter table trackerevent alter column lastupdated set not null;
+alter table trackerevent alter column lastsynchronized set default to_timestamp((0)::double precision);
+alter table trackerevent alter column lastsynchronized set not null;
+alter table trackerevent alter column enrollmentid set not null;
+alter table trackerevent alter column programstageid set not null;
+alter table trackerevent alter column attributeoptioncomboid set not null;
+alter table trackerevent alter column deleted set not null;
+alter table trackerevent alter column organisationunitid set not null;
+alter table trackerevent alter column status set not null;
+alter table trackerevent alter column eventdatavalues set default '{}'::jsonb;
+alter table trackerevent alter column eventdatavalues set not null;
+
+-- Recreate indexes
+create index if not exists in_trackerevent_status_occurreddate on trackerevent using btree (status,occurreddate);
+create index if not exists in_trackerevent_deleted_assigneduserid on trackerevent using btree (deleted,assigneduserid);
+create index if not exists in_trackerevent_occurreddate on trackerevent using btree (occurreddate);
+create index if not exists in_trackerevent_attributeoptioncomboid on trackerevent using btree (attributeoptioncomboid);
+create index if not exists in_trackerevent_organisationunitid on trackerevent using btree (organisationunitid);
+create index if not exists in_trackerevent_enrollmentid on trackerevent using btree (enrollmentid);
+
+create sequence if not exists trackerevent_sequence;
+select setval('trackerevent_sequence', max(eventid)) from trackerevent;
+
+-- Recreate foreign keys
 alter table if exists trackerevent
     add constraint fk_trackerevent_assigneduserid foreign key (assigneduserid) references userinfo (userinfoid),
     add constraint fk_trackerevent_attributeoptioncomboid foreign key (attributeoptioncomboid) references categoryoptioncombo (categoryoptioncomboid),
@@ -44,21 +100,26 @@ alter table if exists trackerevent
     add constraint fk_trackerevent_enrollmentid foreign key (enrollmentid) references enrollment (enrollmentid),
     add constraint fk_trackerevent_programstageid foreign key (programstageid) references programstage (programstageid);
 
-alter table if exists singleevent
-    add constraint fk_singleevent_assigneduserid foreign key (assigneduserid) references userinfo (userinfoid),
-    add constraint fk_singleevent_attributeoptioncomboid foreign key (attributeoptioncomboid) references categoryoptioncombo (categoryoptioncomboid),
-    add constraint fk_singleevent_organisationunitid foreign key (organisationunitid) references organisationunit (organisationunitid),
-    add constraint fk_singleevent_programstageid foreign key (programstageid) references programstage (programstageid);
-
-create sequence if not exists trackerevent_sequence;
-create sequence if not exists singleevent_sequence;
-select setval('trackerevent_sequence', max(eventid)) from trackerevent;
-select setval('singleevent_sequence', max(eventid)) from singleevent;
-
-alter table trackerevent drop column code;
-alter table singleevent drop column code;
-alter table singleevent drop column scheduleddate;
-alter table singleevent drop column enrollmentid;
+-- Check if any event was not moved to singleevent or trackerevent table
+do $$
+    begin
+        create table inconsistentevent as
+        select * from event
+        where eventid not in (
+            select eventid
+            from singleevent
+            union
+            select eventid
+            from trackerevent
+        );
+        if ((select count(*) from inconsistentevent) > 0)
+        then raise warning 'There is inconsistent data in your DB. Please check https://github.com/dhis2/dhis2-releases/blob/master/releases/2.43/migration-notes.md#inconsistent-events to have more information on the issue and to find ways to fix it.';
+        end if;
+        if ((select count(*) from inconsistentevent) = 0)
+        then drop table inconsistentevent;
+        end if;
+    end;
+$$;
 
 -- Split eventid column in relationshipitem table
 alter table if exists relationshipitem
