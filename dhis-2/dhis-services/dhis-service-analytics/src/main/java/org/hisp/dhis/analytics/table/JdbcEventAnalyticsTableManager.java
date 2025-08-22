@@ -684,7 +684,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
     String select = getSelectClause(dataElement.getValueType(), columnName);
-    String sql = selectForInsert(dataElement, select, dataClause);
+    String sql = selectForInsert(dataElement, select, dataClause, false);
     boolean skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -744,20 +744,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           selectForInsert(
               dataElement,
               "ou.geometry from organisationunit ou where ou.uid = (select " + columnName,
-              dataClause);
-
+              dataClause,
+              true);
+      String finalSqlSnippet = wrapWithCentroid(geoSql) + " as " + quote(dataElement.getUid());
       columns.add(
           new AnalyticsTableColumn(
                   quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
                   ColumnDataType.GEOMETRY,
-                  geoSql)
+                  finalSqlSnippet)
               .withSkipIndex(false)
               .withIndexType(IndexType.GIST));
     }
 
     // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
-    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
+    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause, false);
 
     columns.add(
         new AnalyticsTableColumn(quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
@@ -776,15 +777,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return useCentroidForOuAttribute() ? "ST_Centroid(" + baseFormat + ")" : baseFormat;
   }
 
-  private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
+  private String selectForInsert(
+      DataElement dataElement, String fromType, String dataClause, boolean omitAlias) {
+    String aliasClause = omitAlias ? "" : " as " + quote(dataElement.getUid());
+
     return format(
-        "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid "
-            + dataClause
-            + ")"
-            + getClosingParentheses(fromType)
-            + " as "
-            + quote(dataElement.getUid()),
-        fromType);
+        "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid %s)%s%s",
+        fromType, dataClause, getClosingParentheses(fromType), aliasClause);
   }
 
   private String selectForInsert(
