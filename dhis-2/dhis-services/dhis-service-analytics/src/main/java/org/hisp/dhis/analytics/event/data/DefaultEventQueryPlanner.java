@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -77,6 +78,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     List<Function<EventQueryParams, List<EventQueryParams>>> groupers =
         new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add(this::groupByQueryItems)
+            .add(this::groupByTimeDimensions)
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
@@ -292,5 +294,91 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     }
 
     return queries;
+  }
+
+  /**
+   * Groups queries by active time dimensions and their period types. This method handles: 1.
+   * Multiple time dimensions (eventDate + enrollmentDate) - splits by time dimension 2. Mixed
+   * period types within single time dimension (eventDate=THIS_YEAR;2021S1) - splits by period type
+   *
+   * @param params the event query parameters.
+   * @return a list of {@link EventQueryParams}.
+   */
+  private List<EventQueryParams> groupByTimeDimensions(EventQueryParams params) {
+    List<EventQueryParams> queries = new ArrayList<>();
+
+    if (params.hasMultipleTimeDimensions()) {
+      // Multiple time dimensions - split into individual queries
+      for (TimeField timeField : params.getActiveTimeDimensions()) {
+        EventQueryParams singleTimeDimensionQuery = params.withSingleTimeDimension(timeField);
+        queries.add(singleTimeDimensionQuery);
+      }
+      return queries;
+    }
+
+    // Single time dimension - check for mixed period types within date ranges
+    if (params.getActiveTimeDimensionCount() == 1) {
+      TimeField timeField = params.getActiveTimeDimensions().iterator().next();
+      List<org.hisp.dhis.common.DateRange> dateRanges = params.getTimeDateRanges().get(timeField);
+
+      if (dateRanges != null && dateRanges.size() > 1) {
+        // Check if date ranges represent different period types by analyzing date patterns
+        boolean hasMixedTypes = hasMixedPeriodTypes(dateRanges);
+
+        if (hasMixedTypes) {
+          // Split into separate queries for each date range
+          for (org.hisp.dhis.common.DateRange dateRange : dateRanges) {
+            EventQueryParams splitQuery =
+                createQueryForSingleDateRange(params, timeField, dateRange);
+            queries.add(splitQuery);
+          }
+          return queries;
+        }
+      }
+    }
+
+    // No splitting needed - single time dimension with homogeneous period types
+    queries.add(params);
+    return queries;
+  }
+
+  /**
+   * Checks if the provided date ranges represent different period types. This is a heuristic based
+   * on date range duration and patterns.
+   */
+  private boolean hasMixedPeriodTypes(List<org.hisp.dhis.common.DateRange> dateRanges) {
+    if (dateRanges.size() <= 1) {
+      return false;
+    }
+
+    // Simple heuristic: if date ranges have significantly different durations,
+    // they likely represent different period types
+    long firstDuration =
+        dateRanges.get(0).getEndDate().getTime() - dateRanges.get(0).getStartDate().getTime();
+
+    for (int i = 1; i < dateRanges.size(); i++) {
+      long duration =
+          dateRanges.get(i).getEndDate().getTime() - dateRanges.get(i).getStartDate().getTime();
+      // If durations differ by more than 50%, consider them different period types
+      double ratio = (double) Math.abs(duration - firstDuration) / firstDuration;
+      if (ratio > 0.5) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /** Creates a new EventQueryParams with a single date range for the specified time field. */
+  private EventQueryParams createQueryForSingleDateRange(
+      EventQueryParams params, TimeField timeField, org.hisp.dhis.common.DateRange dateRange) {
+    EventQueryParams newParams =
+        new EventQueryParams.Builder(params).withTimeField(timeField.name()).build();
+
+    // Set only the single date range
+    newParams.getTimeDateRanges().clear();
+    newParams.getTimeDateRanges().put(timeField, List.of(dateRange));
+
+    return newParams;
   }
 }
