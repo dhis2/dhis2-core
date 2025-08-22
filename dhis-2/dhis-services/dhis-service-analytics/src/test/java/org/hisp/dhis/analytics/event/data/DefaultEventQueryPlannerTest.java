@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Date;
@@ -49,6 +50,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.Partitions;
@@ -59,6 +61,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -472,28 +475,6 @@ class DefaultEventQueryPlannerTest extends TestBase {
             });
   }
 
-  private void mockPartitionManager() {
-    lenient()
-        .doAnswer(
-            invocation -> {
-              // PartitionManager.filterNonExistingPartitions returns void
-              return null;
-            })
-        .when(partitionManager)
-        .filterNonExistingPartitions(any(Partitions.class), anyString());
-  }
-
-  private void setUser(EventQueryParams params, String username) {
-    try {
-      java.lang.reflect.Field currentUserField = DataQueryParams.class.getDeclaredField(username);
-      currentUserField.setAccessible(true);
-      currentUserField.set(params, currentUser);
-    } catch (Exception e) {
-      // Skip this test if reflection fails
-      fail("Failed to set user via reflection: " + e.getMessage());
-    }
-  }
-
   @Test
   void testPlanAggregateQuery_withAggregateData_debug() {
 
@@ -523,5 +504,200 @@ class DefaultEventQueryPlannerTest extends TestBase {
     assertThat(result.size(), is(1));
     assertTrue(result.stream().allMatch(q -> q.getTableName() != null));
     assertTrue(result.stream().allMatch(q -> q.getPartitions() != null));
+  }
+
+  @Test
+  void testPlanAggregateQuery_withMultipleTimeDimensions() {
+    // Create params with multiple time dimensions
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(program)
+            .addItem(queryItemA)
+            .withAggregateData(true)
+            .withOrganisationUnits(List.of(orgUnitA))
+            .build();
+
+    // Manually add multiple time dimensions to simulate API request
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.EVENT_DATE,
+            List.of(
+                new org.hisp.dhis.common.DateRange(periodA.getStartDate(), periodA.getEndDate())));
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.ENROLLMENT_DATE,
+            List.of(
+                new org.hisp.dhis.common.DateRange(periodB.getStartDate(), periodB.getEndDate())));
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.LAST_UPDATED,
+            List.of(
+                new org.hisp.dhis.common.DateRange(periodA.getStartDate(), periodA.getEndDate())));
+
+    mockQueryPlannerToReturnSameEventParams();
+    mockPartitionManager();
+
+    List<EventQueryParams> result = eventQueryPlanner.planAggregateQuery(params);
+
+    // Should create separate queries for each time dimension (3)
+    assertThat(result.size(), is(3));
+
+    // Each query should have exactly one active time dimension
+    assertTrue(result.stream().allMatch(q -> q.getActiveTimeDimensionCount() == 1));
+
+    // Verify all time dimensions are covered
+    List<TimeField> resultTimeDimensions =
+        result.stream().flatMap(q -> q.getActiveTimeDimensions().stream()).toList();
+    assertTrue(resultTimeDimensions.contains(TimeField.EVENT_DATE));
+    assertTrue(resultTimeDimensions.contains(TimeField.ENROLLMENT_DATE));
+    assertTrue(resultTimeDimensions.contains(TimeField.LAST_UPDATED));
+
+    // Each query should have table name and partitions
+    assertTrue(result.stream().allMatch(q -> q.getTableName() != null));
+    assertTrue(result.stream().allMatch(q -> q.getPartitions() != null));
+  }
+
+  @Test
+  void testPlanAggregateQuery_withSingleTimeDimension() {
+    // Create params with single time dimension
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(program)
+            .addItem(queryItemA)
+            .withAggregateData(true)
+            .withOrganisationUnits(List.of(orgUnitA))
+            .build();
+
+    // Add single time dimension
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.EVENT_DATE,
+            List.of(
+                new org.hisp.dhis.common.DateRange(periodA.getStartDate(), periodA.getEndDate())));
+
+    mockQueryPlannerToReturnSameEventParams();
+    mockPartitionManager();
+
+    List<EventQueryParams> result = eventQueryPlanner.planAggregateQuery(params);
+
+    // Should not split - single time dimension
+    assertThat(result.size(), is(1));
+    assertThat(result.get(0).getActiveTimeDimensionCount(), is(1));
+    assertTrue(result.get(0).hasActiveTimeDimension(TimeField.EVENT_DATE));
+  }
+
+  @Test
+  void testPlanAggregateQuery_withMixedPeriodTypes() {
+    // Create periods with different types: 2024 (yearly) and 2021S1 (six-monthly)
+    Period yearPeriod = new YearlyPeriodType().createPeriod("2024");
+    Period semester2021S1 = new SixMonthlyPeriodType().createPeriod("2021S1");
+
+    // Create params with single time dimension but mixed period types
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(program)
+            .addItem(queryItemA)
+            .withAggregateData(true)
+            .withOrganisationUnits(List.of(orgUnitA))
+            .build();
+
+    // Add the time dimension manually with mixed period types
+    params
+        .getTimeDateRanges()
+        .put(
+            TimeField.EVENT_DATE,
+            List.of(
+                new org.hisp.dhis.common.DateRange(
+                    yearPeriod.getStartDate(), yearPeriod.getEndDate()),
+                new org.hisp.dhis.common.DateRange(
+                    semester2021S1.getStartDate(), semester2021S1.getEndDate())));
+
+    mockQueryPlannerToReturnSameEventParams();
+    mockPartitionManager();
+
+    List<EventQueryParams> result = eventQueryPlanner.planAggregateQuery(params);
+
+    // Should create 2 queries due to mixed period types in time dimension
+    assertThat(result.size(), is(2));
+
+    // Each query should have exactly one active time dimension (eventDate)
+    assertTrue(result.stream().allMatch(q -> q.getActiveTimeDimensionCount() == 1));
+    assertTrue(result.stream().allMatch(q -> q.hasActiveTimeDimension(TimeField.EVENT_DATE)));
+
+    // Each query should have table name and partitions
+    assertTrue(result.stream().allMatch(q -> q.getTableName() != null));
+    assertTrue(result.stream().allMatch(q -> q.getPartitions() != null));
+
+    // Verify the groupByPeriodType was called for each split query
+    verify(queryPlanner, times(2)).groupByPeriodType(any(DataQueryParams.class));
+  }
+
+  @Test
+  void testPlanAggregateQuery_withMixedPeriodTypesInSingleTimeDimension() {
+    // Simulate eventDate=THIS_YEAR;2021S1 scenario
+    // Create date ranges with significantly different durations to trigger splitting
+    org.hisp.dhis.common.DateRange yearRange =
+        new org.hisp.dhis.common.DateRange(
+            java.sql.Date.valueOf("2024-01-01"), java.sql.Date.valueOf("2024-12-31")); // 365 days
+    org.hisp.dhis.common.DateRange semesterRange =
+        new org.hisp.dhis.common.DateRange(
+            java.sql.Date.valueOf("2021-01-01"), java.sql.Date.valueOf("2021-06-30")); // 181 days
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(program)
+            .addItem(queryItemA)
+            .withAggregateData(true)
+            .withOrganisationUnits(List.of(orgUnitA))
+            .build();
+
+    // Add mixed duration date ranges to single time dimension
+    params.getTimeDateRanges().put(TimeField.EVENT_DATE, List.of(yearRange, semesterRange));
+
+    mockQueryPlannerToReturnSameEventParams();
+    mockPartitionManager();
+
+    List<EventQueryParams> result = eventQueryPlanner.planAggregateQuery(params);
+
+    // Should create 2 queries due to mixed period types within single time dimension
+    assertThat(result.size(), is(2));
+
+    // Each query should have exactly one active time dimension (eventDate)
+    assertTrue(result.stream().allMatch(q -> q.getActiveTimeDimensionCount() == 1));
+    assertTrue(result.stream().allMatch(q -> q.hasActiveTimeDimension(TimeField.EVENT_DATE)));
+
+    // Each query should have exactly one date range
+    assertTrue(
+        result.stream().allMatch(q -> q.getTimeDateRanges().get(TimeField.EVENT_DATE).size() == 1));
+
+    // Each query should have table name and partitions
+    assertTrue(result.stream().allMatch(q -> q.getTableName() != null));
+    assertTrue(result.stream().allMatch(q -> q.getPartitions() != null));
+  }
+
+  private void mockPartitionManager() {
+    lenient()
+        .doAnswer(
+            invocation -> {
+              // PartitionManager.filterNonExistingPartitions returns void
+              return null;
+            })
+        .when(partitionManager)
+        .filterNonExistingPartitions(any(Partitions.class), anyString());
+  }
+
+  private void setUser(EventQueryParams params, String username) {
+    try {
+      java.lang.reflect.Field currentUserField = DataQueryParams.class.getDeclaredField(username);
+      currentUserField.setAccessible(true);
+      currentUserField.set(params, currentUser);
+    } catch (Exception e) {
+      // Skip this test if reflection fails
+      fail("Failed to set user via reflection: " + e.getMessage());
+    }
   }
 }
