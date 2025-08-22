@@ -33,11 +33,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CombinationGenerator;
@@ -65,45 +67,66 @@ public class CategoryOptionComboObjectBundleHook
     checkIsExpectedState(combo, bundle, addReports);
   }
 
+  /**
+   * Validates the expected state of a {@link CategoryOptionCombo}. This can only be done by
+   * validating it with the whole expected set of {@link CategoryOptionCombo} for a {@link
+   * CategoryCombo}.
+   *
+   * <p>This check will validate 2 things:
+   *
+   * <ul>
+   *   <li>that the expected number of {@link CategoryOptionCombo}s (the full set) matches what has
+   *       been provided
+   *   <li>that the expected {@link CategoryOptionCombo}s match what has been provided. By 'match',
+   *       this means that the expected generated set of {@link CategoryOptionCombo} should contain
+   *       every {@link CategoryOptionCombo} provided (expected {@link CategoryCombo} and {@link
+   *       CategoryOption} set).
+   * </ul>
+   *
+   * <p>The validation uses {@link UID} matching.
+   *
+   * @param optionCombo option combo being validated
+   * @param bundle bundle
+   * @param addReports reports to add errors to
+   */
   private void checkIsExpectedState(
       CategoryOptionCombo optionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // get provided CC
+    UID providedCc = UID.of(optionCombo.getCategoryCombo().getUid());
+
     // get provided CO set
-    Set<UID> providedCocCoSet =
+    Set<UID> providedCoSet =
         optionCombo.getCategoryOptions().stream()
             .map(co -> UID.of(co.getUid()))
             .collect(Collectors.toSet());
 
-    // get all provided cocs with cc
-    List<CategoryOptionCombo> persistedCocs = bundle.getObjects(CategoryOptionCombo.class, true);
-    List<CategoryOptionCombo> newCocs = bundle.getObjects(CategoryOptionCombo.class, false);
-
-    // all cocs provided in import
-    List<CategoryOptionCombo> providedCocs =
-        CollectionUtils.combinedUnmodifiableView(persistedCocs, newCocs);
-
-    // get only cocs with same imported coc cc
-    List<CategoryOptionCombo> allProvidedCocsForCc =
-        providedCocs.stream()
-            .filter(
-                coc ->
-                    coc.getCategoryCombo().getUid().equals(optionCombo.getCategoryCombo().getUid()))
+    // get all provided cocs in bundle with same provided cc
+    List<CategoryOptionCombo> persistedCocs =
+        bundle.getObjects(CategoryOptionCombo.class, true).stream()
+            .filter(coc -> hasSameCcUid.test(coc, providedCc))
             .toList();
 
-    // get all generated cocs from cc
+    List<CategoryOptionCombo> newCocs =
+        bundle.getObjects(CategoryOptionCombo.class, false).stream()
+            .filter(coc -> hasSameCcUid.test(coc, providedCc))
+            .toList();
+
+    // all cocs provided in import
+    List<CategoryOptionCombo> allProvidedCocsForCc =
+        CollectionUtils.combinedUnmodifiableView(persistedCocs, newCocs);
+
+    // get cc
     CategoryCombo categoryCombo =
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
-    Set<CategoryOptionCombo> genCocs = categoryCombo.generateOptionCombosSet();
 
     ExpectedSizeResult expectedSizeResult =
-        checkExpectedSize(
-            allProvidedCocsForCc.size(), genCocs.size(), categoryCombo, bundle, addReports);
+        checkExpectedSize(allProvidedCocsForCc.size(), categoryCombo, bundle, addReports);
 
     // check state if expected size is true
     if (expectedSizeResult.isExpectedSize) {
       // expected
-      List<List<UID>> expectedCos = expectedSizeResult.expectedCocs;
       Set<Set<UID>> expectedSetOfCos =
-          expectedCos.stream().map(HashSet::new).collect(Collectors.toSet());
+          expectedSizeResult.expectedCocs.stream().map(HashSet::new).collect(Collectors.toSet());
 
       // provided as List, keeping duplicates for now, will check later
       List<Set<UID>> providedListSetOfCos = cocsToCoUids(allProvidedCocsForCc);
@@ -111,28 +134,28 @@ public class CategoryOptionComboObjectBundleHook
           providedListSetOfCos.stream().map(HashSet::new).collect(Collectors.toSet());
 
       if (!expectedSetOfCos.equals(providedSetSetOfCos)) {
-        Set<Set<UID>> expected = new HashSet<>(expectedSetOfCos);
-        Set<Set<UID>> unexpected = new HashSet<>(providedSetSetOfCos);
+        Set<Set<UID>> expectedCos = new HashSet<>(expectedSetOfCos);
+        Set<Set<UID>> unexpectedCos = new HashSet<>(providedSetSetOfCos);
         // get expected
-        expected.removeAll(unexpected);
+        expectedCos.removeAll(unexpectedCos);
         // get unexpected
-        unexpected.removeAll(expectedSetOfCos);
+        unexpectedCos.removeAll(expectedSetOfCos);
 
         // add duplicate to unexpected
-        Set<Set<UID>> duplicates = getDuplicates(providedListSetOfCos);
+        Set<Set<UID>> duplicates = CollectionUtils.findDuplicates(providedListSetOfCos);
         if (!duplicates.isEmpty()) {
-          unexpected.addAll(duplicates);
+          unexpectedCos.addAll(duplicates);
         }
 
         // only add error if this COC is in the unexpected set
-        if (unexpected.contains(providedCocCoSet) || expected.contains(providedCocCoSet)) {
+        if (unexpectedCos.contains(providedCoSet)) {
           addReports.accept(
               new ErrorReport(
                   CategoryOptionCombo.class,
                   ErrorCode.E1131,
-                  providedCocCoSet,
+                  providedCoSet,
                   categoryCombo.getUid(),
-                  expected));
+                  expectedCos));
         }
       }
     }
@@ -149,27 +172,21 @@ public class CategoryOptionComboObjectBundleHook
     return providedSetOfCos;
   }
 
+  private BiPredicate<CategoryOptionCombo, UID> hasSameCcUid =
+      (coc, cc) -> coc.getCategoryCombo().getUid().equals(cc.getValue());
+
   private ExpectedSizeResult checkExpectedSize(
       int numProvidedCocs,
-      int numExpectedCocs,
       CategoryCombo categoryCombo,
       ObjectBundle bundle,
       Consumer<ErrorReport> addReports) {
     CombinationGenerator<UID> generator =
-        CombinationGenerator.newInstance(getCosAsLists(categoryCombo, bundle));
+        CombinationGenerator.newInstance(getCosAsUidLists(categoryCombo, bundle));
     List<List<UID>> bundleCombinations = generator.getCombinations();
 
-    if (numExpectedCocs == 0) {
-      // might be impossible to gen from new cc (has c but no co), get cos from bundle?
-      // get cc from bundle
-      if (bundleCombinations.size() != numProvidedCocs) {
+    if (bundleCombinations.size() != numProvidedCocs) {
         addSizeMismatchErrorReport(addReports, numProvidedCocs, bundleCombinations.size());
         return new ExpectedSizeResult(false, bundleCombinations);
-      }
-      // check if all provided match generated
-    } else if (numExpectedCocs != numProvidedCocs) {
-      addSizeMismatchErrorReport(addReports, numProvidedCocs, numExpectedCocs);
-      return new ExpectedSizeResult(false, bundleCombinations);
     }
     return new ExpectedSizeResult(true, bundleCombinations);
   }
@@ -180,23 +197,36 @@ public class CategoryOptionComboObjectBundleHook
         new ErrorReport(CategoryOptionCombo.class, ErrorCode.E1130, providedSize, expectedSize));
   }
 
-  private List<List<UID>> getCosAsLists(CategoryCombo categoryCombo, ObjectBundle bundle) {
-    // get categories from CC or bundle if empty
+  /**
+   * Gets a List of List of {@link CategoryOption}s from the category model. Depending what objects
+   * are contained in the import/preheat, the {@link Category}s are either obtained from:
+   *
+   * <ul>
+   *   <li>the bundle, or if empty
+   *   <li>the {@link CategoryCombo} directly.
+   * </ul>
+   *
+   * <p>Once the {@link Category}s are retrieved, then the {@link CategoryOption}s are retrieved
+   * from them.
+   *
+   * @param categoryCombo combo
+   * @param bundle bundle
+   * @return retrieved List of List<{@link Category}/>
+   */
+  private List<List<UID>> getCosAsUidLists(CategoryCombo categoryCombo, ObjectBundle bundle) {
     List<Category> categories =
         bundle.getPreheat().getAll(bundle.getPreheatIdentifier(), categoryCombo.getCategories());
-    List<List<UID>> categoryOptionLists = new ArrayList<>();
 
     if (categories.isEmpty()) {
       categories = categoryCombo.getCategories();
     }
-    // get options from bundle
+
+    List<List<UID>> categoryOptionLists = new ArrayList<>();
 
     for (Category category : categories) {
-      // get options matching category uid
       categoryOptionLists.add(
           category.getCategoryOptions().stream().map(co -> UID.of(co.getUid())).toList());
     }
-    // get list of cos from categories
     return categoryOptionLists;
   }
 
@@ -224,18 +254,6 @@ public class CategoryOptionComboObjectBundleHook
           new ErrorReport(
               CategoryOptionCombo.class, ErrorCode.E1122, categoryOptionCombo.getName()));
     }
-  }
-
-  private Set<Set<UID>> getDuplicates(List<Set<UID>> uidSet) {
-    Set<Set<UID>> uniques = new HashSet<>();
-    Set<Set<UID>> duplicates = new HashSet<>();
-
-    for (Set<UID> uids : uidSet) {
-      if (!uniques.add(uids)) {
-        duplicates.add(uids);
-      }
-    }
-    return duplicates;
   }
 
   record ExpectedSizeResult(boolean isExpectedSize, List<List<UID>> expectedCocs) {}
