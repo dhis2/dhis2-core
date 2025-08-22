@@ -209,8 +209,6 @@ public class TrackedEntityAttributeController
       Set<UID> indexedAttributeUids =
           trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
 
-      indexedAttributeUids.forEach(uid -> System.out.println(uid.getClass()));
-
       response
           .getBody()
           .getParams()
