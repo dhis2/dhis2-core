@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Transient;
 import java.util.EnumSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -116,7 +117,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Boolean trigramIndexable = false;
 
-  private Boolean trigramIndexed = false;
+  @Transient private Boolean trigramIndexed = false;
 
   // -------------------------------------------------------------------------
   // Constructors
