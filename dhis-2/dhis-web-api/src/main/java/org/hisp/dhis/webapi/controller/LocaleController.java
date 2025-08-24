@@ -48,8 +48,8 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,24 +134,29 @@ public class LocaleController {
   @RequiresAuthority(anyOf = F_LOCALE_ADD)
   @PostMapping(value = "/dbLocales")
   @ResponseBody
-  public WebMessage addLocale(@RequestParam String country, @RequestParam String language) {
+  public WebMessage addLocale(
+      @RequestParam String country,
+      @RequestParam String language,
+      @RequestParam(required = false) String variant) {
+
     if (StringUtils.isEmpty(country) || StringUtils.isEmpty(language)) {
       return conflict("Invalid country or language code.");
     }
 
-    String localeCode = LocaleUtils.getLocaleString(language, country, null);
-
-    Locale locale = LocaleUtils.getLocale(localeCode);
-
-    if (locale != null) {
-      I18nLocale i18nLocale = localeService.getI18nLocale(locale);
-
-      if (i18nLocale != null) {
-        return conflict("Locale code existed.");
-      }
+    final Locale locale;
+    try {
+      locale = LocaleUtils.parse(LocaleUtils.getLocaleString(language, country, variant));
+    } catch (IllegalArgumentException e) {
+      return conflict("Invalid locale format: " + e.getMessage());
     }
 
-    I18nLocale i18nLocale = localeService.addI18nLocale(language, country);
+    I18nLocale i18nLocale = localeService.getI18nLocale(locale);
+
+    if (i18nLocale != null) {
+      return conflict("Locale code existed.");
+    }
+
+    i18nLocale = localeService.addI18nLocale(language, country, variant);
 
     return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
   }
