@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
-import javax.annotation.Nullable;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -54,12 +53,5 @@ public interface JsonTypeReport extends JsonObject {
 
   default JsonList<JsonImportSummary> getImportSummaries() {
     return getList("importSummaries", JsonImportSummary.class);
-  }
-
-  default @Nullable JsonErrorReport getFirstErrorReport() {
-    return getObjectReports().stream().findFirst().stream()
-        .flatMap(or -> or.getErrorReports().stream())
-        .findFirst()
-        .orElse(null);
   }
 }

@@ -934,7 +934,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(11, report.getStats().getIgnored());
 
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertNotNull(errorReport, "Expecting an error report in the import report");
     String errorMessage = errorReport.getMessage();
     assertNotNull(errorMessage, "Expecting an error message in the import report");
@@ -970,7 +970,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals("ERROR", report.getStatus());
     assertEquals(10, report.getStats().getIgnored());
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertEquals(
         "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
         errorReport.getMessage());
@@ -993,7 +993,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals("ERROR", report.getStatus());
     assertEquals(3, report.getStats().getIgnored());
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertEquals(
         "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
         errorReport.getMessage());
@@ -1016,7 +1016,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals("ERROR", report.getStatus());
     assertEquals(12, report.getStats().getIgnored());
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertEquals(
         "Importing 5 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
         errorReport.getMessage());
@@ -1064,7 +1064,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(11, report.getStats().getIgnored());
 
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertNotNull(errorReport, "Expecting an error report in the import report");
     String errorMessage = errorReport.getMessage();
     assertNotNull(errorMessage, "Expecting an error message in the import report");
@@ -1098,7 +1098,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(10, report.getStats().getIgnored());
     assertEquals(0, report.getStats().getCreated());
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertEquals(
         "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
         errorReport.getMessage());
@@ -1119,7 +1119,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(12, report.getStats().getIgnored());
     assertEquals(0, report.getStats().getCreated());
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
-    JsonErrorReport errorReport = typeReport.getFirstErrorReport();
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
     assertEquals(
         "Importing 5 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
         errorReport.getMessage());
@@ -1134,5 +1134,12 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     dataElementService.addDataElement(deB);
     dataElementService.addDataElement(deC);
     dataElementService.addDataElement(deZ);
+  }
+
+  private JsonErrorReport getFirstErrorReport(JsonTypeReport typeReport) {
+    return typeReport.getObjectReports().stream().findFirst().stream()
+        .flatMap(or -> or.getErrorReports().stream())
+        .findFirst()
+        .orElse(null);
   }
 }
