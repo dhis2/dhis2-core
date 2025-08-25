@@ -1,3 +1,7 @@
+-- Make iso column non-null after 2_43_10 has filled in the value
+ALTER TABLE period
+    ALTER COLUMN iso SET NOT NULL;
+
 -- Performance:
 -- Category model mapping table indexes
 -- required to make "reverse" lookup not do a full table scan

@@ -40,6 +40,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,7 +51,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
@@ -145,11 +145,11 @@ public class DataValueController {
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
-    CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo(cc, cp);
-    String aocId = aoc == null ? null : aoc.getUid();
+    String aocCc = cc; // for clarity
+    Set<String> aocCos = cp == null ? null : Set.of(cp.split(";"));
     DataEntryValue.Input dv =
         new DataEntryValue.Input(
-            de, ou, co, null, aocId, null, null, pe, value, comment, followUp, null);
+            de, ou, co, null, null, aocCc, aocCos, pe, value, comment, followUp, null);
     dataEntryService.upsertValue(force, ds, dataEntryService.decodeValue(ds, dv));
   }
 
@@ -211,13 +211,19 @@ public class DataValueController {
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) UID ds,
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
-    UID de = UID.ofNullable(params.getDe());
-    UID ou = UID.ofNullable(params.getOu());
-    UID coc = UID.ofNullable(params.getCo());
-    UID aoc =
-        UID.of(dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp()));
+    String de = params.getDe();
+    String ou = params.getOu();
+    String coc = params.getCo();
+    String aocCc = params.getCc();
+    Set<String> aocCos = params.getCp() == null ? null : Set.of(params.getCp().split(";"));
     String pe = params.getPe();
-    if (!dataEntryService.deleteValue(force, ds, new DataEntryKey(de, ou, coc, aoc, pe)))
+    DataEntryValue v =
+        dataEntryService.decodeValue(
+            ds,
+            new DataEntryValue.Input(
+                de, ou, coc, null, null, aocCc, aocCos, pe, null, null, null, null));
+
+    if (!dataEntryService.deleteValue(force, ds, v.toKey()))
       throw new ConflictException("Data value cannot be deleted because it does not exist");
   }
 

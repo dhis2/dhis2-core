@@ -81,6 +81,11 @@ public record DataEntryValue(
             true);
   }
 
+  public DataEntryKey toKey() {
+    return new DataEntryKey(
+        dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
+  }
+
   /**
    * How a {@link DataEntryValue} is provided as user input in the web API.
    *
