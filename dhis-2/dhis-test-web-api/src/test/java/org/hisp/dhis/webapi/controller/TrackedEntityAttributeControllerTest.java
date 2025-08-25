@@ -150,10 +150,23 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
   }
 
   @Test
-  void shouldReturnCollectionOfAttributesWithExpectedTrigramIndexField() {
+  void shouldReturnCollectionOfAttributesWithExpectedTrigramIndexFieldWhenFetchingAllFields() {
     createTrigramIndexes(Set.of(teaA, teaB));
 
     JsonObject json = GET("/trackedEntityAttributes?fields=*").content(HttpStatus.OK);
+
+    assertAttributeTrigramIndexedField(
+        json,
+        Map.of(
+            teaA.getUid(), true, teaB.getUid(), true, teaC.getUid(), false, teaD.getUid(), false));
+  }
+
+  @Test
+  void shouldReturnCollectionOfAttributesWithExpectedTrigramIndexFieldWhenFetchingTrigramField() {
+    createTrigramIndexes(Set.of(teaA, teaB));
+
+    JsonObject json =
+        GET("/trackedEntityAttributes?fields=id,trigramIndexed").content(HttpStatus.OK);
 
     assertAttributeTrigramIndexedField(
         json,
@@ -168,7 +181,8 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
     JsonObject jsonA =
         GET("/trackedEntityAttributes/" + teaA.getUid() + "?fields=*").content(HttpStatus.OK);
     JsonObject jsonB =
-        GET("/trackedEntityAttributes/" + teaB.getUid() + "?fields=*").content(HttpStatus.OK);
+        GET("/trackedEntityAttributes/" + teaB.getUid() + "?fields=id,trigramIndexed")
+            .content(HttpStatus.OK);
 
     assertEquals(teaA.getUid(), jsonA.getString("id").string());
     assertEquals(teaA.getTrigramIndexed(), jsonA.getBoolean("trigramIndexed").booleanValue());
