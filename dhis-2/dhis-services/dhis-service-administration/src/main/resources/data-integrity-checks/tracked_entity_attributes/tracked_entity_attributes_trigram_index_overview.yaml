@@ -37,5 +37,5 @@ introduction: >
     This check reports the tracked entity attributes whose related "trackedentityattributevalue" table entry has a partial trigram index.
 recommendation:
     This check is informational only, no action is required.
-    Below is the lists of tracked entity attributes that currently have a partial trigram index on the "trackedentityattributevalue" table.
+    Below is the list of tracked entity attributes that currently have a partial trigram index on the "trackedentityattributevalue" table.
 is_slow: FALSE
