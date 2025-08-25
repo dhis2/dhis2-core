@@ -192,13 +192,12 @@ public class EventAggregateService {
     // retain original period dimensions
     List<DimensionalObject> periods = getPeriods(params);
 
-    if (!queryRequiresOwnership(params) && periods.isEmpty()) {
-      params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
-    }
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     if ((!params.isSkipData() || params.analyzeOnly())
         && !periods.isEmpty()
         && !queryRequiresOwnership(params)) {
+      // DimensionalObject periodDim = params.getDimension("pe");
       params =
           new EventQueryParams.Builder(params)
               .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)

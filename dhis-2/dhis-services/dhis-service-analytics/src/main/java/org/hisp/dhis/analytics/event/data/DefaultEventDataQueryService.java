@@ -42,7 +42,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
@@ -54,7 +53,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -92,7 +90,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -217,38 +214,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       builder = builder.withSkipData(true).withAnalyzeOrderId();
     }
 
-    EventQueryParams eventQueryParams = builder.build();
-
-    // Partitioning applies only when default period is specified
-
-    // Empty period dimension means default period
-
-    if (hasPeriodDimension(eventQueryParams) && hasNotDefaultPeriod(eventQueryParams)) {
-      builder.withSkipPartitioning(true);
-      eventQueryParams = builder.build();
-    }
-
-    return eventQueryParams;
-  }
-
-  private boolean hasPeriodDimension(EventQueryParams eventQueryParams) {
-    return Objects.nonNull(getPeriodDimension(eventQueryParams));
-  }
-
-  private boolean hasNotDefaultPeriod(EventQueryParams eventQueryParams) {
-    return Optional.ofNullable(getPeriodDimension(eventQueryParams))
-        .map(DimensionalObject::getItems)
-        .orElse(List.of())
-        .stream()
-        .noneMatch(this::isDefaultPeriod);
-  }
-
-  private DimensionalObject getPeriodDimension(EventQueryParams eventQueryParams) {
-    return eventQueryParams.getDimension(PERIOD_DIM_ID);
-  }
-
-  private boolean isDefaultPeriod(DimensionalItemObject dimensionalItemObject) {
-    return ((Period) dimensionalItemObject).isDefault();
+    return builder.build();
   }
 
   private void addSortToParams(

@@ -57,15 +57,14 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
   public void eventAggregateWithRangeTimeField() throws JSONException {
 
     // generated sql condition:
-    // where (((ax."lastupdated" >= '2018-07-01' and ax."lastupdated" < '2019-01-31')))
-
+    // where (((ax."lastupdated" >= '2018-07-01' and ax."lastupdated" < '2019-01-31'))))
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
 
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("lastUpdated=2018-07-01_2019-01-30")
+            .add("lastUpdated=2018-07-30_2018-08-07")
             .add("stage=A03MvHHogjR")
             .add("displayProperty=NAME")
             .add("totalPages=false")
@@ -82,9 +81,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        6,
-        6,
-        3); // Pass runtime flag, row count, and expected header counts
+        2179,
+        7,
+        4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -94,7 +93,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"20180730\":{\"name\":\"2018-07-30\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20180730\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -102,7 +101,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
-        "a3kGcGDCuk6",
+        "A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score",
         "NUMBER",
         "java.lang.Double",
@@ -117,6 +116,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    // validateHeaderPropertiesByName(response, actualHeaders,"pe", "", "TEXT", "java.lang.String",
+    // false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -131,14 +132,14 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "a3kGcGDCuk6", "11.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "2");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "2.0");
+    validateRowValueByName(response, actualHeaders, 0, "value", "6");
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
-    // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 5, "value", "6321");
-    validateRowValueByName(response, actualHeaders, 5, "ou", "ImspTQPwCqd");
+    // Validate selected values for row index 2178
+    validateRowValueByName(response, actualHeaders, 2178, "A03MvHHogjR.a3kGcGDCuk6", "0.0");
+    validateRowValueByName(response, actualHeaders, 2178, "value", "5");
+    validateRowValueByName(response, actualHeaders, 2178, "ou", "ImspTQPwCqd");
   }
 
   @Test
@@ -172,8 +173,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         8,
-        6,
-        3); // Pass runtime flag, row count, and expected header counts
+        7,
+        4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -183,7 +184,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"2021S1\":{\"name\":\"January - June 2021\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"2021S1\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -191,7 +192,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
-        "a3kGcGDCuk6",
+        "A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score",
         "NUMBER",
         "java.lang.Double",
@@ -206,6 +207,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    // validateHeaderPropertiesByName(response, actualHeaders,"pe", "", "TEXT", "java.lang.String",
+    // false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -220,12 +223,12 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "a3kGcGDCuk6", "3.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
+    validateRowValueByName(response, actualHeaders, 0, "value", "1870");
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
     // Validate selected values for row index 7
-    validateRowValueByName(response, actualHeaders, 7, "a3kGcGDCuk6", "2.0");
+    validateRowValueByName(response, actualHeaders, 7, "A03MvHHogjR.a3kGcGDCuk6", "2.0");
     validateRowValueByName(response, actualHeaders, 7, "value", "1847");
     validateRowValueByName(response, actualHeaders, 7, "ou", "ImspTQPwCqd");
   }
@@ -238,7 +241,6 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // or
     // (ax."enrollmentdate" >= '2024-02-01' and ax."enrollmentdate" < '2024-03-01')))
 
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
 
     // Given
@@ -262,8 +264,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         6,
-        6,
-        3); // Pass runtime flag, row count, and expected header counts
+        7,
+        4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -273,7 +275,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"202402\":{\"name\":\"February 2024\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"202301\",\"202402\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -281,7 +283,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
-        "a3kGcGDCuk6",
+        "A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score",
         "NUMBER",
         "java.lang.Double",
@@ -296,6 +298,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    // validateHeaderPropertiesByName(response, actualHeaders,"pe", "", "TEXT", "java.lang.String",
+    // false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -310,13 +314,13 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "a3kGcGDCuk6", "2.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "236");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "");
+    validateRowValueByName(response, actualHeaders, 0, "value", "1");
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
     // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 5, "value", "207");
+    validateRowValueByName(response, actualHeaders, 5, "A03MvHHogjR.a3kGcGDCuk6", "2.0");
+    validateRowValueByName(response, actualHeaders, 5, "value", "236");
     validateRowValueByName(response, actualHeaders, 5, "ou", "ImspTQPwCqd");
   }
 
@@ -350,9 +354,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        12,
-        6,
-        3); // Pass runtime flag, row count, and expected header counts
+        21,
+        7,
+        4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -362,7 +366,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"2020Oct\":{\"name\":\"October 2020 - September 2021\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"2019Oct\":{\"name\":\"October 2019 - September 2020\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023Oct\":{\"name\":\"October 2023 - September 2024\"},\"2022Oct\":{\"name\":\"October 2022 - September 2023\"},\"2021Oct\":{\"name\":\"October 2021 - September 2022\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -370,7 +374,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
-        "a3kGcGDCuk6",
+        "A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score",
         "NUMBER",
         "java.lang.Double",
@@ -385,6 +389,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    // validateHeaderPropertiesByName(response, actualHeaders,"pe", "", "TEXT", "java.lang.String",
+    // false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -399,14 +405,14 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "a3kGcGDCuk6", "8.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "6");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
+    validateRowValueByName(response, actualHeaders, 0, "value", "653");
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
-    // Validate selected values for row index 11
-    validateRowValueByName(response, actualHeaders, 11, "a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 11, "value", "6321");
-    validateRowValueByName(response, actualHeaders, 11, "ou", "ImspTQPwCqd");
+    // Validate selected values for row index 20
+    validateRowValueByName(response, actualHeaders, 20, "A03MvHHogjR.a3kGcGDCuk6", "5.0");
+    validateRowValueByName(response, actualHeaders, 20, "value", "1");
+    validateRowValueByName(response, actualHeaders, 20, "ou", "ImspTQPwCqd");
   }
 
   @Test
@@ -440,9 +446,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        12,
-        6,
-        3); // Pass runtime flag, row count, and expected header counts
+        1471,
+        7,
+        4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -452,7 +458,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"20210301\":{\"name\":\"2021-03-01\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20210301\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -460,7 +466,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
-        "a3kGcGDCuk6",
+        "A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score",
         "NUMBER",
         "java.lang.Double",
@@ -475,6 +481,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    // validateHeaderPropertiesByName(response, actualHeaders,"pe", "", "TEXT", "java.lang.String",
+    // false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
@@ -489,13 +497,13 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "a3kGcGDCuk6", "3.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "3");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
+    validateRowValueByName(response, actualHeaders, 0, "value", "9");
     validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
 
-    // Validate selected values for row index 11
-    validateRowValueByName(response, actualHeaders, 11, "a3kGcGDCuk6", "7.0");
-    validateRowValueByName(response, actualHeaders, 11, "value", "1");
-    validateRowValueByName(response, actualHeaders, 11, "ou", "ImspTQPwCqd");
+    // Validate selected values for row index 1470
+    validateRowValueByName(response, actualHeaders, 1470, "A03MvHHogjR.a3kGcGDCuk6", "0.0");
+    validateRowValueByName(response, actualHeaders, 1470, "value", "5");
+    validateRowValueByName(response, actualHeaders, 1470, "ou", "ImspTQPwCqd");
   }
 }
