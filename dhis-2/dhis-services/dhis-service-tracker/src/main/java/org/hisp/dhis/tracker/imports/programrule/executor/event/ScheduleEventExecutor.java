@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.trigramsummary;
+package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.NoArgsConstructor;
+import static org.hisp.dhis.tracker.imports.programrule.executor.ScheduleEventHelper.validateAndScheduleEvent;
+
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
+import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 
 /**
- * TrigramSummary object to store trigram indexing status
- *
- * @author Ameen Mohamed
+ * @author Zubair Asghar
  */
-@JacksonXmlRootElement
-@NoArgsConstructor
-public class TrigramSummary {
-  private List<ObjectNode> indexedAttributes = new ArrayList<>();
+@RequiredArgsConstructor
+public class ScheduleEventExecutor implements RuleActionExecutor<Event> {
+  private final ValidationEffect validationEffect;
 
-  private List<ObjectNode> indexableAttributes = new ArrayList<>();
+  @Nonnull private final AclService aclService;
 
-  private List<ObjectNode> obsoleteIndexedAttributes = new ArrayList<>();
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    ProgramStage ps = bundle.getPreheat().getProgramStage(validationEffect.field().getValue());
 
-  @JsonProperty
-  public List<ObjectNode> getIndexedAttributes() {
-    return indexedAttributes;
-  }
-
-  public void setIndexedAttributes(List<ObjectNode> indexedAttributes) {
-    this.indexedAttributes = indexedAttributes;
-  }
-
-  @JsonProperty
-  public List<ObjectNode> getIndexableAttributes() {
-    return indexableAttributes;
-  }
-
-  public void setIndexableAttributes(List<ObjectNode> indexableAttributes) {
-    this.indexableAttributes = indexableAttributes;
-  }
-
-  @JsonProperty
-  public List<ObjectNode> getObsoleteIndexedAttributes() {
-    return obsoleteIndexedAttributes;
-  }
-
-  public void setObsoleteIndexedAttributes(List<ObjectNode> obsoleteIndexedAttributes) {
-    this.obsoleteIndexedAttributes = obsoleteIndexedAttributes;
+    return validateAndScheduleEvent(
+        validationEffect,
+        aclService.canWrite(bundle.getUser(), ps),
+        bundle,
+        event.getEnrollment(),
+        event.getAttributeOptionCombo(),
+        event.getProgram(),
+        event.getOrgUnit());
   }
 }
