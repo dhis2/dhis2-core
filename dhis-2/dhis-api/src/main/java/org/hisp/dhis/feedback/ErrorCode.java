@@ -75,7 +75,8 @@ public enum ErrorCode {
   E1127("Category {0} cannot have more than {1} options, but had: {2} "),
   E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
   E1129("Creating a single CategoryOptionCombo is forbidden through this endpoint"),
-  E1130("Importing {0} CategoryOptionCombos does not match the expected amount of {1}"),
+  E1130(
+      "Importing {0} CategoryOptionCombos does not match the expected amount of {1} for CategoryCombo {2}"),
   E1131(
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
 

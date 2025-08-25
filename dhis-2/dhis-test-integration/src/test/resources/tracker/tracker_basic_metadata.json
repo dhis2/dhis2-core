@@ -3021,28 +3021,6 @@
       "ignoreApproval": false,
       "attributeValues": [],
       "created": "2019-03-25T13:40:24.775"
-    },
-    {
-      "id": "sNTzTZVzx29",
-      "code": "nondef_1_and_2_coc1",
-      "name": "nondef_1_and_2_coc1",
-      "categoryOptions": [
-        {
-          "id": "Aj6SFQQBBFU"
-        },
-        {
-          "id": "zRXSQ4AQu7I"
-        }
-      ],
-      "categoryCombo": {
-        "id": "DYUZwonFF9u"
-      },
-      "translations": [],
-      "startDate": "2019-12-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
     }
   ],
   "optionSets": [

@@ -199,7 +199,8 @@ public class CategoryOptionComboObjectBundleHook
               CategoryOptionCombo.class,
               ErrorCode.E1130,
               numProvidedCocs,
-              bundleCombinations.size()));
+              bundleCombinations.size(),
+              categoryCombo.getUid()));
       return new ExpectedSizeResult(false, bundleCombinations);
     }
     return new ExpectedSizeResult(true, bundleCombinations);
