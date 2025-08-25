@@ -30,6 +30,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
@@ -38,11 +40,13 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.So
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.EventDataQueryRequest.getStageInValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,7 +149,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       throwIllegalQueryEx(ErrorCode.E7129, request.getProgram());
     }
 
-    ProgramStage ps = programStageService.getProgramStage(request.getStage());
+    ProgramStage ps =
+        programStageService.getProgramStage(
+            getStageInValue(request.getValue(), request.getStage()));
 
     if (StringUtils.isNotEmpty(request.getStage()) && ps == null) {
       throwIllegalQueryEx(ErrorCode.E7130, request.getStage());
@@ -167,6 +173,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     EventQueryParams.Builder builder =
         params
             .withValue(getValueDimension(request.getValue()))
+            .withRequestValue(request.getValue())
             .withSkipRounding(request.isSkipRounding())
             .withShowHierarchy(request.isShowHierarchy())
             .withSortOrder(request.getSortOrder())
@@ -564,13 +571,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return null;
     }
 
-    DataElement de = dataElementService.getDataElement(value);
+    String dimValue = defaultIfBlank(substringAfter(value, DIMENSION_IDENTIFIER_SEP), value);
+
+    DataElement de = dataElementService.getDataElement(dimValue);
 
     if (de != null && de.isNumericType()) {
       return de;
     }
 
-    TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(value);
+    TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
 
     if (at != null && at.isNumericType()) {
       return at;
