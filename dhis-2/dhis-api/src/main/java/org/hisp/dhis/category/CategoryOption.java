@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.category;
 
+import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -47,19 +49,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
@@ -67,6 +69,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
@@ -113,21 +116,23 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 /**
  * @author Abyot Asalefew
  */
-@JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
-@Setter
 @Entity
 @Table(name = "categoryoption")
+@Setter
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
 public class CategoryOption extends BaseMetadataObject
-    implements DimensionalItemObject, SystemDefaultMetadataObject, IdentifiableObject {
+    implements DimensionalItemObject,
+        SystemDefaultMetadataObject,
+        IdentifiableObject,
+        Serializable {
   public static final String DEFAULT_NAME = "default";
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "categoryoptionid")
   private long id;
 
-  @Column(name = "code")
   private String code;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
@@ -142,27 +147,23 @@ public class CategoryOption extends BaseMetadataObject
   @Column(name = "formName", length = 230)
   private String formName;
 
-  @Column(name = "startDate")
   @Temporal(TemporalType.DATE)
   private Date startDate;
 
-  @Column(name = "endDate")
   @Temporal(TemporalType.DATE)
   private Date endDate;
 
-  @Column(name = "style")
   @Type(type = "jbObjectStyle")
   private ObjectStyle style;
 
-  @Column(name = "translations")
-  @Type(type = "jblTranslations")
-  private TranslationProperty translations = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
-  @Column(name = "attributeValues")
+  @AuditAttribute
   @Type(type = "jsbAttributeValues")
   private AttributeValues attributeValues = AttributeValues.empty();
 
-  @ManyToMany(fetch = FetchType.LAZY)
+  @ManyToMany
+  @BatchSize(size = 100)
   @JoinTable(
       name = "categoryoption_organisationunits",
       joinColumns = @JoinColumn(name = "categoryoptionid"),
@@ -170,23 +171,19 @@ public class CategoryOption extends BaseMetadataObject
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "categoryOptions")
+  @ManyToMany(mappedBy = "categoryOptions")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @BatchSize(size = 100)
   private Set<Category> categories = new HashSet<>();
 
-  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "categoryOptions")
+  @ManyToMany(mappedBy = "categoryOptions")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
-  @ManyToMany(fetch = FetchType.LAZY, mappedBy = "members")
+  @ManyToMany(mappedBy = "members")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<CategoryOptionGroup> groups = new HashSet<>();
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "userid")
-  private User createdBy;
-
-  @Column(name = "sharing")
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
 
@@ -220,7 +217,6 @@ public class CategoryOption extends BaseMetadataObject
             && Objects.equals(getCode(), other.getCode())
             && Objects.equals(getName(), other.getName())
             && Objects.equals(getShortName(), other.getShortName())
-            && Objects.equals(getDescription(), other.getDescription())
             && Objects.equals(queryMods, other.queryMods);
   }
 
@@ -229,9 +225,11 @@ public class CategoryOption extends BaseMetadataObject
     int result = getUid() != null ? getUid().hashCode() : 0; // BaseIdentifiableObject
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0); // BaseNameableObject
-    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
-    result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0); // BaseDimensionalItemObject
+    result =
+        31 * result
+            + (getShortName() != null ? getShortName().hashCode() : 0); // BaseNameableObject
+    result =
+        31 * result + (queryMods != null ? queryMods.hashCode() : 0); // BaseDimensionalItemObject
     return result;
   }
 
@@ -363,7 +361,10 @@ public class CategoryOption extends BaseMetadataObject
 
   @Override
   public String getDimensionItemWithQueryModsId() {
-    return queryMods != null ? getUid() + "_" + queryMods.getPeriodOffset() : getUid();
+    return getDimensionItem()
+        + ((queryMods != null && queryMods.getQueryModsId() != null)
+            ? QUERY_MODS_ID_SEPARATOR + queryMods.getQueryModsId()
+            : "");
   }
 
   @Override
@@ -375,37 +376,12 @@ public class CategoryOption extends BaseMetadataObject
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.CATEGORY_OPTION;
   }
-
-  /**
-   * Category options do not have legendSets, so this method is deprecated.
-   *
-   * @return
-   */
-  @Override
-  @Deprecated(forRemoval = true, since = "44")
-  public List<LegendSet> getLegendSets() {
-    return List.of();
-  }
-
-  /**
-   * Category options do not have a legend set, so this method is deprecated.
-   *
-   * @return
-   */
-  @Override
-  @Deprecated(forRemoval = true, since = "44")
-  public LegendSet getLegendSet() {
-    return null;
-  }
-
-  @Override
-  public boolean hasLegendSet() {
-    return false;
-  }
-
+  
   @Override
   public AggregationType getAggregationType() {
-    return null;
+    return (queryMods != null && queryMods.getAggregationType() != null)
+        ? queryMods.getAggregationType()
+        : null;
   }
 
   @Override
@@ -504,17 +480,22 @@ public class CategoryOption extends BaseMetadataObject
 
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
-    this.attributeValues = attributeValues;
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
   }
 
   @Override
-  public void addAttributeValue(String attributeUid, String value) {
-    // Implementation would depend on AttributeValues implementation
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
   }
 
   @Override
   public void removeAttributeValue(String attributeId) {
-    // Implementation would depend on AttributeValues implementation
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return attributeValues.get(attributeUid);
   }
 
   @Override
@@ -584,10 +565,6 @@ public class CategoryOption extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Sharing getSharing() {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
     return sharing;
   }
 
@@ -607,6 +584,8 @@ public class CategoryOption extends BaseMetadataObject
       return id > 0 ? String.valueOf(id) : null;
     } else if (idScheme.is(IdentifiableProperty.NAME)) {
       return name;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return attributeValues.get(idScheme.getAttribute());
     }
     return null;
   }
@@ -681,7 +660,7 @@ public class CategoryOption extends BaseMetadataObject
   public String getFormName() {
     return formName;
   }
-
+  
   // -------------------------------------------------------------------------
   // NameableObject implementation
   // -------------------------------------------------------------------------
@@ -725,22 +704,6 @@ public class CategoryOption extends BaseMetadataObject
     };
   }
 
-  // -------------------------------------------------------------------------
-  // LinkableObject implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getHref() {
-    return href;
-  }
-
-  @Override
-  public void setHref(String href) {
-    this.href = href;
-  }
-
   @Override
   public void setOwner(String owner) {
     getSharing().setOwner(owner);
@@ -751,42 +714,22 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   public void setExternalAccess(boolean externalAccess) {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
-    sharing.setExternal(externalAccess);
+    getSharing().setExternal(externalAccess);
   }
 
   public void setPublicAccess(String access) {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
-    sharing.setPublicAccess(access);
+    getSharing().setPublicAccess(access);
   }
 
   public String getPublicAccess() {
-    if (sharing != null) {
-      return sharing.getPublicAccess();
-    }
-
-    return null;
+    return getSharing().getPublicAccess();
   }
 
   public Collection<UserAccess> getUserAccesses() {
-    if (sharing == null || getSharing().getUsers() == null) {
-      return Collections.emptyList();
-    }
-
     return getSharing().getUsers().values();
   }
 
   public Collection<UserGroupAccess> getUserGroupAccesses() {
-    if (sharing == null || getSharing().getUserGroups() == null) {
-      return Collections.emptyList();
-    }
-
     return getSharing().getUserGroups().values();
   }
 
@@ -794,28 +737,56 @@ public class CategoryOption extends BaseMetadataObject
   // Deprecated methods for non-mapped properties
   // -------------------------------------------------------------------------
 
+  /**
+   * Category options do not have legendSets, so this method is deprecated.
+   *
+   * @return
+   */
+  @Override
+  @Deprecated(forRemoval = true, since = "43")
+  public List<LegendSet> getLegendSets() {
+    return List.of();
+  }
+
+  /**
+   * Category options do not have a legend set, so this method is deprecated.
+   *
+   * @return
+   */
+  @Override
+  @Deprecated(forRemoval = true, since = "43")
+  public LegendSet getLegendSet() {
+    return null;
+  }
+
+  @Override
+  public boolean hasLegendSet() {
+    return false;
+  }
+
+  
   @Override
   @JsonIgnore
-  @Deprecated(forRemoval = true, since = "44")
+  @Deprecated(forRemoval = true, since = "43")
   public Set<String> getFavorites() {
     return Set.of();
   }
 
   @Override
   @JsonIgnore
-  @Deprecated(forRemoval = true, since = "44")
+  @Deprecated(forRemoval = true, since = "43")
   public boolean isFavorite() {
     return false;
   }
 
   @Override
-  @Deprecated(forRemoval = true, since = "44")
+  @Deprecated(forRemoval = true, since = "43")
   public boolean setAsFavorite(UserDetails user) {
     return false;
   }
 
   @Override
-  @Deprecated(forRemoval = true, since = "44")
+  @Deprecated(forRemoval = true, since = "43")
   public boolean removeAsFavorite(UserDetails user) {
     return false;
   }

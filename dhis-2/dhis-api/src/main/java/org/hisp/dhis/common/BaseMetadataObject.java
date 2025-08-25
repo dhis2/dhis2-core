@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -68,7 +70,7 @@ public class BaseMetadataObject implements MetadataObject {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "userid")
   protected User createdBy;
-  
+
   // -------------------------------------------------------------------------------------------
   // Transient fields
   // -------------------------------------------------------------------------------------------
@@ -81,4 +83,14 @@ public class BaseMetadataObject implements MetadataObject {
 
   /** Access information for this object. Applies to current user. */
   @Transient protected transient Access access;
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getHref() {
+    return href;
+  }
+
+  public void setHref(String href) {
+    this.href = href;
+  }
 }
