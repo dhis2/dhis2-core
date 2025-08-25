@@ -112,11 +112,15 @@ class DataSetNotificationServiceTest extends TestBase {
 
   private CompleteDataSetRegistration registrationA;
 
+  private CompleteDataSetRegistration registrationB;
+
   private NotificationMessage notificationMessage;
 
   private OrganisationUnit organisationUnitA;
 
   private OrganisationUnit organisationUnitB;
+
+  private OrganisationUnit organisationUnitC;
 
   private DataSet dataSetA;
 
@@ -192,8 +196,11 @@ class DataSetNotificationServiceTest extends TestBase {
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
+    organisationUnitC = createOrganisationUnit('C');
     organisationUnitA.setPhoneNumber(PHONE_NUMBER);
     organisationUnitB.setPhoneNumber(PHONE_NUMBER);
+
+    organisationUnitC.setParent(organisationUnitA);
 
     periodA = createPeriod(new MonthlyPeriodType(), getDate(2000, 1, 1), getDate(2000, 1, 31));
 
@@ -236,6 +243,19 @@ class DataSetNotificationServiceTest extends TestBase {
             new Date(),
             "",
             true);
+
+    registrationB =
+        new CompleteDataSetRegistration(
+            dataSetA,
+            periodA,
+            organisationUnitC,
+            categoryOptionCombo,
+            new Date(),
+            "",
+            new Date(),
+            "",
+            true);
+
     notificationMessage = new NotificationMessage("subject", "message");
     summary = new OutboundMessageResponseSummary();
     summary.setBatchStatus(OutboundMessageBatchStatus.COMPLETED);
@@ -390,7 +410,7 @@ class DataSetNotificationServiceTest extends TestBase {
     when(itr.hasNext()).thenReturn(true, false);
     when(itr.next()).thenReturn(emailMessageSender);
 
-    subject.sendCompleteDataSetNotifications(registrationA);
+    subject.sendCompleteDataSetNotifications(registrationB);
 
     verify(emailMessageSender, times(1))
         .sendMessageAsync(

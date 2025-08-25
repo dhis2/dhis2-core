@@ -63,7 +63,7 @@ import org.hisp.dhis.helpers.file.JsonFileReader;
 /** Main class, responsible for starting the process of e2e test/code generation. */
 class Main {
   /** Execution args. */
-  private static final int VERSION = 42;
+  private static final int VERSION = 43;
 
   public static void main(String[] args) throws Exception {
     Map<String, String> urls = loadTestQueries();

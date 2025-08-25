@@ -45,7 +45,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
-import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Component
 public class NotificationSender {
-  public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
   private final ProgramNotificationInstanceService programNotificationInstanceService;
   private final ProgramNotificationService programNotificationService;
   private final NotificationTemplateService notificationTemplateService;
@@ -76,7 +74,6 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           notificationTemplateService.createNotificationInstance(
               template, notification.scheduledAt());
-      notificationInstance.setEvent(null);
       notificationInstance.setEnrollment(enrollment);
 
       programNotificationInstanceService.save(notificationInstance);
@@ -102,7 +99,7 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           notificationTemplateService.createNotificationInstance(
               template, notification.scheduledAt());
-      notificationInstance.setEvent(event);
+      notificationInstance.setTrackerEvent(event);
 
       programNotificationInstanceService.save(notificationInstance);
     } else {
@@ -118,19 +115,16 @@ public class NotificationSender {
   public void send(Notification notification, SingleEvent singleEvent) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
-    TrackerEvent event = TrackerObjectsMapper.map(singleEvent);
-
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
           notificationTemplateService.createNotificationInstance(
               template, notification.scheduledAt());
 
-      notificationInstance.setEvent(event);
-      notificationInstance.setEnrollment(null);
+      notificationInstance.setSingleEvent(singleEvent);
 
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
+      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, singleEvent);
     }
   }
 

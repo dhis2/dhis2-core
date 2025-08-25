@@ -67,8 +67,10 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
     this.serviceMapper =
         Map.of(
             NotificationTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
-            NotificationTrigger.EVENT_COMPLETION,
-                programNotificationService::sendEventCompletionNotifications,
+            NotificationTrigger.TRACKER_EVENT_COMPLETION,
+                programNotificationService::sendTrackerEventCompletionNotifications,
+            NotificationTrigger.SINGLE_EVENT_COMPLETION,
+                programNotificationService::sendSingleEventCompletionNotifications,
             NotificationTrigger.ENROLLMENT_COMPLETION,
                 programNotificationService::sendEnrollmentCompletionNotifications);
   }

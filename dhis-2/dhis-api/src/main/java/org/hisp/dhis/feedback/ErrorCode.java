@@ -344,6 +344,10 @@ public enum ErrorCode {
   E4082(
       "The preferred search operator `{0}` is blocked for the selected tracked entity attribute `{1}`"),
 
+  E4083(
+      "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
+  E4084("ProgramStage `{0}` is not part of Program `{1}`"),
+
   /* SQL views */
   E4300("SQL query is null"),
   E4301("SQL query must be a select query"),
