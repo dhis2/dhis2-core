@@ -130,7 +130,6 @@ class CategoryOptionTest {
       String uid,
       String code,
       String shortName,
-      String description,
       QueryModifiers queryModifiers,
       boolean expectedResult) {
     CategoryOption coParams = new CategoryOption();
@@ -138,7 +137,6 @@ class CategoryOptionTest {
     coParams.setUid(uid);
     coParams.setCode(code);
     coParams.setShortName(shortName);
-    coParams.setDescription(description);
     coParams.setQueryMods(queryModifiers);
 
     assertEquals(
@@ -152,18 +150,16 @@ class CategoryOptionTest {
     boolean isNotEqual = false;
 
     return Stream.of(
-        Arguments.of("name", "uid", "code", "shortName", "description", null, isEqual),
-        Arguments.of("name", "uid", "code", "shortName", "description diff", null, isNotEqual),
-        Arguments.of("name", "uid", "code", "shortName diff", "description", null, isNotEqual),
-        Arguments.of("name", "uid", "code diff", "shortName", "description", null, isNotEqual),
-        Arguments.of("name", "uid diff", "code", "shortName", "description", null, isNotEqual),
-        Arguments.of("name diff", "uid", "code", "shortName", "description", null, isNotEqual),
+        Arguments.of("name", "uid", "code", "shortName", null, isEqual),
+        Arguments.of("name", "uid", "code", "shortName diff", null, isNotEqual),
+        Arguments.of("name", "uid", "code diff", "shortName", null, isNotEqual),
+        Arguments.of("name", "uid diff", "code", "shortName", null, isNotEqual),
+        Arguments.of("name diff", "uid", "code", "shortName", null, isNotEqual),
         Arguments.of(
             "name",
             "uid",
             "code",
             "shortName",
-            "description",
             QueryModifiers.builder().build(),
             false));
   }
@@ -174,7 +170,6 @@ class CategoryOptionTest {
     co.setUid("uid");
     co.setCode("code");
     co.setShortName("shortName");
-    co.setDescription("description");
     co.setQueryMods(null);
     return co;
   }

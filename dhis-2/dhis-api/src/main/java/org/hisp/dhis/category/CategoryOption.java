@@ -30,6 +30,7 @@
 package org.hisp.dhis.category;
 
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -698,10 +699,11 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonIgnore
   public String getDisplayProperty(DisplayProperty property) {
-    return switch (property) {
-      case SHORTNAME -> getDisplayShortName();
-      case NAME -> getDisplayName();
-    };
+    if (DisplayProperty.SHORTNAME == property && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
   }
 
   @Override
