@@ -309,13 +309,16 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** The font size of the text in the table. */
   private boolean showDimensionLabels;
 
+  /** Interpretations of this visualization. */
+  private Set<Interpretation> interpretations = new HashSet<>();
+
   /**
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
+   *
+   * <p>TODO: Remove the use of transient fields on persisted objects, bug prone.
    */
-  private Set<String> addedElementsProgramStages = new HashSet<>();
-
-  private Set<Interpretation> interpretations = new HashSet<>();
+  private transient Set<String> addedElementsProgramStages = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Logic
