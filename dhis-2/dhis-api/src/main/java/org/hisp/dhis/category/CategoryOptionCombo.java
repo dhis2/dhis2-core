@@ -360,7 +360,7 @@ public class CategoryOptionCombo extends BaseDimensionalItemObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryOption> getCategoryOptions() {
