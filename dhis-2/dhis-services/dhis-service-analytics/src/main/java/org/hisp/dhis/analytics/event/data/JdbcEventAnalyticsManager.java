@@ -722,6 +722,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (!params.isSkipPartitioning()
         && params.hasPartitions()
+        && !params.hasTimeDateRanges()
         && !params.hasNonDefaultBoundaries()
         && !params.hasTimeField()
         && !params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
