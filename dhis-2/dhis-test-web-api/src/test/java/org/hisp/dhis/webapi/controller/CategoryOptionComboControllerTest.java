@@ -226,23 +226,21 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     String defaultCatOptionComboOptions =
         catOptionCombos.get(0).getCategoryOptions().get(0).getId();
     String defaultCatOptionComboCatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
-    response =
+
+    JsonWebMessage jsonWebMessage =
         POST(
                 "/categoryOptionCombos/",
                 """
-    { "name": "Not default",
-    "categoryOptions" : [{"id" : "%s"}],
-    "categoryCombo" : {"id" : "%s"} }
-    """
+                { "name": "Not default",
+                "categoryOptions" : [{"id" : "%s"}],
+                "categoryCombo" : {"id" : "%s"} }
+                """
                     .formatted(defaultCatOptionComboOptions, defaultCatOptionComboCatComboId))
-            .content(HttpStatus.CONFLICT);
-
-    JsonErrorReport error =
-        response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
-    assertNotNull(error);
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
     assertEquals(
-        "Category option combo Not default cannot be associated with the default category combo",
-        error.getMessage());
+        "Creating a single CategoryOptionCombo is forbidden through this endpoint",
+        jsonWebMessage.getMessage());
   }
 
   @Test
