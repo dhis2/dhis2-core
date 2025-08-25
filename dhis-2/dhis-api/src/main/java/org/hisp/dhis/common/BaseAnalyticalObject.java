@@ -1807,7 +1807,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (this.subscribers == null) {
       this.subscribers = new HashSet<>();
     }
-
     return this.subscribers.add(user.getUid());
   }
 
@@ -1816,7 +1815,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (this.subscribers == null) {
       this.subscribers = new HashSet<>();
     }
-
     return this.subscribers.remove(user.getUid());
   }
 }
