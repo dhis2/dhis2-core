@@ -315,8 +315,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /**
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
-   *
-   * <p>TODO: Remove the use of transient fields on persisted objects, bug prone.
    */
   private transient Set<String> addedElementsProgramStages = new HashSet<>();
 
