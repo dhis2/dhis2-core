@@ -37,10 +37,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -52,7 +56,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,16 +70,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/trackedEntityAttributes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+@RequiredArgsConstructor
 public class TrackedEntityAttributeController
     extends AbstractCrudController<TrackedEntityAttribute, GetObjectListParams> {
 
-  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TextPatternService textPatternService;
-
-  @Autowired private ReservedValueService reservedValueService;
-
-  @Autowired private ContextService context;
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
+  private final TextPatternService textPatternService;
+  private final ReservedValueService reservedValueService;
+  private final ContextService context;
 
   @GetMapping(
       value = "/{id}/generateAndReserve",
@@ -185,5 +186,31 @@ public class TrackedEntityAttributeController
     }
 
     return trackedEntityAttribute;
+  }
+
+  @Override
+  protected void postProcessResponseEntities(
+      List<TrackedEntityAttribute> entityList, GetObjectListParams params) {
+    List<String> fields = params.getFieldsJsonList();
+
+    if (fields.contains("*") || fields.contains("trigramIndexed")) {
+      Set<UID> indexedAttributeUids =
+          trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      entityList.forEach(
+          tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(UID.of(tea.getUid()))));
+    }
+  }
+
+  @Override
+  protected void postProcessResponseEntity(TrackedEntityAttribute entity, GetObjectParams params) {
+    List<String> fields = params.getFieldsJsonList();
+
+    if (fields.contains("*") || fields.contains("trigramIndexed")) {
+      Set<UID> indexedAttributeUids =
+          trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      entity.setTrigramIndexable(indexedAttributeUids.contains(UID.of(entity.getUid())));
+    }
   }
 }

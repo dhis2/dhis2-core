@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
@@ -130,6 +131,26 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     return trackedEntityAttributes;
+  }
+
+  @Override
+  public Set<UID> getAllTrigramIndexedTrackedEntityAttributes() {
+    List<String> result =
+        entityManager
+            .createNativeQuery(
+                """
+        select tea.uid
+        from pg_indexes idx
+        join trackedentityattribute tea
+          on cast(substring(idx.indexdef from 'trackedentityattributeid\\s*=\\s*(\\d+)') as bigint) = tea.trackedentityattributeid
+         and idx.tablename = 'trackedentityattributevalue'
+         and idx.indexdef ilike '%gin_trgm_ops%'
+         and idx.indexdef ilike '%WHERE%'
+         and idx.indexdef ~ '[(]?\\s*trackedentityattributeid\\s*=\\s*\\d+\\s*[)]?'
+    """)
+            .getResultList();
+
+    return result.stream().map(UID::of).collect(Collectors.toSet());
   }
 
   @Override
