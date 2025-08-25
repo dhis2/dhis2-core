@@ -42,6 +42,7 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
@@ -75,6 +76,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
@@ -1475,8 +1477,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : filter.getFilter();
 
     if (IN.equals(filter.getOperator())) {
+      String prefixedField = field;
+
+      if (params.getEndpointAction() == AGGREGATE && params.getEndpointItem() == ENROLLMENT) {
+        prefixedField = addEnrollmentPrefix(field);
+      }
+
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, sqlBuilder.escape(filterString), !item.isNumeric());
+          new InQueryFilter(prefixedField, sqlBuilder.escape(filterString), !item.isNumeric());
 
       return inQueryFilter.getSqlFilter();
     } else {
@@ -2513,6 +2521,37 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return (offset - 1);
     }
+  }
+
+  /**
+   * This method switches or add a new prefix to the given column if needed. It takes into
+   * consideration columns used in functions as well as regular columns and columns with aliases.
+   *
+   * <p>ie:
+   *
+   * <ul>
+   *   <li>ax.value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
+   *   <li>ev.value as "A03MvHHogjR" -> ev.value as "A03MvHHogjR"
+   *   <li>value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
+   *   <li>count() as value -> count() as value"
+   *   <li>ST_Y(ax.geometry) -> ST_Y(ax.geometry)
+   * </ul>
+   *
+   * @param column to be prefixed.
+   * @return the prefixed column (if required).
+   */
+  String addEnrollmentPrefix(String column) {
+    String functionColumn = substringBetween(column, "(", ")");
+    boolean hasFunction = functionColumn != null;
+    boolean hasPrefix = column.contains("ax.") || column.contains("ev.");
+
+    if (!hasFunction && !hasPrefix) {
+      column = "ax." + column;
+    } else if (hasFunction && functionColumn.length() > 0 && !hasPrefix) {
+      column = column.replace(functionColumn, "ax." + functionColumn);
+    }
+
+    return column;
   }
 
   // ---------------------------------------------------------------------
