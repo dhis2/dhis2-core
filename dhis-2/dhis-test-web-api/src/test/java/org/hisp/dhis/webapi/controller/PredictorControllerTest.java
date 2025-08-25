@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Tests the {@link PredictorController} using (mocked) REST requests. */
 @Transactional
-class PredictorControllerTest extends H2ControllerIntegrationTestBase {
+class PredictorControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testGetExpressionDescription() {

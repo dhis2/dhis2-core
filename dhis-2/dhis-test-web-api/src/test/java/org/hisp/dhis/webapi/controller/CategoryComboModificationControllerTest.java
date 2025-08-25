@@ -31,19 +31,26 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataInjectionService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class CategoryComboModificationControllerTest extends H2ControllerIntegrationTestBase {
+class CategoryComboModificationControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private DataInjectionService dataInjectionService;
 
   String testCatCombo;
 
@@ -74,25 +81,19 @@ class CategoryComboModificationControllerTest extends H2ControllerIntegrationTes
   }
 
   @Test
-  void testModificationWithData() {
+  void testModificationWithData() throws BadRequestException {
 
     JsonObject response =
         GET("/categoryCombos/" + testCatCombo + "?fields=categoryOptionCombos[id]").content();
     JsonList<JsonCategoryOptionCombo> catOptionCombos =
         response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
     String categoryOptionComboId = catOptionCombos.get(0).getId();
-    // language=JSON
-    String body =
-        """
-        {"dataElement": "%s",
-        "categoryOptionCombo": "%s",
-        "period": "20220102",
-        "orgUnit": "%s",
-        "value": "24",
-        "comment":"OK"}"""
-            .formatted(dataElementId, categoryOptionComboId, orgUnitId);
 
-    assertStatus(HttpStatus.CREATED, POST("/dataValues", body));
+    assertEquals(
+        1,
+        dataInjectionService.upsertValues(
+            new DataEntryValue.Input(
+                dataElementId, orgUnitId, categoryOptionComboId, null, "20220102", "24", "OK")));
 
     // We should not be able to remove a category here
     assertStatus(

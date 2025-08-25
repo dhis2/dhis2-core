@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
-/**
- * Possible conflicts related to imported {@link DataSet} during a {@link DataValueSet} import.
- *
- * @author Jan Bernitt
- */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor {
-  DATASET_NOT_FOUND(ErrorCode.E7600, "dataSet", DataSet.class),
-  DATASET_NOT_ACCESSIBLE(ErrorCode.E7601, "dataSet", DataSet.class),
-  ORG_UNIT_NOT_FOUND(ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class),
-  ATTR_OPTION_COMBO_NOT_FOUND(
-      ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class, DataSet.class);
+public interface DataEntryId {
 
-  private final ErrorCode errorCode;
+  @Nonnull
+  UID dataElement();
 
-  private String property;
+  @Nonnull
+  UID orgUnit();
 
-  private Class<?>[] objectTypes;
+  @CheckForNull
+  UID categoryOptionCombo();
 
-  DataValueSetImportConflict(ErrorCode errorCode, String property, Class<?>... objectTypes) {
-    this.errorCode = errorCode;
-    this.property = property;
-    this.objectTypes = objectTypes;
-  }
+  @CheckForNull
+  UID attributeOptionCombo();
 
-  @Override
-  public Class<?>[] getObjectTypes() {
-    return objectTypes;
-  }
-
-  @Override
-  public String getProperty() {
-    return property;
-  }
-
-  @Override
-  public ErrorCode getErrorCode() {
-    return errorCode;
-  }
+  @Nonnull
+  String period();
 }

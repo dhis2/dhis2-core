@@ -44,6 +44,7 @@ import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -69,8 +70,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
@@ -116,7 +117,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataInjectionService dataInjectionService;
 
   @Autowired private DataValueStore dataValueStore;
 
@@ -594,7 +595,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void useDataValue(DataElement e, Period p, OrganisationUnit s, String value) {
-    dataValueService.addDataValue(createDataValue(e, p, s, optionCombo, optionCombo, value));
+    addDataValues(createDataValue(e, p, s, optionCombo, optionCombo, value));
   }
 
   private void useDataValue(
@@ -604,7 +605,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
       String value,
       CategoryOptionCombo oc1,
       CategoryOptionCombo oc2) {
-    dataValueService.addDataValue(createDataValue(e, p, s, oc1, oc2, value));
+    addDataValues(createDataValue(e, p, s, oc1, oc2, value));
   }
 
   // -------------------------------------------------------------------------
@@ -1710,5 +1711,10 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   private ValidationAnalysisParams createParamsMonthlySourceAPeriodA() {
     return validationService.newParamsBuilder(dataSetMonthly, sourceA, periodA).build();
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataInjectionService.upsertValues(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

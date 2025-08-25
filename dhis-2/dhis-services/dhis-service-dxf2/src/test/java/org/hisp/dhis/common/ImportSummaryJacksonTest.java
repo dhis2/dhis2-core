@@ -114,7 +114,7 @@ class ImportSummaryJacksonTest {
         singletonMap("key", "value"),
         new Object[] {"value"},
         "message",
-        ErrorCode.E7600,
+        ErrorCode.E1003,
         "property",
         index);
   }

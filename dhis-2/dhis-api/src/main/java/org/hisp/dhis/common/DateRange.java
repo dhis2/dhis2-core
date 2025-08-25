@@ -45,8 +45,8 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 public class DateRange {
-  private Date startDate;
 
+  private Date startDate;
   private Date endDate;
 
   public Date getEndDatePlusOneDay() {
@@ -55,5 +55,10 @@ public class DateRange {
 
   public String toString() {
     return String.format("%s-%s", startDate, endDate);
+  }
+
+  public boolean includes(Date time) {
+    return (startDate == null || !time.before(startDate))
+        && (endDate == null || !time.after(endDate));
   }
 }

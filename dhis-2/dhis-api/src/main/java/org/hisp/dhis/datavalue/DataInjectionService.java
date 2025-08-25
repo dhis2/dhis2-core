@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
+
+import org.hisp.dhis.feedback.BadRequestException;
 
 /**
- * Adopter interface to read {@link DataValueSet}s from different input formats like XML, JSON and
- * CSV.
+ * In contrast to data entry as handled by {@link DataEntryService} this service is used when data
+ * should be written to database more directly without the validation constraints that data entry
+ * enforces.
  *
- * <p>To avoid materialising a potentially very large set of {@link
- * org.hisp.dhis.dxf2.datavalue.DataValue}s with the {@link DataValueSet} the values are not
- * included in the {@link #readHeader()} value. Instead, the values are iterated/streamed using the
- * {@link #readNext()} method.
- *
- * <p>To read an input the call sequence should be the following:
- *
- * <ol>
- *   <li>call {@link #readHeader()} once (must be called)
- *   <li>call {@link #readNext()} until it returns {@code null}
- *   <li>call {@link #close()} once
- * </ol>
- *
- * All methods might throw an {@link java.io.UncheckedIOException}.
- *
- * <p>A reader that does not support actual streaming using {@link #readNext()} can include the
- * values in the {@link DataValueSet} returned by the {@link #readHeader()} and immediately return
- * {@code null} when {@link #readNext()} is called.
+ * <p>This should only be used when data originates from a programmatic sources such as predictors.
+ * Another use case is when test setup needs some data to test with without requiring a fully valid
+ * metadata model to support further data entry with validation.
  *
  * @author Jan Bernitt
- * @see XmlDataValueSetReader
- * @see CsvDataValueSetReader
- * @see PdfDataValueSetReader
- * @see JsonDataValueSetReader
+ * @since 2.43
  */
-public interface DataValueSetReader extends AutoCloseable {
+public interface DataInjectionService {
 
   /**
-   * @return The information on the {@link DataValueSet} but not including the {@link
-   *     DataValueSet#getDataValues()}
+   * Legacy support API to add or update one or more values.
+   *
+   * <p>This API uses {@link DataValue} not because it was the best choice but because this required
+   * fewer changes in legacy code for the time being. At some point this should be updated to use a
+   * dedicated record class.
+   *
+   * @param values the values to create or update
+   * @return number of values written
    */
-  DataValueSet readHeader();
+  int upsertValues(DataValue... values);
 
-  /**
-   * @return the next {@link DataValueEntry} in the set or {@code null} if no more values are
-   *     available
-   */
-  DataValueEntry readNext();
+  int upsertValues(DataEntryValue... values);
 
-  @Override
-  void close();
+  int upsertValues(DataEntryValue.Input... values) throws BadRequestException;
 }
