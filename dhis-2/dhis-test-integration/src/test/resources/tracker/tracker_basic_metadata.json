@@ -2757,89 +2757,10 @@
       }
     },
     {
-      "id": "LYerKDKCefk",
-      "code": "catopt1",
-      "name": "catopt1",
-      "shortName": "catopt1",
-      "startDate": "2019-12-01T00:00:00.000",
-      "endDate": "2019-01-01T00:00:00.000",
-      "attributeValues": [],
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "organisationUnits": [],
-      "created": "2019-03-25T13:40:24.722",
-      "translations": [],
-      "sharing": {
-        "public": "rwrw----",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
-      "id": "XXXXKDKCefk",
-      "code": "catopt22",
-      "name": "catopt22",
-      "shortName": "catopt22",
-      "startDate": "2019-12-01T00:00:00.000",
-      "endDate": "2019-12-12T00:00:00.000",
-      "attributeValues": [],
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "organisationUnits": [],
-      "created": "2019-03-25T13:40:24.722",
-      "translations": [],
-      "sharing": {
-        "public": "--------",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
-      "id": "MYerKDKCefk",
-      "code": "catopt2",
-      "name": "catopt2",
-      "shortName": "catopt2",
-      "startDate": "2019-01-01T00:00:00.000",
-      "attributeValues": [],
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "organisationUnits": [],
-      "created": "2019-03-25T13:40:24.722",
-      "translations": [],
-      "sharing": {
-        "public": "rwrw----",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
       "id": "Aj6SFQQBBFU",
       "code": "nondef1 opt1",
       "name": "nondef1 opt1",
       "shortName": "nondef1 opt1",
-      "startDate": "2019-01-01T00:00:00.000",
-      "endDate": "2019-12-01T00:00:00.000",
-      "attributeValues": [],
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "organisationUnits": [],
-      "created": "2019-03-25T13:40:24.722",
-      "translations": [],
-      "sharing": {
-        "public": "rwrw----",
-        "external": false,
-        "owner": null,
-        "users": {},
-        "userGroups": {}
-      }
-    },
-    {
-      "id": "w5izht2FZ1h",
-      "code": "nondef1 opt2",
-      "name": "nondef1 opt2",
-      "shortName": "nondef1 opt2",
       "startDate": "2019-01-01T00:00:00.000",
       "endDate": "2019-12-01T00:00:00.000",
       "attributeValues": [],
@@ -3050,7 +2971,7 @@
       "code": "accesstest1",
       "categoryOptions": [
         {
-          "id": "XXXXKDKCefk"
+          "id": "WAFwwid9TzE"
         }
       ],
       "categoryCombo": {
@@ -3083,25 +3004,6 @@
       "created": "2019-03-25T13:40:24.775"
     },
     {
-      "id": "x2S2qeADpA9",
-      "code": "nondef1 cat2",
-      "name": "nondef1 cat2",
-      "categoryOptions": [
-        {
-          "id": "w5izht2FZ1h"
-        }
-      ],
-      "categoryCombo": {
-        "id": "pFpCRzMVAbO"
-      },
-      "translations": [],
-      "startDate": "2019-12-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
       "id": "wpVV2AvPM89",
       "code": "nondef2 cat1",
       "name": "nondef2 cat1",
@@ -3112,50 +3014,6 @@
       ],
       "categoryCombo": {
         "id": "FLsH8ClLGNB"
-      },
-      "translations": [],
-      "startDate": "2019-12-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
-      "id": "sNTzTZVzx29",
-      "code": "nondef_1_and_2_coc1",
-      "name": "nondef_1_and_2_coc1",
-      "categoryOptions": [
-        {
-          "id": "Aj6SFQQBBFU"
-        },
-        {
-          "id": "zRXSQ4AQu7I"
-        }
-      ],
-      "categoryCombo": {
-        "id": "DYUZwonFF9u"
-      },
-      "translations": [],
-      "startDate": "2019-12-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
-      "id": "bl2PvD1TsEC",
-      "code": "nondef_1_and_2_coc2",
-      "name": "nondef_1_and_2_coc2",
-      "categoryOptions": [
-        {
-          "id": "w5izht2FZ1h"
-        },
-        {
-          "id": "zRXSQ4AQu7I"
-        }
-      ],
-      "categoryCombo": {
-        "id": "DYUZwonFF9u"
       },
       "translations": [],
       "startDate": "2019-12-01T00:00:00.000",
