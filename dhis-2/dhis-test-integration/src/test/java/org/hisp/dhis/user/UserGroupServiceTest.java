@@ -181,4 +181,15 @@ class UserGroupServiceTest extends PostgresIntegrationTestBase {
     userGroupService.addUserGroup(userGroup);
     assertEquals("UserGroupA", userGroupService.getDisplayName(userGroup.getUid()));
   }
+
+  @Test
+  void testUserGroupWithDescription() {
+    UserGroup userGroup = createUserGroup('C', Sets.newHashSet());
+    userGroup.setDescription("This is a test user group.");
+    userGroupService.addUserGroup(userGroup);
+    assertEquals("UserGroupC", userGroupService.getDisplayName(userGroup.getUid()));
+    UserGroup fetchedGroup = userGroupService.getUserGroupByName("UserGroupC").get(0);
+    assertNotNull(fetchedGroup);
+    assertEquals("This is a test user group.", fetchedGroup.getDescription());
+  }
 }
