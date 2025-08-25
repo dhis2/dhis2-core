@@ -3004,25 +3004,6 @@
       "created": "2019-03-25T13:40:24.775"
     },
     {
-      "id": "x2S2qeADpA9",
-      "code": "nondef1 cat2",
-      "name": "nondef1 cat2",
-      "categoryOptions": [
-        {
-          "id": "Aj6SFQQBBFU"
-        }
-      ],
-      "categoryCombo": {
-        "id": "pFpCRzMVAbO"
-      },
-      "translations": [],
-      "startDate": "2019-12-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
       "id": "wpVV2AvPM89",
       "code": "nondef2 cat1",
       "name": "nondef2 cat1",
@@ -3045,28 +3026,6 @@
       "id": "sNTzTZVzx29",
       "code": "nondef_1_and_2_coc1",
       "name": "nondef_1_and_2_coc1",
-      "categoryOptions": [
-        {
-          "id": "Aj6SFQQBBFU"
-        },
-        {
-          "id": "zRXSQ4AQu7I"
-        }
-      ],
-      "categoryCombo": {
-        "id": "DYUZwonFF9u"
-      },
-      "translations": [],
-      "startDate": "2019-12-01T00:00:00.000",
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
-      "id": "bl2PvD1TsEC",
-      "code": "nondef_1_and_2_coc2",
-      "name": "nondef_1_and_2_coc2",
       "categoryOptions": [
         {
           "id": "Aj6SFQQBBFU"
