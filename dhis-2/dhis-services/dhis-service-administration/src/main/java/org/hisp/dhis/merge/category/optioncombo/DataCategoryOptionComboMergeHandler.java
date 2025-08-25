@@ -61,8 +61,10 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.program.EventStore;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.SingleEventStore;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.program.TrackerEventStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -79,7 +81,8 @@ public class DataCategoryOptionComboMergeHandler {
   private final DataValueAuditStore dataValueAuditStore;
   private final DataApprovalAuditStore dataApprovalAuditStore;
   private final DataApprovalStore dataApprovalStore;
-  private final EventStore eventStore;
+  private final TrackerEventStore trackerEventStore;
+  private final SingleEventStore singleEventStore;
   private final MaintenanceStore maintenanceStore;
   private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   private final EntityManager entityManager;
@@ -158,32 +161,67 @@ public class DataCategoryOptionComboMergeHandler {
    * attributeOptionCombos to the target {@link CategoryOptionCombo} if the {@link
    * DataMergeStrategy}s is {@link DataMergeStrategy#LAST_UPDATED}.
    */
-  public void handleEvents(
+  public void handleTrackerEvents(
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("Deleting source events as dataMergeStrategy is DISCARD");
+      log.info("Deleting source tracker events as dataMergeStrategy is DISCARD");
       String aocIds =
           sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
 
       List<String> eventsToDelete =
           maintenanceStore.getDeletionEntities(
-              "(select distinct uid from event where attributeoptioncomboid in (%s))"
+              "(select distinct uid from trackerevent where attributeoptioncomboid in (%s))"
                   .formatted(aocIds));
 
       String eventSelect =
-          "(select distinct eventid from event where attributeoptioncomboid in (%s))"
+          "(select distinct eventid from trackerevent where attributeoptioncomboid in (%s))"
               .formatted(aocIds);
 
-      maintenanceStore.hardDeleteEvents(
+      maintenanceStore.hardDeleteTrackerEvents(
           eventsToDelete,
           eventSelect,
-          "delete from event where attributeoptioncomboid in (%s)".formatted(aocIds));
+          "delete from trackerevent where attributeoptioncomboid in (%s)".formatted(aocIds));
     } else {
-      log.info("Merging source events as dataMergeStrategy is LAST_UPDATED");
-      // TODO(DHIS2-19702): Should we consider single events?
-      eventStore.setAttributeOptionCombo(
+      log.info("Merging source tracker events as dataMergeStrategy is LAST_UPDATED");
+      trackerEventStore.setAttributeOptionCombo(
+          sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
+          target.getId());
+    }
+  }
+
+  /**
+   * Deletes {@link SingleEvent}s if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#DISCARD}. Otherwise, reassigns source {@link SingleEvent}s
+   * attributeOptionCombos to the target {@link CategoryOptionCombo} if the {@link
+   * DataMergeStrategy}s is {@link DataMergeStrategy#LAST_UPDATED}.
+   */
+  public void handleSingleEvents(
+      @Nonnull List<CategoryOptionCombo> sources,
+      @Nonnull CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
+    if (DISCARD == mergeRequest.getDataMergeStrategy()) {
+      log.info("Deleting source single events as dataMergeStrategy is DISCARD");
+      String aocIds =
+          sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
+
+      List<String> eventsToDelete =
+          maintenanceStore.getDeletionEntities(
+              "(select distinct uid from singleevent where attributeoptioncomboid in (%s))"
+                  .formatted(aocIds));
+
+      String eventSelect =
+          "(select distinct eventid from singleevent where attributeoptioncomboid in (%s))"
+              .formatted(aocIds);
+
+      maintenanceStore.hardDeleteTrackerEvents(
+          eventsToDelete,
+          eventSelect,
+          "delete from singleevent where attributeoptioncomboid in (%s)".formatted(aocIds));
+    } else {
+      log.info("Merging source single events as dataMergeStrategy is LAST_UPDATED");
+      singleEventStore.setAttributeOptionCombo(
           sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
           target.getId());
     }

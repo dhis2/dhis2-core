@@ -82,26 +82,11 @@ public class SingleEventNotificationMessageRenderer
                   ProgramStageTemplateVariable.EVENT_ORG_UNIT_ID,
                   event -> event.getOrganisationUnit().getUid())
               .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_ID,
-                  event -> event.getEnrollment().getOrganisationUnit().getUid())
-              .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_NAME,
-                  event -> event.getEnrollment().getOrganisationUnit().getName())
-              .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_CODE,
-                  event -> event.getEnrollment().getOrganisationUnit().getCode())
-              .put(
                   ProgramStageTemplateVariable.PROGRAM_ID,
                   event -> event.getProgramStage().getProgram().getUid())
               .put(
                   ProgramStageTemplateVariable.PROGRAM_STAGE_ID,
                   event -> event.getProgramStage().getUid())
-              .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ID,
-                  event -> event.getEnrollment().getUid())
-              .put(
-                  ProgramStageTemplateVariable.TRACKED_ENTITY_ID,
-                  event -> event.getEnrollment().getTrackedEntity().getUid())
               .build();
 
   private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
@@ -122,13 +107,7 @@ public class SingleEventNotificationMessageRenderer
   @Override
   protected Map<String, String> resolveTrackedEntityAttributeValues(
       Set<String> attributeKeys, SingleEvent entity) {
-    if (attributeKeys.isEmpty()) {
-      return Maps.newHashMap();
-    }
-
-    return entity.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues().stream()
-        .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
+    return Maps.newHashMap();
   }
 
   @Override
