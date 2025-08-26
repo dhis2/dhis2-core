@@ -471,35 +471,6 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
-  @OpenApi.Property(AttributeValue[].class)
-  @JsonProperty("attributeValues")
-  @JsonDeserialize(using = AttributeValuesDeserializer.class)
-  @JsonSerialize(using = AttributeValuesSerializer.class)
-  public AttributeValues getAttributeValues() {
-    return attributeValues;
-  }
-
-  @Override
-  public void setAttributeValues(AttributeValues attributeValues) {
-    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
-  }
-
-  @Override
-  public void addAttributeValue(String attributeId, String value) {
-    this.attributeValues = attributeValues.added(attributeId, value);
-  }
-
-  @Override
-  public void removeAttributeValue(String attributeId) {
-    this.attributeValues = attributeValues.removed(attributeId);
-  }
-
-  @JsonIgnore
-  public String getAttributeValue(String attributeUid) {
-    return attributeValues.get(attributeUid);
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
@@ -599,6 +570,39 @@ public class CategoryOption extends BaseMetadataObject
     } else {
       return getPropertyValue(idScheme);
     }
+  }
+  
+  // -------------------------------------------------------------------------
+  // AttributeValues
+  // -------------------------------------------------------------------------
+
+  @Override
+  @OpenApi.Property(AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return attributeValues.get(attributeUid);
   }
 
   // -------------------------------------------------------------------------
@@ -766,7 +770,9 @@ public class CategoryOption extends BaseMetadataObject
     return false;
   }
 
-  
+  /**
+   * Category options do not have favorites, so this method is deprecated.
+   */
   @Override
   @JsonIgnore
   @Deprecated(forRemoval = true, since = "43")
@@ -774,6 +780,9 @@ public class CategoryOption extends BaseMetadataObject
     return Set.of();
   }
 
+  /**
+   * Category options do not have favorites, so this method is deprecated.
+   */
   @Override
   @JsonIgnore
   @Deprecated(forRemoval = true, since = "43")
@@ -781,12 +790,18 @@ public class CategoryOption extends BaseMetadataObject
     return false;
   }
 
+  /**
+   * Category options do not have favorites, so this method is deprecated.
+   */
   @Override
   @Deprecated(forRemoval = true, since = "43")
   public boolean setAsFavorite(UserDetails user) {
     return false;
   }
 
+  /**
+   * Category options do not have favorites, so this method is deprecated.
+   */
   @Override
   @Deprecated(forRemoval = true, since = "43")
   public boolean removeAsFavorite(UserDetails user) {
