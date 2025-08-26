@@ -297,9 +297,12 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   }
 
   /**
-   * Groups queries by active time dimensions and their period types. This method handles: 1.
-   * Multiple time dimensions (eventDate + enrollmentDate) - splits by time dimension 2. Mixed
-   * period types within single time dimension (eventDate=THIS_YEAR;2021S1) - splits by period type
+   * Groups queries by active time dimensions and their period types. This method handles:
+   *
+   * <p>- Multiple time dimensions (eventDate + enrollmentDate) - splits by time dimension
+   *
+   * <p>- Mixed period types within single time dimension (eventDate=THIS_YEAR;2021S1) - splits by
+   * period type
    *
    * @param params the event query parameters.
    * @return a list of {@link EventQueryParams}.
