@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
+import java.util.StringJoiner;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -54,15 +54,11 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
   }
 
   private Optional<ProgramRuleIssue> mapToIssue(ValidationRuleAction ruleAction) {
-    StringBuilder validationMessage = new StringBuilder(ruleAction.getContent());
-    String data = ruleAction.getData();
-    if (!StringUtils.isEmpty(data)) {
-      validationMessage.append(" ").append(data);
-    }
-    String field = ruleAction.getField();
-    if (!StringUtils.isEmpty(field)) {
-      validationMessage.append(" (").append(field).append(")");
-    }
+    StringJoiner validationMessage = new StringJoiner(" ");
+
+    Optional.ofNullable(ruleAction.getContent()).ifPresent(validationMessage::add);
+    Optional.ofNullable(ruleAction.getData()).ifPresent(validationMessage::add);
+    Optional.ofNullable(ruleAction.getField()).ifPresent(f -> validationMessage.add("(" + f + ")"));
 
     switch (getIssueType()) {
       case WARNING:

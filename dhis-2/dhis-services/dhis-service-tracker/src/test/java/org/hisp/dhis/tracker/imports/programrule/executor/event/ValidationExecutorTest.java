@@ -89,6 +89,9 @@ class ValidationExecutorTest extends DhisConvenienceTest {
   private final ShowErrorExecutor showErrorExecutor =
       new ShowErrorExecutor(getValidationRuleAction(ERROR));
 
+  private final ShowErrorExecutor showErrorExecutorWithEmptyMessage =
+      new ShowErrorExecutor(getEmptyMessageValidationEffect());
+
   private final ShowWarningExecutor showWarningExecutor =
       new ShowWarningExecutor(getValidationRuleAction(WARNING));
 
@@ -122,6 +125,15 @@ class ValidationExecutorTest extends DhisConvenienceTest {
     bundle = TrackerBundle.builder().build();
     bundle.setEvents(getEvents());
     bundle.setPreheat(preheat);
+  }
+
+  @Test
+  void shouldReturnAnErrorWhenValidationEffectHasNullMessage() {
+    Optional<ProgramRuleIssue> error =
+        showErrorExecutorWithEmptyMessage.executeRuleAction(bundle, activeEvent());
+
+    assertTrue(error.isPresent());
+    assertEquals(error(RULE_UID, E1300, EVALUATED_DATA), error.get());
   }
 
   @Test
@@ -191,6 +203,10 @@ class ValidationExecutorTest extends DhisConvenienceTest {
 
     assertTrue(warning.isPresent());
     assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
+  }
+
+  private ValidationRuleAction getEmptyMessageValidationEffect() {
+    return new ValidationRuleAction(RULE_UID, EVALUATED_DATA, null, null);
   }
 
   private ValidationRuleAction getValidationRuleAction(IssueType issueType) {
