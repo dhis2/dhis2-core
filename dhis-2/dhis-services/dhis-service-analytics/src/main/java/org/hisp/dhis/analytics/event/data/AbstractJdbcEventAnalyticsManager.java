@@ -168,6 +168,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -1479,7 +1480,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (IN.equals(filter.getOperator())) {
       String prefixedField = field;
 
-      if (params.getEndpointAction() == AGGREGATE && params.getEndpointItem() == ENROLLMENT) {
+      if (params.getEndpointAction() == AGGREGATE
+          && params.getEndpointItem() == ENROLLMENT
+          && item.getItem() instanceof TrackedEntityAttribute) {
         prefixedField = addEnrollmentPrefix(field);
       }
 

@@ -114,6 +114,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -935,7 +936,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testInFilterForEnrollmentsAggregate() {
     // Given
-    QueryItem queryItem = mock(QueryItem.class);
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid("12345678");
+
+    QueryItem queryItem = new QueryItem(tea, null);
+    queryItem.setValueType(ValueType.ORGANISATION_UNIT);
     QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
     EventQueryParams params =
         new EventQueryParams.Builder()
@@ -944,15 +949,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
-    when(queryItem.getItemName()).thenReturn("anyItem");
-    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
     when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
 
     // Then
-    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
+    assertEquals("ax.\"12345678\" in ('A','B','C')", sql);
   }
 
   @Test
