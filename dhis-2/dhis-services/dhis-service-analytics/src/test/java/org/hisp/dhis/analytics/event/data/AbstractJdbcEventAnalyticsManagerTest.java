@@ -933,6 +933,29 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testInFilterForEnrollmentsAggregate() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withStartDate(new Date())
+            .withEndDate(new Date())
+            .withEndpointAction(AGGREGATE)
+            .withEndpointItem(ENROLLMENT)
+            .build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
+  }
+
+  @Test
   void testGetSelectClauseForQueryEnrollments() {
     // Given
     Period period = new Period(THIS_YEAR);
