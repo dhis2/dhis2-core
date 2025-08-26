@@ -27,17 +27,20 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
 public class ValidationRuleAction {
-  private final String ruleUid;
 
-  private final String data;
+  @Nonnull private final String ruleUid;
 
-  private final String field;
+  @CheckForNull private final String data;
 
-  private final String content;
+  @CheckForNull private final String field;
+
+  @CheckForNull private final String content;
 }
