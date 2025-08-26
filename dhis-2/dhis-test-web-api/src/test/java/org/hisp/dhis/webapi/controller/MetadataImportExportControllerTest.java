@@ -953,6 +953,48 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertTrue(expectedPart.contains("CatOptUida4"));
   }
 
+  /**
+   * This test scenario can be viewed as both (i) importing new duplicate COCs or (ii) updating
+   * existing COCs UIDs. The important thing is that the CategoryCombo and CategoryOptions are the
+   * same as an existing set of COCs
+   */
+  @Test
+  @DisplayName("Importing existing CategoryOptionCombos with new UIDs should fail")
+  void importExistingCocsUpdateUidsFailTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).error(HttpStatus.OK);
+
+    // When importing COCs that are viewed as duplicates
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/update_existing_cocs_uids.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(0, report.getStats().getCreated());
+    assertEquals(4, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String invalidCoc = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String existingCocs = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        invalidCoc.contains(
+            "Provided CategoryOptionCombo CocUid000a5 cannot be processed (potential duplicate)"));
+    assertTrue(existingCocs.contains("CocUid000a1"));
+    assertTrue(existingCocs.contains("CocUid000a2"));
+    assertTrue(existingCocs.contains("CocUid000a3"));
+    assertTrue(existingCocs.contains("CocUid000a4"));
+    assertTrue(existingCocs.contains("CatComUida1"));
+  }
+
   @Test
   @DisplayName("Importing (update) fewer CategoryOptionCombos than expected should fail")
   void importFewerCocsTest() {

@@ -123,10 +123,32 @@ public class CategoryOptionComboObjectBundleHook
     ExpectedSizeResult expectedSizeResult =
         checkExpectedSize(allProvidedCocsForCc.size(), bundleCategoryCombo, bundle, addReports);
 
-    // check state if expected size matches
+    // perform state checks if expected size matches
     if (expectedSizeResult.isExpectedSize) {
+      checkExistingCocs(optionCombo, bundleCategoryCombo, newCocs, addReports);
       checkExpectedState(
           expectedSizeResult, allProvidedCocsForCc, addReports, providedCoSet, bundleCategoryCombo);
+    }
+  }
+
+  private void checkExistingCocs(
+      CategoryOptionCombo optionCombo,
+      CategoryCombo bundleCategoryCombo,
+      List<CategoryOptionCombo> newCocs,
+      Consumer<ErrorReport> addReports) {
+    Set<UID> existingCocs =
+        bundleCategoryCombo.getOptionCombos().stream()
+            .map(coc -> UID.of(coc.getUid()))
+            .collect(Collectors.toSet());
+
+    if (!existingCocs.isEmpty() && !newCocs.isEmpty()) {
+      addReports.accept(
+          new ErrorReport(
+              CategoryOptionCombo.class,
+              ErrorCode.E1132,
+              optionCombo.getUid(),
+              existingCocs,
+              bundleCategoryCombo.getUid()));
     }
   }
 
@@ -146,9 +168,11 @@ public class CategoryOptionComboObjectBundleHook
 
     if (!expectedSetOfCos.equals(providedSetSetOfCos)) {
       // find outlying set of COs
+      Set<Set<UID>> expectedCos = new HashSet<>(expectedSetOfCos);
       Set<Set<UID>> unexpectedCos = new HashSet<>(providedSetSetOfCos);
 
       // get unexpected
+      expectedCos.removeAll(unexpectedCos);
       unexpectedCos.removeAll(expectedSetOfCos);
 
       // add duplicate to unexpected
@@ -165,7 +189,7 @@ public class CategoryOptionComboObjectBundleHook
                 ErrorCode.E1131,
                 providedCoSet,
                 bundleCategoryCombo.getUid(),
-                expectedSetOfCos));
+                expectedCos));
       }
     }
   }
