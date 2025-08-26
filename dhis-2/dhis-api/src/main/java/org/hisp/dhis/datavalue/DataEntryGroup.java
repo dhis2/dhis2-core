@@ -104,6 +104,10 @@ public record DataEntryGroup(
       requireNonNull(values);
     }
 
+    public Input(String dataSet, List<DataEntryValue.Input> values) {
+      this(null, dataSet, values);
+    }
+
     public Input(List<DataEntryValue.Input> values) {
       this(null, null, values);
     }

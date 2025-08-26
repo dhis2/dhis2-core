@@ -75,21 +75,19 @@ public interface DataEntryService {
 
   /**
    * Same as {@link #decodeGroup(DataEntryGroup.Input)} except that the decoding will assume that
-   * all values already exists and are updated and that any null value provided for a field of
-   * {@link DataEntryValue.Input} (value, comment, followup and deleted) means that the previous
-   * value should be kept. This is purely for convenience so that a caller that only wants to update
-   * on field does not need to load the data value but can state the keys fields + the fields to
-   * override.
+   * any null value provided for a field of {@link DataEntryValue.Input} (value, comment, followup
+   * and deleted) means that the previous value should be kept. This is purely for convenience so
+   * that a caller that only wants to update a field does not need to load the data value but can
+   * state the keys fields + the field(s) to override.
    *
    * <p>When COC and/or AOC of the provided {@link DataEntryValue.Input} values are null this means
    * they are the default COC.
    *
    * @param group the group data as submitted by a user
    * @throws BadRequestException in case any of the inputs is formally incorrect, a required input
-   *     is missing, a referenced object doesn't exist, or the referenced value (key combination)
-   *     does not exist yet.
+   *     is missing, a referenced object doesn't exist
    */
-  DataEntryGroup decodeGroupPartialUpdate(@Nonnull DataEntryGroup.Input group)
+  DataEntryGroup decodeGroupKeepUnspecified(@Nonnull DataEntryGroup.Input group)
       throws BadRequestException;
 
   /**

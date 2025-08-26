@@ -70,7 +70,12 @@ public record DataEntrySummary(
    * @param args the arguments to the error message template
    */
   public record DataEntryError(
-      @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {}
+      @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {
+
+    public String message() {
+      return MessageFormat.format(code.getMessage(), args);
+    }
+  }
 
   /**
    * @return computes the most reasonable equivalent of what was previously known as ignored values

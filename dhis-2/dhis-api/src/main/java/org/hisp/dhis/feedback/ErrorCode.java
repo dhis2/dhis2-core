@@ -665,7 +665,6 @@ public enum ErrorCode {
   E8126("Value ${index:{0}} category combo not found: `${combo:{1}}`"),
   E8127(
       "Value ${index:{0}} category combo ${combo:{1}} has no option combo for options: `${options:{2}}`"),
-  E8128("Value ${index:{0}} for partial update does not exist: `${dv:{1}}`"),
   ;
 
   private final String message;

@@ -98,7 +98,7 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
 
   @Override
   @Transactional(readOnly = true)
-  public DataEntryGroup decodeGroupPartialUpdate(@Nonnull DataEntryGroup.Input group)
+  public DataEntryGroup decodeGroupKeepUnspecified(@Nonnull DataEntryGroup.Input group)
       throws BadRequestException {
     return decodeGroup(group, true);
   }
@@ -242,11 +242,12 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
       if (partial && (value == null || comment == null || followUp == null || deleted == null)) {
         // note: this is done 1 by 1 assuming this never sees much use in true bulk
         DataEntryValue dvOld = store.getPartialDataValue(de, ou, coc, aoc, pe);
-        if (dvOld == null) throw new BadRequestException(ErrorCode.E8128, i, dv);
-        if (value == null) value = dvOld.value();
-        if (comment == null) comment = dvOld.comment();
-        if (followUp == null) followUp = dvOld.followUp();
-        if (deleted == null) deleted = dvOld.deleted();
+        if (dvOld != null) {
+          if (value == null) value = dvOld.value();
+          if (comment == null) comment = dvOld.comment();
+          if (followUp == null) followUp = dvOld.followUp();
+          if (deleted == null && value == null) deleted = dvOld.deleted();
+        }
       }
       // add the value
       decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, deleted));

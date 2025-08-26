@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -145,12 +146,28 @@ public class DataValueController {
       @RequestParam(required = false) Boolean followUp,
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
-    String aocCc = cc; // for clarity
+    if ("".equals(value) && comment == null && followUp == null) {
+      // backwards compatability special rule 1: "" => perform delete
+      deleteDataValue(
+          DataValueQueryParams.builder().de(de).co(co).cc(cc).cp(cp).pe(pe).ou(ou).build(),
+          ds,
+          force);
+      return;
+    }
     Set<String> aocCos = cp == null ? null : Set.of(cp.split(";"));
     DataEntryValue.Input dv =
         new DataEntryValue.Input(
-            de, ou, co, null, null, aocCc, aocCos, pe, value, comment, followUp, null);
-    dataEntryService.upsertValue(force, ds, dataEntryService.decodeValue(ds, dv));
+            de, ou, co, null, null, cc, aocCos, pe, value, comment, followUp, null);
+    // for backwards compatability all writes must assume nulls should be filled in with current
+    // value
+    String dataSet = ds == null ? null : ds.getValue();
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(false, false, force),
+            dataEntryService.decodeGroupKeepUnspecified(
+                new DataEntryGroup.Input(dataSet, List.of(dv))),
+            transitory());
+    if (summary.succeeded() < 1) throw conflictOf(summary, "Failed to upsert data value: ");
   }
 
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
@@ -289,14 +306,12 @@ public class DataValueController {
       throws ConflictException, BadRequestException {
     if (request == null || request.getFollowup() == null)
       throw new IllegalQueryException(ErrorCode.E2033);
-
+    DataEntryGroup group =
+        dataEntryService.decodeGroupKeepUnspecified(
+            new DataEntryGroup.Input(List.of(request.toDataEntryValue())));
     DataEntrySummary summary =
-        dataEntryService.upsertGroup(
-            new DataEntryGroup.Options(),
-            dataEntryService.decodeGroupPartialUpdate(
-                new DataEntryGroup.Input(List.of(request.toDataEntryValue()))),
-            transitory());
-    if (summary.succeeded() < 1) throw new ConflictException("Failed to update followup");
+        dataEntryService.upsertGroup(new DataEntryGroup.Options(), group, transitory());
+    if (summary.succeeded() < 1) throw conflictOf(summary, "Failed to update followup: ");
   }
 
   @PutMapping(value = "/followups")
@@ -312,12 +327,12 @@ public class DataValueController {
     DataEntrySummary summary =
         dataEntryService.upsertGroup(
             new DataEntryGroup.Options(false, true, false),
-            dataEntryService.decodeGroupPartialUpdate(
+            dataEntryService.decodeGroupKeepUnspecified(
                 new DataEntryGroup.Input(
                     values.stream().map(DataValueFollowUpRequest::toDataEntryValue).toList())),
             transitory());
     if (summary.succeeded() < values.size())
-      throw new ConflictException("Failed to update followup");
+      throw conflictOf(summary, "Failed to update followup: ");
   }
 
   // ---------------------------------------------------------------------
@@ -412,5 +427,13 @@ public class DataValueController {
       throw new WebMessageException(
           error(FileResourceStream.EXCEPTION_IO, FileResourceStream.EXCEPTION_IO_DEV));
     }
+  }
+
+  private static ConflictException conflictOf(DataEntrySummary summary, String msg) {
+    return new ConflictException(
+        msg
+            + summary.errors().stream()
+                .map(DataEntrySummary.DataEntryError::message)
+                .collect(joining(", ")));
   }
 }

@@ -340,7 +340,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             .setParameter("ou", orgUnit.getValue())
             .setParameter("coc", categoryOptionCombo.getValue())
             .setParameter("aoc", attributeOptionCombo.getValue())
-            .setParameter("pe", period)
+            .setParameter("iso", period)
             .list();
     if (rows.isEmpty()) return null; // does not exist
     Object[] row0 = rows.get(0);
@@ -712,7 +712,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
       DO UPDATE SET
         value = EXCLUDED.value,
-        comment = EXCLUDED.comment,
+        comment = CASE
+          WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
+          ELSE EXCLUDED.comment
+        END,
         deleted = EXCLUDED.deleted,
         followup = EXCLUDED.followup,
         lastupdated = now(),
