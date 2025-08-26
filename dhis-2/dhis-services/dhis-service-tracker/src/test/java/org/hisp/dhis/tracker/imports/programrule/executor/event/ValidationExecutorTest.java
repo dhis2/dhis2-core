@@ -96,6 +96,9 @@ class ValidationExecutorTest extends TestBase {
   private final ShowErrorExecutor showErrorExecutor =
       new ShowErrorExecutor(getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR));
 
+  private final ShowErrorExecutor showErrorExecutorWithEmptyMessage =
+      new ShowErrorExecutor(getEmptyMessageValidationEffect(ValidationAction.SHOW_ERROR));
+
   private final ShowWarningExecutor showWarningExecutor =
       new ShowWarningExecutor(getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING));
 
@@ -129,6 +132,15 @@ class ValidationExecutorTest extends TestBase {
     bundle = TrackerBundle.builder().build();
     bundle.setEvents(getEvents());
     bundle.setPreheat(preheat);
+  }
+
+  @Test
+  void shouldReturnAnErrorWhenValidationEffectHasNullMessage() {
+    Optional<ProgramRuleIssue> error =
+        showErrorExecutorWithEmptyMessage.executeRuleAction(bundle, activeEvent());
+
+    assertTrue(error.isPresent());
+    assertEquals(error(RULE_UID, E1300, EVALUATED_DATA), error.get());
   }
 
   @Test
@@ -198,6 +210,10 @@ class ValidationExecutorTest extends TestBase {
 
     assertTrue(warning.isPresent());
     assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
+  }
+
+  private ValidationEffect getEmptyMessageValidationEffect(ValidationAction actionType) {
+    return new ValidationEffect(actionType, RULE_UID, EVALUATED_DATA, null, null);
   }
 
   private ValidationEffect getValidationRuleAction(
