@@ -80,7 +80,7 @@ public enum ErrorCode {
   E1131(
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
   E1132(
-      "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing set of similar (same CategoryCombo, same CategoryOptions) CategoryOptionCombos already exist {1} for CategoryCombo {2}"),
+      "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),

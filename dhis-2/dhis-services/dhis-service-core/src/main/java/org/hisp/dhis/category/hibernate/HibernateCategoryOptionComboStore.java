@@ -33,6 +33,7 @@ import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
@@ -42,6 +43,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.security.acl.AclService;
@@ -162,5 +164,30 @@ public class HibernateCategoryOptionComboStore
             CategoryOptionCombo.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
+  }
+
+  @Override
+  @CheckForNull
+  public String findByCategoryComboAndCategoryOptions(UID ccUid, Set<UID> coUids) {
+    List resultList =
+        entityManager
+            .createNativeQuery(
+                """
+                select coc.uid from categoryoptioncombo coc
+                join categorycombos_optioncombos cc_coc on cc_coc.categoryoptioncomboid = coc.categoryoptioncomboid
+                join categoryoptioncombos_categoryoptions coc_co on coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+                join categorycombo cc on cc.categorycomboid = cc_coc.categorycomboid
+                join categoryoption co on co.categoryoptionid = coc_co.categoryoptionid
+                where cc.uid = :ccUid
+                and co.uid in (:coUids)
+                group by coc.categoryoptioncomboid
+                having count(co.uid) = :size
+                """)
+            .setParameter("ccUid", ccUid.getValue())
+            .setParameter("coUids", coUids.stream().map(UID::getValue).toList())
+            .setParameter("size", coUids.size())
+            .getResultList();
+
+    return resultList.isEmpty() ? null : (String) resultList.get(0);
   }
 }

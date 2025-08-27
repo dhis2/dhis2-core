@@ -41,7 +41,9 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -57,6 +59,7 @@ public class CategoryOptionComboObjectBundleHook
     extends AbstractObjectBundleHook<CategoryOptionCombo> {
 
   private final CategoryService categoryService;
+  private final CategoryOptionComboStore categoryOptionComboStore;
 
   @Override
   public void validate(
@@ -91,6 +94,9 @@ public class CategoryOptionComboObjectBundleHook
    */
   private void checkIsExpectedState(
       CategoryOptionCombo optionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // is it a create or update
+    boolean cocIsPersisted = bundle.isPersisted(optionCombo);
+
     // get provided CC UID
     UID providedCc = UID.of(optionCombo.getCategoryCombo().getUid());
 
@@ -125,31 +131,39 @@ public class CategoryOptionComboObjectBundleHook
 
     // perform state checks if expected size matches
     if (expectedSizeResult.isExpectedSize) {
-      checkExistingCocs(optionCombo, bundleCategoryCombo, newCocs, addReports);
+      // if it's a create, check for duplicate
+      if (!cocIsPersisted && duplicateCocExists(optionCombo, addReports)) return;
+
       checkExpectedState(
           expectedSizeResult, allProvidedCocsForCc, addReports, providedCoSet, bundleCategoryCombo);
     }
   }
 
-  private void checkExistingCocs(
-      CategoryOptionCombo optionCombo,
-      CategoryCombo bundleCategoryCombo,
-      List<CategoryOptionCombo> newCocs,
-      Consumer<ErrorReport> addReports) {
-    Set<UID> existingCocs =
-        bundleCategoryCombo.getOptionCombos().stream()
-            .map(coc -> UID.of(coc.getUid()))
+  private boolean duplicateCocExists(
+      CategoryOptionCombo optionCombo, Consumer<ErrorReport> addReports) {
+    // get existing COCs with CC & COs
+    Set<UID> coSet =
+        optionCombo.getCategoryOptions().stream()
+            .map(co -> UID.of(co.getUid()))
             .collect(Collectors.toSet());
 
-    if (!existingCocs.isEmpty() && !newCocs.isEmpty()) {
+    String entryExists =
+        categoryOptionComboStore.findByCategoryComboAndCategoryOptions(
+            UID.of(optionCombo.getCategoryCombo().getUid()), coSet);
+
+    if (CodeGenerator.isValidUid(entryExists)) {
+      System.out.println("Duplicate entry exists: " + entryExists);
       addReports.accept(
           new ErrorReport(
               CategoryOptionCombo.class,
               ErrorCode.E1132,
               optionCombo.getUid(),
-              existingCocs,
-              bundleCategoryCombo.getUid()));
+              entryExists,
+              optionCombo.getCategoryCombo().getUid(),
+              coSet));
+      return true;
     }
+    return false;
   }
 
   private void checkExpectedState(

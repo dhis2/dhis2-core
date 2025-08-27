@@ -983,16 +983,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     String errorMessage = errorReport.getMessage();
     assertNotNull(errorMessage, "Expecting an error message in the import report");
     String invalidCoc = errorMessage.substring(0, errorMessage.indexOf('.'));
-    String existingCocs = errorMessage.substring(errorMessage.indexOf('.'));
+    String existingCoc = errorMessage.substring(errorMessage.indexOf('.'));
 
     assertTrue(
         invalidCoc.contains(
             "Provided CategoryOptionCombo CocUid000a5 cannot be processed (potential duplicate)"));
-    assertTrue(existingCocs.contains("CocUid000a1"));
-    assertTrue(existingCocs.contains("CocUid000a2"));
-    assertTrue(existingCocs.contains("CocUid000a3"));
-    assertTrue(existingCocs.contains("CocUid000a4"));
-    assertTrue(existingCocs.contains("CatComUida1"));
+    assertTrue(existingCoc.contains("CocUid000a1"));
+    assertTrue(existingCoc.contains("CatComUida1"));
+    assertTrue(existingCoc.contains("CatOptUida1"));
+    assertTrue(existingCoc.contains("CatOptUida3"));
   }
 
   @Test
