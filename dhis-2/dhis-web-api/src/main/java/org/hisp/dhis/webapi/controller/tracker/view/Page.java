@@ -52,7 +52,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @EqualsAndHashCode
 public class Page<T> {
 
-  private final String key;
+  @JsonIgnore private final String key;
 
   /** Is serialized under the dynamic {@link #key} using {@link #getDynamicItems}. */
   @JsonIgnore
@@ -100,6 +100,7 @@ public class Page<T> {
     return new Page<>(key, items, null);
   }
 
+  /** Items are serialized under dynamic {@link #key}. */
   @JsonAnyGetter
   public Map<String, List<T>> getDynamicItems() {
     return Collections.singletonMap(key, items);
