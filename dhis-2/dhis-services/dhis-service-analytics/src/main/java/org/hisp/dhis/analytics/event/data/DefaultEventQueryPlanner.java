@@ -78,7 +78,6 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     List<Function<EventQueryParams, List<EventQueryParams>>> groupers =
         new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add(this::groupByQueryItems)
-            .add(this::groupByTimeDimensions)
             .add(this::groupByOrgUnitLevel)
             .add(this::groupByPeriodType)
             .add(this::groupByPeriod)
@@ -293,55 +292,6 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
       queries.add(params);
     }
 
-    return queries;
-  }
-
-  /**
-   * Groups queries by active time dimensions and their period types. This method handles:
-   *
-   * <p>- Multiple time dimensions (eventDate + enrollmentDate) - splits by time dimension
-   *
-   * <p>- Mixed period types within single time dimension (eventDate=THIS_YEAR;2021S1) - splits by
-   * period type
-   *
-   * @param params the event query parameters.
-   * @return a list of {@link EventQueryParams}.
-   */
-  private List<EventQueryParams> groupByTimeDimensions(EventQueryParams params) {
-    List<EventQueryParams> queries = new ArrayList<>();
-
-    if (params.hasMultipleTimeDimensions()) {
-      // Multiple time dimensions - split into individual queries
-      for (TimeField timeField : params.getActiveTimeDimensions()) {
-        EventQueryParams singleTimeDimensionQuery = params.withSingleTimeDimension(timeField);
-        queries.add(singleTimeDimensionQuery);
-      }
-      return queries;
-    }
-
-    // Single time dimension - check for mixed period types within date ranges
-    if (params.getActiveTimeDimensionCount() == 1) {
-      TimeField timeField = params.getActiveTimeDimensions().iterator().next();
-      List<org.hisp.dhis.common.DateRange> dateRanges = params.getTimeDateRanges().get(timeField);
-
-      if (dateRanges != null && dateRanges.size() > 1) {
-        // Check if date ranges represent different period types by analyzing date patterns
-        boolean hasMixedTypes = hasMixedPeriodTypes(dateRanges);
-
-        if (hasMixedTypes) {
-          // Split into separate queries for each date range
-          for (org.hisp.dhis.common.DateRange dateRange : dateRanges) {
-            EventQueryParams splitQuery =
-                createQueryForSingleDateRange(params, timeField, dateRange);
-            queries.add(splitQuery);
-          }
-          return queries;
-        }
-      }
-    }
-
-    // No splitting needed - single time dimension with homogeneous period types
-    queries.add(params);
     return queries;
   }
 
