@@ -58,7 +58,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -80,6 +79,7 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueAuditType;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -1193,7 +1193,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(DataValueAuditType.UPDATE, audits.get(0).getAuditType());
                         })
             .collect(Collectors.toList()));
   }

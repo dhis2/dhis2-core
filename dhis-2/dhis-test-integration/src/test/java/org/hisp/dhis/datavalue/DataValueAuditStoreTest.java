@@ -52,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private DataValueAuditService dataValueAuditService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataInjectionService dataInjectionService;
   @Autowired private IdentifiableObjectManager manager;

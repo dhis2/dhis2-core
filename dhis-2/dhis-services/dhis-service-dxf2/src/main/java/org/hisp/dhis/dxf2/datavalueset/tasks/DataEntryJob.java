@@ -37,6 +37,7 @@ import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -68,6 +69,9 @@ public class DataEntryJob implements Job {
   public void execute(JobConfiguration jobId, JobProgress progress) {
     progress.startingProcess("Data value set import");
     ImportOptions options = (ImportOptions) jobId.getJobParameters();
+    if (options == null) options = new ImportOptions();
+    NotificationLevel level = options.getNotificationLevel(INFO);
+
     progress.startingStage("Loading file resource");
     FileResource data =
         progress.nonNullStagePostCondition(
@@ -112,11 +116,14 @@ public class DataEntryJob implements Job {
           count.getDeleted(),
           count.getIgnored());
 
-      NotificationLevel level = options == null ? INFO : options.getNotificationLevel(INFO);
       notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
     } catch (Exception ex) {
       progress.failedProcess(ex);
-      // TODO add error summary
+      // make sure some summary is put as a client might wait for it
+      ImportSummary summary = new ImportSummary();
+      summary.setStatus(ImportStatus.ERROR);
+      summary.setDescription(ex.getMessage());
+      notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
     }
   }
 }
