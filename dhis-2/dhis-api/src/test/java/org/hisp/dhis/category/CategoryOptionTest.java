@@ -155,13 +155,7 @@ class CategoryOptionTest {
         Arguments.of("name", "uid", "code diff", "shortName", null, isNotEqual),
         Arguments.of("name", "uid diff", "code", "shortName", null, isNotEqual),
         Arguments.of("name diff", "uid", "code", "shortName", null, isNotEqual),
-        Arguments.of(
-            "name",
-            "uid",
-            "code",
-            "shortName",
-            QueryModifiers.builder().build(),
-            false));
+        Arguments.of("name", "uid", "code", "shortName", QueryModifiers.builder().build(), false));
   }
 
   private CategoryOption getCategoryOption() {

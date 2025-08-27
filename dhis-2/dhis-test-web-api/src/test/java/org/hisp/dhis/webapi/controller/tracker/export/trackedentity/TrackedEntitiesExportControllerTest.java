@@ -153,7 +153,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     trackerObjects = testSetup.importTrackerData();
     manager.flush();
     manager.clear();
-    
+
     deleteTrackedEntity(UID.of("woitxQbWYNq"));
     switchContextToUser(importUser);
   }

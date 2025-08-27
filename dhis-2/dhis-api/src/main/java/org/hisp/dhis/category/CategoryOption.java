@@ -30,7 +30,6 @@
 package org.hisp.dhis.category;
 
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
-import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,7 +42,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -377,7 +375,7 @@ public class CategoryOption extends BaseMetadataObject
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.CATEGORY_OPTION;
   }
-  
+
   @Override
   public AggregationType getAggregationType() {
     return (queryMods != null && queryMods.getAggregationType() != null)
@@ -571,7 +569,7 @@ public class CategoryOption extends BaseMetadataObject
       return getPropertyValue(idScheme);
     }
   }
-  
+
   // -------------------------------------------------------------------------
   // AttributeValues
   // -------------------------------------------------------------------------
@@ -665,7 +663,7 @@ public class CategoryOption extends BaseMetadataObject
   public String getFormName() {
     return formName;
   }
-  
+
   // -------------------------------------------------------------------------
   // NameableObject implementation
   // -------------------------------------------------------------------------
@@ -770,9 +768,7 @@ public class CategoryOption extends BaseMetadataObject
     return false;
   }
 
-  /**
-   * Category options do not have favorites, so this method is deprecated.
-   */
+  /** Category options do not have favorites, so this method is deprecated. */
   @Override
   @JsonIgnore
   @Deprecated(forRemoval = true, since = "43")
@@ -780,9 +776,7 @@ public class CategoryOption extends BaseMetadataObject
     return Set.of();
   }
 
-  /**
-   * Category options do not have favorites, so this method is deprecated.
-   */
+  /** Category options do not have favorites, so this method is deprecated. */
   @Override
   @JsonIgnore
   @Deprecated(forRemoval = true, since = "43")
@@ -790,18 +784,14 @@ public class CategoryOption extends BaseMetadataObject
     return false;
   }
 
-  /**
-   * Category options do not have favorites, so this method is deprecated.
-   */
+  /** Category options do not have favorites, so this method is deprecated. */
   @Override
   @Deprecated(forRemoval = true, since = "43")
   public boolean setAsFavorite(UserDetails user) {
     return false;
   }
 
-  /**
-   * Category options do not have favorites, so this method is deprecated.
-   */
+  /** Category options do not have favorites, so this method is deprecated. */
   @Override
   @Deprecated(forRemoval = true, since = "43")
   public boolean removeAsFavorite(UserDetails user) {
