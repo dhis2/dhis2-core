@@ -82,7 +82,7 @@ class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrat
   }
 
   @Test
-  void shoulFailIntegrityCheckAndFindData() {
+  void shouldFindIntegrityIssuesWhenProgramStageHasNoProgramAndFindData() {
     setUpTest();
     ProgramStage programStageB = createProgramStage('A', (Program) null);
     programStageB.setName("programStageB");
