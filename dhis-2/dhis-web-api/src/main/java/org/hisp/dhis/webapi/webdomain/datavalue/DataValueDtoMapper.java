@@ -35,7 +35,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxValue;
 
@@ -48,32 +47,13 @@ public class DataValueDtoMapper {
   DataValueDtoMapper() {}
 
   /**
-   * Converts a {@link DataValueAudit} object to a {@link DataValueAuditDto}.
-   *
-   * @param audit the {@link DataValueAudit}.
-   * @return a {@link DataValueAuditDto}.
-   */
-  public static DataValueAuditDto toDto(DataValueAudit audit) {
-    return new DataValueAuditDto()
-        .setDataElement(audit.getDataElement().getUid())
-        .setPeriod(audit.getPeriod().getIsoDate())
-        .setOrgUnit(audit.getOrganisationUnit().getUid())
-        .setCategoryOptionCombo(audit.getCategoryOptionCombo().getUid())
-        .setAttributeOptionCombo(audit.getAttributeOptionCombo().getUid())
-        .setValue(audit.getValue())
-        .setModifiedBy(audit.getModifiedBy())
-        .setCreated(audit.getCreated())
-        .setAuditType(audit.getAuditType());
-  }
-
-  /**
-   * Converts a {@link DataValue} object to a {@link DataValueDto}.
+   * Converts a {@link DataValue} object to a {@link DataValuePostParams}.
    *
    * @param value the {@link DataValue}.
-   * @return a {@link DataValueDto}.
+   * @return a {@link DataValuePostParams}.
    */
-  public static DataValueDto toDto(DataValue value) {
-    return new DataValueDto()
+  public static DataValuePostParams toDto(DataValue value) {
+    return new DataValuePostParams()
         .setDataElement(value.getDataElement().getUid())
         .setPeriod(value.getPeriod().getIsoDate())
         .setOrgUnit(value.getSource().getUid())
@@ -88,13 +68,13 @@ public class DataValueDtoMapper {
   }
 
   /**
-   * Converts an attribute {@link CategoryOptionCombo} object to a {@link DataValueCategoryDto}.
+   * Converts an attribute {@link CategoryOptionCombo} object to a {@link DataValueCategoryParams}.
    *
    * @param attribute the attribute {@link CategoryOptionCombo}.
-   * @return a {@link DataValueCategoryDto}.
+   * @return a {@link DataValueCategoryParams}.
    */
-  public static DataValueCategoryDto toDto(CategoryOptionCombo attribute) {
-    return new DataValueCategoryDto()
+  public static DataValueCategoryParams toDto(CategoryOptionCombo attribute) {
+    return new DataValueCategoryParams()
         .setCombo(attribute.getCategoryCombo().getUid())
         .setOptions(mapToSet(attribute.getCategoryOptions(), CategoryOption::getUid));
   }

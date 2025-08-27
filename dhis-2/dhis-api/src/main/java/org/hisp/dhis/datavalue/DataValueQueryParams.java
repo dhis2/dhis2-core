@@ -27,15 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.audit.AuditOperationType;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -44,40 +45,32 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 /**
- * DTO which represents a data value audit record.
+ * Object which encapsulates parameters for a data value query.
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Shared
 @Getter
 @Setter
-@Accessors(chain = true)
+@Builder
 @NoArgsConstructor
-public class DataValueAuditDto {
-  @JsonProperty
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class DataValueQueryParams {
   @OpenApi.Property({UID.class, DataElement.class})
-  private String dataElement;
+  private String de;
 
-  @JsonProperty
-  @OpenApi.Property(Period.class)
-  private String period;
+  @OpenApi.Property({Period.class})
+  private String pe;
 
-  @JsonProperty
   @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String orgUnit;
+  private String ou;
 
-  @JsonProperty
   @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String categoryOptionCombo;
+  private String co;
 
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String attributeOptionCombo;
+  @OpenApi.Property({UID.class, CategoryCombo.class})
+  private String cc;
 
-  @JsonProperty private String value;
-
-  @JsonProperty private String modifiedBy;
-
-  @JsonProperty private Date created;
-
-  @JsonProperty private AuditOperationType auditType;
+  @OpenApi.Property({UID.class, CategoryOption.class})
+  private String cp;
 }

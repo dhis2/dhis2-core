@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.datavalue;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+public enum DataValueAuditType {
+  /** When a data value is created for the first time (no row existed in the table) */
+  CREATE,
 
-/**
- * Object which encapsulates parameters for a data value query.
- *
- * @author Lars Helge Overland
- */
-@OpenApi.Shared
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class DataValueQueryParams {
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String de;
+  /** When a data value is marked as {@code deleted=true} (without already being marked deleted) */
+  DELETE,
 
-  @OpenApi.Property({Period.class})
-  private String pe;
+  /** When a data value changes its {@code value} property has changed, but it is not a deletion */
+  UPDATE,
 
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String ou;
-
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String co;
-
-  @OpenApi.Property({UID.class, CategoryCombo.class})
-  private String cc;
-
-  @OpenApi.Property({UID.class, CategoryOption.class})
-  private String cp;
+  // Note that updating just followup or comment will not create an audit entry ATM
 }

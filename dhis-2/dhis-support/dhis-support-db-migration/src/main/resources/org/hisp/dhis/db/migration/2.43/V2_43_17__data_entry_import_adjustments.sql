@@ -55,7 +55,7 @@ BEGIN
            NEW.value,
            CASE
                WHEN TG_OP = 'INSERT' THEN 'CREATE'
-               WHEN NEW.deleted AND (OLD.deleted IS NULL OR NOT OLD.deleted) THEN 'DELETED'
+               WHEN NEW.deleted AND (OLD.deleted IS NULL OR NOT OLD.deleted) THEN 'DELETE'
                ELSE 'UPDATE'
            END
         );

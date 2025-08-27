@@ -27,67 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-import lombok.Data;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
 
 /**
+ * DTO which represents a data value category option combination represented as a category
+ * combination and a set of category options.
+ *
  * @author Lars Helge Overland
  */
-@Data
-@OpenApi.Shared
-public class DataValueFollowUpRequest {
+@Getter
+@Setter
+@Accessors(chain = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataValueCategoryParams {
   @JsonProperty
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String dataElement;
-
-  @JsonProperty
-  @OpenApi.Property({Period.class})
-  private String period;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String orgUnit;
+  @OpenApi.Property({UID.class, CategoryCombo.class})
+  private String combo;
 
   @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String categoryOptionCombo;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String attributeOptionCombo;
-
-  @JsonProperty private DataValueCategoryParams attribute;
-
-  @JsonProperty private Boolean followup;
-
-  public DataEntryValue.Input toDataEntryValue() {
-    // note: here null for non-key properties means "keep current value"
-    // because this uses partial update later
-    String attributeCombo = attribute == null ? null : attribute.getCombo();
-    Set<String> attributeOptions = attribute == null ? null : attribute.getOptions();
-    return new DataEntryValue.Input(
-        dataElement,
-        orgUnit,
-        categoryOptionCombo,
-        null,
-        attributeOptionCombo,
-        attributeCombo,
-        attributeOptions,
-        period,
-        null,
-        null,
-        followup,
-        null);
-  }
+  @OpenApi.Property({UID[].class, CategoryOption.class})
+  private Set<String> options;
 }

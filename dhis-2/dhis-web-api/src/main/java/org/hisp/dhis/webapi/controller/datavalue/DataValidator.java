@@ -56,7 +56,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
 import org.springframework.stereotype.Component;
 
 /**
@@ -142,12 +142,12 @@ public class DataValidator {
   /**
    * Retrieves and verifies a category (attribute) option combo.
    *
-   * @param attribute the {@link DataValueCategoryDto}.
+   * @param attribute the {@link DataValueCategoryParams}.
    * @return the {@link CategoryOptionCombo}.
    * @throws IllegalQueryException if the validation fails.
    */
-  public CategoryOptionCombo getAndValidateAttributeOptionCombo(DataValueCategoryDto attribute) {
-    attribute = ObjectUtils.firstNonNull(attribute, new DataValueCategoryDto());
+  public CategoryOptionCombo getAndValidateAttributeOptionCombo(DataValueCategoryParams attribute) {
+    attribute = ObjectUtils.firstNonNull(attribute, new DataValueCategoryParams());
 
     CategoryOptionCombo attributeOptionCombo =
         inputUtils.getAttributeOptionCombo(attribute.getCombo(), attribute.getOptions(), false);
@@ -173,7 +173,7 @@ public class DataValidator {
   public CategoryOptionCombo getAndValidateAttributeOptionCombo(String cc, String cp) {
     Set<String> options = TextUtils.splitToSet(cp, TextUtils.SEMICOLON);
 
-    DataValueCategoryDto attribute = new DataValueCategoryDto(cc, options);
+    DataValueCategoryParams attribute = new DataValueCategoryParams(cc, options);
 
     return getAndValidateAttributeOptionCombo(attribute);
   }

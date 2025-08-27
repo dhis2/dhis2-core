@@ -27,76 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 /**
- * DTO which represents a data value.
+ * DTO which represents a data value audit record.
  *
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-public class DataValueDto {
-  @JsonProperty
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String dataElement;
-
-  @JsonProperty
-  @OpenApi.Property(Period.class)
-  private String period;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String orgUnit;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String categoryOptionCombo;
-
-  @JsonProperty private DataValueCategoryDto attribute;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, DataSet.class})
-  private String dataSet;
-
-  @JsonProperty private String value;
-
-  @JsonProperty private String comment;
-
-  @JsonProperty private Boolean followUp;
-
-  @JsonProperty private String storedBy;
-
-  @JsonProperty private Date created;
-
-  @JsonProperty private Date lastUpdated;
-
-  @JsonProperty private Boolean force;
-
-  @JsonIgnore
-  public boolean isFollowUp() {
-    return followUp != null && followUp;
-  }
-
-  @JsonIgnore
-  public boolean isForce() {
-    return force != null && force;
-  }
-}
+public record DataValueAuditEntry(
+    @JsonProperty @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
+    @JsonProperty @OpenApi.Property(Period.class) String period,
+    @JsonProperty @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
+    @JsonProperty @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+        String categoryOptionCombo,
+    @JsonProperty @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+        String attributeOptionCombo,
+    @JsonProperty String value,
+    @JsonProperty String modifiedBy,
+    @JsonProperty Date created,
+    @JsonProperty DataValueAuditType auditType) {}

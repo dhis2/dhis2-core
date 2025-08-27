@@ -55,6 +55,7 @@ import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -80,9 +81,8 @@ import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDto;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValuePostParams;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -101,7 +101,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @OpenApi.Document(
     entity = DataValue.class,
-    classifiers = {"team:platform", "purpose:data"})
+    classifiers = {"team:platform", "purpose:data-entry"})
 @RestController
 @RequestMapping("/api/dataValues")
 @RequiredArgsConstructor
@@ -147,7 +147,7 @@ public class DataValueController {
       @RequestParam(required = false) boolean force)
       throws ConflictException, BadRequestException {
     if ("".equals(value) && comment == null && followUp == null) {
-      // backwards compatability special rule 1: "" => perform delete
+      // backwards compatability: value="" => perform delete
       deleteDataValue(
           DataValueQueryParams.builder().de(de).co(co).cc(cc).cp(cp).pe(pe).ou(ou).build(),
           ds,
@@ -158,8 +158,7 @@ public class DataValueController {
     DataEntryValue.Input dv =
         new DataEntryValue.Input(
             de, ou, co, null, null, cc, aocCos, pe, value, comment, followUp, null);
-    // for backwards compatability all writes must assume nulls should be filled in with current
-    // value
+    // backwards compatability: all writes must assume null=keep current value
     String dataSet = ds == null ? null : ds.getValue();
     DataEntrySummary summary =
         dataEntryService.upsertGroup(
@@ -173,11 +172,11 @@ public class DataValueController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(consumes = "application/json")
   @ResponseStatus(HttpStatus.CREATED)
-  public void saveDataValueWithBody(@RequestBody DataValueDto dv)
+  public void saveDataValueWithBody(@RequestBody DataValuePostParams dv)
       throws ConflictException, BadRequestException {
     UID ds = UID.ofNullable(dv.getDataSet());
     String de = dv.getDataElement();
-    DataValueCategoryDto attr = dv.getAttribute();
+    DataValueCategoryParams attr = dv.getAttribute();
     String cc = attr == null ? null : attr.getCombo();
     String cp = attr == null ? null : String.join(";", attr.getOptions());
     String ou = dv.getOrgUnit();

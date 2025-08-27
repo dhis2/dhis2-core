@@ -160,12 +160,12 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
             AuditOperationType.UPDATE);
     dataValueAuditC2.setAttributeOptionCombo(coc3);
 
-    dataValueAuditService.addDataValueAudit(dataValueAuditA1);
-    dataValueAuditService.addDataValueAudit(dataValueAuditA2);
-    dataValueAuditService.addDataValueAudit(dataValueAuditB1);
-    dataValueAuditService.addDataValueAudit(dataValueAuditB2);
-    dataValueAuditService.addDataValueAudit(dataValueAuditC1);
-    dataValueAuditService.addDataValueAudit(dataValueAuditC2);
+    dataValueAuditStore.addDataValueAudit(dataValueAuditA1);
+    dataValueAuditStore.addDataValueAudit(dataValueAuditA2);
+    dataValueAuditStore.addDataValueAudit(dataValueAuditB1);
+    dataValueAuditStore.addDataValueAudit(dataValueAuditB2);
+    dataValueAuditStore.addDataValueAudit(dataValueAuditC1);
+    dataValueAuditStore.addDataValueAudit(dataValueAuditC2);
 
     // state before delete
     List<DataValueAudit> dvaCoc1Before =

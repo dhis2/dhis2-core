@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.Objects;
-import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
@@ -64,7 +63,7 @@ public class DataValueAudit {
 
   private Date created;
 
-  private AuditOperationType auditType;
+  private DataValueAuditType auditType;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -73,7 +72,7 @@ public class DataValueAudit {
   public DataValueAudit() {}
 
   public DataValueAudit(
-      DataValue dataValue, String value, String modifiedBy, AuditOperationType auditType) {
+      DataValue dataValue, String value, String modifiedBy, DataValueAuditType auditType) {
     this.dataElement = dataValue.getDataElement();
     this.period = dataValue.getPeriod();
     this.organisationUnit = dataValue.getSource();
@@ -93,7 +92,7 @@ public class DataValueAudit {
       CategoryOptionCombo attributeOptionCombo,
       String value,
       String modifiedBy,
-      AuditOperationType auditType) {
+      DataValueAuditType auditType) {
     this.dataElement = dataElement;
     this.period = period;
     this.organisationUnit = organisationUnit;
@@ -279,11 +278,11 @@ public class DataValueAudit {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AuditOperationType getAuditType() {
+  public DataValueAuditType getAuditType() {
     return auditType;
   }
 
-  public void setAuditType(AuditOperationType auditType) {
+  public void setAuditType(DataValueAuditType auditType) {
     this.auditType = auditType;
   }
 }

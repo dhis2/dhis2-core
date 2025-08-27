@@ -36,14 +36,18 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueAuditType;
+import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -134,6 +138,77 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     return getList(builder, queryParams);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params) {
+    String aocCc = params.getCc();
+    String aocCos = params.getCp();
+    Object aocId = null;
+    if (aocCc == null && aocCos == null) {
+      String aocSql =
+          "SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE name = 'default' LIMIT 1";
+      aocId = getSingleResult(getSession().createNativeQuery(aocSql));
+    } else {
+      String aocSql =
+          """
+          WITH co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos))
+          SELECT coc_co.categoryoptioncomboid
+          FROM categorycombos_optioncombos coc_cc
+          JOIN categoryoptioncombos_categoryoptions coc_co ON coc_cc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          WHERE coc_cc.categorycomboid = (SELECT cc.categorycomboid FROM categorycombo cc WHERE cc.uid = :cc)
+            AND coc_co.categoryoptionid IN (SELECT categoryoptionid FROM co_ids)
+          GROUP BY coc_co.categoryoptioncomboid
+          HAVING COUNT(*) = (SELECT COUNT(*) FROM co_ids)""";
+      aocId =
+          getSingleResult(
+              getSession()
+                  .createNativeQuery(aocSql)
+                  .setParameter("cc", aocCc)
+                  .setParameterList("cos", aocCos.split(";")));
+    }
+    Long aoc = aocId instanceof Number n ? n.longValue() : null;
+    String sql =
+        """
+        SELECT
+            de.uid AS de, pe.iso, ou.uid AS ou, coc.uid AS coc, aoc.uid AS aoc, dva.value, dva.modifiedby, dva.created, dva.audittype
+        FROM datavalueaudit dva
+        JOIN dataelement de ON dva.dataelementid = de.dataelementid
+        JOIN period pe ON dva.periodid = pe.periodid
+        JOIN organisationunit ou ON dva.organisationunitid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dva.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dva.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE   de.uid = :de
+            AND ou.uid = :ou
+            AND pe.iso = :iso
+            AND (:coc IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
+            AND aoc.categoryoptioncomboid = :aoc
+        ORDER BY dva.created DESC""";
+    List<Object[]> rows =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("de", params.getDe())
+            .setParameter("ou", params.getOu())
+            .setParameter("iso", params.getPe())
+            .setParameter("coc", params.getCo())
+            .setParameter("aoc", aoc)
+            .list();
+    if (rows.isEmpty()) return List.of();
+    return rows.stream()
+        .map(
+            row ->
+                new DataValueAuditEntry(
+                    (String) row[0],
+                    (String) row[1],
+                    (String) row[2],
+                    (String) row[3],
+                    (String) row[4],
+                    (String) row[5],
+                    (String) row[6],
+                    (Date) row[7],
+                    DataValueAuditType.valueOf((String) row[8])))
+        .toList();
   }
 
   @Override

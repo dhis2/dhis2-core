@@ -246,6 +246,7 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
           if (value == null) value = dvOld.value();
           if (comment == null) comment = dvOld.comment();
           if (followUp == null) followUp = dvOld.followUp();
+          // the special logic on deleted is for backwards compatability
           if (deleted == null && value == null) deleted = dvOld.deleted();
         }
       }
