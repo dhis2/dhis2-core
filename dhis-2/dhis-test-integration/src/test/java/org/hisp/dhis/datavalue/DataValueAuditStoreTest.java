@@ -58,12 +58,6 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
   @Autowired private PeriodService periodService;
 
-  private DataValue dataValueA1;
-  private DataValue dataValueA2;
-  private DataValue dataValueB1;
-  private DataValue dataValueB2;
-  private DataValue dataValueC1;
-  private DataValue dataValueC2;
   private CategoryOptionCombo coc1;
   private CategoryOptionCombo coc2;
   private CategoryOptionCombo coc3;
@@ -102,69 +96,18 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
     OrganisationUnit orgUnitC = createOrganisationUnit('C');
     manager.save(List.of(orgUnitA, orgUnitB, orgUnitC));
 
-    dataValueA1 = createDataValue(dataElementA, periodA, orgUnitA, coc1, coc1, "1");
-    dataValueA2 = createDataValue(dataElementA, periodB, orgUnitA, coc1, coc1, "2");
-    dataValueB1 = createDataValue(dataElementB, periodB, orgUnitB, coc2, coc2, "3");
-    dataValueB2 = createDataValue(dataElementB, periodC, orgUnitB, coc2, coc2, "4");
-    dataValueC1 = createDataValue(dataElementC, periodC, orgUnitC, coc3, coc3, "5");
-    dataValueC2 = createDataValue(dataElementC, periodA, orgUnitC, coc3, coc3, "6");
-    addDataValues(dataValueA1, dataValueA2, dataValueB1, dataValueB2, dataValueC1, dataValueC2);
+    addDataValues(
+        createDataValue(dataElementA, periodA, orgUnitA, coc1, coc1, "1"),
+        createDataValue(dataElementA, periodB, orgUnitA, coc1, coc1, "2"),
+        createDataValue(dataElementB, periodB, orgUnitB, coc2, coc2, "3"),
+        createDataValue(dataElementB, periodC, orgUnitB, coc2, coc2, "4"),
+        createDataValue(dataElementC, periodC, orgUnitC, coc3, coc3, "5"),
+        createDataValue(dataElementC, periodA, orgUnitC, coc3, coc3, "6"));
   }
 
   @Test
   @DisplayName("Deleting audits by category option combo deletes the correct entries")
   void testAddGetDataValueAuditFromDataValue() {
-    // given
-    DataValueAudit dataValueAuditA1 =
-        new DataValueAudit(
-            dataValueA1,
-            dataValueA1.getValue(),
-            dataValueA1.getStoredBy(),
-            DataValueAuditType.UPDATE);
-    dataValueAuditA1.setCategoryOptionCombo(coc1);
-    DataValueAudit dataValueAuditA2 =
-        new DataValueAudit(
-            dataValueA2,
-            dataValueA2.getValue(),
-            dataValueA2.getStoredBy(),
-            DataValueAuditType.UPDATE);
-    dataValueAuditA2.setAttributeOptionCombo(coc1);
-    DataValueAudit dataValueAuditB1 =
-        new DataValueAudit(
-            dataValueB1,
-            dataValueB1.getValue(),
-            dataValueB1.getStoredBy(),
-            DataValueAuditType.UPDATE);
-    dataValueAuditB1.setCategoryOptionCombo(coc2);
-    DataValueAudit dataValueAuditB2 =
-        new DataValueAudit(
-            dataValueB2,
-            dataValueB2.getValue(),
-            dataValueB2.getStoredBy(),
-            DataValueAuditType.UPDATE);
-    dataValueAuditB2.setAttributeOptionCombo(coc2);
-    DataValueAudit dataValueAuditC1 =
-        new DataValueAudit(
-            dataValueC1,
-            dataValueC1.getValue(),
-            dataValueC1.getStoredBy(),
-            DataValueAuditType.UPDATE);
-    dataValueAuditC1.setCategoryOptionCombo(coc3);
-    DataValueAudit dataValueAuditC2 =
-        new DataValueAudit(
-            dataValueC2,
-            dataValueC2.getValue(),
-            dataValueC2.getStoredBy(),
-            DataValueAuditType.UPDATE);
-    dataValueAuditC2.setAttributeOptionCombo(coc3);
-
-    dataValueAuditStore.addDataValueAudit(dataValueAuditA1);
-    dataValueAuditStore.addDataValueAudit(dataValueAuditA2);
-    dataValueAuditStore.addDataValueAudit(dataValueAuditB1);
-    dataValueAuditStore.addDataValueAudit(dataValueAuditB2);
-    dataValueAuditStore.addDataValueAudit(dataValueAuditC1);
-    dataValueAuditStore.addDataValueAudit(dataValueAuditC2);
-
     // state before delete
     List<DataValueAudit> dvaCoc1Before =
         dataValueAuditStore.getDataValueAudits(
@@ -202,9 +145,6 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
     assertTrue(dvaCoc1After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 1");
     assertTrue(dvaCoc2After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 2");
     assertEquals(2, dvaCoc3After.size(), "There should be 2 audits referencing Cat Opt Combo 3");
-    assertTrue(
-        dvaCoc3After.containsAll(List.of(dataValueAuditC1, dataValueAuditC2)),
-        "Retrieved entries should contain both audits referencing cat opt combo 3");
   }
 
   private void addDataValues(DataValue... values) {
