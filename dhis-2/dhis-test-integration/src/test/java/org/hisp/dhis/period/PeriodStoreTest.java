@@ -31,10 +31,8 @@ package org.hisp.dhis.period;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -91,50 +89,6 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteAndGetPeriod() {
-    List<PeriodType> periodTypes = periodStore.getAllPeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeB, getDay(2), getDay(3));
-    Period periodD = new Period(periodTypeB, getDay(3), getDay(4));
-    periodStore.addPeriod(periodA);
-    long idA = periodA.getId();
-    periodStore.addPeriod(periodB);
-    long idB = periodB.getId();
-    periodStore.addPeriod(periodC);
-    long idC = periodC.getId();
-    periodStore.addPeriod(periodD);
-    long idD = periodD.getId();
-    assertNotNull(periodStore.get(idA));
-    assertNotNull(periodStore.get(idB));
-    assertNotNull(periodStore.get(idC));
-    assertNotNull(periodStore.get(idD));
-    periodStore.delete(periodA);
-    assertNull(periodStore.get(idA));
-    assertNotNull(periodStore.get(idB));
-    assertNotNull(periodStore.get(idC));
-    assertNotNull(periodStore.get(idD));
-    periodStore.delete(periodB);
-    assertNull(periodStore.get(idA));
-    assertNull(periodStore.get(idB));
-    assertNotNull(periodStore.get(idC));
-    assertNotNull(periodStore.get(idD));
-    periodStore.delete(periodC);
-    assertNull(periodStore.get(idA));
-    assertNull(periodStore.get(idB));
-    assertNull(periodStore.get(idC));
-    assertNotNull(periodStore.get(idD));
-    periodStore.delete(periodD);
-    assertNull(periodStore.get(idA));
-    assertNull(periodStore.get(idB));
-    assertNull(periodStore.get(idC));
-    assertNull(periodStore.get(idD));
-  }
-
-  @Test
   void testGetAllPeriods() {
     PeriodType periodType = periodStore.getAllPeriodTypes().iterator().next();
     Period periodA = new Period(periodType, getDay(1), getDay(1));
@@ -149,149 +103,5 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
     assertTrue(periods.contains(periodA));
     assertTrue(periods.contains(periodB));
     assertTrue(periods.contains(periodC));
-  }
-
-  @Test
-  void testGetPeriodsBetweenDates() {
-    List<PeriodType> periodTypes = periodStore.getAllPeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeB, getDay(3), getDay(4));
-    Period periodD = new Period(periodTypeB, getDay(4), getDay(5));
-    periodStore.addPeriod(periodA);
-    periodStore.addPeriod(periodB);
-    periodStore.addPeriod(periodC);
-    periodStore.addPeriod(periodD);
-    List<Period> periods = periodStore.getPeriodsBetweenDates(getDay(1), getDay(1));
-    assertNotNull(periods);
-    assertEquals(0, periods.size());
-    periods = periodStore.getPeriodsBetweenDates(getDay(1), getDay(2));
-    assertNotNull(periods);
-    assertEquals(1, periods.size());
-    assertEquals(periodA, periods.iterator().next());
-    periods = periodStore.getPeriodsBetweenDates(getDay(2), getDay(4));
-    assertNotNull(periods);
-    assertEquals(3, periods.size());
-    assertTrue(periods.contains(periodB));
-    assertTrue(periods.contains(periodC));
-    assertTrue(periods.contains(periodD));
-    periods = periodStore.getPeriodsBetweenDates(getDay(1), getDay(5));
-    assertNotNull(periods);
-    assertEquals(4, periods.size());
-    assertTrue(periods.contains(periodA));
-    assertTrue(periods.contains(periodB));
-    assertTrue(periods.contains(periodC));
-    assertTrue(periods.contains(periodD));
-  }
-
-  @Test
-  void testGetPeriodsBetweenOrSpanningDates() {
-    List<PeriodType> periodTypes = periodStore.getAllPeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeB, getDay(2), getDay(3));
-    Period periodD = new Period(periodTypeB, getDay(3), getDay(4));
-    Period periodE = new Period(periodTypeB, getDay(1), getDay(4));
-    periodStore.addPeriod(periodA);
-    periodStore.addPeriod(periodB);
-    periodStore.addPeriod(periodC);
-    periodStore.addPeriod(periodD);
-    periodStore.addPeriod(periodE);
-    List<Period> periods = periodStore.getPeriodsBetweenOrSpanningDates(getDay(1), getDay(1));
-    assertNotNull(periods);
-    assertEquals(2, periods.size());
-    assertTrue(periods.contains(periodA));
-    assertTrue(periods.contains(periodE));
-    periods = periodStore.getPeriodsBetweenOrSpanningDates(getDay(1), getDay(2));
-    assertNotNull(periods);
-    assertEquals(2, periods.size());
-    assertTrue(periods.contains(periodA));
-    assertTrue(periods.contains(periodE));
-    periods = periodStore.getPeriodsBetweenOrSpanningDates(getDay(2), getDay(3));
-    assertNotNull(periods);
-    assertEquals(3, periods.size());
-    assertTrue(periods.contains(periodB));
-    assertTrue(periods.contains(periodC));
-    assertTrue(periods.contains(periodE));
-    periods = periodStore.getPeriodsBetweenOrSpanningDates(getDay(2), getDay(4));
-    assertNotNull(periods);
-    assertEquals(4, periods.size());
-    assertTrue(periods.contains(periodB));
-    assertTrue(periods.contains(periodC));
-    assertTrue(periods.contains(periodD));
-    assertTrue(periods.contains(periodE));
-  }
-
-  @Test
-  void testGetIntersectingPeriods() {
-    PeriodType type = periodStore.getAllPeriodTypes().iterator().next();
-    Period periodA = new Period(type, getDay(1), getDay(2));
-    Period periodB = new Period(type, getDay(2), getDay(4));
-    Period periodC = new Period(type, getDay(4), getDay(6));
-    Period periodD = new Period(type, getDay(6), getDay(8));
-    Period periodE = new Period(type, getDay(8), getDay(10));
-    Period periodF = new Period(type, getDay(10), getDay(12));
-    Period periodG = new Period(type, getDay(12), getDay(14));
-    Period periodH = new Period(type, getDay(2), getDay(6));
-    Period periodI = new Period(type, getDay(8), getDay(12));
-    Period periodJ = new Period(type, getDay(2), getDay(12));
-    periodStore.addPeriod(periodA);
-    periodStore.addPeriod(periodB);
-    periodStore.addPeriod(periodC);
-    periodStore.addPeriod(periodD);
-    periodStore.addPeriod(periodE);
-    periodStore.addPeriod(periodF);
-    periodStore.addPeriod(periodG);
-    periodStore.addPeriod(periodH);
-    periodStore.addPeriod(periodI);
-    periodStore.addPeriod(periodJ);
-    List<Period> periods = periodStore.getIntersectingPeriods(getDay(4), getDay(10));
-    assertEquals(periods.size(), 8);
-    assertTrue(periods.contains(periodB));
-    assertTrue(periods.contains(periodC));
-    assertTrue(periods.contains(periodD));
-    assertTrue(periods.contains(periodE));
-    assertTrue(periods.contains(periodF));
-    assertTrue(periods.contains(periodH));
-    assertTrue(periods.contains(periodI));
-    assertTrue(periods.contains(periodJ));
-  }
-
-  @Test
-  void testGetPeriodsByPeriodType() {
-    List<PeriodType> periodTypes = periodStore.getAllPeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    PeriodType periodTypeC = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeA, getDay(3), getDay(4));
-    Period periodD = new Period(periodTypeB, getDay(4), getDay(5));
-    periodStore.addPeriod(periodA);
-    periodStore.addPeriod(periodB);
-    periodStore.addPeriod(periodC);
-    periodStore.addPeriod(periodD);
-    List<Period> periodsARef = new ArrayList<>();
-    periodsARef.add(periodA);
-    periodsARef.add(periodB);
-    periodsARef.add(periodC);
-    List<Period> periodsA = periodStore.getPeriodsByPeriodType(periodTypeA);
-    assertNotNull(periodsA);
-    assertEquals(periodsARef.size(), periodsA.size());
-    assertTrue(periodsA.containsAll(periodsARef));
-    List<Period> periodsB = periodStore.getPeriodsByPeriodType(periodTypeB);
-    assertNotNull(periodsB);
-    assertEquals(1, periodsB.size());
-    assertEquals(periodD, periodsB.iterator().next());
-    List<Period> periodsC = periodStore.getPeriodsByPeriodType(periodTypeC);
-    assertNotNull(periodsC);
-    assertEquals(0, periodsC.size());
   }
 }

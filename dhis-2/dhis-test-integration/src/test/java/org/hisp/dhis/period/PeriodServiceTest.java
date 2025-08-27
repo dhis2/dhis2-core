@@ -212,38 +212,6 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetPeriodsByPeriodType() {
-    List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    PeriodType periodTypeC = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeA, getDay(3), getDay(4));
-    Period periodD = new Period(periodTypeB, getDay(3), getDay(4));
-    periodService.addPeriod(periodA);
-    periodService.addPeriod(periodB);
-    periodService.addPeriod(periodC);
-    periodService.addPeriod(periodD);
-    List<Period> periodsARef = new ArrayList<>();
-    periodsARef.add(periodA);
-    periodsARef.add(periodB);
-    periodsARef.add(periodC);
-    List<Period> periodsA = periodService.getPeriodsByPeriodType(periodTypeA);
-    assertNotNull(periodsA);
-    assertEquals(periodsARef.size(), periodsA.size());
-    assertTrue(periodsA.containsAll(periodsARef));
-    List<Period> periodsB = periodService.getPeriodsByPeriodType(periodTypeB);
-    assertNotNull(periodsB);
-    assertEquals(1, periodsB.size());
-    assertEquals(periodD, periodsB.iterator().next());
-    List<Period> periodsC = periodService.getPeriodsByPeriodType(periodTypeC);
-    assertNotNull(periodsC);
-    assertEquals(0, periodsC.size());
-  }
-
-  @Test
   void testGetInclusivePeriods() {
     PeriodType periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
     Period periodA = new Period(periodType, getDay(5), getDay(8));

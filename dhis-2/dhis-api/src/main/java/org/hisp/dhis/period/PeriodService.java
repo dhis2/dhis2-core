@@ -68,15 +68,6 @@ public interface PeriodService {
   Period getPeriod(String isoPeriod);
 
   /**
-   * Returns a Period.
-   *
-   * @param startDate the start date of the Period.
-   * @param periodType the PeriodType of the Period
-   * @return the Period matching the dates and periodtype, or null if no match.
-   */
-  Period getPeriodFromDates(Date startDate, PeriodType periodType);
-
-  /**
    * Returns all persisted Periods.
    *
    * @return all persisted Periods.
@@ -134,14 +125,6 @@ public interface PeriodService {
    *     of the of the given Period.
    */
   List<Period> getInclusivePeriods(Period period, Collection<Period> periods);
-
-  /**
-   * Returns all Periods with a given PeriodType.
-   *
-   * @param periodType the PeriodType of the Periods to return.
-   * @return all Periods with the given PeriodType, or an empty list if no Periods match.
-   */
-  List<Period> getPeriodsByPeriodType(PeriodType periodType);
 
   /**
    * Enforces that each Period in the given collection is loaded in the current session. Persists

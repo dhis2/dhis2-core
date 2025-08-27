@@ -203,9 +203,4 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
     if (dataInjectionService.upsertValues(values) < values.length)
       fail("Failed to upsert test data");
   }
-
-  private void deleteDataValue(DataValue dv) {
-    dv.setDeleted(true);
-    addDataValues(dv);
-  }
 }

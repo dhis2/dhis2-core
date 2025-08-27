@@ -82,8 +82,6 @@ public interface PeriodStore extends GenericStore<Period> {
    */
   List<Period> getPeriodsBetweenDates(PeriodType periodType, Date startDate, Date endDate);
 
-  List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate);
-
   /**
    * Returns Periods where at least one its days is between the given start date and end date.
    *
@@ -92,14 +90,6 @@ public interface PeriodStore extends GenericStore<Period> {
    * @return Periods where at least one its days is between the given start date and end date.
    */
   List<Period> getIntersectingPeriods(Date startDate, Date endDate);
-
-  /**
-   * Returns all Periods with a given PeriodType.
-   *
-   * @param periodType the PeriodType of the Periods to return.
-   * @return all Periods with the given PeriodType, or an empty list if no Periods match.
-   */
-  List<Period> getPeriodsByPeriodType(PeriodType periodType);
 
   /**
    * Checks if the given period is associated with the current session and loads it if not. Null is
@@ -127,9 +117,8 @@ public interface PeriodStore extends GenericStore<Period> {
    * Adds a PeriodType.
    *
    * @param periodType the PeriodType to add.
-   * @return a generated unique id of the added PeriodType.
    */
-  int addPeriodType(PeriodType periodType);
+  void addPeriodType(PeriodType periodType);
 
   /**
    * Returns all PeriodTypes.

@@ -89,12 +89,6 @@ public class DefaultPeriodService implements PeriodService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Period> getPeriodsByPeriodType(PeriodType periodType) {
-    return periodStore.getPeriodsByPeriodType(periodType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<Period> getPeriodsBetweenDates(Date startDate, Date endDate) {
     return periodStore.getPeriodsBetweenDates(startDate, endDate);
   }
@@ -159,7 +153,7 @@ public class DefaultPeriodService implements PeriodService {
     PeriodType periodType = lastPeriod.getPeriodType();
 
     for (int i = 0; i < previousPeriods; ++i) {
-      Period pe = getPeriodFromDates(lastPeriod.getStartDate(), periodType);
+      Period pe = periodStore.getPeriodFromDates(lastPeriod.getStartDate(), periodType);
       periods.add(pe != null ? pe : lastPeriod);
       lastPeriod = periodType.getPreviousPeriod(lastPeriod);
     }
@@ -167,12 +161,6 @@ public class DefaultPeriodService implements PeriodService {
     Collections.reverse(periods);
 
     return periods;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Period getPeriodFromDates(Date startDate, PeriodType periodType) {
-    return periodStore.getPeriodFromDates(startDate, periodType);
   }
 
   @Override

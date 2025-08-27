@@ -188,21 +188,6 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   }
 
   @Override
-  public List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate) {
-    String sql =
-        """
-      SELECT * FROM period p
-      WHERE p.startdate >= :start
-        AND p.enddate <= :end""";
-
-    return getSession()
-        .createNativeQuery(sql, Period.class)
-        .setParameter("start", startDate)
-        .setParameter("end", endDate)
-        .list();
-  }
-
-  @Override
   public List<Period> getIntersectingPeriods(Date startDate, Date endDate) {
     String sql =
         """
@@ -214,19 +199,6 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
         .createNativeQuery(sql, Period.class)
         .setParameter("start", startDate)
         .setParameter("end", endDate)
-        .list();
-  }
-
-  @Override
-  public List<Period> getPeriodsByPeriodType(PeriodType periodType) {
-    String sql =
-        """
-      SELECT * FROM period p
-      WHERE p.periodtypeid = (SELECT periodtypeid FROM periodtype WHERE name = :type)""";
-
-    return getSession()
-        .createNativeQuery(sql, Period.class)
-        .setParameter("type", periodType.getName())
         .list();
   }
 
@@ -271,7 +243,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   // -------------------------------------------------------------------------
 
   @Override
-  public int addPeriodType(PeriodType periodType) {
+  public void addPeriodType(PeriodType periodType) {
     String name = periodType.getName();
     String sql1 = "SELECT periodtypeid from periodtype where name = :name";
     String sql2 =
@@ -290,7 +262,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     if (id instanceof Number n) {
       int periodTypeId = n.intValue();
       periodType.setId(periodTypeId);
-      return periodTypeId;
+      return;
     }
     throw new IllegalStateException("Failed to upsert period type: " + name);
   }
