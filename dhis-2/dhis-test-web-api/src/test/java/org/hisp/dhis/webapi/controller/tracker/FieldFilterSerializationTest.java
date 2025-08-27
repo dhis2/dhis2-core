@@ -84,8 +84,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   // a JSON string
   @Autowired private ObjectMapper objectMapper;
 
-  // use the filter ObjectMapper from JacksonObjectMapperConfig to serialize, filter and transform
-  // an Object to a JSON string
+  // use the filter ObjectMapper from FieldsConfig to serialize, filter and transform an Object to a
+  // JSON string
   @Qualifier("jsonFilterMapper")
   @Autowired
   private ObjectMapper filterMapper;
@@ -103,9 +103,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
     eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
   }
 
-  // TODO(ivo) make sure that all cases that can be unit tested in better FieldsParser are. If we
-  // replace the current field filtering parser we should still keep these to test the combination
-  // of FieldsParser and Jackson FieldsPropertyFilter
   @ParameterizedTest
   @ValueSource(
       strings = {
@@ -122,8 +119,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         // "!dataValues[value]", // TODO(ivo) bug in old field filter NPE Cannot invoke
         // "org.hisp.dhis.fieldfiltering.FieldPath.getPath()" because "fieldPath" is null
         "!dataValues[]", // behaves like !dataValues TODO(ivo) this is ok and returns [{},{}] but
-        // the above is not
-        // failing with an NPE in the current parser
+        // the above is not failing with an NPE in the current parser
         "dataValues,!dataValues",
         "!dataValues,dataValues",
         // TODO(ivo): this is a bug IMHO opening a block without a field
