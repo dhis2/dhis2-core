@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.merge;
 
+import static java.util.stream.Collectors.joining;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -37,6 +38,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonArray;
@@ -47,6 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -352,6 +355,8 @@ class DataElementMergeTest extends ApiTest {
     sourceUid2 = setupDataElement("o", "TEXT", "AGGREGATE");
     targetUid = setupDataElement("p", "TEXT", "AGGREGATE");
     randomUid = setupDataElement("q", "TEXT", "AGGREGATE");
+    String dataSetUid = setupDataSet(sourceUid1, sourceUid2, targetUid, randomUid);
+    assertNotNull(dataSetUid);
 
     addOrgUnitAccessForUser(loginActions.getLoggedInUserId(), "OrgUnitUID1");
 
@@ -459,7 +464,7 @@ class DataElementMergeTest extends ApiTest {
             getDataValueQueryParams())
         .validateStatus(200)
         .validate()
-        .body("response.importCount.imported", equalTo(14));
+        .body("response.importCount.updated", equalTo(14));
   }
 
   private void addOrgUnitAccessForUser(String loggedInUserId, String... orgUnitUids) {
@@ -705,8 +710,8 @@ class DataElementMergeTest extends ApiTest {
         .extractUid();
   }
 
-  private void setupDataSet(String sourceUid1, String sourceUid2, String targetUid) {
-    datasetApiActions.post(createDataset(sourceUid1, sourceUid2, targetUid)).extractUid();
+  private String setupDataSet(String... deIds) {
+    return datasetApiActions.post(createDataset(deIds)).validateStatus(201).extractUid();
   }
 
   private JsonObject getMergeBody(
@@ -857,32 +862,22 @@ class DataElementMergeTest extends ApiTest {
         .formatted(domainType, name, name, name, valueType);
   }
 
-  private String createDataset(String dataEl1, String dataEl2, String dataEl3) {
+  private String createDataset(String... deIds) {
+    String de =
+        Stream.of(deIds)
+            .map(uid -> "{'dataElement': {'id': '%s'}}".formatted(uid).replace('\'', '"'))
+            .collect(joining(","));
+    int uniqueNamePart = de.hashCode() & 0xF; // just take some bits from a hash
     return """
       {
-        "name": "ds1",
-        "shortName": "ds1",
-        "periodType": "Daily",
-        "dataSetElements": [
-          {
-              "dataElement": {
-                  "id": "%s"
-              }
-          },
-          {
-              "dataElement": {
-                  "id": "%s"
-              }
-          },
-          {
-              "dataElement": {
-                  "id": "%s"
-              }
-          }
-        ]
+        "name": "ds%d",
+        "shortName": "ds%d",
+        "periodType": "Monthly",
+        "dataSetElements": [%s],
+        "organisationUnits": [{ "id": "OrgUnitUID1"}]
       }
     """
-        .formatted(dataEl1, dataEl2, dataEl3);
+        .formatted(uniqueNamePart, uniqueNamePart, de);
   }
 
   private String metadata() {
