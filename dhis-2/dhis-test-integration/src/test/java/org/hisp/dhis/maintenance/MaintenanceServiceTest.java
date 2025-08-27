@@ -419,11 +419,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   void testDeleteSoftDeletedSingleEventLinkedToADataValueChangeLog() {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
-    SingleEvent eventA = new SingleEvent();
-    eventA.setProgramStage(program.getProgramStageByStage(1));
-    eventA.setUid(UID.generate().getValue());
+    SingleEvent eventA = createSingleEvent(program.getProgramStageByStage(1), organisationUnit);
     eventA.setAttributeOptionCombo(coA);
-    eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     singleEventChangeLogService.addEventChangeLog(
         eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
@@ -490,11 +487,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
-    SingleEvent eventA = new SingleEvent();
-    eventA.setProgramStage(program.getProgramStageByStage(1));
-    eventA.setUid(UID.generate().getValue());
+    SingleEvent eventA = createSingleEvent(program.getProgramStageByStage(1), organisationUnit);
     eventA.setAttributeOptionCombo(coA);
-    eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     UID idA = UID.of(eventA);
     Relationship r = new Relationship();

@@ -1709,6 +1709,7 @@ public abstract class TestBase {
       ProgramStage programStage, OrganisationUnit organisationUnit) {
     SingleEvent event = new SingleEvent();
     event.setAutoFields();
+    event.setOccurredDate(new Date());
     event.setProgramStage(programStage);
     event.setOrganisationUnit(organisationUnit);
     if (categoryService != null) {

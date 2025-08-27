@@ -40,7 +40,10 @@ summary_sql: >-
       SELECT 'enrollment' AS table_name, geometry FROM enrollment
       WHERE geometry IS NOT NULL
       UNION ALL
-      SELECT 'event' AS table_name, geometry FROM event
+      SELECT 'singleevent' AS table_name, geometry FROM singleevent
+      WHERE geometry IS NOT NULL
+      UNION ALL
+      SELECT 'trackerevent' AS table_name, geometry FROM trackerevent
       WHERE geometry IS NOT NULL
   ),
        invalid_geom AS (
@@ -60,8 +63,11 @@ details_sql: >-
   SELECT 'enrollment' AS table_name, uid, ST_SRID(geometry) AS srid
   FROM enrollment WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
   UNION ALL
-  SELECT 'event' AS table_name, uid, ST_SRID(geometry) AS srid
-  FROM event WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  SELECT 'trackerevent' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM trackerevent WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
+  UNION ALL
+  SELECT 'singleevent' AS table_name, uid, ST_SRID(geometry) AS srid
+  FROM singleevent WHERE geometry IS NOT NULL AND ST_SRID(geometry) != 4326
   ) AS invalid_geometries;
 
 introduction: >
