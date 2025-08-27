@@ -16,13 +16,21 @@ where eventid in (
 alter table singleevent drop column scheduleddate;
 alter table singleevent drop column enrollmentid;
 
+-- Update status to allowed values for single event
+update singleevent set status = 'ACTIVE'
+where status not in ('ACTIVE','COMPLETED')
+  and completeddate is null;
+
+update singleevent set status = 'COMPLETED'
+where status not in ('ACTIVE','COMPLETED')
+  and completeddate is not null;
+
 -- Create primary key
 alter table singleevent add primary key (eventid);
 -- Make uid column unique
 alter table singleevent add constraint unique_singleevent_uid unique (uid);
 -- Set not null columns
 alter table singleevent alter column created set not null;
-alter table singleevent alter column occurreddate set not null;
 alter table singleevent alter column lastupdated set not null;
 alter table singleevent alter column lastsynchronized set default to_timestamp((0)::double precision);
 alter table singleevent alter column lastsynchronized set not null;
@@ -33,6 +41,16 @@ alter table singleevent alter column organisationunitid set not null;
 alter table singleevent alter column status set not null;
 alter table singleevent alter column eventdatavalues set default '{}'::jsonb;
 alter table singleevent alter column eventdatavalues set not null;
+
+-- Make occurreddate column not nullable. Raise an error if null values are present.
+do $$
+    begin
+        alter table singleevent alter column occurreddate set not null;
+    EXCEPTION
+        WHEN not_null_violation THEN
+            RAISE EXCEPTION 'There is inconsistent data in your DB. Please check https://github.com/dhis2/dhis2-releases/blob/master/releases/2.43/migration-notes.md#null-occurred-date-for-single-event to have more information on the issue and to find ways to fix it. Detailed error message: %', SQLERRM;
+    end;
+$$;
 
 -- Recreate indexes
 create index if not exists in_singleevent_status_occurreddate on singleevent using btree (status,occurreddate);
@@ -103,20 +121,19 @@ alter table if exists trackerevent
 -- Check if any event was not moved to singleevent or trackerevent table
 do $$
     begin
-        create table inconsistentevent as
-        select * from event
-        where eventid not in (
-            select eventid
-            from singleevent
-            union
-            select eventid
-            from trackerevent
-        );
-        if ((select count(*) from inconsistentevent) > 0)
-        then raise warning 'There is inconsistent data in your DB. Please check https://github.com/dhis2/dhis2-releases/blob/master/releases/2.43/migration-notes.md#inconsistent-events to have more information on the issue and to find ways to fix it.';
-        end if;
-        if ((select count(*) from inconsistentevent) = 0)
-        then drop table inconsistentevent;
+        if (select (select count(*) from event) - (select count(*) from singleevent) - (select count(*) from trackerevent) > 0)
+            then begin
+                create table inconsistentevent as
+                select * from event
+                where eventid not in (
+                    select eventid
+                    from singleevent
+                    union
+                    select eventid
+                    from trackerevent
+                );
+            raise warning 'There is inconsistent data in your DB. Please check https://github.com/dhis2/dhis2-releases/blob/master/releases/2.43/migration-notes.md#inconsistent-events to have more information on the issue and to find ways to fix it.';
+            end;
         end if;
     end;
 $$;
