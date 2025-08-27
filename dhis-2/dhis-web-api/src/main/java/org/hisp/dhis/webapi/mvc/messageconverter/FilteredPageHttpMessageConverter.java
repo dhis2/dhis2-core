@@ -64,7 +64,7 @@ import org.springframework.stereotype.Component;
 /**
  * HttpMessageConverter for trackers {@link FilteredPage} and {@link FilteredEntity} that handles
  * streaming of field filtered JSON pages and entities directly to the HTTP response body's output
- * stream. Supports compression variants (gzip, zip) based on media type.
+ * stream. Supports compression variants (gzip, zip) based on media type for pages.
  */
 @Component
 public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
@@ -143,17 +143,11 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
   }
 
   private static String getBaseName(Object filteredObject) {
-    String baseName;
     if (filteredObject instanceof FilteredPage<?> filteredPage) {
-      baseName = filteredPage.page().getKey();
-    } else if (filteredObject instanceof FilteredEntity<?>) {
-      // TODO(ivo) what was that before?
-      baseName = "data";
-    } else {
-      baseName = "data";
+      return filteredPage.page().getKey() + ".json";
     }
 
-    return baseName + ".json";
+    throw new UnsupportedOperationException("Only FilteredPage supports compressed responses");
   }
 
   private static void setContentType(HttpOutputMessage outputMessage) {

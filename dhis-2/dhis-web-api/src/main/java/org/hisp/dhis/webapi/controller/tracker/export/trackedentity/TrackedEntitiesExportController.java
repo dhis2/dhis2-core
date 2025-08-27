@@ -104,9 +104,8 @@ class TrackedEntitiesExportController {
 
   /**
    * Fields we need to fetch from the DB to fulfill requests for CSV. CSV cannot be filtered using
-   * the {@link FieldFilterService} so <code>fields</code> query parameter is ignored when CSV is
-   * requested. Make sure this is kept in sync with the columns we promise to return in the CSV. See
-   * {@link CsvTrackedEntity}.
+   * so <code>fields</code> query parameter is ignored when CSV is requested. Make sure this is kept
+   * in sync with the columns we promise to return in the CSV. See {@link CsvTrackedEntity}.
    */
   private static final Fields CSV_FIELDS =
       FieldsParser.parse(

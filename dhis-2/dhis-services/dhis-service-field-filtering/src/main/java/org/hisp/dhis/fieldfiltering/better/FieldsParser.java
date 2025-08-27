@@ -51,7 +51,7 @@ public class FieldsParser {
   /** Fields token that includes all fields. */
   private static final String TOKEN_ALL = "*";
 
-  public static final Function<Schema, Set<String>> PRESET_ALL = (s) -> Set.of(TOKEN_ALL);
+  public static final Function<Schema, Set<String>> PRESET_ALL = s -> Set.of(TOKEN_ALL);
 
   private static final Pattern TOKEN_PATTERN =
       Pattern.compile(
@@ -322,7 +322,7 @@ public class FieldsParser {
     acc.includes =
         acc.includes.stream()
             .flatMap(
-                field -> presets.getOrDefault(field, (s) -> Set.of(field)).apply(schema).stream())
+                field -> presets.getOrDefault(field, s -> Set.of(field)).apply(schema).stream())
             .collect(Collectors.toSet());
 
     for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
