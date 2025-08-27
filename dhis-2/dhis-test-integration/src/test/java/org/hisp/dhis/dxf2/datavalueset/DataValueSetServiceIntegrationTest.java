@@ -268,6 +268,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     attributeService.addAttributeValue(ouB, attribute.getUid(), "OU2");
     attributeService.addAttributeValue(ouC, attribute.getUid(), "OU3");
     dsA.addOrganisationUnit(ouA);
+    dsA.addOrganisationUnit(ouB);
     dsA.addOrganisationUnit(ouC);
     periodService.addPeriod(peA);
     periodService.addPeriod(peB);
@@ -412,6 +413,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    assertNotNull(dv2);
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getCreated()));
   }
 
@@ -435,6 +437,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // check newly-updated data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    assertNotNull(dv2);
     assertEquals("new comment", dv2.getComment());
     assertEquals("22", dv2.getValue());
     assertNotEquals(dv2.getCreated(), dv2.getLastUpdated());
@@ -455,6 +458,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    assertNotNull(dv2);
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getLastUpdated()));
   }
 
@@ -476,6 +480,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     // check newly-updated data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    assertNotNull(dv2);
     assertEquals("new comment", dv2.getComment());
     assertEquals("22", dv2.getValue());
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getLastUpdated()));

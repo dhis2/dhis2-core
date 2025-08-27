@@ -118,7 +118,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       @Nonnull ObjectType type,
       @Nonnull IdProperty idsProperty,
       @Nonnull Stream<String> identifiers) {
-    String[] ids = identifiers.distinct().toArray(String[]::new);
+    String[] ids = identifiers.filter(Objects::nonNull).distinct().toArray(String[]::new);
     if (ids.length == 0) return Map.of();
     @Language("sql")
     String sqlTemplate =
@@ -766,7 +766,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DataEntryValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
-    long defaultCoc = getDefaultCategoryOptionComboId();
+    Long defaultCoc = getDefaultCategoryOptionComboId();
     Function<UID, Long> cocOf = uid -> uid == null ? defaultCoc : cocs.get(uid.getValue());
 
     List<DataEntryRow> internalValues = new ArrayList<>(values.size());

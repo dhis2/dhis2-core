@@ -124,15 +124,20 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
     if (isoGroup != null) isoOf = iso -> iso != null ? iso : isoGroup;
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
+    String deGroup = group.dataElement();
+    String ouGroup = group.orgUnit();
+    String aocGroup = group.attributeOptionCombo();
     if (ids != null) {
       if (dataSet != null && ids.dataSets().isNotUID())
         dsOf = store.getIdMapping(ObjectType.DS, ids.dataSets(), Stream.of(dataSet))::get;
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
+        if (deGroup != null) deIds = Stream.concat(deIds, Stream.of(deGroup));
         deOf = store.getIdMapping(ObjectType.DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
+        if (ouGroup != null) ouIds = Stream.concat(ouIds, Stream.of(ouGroup));
         ouOf = store.getIdMapping(ObjectType.OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
@@ -141,6 +146,7 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
+        if (aocGroup != null) aocIds = Stream.concat(aocIds, Stream.of(aocGroup));
         aocOf = store.getIdMapping(ObjectType.COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
@@ -150,9 +156,6 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
     UID ds = decodeUID(dsStr);
     if (dsStr != null && ds == null) throw new BadRequestException(ErrorCode.E8004, dsStr);
     List<DataEntryValue> decoded = new ArrayList<>(values.size());
-    String deGroup = group.dataElement();
-    String ouGroup = group.orgUnit();
-    String aocGroup = group.attributeOptionCombo();
     Map<String, String> aoGroup = group.attributeOptions();
     IdProperty categories = ids == null ? IdProperty.UID : ids.categories();
     IdProperty categoryOptions = ids == null ? IdProperty.UID : ids.categoryOptions();
@@ -228,7 +231,7 @@ public class DefaultDataEntryService implements DataEntryService, DataInjectionS
         if (aocVal == null)
           throw new BadRequestException(ErrorCode.E8127, i, aCc, dv.attributeOptions());
       }
-      String aocUID = aocOf.apply(aocVal);
+      String aocUID = aocVal == null ? null : aocOf.apply(aocVal);
       if (aocUID == null && aocVal != null)
         throw new BadRequestException(ErrorCode.E8110, i, aocVal);
       UID aoc = decodeUID(aocUID);
