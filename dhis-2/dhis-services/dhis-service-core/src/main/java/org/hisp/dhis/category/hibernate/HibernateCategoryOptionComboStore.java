@@ -169,7 +169,7 @@ public class HibernateCategoryOptionComboStore
   @Override
   @CheckForNull
   public String findByCategoryComboAndCategoryOptions(UID ccUid, Set<UID> coUids) {
-    List resultList =
+    List<?> resultList =
         entityManager
             .createNativeQuery(
                 """

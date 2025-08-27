@@ -37,6 +37,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -53,6 +54,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CategoryOptionComboObjectBundleHook
@@ -152,7 +154,11 @@ public class CategoryOptionComboObjectBundleHook
             UID.of(optionCombo.getCategoryCombo().getUid()), coSet);
 
     if (CodeGenerator.isValidUid(entryExists)) {
-      System.out.println("Duplicate entry exists: " + entryExists);
+      log.info(
+          "CategoryOptionCombo {} already exists with CategoryCombo {} and CategoryOptions {} ",
+          entryExists,
+          optionCombo.getCategoryCombo().getUid(),
+          coSet);
       addReports.accept(
           new ErrorReport(
               CategoryOptionCombo.class,
