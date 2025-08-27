@@ -239,7 +239,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
     assertEquals(
-        "Creating a single CategoryOptionCombo is forbidden through this endpoint",
+        "Creating a single CategoryOptionCombo is forbidden through this endpoint. CategoryOptionCombos should be auto generated or imported through the metadata import",
         jsonWebMessage.getMessage());
   }
 
@@ -273,7 +273,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         "Conflict",
         409,
         "ERROR",
-        "Creating a single CategoryOptionCombo is forbidden through this endpoint",
+        "Creating a single CategoryOptionCombo is forbidden through this endpoint. CategoryOptionCombos should be auto generated or imported through the metadata import",
         POST("/categoryOptionCombos", coc()).content(HttpStatus.CONFLICT).as(JsonWebMessage.class));
   }
 
