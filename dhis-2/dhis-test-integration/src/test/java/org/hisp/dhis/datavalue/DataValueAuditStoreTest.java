@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
-import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -122,42 +121,42 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
             dataValueA1,
             dataValueA1.getValue(),
             dataValueA1.getStoredBy(),
-            AuditOperationType.UPDATE);
+            DataValueAuditType.UPDATE);
     dataValueAuditA1.setCategoryOptionCombo(coc1);
     DataValueAudit dataValueAuditA2 =
         new DataValueAudit(
             dataValueA2,
             dataValueA2.getValue(),
             dataValueA2.getStoredBy(),
-            AuditOperationType.UPDATE);
+            DataValueAuditType.UPDATE);
     dataValueAuditA2.setAttributeOptionCombo(coc1);
     DataValueAudit dataValueAuditB1 =
         new DataValueAudit(
             dataValueB1,
             dataValueB1.getValue(),
             dataValueB1.getStoredBy(),
-            AuditOperationType.UPDATE);
+            DataValueAuditType.UPDATE);
     dataValueAuditB1.setCategoryOptionCombo(coc2);
     DataValueAudit dataValueAuditB2 =
         new DataValueAudit(
             dataValueB2,
             dataValueB2.getValue(),
             dataValueB2.getStoredBy(),
-            AuditOperationType.UPDATE);
+            DataValueAuditType.UPDATE);
     dataValueAuditB2.setAttributeOptionCombo(coc2);
     DataValueAudit dataValueAuditC1 =
         new DataValueAudit(
             dataValueC1,
             dataValueC1.getValue(),
             dataValueC1.getStoredBy(),
-            AuditOperationType.UPDATE);
+            DataValueAuditType.UPDATE);
     dataValueAuditC1.setCategoryOptionCombo(coc3);
     DataValueAudit dataValueAuditC2 =
         new DataValueAudit(
             dataValueC2,
             dataValueC2.getValue(),
             dataValueC2.getStoredBy(),
-            AuditOperationType.UPDATE);
+            DataValueAuditType.UPDATE);
     dataValueAuditC2.setAttributeOptionCombo(coc3);
 
     dataValueAuditStore.addDataValueAudit(dataValueAuditA1);
