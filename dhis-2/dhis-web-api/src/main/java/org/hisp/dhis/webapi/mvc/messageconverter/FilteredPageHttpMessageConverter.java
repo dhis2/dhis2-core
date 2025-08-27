@@ -151,8 +151,8 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
   }
 
   private static void setContentType(HttpOutputMessage outputMessage) {
-    // set content-type to application/json for text/html as that is what we return
-    // rely on Springs' default content negotiation otherwise
+    // Set content-type to application/json for text/html as that is what we return. Rely on
+    // Springs' default content negotiation otherwise.
     MediaType contentType = outputMessage.getHeaders().getContentType();
     if (MediaType.TEXT_HTML.isCompatibleWith(contentType)) {
       outputMessage.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -161,14 +161,9 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
 
   private void writeStreaming(Object filteredObject, StreamingHttpOutputMessage streamingMessage) {
     streamingMessage.setBody(
-        outputStream -> {
-          try {
+        outputStream ->
             writeObjectToStream(
-                filteredObject, outputStream, streamingMessage.getHeaders().getContentType());
-          } catch (IOException e) {
-            throw new RuntimeException("Failed to write streaming response", e);
-          }
-        });
+                filteredObject, outputStream, streamingMessage.getHeaders().getContentType()));
   }
 
   private void writeStandard(Object filteredObject, HttpOutputMessage outputMessage)
@@ -194,7 +189,7 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
             "Unsupported filtered object type: " + filteredObject.getClass());
       }
     } finally {
-      if (targetStream != outputStream) {
+      if (targetStream != outputStream) { // only close a stream we created
         targetStream.close();
       }
     }
@@ -206,8 +201,7 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
       return new GZIPOutputStream(original);
     } else if (MEDIA_TYPE_JSON_ZIP.isCompatibleWith(mediaType)) {
       ZipOutputStream zip = new ZipOutputStream(original);
-      String filename = getBaseName(filteredObject);
-      zip.putNextEntry(new ZipEntry(filename));
+      zip.putNextEntry(new ZipEntry(getBaseName(filteredObject)));
       return zip;
     }
     return original;
@@ -220,7 +214,6 @@ public class FilteredPageHttpMessageConverter extends AbstractHttpMessageConvert
 
     ObjectWriter writer =
         filterMapper.writer().withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, pageFields);
-
     try (JsonGenerator generator = writer.getFactory().createGenerator(outputStream)) {
       writer.writeValue(generator, page);
     }

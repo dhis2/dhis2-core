@@ -105,7 +105,6 @@ public class JacksonObjectMapperConfig {
     return hibernateAwareJsonMapper;
   }
 
-  // TODO(ivo) why is this not using the jsonMapper? is it because of the auto-detect getters?
   @Bean
   public ObjectMapper dataValueJsonMapper() {
     return dataValueJsonMapper;

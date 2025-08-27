@@ -38,8 +38,9 @@ import javax.annotation.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link FieldsTransformer.Function} work by mutating the {@link ObjectNode} field/value. They
- * reuse most of the logic from {@link org.hisp.dhis.fieldfiltering.transformers}.
+ * {@link FieldsTransformer.Function} implement the {@code fields} transformations. Transformer
+ * functions work by mutating the {@link ObjectNode} field/value. They reuse most of the logic from
+ * {@link org.hisp.dhis.fieldfiltering.transformers}.
  */
 public class FieldsTransformer {
   public static final Map<String, Function> TRANSFORMERS =
