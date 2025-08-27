@@ -1480,9 +1480,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (IN.equals(filter.getOperator())) {
       String prefixedField = field;
 
-      if (params.getEndpointAction() == AGGREGATE
-          && params.getEndpointItem() == ENROLLMENT
-          && item.getItem() instanceof TrackedEntityAttribute) {
+      if (needsEnrollmentPrefix(item.getItem(), params)) {
         prefixedField = addEnrollmentPrefix(field);
       }
 
@@ -1514,6 +1512,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + getSqlFilter(filter, item)
           + SPACE;
     }
+  }
+
+  /**
+   * Checks if an enrollment prefix is required. Currently, TEA objects need it because we want to
+   * query the enrollment values, as the TEA is associated with the enrollment.
+   *
+   * @param item the {@DimensionalItemObject}.
+   * @param params the {@EventQueryParams}.
+   * @return true if a prefix is needed, false otherwise.
+   */
+  private boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
+    return params.getEndpointAction() == AGGREGATE
+        && params.getEndpointItem() == ENROLLMENT
+        && item instanceof TrackedEntityAttribute;
   }
 
   /**
