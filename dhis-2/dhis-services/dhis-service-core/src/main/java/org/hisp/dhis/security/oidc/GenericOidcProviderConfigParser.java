@@ -102,7 +102,7 @@ public final class GenericOidcProviderConfigParser {
     builder.put(CLIENT_SECRET, Boolean.TRUE);
     builder.put(AUTHORIZATION_URI, Boolean.TRUE);
     builder.put(TOKEN_URI, Boolean.TRUE);
-    builder.put(USERINFO_URI, Boolean.TRUE);
+    builder.put(USERINFO_URI, Boolean.FALSE);
     builder.put(JWK_URI, Boolean.TRUE);
 
     builder.put(REDIRECT_URL, Boolean.FALSE);
