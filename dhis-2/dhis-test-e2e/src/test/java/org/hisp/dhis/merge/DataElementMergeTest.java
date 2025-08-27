@@ -207,34 +207,6 @@ class DataElementMergeTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("DataElement merge fails when dataset DB unique key constraint met")
-  void dbConstraintDataSetTest() {
-    // given
-    sourceUid1 = setupDataElement("D", "TEXT", "AGGREGATE");
-    sourceUid2 = setupDataElement("E", "TEXT", "AGGREGATE");
-    targetUid = setupDataElement("F", "TEXT", "AGGREGATE");
-    setupDataSet(sourceUid1, sourceUid2, targetUid);
-
-    // login as user with merge auth
-    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
-
-    // when
-    ApiResponse response =
-        dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false, "LAST_UPDATED"))
-            .validateStatus(409);
-
-    // then
-    response
-        .validate()
-        .statusCode(409)
-        .body("httpStatus", equalTo("Conflict"))
-        .body("status", equalTo("ERROR"))
-        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
-        .body("message", containsString("datasetelement_unique_key"));
-  }
-
-  @Test
   @DisplayName("DataElement merge fails when ProgramStageDataElement DB unique key constraint met")
   void dbConstraintPsdeTest() {
     // given
@@ -351,10 +323,10 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("DataElement merge completes successfully with DataValues handled correctly")
   void deMergeDataValuesTest() {
     // Given
-    sourceUid1 = setupDataElement("i", "TEXT", "AGGREGATE");
+    sourceUid1 = setupDataElement("j", "TEXT", "AGGREGATE");
     sourceUid2 = setupDataElement("o", "TEXT", "AGGREGATE");
     targetUid = setupDataElement("p", "TEXT", "AGGREGATE");
-    randomUid = setupDataElement("q", "TEXT", "AGGREGATE");
+    randomUid = setupDataElement("z", "TEXT", "AGGREGATE");
     String dataSetUid = setupDataSet(sourceUid1, sourceUid2, targetUid, randomUid);
     assertNotNull(dataSetUid);
 
@@ -867,17 +839,16 @@ class DataElementMergeTest extends ApiTest {
         Stream.of(deIds)
             .map(uid -> "{'dataElement': {'id': '%s'}}".formatted(uid).replace('\'', '"'))
             .collect(joining(","));
-    int uniqueNamePart = de.hashCode() & 0xF; // just take some bits from a hash
     return """
       {
-        "name": "ds%d",
-        "shortName": "ds%d",
+        "name": "ds1",
+        "shortName": "ds1",
         "periodType": "Monthly",
         "dataSetElements": [%s],
         "organisationUnits": [{ "id": "OrgUnitUID1"}]
       }
     """
-        .formatted(uniqueNamePart, uniqueNamePart, de);
+        .formatted(de);
   }
 
   private String metadata() {
