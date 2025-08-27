@@ -143,7 +143,7 @@ public abstract class AbstractHibernateListener {
 
       if (Hibernate.isInitialized(value)) {
         if (property.isCollection()
-            && BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
+            && IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
           objectMap.put(pName, IdentifiableObjectUtils.getUids((Collection) value));
         } else {
           objectMap.put(pName, getId(value));
@@ -255,7 +255,7 @@ public abstract class AbstractHibernateListener {
 
       Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) collectionValue;
 
-      if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
+      if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
         List<String> uids = IdentifiableObjectUtils.getUids(collection);
 
         if (uids != null && !uids.isEmpty()) {
