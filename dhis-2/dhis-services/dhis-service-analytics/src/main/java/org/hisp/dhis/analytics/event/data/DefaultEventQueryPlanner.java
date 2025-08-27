@@ -43,7 +43,6 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -293,45 +292,5 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     }
 
     return queries;
-  }
-
-  /**
-   * Checks if the provided date ranges represent different period types. This is a heuristic based
-   * on date range duration and patterns.
-   */
-  private boolean hasMixedPeriodTypes(List<org.hisp.dhis.common.DateRange> dateRanges) {
-    if (dateRanges.size() <= 1) {
-      return false;
-    }
-
-    // Simple heuristic: if date ranges have significantly different durations,
-    // they likely represent different period types
-    long firstDuration =
-        dateRanges.get(0).getEndDate().getTime() - dateRanges.get(0).getStartDate().getTime();
-
-    for (int i = 1; i < dateRanges.size(); i++) {
-      long duration =
-          dateRanges.get(i).getEndDate().getTime() - dateRanges.get(i).getStartDate().getTime();
-      // If durations differ by more than 50%, consider them different period types
-      double ratio = (double) Math.abs(duration - firstDuration) / firstDuration;
-      if (ratio > 0.5) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /** Creates a new EventQueryParams with a single date range for the specified time field. */
-  private EventQueryParams createQueryForSingleDateRange(
-      EventQueryParams params, TimeField timeField, org.hisp.dhis.common.DateRange dateRange) {
-    EventQueryParams newParams =
-        new EventQueryParams.Builder(params).withTimeField(timeField.name()).build();
-
-    // Set only the single date range
-    newParams.getTimeDateRanges().clear();
-    newParams.getTimeDateRanges().put(timeField, List.of(dateRange));
-
-    return newParams;
   }
 }
