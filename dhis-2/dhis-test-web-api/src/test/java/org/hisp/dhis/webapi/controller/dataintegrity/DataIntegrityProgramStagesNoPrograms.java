@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +78,28 @@ class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrat
         programStageB.getUid(),
         "programStageB",
         "HAS_DATA: false",
+        true);
+  }
+
+  @Test
+  void shoulFailIntegrityCheckAndFindData() {
+    setUpTest();
+    ProgramStage programStageB = createProgramStage('A', (Program) null);
+    programStageB.setName("programStageB");
+    programStageService.saveProgramStage(programStageB);
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    manager.save(organisationUnit);
+    SingleEvent singleEvent = createSingleEvent(programStageB, organisationUnit);
+    manager.save(singleEvent);
+    dbmsManager.clearSession();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        CHECK,
+        50,
+        programStageB.getUid(),
+        "programStageB",
+        "HAS_DATA: true",
         true);
   }
 
