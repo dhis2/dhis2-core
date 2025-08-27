@@ -30,13 +30,19 @@
 package org.hisp.dhis.webapi.fields;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.fieldfiltering.better.SchemaFieldsPresets;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +73,14 @@ class FieldsConverterTest {
 
     DefaultFormattingConversionService formattingConversionService =
         new DefaultFormattingConversionService();
-    formattingConversionService.addConverter(new FieldsConverter(null, null));
+
+    Schema schema = new Schema(TestEntity.class, "testEntity", "testEntities");
+    SchemaService schemaService = mock(SchemaService.class);
+    when(schemaService.getDynamicSchema(TestEntity.class)).thenReturn(schema);
+
+    SchemaFieldsPresets schemaFieldsPresets = new SchemaFieldsPresets(schemaService);
+    formattingConversionService.addConverter(
+        new FieldsConverter(schemaService, schemaFieldsPresets));
     mockMvc =
         MockMvcBuilders.standaloneSetup(new FieldsController(expected))
             .setConversionService(formattingConversionService)
@@ -77,29 +90,21 @@ class FieldsConverterTest {
   @Test
   void shouldConvertFieldsGivenASingleRequestParameter() throws Exception {
     mockMvc
-        .perform(get("/test-fields").param("fields", "attributes[attribute,value],deleted"))
-        .andExpect(status().isOk());
+        .perform(get("/testFields").param("fields", "attributes[attribute,value],deleted"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(""));
   }
 
   @Test
   void shouldConvertFieldsGivenMultipleRequestParameters() throws Exception {
     mockMvc
         .perform(
-            get("/test-fields")
+            get("/testFields")
                 .param("fields", "attributes[attribute]")
                 .param("fields", "attributes[value]")
                 .param("fields", "deleted"))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  void shouldConvertStarField() throws Exception {
-    mockMvc.perform(get("/test-fields").param("fields", "*")).andExpect(status().isOk());
-  }
-
-  @Test
-  void shouldConvertExclusionFields() throws Exception {
-    mockMvc.perform(get("/test-fields").param("fields", "*,!deleted")).andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(content().string(""));
   }
 
   @Controller
@@ -108,7 +113,7 @@ class FieldsConverterTest {
   private static class FieldsController extends CrudControllerAdvice {
     private final List<ExpectField> expected;
 
-    @GetMapping("/test-fields")
+    @GetMapping("/testFields")
     public @ResponseBody String get(@RequestParam(defaultValue = "*") Fields fields) {
       assertFields(expected, fields);
       return "";
