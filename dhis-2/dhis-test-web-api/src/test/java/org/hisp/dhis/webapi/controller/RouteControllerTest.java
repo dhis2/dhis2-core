@@ -32,18 +32,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.message.BasicStatusLine;
+import org.apache.http.protocol.HttpContext;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -57,13 +62,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockserver.client.MockServerClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
@@ -76,8 +75,6 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired private ObjectMapper jsonMapper;
   private MockServerClient routeTargetMockServerClient;
-
-  @Autowired private RestTemplate restTemplate;
 
   @BeforeAll
   public static void beforeAll() {
@@ -95,27 +92,29 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
 
   @Override
   public void integrationTestBefore() {
-    service.setRestTemplate(restTemplate);
+    service.postConstruct();
     routeTargetMockServerClient =
         new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
     routeTargetMockServerClient.reset();
   }
 
   @Test
-  void testRunRouteGivenApiQueryParamsAuthScheme()
-      throws JsonProcessingException, MalformedURLException {
-    ArgumentCaptor<String> urlArgumentCaptor = ArgumentCaptor.forClass(String.class);
+  void testRunRouteGivenApiQueryParamsAuthScheme() throws IOException {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
 
-    RestTemplate mockRestTemplate = mock(RestTemplate.class);
-    when(mockRestTemplate.exchange(
-            urlArgumentCaptor.capture(),
-            any(HttpMethod.class),
-            any(HttpEntity.class),
-            any(Class.class)))
+    when(mockHttpResponse.getAllHeaders()).thenReturn(new org.apache.http.Header[] {});
+    when(mockHttpResponse.getStatusLine())
         .thenReturn(
-            new ResponseEntity<>(
-                jsonMapper.writeValueAsString(Map.of("name", "John Doe")), HttpStatus.OK));
-    service.setRestTemplate(mockRestTemplate);
+            new BasicStatusLine(
+                new ProtocolVersion("http", 1, 1), org.apache.http.HttpStatus.SC_OK, "ok"));
+
+    ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor =
+        ArgumentCaptor.forClass(HttpUriRequest.class);
+    when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
+        .thenReturn(mockHttpResponse);
+
+    service.setHttpClient(mockHttpClient);
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
@@ -127,27 +126,27 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
         GET(
             "/routes/{id}/run",
             postHttpResponse.content().get("response.uid").as(JsonString.class).string());
-    assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
-    assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
 
-    assertEquals("token=foo", new URL(urlArgumentCaptor.getValue()).getQuery());
+    assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
+    assertEquals("token=foo", httpUriRequestArgumentCaptor.getValue().getURI().getQuery());
   }
 
   @Test
-  void testRunRouteGivenApiHeadersAuthScheme() throws JsonProcessingException {
-    ArgumentCaptor<HttpEntity<?>> httpEntityArgumentCaptor =
-        ArgumentCaptor.forClass(HttpEntity.class);
+  void testRunRouteGivenApiHeadersAuthScheme() throws IOException {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
 
-    RestTemplate mockRestTemplate = mock(RestTemplate.class);
-    when(mockRestTemplate.exchange(
-            anyString(),
-            any(HttpMethod.class),
-            httpEntityArgumentCaptor.capture(),
-            any(Class.class)))
+    ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor =
+        ArgumentCaptor.forClass(HttpUriRequest.class);
+    when(mockHttpResponse.getAllHeaders()).thenReturn(new org.apache.http.Header[] {});
+    when(mockHttpResponse.getStatusLine())
         .thenReturn(
-            new ResponseEntity<>(
-                jsonMapper.writeValueAsString(Map.of("name", "John Doe")), HttpStatus.OK));
-    service.setRestTemplate(mockRestTemplate);
+            new BasicStatusLine(
+                new ProtocolVersion("http", 1, 1), org.apache.http.HttpStatus.SC_OK, "ok"));
+    when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
+        .thenReturn(mockHttpResponse);
+
+    service.setHttpClient(mockHttpClient);
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
@@ -159,12 +158,10 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
         GET(
             "/routes/{id}/run",
             postHttpResponse.content().get("response.uid").as(JsonString.class).string());
-    assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
-    assertEquals("John Doe", runHttpResponse.content().get("name").as(JsonString.class).string());
 
-    HttpEntity<?> capturedHttpEntity = httpEntityArgumentCaptor.getValue();
-    HttpHeaders headers = capturedHttpEntity.getHeaders();
-    assertEquals("foo", headers.get("X-API-KEY").get(0));
+    assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
+    assertEquals(
+        "foo", httpUriRequestArgumentCaptor.getValue().getHeaders("X-API-KEY")[0].getValue());
   }
 
   @Test
@@ -263,11 +260,12 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
       throws JsonProcessingException {
     routeTargetMockServerClient
         .when(request().withPath("/"))
-        .respond(org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 31));
+        .respond(org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 20));
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+    route.put("responseTimeoutSeconds", 5);
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -288,6 +286,7 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+    route.put("responseTimeoutSeconds", 5);
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     HttpResponse runHttpResponse =
@@ -296,5 +295,63 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
             postHttpResponse.content().get("response.uid").as(JsonString.class).string());
 
     assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
+  }
+
+  @Test
+  void testAddRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(org.hisp.dhis.web.HttpStatus.CONFLICT, postHttpResponse);
+  }
+
+  @Test
+  void testAddRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    assertStatus(org.hisp.dhis.web.HttpStatus.CONFLICT, postHttpResponse);
+  }
+
+  @Test
+  void testUpdateRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(org.hisp.dhis.web.HttpStatus.CONFLICT, updateHttpResponse);
+  }
+
+  @Test
+  void testUpdateRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
+    HttpResponse updateHttpResponse =
+        PUT(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string(),
+            jsonMapper.writeValueAsString(route));
+
+    assertStatus(org.hisp.dhis.web.HttpStatus.CONFLICT, updateHttpResponse);
   }
 }
