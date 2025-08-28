@@ -895,6 +895,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Given category metadata exists
     POST("/metadata", CAT_METADATA_IMPORT).error(HttpStatus.OK);
 
+    // And 5 COCs now exist
+    assertEquals(
+        5,
+        GET("/categoryOptionCombos")
+            .content(HttpStatus.OK)
+            .getObject("pager")
+            .getNumber("total")
+            .intValue());
+
     // When importing (update) COCs (full cat model) that match the expected COC state
     JsonImportSummary report =
         POST("/metadata", CAT_METADATA_IMPORT)
@@ -913,6 +922,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     GET("/categoryOptionCombos/CocUid000a2").content(HttpStatus.OK);
     GET("/categoryOptionCombos/CocUid000a3").content(HttpStatus.OK);
     GET("/categoryOptionCombos/CocUid000a4").content(HttpStatus.OK);
+
+    // And no extra COCs have been generated unknowingly in the system
+    assertEquals(
+        5,
+        GET("/categoryOptionCombos")
+            .content(HttpStatus.OK)
+            .getObject("pager")
+            .getNumber("total")
+            .intValue());
   }
 
   @Test
