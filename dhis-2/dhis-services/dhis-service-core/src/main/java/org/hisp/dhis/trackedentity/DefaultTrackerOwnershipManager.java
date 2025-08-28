@@ -220,7 +220,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
             entityInstance, program, organisationUnit);
       }
 
-      ownerCache.invalidate(getOwnershipCacheKey(() -> entityInstance.getId(), program));
+      ownerCache.invalidate(getOwnershipCacheKey(entityInstance::getId, program));
     } else {
       log.error("Unauthorized attempt to assign ownership");
       throw new AccessDeniedException(
