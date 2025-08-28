@@ -121,4 +121,15 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
         .setParameter("dataElements", dataElements)
         .list();
   }
+
+  @Override
+  public List<String> getDataSetUidsByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            select distinct dse.dataSet.uid from DataSetElement dse where dse.dataElement in :dataElements
+            """,
+            String.class)
+        .setParameter("dataElements", dataElements)
+        .list();
+  }
 }

@@ -177,6 +177,32 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
             .containsAll(List.of(deW.getUid(), deX.getUid(), deY.getUid())));
   }
 
+  @Test
+  @DisplayName("retrieving DataSetUids by DataElement returns expected results")
+  void dataSetUidsByDataElementTest() {
+    // given
+    DataElement deH = createDataElementAndSave('h');
+    DataElement deJ = createDataElementAndSave('j');
+    DataElement deK = createDataElementAndSave('k');
+    DataElement deL = createDataElementAndSave('l');
+
+    DataSet ds1 = createDataSet('j', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds2 = createDataSet('k', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds3 = createDataSet('l', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+
+    createDataSetElementAndSave(deH, ds1);
+    createDataSetElementAndSave(deJ, ds1);
+    createDataSetElementAndSave(deK, ds2);
+    createDataSetElementAndSave(deL, ds3);
+
+    // when
+    List<String> dataSetUids = dataSetStore.getDataSetUidsByDataElement(List.of(deH, deJ, deL));
+
+    // then
+    assertEquals(2, dataSetUids.size());
+    assertTrue(dataSetUids.containsAll(List.of(ds1.getUid(), ds3.getUid())));
+  }
+
   private DataSet addDataSet(char uniqueCharacter, OrganisationUnit... sources) {
     return addDataSet(uniqueCharacter, PERIOD_TYPE, sources);
   }

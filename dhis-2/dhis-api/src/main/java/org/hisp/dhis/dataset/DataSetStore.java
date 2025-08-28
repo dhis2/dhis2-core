@@ -50,4 +50,6 @@ public interface DataSetStore
   List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
 
   List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> dataElements);
+
+  List<String> getDataSetUidsByDataElement(Collection<DataElement> dataElements);
 }

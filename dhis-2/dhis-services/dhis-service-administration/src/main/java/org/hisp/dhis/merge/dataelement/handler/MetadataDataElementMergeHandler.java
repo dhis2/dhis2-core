@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
@@ -190,11 +189,7 @@ public class MetadataDataElementMergeHandler {
   public void handleDataSetElement(List<DataElement> sources, DataElement target) {
     List<DataSetElement> sourceDataSetElements =
         dataSetStore.getDataSetElementsByDataElement(sources);
-    List<String> targetDataSets =
-        dataSetStore.getDataSetElementsByDataElement(List.of(target)).stream()
-            .map(DataSetElement::getDataSet)
-            .map(DataSet::getUid)
-            .toList();
+    List<String> targetDataSets = dataSetStore.getDataSetUidsByDataElement(List.of(target));
     sourceDataSetElements.forEach(
         dse -> {
           if (!targetDataSets.contains(dse.getDataSet().getUid())) {
