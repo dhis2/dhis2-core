@@ -31,21 +31,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramCategoryOptionMapping;
@@ -63,21 +57,13 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
-  private final EventProgramEnrollmentService eventProgramEnrollmentService;
-
   private final ProgramStageService programStageService;
 
-  private final OrganisationUnitService organisationUnitService;
-
   private final AclService aclService;
-
-  private final IdentifiableObjectManager identifiableObjectManager;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
     syncSharingForEventProgram(object);
-
-    addProgramInstance(object);
 
     updateProgramStage(object);
   }
@@ -89,9 +75,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
 
   @Override
   public void validate(Program program, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    if (program.getId() != 0 && getProgramInstancesCount(program) > 1) {
-      addReports.accept(new ErrorReport(Program.class, ErrorCode.E6000, program.getName()));
-    }
     Program relatedProgram = program.getRelatedProgram();
     if (relatedProgram != null && Objects.equals(relatedProgram.getUid(), program.getUid())) {
       addReports.accept(new ErrorReport(Program.class, ErrorCode.E6022, "relatedProgram"));
@@ -135,25 +118,6 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
                 ps.setProgram(program);
               }
             });
-  }
-
-  private void addProgramInstance(Program program) {
-    if (getProgramInstancesCount(program) == 0 && program.isWithoutRegistration()) {
-      Enrollment enrollment = new Enrollment();
-      enrollment.setEnrollmentDate(new Date());
-      enrollment.setOccurredDate(new Date());
-      enrollment.setProgram(program);
-      enrollment.setStatus(EnrollmentStatus.ACTIVE);
-      enrollment.setStoredBy("system-process");
-      enrollment.setOrganisationUnit(
-          organisationUnitService.getRootOrganisationUnits().iterator().next());
-
-      identifiableObjectManager.save(enrollment);
-    }
-  }
-
-  private int getProgramInstancesCount(Program program) {
-    return eventProgramEnrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
   }
 
   private void validateAttributeSecurity(

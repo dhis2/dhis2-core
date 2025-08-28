@@ -55,7 +55,7 @@ public class TrackerObjects implements Serializable {
   private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
   @JsonProperty @Builder.Default private final List<Enrollment> enrollments = new ArrayList<>();
-  @JsonProperty @Builder.Default private final List<Event> events = new ArrayList<>();
+  @JsonProperty @Builder.Default private final List<TrackerEvent> events = new ArrayList<>();
   @JsonProperty @Builder.Default private final List<Relationship> relationships = new ArrayList<>();
 
   public Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid) {
@@ -66,7 +66,7 @@ public class TrackerObjects implements Serializable {
     return find(this.enrollments, uid);
   }
 
-  public Optional<Event> findEvent(@Nonnull UID uid) {
+  public Optional<TrackerEvent> findEvent(@Nonnull UID uid) {
     return find(this.events, uid);
   }
 

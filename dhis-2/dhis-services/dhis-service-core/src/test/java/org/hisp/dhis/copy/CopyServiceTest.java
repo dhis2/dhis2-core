@@ -57,11 +57,8 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramCategoryOptionMapping;
@@ -82,7 +79,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -111,8 +107,6 @@ class CopyServiceTest extends TestBase {
 
   @Mock private ProgramRuleVariableService programRuleVariableService;
 
-  @Mock private EventProgramEnrollmentService eventProgramEnrollmentService;
-
   @Mock private AclService aclService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
@@ -135,18 +129,10 @@ class CopyServiceTest extends TestBase {
 
   @Test
   void testCopyProgramFromUidWithValidProgram() throws NotFoundException, ForbiddenException {
-    OrganisationUnit orgUnit = createOrganisationUnit("New Org 1");
-    TrackedEntityType trackedEntityType = createTrackedEntityType('E');
-
-    List<Enrollment> originalEnrollments =
-        List.of(
-            createEnrollment(original, createTrackedEntity(orgUnit, trackedEntityType), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
     injectSecurityContextNoSettings(UserDetails.fromUser(user));
-
-    when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -162,7 +148,6 @@ class CopyServiceTest extends TestBase {
     verify(programRuleVariableService, times(1))
         .addProgramRuleVariable(any(ProgramRuleVariable.class));
     verify(programSectionService, times(1)).addProgramSection(any(ProgramSection.class));
-    verify(identifiableObjectManager, times(1)).save(any(Enrollment.class));
   }
 
   @Test
@@ -320,22 +305,6 @@ class CopyServiceTest extends TestBase {
 
     assertEquals(2, programCopy.getProgramAttributes().size());
     assertEquals(original.getCategoryMappings(), programCopy.getCategoryMappings());
-  }
-
-  @Test
-  void testCopyProgramFromUidWithValidProgramAndNullEnrollments()
-      throws NotFoundException, ForbiddenException {
-    when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(null);
-
-    when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContextNoSettings(UserDetails.fromUser(user));
-
-    Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
-
-    assertNotEquals(original.getUid(), programCopy.getUid());
-    assertTrue(CodeGenerator.isValidUid(programCopy.getUid()));
-    verify(identifiableObjectManager, never()).save(any(Enrollment.class));
   }
 
   @Test
