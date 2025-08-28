@@ -66,16 +66,17 @@ import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueAuditType;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -1309,19 +1310,14 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "DataValueAudits with references to source COCs are deleted when sources are deleted")
-  void dataValueAuditMergeDeleteTest() throws ConflictException {
+  void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
-    DataValueAudit dva1 = createDataValueAudit(cocDuplicate, "1", p1);
-    DataValueAudit dva2 = createDataValueAudit(cocDuplicate, "2", p1);
-    DataValueAudit dva3 = createDataValueAudit(cocDuplicate, "1", p1);
-    DataValueAudit dva4 = createDataValueAudit(cocDuplicate, "2", p1);
-    DataValueAudit dva5 = createDataValueAudit(cocTarget, "1", p1);
-
-    dataValueAuditStore.addDataValueAudit(dva1);
-    dataValueAuditStore.addDataValueAudit(dva2);
-    dataValueAuditStore.addDataValueAudit(dva3);
-    dataValueAuditStore.addDataValueAudit(dva4);
-    dataValueAuditStore.addDataValueAudit(dva5);
+    dataInjectionService.upsertValues(
+        createDataValue(cocDuplicate, "1", p1),
+        createDataValue(cocDuplicate, "2", p1),
+        createDataValue(cocDuplicate, "1", p1),
+        createDataValue(cocDuplicate, "2", p1),
+        createDataValue(cocTarget, "1", p1));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2208,17 +2204,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return mergeParams;
   }
 
-  private DataValueAudit createDataValueAudit(CategoryOptionCombo coc, String value, Period p) {
-    DataValueAudit dva = new DataValueAudit();
-    dva.setDataElement(de1);
-    dva.setValue(value);
-    dva.setAuditType(DataValueAuditType.CREATE);
-    dva.setCreated(new Date());
-    dva.setCategoryOptionCombo(coc);
-    dva.setAttributeOptionCombo(coc);
-    dva.setPeriod(p);
-    dva.setOrganisationUnit(ou1);
-    return dva;
+  private DataEntryValue.Input createDataValue(CategoryOptionCombo coc, String value, Period p) {
+    return new DataEntryValue.Input(
+        de1.getUid(), ou1.getUid(), p.getIsoDate(), coc.getUid(), coc.getUid(), value, null);
   }
 
   private DataApprovalAudit createDataApprovalAudit(

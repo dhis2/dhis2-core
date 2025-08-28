@@ -158,7 +158,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
     DataValueAudit audit = dataValueAuditService.getDataValueAudits(dataValueB).get(0);
     audit.setCreated(getDate(2000, 1, 1));
-    dataValueAuditStore.updateDataValueAudit(audit);
+    dataValueAuditStore.update(audit);
 
     cleanUpJob.execute(null, JobProgress.noop());
 

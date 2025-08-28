@@ -29,18 +29,18 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import io.hypersistence.utils.hibernate.type.array.LongArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Function;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.type.LongType;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
@@ -49,53 +49,23 @@ import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueAuditType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-@Repository("org.hisp.dhis.datavalue.DataValueAuditStore")
+@Repository
 public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValueAudit>
     implements DataValueAuditStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private final PeriodStore periodStore;
 
   public HibernateDataValueAuditStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      PeriodStore periodStore) {
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, DataValueAudit.class, false);
-
-    checkNotNull(periodStore);
-
-    this.periodStore = periodStore;
-  }
-
-  // -------------------------------------------------------------------------
-  // DataValueAuditStore implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void updateDataValueAudit(DataValueAudit dataValueAudit) {
-    getSession().update(dataValueAudit);
-  }
-
-  @Override
-  public void addDataValueAudit(DataValueAudit dataValueAudit) {
-    getSession().save(dataValueAudit);
   }
 
   @Override
@@ -124,51 +94,76 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    String sql =
+        """
+      SELECT *
+      FROM datavalueaudit dva
+      JOIN period pe ON dva.periodid = pe.periodid
+      WHERE (cardinality(:types) = 0 OR dva.audittype = ANY(:types))
+        AND (cardinality(:de) = 0 OR dva.dataelementid = ANY(:de))
+        AND (cardinality(:ou) = 0 OR dva.organisationunitid = ANY(:ou))
+        AND (:coc IS NULL OR dva.categoryoptioncomboid = :coc)
+        AND (:aoc IS NULL OR dva.categoryoptioncomboid = :aoc)
+        AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))
+      ORDER BY dva.created DESC""";
 
-    JpaQueryParameters<DataValueAudit> queryParams =
-        newJpaParameters()
-            .addPredicates(getDataValueAuditPredicates(builder, params))
-            .addOrder(root -> builder.desc(root.get("created")));
-
-    if (params.hasPaging()) {
-      queryParams
-          .setFirstResult(params.getPager().getOffset())
-          .setMaxResults(params.getPager().getPageSize());
+    NativeQuery<DataValueAudit> query = setParameters(nativeSynchronizedTypedQuery(sql), params);
+    Pager pager = params.getPager();
+    if (pager != null) {
+      query.setFirstResult(pager.getOffset()).setMaxResults(pager.getPageSize());
     }
-
-    return getList(builder, queryParams);
+    return query.list();
   }
 
   @Override
-  @SuppressWarnings("unchecked")
+  public int countDataValueAudits(DataValueAuditQueryParams params) {
+    String sql =
+        """
+      SELECT count(*)
+      FROM datavalueaudit dva
+      JOIN period pe ON dva.periodid = pe.periodid
+      WHERE (:types IS NULL OR dva.audittype = ANY(:types))
+        AND (cardinality(:de) = 0 OR dva.dataelementid = ANY(:de))
+        AND (cardinality(:ou) = 0 OR dva.organisationunitid = ANY(:ou))
+        AND (:coc IS NULL OR dva.categoryoptioncomboid = :coc)
+        AND (:aoc IS NULL OR dva.categoryoptioncomboid = :aoc)
+        AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))""";
+
+    NativeQuery<?> query = nativeSynchronizedQuery(sql);
+    return setParameters(query, params).getSingleResult() instanceof Number n ? n.intValue() : 0;
+  }
+
+  private <E> NativeQuery<E> setParameters(NativeQuery<E> query, DataValueAuditQueryParams params) {
+    String[] types =
+        params.getAuditTypes() == null
+            ? null
+            : params.getAuditTypes().stream().map(Enum::name).toArray(String[]::new);
+    String[] periods =
+        params.getPeriods() == null
+            ? null
+            : params.getPeriods().stream().map(Period::getIsoDate).toArray(String[]::new);
+    return query
+        .setParameter("types", types, StringArrayType.INSTANCE)
+        .setParameter("pe", periods, StringArrayType.INSTANCE)
+        .setParameter("de", getIds(params.getDataElements()), LongArrayType.INSTANCE)
+        .setParameter("ou", getIds(params.getOrgUnits()), LongArrayType.INSTANCE)
+        .setParameter("coc", getId(params.getCategoryOptionCombo()), LongType.INSTANCE)
+        .setParameter("aoc", getId(params.getAttributeOptionCombo()), LongType.INSTANCE);
+  }
+
+  private static Long[] getIds(List<? extends IdentifiableObject> objects) {
+    return objects == null
+        ? null
+        : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
+  }
+
+  private static Long getId(IdentifiableObject object) {
+    return object == null ? null : object.getId();
+  }
+
+  @Override
   public List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params) {
-    String aocCc = params.getCc();
-    String aocCos = params.getCp();
-    Object aocId = null;
-    if (aocCc == null && aocCos == null) {
-      String aocSql =
-          "SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE name = 'default' LIMIT 1";
-      aocId = getSingleResult(getSession().createNativeQuery(aocSql));
-    } else {
-      String aocSql =
-          """
-          WITH co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos))
-          SELECT coc_co.categoryoptioncomboid
-          FROM categorycombos_optioncombos coc_cc
-          JOIN categoryoptioncombos_categoryoptions coc_co ON coc_cc.categoryoptioncomboid = coc_co.categoryoptioncomboid
-          WHERE coc_cc.categorycomboid = (SELECT cc.categorycomboid FROM categorycombo cc WHERE cc.uid = :cc)
-            AND coc_co.categoryoptionid IN (SELECT categoryoptionid FROM co_ids)
-          GROUP BY coc_co.categoryoptioncomboid
-          HAVING COUNT(*) = (SELECT COUNT(*) FROM co_ids)""";
-      aocId =
-          getSingleResult(
-              getSession()
-                  .createNativeQuery(aocSql)
-                  .setParameter("cc", aocCc)
-                  .setParameterList("cos", aocCos.split(";")));
-    }
-    Long aoc = aocId instanceof Number n ? n.longValue() : null;
+    Long aoc = getCategoryOptionComboIdByComboAndOptions(params.getCc(), params.getCp());
     String sql =
         """
         SELECT
@@ -185,6 +180,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             AND (:coc IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
             AND aoc.categoryoptioncomboid = :aoc
         ORDER BY dva.created DESC""";
+    @SuppressWarnings("unchecked")
     List<Object[]> rows =
         getSession()
             .createNativeQuery(sql)
@@ -211,73 +207,33 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         .toList();
   }
 
-  @Override
-  public int countDataValueAudits(DataValueAuditQueryParams params) {
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-
-    List<Function<Root<DataValueAudit>, Predicate>> predicates =
-        getDataValueAuditPredicates(builder, params);
-
-    return getCount(
-            builder,
-            newJpaParameters()
-                .addPredicates(predicates)
-                .count(root -> builder.countDistinct(root.get("id"))))
-        .intValue();
-  }
-
-  /**
-   * Returns a list of Predicates generated from given parameters. Returns an empty list if given
-   * Period does not exist in database.
-   *
-   * @param builder the {@link CriteriaBuilder}.
-   * @param params the {@link DataValueAuditQueryParams}.
-   */
-  private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates(
-      CriteriaBuilder builder, DataValueAuditQueryParams params) {
-    List<Period> storedPeriods = new ArrayList<>();
-
-    if (!params.getPeriods().isEmpty()) {
-      for (Period period : params.getPeriods()) {
-        Period storedPeriod = periodStore.reloadPeriod(period);
-
-        if (storedPeriod != null) {
-          storedPeriods.add(storedPeriod);
-        }
-      }
+  @CheckForNull
+  @SuppressWarnings("unchecked")
+  private Long getCategoryOptionComboIdByComboAndOptions(
+      String categoryCombo, String categoryOptions) {
+    Object aocId;
+    if (categoryCombo == null && categoryOptions == null) {
+      String aocSql =
+          "SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE name = 'default' LIMIT 1";
+      aocId = getSingleResult(getSession().createNativeQuery(aocSql));
+    } else {
+      String aocSql =
+          """
+          WITH co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos))
+          SELECT coc_co.categoryoptioncomboid
+          FROM categorycombos_optioncombos coc_cc
+          JOIN categoryoptioncombos_categoryoptions coc_co ON coc_cc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          WHERE coc_cc.categorycomboid = (SELECT cc.categorycomboid FROM categorycombo cc WHERE cc.uid = :cc)
+            AND coc_co.categoryoptionid IN (SELECT categoryoptionid FROM co_ids)
+          GROUP BY coc_co.categoryoptioncomboid
+          HAVING COUNT(*) = (SELECT COUNT(*) FROM co_ids)""";
+      aocId =
+          getSingleResult(
+              getSession()
+                  .createNativeQuery(aocSql)
+                  .setParameter("cc", categoryCombo)
+                  .setParameterList("cos", categoryOptions.split(";")));
     }
-
-    List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
-
-    if (!storedPeriods.isEmpty()) {
-      predicates.add(root -> root.get("period").in(storedPeriods));
-    } else if (!params.getPeriods().isEmpty()) {
-      return predicates;
-    }
-
-    if (!params.getDataElements().isEmpty()) {
-      predicates.add(root -> root.get("dataElement").in(params.getDataElements()));
-    }
-
-    if (!params.getOrgUnits().isEmpty()) {
-      predicates.add(root -> root.get("organisationUnit").in(params.getOrgUnits()));
-    }
-
-    if (params.getCategoryOptionCombo() != null) {
-      predicates.add(
-          root -> builder.equal(root.get("categoryOptionCombo"), params.getCategoryOptionCombo()));
-    }
-
-    if (params.getAttributeOptionCombo() != null) {
-      predicates.add(
-          root ->
-              builder.equal(root.get("attributeOptionCombo"), params.getAttributeOptionCombo()));
-    }
-
-    if (!params.getAuditTypes().isEmpty()) {
-      predicates.add(root -> root.get("auditType").in(params.getAuditTypes()));
-    }
-
-    return predicates;
+    return aocId instanceof Number n ? n.longValue() : null;
   }
 }

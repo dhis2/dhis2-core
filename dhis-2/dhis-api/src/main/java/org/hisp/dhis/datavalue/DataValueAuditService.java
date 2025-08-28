@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -62,7 +63,16 @@ public interface DataValueAuditService {
    * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
    *     there are no matches.
    */
+  @OnlyUsedInTests
   List<DataValueAudit> getDataValueAudits(DataValue dataValue);
+
+  /**
+   * Returns data value audits for the given parameters.
+   *
+   * @param params the {@link DataValueAuditQueryParams}.
+   * @return a list of {@link DataValueAudit}.
+   */
+  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
 
   /**
    * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
@@ -72,14 +82,6 @@ public interface DataValueAuditService {
    * @return the audit events for the value stored most recent to oldest
    */
   List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params);
-
-  /**
-   * Returns data value audits for the given parameters.
-   *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
-   */
-  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
 
   /**
    * Returns the count of data value audits for the given parameters.

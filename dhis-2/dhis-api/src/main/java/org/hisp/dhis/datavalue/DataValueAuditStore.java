@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -39,24 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditStore {
-  String ID = DataValueAuditStore.class.getName();
-
-  /**
-   * Updates the given audit.
-   *
-   * <p>OBS! This is for use in tests only!
-   *
-   * @param dataValueAudit entry to update
-   */
-  void updateDataValueAudit(DataValueAudit dataValueAudit);
-
-  /**
-   * Adds a DataValueAudit.
-   *
-   * @param dataValueAudit the DataValueAudit to add.
-   */
-  void addDataValueAudit(DataValueAudit dataValueAudit);
+public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
 
   /**
    * Deletes all data value audits for the given organisation unit.
