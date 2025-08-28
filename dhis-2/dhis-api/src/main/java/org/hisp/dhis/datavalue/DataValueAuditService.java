@@ -64,7 +64,7 @@ public interface DataValueAuditService {
    *     there are no matches.
    */
   @OnlyUsedInTests
-  List<DataValueAudit> getDataValueAudits(DataValue dataValue);
+  List<DataValueAuditEntry> getDataValueAudits(DataValueEntry dataValue);
 
   /**
    * Returns data value audits for the given parameters.

@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -160,14 +161,15 @@ public interface DataValueStore {
    * @param params the data export parameters.
    * @return a list of data values.
    */
-  List<DataValue> getDataValues(DataExportParams params);
+  List<DataValueEntry> getDataValues(DataExportParams params);
 
   /**
    * Returns all DataValues.
    *
    * @return a list of all DataValues.
    */
-  List<DataValue> getAllDataValues();
+  @OnlyUsedInTests
+  List<DataValueEntry> getAllDataValues();
 
   /**
    * Returns deflated data values for the given data export parameters.
@@ -206,20 +208,20 @@ public interface DataValueStore {
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
-   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
-   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
-   * constraint. <br>
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#getLastUpdated()}
+   * values are kept, the rest are deleted. Only one of these entries can exist due to the composite
+   * key constraint. <br>
    * The 3 execution paths are:
    *
    * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
-   * DataValue#categoryOptionCombo} updated to that of the target.
+   * DataValue#getCategoryOptionCombo()} updated to that of the target.
    *
    * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
-   * DataValue#lastUpdated} value, it is deleted.
+   * DataValue#getLastUpdated()} value, it is deleted.
    *
    * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
-   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
-   * has its {@link DataValue#categoryOptionCombo} updated to that of the target.
+   * DataValue#getLastUpdated()} value, the target {@link DataValue} is deleted. The source is kept
+   * and has its {@link DataValue#getCategoryOptionCombo()} updated to that of the target.
    *
    * @param target target {@link CategoryOptionCombo}
    * @param sources source {@link CategoryOptionCombo}s
@@ -228,20 +230,20 @@ public interface DataValueStore {
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
-   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
-   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
-   * constraint. <br>
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#getLastUpdated()}
+   * values are kept, the rest are deleted. Only one of these entries can exist due to the composite
+   * key constraint. <br>
    * The 3 execution paths are:
    *
    * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
-   * DataValue#attributeOptionCombo} updated to that of the target.
+   * DataValue#getAttributeOptionCombo()} updated to that of the target.
    *
    * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
-   * DataValue#lastUpdated} value, it is deleted.
+   * DataValue#getLastUpdated()} value, it is deleted.
    *
    * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
-   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
-   * has its {@link DataValue#attributeOptionCombo} updated to that of the target.
+   * DataValue#getLastUpdated()} value, the target {@link DataValue} is deleted. The source is kept
+   * and has its {@link DataValue#getAttributeOptionCombo()} updated to that of the target.
    *
    * @param target target {@link CategoryOptionCombo} id
    * @param sources source {@link CategoryOptionCombo} ids
@@ -250,20 +252,20 @@ public interface DataValueStore {
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
-   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
-   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
-   * constraint. <br>
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#getLastUpdated()}
+   * values are kept, the rest are deleted. Only one of these entries can exist due to the composite
+   * key constraint. <br>
    * The 3 execution paths are:
    *
    * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
-   * DataValue#dataElement} updated to that of the target.
+   * DataValue#getDataElement()} updated to that of the target.
    *
    * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
-   * DataValue#lastUpdated} value, it is deleted.
+   * DataValue#getLastUpdated()} value, it is deleted.
    *
    * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
-   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
-   * has its {@link DataValue#dataElement} updated to that of the target.
+   * DataValue#getLastUpdated()} value, the target {@link DataValue} is deleted. The source is kept
+   * and has its {@link DataValue#getDataElement()} updated to that of the target.
    *
    * @param target target {@link DataElement} id
    * @param sources source {@link DataElement} ids

@@ -110,8 +110,7 @@ public record DataEntrySummary(
       summary.addConflict(toConflict(error));
     }
     ImportStatus status = ImportStatus.SUCCESS;
-    if (!errors.isEmpty()) status = ImportStatus.ERROR;
-    if (succeeded > 0) status = ImportStatus.WARNING;
+    if (!errors.isEmpty()) status = (succeeded > 0) ? ImportStatus.WARNING : ImportStatus.ERROR;
     summary.setStatus(status);
     return summary;
   }

@@ -345,6 +345,22 @@ public class DataValue implements Serializable {
     this.value = value;
   }
 
+  public DataValueEntry toEntry() {
+    return new DataValueEntry(
+        UID.of(dataElement),
+        period.getIsoDate(),
+        UID.of(source),
+        UID.of(categoryOptionCombo),
+        UID.of(attributeOptionCombo),
+        value,
+        comment,
+        followup,
+        storedBy,
+        created,
+        lastUpdated,
+        deleted);
+  }
+
   public DataEntryValue toDataEntryValue(int index) {
     return new DataEntryValue(
         index,

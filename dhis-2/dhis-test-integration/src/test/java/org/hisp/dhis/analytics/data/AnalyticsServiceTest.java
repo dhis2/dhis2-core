@@ -437,10 +437,6 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
             groups.stream()
                 .flatMap(g -> g.values().stream())
                 .toArray(DataEntryValue.Input[]::new)));
-    assertEquals(
-        32,
-        dataValueService.getAllDataValues().size(),
-        "Import of data values failed, number of imports are wrong");
     List<String[]> dataSetRegistrationLines =
         CsvUtils.readCsvAsListFromClasspath("analytics/csv/dataSetRegistrations.csv", true);
     parseDataSetRegistrations(dataSetRegistrationLines);

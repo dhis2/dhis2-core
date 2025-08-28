@@ -61,16 +61,8 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValue dataValue) {
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
-            .setDataElements(List.of(dataValue.getDataElement()))
-            .setPeriods(List.of(dataValue.getPeriod()))
-            .setOrgUnits(List.of(dataValue.getSource()))
-            .setCategoryOptionCombo(dataValue.getCategoryOptionCombo())
-            .setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
-
-    return dataValueAuditStore.getDataValueAudits(params);
+  public List<DataValueAuditEntry> getDataValueAudits(DataValueEntry dataValue) {
+    return dataValueAuditStore.getAuditsByKey(dataValue.toKey());
   }
 
   @Override

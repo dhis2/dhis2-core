@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
-
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +39,7 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,7 +47,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,7 +79,7 @@ public class DataValueContextController {
 
     List<Period> periods = periodService.getPeriods(pe, 13);
 
-    List<DataValue> dataValues =
+    List<DataValueEntry> dataValues =
         dataValueService.getDataValues(
             new DataExportParams()
                 .setDataElements(Set.of(de))
@@ -91,8 +89,6 @@ public class DataValueContextController {
                 .setAttributeOptionCombos(Set.of(ao))
                 .setOrderByPeriod(true));
 
-    return new DataValueContextDto()
-        .setAudits(audits)
-        .setHistory(mapToList(dataValues, DataValueDtoMapper::toDto));
+    return new DataValueContextDto().setAudits(audits).setHistory(dataValues);
   }
 }

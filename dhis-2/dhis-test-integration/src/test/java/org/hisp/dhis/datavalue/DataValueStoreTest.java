@@ -133,33 +133,33 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValue> preMergeState =
+    List<DataValueEntry> preMergeState =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, preMergeState.size(), "there should be 4 data values");
     checkCocIdsPresent(
         preMergeState,
         List.of(
-            categoryMetadata.coc1().getId(),
-            categoryMetadata.coc2().getId(),
-            categoryMetadata.coc3().getId(),
-            categoryMetadata.coc4().getId()));
+            categoryMetadata.coc1().getUid(),
+            categoryMetadata.coc2().getUid(),
+            categoryMetadata.coc3().getUid(),
+            categoryMetadata.coc4().getUid()));
 
     // when
     mergeDataValues(
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValue> postMergeState =
+    List<DataValueEntry> postMergeState =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(2, postMergeState.size(), "there should be 2 data values");
     checkCocIdsPresent(
-        preMergeState, List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId()));
+        preMergeState, List.of(categoryMetadata.coc3().getUid(), categoryMetadata.coc4().getUid()));
 
     checkDataValuesPresent(
         postMergeState, List.of("dv test 2 - last updated", "dv test 4, untouched"));
@@ -217,33 +217,34 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValue> preMergeState =
+    List<DataValueEntry> preMergeState =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, preMergeState.size(), "there should be 4 data values");
     checkCocIdsPresent(
         preMergeState,
         List.of(
-            categoryMetadata.coc1().getId(),
-            categoryMetadata.coc2().getId(),
-            categoryMetadata.coc3().getId(),
-            categoryMetadata.coc4().getId()));
+            categoryMetadata.coc1().getUid(),
+            categoryMetadata.coc2().getUid(),
+            categoryMetadata.coc3().getUid(),
+            categoryMetadata.coc4().getUid()));
 
     // when
     mergeDataValues(
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValue> postMergeState =
+    List<DataValueEntry> postMergeState =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(2, postMergeState.size(), "there should be 2 data values");
     checkCocIdsPresent(
-        postMergeState, List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId()));
+        postMergeState,
+        List.of(categoryMetadata.coc3().getUid(), categoryMetadata.coc4().getUid()));
 
     checkDataValuesPresent(
         postMergeState, List.of("dv test 3 - last updated", "dv test 4, untouched"));
@@ -303,33 +304,34 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValue> preMergeState =
+    List<DataValueEntry> preMergeState =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, preMergeState.size(), "there should be 4 data values");
     checkCocIdsPresent(
         preMergeState,
         List.of(
-            categoryMetadata.coc1().getId(),
-            categoryMetadata.coc2().getId(),
-            categoryMetadata.coc3().getId(),
-            categoryMetadata.coc4().getId()));
+            categoryMetadata.coc1().getUid(),
+            categoryMetadata.coc2().getUid(),
+            categoryMetadata.coc3().getUid(),
+            categoryMetadata.coc4().getUid()));
 
     // when
     mergeDataValues(
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValue> postMergeState =
+    List<DataValueEntry> postMergeState =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, postMergeState.size(), "there should still be 4 data values");
     checkCocIdsPresent(
-        postMergeState, List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId()));
+        postMergeState,
+        List.of(categoryMetadata.coc3().getUid(), categoryMetadata.coc4().getUid()));
 
     checkDataValuesPresent(
         postMergeState,
@@ -344,28 +346,28 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
             DateUtils.parseDate("2024-12-06")));
   }
 
-  private void checkDatesPresent(List<DataValue> dataValues, List<Date> dates) {
+  private void checkDatesPresent(List<DataValueEntry> dataValues, List<Date> dates) {
     assertTrue(
         dataValues.stream()
-            .map(DataValue::getLastUpdated)
+            .map(DataValueEntry::lastUpdated)
             .collect(Collectors.toSet())
             .containsAll(dates),
         "Expected dates should be present");
   }
 
-  private void checkDataValuesPresent(List<DataValue> dataValues, List<String> values) {
+  private void checkDataValuesPresent(List<DataValueEntry> dataValues, List<String> values) {
     assertTrue(
         dataValues.stream()
-            .map(DataValue::getValue)
+            .map(DataValueEntry::value)
             .collect(Collectors.toSet())
             .containsAll(values),
         "Expected DataValues should be present");
   }
 
-  private void checkCocIdsPresent(List<DataValue> dataValues, List<Long> cocIds) {
+  private void checkCocIdsPresent(List<DataValueEntry> dataValues, List<String> cocIds) {
     assertTrue(
         dataValues.stream()
-            .map(dv -> dv.getCategoryOptionCombo().getId())
+            .map(dv -> dv.categoryOptionCombo().getValue())
             .collect(Collectors.toSet())
             .containsAll(cocIds),
         "Data values have expected category option combos");

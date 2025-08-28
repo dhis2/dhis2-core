@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dxf2.adx;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
@@ -48,17 +50,18 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.writer.XMLWriter;
 import org.springframework.stereotype.Service;
@@ -148,16 +151,16 @@ public class DefaultAdxDataService implements AdxDataService {
 
       for (CategoryOptionCombo aoc : getAttributeOptionCombos(dataSet, params)) {
         Map<String, String> attributeDimensions =
-            metadata.getExplodedCategoryAttributes(aoc.getId());
+            metadata.getExplodedCategoryAttributes(aoc.getUid());
 
         for (OrganisationUnit orgUnit : params.getAllOrganisationUnits()) {
-          Period currentPeriod = null;
-          OrganisationUnit currentOrgUnit = null;
+          String currentPeriod = null;
+          UID currentOrgUnit = null;
 
           DataExportParams queryParams =
               new DataExportParams()
                   .setDataElements(dataSet.getDataElements())
-                  .setOrganisationUnits(Sets.newHashSet(orgUnit))
+                  .setOrganisationUnits(Set.of(orgUnit))
                   .setIncludeDescendants(params.isIncludeDescendants())
                   .setIncludeDeleted(params.isIncludeDeleted())
                   .setLastUpdated(params.getLastUpdated())
@@ -169,19 +172,29 @@ public class DefaultAdxDataService implements AdxDataService {
                   .setOrderByOrgUnitPath(true)
                   .setOrderByPeriod(true);
 
-          for (DataValue dv : dataValueService.getDataValues(queryParams)) {
-            if (!dv.getPeriod().equals(currentPeriod) || !dv.getSource().equals(currentOrgUnit)) {
+          List<DataValueEntry> dataValues = dataValueService.getDataValues(queryParams);
+          List<UID> dataElements =
+              dataValues.stream().map(DataValueEntry::dataElement).distinct().toList();
+          // FIXME query from DB given the dataElements above as filter
+          Set<UID> numericDataElements = Set.copyOf(dataElements);
+          // FIXME query from DB given the dataElements above as filter and deScheme for the
+          // property
+          Map<UID, String> dataElementSchemaId =
+              dataElements.stream().collect(toMap(identity(), UID::getValue));
+          for (DataValueEntry dv : dataValues) {
+            if (!dv.period().equals(currentPeriod) || !dv.orgUnit().equals(currentOrgUnit)) {
               if (currentPeriod != null) {
                 adxWriter.closeElement(); // GROUP
               }
 
-              currentPeriod = dv.getPeriod();
-              currentOrgUnit = dv.getSource();
+              currentPeriod = dv.period();
+              currentOrgUnit = dv.orgUnit();
 
               adxWriter.openElement("group");
               adxWriter.writeAttribute("dataSet", dataSet.getPropertyValue(dsScheme));
-              adxWriter.writeAttribute("period", AdxPeriod.serialize(currentPeriod));
-              adxWriter.writeAttribute("orgUnit", currentOrgUnit.getPropertyValue(ouScheme));
+              adxWriter.writeAttribute(
+                  "period", AdxPeriod.serialize(PeriodType.getPeriodFromIsoString(currentPeriod)));
+              adxWriter.writeAttribute("orgUnit", orgUnit.getPropertyValue(ouScheme));
 
               for (Map.Entry<String, String> e : attributeDimensions.entrySet()) {
                 adxWriter.writeAttribute(e.getKey(), e.getValue());
@@ -189,23 +202,21 @@ public class DefaultAdxDataService implements AdxDataService {
             }
             adxWriter.openElement("dataValue");
 
-            adxWriter.writeAttribute("dataElement", dv.getDataElement().getPropertyValue(deScheme));
-
-            CategoryOptionCombo coc = dv.getCategoryOptionCombo();
+            adxWriter.writeAttribute("dataElement", dataElementSchemaId.get(dv.dataElement()));
 
             Map<String, String> categoryDimensions =
-                metadata.getExplodedCategoryAttributes(coc.getId());
+                metadata.getExplodedCategoryAttributes(dv.categoryOptionCombo().getValue());
 
             for (Map.Entry<String, String> e : categoryDimensions.entrySet()) {
               adxWriter.writeAttribute(e.getKey(), e.getValue());
             }
 
-            if (dv.getDataElement().getValueType().isNumeric()) {
-              adxWriter.writeAttribute("value", dv.getValue());
+            if (numericDataElements.contains(dv.dataElement())) {
+              adxWriter.writeAttribute("value", dv.value());
             } else {
               adxWriter.writeAttribute("value", "0");
               adxWriter.openElement("annotation");
-              adxWriter.writeCharacters(dv.getValue());
+              adxWriter.writeCharacters(dv.value());
               adxWriter.closeElement(); // ANNOTATION
             }
             adxWriter.closeElement(); // DATAVALUE

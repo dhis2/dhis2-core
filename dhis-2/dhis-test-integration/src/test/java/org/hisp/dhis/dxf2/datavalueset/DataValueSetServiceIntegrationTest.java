@@ -77,10 +77,12 @@ import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueAuditType;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -127,6 +129,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private DataValueService dataValueService;
+  @Autowired private DataValueStore dataValueStore;
 
   @Autowired private DataValueAuditService dataValueAuditService;
 
@@ -595,13 +598,13 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
     assertImported(3, 0, summary);
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef).toEntry()));
     assertEquals(
         Set.of("10001", "10002", "10003"),
-        dataValues.stream().map(DataValue::getValue).collect(Collectors.toSet()),
+        dataValues.stream().map(DataValueEntry::value).collect(Collectors.toSet()),
         "mismatch in dataValues values");
 
     List<Executable> audits =
@@ -620,13 +623,13 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
     assertImported(3, 0, summary);
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef).toEntry()));
     assertEquals(
         Set.of("10001", "10002", "10003"),
-        dataValues.stream().map(DataValue::getValue).collect(Collectors.toSet()),
+        dataValues.stream().map(DataValueEntry::value).collect(Collectors.toSet()),
         "mismatch in dataValues values");
 
     List<Executable> audits =
@@ -646,12 +649,12 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACode.xml"));
 
     assertImported(3, 0, summary);
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deB, peA, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deC, peA, ouA, ocDef, ocDef)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peA, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, peA, ouA, ocDef, ocDef).toEntry()));
 
     List<Executable> audits =
         dataValues.stream()
@@ -899,9 +902,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertArrayEquals(new int[] {10, 11}, conflicts.next().getIndexes());
     assertArrayEquals(new int[] {16, 17}, conflicts.next().getIndexes());
     List<String> expectedBools = Lists.newArrayList("true", "false");
-    List<DataValue> resultBools = dataValueService.getAllDataValues();
-    for (DataValue dataValue : resultBools) {
-      assertTrue(expectedBools.contains(dataValue.getValue()));
+    List<DataValueEntry> resultBools = dataValueStore.getAllDataValues();
+    for (DataValueEntry dataValue : resultBools) {
+      assertTrue(expectedBools.contains(dataValue.value()));
     }
   }
 
@@ -973,12 +976,12 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetD.xml"));
 
     assertImported(3, 0, summary);
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocA)));
-    assertTrue(dataValues.contains(new DataValue(deB, peA, ouA, ocDef, ocA)));
-    assertTrue(dataValues.contains(new DataValue(deC, peA, ouA, ocDef, ocA)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocA).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peA, ouA, ocDef, ocA).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, peA, ouA, ocDef, ocA).toEntry()));
   }
 
   @Test
@@ -989,10 +992,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     assertEquals(ImportStatus.WARNING, summary.getStatus());
     assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(1, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocA)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocA).toEntry()));
   }
 
   @Test
@@ -1145,10 +1148,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(2, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(1, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deB, peB, ouB, ocDef, ocA)));
+    assertTrue(dataValues.contains(new DataValue(deB, peB, ouB, ocDef, ocA).toEntry()));
   }
 
   @Test
@@ -1164,11 +1167,11 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(1, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(2, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocA)));
-    assertTrue(dataValues.contains(new DataValue(deB, peB, ouB, ocDef, ocA)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocA).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peB, ouB, ocDef, ocA).toEntry()));
   }
 
   @Test
@@ -1181,7 +1184,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     summary = importXml(readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"));
 
     assertImported(3, 0, summary);
-    List<DataValue> dataValues = assertDataValuesCount(3);
+    List<DataValueEntry> dataValues = assertDataValuesCount(3);
     assertAll(
         "expected data value update(s) to be audited",
         dataValues.stream()
@@ -1189,7 +1192,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                 dv ->
                     (Executable)
                         () -> {
-                          List<DataValueAudit> audits =
+                          List<DataValueAuditEntry> audits =
                               dataValueAuditService.getDataValueAudits(dv);
                           assertNotNull(audits);
                           assertEquals(
@@ -1198,7 +1201,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(DataValueAuditType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(DataValueAuditType.UPDATE, audits.get(0).auditType());
                         })
             .collect(Collectors.toList()));
   }
@@ -1218,7 +1221,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
             readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"), importOptions, transitory());
 
     assertImported(3, 0, summary);
-    List<DataValue> dataValues = assertDataValuesCount(3);
+    List<DataValueEntry> dataValues = assertDataValuesCount(3);
     assertAll(
         "expected data value update(s) NOT to be audited",
         dataValues.stream()
@@ -1283,11 +1286,11 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(3, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(2, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deB, okBefore, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deC, okAfter, ouA, ocDef, ocDef)));
+    assertTrue(dataValues.contains(new DataValue(deB, okBefore, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, okAfter, ouA, ocDef, ocDef).toEntry()));
   }
 
   @Test
@@ -1327,21 +1330,21 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   private void assertImportDataValues(ImportSummary summary) {
     assertNotNull(summary);
     assertNotNull(summary.getImportCount());
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(12, dataValues.size());
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deA, peA, ouB, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deA, peB, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deA, peB, ouB, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deB, peA, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deB, peA, ouB, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deB, peB, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deB, peB, ouB, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deC, peA, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deC, peA, ouB, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deC, peB, ouA, ocDef, ocDef)));
-    assertTrue(dataValues.contains(new DataValue(deC, peB, ouB, ocDef, ocDef)));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deA, peA, ouB, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deA, peB, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deA, peB, ouB, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peA, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peA, ouB, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peB, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deB, peB, ouB, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, peA, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, peA, ouB, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, peB, ouA, ocDef, ocDef).toEntry()));
+    assertTrue(dataValues.contains(new DataValue(deC, peB, ouB, ocDef, ocDef).toEntry()));
   }
 
   private Period createMonthlyPeriod(Date monthStart) {
@@ -1357,8 +1360,8 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     }
   }
 
-  private List<DataValue> assertDataValuesCount(int expected) {
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+  private List<DataValueEntry> assertDataValuesCount(int expected) {
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertEquals(
         expected,
         dataValues.size(),

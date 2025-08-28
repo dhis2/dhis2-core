@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -37,6 +36,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
+import io.hypersistence.utils.hibernate.type.array.LongArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
@@ -47,22 +48,26 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.query.Query;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.type.DateType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OnlyUsedInTests;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -82,9 +87,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.datavalue.DataValueStore")
 public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final PeriodStore periodStore;
 
@@ -228,14 +230,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<DataValue> getAllDataValues() {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get(DELETED), false)));
-  }
-
-  @Override
   public int getDataValueCountLastUpdatedBetween(
       Date startDate, Date endDate, boolean includeDeleted) {
     if (startDate == null && endDate == null) {
@@ -319,137 +313,126 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
 
   @Override
-  public List<DataValue> getDataValues(DataExportParams params) {
-    Set<Period> periods = reloadAndFilterPeriods(params.getPeriods());
-    Set<OrganisationUnit> organisationUnits = params.getAllOrganisationUnits();
-
-    // Return empty list if parameters include periods but none exist
-
-    if (params.hasPeriods() && periods.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    String hql = getDataValuesHql(params, periods, organisationUnits);
-
-    Query<DataValue> query = getQuery(hql);
-
-    getDataValuesQueryParameters(params, query, periods, organisationUnits);
-
-    return query.list();
+  @OnlyUsedInTests
+  public List<DataValueEntry> getAllDataValues() {
+    String sql =
+        """
+      SELECT
+        de.uid AS de,
+        pe.iso,
+        ou.uid AS ou,
+        coc.uid AS coc,
+        aoc.uid AS aoc,
+        dv.value,
+        dv.comment,
+        dv.followup,
+        dv.storedby,
+        dv.created,
+        dv.lastupdated,
+        dv.deleted
+      FROM datavalue dv
+      JOIN dataelement de ON dv.dataelementid = de.dataelementid
+      JOIN period pe ON dv.periodid = pe.periodid
+      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE dv.deleted = false""";
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows = getSession().createNativeQuery(sql).stream();
+    return rows.map(HibernateDataValueStore::dataValueEntryOf).toList();
   }
 
-  /**
-   * Reloads the periods in the given collection, and filters out periods which do not exist in the
-   * database.
-   */
-  private Set<Period> reloadAndFilterPeriods(Collection<Period> periods) {
-    return periods != null
-        ? periods.stream().map(periodStore::reloadPeriod).filter(Objects::nonNull).collect(toSet())
-        : new HashSet<>();
+  @Override
+  public List<DataValueEntry> getDataValues(DataExportParams params) {
+    String sql =
+        """
+      SELECT
+        de.uid AS de,
+        pe.iso,
+        ou.uid AS ou,
+        coc.uid AS coc,
+        aoc.uid AS aoc,
+        dv.value,
+        dv.comment,
+        dv.followup,
+        dv.storedby,
+        dv.created,
+        dv.lastupdated,
+        dv.deleted
+      FROM dataelement de
+      JOIN datavalue dv ON de.dataelementid = dv.dataelementid
+      JOIN period pe ON dv.periodid = pe.periodid
+      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE de.dataelementid = ANY (:de)
+        AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))
+        AND (:start IS NULL AND :end IS NULL OR pe.startDate >= :start and pe.endDate <= :end)
+        AND (:decendants AND ou.path LIKE ANY(:path) OR NOT :decendents AND (cardinality(:ou) = 0 OR ou.organisationunitid = ANY(:ou)))
+        AND (cardinality(:coc) = 0 OR coc.categoryoptioncomboid = ANY(:coc))
+        AND (cardinality(:aoc) = 0 OR aoc.categoryoptioncomboid = ANY(:aoc))
+        AND (:lastUpdated IS NULL OR dv.lastupdated >= :lastUpdated)
+        AND (:includeDeleted OR dv.deleted = false)
+      """;
+    List<String> orders = new ArrayList<>(3);
+    if (params.isOrderByOrgUnitPath()) orders.add("ou.path");
+    if (params.isOrderByPeriod()) orders.addAll(List.of("pe.startdate", "pe.enddate"));
+    if (!orders.isEmpty()) sql += "\nORDER BY %s".formatted(String.join(",", orders));
+
+    Set<Period> periods = params.getPeriods();
+    String[] pe =
+        periods == null ? null : periods.stream().map(Period::getIsoDate).toArray(String[]::new);
+    Set<OrganisationUnit> units = params.getAllOrganisationUnits();
+    String[] path =
+        !params.isIncludeDescendants()
+            ? null
+            : units.stream().map(OrganisationUnit::getPath).toArray(String[]::new);
+    Date lastUpdated = null;
+    if (params.hasLastUpdatedDuration())
+      lastUpdated = DateUtils.nowMinusDuration(params.getLastUpdatedDuration());
+    if (params.hasLastUpdated()) lastUpdated = params.getLastUpdated();
+
+    @SuppressWarnings("unchecked")
+    NativeQuery<Object[]> query =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("de", getIds(params.getAllDataElements()), LongArrayType.INSTANCE)
+            .setParameter("pe", pe, StringArrayType.INSTANCE)
+            .setParameter(
+                "start", params.hasStartEndDate() ? params.getStartDate() : null, DateType.INSTANCE)
+            .setParameter(
+                "end", params.hasStartEndDate() ? params.getEndDate() : null, DateType.INSTANCE)
+            .setParameter("decendants", params.isIncludeDescendants())
+            .setParameter("path", path, StringArrayType.INSTANCE)
+            .setParameter("ou", getIds(units), LongArrayType.INSTANCE)
+            .setParameter("coc", getIds(params.getCategoryOptionCombos()), LongArrayType.INSTANCE)
+            .setParameter("aoc", getIds(params.getAttributeOptionCombos()), LongArrayType.INSTANCE)
+            .setParameter("lastUpdated", lastUpdated, DateType.INSTANCE)
+            .setParameter("includeDeleted", params.isIncludeDeleted());
+    if (params.hasLimit()) query.setMaxResults(params.getLimit());
+    return query.stream().map(HibernateDataValueStore::dataValueEntryOf).toList();
   }
 
-  /** Gets HQL for getDataValues. */
-  private String getDataValuesHql(
-      DataExportParams params, Set<Period> periods, Set<OrganisationUnit> organisationUnits) {
-    StringBuilder hql =
-        new StringBuilder(
-            """
-            select dv from DataValue dv \
-            inner join dv.dataElement de \
-            inner join dv.period pe \
-            inner join dv.source ou \
-            inner join dv.categoryOptionCombo co \
-            inner join dv.attributeOptionCombo ao \
-            where de.id in (:dataElements) \
-            """);
-
-    if (!periods.isEmpty()) {
-      hql.append("and pe.id in (:periods) ");
-    } else if (params.hasStartEndDate()) {
-      hql.append("and (pe.startDate >= :startDate and pe.endDate <= :endDate) ");
-    }
-
-    if (params.isIncludeDescendantsForOrganisationUnits()) {
-      hql.append("and (");
-
-      hql.append(
-          params.getOrganisationUnits().stream()
-              .map(OrganisationUnit::getStoredPath)
-              .map(p -> "ou.path like '" + p + "%'")
-              .collect(joining(" or ")));
-
-      hql.append(") ");
-    } else if (!organisationUnits.isEmpty()) {
-      hql.append("and ou.id in (:orgUnits) ");
-    }
-
-    if (params.hasCategoryOptionCombos()) {
-      hql.append("and co.id in (:categoryOptionCombos) ");
-    }
-
-    if (params.hasAttributeOptionCombos()) {
-      hql.append("and ao.id in (:attributeOptionCombos) ");
-    }
-
-    if (params.hasLastUpdated() || params.hasLastUpdatedDuration()) {
-      hql.append("and dv.lastUpdated >= :lastUpdated ");
-    }
-
-    if (!params.isIncludeDeleted()) {
-      hql.append("and dv.deleted is false ");
-    }
-
-    if (params.isOrderByOrgUnitPath()) {
-      hql.append("order by ou.path ");
-    }
-
-    if (params.isOrderByPeriod()) {
-      hql.append(params.isOrderByOrgUnitPath() ? "," : "order by")
-          .append(" pe.startDate, pe.endDate ");
-    }
-
-    return hql.toString();
+  private static DataValueEntry dataValueEntryOf(Object[] row) {
+    return new DataValueEntry(
+        UID.of((String) row[0]),
+        (String) row[1],
+        UID.of((String) row[2]),
+        UID.of((String) row[3]),
+        UID.of((String) row[4]),
+        (String) row[5],
+        (String) row[6],
+        (Boolean) row[7],
+        (String) row[8],
+        (Date) row[9],
+        (Date) row[10],
+        (Boolean) row[11]);
   }
 
-  /** Sets Query parameters for getDataValues. */
-  private void getDataValuesQueryParameters(
-      DataExportParams params,
-      Query<DataValue> query,
-      Set<Period> periods,
-      Set<OrganisationUnit> organisationUnits) {
-    query.setParameterList("dataElements", getIdentifiers(params.getAllDataElements()));
-
-    if (!periods.isEmpty()) {
-      query.setParameterList("periods", getIdentifiers(periods));
-    } else if (params.hasStartEndDate()) {
-      query
-          .setParameter("startDate", params.getStartDate())
-          .setParameter("endDate", params.getEndDate());
-    }
-
-    if (!params.isIncludeDescendantsForOrganisationUnits() && !organisationUnits.isEmpty()) {
-      query.setParameterList("orgUnits", getIdentifiers(organisationUnits));
-    }
-
-    if (params.hasCategoryOptionCombos()) {
-      query.setParameterList(
-          "categoryOptionCombos", getIdentifiers(params.getCategoryOptionCombos()));
-    }
-
-    if (params.hasAttributeOptionCombos()) {
-      query.setParameterList(
-          "attributeOptionCombos", getIdentifiers(params.getAttributeOptionCombos()));
-    }
-
-    if (params.hasLastUpdated()) {
-      query.setParameter(LAST_UPATED, params.getLastUpdated());
-    } else if (params.hasLastUpdatedDuration()) {
-      query.setParameter(LAST_UPATED, DateUtils.nowMinusDuration(params.getLastUpdatedDuration()));
-    }
-
-    if (params.hasLimit()) {
-      query.setMaxResults(params.getLimit());
-    }
+  private static Long[] getIds(Collection<? extends IdentifiableObject> objects) {
+    return objects == null || objects.isEmpty()
+        ? null
+        : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
   }
 
   // -------------------------------------------------------------------------

@@ -30,11 +30,12 @@
 package org.hisp.dhis.webapi.controller.dataentry;
 
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
-import static org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper.toDto;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -46,16 +47,19 @@ import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataSetValueQueryParams;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValuePostParams;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -96,7 +100,7 @@ public class DataSetValueController {
             .setOrganisationUnits(Set.of(ou))
             .setAttributeOptionCombos(Set.of(ao));
 
-    List<DataValue> dataValues = dataValueService.getDataValues(exportParams);
+    List<DataValueEntry> dataValues = dataValueService.getDataValues(exportParams);
 
     List<MinMaxDataElement> minMaxValues =
         minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
@@ -111,9 +115,74 @@ public class DataSetValueController {
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, ao);
 
     return new DataValuesDto()
-        .setDataValues(mapToList(dataValues, DataValueDtoMapper::toDto))
-        .setMinMaxValues(mapToList(minMaxValues, DataValueDtoMapper::toDto))
+        .setDataValues(mapToList(dataValues, DataSetValueController::toDto))
+        .setMinMaxValues(mapToList(minMaxValues, DataSetValueController::toDto))
         .setLockStatus(lockStatus)
         .setCompleteStatus(registration != null ? toDto(registration) : new CompleteStatusDto());
+  }
+
+  /**
+   * Converts a {@link DataValue} object to a {@link DataValuePostParams}.
+   *
+   * @param value the {@link DataValue}.
+   * @return a {@link DataValuePostParams}.
+   */
+  public static DataValuePostParams toDto(DataValueEntry value) {
+    return new DataValuePostParams()
+        .setDataElement(value.dataElement().getValue())
+        .setPeriod(value.period())
+        .setOrgUnit(value.orgUnit().getValue())
+        .setCategoryOptionCombo(value.categoryOptionCombo().getValue())
+        // FIXME need to add a subsequent lookup of AOC CC+COs for a set of COCs
+        // .setAttribute(toDto(value.getAttributeOptionCombo()))
+        .setValue(value.value())
+        .setComment(value.comment())
+        .setFollowUp(value.isFollowUp())
+        .setStoredBy(value.storedBy())
+        .setCreated(value.created())
+        .setLastUpdated(value.lastUpdated());
+  }
+
+  /**
+   * Converts an attribute {@link CategoryOptionCombo} object to a {@link DataValueCategoryParams}.
+   *
+   * @param attribute the attribute {@link CategoryOptionCombo}.
+   * @return a {@link DataValueCategoryParams}.
+   */
+  public static DataValueCategoryParams toDto(CategoryOptionCombo attribute) {
+    return new DataValueCategoryParams()
+        .setCombo(attribute.getCategoryCombo().getUid())
+        .setOptions(mapToSet(attribute.getCategoryOptions(), CategoryOption::getUid));
+  }
+
+  /**
+   * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValue}.
+   *
+   * @param value the {@link MinMaxDataElement}.
+   * @return a {@link MinMaxValue}.
+   */
+  public static MinMaxValue toDto(MinMaxDataElement value) {
+    return new MinMaxValue(
+        UID.of(value.getDataElement().getUid()),
+        UID.of(value.getSource().getUid()),
+        UID.of(value.getOptionCombo().getUid()),
+        value.getMin(),
+        value.getMax(),
+        null);
+  }
+
+  /**
+   * Converts a {@link CompleteDataSetRegistration} to a {@link CompleteStatusDto}.
+   *
+   * @param registration the {@link CompleteDataSetRegistration}.
+   * @return a {@link CompleteStatusDto}.
+   */
+  public static CompleteStatusDto toDto(CompleteDataSetRegistration registration) {
+    return new CompleteStatusDto()
+        .setComplete(registration.getCompleted())
+        .setCreated(registration.getDate())
+        .setCreatedBy(registration.getStoredBy())
+        .setLastUpdated(registration.getLastUpdated())
+        .setLastUpdatedBy(registration.getLastUpdatedBy());
   }
 }

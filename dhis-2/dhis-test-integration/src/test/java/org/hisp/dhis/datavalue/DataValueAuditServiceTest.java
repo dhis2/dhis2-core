@@ -137,7 +137,7 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testAddGetDataValueAuditFromDataValue() {
-    assertEquals(1, dataValueAuditService.getDataValueAudits(dataValueA).size());
+    assertEquals(1, dataValueAuditService.getDataValueAudits(dataValueA.toEntry()).size());
   }
 
   @Test

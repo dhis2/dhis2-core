@@ -82,6 +82,15 @@ public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
   List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params);
 
   /**
+   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
+   * AOC are unspecified in the parameters the default is used.
+   *
+   * @param key the key to the value
+   * @return the audit events for the value stored most recent to oldest
+   */
+  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataEntryKey key);
+
+  /**
    * Counts data value audits for the given query.
    *
    * @param params the {@link DataValueAuditQueryParams}.

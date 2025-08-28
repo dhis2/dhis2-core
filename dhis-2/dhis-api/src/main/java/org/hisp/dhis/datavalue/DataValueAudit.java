@@ -31,9 +31,11 @@ package org.hisp.dhis.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.MoreObjects;
 import java.util.Date;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,8 +46,12 @@ import org.hisp.dhis.period.Period;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
+@Setter
+@EqualsAndHashCode
+@ToString
 public class DataValueAudit {
-  private long id;
+
+  @Getter @ToString.Exclude @EqualsAndHashCode.Exclude private long id;
 
   private DataElement dataElement;
 
@@ -65,145 +71,10 @@ public class DataValueAudit {
 
   private DataValueAuditType auditType;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public DataValueAudit() {}
-
-  public DataValueAudit(
-      DataValue dataValue, String value, String modifiedBy, DataValueAuditType auditType) {
-    this.dataElement = dataValue.getDataElement();
-    this.period = dataValue.getPeriod();
-    this.organisationUnit = dataValue.getSource();
-    this.categoryOptionCombo = dataValue.getCategoryOptionCombo();
-    this.attributeOptionCombo = dataValue.getAttributeOptionCombo();
-    this.value = value;
-    this.modifiedBy = modifiedBy;
-    this.created = new Date();
-    this.auditType = auditType;
-  }
-
-  public DataValueAudit(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      String value,
-      String modifiedBy,
-      DataValueAuditType auditType) {
-    this.dataElement = dataElement;
-    this.period = period;
-    this.organisationUnit = organisationUnit;
-    this.categoryOptionCombo = categoryOptionCombo;
-    this.attributeOptionCombo = attributeOptionCombo;
-    this.value = value;
-    this.modifiedBy = modifiedBy;
-    this.created = new Date();
-    this.auditType = auditType;
-  }
-
-  public static DataValueAudit from(DataValueAudit dataValueAudit) {
-    return new DataValueAudit(
-        dataValueAudit.getDataElement(),
-        dataValueAudit.getPeriod(),
-        dataValueAudit.getOrganisationUnit(),
-        dataValueAudit.getCategoryOptionCombo(),
-        dataValueAudit.getAttributeOptionCombo(),
-        dataValueAudit.getValue(),
-        dataValueAudit.getModifiedBy(),
-        dataValueAudit.getAuditType());
-  }
-
-  public static DataValueAudit from(DataValueAudit dataValueAudit, Date created) {
-    DataValueAudit dva =
-        new DataValueAudit(
-            dataValueAudit.getDataElement(),
-            dataValueAudit.getPeriod(),
-            dataValueAudit.getOrganisationUnit(),
-            dataValueAudit.getCategoryOptionCombo(),
-            dataValueAudit.getAttributeOptionCombo(),
-            dataValueAudit.getValue(),
-            dataValueAudit.getModifiedBy(),
-            dataValueAudit.getAuditType());
-    dva.setCreated(created);
-
-    return dva;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(
-        dataElement,
-        period,
-        organisationUnit,
-        categoryOptionCombo,
-        attributeOptionCombo,
-        value,
-        modifiedBy,
-        created,
-        auditType);
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-
-    if (object == null || getClass() != object.getClass()) {
-      return false;
-    }
-
-    final DataValueAudit other = (DataValueAudit) object;
-
-    return Objects.equals(this.dataElement, other.dataElement)
-        && Objects.equals(this.period, other.period)
-        && Objects.equals(this.organisationUnit, other.organisationUnit)
-        && Objects.equals(this.categoryOptionCombo, other.categoryOptionCombo)
-        && Objects.equals(this.attributeOptionCombo, other.attributeOptionCombo)
-        && Objects.equals(this.value, other.value)
-        && Objects.equals(this.modifiedBy, other.modifiedBy)
-        && Objects.equals(this.created, other.created)
-        && Objects.equals(this.auditType, other.auditType);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("data element", dataElement)
-        .add("period", period)
-        .add("organisation unit", organisationUnit)
-        .add("category option combo", categoryOptionCombo)
-        .add("attribute option combo", attributeOptionCombo)
-        .add("value", value)
-        .add("modified by", modifiedBy)
-        .add("created", created)
-        .add("audit type", auditType)
-        .toString();
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
-  }
-
-  public void setDataElement(DataElement dataElement) {
-    this.dataElement = dataElement;
   }
 
   @JsonProperty
@@ -212,18 +83,10 @@ public class DataValueAudit {
     return period;
   }
 
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnit getOrganisationUnit() {
     return organisationUnit;
-  }
-
-  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
   }
 
   @JsonProperty
@@ -232,18 +95,10 @@ public class DataValueAudit {
     return categoryOptionCombo;
   }
 
-  public void setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
-    this.categoryOptionCombo = categoryOptionCombo;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryOptionCombo getAttributeOptionCombo() {
     return attributeOptionCombo;
-  }
-
-  public void setAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
-    this.attributeOptionCombo = attributeOptionCombo;
   }
 
   @JsonProperty
@@ -252,18 +107,10 @@ public class DataValueAudit {
     return value;
   }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getModifiedBy() {
     return modifiedBy;
-  }
-
-  public void setModifiedBy(String modifiedBy) {
-    this.modifiedBy = modifiedBy;
   }
 
   @JsonProperty
@@ -272,17 +119,9 @@ public class DataValueAudit {
     return created;
   }
 
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataValueAuditType getAuditType() {
     return auditType;
-  }
-
-  public void setAuditType(DataValueAuditType auditType) {
-    this.auditType = auditType;
   }
 }

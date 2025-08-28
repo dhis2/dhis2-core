@@ -119,7 +119,7 @@ public interface DataValueService {
    * @return a list of data values.
    * @throws IllegalArgumentException if parameters are invalid.
    */
-  List<DataValue> getDataValues(DataExportParams params);
+  List<DataValueEntry> getDataValues(DataExportParams params);
 
   /**
    * Validates the given data export parameters.
@@ -128,13 +128,6 @@ public interface DataValueService {
    * @throws IllegalArgumentException if parameters are invalid.
    */
   void validate(DataExportParams params) throws IllegalQueryException;
-
-  /**
-   * Returns all DataValues.
-   *
-   * @return a collection of all DataValues.
-   */
-  List<DataValue> getAllDataValues();
 
   /**
    * Returns deflated data values for the given data export parameters.

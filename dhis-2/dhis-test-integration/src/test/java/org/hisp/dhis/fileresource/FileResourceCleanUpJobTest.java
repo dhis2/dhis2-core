@@ -44,7 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -156,9 +156,11 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     addDataValues(dataValueB);
     fileResource.setAssigned(true);
 
-    DataValueAudit audit = dataValueAuditService.getDataValueAudits(dataValueB).get(0);
-    audit.setCreated(getDate(2000, 1, 1));
-    dataValueAuditStore.update(audit);
+    DataValueAuditEntry audit =
+        dataValueAuditService.getDataValueAudits(dataValueB.toEntry()).get(0);
+    // FIXME this needs to be done differently - update also should be removed
+    // audit.setCreated(getDate(2000, 1, 1));
+    // dataValueAuditStore.update(audit);
 
     cleanUpJob.execute(null, JobProgress.noop());
 

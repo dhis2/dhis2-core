@@ -178,7 +178,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
     final Calendar calendar = PeriodType.getCalendar();
     jdbcTemplate.query(
-        sql, (ResultSet rs) -> writer.writeValue(new ResultSetDataValueEntry(rs, calendar)));
+        sql, (ResultSet rs) -> writer.writeValue(new ResultSetDataValueWriterEntry(rs, calendar)));
   }
 
   // --------------------------------------------------------------------------
@@ -378,7 +378,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
   }
 
   @AllArgsConstructor
-  static final class ResultSetDataValueEntry implements DataValueEntry {
+  static final class ResultSetDataValueWriterEntry implements DataValueWriterEntry {
     private final ResultSet rs;
 
     private final Calendar calendar;

@@ -65,6 +65,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private DataValueService dataValueService;
+  @Autowired private DataValueStore dataValueStore;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -236,15 +237,16 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
             .setDataElements(Set.of(deA))
             .setPeriods(Set.of(peA, peB, peC))
             .setOrganisationUnits(Set.of(ouA));
-    List<DataValue> values = dataValueService.getDataValues(params);
-    assertEquals(Set.of("1", "3", "9"), values.stream().map(DataValue::getValue).collect(toSet()));
+    List<DataValueEntry> values = dataValueService.getDataValues(params);
+    assertEquals(
+        Set.of("1", "3", "9"), values.stream().map(DataValueEntry::value).collect(toSet()));
     params =
         new DataExportParams()
             .setDataElements(Set.of(deB))
             .setPeriods(Set.of(peA))
             .setOrganisationUnits(Set.of(ouA, ouB));
     values = dataValueService.getDataValues(params);
-    assertEquals(Set.of("5", "6"), values.stream().map(DataValue::getValue).collect(toSet()));
+    assertEquals(Set.of("5", "6"), values.stream().map(DataValueEntry::value).collect(toSet()));
   }
 
   @Test
@@ -406,9 +408,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo);
     dataValueD.setValue("4");
     addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
-    assertNotNull(dataValues);
-    assertEquals(4, dataValues.size());
+    assertEquals(4, dataValueStore.getAllDataValues().size());
   }
 
   @Test

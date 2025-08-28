@@ -41,7 +41,9 @@ import org.hibernate.type.LongType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -122,7 +124,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
       SELECT count(*)
       FROM datavalueaudit dva
       JOIN period pe ON dva.periodid = pe.periodid
-      WHERE (:types IS NULL OR dva.audittype = ANY(:types))
+      WHERE (cardinality(:types) = 0 OR dva.audittype = ANY(:types))
         AND (cardinality(:de) = 0 OR dva.dataelementid = ANY(:de))
         AND (cardinality(:ou) = 0 OR dva.organisationunitid = ANY(:ou))
         AND (:coc IS NULL OR dva.categoryoptioncomboid = :coc)
@@ -163,7 +165,18 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params) {
-    Long aoc = getCategoryOptionComboIdByComboAndOptions(params.getCc(), params.getCp());
+    String aoc = getCategoryOptionComboIdByComboAndOptions(params.getCc(), params.getCp());
+    return getAuditsByKey(
+        new DataEntryKey(
+            UID.of(params.getDe()),
+            UID.of(params.getOu()),
+            UID.ofNullable(params.getCo()),
+            UID.ofNullable(aoc),
+            params.getPe()));
+  }
+
+  @Override
+  public List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataEntryKey key) {
     String sql =
         """
         SELECT
@@ -178,17 +191,17 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             AND ou.uid = :ou
             AND pe.iso = :iso
             AND (:coc IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
-            AND aoc.categoryoptioncomboid = :aoc
+            AND (:aoc IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
     @SuppressWarnings("unchecked")
     List<Object[]> rows =
         getSession()
             .createNativeQuery(sql)
-            .setParameter("de", params.getDe())
-            .setParameter("ou", params.getOu())
-            .setParameter("iso", params.getPe())
-            .setParameter("coc", params.getCo())
-            .setParameter("aoc", aoc)
+            .setParameter("de", key.dataElement().getValue())
+            .setParameter("ou", key.orgUnit().getValue())
+            .setParameter("iso", key.period())
+            .setParameter("coc", key.categoryOptionCombo())
+            .setParameter("aoc", key.attributeOptionCombo())
             .list();
     if (rows.isEmpty()) return List.of();
     return rows.stream()
@@ -208,32 +221,27 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   }
 
   @CheckForNull
-  @SuppressWarnings("unchecked")
-  private Long getCategoryOptionComboIdByComboAndOptions(
+  private String getCategoryOptionComboIdByComboAndOptions(
       String categoryCombo, String categoryOptions) {
-    Object aocId;
-    if (categoryCombo == null && categoryOptions == null) {
-      String aocSql =
-          "SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE name = 'default' LIMIT 1";
-      aocId = getSingleResult(getSession().createNativeQuery(aocSql));
-    } else {
-      String aocSql =
-          """
+    if (categoryCombo == null && categoryOptions == null) return null;
+    String sql =
+        """
           WITH co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos))
-          SELECT coc_co.categoryoptioncomboid
+          SELECT coc.uid
           FROM categorycombos_optioncombos coc_cc
           JOIN categoryoptioncombos_categoryoptions coc_co ON coc_cc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          JOIN categoryoptioncombo coc ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
           WHERE coc_cc.categorycomboid = (SELECT cc.categorycomboid FROM categorycombo cc WHERE cc.uid = :cc)
             AND coc_co.categoryoptionid IN (SELECT categoryoptionid FROM co_ids)
           GROUP BY coc_co.categoryoptioncomboid
           HAVING COUNT(*) = (SELECT COUNT(*) FROM co_ids)""";
-      aocId =
-          getSingleResult(
-              getSession()
-                  .createNativeQuery(aocSql)
-                  .setParameter("cc", categoryCombo)
-                  .setParameterList("cos", categoryOptions.split(";")));
-    }
-    return aocId instanceof Number n ? n.longValue() : null;
+    @SuppressWarnings("unchecked")
+    Object aocId =
+        getSingleResult(
+            getSession()
+                .createNativeQuery(sql)
+                .setParameter("cc", categoryCombo)
+                .setParameterList("cos", categoryOptions.split(";")));
+    return aocId instanceof String s ? s : null;
   }
 }

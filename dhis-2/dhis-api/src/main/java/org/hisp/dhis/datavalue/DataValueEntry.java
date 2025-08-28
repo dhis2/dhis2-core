@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
+
+import static java.util.Objects.requireNonNull;
+
+import java.util.Date;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * An entry in an {@link DataValueSet} while processing it in context of a or {@link
- * DataValueSetWriter}.
+ * A flat data value using UIDs and ISO period values for the keys.
  *
- * @author Jan Bernitt
+ * <p>This is mostly how data values should be consumed when reading them to expose in an API or
+ * export. Hence, all columns that are non-null in DB are also required in this record.
+ *
+ * @since 2.43
  */
-public interface DataValueEntry {
-  String getDataElement();
+public record DataValueEntry(
+    @Nonnull UID dataElement,
+    @Nonnull String period,
+    @Nonnull UID orgUnit,
+    @Nonnull UID categoryOptionCombo,
+    @Nonnull UID attributeOptionCombo,
+    @CheckForNull String value,
+    @CheckForNull String comment,
+    @CheckForNull Boolean followUp,
+    @Nonnull String storedBy,
+    @Nonnull Date created,
+    @Nonnull Date lastUpdated,
+    boolean deleted) {
 
-  String getPeriod();
+  public DataValueEntry {
+    // enforce correct nullability by construction
+    requireNonNull(dataElement);
+    requireNonNull(period);
+    requireNonNull(orgUnit);
+    requireNonNull(categoryOptionCombo);
+    requireNonNull(attributeOptionCombo);
+    requireNonNull(storedBy);
+    requireNonNull(created);
+    requireNonNull(lastUpdated);
+  }
 
-  String getOrgUnit();
+  public boolean isFollowUp() {
+    return followUp != null && followUp;
+  }
 
-  String getCategoryOptionCombo();
-
-  String getAttributeOptionCombo();
-
-  String getValue();
-
-  String getStoredBy();
-
-  String getCreated();
-
-  String getLastUpdated();
-
-  String getComment();
-
-  boolean getFollowup();
-
-  Boolean getDeleted();
-
-  default String getPrimaryKey() {
-    return getDataElement()
-        + getPeriod()
-        + getOrgUnit()
-        + getCategoryOptionCombo()
-        + getAttributeOptionCombo();
+  public DataEntryKey toKey() {
+    return new DataEntryKey(
+        dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
   }
 }

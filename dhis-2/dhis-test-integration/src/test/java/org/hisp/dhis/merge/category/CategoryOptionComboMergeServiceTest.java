@@ -72,6 +72,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
@@ -743,17 +744,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDvs = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDvs = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDvs.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDvs.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -800,17 +801,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -855,17 +856,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -877,7 +878,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("source value 2"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataValueEntry::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -913,17 +914,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -935,7 +936,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("target value 3"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataValueEntry::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -978,17 +979,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1000,7 +1001,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("keep source value 1b", "keep source value 2a", "keep target value 3b"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataValueEntry::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1034,17 +1035,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDvs = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDvs = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDvs.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDvs.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1090,17 +1091,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1145,17 +1146,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1167,7 +1168,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("source value 2"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataValueEntry::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1203,17 +1204,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1225,7 +1226,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("target value 3"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataValueEntry::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1268,17 +1269,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataValueEntry> allDataValues = dataValueStore.getAllDataValues();
+    List<DataValueEntry> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1290,7 +1291,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("keep source value 1b", "keep source value 2a", "keep target value 3b"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataValueEntry::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");

@@ -112,7 +112,7 @@ public class DefaultDataValueService implements DataValueService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValue> getDataValues(DataExportParams params) {
+  public List<DataValueEntry> getDataValues(DataExportParams params) {
     validate(params);
 
     return dataValueStore.getDataValues(params);
@@ -171,12 +171,6 @@ public class DefaultDataValueService implements DataValueService {
 
       throw new IllegalQueryException(error);
     }
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValue> getAllDataValues() {
-    return dataValueStore.getAllDataValues();
   }
 
   @Override

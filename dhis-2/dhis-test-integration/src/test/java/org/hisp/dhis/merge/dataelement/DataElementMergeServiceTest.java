@@ -69,6 +69,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -2422,16 +2423,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    List<DataValue> sourceItems =
+    List<DataValueEntry> sourceItems =
         dataValueStore.getAllDataValues().stream()
             .filter(
                 dv ->
                     Set.of(deSource1.getUid(), deSource2.getUid())
-                        .contains(dv.getDataElement().getUid()))
+                        .contains(dv.dataElement().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataValueEntry> targetItems =
         dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+            .filter(dv -> dv.dataElement().getValue().equals(deTarget.getUid()))
             .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();

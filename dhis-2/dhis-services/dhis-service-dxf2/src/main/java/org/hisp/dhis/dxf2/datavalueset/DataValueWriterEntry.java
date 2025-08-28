@@ -29,74 +29,42 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import com.csvreader.CsvWriter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import lombok.AllArgsConstructor;
-
 /**
- * Write {@link DataValueSet}s as CSV data.
+ * An entry in an {@link DataValueSet} while processing it in context of a or {@link
+ * DataValueSetWriter}.
  *
  * @author Jan Bernitt
  */
-@AllArgsConstructor
-final class CsvDataValueSetWriter implements DataValueSetWriter {
+public interface DataValueWriterEntry {
+  String getDataElement();
 
-  private static final String[] HEADER_ROW = {
-    "dataelement",
-    "period",
-    "orgunit",
-    "categoryoptioncombo",
-    "attributeoptioncombo",
-    "value",
-    "storedby",
-    "lastupdated",
-    "comment",
-    "followup",
-    "deleted"
-  };
+  String getPeriod();
 
-  private final CsvWriter writer;
+  String getOrgUnit();
 
-  @Override
-  public void writeHeader() {
-    appendRow(HEADER_ROW);
-  }
+  String getCategoryOptionCombo();
 
-  @Override
-  public void writeHeader(
-      String dataSetId, String completeDate, String isoPeriod, String orgUnitId) {
-    appendRow(HEADER_ROW);
-  }
+  String getAttributeOptionCombo();
 
-  @Override
-  public void writeValue(DataValueWriterEntry entry) {
-    appendRow(
-        new String[] {
-          entry.getDataElement(),
-          entry.getPeriod(),
-          entry.getOrgUnit(),
-          entry.getCategoryOptionCombo(),
-          entry.getAttributeOptionCombo(),
-          entry.getValue(),
-          entry.getStoredBy(),
-          entry.getLastUpdated(),
-          entry.getComment(),
-          String.valueOf(entry.getFollowup()),
-          String.valueOf(entry.getDeleted())
-        });
-  }
+  String getValue();
 
-  @Override
-  public void close() {
-    writer.close();
-  }
+  String getStoredBy();
 
-  private void appendRow(String[] row) {
-    try {
-      writer.writeRecord(row);
-    } catch (IOException ex) {
-      throw new UncheckedIOException("Failed to write CSV data", ex);
-    }
+  String getCreated();
+
+  String getLastUpdated();
+
+  String getComment();
+
+  boolean getFollowup();
+
+  Boolean getDeleted();
+
+  default String getPrimaryKey() {
+    return getDataElement()
+        + getPeriod()
+        + getOrgUnit()
+        + getCategoryOptionCombo()
+        + getAttributeOptionCombo();
   }
 }

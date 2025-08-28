@@ -76,7 +76,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
@@ -329,7 +329,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
                   inputUtils.getAttributeOptionCombo(
                       dataSet.getCategoryCombo(), options, IdScheme.UID));
 
-      List<DataValue> dataValues =
+      List<DataValueEntry> dataValues =
           dataValueService.getDataValues(
               new DataExportParams()
                   .setDataElements(dataSets.get(0).getDataElements())

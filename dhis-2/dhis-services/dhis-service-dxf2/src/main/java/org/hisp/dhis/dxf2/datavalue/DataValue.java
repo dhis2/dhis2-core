@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.datavalueset.DataValueEntry;
+import org.hisp.dhis.dxf2.datavalueset.DataValueWriterEntry;
 
 /**
  * @author Lars Helge Overland
@@ -47,7 +47,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueEntry;
 @ToString
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "dataValue", namespace = DxfNamespaces.DXF_2_0)
-public final class DataValue implements DataValueEntry {
+public final class DataValue implements DataValueWriterEntry {
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   private String dataElement;
