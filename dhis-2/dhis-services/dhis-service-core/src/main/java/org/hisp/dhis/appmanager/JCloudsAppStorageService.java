@@ -118,31 +118,31 @@ public class JCloudsAppStorageService implements AppStorageService {
         continue;
       }
 
-      try (InputStream inputStream = manifest.getPayload().openStream()) {
-        App app = App.MAPPER.readValue(inputStream, App.class);
-        app.setAppStorageSource(AppStorageSource.JCLOUDS);
-        app.setFolderName(resource.getName().replaceAll("/$", ""));
+      handleAppManifest(handler, resource, manifest);
+    }
+  }
 
-        Blob translationFile =
-            jCloudsStore.getBlob(
-                resource.getName() + AppStorageService.MANIFEST_TRANSLATION_FILENAME);
-        List<AppManifestTranslation> translations = readAppManifestTranslations(translationFile);
-        app.setManifestTranslations(translations);
+  private void handleAppManifest(
+      BiConsumer<App, BundledAppInfo> handler, StorageMetadata resource, Blob manifest) {
+    try (InputStream inputStream = manifest.getPayload().openStream()) {
+      App app = App.MAPPER.readValue(inputStream, App.class);
+      app.setAppStorageSource(AppStorageSource.JCLOUDS);
+      app.setFolderName(resource.getName().replaceAll("/$", ""));
+      app.setManifestTranslations(
+          readAppManifestTranslations(
+              jCloudsStore.getBlob(
+                  resource.getName() + AppStorageService.MANIFEST_TRANSLATION_FILENAME)));
 
-        Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + BUNDLED_APP_INFO_FILENAME);
-        if (bundledAppInfo == null) {
-          handler.accept(app, null);
-        } else {
-          try (InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream()) {
-            BundledAppInfo appInfo =
-                App.MAPPER.readValue(bundledAppInfoStream, BundledAppInfo.class);
-            app.setBundled(true);
-            handler.accept(app, appInfo);
-          }
+      Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + BUNDLED_APP_INFO_FILENAME);
+      if (bundledAppInfo != null) {
+        try (InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream()) {
+          handler.accept(app, App.MAPPER.readValue(bundledAppInfoStream, BundledAppInfo.class));
         }
-      } catch (IOException ex) {
-        log.error("Could not read manifest file of '{}'", resource.getName(), ex);
+      } else {
+        handler.accept(app, null);
       }
+    } catch (IOException ex) {
+      log.error("Could not read manifest file of '{}'", resource.getName(), ex);
     }
   }
 
@@ -283,9 +283,12 @@ public class JCloudsAppStorageService implements AppStorageService {
    */
   private String getInstallationFolder(App app) {
     String appKey = app.getKey();
+    // Limit the folder name length to avoid issues with file systems that have a maximum path
+    // length.
+    int maxFileNameLength = 32;
     String folderName =
-        appKey.length() > 32
-            ? appKey.substring(0, 31)
+        appKey.length() > maxFileNameLength
+            ? appKey.substring(0, maxFileNameLength - 1)
             : appKey + "_" + CodeGenerator.getRandomSecureToken();
     return APPS_DIR + File.separator + folderName;
   }

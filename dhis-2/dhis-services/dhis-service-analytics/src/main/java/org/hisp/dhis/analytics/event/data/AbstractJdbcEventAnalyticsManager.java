@@ -43,6 +43,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
+import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
@@ -76,6 +77,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
@@ -167,6 +169,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -352,9 +355,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * query items second. Program indicator expressions are converted to SQL expressions. When
    * grouping with non-default analytics period boundaries, all periods are skipped in the group
    * clause, as non default boundaries is defining their own period groups within their where
-   * clause. It removes columns aliases.
-   *
-   * @return the list of "group by" columns.
+   * clause.
    */
   protected List<String> getGroupByColumnNames(EventQueryParams params, boolean isAggregated) {
     List<String> columns = getSelectColumns(params, true, isAggregated);
@@ -1492,8 +1493,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : filter.getFilter();
 
     if (IN.equals(filter.getOperator())) {
+      String prefixedField = field;
+
+      if (needsEnrollmentPrefix(item.getItem(), params)) {
+        prefixedField = addEnrollmentPrefix(field);
+      }
+
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, sqlBuilder.escape(filterString), !item.isNumeric());
+          new InQueryFilter(prefixedField, sqlBuilder.escape(filterString), !item.isNumeric());
 
       return inQueryFilter.getSqlFilter();
     } else {
@@ -1520,6 +1527,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + getSqlFilter(filter, item)
           + SPACE;
     }
+  }
+
+  /**
+   * Checks if an enrollment prefix is required. Currently, TEA objects need it because we want to
+   * query the enrollment values, as the TEA is associated with the enrollment.
+   *
+   * @param item the {@DimensionalItemObject}.
+   * @param params the {@EventQueryParams}.
+   * @return true if a prefix is needed, false otherwise.
+   */
+  private boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
+    return params.getEndpointAction() == AGGREGATE
+        && params.getEndpointItem() == ENROLLMENT
+        && item instanceof TrackedEntityAttribute;
   }
 
   /**
@@ -2530,6 +2551,37 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return (offset - 1);
     }
+  }
+
+  /**
+   * This method switches or add a new prefix to the given column if needed. It takes into
+   * consideration columns used in functions as well as regular columns and columns with aliases.
+   *
+   * <p>ie:
+   *
+   * <ul>
+   *   <li>ax.value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
+   *   <li>ev.value as "A03MvHHogjR" -> ev.value as "A03MvHHogjR"
+   *   <li>value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
+   *   <li>count() as value -> count() as value"
+   *   <li>ST_Y(ax.geometry) -> ST_Y(ax.geometry)
+   * </ul>
+   *
+   * @param column to be prefixed.
+   * @return the prefixed column (if required).
+   */
+  String addEnrollmentPrefix(String column) {
+    String functionColumn = substringBetween(column, "(", ")");
+    boolean hasFunction = functionColumn != null;
+    boolean hasPrefix = column.contains("ax.") || column.contains("ev.");
+
+    if (!hasFunction && !hasPrefix) {
+      column = "ax." + column;
+    } else if (hasFunction && functionColumn.length() > 0 && !hasPrefix) {
+      column = column.replace(functionColumn, "ax." + functionColumn);
+    }
+
+    return column;
   }
 
   // ---------------------------------------------------------------------
