@@ -288,12 +288,12 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     for (String paramKey : params.getParamsKeys()) {
       writer.write(",");
       String paramValue = params.getParam(paramKey);
-      writer.write(paramValue != null ? csvQuote(paramValue) : "");
+      writer.write(paramValue != null ? paramValue : "");
     }
 
     // Write events/s
     writer.write(",");
-    writer.write(String.format("\"%.2f\"", eventsPerSec));
+    writer.write(String.format("%.2f", eventsPerSec));
     writer.newLine();
   }
 
