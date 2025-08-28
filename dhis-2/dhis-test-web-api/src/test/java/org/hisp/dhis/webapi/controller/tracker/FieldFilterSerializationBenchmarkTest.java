@@ -44,6 +44,7 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Timeout;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -59,6 +60,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.runner.options.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -69,9 +71,20 @@ import org.springframework.transaction.annotation.Transactional;
  * JMH benchmark integrated with DHIS2 Spring testing infrastructure.
  *
  * <p>This approach combines JUnit test execution with JMH benchmarking, allowing full access to
- * Spring services while maintaining proper benchmark execution semantics.
+ * Spring services (based on: <a
+ * href="https://gist.github.com/msievers/ce80d343fc15c44bea6cbb741dde7e45">this gist</a>).
  *
- * <p>Based on: https://gist.github.com/msievers/ce80d343fc15c44bea6cbb741dde7e45
+ * <p><strong>Fork Configuration:</strong> This benchmark uses {@code @Fork(0)} to run in the same
+ * JVM as the test runner. While JMH typically recommends forking for isolation, this is necessary
+ * to preserve the Spring application context and dependency injection. The trade-off is acceptable
+ * because:
+ *
+ * <ul>
+ *   <li>All benchmarks run under the same conditions, so relative performance differences remain
+ *       valid
+ *   <li>Spring services are essential for realistic performance testing
+ *   <li>The magnitude of performance differences makes minor interference negligible
+ * </ul>
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
@@ -84,7 +97,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     public int eventCount;
 
     @Param({
-      //            "*", // Full serialization - baseline
+      "*", // Full serialization - baseline
       "event,dataValues", // Moderate filtering - common case
       //            "dataValues[dataElement,value]", // Deep field selection
       //            "relationships[from[trackedEntity[*]]]", // Complex nested filtering
@@ -113,7 +126,6 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
   }
 
   public static class FieldFilterBenchmarks {
-
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
@@ -160,6 +172,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
   @Autowired
   private ObjectMapper filterMapper;
 
+  @Timeout(unit = TimeUnit.MINUTES, value = 20)
   @Test
   public void executeJmhRunner() throws Exception {
     // Inject Spring services into static benchmark state
@@ -176,6 +189,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
                 "org.hisp.dhis.webapi.controller.tracker.FieldFilterSerializationBenchmarkTest.FieldFilterBenchmarks.*")
             .shouldFailOnError(true)
             .shouldDoGC(true)
+            .timeout(TimeValue.minutes(20))
             .build();
 
     new Runner(opt).run();
