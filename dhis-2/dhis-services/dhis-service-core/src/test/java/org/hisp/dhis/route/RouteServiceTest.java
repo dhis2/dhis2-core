@@ -37,8 +37,6 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.mockserver.client.MockServerClient;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
@@ -60,13 +58,9 @@ class RouteServiceTest {
         .respond(org.mockserver.model.HttpResponse.response("{}"));
 
     RouteService routeService = new RouteService(null, null);
-    routeService.setRestTemplate(new RestTemplate());
     routeService.postConstruct();
 
-    HttpClient httpClient =
-        ((HttpComponentsClientHttpRequestFactory)
-                routeService.getRestTemplate().getRequestFactory())
-            .getHttpClient();
+    HttpClient httpClient = routeService.getHttpClient();
     HttpUriRequest httpUriRequest =
         RequestBuilder.get(
                 "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort())
@@ -79,6 +73,6 @@ class RouteServiceTest {
 
   @Test
   void testAllowedRequestHeaders() {
-    assertTrue(RouteService.allowedRequestHeaders.contains("content-type"));
+    assertTrue(RouteService.ALLOWED_REQUEST_HEADERS.contains("content-type"));
   }
 }
