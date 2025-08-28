@@ -90,7 +90,7 @@ final class JsonDataValueSetWriter implements DataValueSetWriter {
   }
 
   @Override
-  public void writeValue(DataValueEntry entry) {
+  public void writeValue(DataValueWriterEntry entry) {
     try {
       generator.writeStartObject();
       generator.writeStringField("dataElement", entry.getDataElement());

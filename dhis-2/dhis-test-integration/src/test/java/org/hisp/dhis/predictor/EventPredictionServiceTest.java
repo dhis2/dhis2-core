@@ -32,6 +32,7 @@ package org.hisp.dhis.predictor;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -51,6 +52,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
@@ -113,6 +115,8 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private DataValueService dataValueService;
+
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private AnalyticsService analyticsService;
 
@@ -336,11 +340,9 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     User user = createAndAddUser(true, "mockUser", orgUnitASet, orgUnitASet);
     injectSecurityContextUser(user);
 
-    dataValueService.addDataValue(
-        createDataValue(dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100"));
-    dataValueService.addDataValue(
-        createDataValue(dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200"));
-    dataValueService.addDataValue(
+    addDataValues(
+        createDataValue(dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100"),
+        createDataValue(dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200"),
         createDataValue(dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300"));
   }
 
@@ -414,5 +416,9 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
         predictorT, getDate(testYear, 4, 1), getDate(testYear, 5, 31), summary);
     assertEquals("101", getDataValue(predictorOutputT, periodApr));
     assertEquals("302", getDataValue(predictorOutputT, periodMay));
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

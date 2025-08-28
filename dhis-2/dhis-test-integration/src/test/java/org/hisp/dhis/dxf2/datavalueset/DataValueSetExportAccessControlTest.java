@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -50,9 +51,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -73,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueSetService dataValueSetService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -152,10 +153,11 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     ouA = createOrganisationUnit('A');
     idObjectManager.save(ouA);
     // Data values
-    dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocA, "1"));
-    dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocB, "2"));
-    dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocC, "3"));
-    dataValueService.addDataValue(new DataValue(deA, peA, ouA, cocA, cocD, "4"));
+    addDataValues(
+        new DataValue(deA, peA, ouA, cocA, cocA, "1"),
+        new DataValue(deA, peA, ouA, cocA, cocB, "2"),
+        new DataValue(deA, peA, ouA, cocA, cocC, "3"),
+        new DataValue(deA, peA, ouA, cocA, cocD, "4"));
   }
 
   /**
@@ -292,5 +294,9 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   private void setCurrentUser(User user) {
     userService.addUser(user);
     injectSecurityContextUser(user);
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

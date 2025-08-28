@@ -147,16 +147,6 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataSetsNotAssignedToOrganisationUnits() {
-    OrganisationUnit unitX = addOrganisationUnit('X');
-    DataSet dataSetA = addDataSet('A');
-    addDataSet('B', unitX);
-    DataSet dataSetC = addDataSet('C');
-    assertContainsOnly(
-        List.of(dataSetA, dataSetC), dataSetStore.getDataSetsNotAssignedToOrganisationUnits());
-  }
-
-  @Test
   @DisplayName("retrieving DataSetElements by DataElement returns expected entries")
   void dataSetElementByDataElementTest() {
     // given
@@ -185,12 +175,6 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
             .map(dse -> dse.getDataElement().getUid())
             .toList()
             .containsAll(List.of(deW.getUid(), deX.getUid(), deY.getUid())));
-  }
-
-  private OrganisationUnit addOrganisationUnit(char uniqueCharacter) {
-    OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-    unitStore.save(unit);
-    return unit;
   }
 
   private DataSet addDataSet(char uniqueCharacter, OrganisationUnit... sources) {

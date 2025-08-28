@@ -70,7 +70,7 @@ final class CsvDataValueSetWriter implements DataValueSetWriter {
   }
 
   @Override
-  public void writeValue(DataValueEntry entry) {
+  public void writeValue(DataValueWriterEntry entry) {
     appendRow(
         new String[] {
           entry.getDataElement(),

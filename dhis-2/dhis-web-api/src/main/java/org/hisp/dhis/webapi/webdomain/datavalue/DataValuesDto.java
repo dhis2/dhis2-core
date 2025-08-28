@@ -50,7 +50,7 @@ import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 @Accessors(chain = true)
 @NoArgsConstructor
 public class DataValuesDto {
-  @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
+  @JsonProperty private List<DataValuePostParams> dataValues = new ArrayList<>();
 
   @JsonProperty private List<MinMaxValue> minMaxValues = new ArrayList<>();
 

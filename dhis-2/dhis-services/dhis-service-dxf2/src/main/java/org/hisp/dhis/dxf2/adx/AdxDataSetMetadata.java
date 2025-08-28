@@ -48,7 +48,7 @@ import org.hisp.dhis.dataset.DataSetElement;
 public class AdxDataSetMetadata {
   // Lookup category options per cat option combo
 
-  private final Map<Long, Map<String, String>> categoryOptionMap;
+  private final Map<String, Map<String, String>> categoryOptionMap;
 
   AdxDataSetMetadata(DataSet dataSet, IdSchemes idSchemes) throws AdxException {
     categoryOptionMap = new HashMap<>();
@@ -104,10 +104,10 @@ public class AdxDataSetMetadata {
       }
     }
 
-    categoryOptionMap.put(coc.getId(), categoryAttributes);
+    categoryOptionMap.put(coc.getUid(), categoryAttributes);
   }
 
-  public Map<String, String> getExplodedCategoryAttributes(long cocId) {
+  public Map<String, String> getExplodedCategoryAttributes(String cocId) {
     return this.categoryOptionMap.get(cocId);
   }
 }

@@ -130,7 +130,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
             "One more conflicts encountered, please check import summary.",
             POST("/38/dataValueSets/", body).content(HttpStatus.CONFLICT));
     JsonImportConflict conflict =
-        message.find(JsonImportConflict.class, c -> c.getErrorCode() == ErrorCode.E7621);
+        message.find(JsonImportConflict.class, c -> c.getErrorCode() == ErrorCode.E8123);
     assertTrue(conflict.isObject());
     assertEquals(
         format(

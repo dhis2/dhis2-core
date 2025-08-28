@@ -31,10 +31,10 @@ package org.hisp.dhis.dxf2.adx;
 
 import static org.hisp.dhis.common.IdScheme.CODE;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
@@ -45,9 +45,7 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.awaitility.Awaitility;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -58,18 +56,23 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,11 +87,16 @@ import org.springframework.core.io.ClassPathResource;
 class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private AdxDataService adxDataService;
 
+  @Autowired private DataEntryPipeline dataEntryPipeline;
+
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private PeriodService periodService;
 
   @Autowired private DataValueService dataValueService;
+  @Autowired private DataValueStore dataValueStore;
+
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
 
@@ -266,22 +274,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     periodService.addPeriod(pe202001);
     periodService.addPeriod(pe202002);
     periodService.addPeriod(pe2021Q1);
-    // Data Set
-    dsA = createDataSet('A', PeriodType.getPeriodTypeByName("Monthly"));
-    dsB = createDataSet('B', PeriodType.getPeriodTypeByName("Quarterly"));
-    dsA.setName("Malaria DS");
-    dsB.setName("Malaria Mechanism DS");
-    dsA.setCode("MalariaDS");
-    dsB.setCode("MalariaMechanismDS");
-    dsA.setUid("MalariaDSSS");
-    dsB.setUid("MalariaMech");
-    dsA.addDataSetElement(deA);
-    dsA.addDataSetElement(deB);
-    dsB.addDataSetElement(deA);
-    dsB.addDataSetElement(deB);
-    dsB.setCategoryCombo(ccMechanism);
-    idObjectManager.save(dsA);
-    idObjectManager.save(dsB);
+
     // Organisation Unit
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B', ouA);
@@ -293,6 +286,25 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ouB.setUid("D4566666666");
     idObjectManager.save(ouA);
     idObjectManager.save(ouB);
+
+    // Data Set
+    dsA = createDataSet('A', PeriodType.getPeriodTypeByName("Monthly"));
+    dsB = createDataSet('B', PeriodType.getPeriodTypeByName("Quarterly"));
+    dsA.setName("Malaria DS");
+    dsB.setName("Malaria Mechanism DS");
+    dsA.setCode("MalariaDS");
+    dsB.setCode("MalariaMechanismDS");
+    dsA.setUid("MalariaDSSS");
+    dsA.addOrganisationUnit(ouA);
+    dsB.setUid("MalariaMech");
+    dsA.addDataSetElement(deA);
+    dsA.addDataSetElement(deB);
+    dsB.addDataSetElement(deA);
+    dsB.addDataSetElement(deB);
+    dsB.setCategoryCombo(ccMechanism);
+    idObjectManager.save(dsA);
+    idObjectManager.save(dsB);
+
     // Organisation Unit Group
     ougA = createOrganisationUnitGroup('A');
     ougA.addOrganisationUnit(ouA);
@@ -374,7 +386,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // Test export
   // --------------------------------------------------------------------------
   @Test
-  void testWriteDataValueSetA() throws AdxException, IOException {
+  void testWriteDataValueSetA() throws Exception {
     testExport(
         "adx/exportA.adx.xml",
         getCommonExportParams()
@@ -387,7 +399,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testWriteDataValueSetB() throws AdxException, IOException {
+  void testWriteDataValueSetB() throws Exception {
     testExport(
         "adx/exportB.adx.xml",
         getCommonExportParams()
@@ -402,7 +414,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testWriteDataValueSetC() throws AdxException, IOException {
+  void testWriteDataValueSetC() throws Exception {
     testExport(
         "adx/exportC.adx.xml",
         getCommonExportParams()
@@ -417,7 +429,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testWriteDataValueSetD() throws AdxException, IOException {
+  void testWriteDataValueSetD() throws Exception {
     testExport(
         "adx/exportD.adx.xml",
         getCommonExportParams()
@@ -476,43 +488,34 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportDataIgnoreDatesOnCreate() throws IOException {
-    Date today = new Date();
-    assertEquals(0, dataValueService.getAllDataValues().size());
+    assertEquals(0, dataValueStore.getAllDataValues().size());
 
     InputStream in = new ClassPathResource("adx/importDates.adx.xml").getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
     importOptions.setIdSchemes(idSchemes);
-    adxDataService.saveDataValueSet(in, importOptions, JobProgress.noop());
+    ImportSummary summary = dataEntryPipeline.importXml(in, importOptions, transitory());
 
-    DataValue dataValue = dataValueService.getAllDataValues().get(0);
-    assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
-    assertEquals(toMediumDate(today), toMediumDate(dataValue.getLastUpdated()));
-    assertEquals("33", dataValue.getValue());
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus(), summary::toString);
+    assertEquals(1, summary.getImportCount().getUpdated());
   }
 
   @Test
   void testImportDataIgnoreDatesOnUpdate() throws IOException {
-    Date today = new Date();
-    assertEquals(0, dataValueService.getAllDataValues().size());
-
     InputStream in = new ClassPathResource("adx/importDates.adx.xml").getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
     importOptions.setIdSchemes(idSchemes);
-    adxDataService.saveDataValueSet(in, importOptions, JobProgress.noop());
+    ImportSummary summary = dataEntryPipeline.importXml(in, importOptions, transitory());
 
-    // wait for a small period so created & lastUpdated times are different & can be checked
-    Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus(), summary::toString);
+    assertEquals(1, summary.getImportCount().getUpdated());
 
     InputStream in2 = new ClassPathResource("adx/importDatesUpdate.adx.xml").getInputStream();
-    adxDataService.saveDataValueSet(in2, importOptions, JobProgress.noop());
+    summary = dataEntryPipeline.importXml(in2, importOptions, transitory());
 
-    DataValue dataValue = dataValueService.getAllDataValues().get(0);
-    assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
-    assertEquals(toMediumDate(today), toMediumDate(dataValue.getLastUpdated()));
-    assertNotEquals(dataValue.getCreated(), dataValue.getLastUpdated());
-    assertEquals("55", dataValue.getValue());
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus(), summary::toString);
+    assertEquals(1, summary.getImportCount().getUpdated());
   }
 
   // --------------------------------------------------------------------------
@@ -525,13 +528,12 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
         .setDataSets(Sets.newHashSet(dsA, dsB));
   }
 
-  private void testExport(String filePath, DataExportParams params)
-      throws AdxException, IOException {
-    dataValueService.addDataValue(new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"));
-    dataValueService.addDataValue(
-        new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"));
-    dataValueService.addDataValue(new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"));
-    dataValueService.addDataValue(new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
+  private void testExport(String filePath, DataExportParams params) throws Exception {
+    addDataValues(
+        new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
+        new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"),
+        new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"),
+        new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     adxDataService.writeDataValueSet(params, out);
     String result = out.toString("UTF-8");
@@ -550,23 +552,27 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private void testImport(String filePath, IdSchemes idSchemes) throws IOException {
-    assertEquals(0, dataValueService.getAllDataValues().size());
+    assertEquals(0, dataValueStore.getAllDataValues().size());
     InputStream in = new ClassPathResource(filePath).getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     importOptions.setIdSchemes(idSchemes);
-    adxDataService.saveDataValueSet(in, importOptions, JobProgress.noop());
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
+    dataEntryPipeline.importXml(in, importOptions, transitory());
+    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
     assertContainsOnly(
         List.of(
-            new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
-            new DataValue(deA, pe202001, ouA, cocMUnder5, cocDefault, "2"),
-            new DataValue(deA, pe202001, ouA, cocFOver5, cocDefault, "3"),
-            new DataValue(deA, pe202001, ouA, cocMOver5, cocDefault, "4"),
-            new DataValue(deB, pe202001, ouA, cocDefault, cocDefault, "Text data value"),
-            new DataValue(deA, pe202002, ouB, cocFUnder5, cocDefault, "6"),
-            new DataValue(deA, pe2021Q1, ouB, cocFUnder5, cocPepfar, "10"),
-            new DataValue(deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20"),
-            new DataValue(deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30")),
+            new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1").toEntry(),
+            new DataValue(deA, pe202001, ouA, cocMUnder5, cocDefault, "2").toEntry(),
+            new DataValue(deA, pe202001, ouA, cocFOver5, cocDefault, "3").toEntry(),
+            new DataValue(deA, pe202001, ouA, cocMOver5, cocDefault, "4").toEntry(),
+            new DataValue(deB, pe202001, ouA, cocDefault, cocDefault, "Text data value").toEntry(),
+            new DataValue(deA, pe202002, ouB, cocFUnder5, cocDefault, "6").toEntry(),
+            new DataValue(deA, pe2021Q1, ouB, cocFUnder5, cocPepfar, "10").toEntry(),
+            new DataValue(deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20").toEntry(),
+            new DataValue(deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30").toEntry()),
         dataValues);
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

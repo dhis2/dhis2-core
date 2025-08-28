@@ -62,7 +62,7 @@ final class XmlDataValueSetWriter implements DataValueSetWriter {
   }
 
   @Override
-  public void writeValue(DataValueEntry entry) {
+  public void writeValue(DataValueWriterEntry entry) {
     writer.openElement("dataValue");
     writer.writeAttribute("dataElement", entry.getDataElement());
     writer.writeAttribute("period", entry.getPeriod());

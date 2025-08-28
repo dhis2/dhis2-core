@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
@@ -54,7 +54,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * @author Jan Bernitt
  */
 class DataValueControllerTest extends AbstractDataValueControllerTest {
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataValueStore dataValueStore;
 
   @Test
   void testSetDataValuesFollowUp_Empty() {
@@ -191,13 +191,13 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
   }
 
   private void assertFollowups(boolean... expected) {
-    List<DataValue> values = dataValueService.getAllDataValues();
+    List<DataValueEntry> values = dataValueStore.getAllDataValues();
     assertEquals(expected.length, values.size());
     int expectedTrue = 0;
     int actualTrue = 0;
     for (int i = 0; i < expected.length; i++) {
       expectedTrue += expected[i] ? 1 : 0;
-      actualTrue += values.get(i).isFollowup() ? 1 : 0;
+      actualTrue += values.get(i).isFollowUp() ? 1 : 0;
     }
     assertEquals(expectedTrue, actualTrue, "Number of values marked for followup does not match");
   }
