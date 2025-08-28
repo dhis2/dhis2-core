@@ -99,14 +99,14 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    @Param({"25", "50", "100", "200", "400", "800"})
-    //    @Param({"25"})
+    //    @Param({"25", "50", "100", "200", "400", "800"})
+    @Param({"25"})
     public int eventCount;
 
     @Param({
       "*", // serialization all - baseline
-      "event", // only a single String field
-      "*,!relationships", // default fields of /tracker/events
+      //      "event", // only a single String field
+      //      "*,!relationships", // default fields of /tracker/events
       //            "dataValues[dataElement,value]", // Deep field selection
       //            "relationships[from[trackedEntity[*]]]", // Complex nested filtering
       //            "event,dataValues[*,!storedBy]" // Mixed include/exclude
@@ -192,51 +192,45 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
             .result("jmh-result.csv")
             .build();
 
+    // add the events/s to the benchmark results to see the effect of the eventCount on the event
+    // throughput of each implementation
     Collection<RunResult> results = new Runner(opt).run();
-
-    addEventThroughputToCsv("jmh-result.csv", results);
-    printEventThroughput(results);
+    List<RunResult> sortedResults = sortResults(results);
+    addEventThroughputToCsv("jmh-result-enhanced.csv", sortedResults);
   }
 
-  private void printEventThroughput(Collection<RunResult> results) {
-    System.out.println("\n" + "=".repeat(80));
-    System.out.println("EVENT THROUGHPUT ANALYSIS");
-    System.out.println("=".repeat(80));
-
-    for (RunResult runResult : results) {
-      String benchmarkName = runResult.getParams().getBenchmark();
-      String methodName = benchmarkName.substring(benchmarkName.lastIndexOf('.') + 1);
-      String eventCountParam = runResult.getParams().getParam("eventCount");
-      String fieldsParam = runResult.getParams().getParam("fields");
-
-      int eventCount = Integer.parseInt(eventCountParam);
-      double opsPerSec = runResult.getPrimaryResult().getScore();
-      double eventsPerSec = opsPerSec * eventCount;
-
-      System.out.printf(
-          "%-25s | events=%3s | fields=%-15s | %8.0f ops/s | %10.0f events/s%n",
-          methodName,
-          eventCountParam,
-          fieldsParam.length() > 15 ? fieldsParam.substring(0, 12) + "..." : fieldsParam,
-          opsPerSec,
-          eventsPerSec);
-    }
-    System.out.println("=".repeat(80));
+  /**
+   * Sort results by fields parameter, eventCount and then benchmark method name. This makes
+   * comparison of the different implementations given the same benchmark parameters easier.
+   */
+  private List<RunResult> sortResults(Collection<RunResult> results) {
+    List<RunResult> sortedResults = new ArrayList<>(results);
+    sortedResults.sort(
+        Comparator.comparing((RunResult r) -> r.getParams().getParam("fields"))
+            .thenComparing(
+                (RunResult r) -> {
+                  String eventCountStr = r.getParams().getParam("eventCount");
+                  return eventCountStr != null ? Integer.parseInt(eventCountStr) : 0;
+                })
+            .thenComparing(
+                (RunResult r) -> {
+                  String benchmark = r.getParams().getBenchmark();
+                  return benchmark.substring(benchmark.lastIndexOf('.') + 1);
+                }));
+    return sortedResults;
   }
 
   private void addEventThroughputToCsv(String csvFilePath, Collection<RunResult> results) {
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath))) {
-      // Write header with Events/s column
       writeHeader(writer, results);
 
-      // Write data rows
       for (RunResult rr : results) {
         writeDataRow(writer, rr);
       }
 
-      System.out.println("Generated enhanced CSV with Events/s column: " + csvFilePath);
+      System.out.println("Generated benchmark results: " + csvFilePath);
     } catch (IOException e) {
-      System.err.println("Failed to write enhanced CSV: " + e.getMessage());
+      System.err.println("Failed to write benchmark results CSV: " + e.getMessage());
     }
   }
 
@@ -246,7 +240,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     SortedSet<String> params = new TreeSet<>();
     for (RunResult res : results) {
       params.addAll(res.getParams().getParamsKeys());
-      break; // Just need the keys from one result
+      break;
     }
 
     writer.write(
