@@ -46,17 +46,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -92,16 +88,16 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    //        @Param({"25","50", "100", "200", "400", "800"})
-    @Param({"25"})
+    @Param({"25", "50", "100", "200", "400", "800"})
+    //    @Param({"25"})
     public int eventCount;
 
     @Param({
-      "*", // Full serialization - baseline
-      "event,dataValues", // Moderate filtering - common case
+      "*", // serialization all - baseline
+      "event", // only a single String field
+      "*,!relationships", // default fields of /tracker/events
       //            "dataValues[dataElement,value]", // Deep field selection
       //            "relationships[from[trackedEntity[*]]]", // Complex nested filtering
-      //            "*,!relationships", // Large exclusion - performance test
       //            "event,dataValues[*,!storedBy]" // Mixed include/exclude
     })
     public String fields;
@@ -127,22 +123,12 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
   public static class FieldFilterBenchmarks {
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
-    @Fork(0) // Run in same JVM to preserve Spring context
-    public String benchmarkOnlyJackson(BenchmarkState state) throws JsonProcessingException {
+    public String noFieldFiltering(BenchmarkState state) throws JsonProcessingException {
       return BenchmarkState.objectMapper.writeValueAsString(state.events);
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
-    @Fork(0) // Run in same JVM to preserve Spring context
-    public String benchmarkCurrentFilter(BenchmarkState state) throws JsonProcessingException {
+    public String currentFieldFiltering(BenchmarkState state) throws JsonProcessingException {
       List<FieldPath> filter = FieldFilterParser.parse(state.fields);
       List<ObjectNode> objectNodes =
           BenchmarkState.fieldFilterService.toObjectNodes(state.events, filter);
@@ -150,12 +136,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
-    @Fork(0) // Run in same JVM to preserve Spring context
-    public String benchmarkBetterFilter(BenchmarkState state) throws JsonProcessingException {
+    public String betterFieldFiltering(BenchmarkState state) throws JsonProcessingException {
       Fields fields = FieldsParser.parse(state.fields);
       return BenchmarkState.filterMapper
           .writer()
@@ -172,8 +153,8 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
   @Autowired
   private ObjectMapper filterMapper;
 
-  @Timeout(unit = TimeUnit.MINUTES, value = 20)
   @Test
+  @Timeout(unit = TimeUnit.MINUTES, value = 80)
   public void executeJmhRunner() throws Exception {
     // Inject Spring services into static benchmark state
     BenchmarkState.fieldFilterService = this.fieldFilterService;
@@ -189,7 +170,14 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
                 "org.hisp.dhis.webapi.controller.tracker.FieldFilterSerializationBenchmarkTest.FieldFilterBenchmarks.*")
             .shouldFailOnError(true)
             .shouldDoGC(true)
-            .timeout(TimeValue.minutes(20))
+            .forks(0) // Run in same JVM to preserve Spring context
+            .mode(Mode.Throughput)
+            .timeUnit(TimeUnit.SECONDS)
+            .warmupIterations(2)
+            .warmupTime(TimeValue.seconds(2))
+            .measurementIterations(5)
+            .measurementTime(TimeValue.seconds(5))
+            .resultFormat(ResultFormatType.CSV)
             .build();
 
     new Runner(opt).run();
