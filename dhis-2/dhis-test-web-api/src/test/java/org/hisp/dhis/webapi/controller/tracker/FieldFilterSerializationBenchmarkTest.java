@@ -42,26 +42,23 @@ import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * JMH benchmark to compare performance between current and better field filtering implementations.
@@ -72,12 +69,12 @@ import org.springframework.transaction.annotation.Transactional;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
-@Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
-@Fork(2)
-@Transactional
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class FieldFilterSerializationBenchmark extends H2ControllerIntegrationTestBase {
+// @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+// @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
+// @Fork(2)
+// @Transactional
+// @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrationTestBase {
 
   @Param({"10", "100", "1000"})
   private int eventCount;
@@ -94,17 +91,62 @@ public class FieldFilterSerializationBenchmark extends H2ControllerIntegrationTe
 
   private List<Event> events;
 
-  @Autowired private FieldFilterService fieldFilterService;
+  private static FieldFilterService fieldFilterService;
 
-  @Autowired private ObjectMapper objectMapper;
+  private static ObjectMapper objectMapper;
 
-  @Qualifier("jsonFilterMapper")
+  private static ObjectMapper filterMapper;
+
   @Autowired
-  private ObjectMapper filterMapper;
+  public void setFieldFilterService(FieldFilterService fieldFilterService) {
+    FieldFilterSerializationBenchmarkTest.fieldFilterService = fieldFilterService;
+  }
+
+  @Autowired
+  public void setObjectMapper(ObjectMapper objectMapper) {
+    FieldFilterSerializationBenchmarkTest.objectMapper = objectMapper;
+  }
+
+  @Autowired
+  @Qualifier("jsonFilterMapper")
+  public void setFilterMapper(ObjectMapper filterMapper) {
+    FieldFilterSerializationBenchmarkTest.filterMapper = filterMapper;
+  }
 
   @Setup(Level.Trial)
   public void setup() {
     events = FieldFilterSerializationTest.createEvents(eventCount);
+  }
+
+  @Test
+  public void executeJmhRunner() throws RunnerException {
+    Options jmhRunnerOptions =
+        new OptionsBuilder()
+            .include(FieldFilterSerializationBenchmarkTest.class.getSimpleName())
+            .warmupIterations(3)
+            .measurementIterations(5)
+            // do not use forking or the benchmark methods will not see references stored within its
+            // class
+            .forks(0)
+            // do not use multiple threads
+            .threads(1)
+            .shouldDoGC(true)
+            .shouldFailOnError(true)
+            .resultFormat(ResultFormatType.JSON)
+            .result("/dev/null") // set this to a valid filename if you want reports
+            .shouldFailOnError(true)
+            //        .jvmArgs("-server")
+            .build();
+
+    new Runner(jmhRunnerOptions).run();
+  }
+
+  public static void main(String[] args) throws RunnerException {
+    Options opt =
+        new OptionsBuilder()
+            .include(FieldFilterSerializationBenchmarkTest.class.getSimpleName())
+            .build();
+    new Runner(opt).run();
   }
 
   @Benchmark
@@ -121,13 +163,5 @@ public class FieldFilterSerializationBenchmark extends H2ControllerIntegrationTe
         .writer()
         .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
         .writeValueAsString(events);
-  }
-
-  public static void main(String[] args) throws RunnerException {
-    Options opt =
-        new OptionsBuilder()
-            .include(FieldFilterSerializationBenchmark.class.getSimpleName())
-            .build();
-    new Runner(opt).run();
   }
 }
