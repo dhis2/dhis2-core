@@ -32,7 +32,9 @@ package org.hisp.dhis.category;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -68,4 +70,15 @@ public interface CategoryOptionComboStore extends IdentifiableObjectStore<Catego
    */
   List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
       Collection<String> categoryOptions);
+
+  /**
+   * Find a {@link CategoryOptionCombo} {@link UID} if a match is found with the {@link
+   * CategoryCombo} {@link UID} and set of {@link CategoryOption} {@link UID}s passed in.
+   *
+   * @param cc {@link CategoryCombo} {@link UID}
+   * @param cos set of {@link CategoryOption} {@link UID}s
+   * @return the UID of a {@link CategoryOptionCombo} if found, otherwise null
+   */
+  @CheckForNull
+  String findByCategoryComboAndCategoryOptions(UID cc, Set<UID> cos);
 }
