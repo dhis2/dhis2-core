@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.hisp.dhis.common.UID;
 
 /**
@@ -41,4 +43,8 @@ import org.hisp.dhis.common.UID;
  * @param message a message shown by some types of effects
  */
 public record ValidationEffect(
-    ValidationAction type, UID rule, String data, UID field, String message) {}
+    @Nonnull ValidationAction type,
+    @Nonnull UID rule,
+    @Nullable String data,
+    @Nullable UID field,
+    @Nullable String message) {}
