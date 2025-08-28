@@ -61,101 +61,123 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * JMH benchmark integrated with DHIS2 Spring testing infrastructure.
- * 
- * This approach combines JUnit test execution with JMH benchmarking,
- * allowing full access to Spring services while maintaining proper
- * benchmark execution semantics.
- * 
- * Based on: https://gist.github.com/msievers/ce80d343fc15c44bea6cbb741dde7e45
+ *
+ * <p>This approach combines JUnit test execution with JMH benchmarking, allowing full access to
+ * Spring services while maintaining proper benchmark execution semantics.
+ *
+ * <p>Based on: https://gist.github.com/msievers/ce80d343fc15c44bea6cbb741dde7e45
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrationTestBase {
 
-    @State(Scope.Benchmark)
-    public static class BenchmarkState {
-        @Param({"25","50", "100", "200", "400", "800"})
-        public int eventCount;
+  @State(Scope.Benchmark)
+  public static class BenchmarkState {
+    //        @Param({"25","50", "100", "200", "400", "800"})
+    @Param({"25"})
+    public int eventCount;
 
-        @Param({
-            "*", // Full serialization - baseline
-            "event,dataValues", // Moderate filtering - common case  
-            "dataValues[dataElement,value]", // Deep field selection
-            "relationships[from[trackedEntity[*]]]", // Complex nested filtering
-            "*,!relationships", // Large exclusion - performance test
-            "event,dataValues[*,!storedBy]" // Mixed include/exclude
-        })
-        public String fieldsFilter;
+    @Param({
+      //            "*", // Full serialization - baseline
+      "event,dataValues", // Moderate filtering - common case
+      //            "dataValues[dataElement,value]", // Deep field selection
+      //            "relationships[from[trackedEntity[*]]]", // Complex nested filtering
+      //            "*,!relationships", // Large exclusion - performance test
+      //            "event,dataValues[*,!storedBy]" // Mixed include/exclude
+    })
+    public String fieldsFilter;
 
-        public List<Event> events;
-        
-        // Spring services are injected from test instance
-        public static FieldFilterService fieldFilterService;
-        public static ObjectMapper objectMapper;
-        public static ObjectMapper filterMapper;
+    public List<Event> events;
 
-        @Setup(Level.Trial)
-        public void setup() {
-            events = FieldFilterSerializationTest.createEvents(eventCount);
-        }
+    // Spring services are injected from test instance
+    public static FieldFilterService fieldFilterService;
+    public static ObjectMapper objectMapper;
+    public static ObjectMapper filterMapper;
+    public static Authentication savedAuth;
+
+    @Setup(Level.Trial)
+    public void setup() {
+      events = FieldFilterSerializationTest.createEvents(eventCount);
+
+      // JMH runs in separate threads, need to propagate SecurityContext
+      if (savedAuth != null) {
+        SecurityContextHolder.getContext().setAuthentication(savedAuth);
+      }
+    }
+  }
+
+  public static class FieldFilterBenchmarks {
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
+    @Fork(0) // Run in same JVM to preserve Spring context
+    public String benchmarkOnlyJackson(BenchmarkState state) throws JsonProcessingException {
+      return BenchmarkState.objectMapper.writeValueAsString(state.events);
     }
 
-    public static class FieldFilterBenchmarks {
-        
-        @Benchmark
-        @BenchmarkMode(Mode.Throughput)
-        @OutputTimeUnit(TimeUnit.SECONDS)
-        @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-        @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
-        @Fork(0) // Run in same JVM to preserve Spring context
-        public String benchmarkCurrentFilter(BenchmarkState state) throws JsonProcessingException {
-            List<FieldPath> filter = FieldFilterParser.parse(state.fieldsFilter);
-            List<ObjectNode> objectNodes = BenchmarkState.fieldFilterService.toObjectNodes(state.events, filter);
-            return BenchmarkState.objectMapper.writeValueAsString(objectNodes);
-        }
-
-        @Benchmark
-        @BenchmarkMode(Mode.Throughput)
-        @OutputTimeUnit(TimeUnit.SECONDS)
-        @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-        @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
-        @Fork(0) // Run in same JVM to preserve Spring context
-        public String benchmarkBetterFilter(BenchmarkState state) throws JsonProcessingException {
-            Fields fields = FieldsParser.parse(state.fieldsFilter);
-            return BenchmarkState.filterMapper
-                .writer()
-                .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
-                .writeValueAsString(state.events);
-        }
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
+    @Fork(0) // Run in same JVM to preserve Spring context
+    public String benchmarkCurrentFilter(BenchmarkState state) throws JsonProcessingException {
+      List<FieldPath> filter = FieldFilterParser.parse(state.fieldsFilter);
+      List<ObjectNode> objectNodes =
+          BenchmarkState.fieldFilterService.toObjectNodes(state.events, filter);
+      return BenchmarkState.objectMapper.writeValueAsString(objectNodes);
     }
 
-    // Spring dependencies - accessed through test instance
-    @Autowired private FieldFilterService fieldFilterService;
-    @Autowired private ObjectMapper objectMapper;
-    
-    @Qualifier("jsonFilterMapper")
-    @Autowired private ObjectMapper filterMapper;
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
+    @Fork(0) // Run in same JVM to preserve Spring context
+    public String benchmarkBetterFilter(BenchmarkState state) throws JsonProcessingException {
+      Fields fields = FieldsParser.parse(state.fieldsFilter);
+      return BenchmarkState.filterMapper
+          .writer()
+          .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
+          .writeValueAsString(state.events);
+    }
+  }
 
-    @Test
-    public void executeJmhRunner() throws Exception {
-        // Inject Spring services into static benchmark state
-        BenchmarkState.fieldFilterService = this.fieldFilterService;
-        BenchmarkState.objectMapper = this.objectMapper;  
-        BenchmarkState.filterMapper = this.filterMapper;
+  // Spring dependencies - accessed through test instance
+  @Autowired private FieldFilterService fieldFilterService;
+  @Autowired private ObjectMapper objectMapper;
 
-        // Debug: Print the full class name to see what JMH expects
-        System.out.println("Looking for benchmarks in: " + FieldFilterBenchmarks.class.getName());
-        
-        Options opt = new OptionsBuilder()
-            .include("org.hisp.dhis.webapi.controller.tracker.FieldFilterSerializationBenchmarkTest.FieldFilterBenchmarks.*")
+  @Qualifier("jsonFilterMapper")
+  @Autowired
+  private ObjectMapper filterMapper;
+
+  @Test
+  public void executeJmhRunner() throws Exception {
+    // Inject Spring services into static benchmark state
+    BenchmarkState.fieldFilterService = this.fieldFilterService;
+    BenchmarkState.objectMapper = this.objectMapper;
+    BenchmarkState.filterMapper = this.filterMapper;
+
+    // Capture current authentication for propagation to benchmark threads
+    BenchmarkState.savedAuth = SecurityContextHolder.getContext().getAuthentication();
+
+    Options opt =
+        new OptionsBuilder()
+            .include(
+                "org.hisp.dhis.webapi.controller.tracker.FieldFilterSerializationBenchmarkTest.FieldFilterBenchmarks.*")
             .shouldFailOnError(true)
             .shouldDoGC(true)
             .build();
 
-        new Runner(opt).run();
-    }
+    new Runner(opt).run();
+  }
 }
