@@ -587,9 +587,11 @@ public class DefaultAppManager implements AppManager {
           originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
 
-        // TODO: MAS: Approval app requires this, why?
         String modifiedJsContent =
-            originalJsContent.replace("url:\"..\"", "url:\"" + "../../.." + "\"");
+            originalJsContent.replace(
+                "REACT_APP_DHIS2_BASE_URL:\"..\"",
+                "REACT_APP_DHIS2_BASE_URL:\"" + "../../.." + "\"");
+
         ByteArrayResource byteArrayResource =
             toByteArrayResource(
                 modifiedJsContent.getBytes(StandardCharsets.UTF_8), resourceFound.resource());
