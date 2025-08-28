@@ -32,7 +32,15 @@ package org.hisp.dhis.webapi.controller.tracker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -52,6 +60,9 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.infra.BenchmarkParams;
+import org.openjdk.jmh.results.Result;
+import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -178,8 +189,129 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
             .measurementIterations(5)
             .measurementTime(TimeValue.seconds(5))
             .resultFormat(ResultFormatType.CSV)
+            .result("jmh-result.csv")
             .build();
 
-    new Runner(opt).run();
+    Collection<RunResult> results = new Runner(opt).run();
+
+    addEventThroughputToCsv("jmh-result.csv", results);
+    printEventThroughput(results);
+  }
+
+  private void printEventThroughput(Collection<RunResult> results) {
+    System.out.println("\n" + "=".repeat(80));
+    System.out.println("EVENT THROUGHPUT ANALYSIS");
+    System.out.println("=".repeat(80));
+
+    for (RunResult runResult : results) {
+      String benchmarkName = runResult.getParams().getBenchmark();
+      String methodName = benchmarkName.substring(benchmarkName.lastIndexOf('.') + 1);
+      String eventCountParam = runResult.getParams().getParam("eventCount");
+      String fieldsParam = runResult.getParams().getParam("fields");
+
+      int eventCount = Integer.parseInt(eventCountParam);
+      double opsPerSec = runResult.getPrimaryResult().getScore();
+      double eventsPerSec = opsPerSec * eventCount;
+
+      System.out.printf(
+          "%-25s | events=%3s | fields=%-15s | %8.0f ops/s | %10.0f events/s%n",
+          methodName,
+          eventCountParam,
+          fieldsParam.length() > 15 ? fieldsParam.substring(0, 12) + "..." : fieldsParam,
+          opsPerSec,
+          eventsPerSec);
+    }
+    System.out.println("=".repeat(80));
+  }
+
+  private void addEventThroughputToCsv(String csvFilePath, Collection<RunResult> results) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFilePath))) {
+      // Write header with Events/s column
+      writeHeader(writer, results);
+
+      // Write data rows
+      for (RunResult rr : results) {
+        writeDataRow(writer, rr);
+      }
+
+      System.out.println("Generated enhanced CSV with Events/s column: " + csvFilePath);
+    } catch (IOException e) {
+      System.err.println("Failed to write enhanced CSV: " + e.getMessage());
+    }
+  }
+
+  private void writeHeader(BufferedWriter writer, Collection<RunResult> results)
+      throws IOException {
+    // Get parameter keys from first result
+    SortedSet<String> params = new TreeSet<>();
+    for (RunResult res : results) {
+      params.addAll(res.getParams().getParamsKeys());
+      break; // Just need the keys from one result
+    }
+
+    writer.write(
+        "\"Benchmark\",\"Mode\",\"Threads\",\"Samples\",\"Score\",\"Score Error (99.9%)\",\"Unit\"");
+
+    for (String param : params) {
+      writer.write(",\"Param: " + param + "\"");
+    }
+
+    writer.write(",\"Events/s\"");
+    writer.newLine();
+  }
+
+  private void writeDataRow(BufferedWriter writer, RunResult rr) throws IOException {
+    BenchmarkParams params = rr.getParams();
+    Result result = rr.getPrimaryResult();
+
+    // Calculate events/s
+    String eventCountStr = params.getParam("eventCount");
+    double eventsPerSec = 0;
+    if (eventCountStr != null) {
+      try {
+        int eventCount = Integer.parseInt(eventCountStr);
+        eventsPerSec = result.getScore() * eventCount;
+      } catch (NumberFormatException ignored) {
+      }
+    }
+
+    // Write CSV row
+    writer.write(csvQuote(params.getBenchmark()));
+    writer.write(",");
+    writer.write(csvQuote(params.getMode().shortLabel()));
+    writer.write(",");
+    writer.write(String.valueOf(params.getThreads()));
+    writer.write(",");
+    writer.write(String.valueOf(result.getSampleCount()));
+    writer.write(",");
+    writer.write(String.format("%f", result.getScore()));
+    writer.write(",");
+    writer.write(String.format("%f", result.getScoreError()));
+    writer.write(",");
+    writer.write(csvQuote(result.getScoreUnit()));
+
+    // Write parameter values
+    for (String paramKey : params.getParamsKeys()) {
+      writer.write(",");
+      String paramValue = params.getParam(paramKey);
+      writer.write(paramValue != null ? csvQuote(paramValue) : "");
+    }
+
+    // Write events/s
+    writer.write(",");
+    writer.write(String.format("\"%.2f\"", eventsPerSec));
+    writer.newLine();
+  }
+
+  private String csvQuote(String value) {
+    if (value.contains(",")
+        || value.contains(" ")
+        || value.contains("\n")
+        || value.contains("\r")
+        || value.contains("\"")) {
+      return "\"" + value.replaceAll("\"", "\"\"") + "\"";
+    } else {
+      return "\"" + value + "\"";
+    }
   }
 }
