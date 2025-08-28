@@ -151,8 +151,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     manager.flush();
     manager.clear();
     trackerObjects = testSetup.importTrackerData();
-    manager.flush();
-    manager.clear();
 
     deleteTrackedEntity(UID.of("woitxQbWYNq"));
     switchContextToUser(importUser);
@@ -1195,6 +1193,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   private TrackedEntity deleteTrackedEntity(UID uid) {
+    manager.flush();
+    manager.clear();
     TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
     org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
         trackerObjects.getTrackedEntities().stream()
