@@ -55,8 +55,8 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -107,7 +107,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   private OrganisationUnitLevel orgUnitLevel1;
 
@@ -490,7 +490,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void flushDataValues() {
-    dataInjectionService.upsertValues(pendingValues.toArray(DataValue[]::new));
+    dataDumpService.upsertValues(pendingValues.toArray(DataValue[]::new));
     pendingValues.clear();
   }
 

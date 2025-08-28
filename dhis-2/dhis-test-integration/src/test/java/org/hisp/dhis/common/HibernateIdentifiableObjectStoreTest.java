@@ -44,7 +44,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataInjectionService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -66,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementStore dataElementStore;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private AggregateAccessManager accessManager;
 
@@ -199,7 +199,7 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     defaultCategoryOptionCombo.getCategoryOptions().add(categoryOption);
     DataValue dataValue =
         createDataValue(dataElement, period, organisationUnitA, "test", defaultCategoryOptionCombo);
-    dataInjectionService.upsertValues(dataValue);
+    dataDumpService.upsertValues(dataValue);
     // User1 can't access but it belongs to UserGroup1 which has access
     assertEquals(0, accessManager.canRead(UserDetails.fromUser(user1), dataValue).size());
     // User2 has access to DEA

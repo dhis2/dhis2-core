@@ -60,9 +60,9 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -95,7 +95,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
 
@@ -577,7 +577,6 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

@@ -51,7 +51,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataInjectionService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
@@ -78,7 +78,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends PostgresIntegrationTestB
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private DefaultOutlierDetectionService subject;
 
@@ -343,8 +343,7 @@ class OutlierDetectionServiceModifiedZScoreTest extends PostgresIntegrationTestB
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 
   private static double median(double... values) {

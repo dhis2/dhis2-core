@@ -62,7 +62,7 @@ class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueService dataValueService;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -142,7 +142,6 @@ class DataValueServiceIntegrityTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

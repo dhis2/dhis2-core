@@ -51,8 +51,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -74,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueSetService dataValueSetService;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -297,7 +297,6 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

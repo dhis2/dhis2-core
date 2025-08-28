@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.datavalue.DataInjectionService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
 
 /**
@@ -49,7 +49,7 @@ import org.hisp.dhis.datavalue.DataValue;
 @RequiredArgsConstructor
 public class PredictionWriter {
 
-  private final DataInjectionService dataInjectionService;
+  private final DataDumpService dataDumpService;
   private final PredictionSummary summary;
 
   private final List<DataValue> pendingUpsertValues = new ArrayList<>();
@@ -80,7 +80,7 @@ public class PredictionWriter {
 
   public void commit() {
     try {
-      dataInjectionService.upsertValues(pendingUpsertValues.toArray(DataValue[]::new));
+      dataDumpService.upsertValues(pendingUpsertValues.toArray(DataValue[]::new));
     } finally {
       pendingUpsertValues.clear();
     }

@@ -72,10 +72,10 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryInput;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -218,7 +218,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IndicatorService indicatorService;
 
   @Autowired private DataSetService dataSetService;
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private ExpressionService expressionService;
 
@@ -433,7 +433,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
             new ImportOptions());
     assertEquals(
         32,
-        dataInjectionService.upsertValues(
+        dataDumpService.upsertValues(
             groups.stream()
                 .flatMap(g -> g.values().stream())
                 .toArray(DataEntryValue.Input[]::new)));

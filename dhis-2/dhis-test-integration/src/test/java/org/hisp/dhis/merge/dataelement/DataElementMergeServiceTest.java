@@ -63,8 +63,8 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -176,7 +176,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventStore eventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -2455,7 +2455,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     periodService.addPeriod(p1);
 
-    dataInjectionService.upsertValues(
+    dataDumpService.upsertValues(
         createDataValue(deSource1, "1", p1),
         createDataValue(deSource1, "2", p1),
         createDataValue(deSource2, "1", p1),
@@ -2495,7 +2495,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     periodService.addPeriod(p1);
 
-    dataInjectionService.upsertValues(
+    dataDumpService.upsertValues(
         createDataValue(deSource1, "1", p1),
         createDataValue(deSource1, "2", p1),
         createDataValue(deSource2, "1", p1),
@@ -2653,7 +2653,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {
     return new DataEntryValue.Input(
-        de.getUid(), ou1.getUid(), coc1.getUid(), coc1.getUid(), p.getIsoDate(), "1", null);
+        de.getUid(), ou1.getUid(), coc1.getUid(), coc1.getUid(), p.getIsoDate(), value, null);
   }
 
   private DataValueAuditQueryParams getQueryParams(
@@ -2743,7 +2743,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

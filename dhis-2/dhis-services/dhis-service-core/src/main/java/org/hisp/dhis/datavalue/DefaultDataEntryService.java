@@ -85,7 +85,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultDataEntryService implements DataEntryService, DataInjectionService {
+public class DefaultDataEntryService implements DataEntryService, DataDumpService {
 
   private final DataEntryStore store;
 

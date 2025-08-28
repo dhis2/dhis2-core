@@ -34,8 +34,8 @@ import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class CategoryComboModificationControllerTest extends PostgresControllerIntegrationTestBase {
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   String testCatCombo;
 
@@ -91,7 +91,7 @@ class CategoryComboModificationControllerTest extends PostgresControllerIntegrat
 
     assertEquals(
         1,
-        dataInjectionService.upsertValues(
+        dataDumpService.upsertValues(
             new DataEntryValue.Input(
                 dataElementId, orgUnitId, categoryOptionComboId, null, "20220102", "24", "OK")));
 

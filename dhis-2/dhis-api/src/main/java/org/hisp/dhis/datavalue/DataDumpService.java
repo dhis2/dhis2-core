@@ -43,10 +43,11 @@ import org.hisp.dhis.feedback.BadRequestException;
  * @author Jan Bernitt
  * @since 2.43
  */
-public interface DataInjectionService {
+public interface DataDumpService {
 
   /**
-   * Legacy support API to add or update one or more values.
+   * Legacy support API to add or update one or more values given as {@link DataValue}. If possible
+   * prefer one of the overloads using {@link DataEntryValue} or {@link DataEntryValue.Input}.
    *
    * <p>This API uses {@link DataValue} not because it was the best choice but because this required
    * fewer changes in legacy code for the time being. At some point this should be updated to use a

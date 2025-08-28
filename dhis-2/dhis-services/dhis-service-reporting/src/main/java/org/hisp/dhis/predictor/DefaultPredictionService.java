@@ -68,7 +68,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataInjectionService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
@@ -105,7 +105,7 @@ public class DefaultPredictionService implements PredictionService {
   private final ExpressionService expressionService;
 
   private final DataValueService dataValueService;
-  private final DataInjectionService dataInjectionService;
+  private final DataDumpService dataDumpService;
 
   private final CategoryService categoryService;
 
@@ -283,8 +283,7 @@ public class DefaultPredictionService implements PredictionService {
             new PredictionDataValueFetcher(dataValueService, categoryService, currentUserOrgUnits),
             new PredictionAnalyticsDataFetcher(analyticsService, categoryService));
 
-    PredictionWriter predictionWriter =
-        new PredictionWriter(dataInjectionService, predictionSummary);
+    PredictionWriter predictionWriter = new PredictionWriter(dataDumpService, predictionSummary);
 
     predictionSummary.incrementPredictors();
 

@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CategoryService categoryService;
   @Autowired private PeriodService periodService;
@@ -148,7 +148,6 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

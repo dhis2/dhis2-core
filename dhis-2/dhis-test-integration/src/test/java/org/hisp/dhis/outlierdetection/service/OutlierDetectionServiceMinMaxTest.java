@@ -42,7 +42,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataInjectionService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -77,7 +77,7 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
 
   @Autowired private MinMaxDataElementService minMaxService;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private DefaultOutlierDetectionService subject;
 
@@ -219,7 +219,6 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

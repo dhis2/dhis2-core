@@ -66,8 +66,8 @@ import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataInjectionService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -139,7 +139,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
   @Autowired private DataValueStore dataValueStore;
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
@@ -1312,7 +1312,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValueAudits with references to source COCs are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
-    dataInjectionService.upsertValues(
+    dataDumpService.upsertValues(
         createDataValue(cocDuplicate, "1", p1),
         createDataValue(cocDuplicate, "2", p1),
         createDataValue(cocDuplicate, "1", p1),
@@ -2240,7 +2240,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

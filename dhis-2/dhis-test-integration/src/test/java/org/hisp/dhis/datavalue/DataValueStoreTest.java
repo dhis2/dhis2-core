@@ -63,7 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataValueStoreTest extends PostgresIntegrationTestBase {
   private @PersistenceContext EntityManager manager;
 
-  @Autowired private DataInjectionService dataInjectionService;
+  @Autowired private DataDumpService dataDumpService;
   @Autowired private DataValueStore dataValueStore;
 
   @Test
@@ -379,8 +379,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataInjectionService.upsertValues(values) < values.length)
-      fail("Failed to upsert test data");
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 
   private void addDataValue(DataValue dv) {
