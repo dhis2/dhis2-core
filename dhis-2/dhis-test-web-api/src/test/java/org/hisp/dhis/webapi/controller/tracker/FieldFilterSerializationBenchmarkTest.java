@@ -91,7 +91,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
       //            "*,!relationships", // Large exclusion - performance test
       //            "event,dataValues[*,!storedBy]" // Mixed include/exclude
     })
-    public String fieldsFilter;
+    public String fields;
 
     public List<Event> events;
 
@@ -131,7 +131,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
     @Fork(0) // Run in same JVM to preserve Spring context
     public String benchmarkCurrentFilter(BenchmarkState state) throws JsonProcessingException {
-      List<FieldPath> filter = FieldFilterParser.parse(state.fieldsFilter);
+      List<FieldPath> filter = FieldFilterParser.parse(state.fields);
       List<ObjectNode> objectNodes =
           BenchmarkState.fieldFilterService.toObjectNodes(state.events, filter);
       return BenchmarkState.objectMapper.writeValueAsString(objectNodes);
@@ -144,7 +144,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
     @Fork(0) // Run in same JVM to preserve Spring context
     public String benchmarkBetterFilter(BenchmarkState state) throws JsonProcessingException {
-      Fields fields = FieldsParser.parse(state.fieldsFilter);
+      Fields fields = FieldsParser.parse(state.fields);
       return BenchmarkState.filterMapper
           .writer()
           .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
