@@ -145,8 +145,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
       enrollment.setProgram(program);
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
       enrollment.setStoredBy("system-process");
-      enrollment.setOrganisationUnit(
-          organisationUnitService.getRootOrganisationUnits().get(0));
+      enrollment.setOrganisationUnit(organisationUnitService.getRootOrganisationUnits().get(0));
 
       identifiableObjectManager.save(enrollment);
     }
