@@ -30,12 +30,18 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.TimeField.OCCURRED_DATE;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.period.Period;
 
+/** Utility class for checking period dimensions in event analytics queries. */
 @UtilityClass
 public class EventPeriodUtils {
 
@@ -47,22 +53,41 @@ public class EventPeriodUtils {
    * @return true if all period items have no date field set or have the date field set to
    *     OCCURRED_DATE
    */
-  public static boolean isStandardPeriod(EventQueryParams params) {
+  public static boolean hasAllDefaultPeriod(EventQueryParams params) {
 
-    var period = params.getDimensionOrFilter("pe");
+    var period = getPeriodDimension(params);
     if (period == null) {
       return true;
     }
     var items = period.getItems();
-    boolean allStandard = true;
     for (DimensionalItemObject item : items) {
       Period p = (Period) item;
+      // All periods must either have no dateField (default) or OCCURRED_DATE
       if (p.getDateField() != null && !p.getDateField().equals(OCCURRED_DATE.name())) {
-        allStandard = false;
-        break;
+        return false;
       }
     }
 
-    return allStandard;
+    return true;
+  }
+
+  public static boolean hasDefaultPeriod(EventQueryParams eventQueryParams) {
+    return Optional.ofNullable(getPeriodDimension(eventQueryParams))
+        .map(DimensionalObject::getItems)
+        .orElse(List.of())
+        .stream()
+        .anyMatch(EventPeriodUtils::isDefaultPeriod);
+  }
+
+  public static boolean hasPeriodDimension(EventQueryParams eventQueryParams) {
+    return Objects.nonNull(getPeriodDimension(eventQueryParams));
+  }
+
+  private static DimensionalObject getPeriodDimension(EventQueryParams eventQueryParams) {
+    return eventQueryParams.getDimension(PERIOD_DIM_ID);
+  }
+
+  private static boolean isDefaultPeriod(DimensionalItemObject dimensionalItemObject) {
+    return ((Period) dimensionalItemObject).isDefault();
   }
 }

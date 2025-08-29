@@ -38,6 +38,8 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.C
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
+import static org.hisp.dhis.analytics.event.data.EventPeriodUtils.hasDefaultPeriod;
+import static org.hisp.dhis.analytics.event.data.EventPeriodUtils.hasPeriodDimension;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
@@ -214,7 +216,20 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       builder = builder.withSkipData(true).withAnalyzeOrderId();
     }
 
-    return builder.build();
+    EventQueryParams eventQueryParams = builder.build();
+
+    // Partitioning applies only when default period is specified
+
+    // Empty period dimension means default period
+    // Only applies for non-aggregate event queries
+    if (hasPeriodDimension(eventQueryParams)
+        && !hasDefaultPeriod(eventQueryParams)
+        && eventQueryParams.isComingFromQuery()) {
+      builder.withSkipPartitioning(true);
+      eventQueryParams = builder.build();
+    }
+
+    return eventQueryParams;
   }
 
   private void addSortToParams(
