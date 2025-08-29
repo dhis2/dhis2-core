@@ -57,7 +57,7 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
   private static final Set<String> DEFAULT_LOCALES =
       Set.of(
           "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it", "km",
-          "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh");
+          "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "uz", "vi", "zh");
 
   @Override
   public void executeInTransaction() {
@@ -68,7 +68,8 @@ public class I18nLocalePopulator extends TransactionContextStartupRoutine {
     }
 
     for (String locale : DEFAULT_LOCALES) {
-      localeService.saveI18nLocale(new I18nLocale(new Locale(locale)), new SystemUser());
+      Locale javaLocale = Locale.forLanguageTag(locale);
+      localeService.saveI18nLocale(new I18nLocale(javaLocale), new SystemUser());
     }
 
     log.info("Populated default locales");

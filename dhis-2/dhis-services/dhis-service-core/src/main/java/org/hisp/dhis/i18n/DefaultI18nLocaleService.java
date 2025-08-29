@@ -41,7 +41,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.I18nLocale;
-import org.hisp.dhis.system.util.LocaleUtils;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,13 +62,21 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     List<IdentifiableObject> countrs = new ArrayList<>();
 
     for (String lang : Locale.getISOLanguages()) {
-      langs.add(new BaseIdentifiableObject(lang, lang, new Locale(lang).getDisplayLanguage()));
+      langs.add(
+          new BaseIdentifiableObject(lang, lang, Locale.forLanguageTag(lang).getDisplayLanguage()));
     }
 
+    // Add all ISO countries
     for (String country : Locale.getISOCountries()) {
       countrs.add(
           new BaseIdentifiableObject(
-              country, country, new Locale("en", country).getDisplayCountry()));
+              country,
+              country,
+              new Locale.Builder()
+                  .setLanguage("en")
+                  .setRegion(country)
+                  .build()
+                  .getDisplayCountry()));
     }
 
     Collections.sort(langs);
@@ -102,6 +110,12 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   @Override
   @Transactional
   public I18nLocale addI18nLocale(String language, String country) {
+    return addI18nLocale(language, country, null);
+  }
+
+  @Override
+  @Transactional
+  public I18nLocale addI18nLocale(String language, String country, String scriptCode) {
     String languageName = languages.get(language);
     String countryName = countries.get(country);
 
@@ -113,8 +127,8 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
       throw new IllegalArgumentException("Invalid country.");
     }
 
-    String localeStr = LocaleUtils.getLocaleString(language, country, null);
-    Locale locale = LocaleUtils.getLocale(localeStr);
+    String localeStr = LocaleUtils.getLocaleString(language, country, scriptCode);
+    Locale locale = LocaleUtils.parse(localeStr);
 
     I18nLocale i18nLocale = new I18nLocale(locale);
 
@@ -171,7 +185,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     List<Locale> locales = new ArrayList<>();
 
     for (I18nLocale locale : localeStore.getAll()) {
-      locales.add(LocaleUtils.getLocale(locale.getLocale()));
+      locales.add(LocaleUtils.parse(locale.getLocale()));
     }
 
     locales.sort(LocaleNameComparator.INSTANCE);
