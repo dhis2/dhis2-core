@@ -96,7 +96,7 @@ public enum AnalyticsDateFilter {
       TimeField.CREATED_DATE,
       EventsAnalyticsQueryCriteria::getCreatedDate,
       EnrollmentAnalyticsQueryCriteria::getCreatedDate,
-      CommonRequestParams::getCreated);
+      null);
 
   private final TimeField timeField;
 
