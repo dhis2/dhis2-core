@@ -148,7 +148,7 @@ public class FieldFilterService {
         .anyMatch(f -> f.toFullPath().equals(path));
   }
 
-  private static class IgnoreJsonSerializerRefinementAnnotationInspector
+  public static class IgnoreJsonSerializerRefinementAnnotationInspector
       extends JacksonAnnotationIntrospector {
     /**
      * Since the field filter will handle type refinement itself (to avoid recursive loops), we want
