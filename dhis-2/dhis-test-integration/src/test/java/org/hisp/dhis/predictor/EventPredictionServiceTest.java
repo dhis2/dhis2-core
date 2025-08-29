@@ -30,6 +30,10 @@
 package org.hisp.dhis.predictor;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -43,7 +47,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -358,10 +361,10 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
    */
   private Grid newGrid(String dimensionItem, double... values) {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID));
     int month = Integer.valueOf(testYear + "03");
     for (double value : values) {

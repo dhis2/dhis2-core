@@ -29,14 +29,14 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -355,8 +355,7 @@ public final class AnalyticsUtils {
         totalType.getPropertyCount() + upperBoundaryMarginOfDimensionalObjectItems;
 
     for (Entry<String, T> entry : valueMap.entrySet()) {
-      List<String> items =
-          Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
+      List<String> items = Lists.newArrayList(entry.getKey().split(DIMENSION_SEP));
 
       if (items.size() < upperBoundaryOfDimensionalObjectItems) {
         map.put(entry.getKey(), entry.getValue());
@@ -387,9 +386,8 @@ public final class AnalyticsUtils {
 
       String operand =
           StringUtils.join(operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP);
-      String dimension = StringUtils.join(dimensions, DimensionalObject.DIMENSION_SEP);
-      dimension =
-          !dimension.isEmpty() ? (DimensionalObject.DIMENSION_SEP + dimension) : StringUtils.EMPTY;
+      String dimension = StringUtils.join(dimensions, DIMENSION_SEP);
+      dimension = !dimension.isEmpty() ? (DIMENSION_SEP + dimension) : StringUtils.EMPTY;
       String key = operand + dimension;
 
       map.put(key, entry.getValue());
@@ -1274,8 +1272,12 @@ public final class AnalyticsUtils {
   private record ElementWithOptionSet(IdentifiableObject bio, OptionSet optionSet) {
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
       ElementWithOptionSet that = (ElementWithOptionSet) o;
       return Objects.equals(
               bio != null ? bio.getUid() : null, that.bio != null ? that.bio.getUid() : null)

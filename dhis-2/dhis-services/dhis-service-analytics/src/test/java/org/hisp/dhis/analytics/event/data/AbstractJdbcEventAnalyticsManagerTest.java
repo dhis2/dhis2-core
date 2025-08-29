@@ -37,6 +37,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
@@ -472,13 +474,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "ouA",
             List.of(createOrganisationUnit('A')));
@@ -521,13 +523,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "ouA",
             List.of(createOrganisationUnit('A')));
@@ -560,13 +562,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel() {
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201801")));
 
     DimensionalObject multipleOrgUnitsSameLevel =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "uidlevel1",
             "Level 1",

@@ -33,7 +33,7 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
 
 import java.util.ArrayList;
@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -138,7 +139,7 @@ public class OrganisationUnitResolver {
   public List<String> resolveOrgUnis(EventQueryParams params, QueryItem item) {
     return item.getFilters().stream()
         .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
-        .map(s -> s.split(OPTION_SEP))
+        .map(s -> s.split(DimensionConstants.OPTION_SEP))
         .flatMap(Arrays::stream)
         .distinct()
         .toList();

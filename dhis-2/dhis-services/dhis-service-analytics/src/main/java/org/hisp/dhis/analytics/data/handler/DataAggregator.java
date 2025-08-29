@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM;
 import static org.hisp.dhis.analytics.ProcessingHint.SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

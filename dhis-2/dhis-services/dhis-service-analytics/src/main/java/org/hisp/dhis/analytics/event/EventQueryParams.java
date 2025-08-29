@@ -34,9 +34,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
@@ -882,8 +882,7 @@ public class EventQueryParams extends DataQueryParams {
   public Set<OrganisationUnit> getOrganisationUnitChildren() {
     Set<OrganisationUnit> children = new HashSet<>();
 
-    for (DimensionalItemObject object :
-        getDimensionOrFilterItems(DimensionalObject.ORGUNIT_DIM_ID)) {
+    for (DimensionalItemObject object : getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
       children.addAll(unit.getChildren());
     }

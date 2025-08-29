@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.dimension;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.PrefixedDimension;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class DimensionConstants {
+  public static final String DATA_X_DIM_ID = "dx"; // in, de, ds, do
 
-/** Base mapper for Dimensions to be returned */
-public abstract class BaseDimensionMapper implements DimensionMapper {
+  public static final String DATA_COLLAPSED_DIM_ID = "dy"; // Collapsed event data dimensions
 
-  /** Returns a DimensionResponse with common fields mapped */
-  @Override
-  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
-    BaseIdentifiableObject dimension = prefixedDimension.getItem();
-    DimensionResponse mapped =
-        DimensionResponse.builder()
-            .id(getPrefixed(prefix, dimension.getUid()))
-            .uid(dimension.getUid())
-            .displayName(dimension.getDisplayName())
-            .created(dimension.getCreated())
-            .code(dimension.getCode())
-            .lastUpdated(dimension.getLastUpdated())
-            .name(dimension.getName())
-            .build();
+  public static final String CATEGORYOPTIONCOMBO_DIM_ID = "co";
 
-    if (dimension instanceof BaseNameableObject) {
-      return mapped.withDisplayShortName(((BaseNameableObject) dimension).getDisplayShortName());
-    }
-    return mapped;
-  }
+  public static final String ATTRIBUTEOPTIONCOMBO_DIM_ID = "ao";
 
-  private String getPrefixed(String prefix, String uid) {
-    if (StringUtils.isNotBlank(prefix)) {
-      return prefix + DIMENSION_IDENTIFIER_SEP + uid;
-    }
-    return uid;
-  }
+  public static final String PERIOD_DIM_ID = "pe";
+
+  public static final String ORGUNIT_DIM_ID = "ou";
+
+  public static final String ORGUNIT_GROUP_DIM_ID = "oug"; // Used for org unit target
+
+  public static final String ITEM_DIM_ID = "item";
+
+  public static final String DIMENSION_SEP = "-";
+
+  public static final String LONGITUDE_DIM_ID = "longitude";
+
+  public static final String LATITUDE_DIM_ID = "latitude";
+
+  public static final String DIMENSION_NAME_SEP = ":";
+
+  public static final String PERIOD_FREE_RANGE_SEPARATOR = "_";
+
+  public static final String QUERY_MODS_ID_SEPARATOR = "_";
+
+  public static final String OPTION_SEP = ";";
+
+  public static final String MULTI_CHOICES_OPTION_SEP = ",";
+
+  public static final String ITEM_SEP = "-";
+
+  public static final String DIMENSION_IDENTIFIER_SEP = ".";
+
+  public static final String VALUE_COLUMN_NAME = "value";
+
+  public static final String TEXTVALUE_COLUMN_NAME = "textvalue";
 }

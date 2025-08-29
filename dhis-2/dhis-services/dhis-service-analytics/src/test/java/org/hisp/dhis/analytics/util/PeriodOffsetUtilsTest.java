@@ -33,13 +33,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryModifiers;
@@ -109,9 +111,9 @@ class PeriodOffsetUtilsTest {
   @Test
   void verifyGetPeriodOffsetRow() {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
     int periodIndex = 2;
     grid.addRow();
     grid.addValue("de1");

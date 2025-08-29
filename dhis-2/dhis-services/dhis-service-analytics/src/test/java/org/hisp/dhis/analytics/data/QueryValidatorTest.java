@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createCategory;
 import static org.hisp.dhis.test.TestBase.createCategoryCombo;

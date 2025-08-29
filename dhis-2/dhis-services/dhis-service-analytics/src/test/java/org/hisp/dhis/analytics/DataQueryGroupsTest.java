@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -143,25 +146,21 @@ class DataQueryGroupsTest extends TestBase {
   @Test
   void getQueryA() {
     DimensionalObject dimA =
-        new BaseDimensionalObject(
-            DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of(deA, deB));
+        new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(deA, deB));
     DimensionalObject dimB =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT,
-            List.of(ouA, ouB, ouC));
+            ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB, ouC));
     DimensionalObject dimC =
-        new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, createPeriods("2000Q1"));
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, createPeriods("2000Q1"));
 
     DataQueryParams paramsA =
         DataQueryParams.newBuilder().addDimension(dimA).addDimension(dimB).addFilter(dimC).build();
 
-    assertNotNull(paramsA.getDimension(DimensionalObject.DATA_X_DIM_ID));
-    assertNotNull(paramsA.getDimension(DimensionalObject.ORGUNIT_DIM_ID));
-    assertNotNull(paramsA.getFilter(DimensionalObject.PERIOD_DIM_ID));
-    assertEquals(2, paramsA.getDimension(DimensionalObject.DATA_X_DIM_ID).getItems().size());
-    assertEquals(3, paramsA.getDimension(DimensionalObject.ORGUNIT_DIM_ID).getItems().size());
-    assertEquals(1, paramsA.getFilter(DimensionalObject.PERIOD_DIM_ID).getItems().size());
+    assertNotNull(paramsA.getDimension(DATA_X_DIM_ID));
+    assertNotNull(paramsA.getDimension(ORGUNIT_DIM_ID));
+    assertNotNull(paramsA.getFilter(PERIOD_DIM_ID));
+    assertEquals(2, paramsA.getDimension(DATA_X_DIM_ID).getItems().size());
+    assertEquals(3, paramsA.getDimension(ORGUNIT_DIM_ID).getItems().size());
+    assertEquals(1, paramsA.getFilter(PERIOD_DIM_ID).getItems().size());
   }
 }

@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,7 +54,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -94,29 +96,25 @@ class AggregateDataExchangeServiceTest {
     when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
         .thenReturn(new DataValueSet());
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.DATA_X_DIM_ID),
+            eq(DATA_X_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
             anyBoolean(),
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.PERIOD_DIM_ID),
+            eq(PERIOD_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
             anyBoolean(),
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.ORGUNIT_DIM_ID),
+            eq(ORGUNIT_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
@@ -124,8 +122,7 @@ class AggregateDataExchangeServiceTest {
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
         .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
     when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
         .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
     when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
@@ -163,29 +160,25 @@ class AggregateDataExchangeServiceTest {
   @SuppressWarnings("unchecked")
   void testToDataQueryParams() {
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.DATA_X_DIM_ID),
+            eq(DATA_X_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
             anyBoolean(),
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.PERIOD_DIM_ID),
+            eq(PERIOD_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
             anyBoolean(),
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.ORGUNIT_DIM_ID),
+            eq(ORGUNIT_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
@@ -193,8 +186,7 @@ class AggregateDataExchangeServiceTest {
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
         .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
 
     SourceRequest sourceRequest =
         new SourceRequest()
@@ -210,9 +202,9 @@ class AggregateDataExchangeServiceTest {
 
     DataQueryParams query = service.toDataQueryParams(sourceRequest, new SourceDataQueryParams());
 
-    assertTrue(query.hasDimension(DimensionalObject.DATA_X_DIM_ID));
-    assertTrue(query.hasDimension(DimensionalObject.PERIOD_DIM_ID));
-    assertTrue(query.hasDimension(DimensionalObject.ORGUNIT_DIM_ID));
+    assertTrue(query.hasDimension(DATA_X_DIM_ID));
+    assertTrue(query.hasDimension(PERIOD_DIM_ID));
+    assertTrue(query.hasDimension(ORGUNIT_DIM_ID));
     assertEquals(
         new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
         query.getAggregationType());
