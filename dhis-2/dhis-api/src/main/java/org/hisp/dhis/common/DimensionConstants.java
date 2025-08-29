@@ -32,45 +32,72 @@ package org.hisp.dhis.common;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+/** Constants related to analytics dimensions. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class DimensionConstants {
-  public static final String DATA_X_DIM_ID = "dx"; // in, de, ds, do
+public final class DimensionConstants {
+  // Dimension identifiers
 
-  public static final String DATA_COLLAPSED_DIM_ID = "dy"; // Collapsed event data dimensions
+  /** Data dimension identifier. */
+  public static final String DATA_X_DIM_ID = "dx";
 
+  /** Collapsed event data dimensions. */
+  public static final String DATA_COLLAPSED_DIM_ID = "dy";
+
+  /** Category option combo dimension identifier. */
   public static final String CATEGORYOPTIONCOMBO_DIM_ID = "co";
 
+  /** Attribute option combo dimension identifier. */
   public static final String ATTRIBUTEOPTIONCOMBO_DIM_ID = "ao";
 
+  /** Period dimension identifier. */
   public static final String PERIOD_DIM_ID = "pe";
 
+  /** Org unit dimension identifier. */
   public static final String ORGUNIT_DIM_ID = "ou";
 
-  public static final String ORGUNIT_GROUP_DIM_ID = "oug"; // Used for org unit target
+  /** Org unit group dimension identifier. */
+  public static final String ORGUNIT_GROUP_DIM_ID = "oug";
 
+  /** Item dimension identifier. */
   public static final String ITEM_DIM_ID = "item";
 
-  public static final String DIMENSION_SEP = "-";
-
+  /** Longitude dimension identifier. */
   public static final String LONGITUDE_DIM_ID = "longitude";
 
+  /** Latitude dimension identifier. */
   public static final String LATITUDE_DIM_ID = "latitude";
 
+  // Separators
+
+  /** Dimension separator. */
+  public static final String DIMENSION_SEP = "-";
+
+  /** Dimension name separator. */
   public static final String DIMENSION_NAME_SEP = ":";
 
+  /** Period free range separator. */
   public static final String PERIOD_FREE_RANGE_SEPARATOR = "_";
 
+  /** Query mods identifier separator. */
   public static final String QUERY_MODS_ID_SEPARATOR = "_";
 
+  /** Option separator. */
   public static final String OPTION_SEP = ";";
 
+  /** Multiple choice option separator. */
   public static final String MULTI_CHOICES_OPTION_SEP = ",";
 
+  /** Item separator. */
   public static final String ITEM_SEP = "-";
 
+  /** Dimension identifier separator. */
   public static final String DIMENSION_IDENTIFIER_SEP = ".";
 
+  // Column names
+
+  /** Value column name. */
   public static final String VALUE_COLUMN_NAME = "value";
 
+  /** Text value column name. */
   public static final String TEXTVALUE_COLUMN_NAME = "textvalue";
 }
