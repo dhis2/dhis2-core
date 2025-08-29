@@ -110,6 +110,8 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
       "event", // serialize only a single String field so we reduce the actual data Jackson has to
       // write and so our field filtering is what should dominate
       "*,!relationships", // default fields of /tracker/events
+      "*,event~rename(foo)", // transformation with all fields
+      "event~rename(foo)" // transformation with single field
     })
     public String fields;
 
@@ -169,7 +171,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
   private ObjectMapper filterMapper;
 
   @Test
-  @Timeout(unit = TimeUnit.MINUTES, value = 80)
+  @Timeout(unit = TimeUnit.MINUTES, value = 200)
   public void executeJmhRunner() throws Exception {
     // Inject Spring services into static benchmark state
     BenchmarkState.fieldFilterService = this.fieldFilterService;
