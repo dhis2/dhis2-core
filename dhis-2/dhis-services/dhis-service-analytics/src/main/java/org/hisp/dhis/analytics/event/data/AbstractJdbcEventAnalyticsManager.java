@@ -660,8 +660,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
-
-    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
