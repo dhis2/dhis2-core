@@ -2407,7 +2407,7 @@ jasperreports.version=${jasperreports.version}
               <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
+              <excludedGroups>benchmark,integration,integrationH2</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->

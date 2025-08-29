@@ -42,3 +42,5 @@ CLAUDE.local.md
 docker/artifacts
 # ignore local docker override files
 docker-compose.override.yml
+# ignore JMH benchmark results
+jmh-result*.csv

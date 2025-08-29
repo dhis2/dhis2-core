@@ -50,6 +50,7 @@ import org.hisp.dhis.fieldfiltering.better.FieldsParser;
 import org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
@@ -94,6 +95,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>The magnitude of performance differences makes minor interference negligible
  * </ul>
  */
+@Tag("benchmark")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrationTestBase {
@@ -249,13 +251,13 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     }
 
     writer.write(
-        "\"Benchmark\",\"Mode\",\"Threads\",\"Samples\",\"Score\",\"Score Error (99.9%)\",\"Unit\"");
+        "\"Benchmark\",\"Mode\",\"Threads\",\"Samples\",\"Score\",\"Score Error (99.9% CI)\",\"Unit\"");
 
     for (String param : params) {
       writer.write(",\"Param: " + param + "\"");
     }
 
-    writer.write(",\"Events/s\",\"Events/s Error (99.9%)\"");
+    writer.write(",\"Events/s\",\"Events/s Error (99.9% CI)\"");
     writer.newLine();
   }
 
