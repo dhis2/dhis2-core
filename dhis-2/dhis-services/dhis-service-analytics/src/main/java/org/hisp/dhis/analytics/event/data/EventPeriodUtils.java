@@ -31,10 +31,12 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.TimeField.OCCURRED_DATE;
 
+import lombok.experimental.UtilityClass;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.Period;
 
+@UtilityClass
 public class EventPeriodUtils {
 
   /**

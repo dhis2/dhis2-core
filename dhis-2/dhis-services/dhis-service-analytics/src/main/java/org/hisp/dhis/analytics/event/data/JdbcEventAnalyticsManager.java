@@ -502,10 +502,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return sql + joinOrgUnitTables(params, getAnalyticsType());
   }
 
-  private List<DimensionalObject> getPeriods(EventQueryParams params) {
-    return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
-  }
-
   /**
    * Returns a from and where SQL clause. If this is a program indicator with non-default
    * boundaries, the relationship with the reporting period is specified with where conditions on
@@ -752,18 +748,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     return sql;
   }
-
-  /**
-   * Checks if the query requires ownership. This is determined by checking if the {@link
-   * OrgUnitFieldType} of the organization unit field is an ownership type.
-   *
-   * @param params the {@link EventQueryParams} to check.
-   * @return true if the query requires ownership, false otherwise.
-   */
-  private boolean queryRequiresOwnership(EventQueryParams params) {
-    return params.getOrgUnitField().getType().isOwnership();
-  }
-
+  
   /**
    * Adds a filtering condition into the "where" statement if an {@Option} is defined.
    *
