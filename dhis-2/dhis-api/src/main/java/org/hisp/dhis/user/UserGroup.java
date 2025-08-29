@@ -42,6 +42,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 
@@ -52,6 +53,9 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 public class UserGroup extends BaseIdentifiableObject implements MetadataObject {
   public static final String AUTH_USER_ADD = "F_USER_ADD";
   public static final String AUTH_USER_ADD_IN_GROUP = "F_USER_ADD_WITHIN_MANAGED_GROUP";
+
+  /** Description of the UserGroup */
+  private String description;
 
   /** Global unique identifier for UserGroup (to be used for sharing etc) */
   private UUID uuid;
@@ -140,6 +144,17 @@ public class UserGroup extends BaseIdentifiableObject implements MetadataObject 
 
   public void setUuid(UUID uuid) {
     this.uuid = uuid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   @OpenApi.Property(UserPropertyTransformer.UserDto[].class)

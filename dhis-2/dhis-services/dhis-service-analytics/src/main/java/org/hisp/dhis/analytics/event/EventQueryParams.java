@@ -29,19 +29,21 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
-
-import com.google.common.base.MoreObjects;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -56,7 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import lombok.Getter;
+import java.util.stream.Stream;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -101,6 +103,8 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
+import com.google.common.base.MoreObjects;
+import lombok.Getter;
 
 /**
  * Class representing query parameters for retrieving event data from the event analytics service.
@@ -140,6 +144,9 @@ public class EventQueryParams extends DataQueryParams {
 
   /** The dimensional object for which to produce aggregated data. */
   private DimensionalItemObject value;
+
+  /** The incoming "value" param from the request. */
+  private String requestValue;
 
   /** Program indicators specified as dimensional items of the data dimension. */
   private List<ProgramIndicator> itemProgramIndicators = new ArrayList<>();
@@ -282,6 +289,7 @@ public class EventQueryParams extends DataQueryParams {
     params.items = new ArrayList<>(this.items);
     params.itemFilters = new ArrayList<>(this.itemFilters);
     params.value = this.value;
+    params.requestValue = this.requestValue;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -574,6 +582,7 @@ public class EventQueryParams extends DataQueryParams {
     desc.forEach(e -> e.getItem().getUid());
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
+        .addIgnoreNull("requestValue", requestValue)
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
         .addIgnoreNull("page", page)
@@ -677,6 +686,10 @@ public class EventQueryParams extends DataQueryParams {
     return hasStartEndDate();
   }
 
+  public boolean hasStageInValue() {
+    return isNotBlank(requestValue) && requestValue.contains(DIMENSION_IDENTIFIER_SEP);
+  }
+
   /**
    * Returns a list of query items which occur more than once, not including the first duplicate.
    */
@@ -715,7 +728,7 @@ public class EventQueryParams extends DataQueryParams {
         .filter(QueryItem::hasLegendSet)
         .map(i -> i.getLegendSet().getLegends())
         .flatMap(Set::stream)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /** Get options for option sets part of items and item filters. */
@@ -724,7 +737,7 @@ public class EventQueryParams extends DataQueryParams {
         .filter(QueryItem::hasOptionSet)
         .map(q -> q.getOptionSet().getOptions())
         .flatMap(List::stream)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /**
@@ -1005,6 +1018,21 @@ public class EventQueryParams extends DataQueryParams {
     return isNotEmpty(getFilterPeriods());
   }
 
+  /**
+   * Verifies whether there is an org. unit filter associated with a query item.
+   *
+   * @return true if the org. unit filter is present, false otherwise.
+   */
+  public boolean hasOrgUnitFilterInItem() {
+    Set<QueryItem> itemsSet =
+        Stream.concat(getItems().stream(), getItemFilters().stream())
+            .filter(QueryItem::hasFilter)
+            .filter(item -> item.getValueType() == ORGANISATION_UNIT)
+            .collect(toSet());
+
+    return isNotEmpty(itemsSet);
+  }
+
   public boolean hasHeaders() {
     return isNotEmpty(getHeaders());
   }
@@ -1086,6 +1114,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public DimensionalItemObject getValue() {
     return value;
+  }
+
+  public String getRequestValue() {
+    return requestValue;
   }
 
   public List<ProgramIndicator> getItemProgramIndicators() {
@@ -1317,6 +1349,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withValue(DimensionalItemObject value) {
       this.params.value = value;
+      return this;
+    }
+
+    public Builder withRequestValue(String requestValue) {
+      this.params.requestValue = requestValue;
       return this;
     }
 

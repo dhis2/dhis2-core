@@ -128,12 +128,20 @@ public class ValidationHelper {
               + currentHeaders);
     }
 
+    List<String> rows = (List) response.extract("rows");
+    int expectedWidth = expectedSize;
+
+    // When "rows" size is ZERO, "width" is always ZERO.
+    if (rows.size() == 0) {
+      expectedWidth = 0;
+    }
+
     response
         .validate()
         .statusCode(200)
         .body("rows", hasSize(expectedRowCount))
         .body("height", equalTo(expectedRowCount))
-        .body("width", equalTo(expectedSize))
+        .body("width", equalTo(expectedWidth))
         .body("headerWidth", equalTo(expectedSize));
   }
 
