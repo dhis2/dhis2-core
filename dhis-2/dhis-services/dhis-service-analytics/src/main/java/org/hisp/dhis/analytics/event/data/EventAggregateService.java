@@ -192,7 +192,7 @@ public class EventAggregateService {
     params = securityManager.withUserConstraints(params);
 
     queryValidator.validate(params);
-    boolean isEventAnalyticsDefaultPeriod = EventPeriodUtils.isStandardPeriod(params);
+    boolean isEventAnalyticsDefaultPeriod = EventPeriodUtils.hasAllDefaultPeriod(params);
     boolean queryRequiresOwnership = queryRequiresOwnership(params);
 
     if (!isEventAnalyticsDefaultPeriod && queryRequiresOwnership) {
