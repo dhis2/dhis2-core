@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run unit tests # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
-        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty --activate-profiles unit-test
+        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl --activate-profiles unit-test
         timeout-minutes: 30
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
@@ -45,7 +45,7 @@ jobs:
         run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
         timeout-minutes: 30
       - name: Generate surefire aggregate report
-        run: mvn org.apache.maven.plugins:maven-surefire-report-plugin:3.4.0:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-test-coverage
+        run: mvn org.apache.maven.plugins:maven-surefire-report-plugin:3.4.0:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
