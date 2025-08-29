@@ -45,12 +45,15 @@ import org.hisp.dhis.test.webapi.json.domain.JsonImportConflict;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 /**
  * Tests data value validation for {@link org.hisp.dhis.common.ValueType#MULTI_TEXT}.
  *
  * @author Jan Bernitt
  */
+@TestInstance(Lifecycle.PER_CLASS)
 class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
   private String multiTextDataElementId;
 
