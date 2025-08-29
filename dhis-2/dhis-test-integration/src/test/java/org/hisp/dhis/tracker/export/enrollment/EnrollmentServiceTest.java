@@ -793,6 +793,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEnrollmentWithGeometry() {
     GeometryFactory geometryFactory = new GeometryFactory();
     Point point = geometryFactory.createPoint(new Coordinate(13.4050, 52.5200));
+    point.setSRID(4326);
 
     enrollmentA.setGeometry(point);
     manager.update(enrollmentA);
