@@ -587,26 +587,14 @@ public class DefaultAppManager implements AppManager {
           originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
 
-        if (originalJsContent.contains("REACT_APP_DHIS2_BASE_URL")) {
-          log.error("Modifying REACT_APP_DHIS2_BASE_URL in app JS files is deprecated.");
-        }
-
         String modifiedJsContent =
-            originalJsContent.replace("REACT_APP_DHIS2_BASE_URL:\"..\"", "REACT_APP_DHIS2_BASE_URL:\"" + "../../.." + "\"");
-
-
-        if (modifiedJsContent.contains("REACT_APP_DHIS2_BASE_URL")) {
-          log.error("Modifying REACT_APP_DHIS2_BASE_URL in app JS files is deprecated.");
-        }
-
-//        // TODO: MAS: Approval app requires this, why?
-//        modifiedJsContent =
-//            modifiedJsContent.replace("url:\"..\"", "url:\"" + "../../.." + "\"");
+            originalJsContent.replace(
+                "REACT_APP_DHIS2_BASE_URL:\"..\"",
+                "REACT_APP_DHIS2_BASE_URL:\"" + "../../.." + "\"");
 
         ByteArrayResource byteArrayResource =
             toByteArrayResource(
                 modifiedJsContent.getBytes(StandardCharsets.UTF_8), resourceFound.resource());
-
         return new ResourceResult.ResourceFound(byteArrayResource, "application/javascript");
       }
     }

@@ -210,7 +210,7 @@ public class TrackedEntityAttributeController
       Set<UID> indexedAttributeUids =
           trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
 
-      entity.setTrigramIndexable(indexedAttributeUids.contains(UID.of(entity.getUid())));
+      entity.setTrigramIndexed(indexedAttributeUids.contains(UID.of(entity.getUid())));
     }
   }
 }
