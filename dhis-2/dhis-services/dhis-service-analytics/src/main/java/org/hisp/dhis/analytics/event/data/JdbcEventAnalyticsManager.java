@@ -45,7 +45,6 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -66,7 +65,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
-import org.hisp.dhis.analytics.OrgUnitFieldType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -748,7 +746,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     return sql;
   }
-  
+
   /**
    * Adds a filtering condition into the "where" statement if an {@Option} is defined.
    *
