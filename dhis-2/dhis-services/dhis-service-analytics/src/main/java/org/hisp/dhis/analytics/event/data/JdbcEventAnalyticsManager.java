@@ -45,6 +45,7 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -65,6 +66,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.analytics.OrgUnitFieldType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -500,6 +502,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return sql + joinOrgUnitTables(params, getAnalyticsType());
   }
 
+  private List<DimensionalObject> getPeriods(EventQueryParams params) {
+    return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
+  }
+
   /**
    * Returns a from and where SQL clause. If this is a program indicator with non-default
    * boundaries, the relationship with the reporting period is specified with where conditions on
@@ -526,7 +532,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
       String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
       if (StringUtils.isNotBlank(timeFieldSql)) {
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+        sql += hlp.whereAnd() + " " + timeFieldSql;
       }
     }
 
@@ -745,6 +751,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     return sql;
+  }
+
+  /**
+   * Checks if the query requires ownership. This is determined by checking if the {@link
+   * OrgUnitFieldType} of the organization unit field is an ownership type.
+   *
+   * @param params the {@link EventQueryParams} to check.
+   * @return true if the query requires ownership, false otherwise.
+   */
+  private boolean queryRequiresOwnership(EventQueryParams params) {
+    return params.getOrgUnitField().getType().isOwnership();
   }
 
   /**

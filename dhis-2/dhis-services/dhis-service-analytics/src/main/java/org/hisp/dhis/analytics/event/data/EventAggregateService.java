@@ -90,10 +90,13 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -188,19 +191,26 @@ public class EventAggregateService {
     params = securityManager.withUserConstraints(params);
 
     queryValidator.validate(params);
+    boolean isEventAnalyticsDefaultPeriod = EventPeriodUtils.isStandardPeriod(params);
+    boolean queryRequiresOwnership = queryRequiresOwnership(params);
 
-    // retain original period dimensions
-    List<DimensionalObject> periods = getPeriods(params);
+    if (!isEventAnalyticsDefaultPeriod && queryRequiresOwnership) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7240));
+    }
 
-    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
+    if (!queryRequiresOwnership && !isEventAnalyticsDefaultPeriod) {
 
-    if ((!params.isSkipData() || params.analyzeOnly())
-        && !periods.isEmpty()
-        && !queryRequiresOwnership(params)) {
-      params =
-          new EventQueryParams.Builder(params)
-              .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
-              .build();
+      // retain original period dimensions
+      List<DimensionalObject> periods = getPeriods(params);
+
+      params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
+
+      if ((!params.isSkipData() || params.analyzeOnly()) && !periods.isEmpty()) {
+        params =
+            new EventQueryParams.Builder(params)
+                .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+                .build();
+      }
     }
 
     if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
