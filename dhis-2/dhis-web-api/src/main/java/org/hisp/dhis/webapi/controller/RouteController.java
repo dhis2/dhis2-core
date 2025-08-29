@@ -109,7 +109,7 @@ public class RouteController extends AbstractCrudController<Route> {
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, currentUser, subPath, request);
+    return routeService.execute(route, currentUser, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {
@@ -122,6 +122,16 @@ public class RouteController extends AbstractCrudController<Route> {
     }
 
     return Optional.empty();
+  }
+
+  @Override
+  protected void preCreateEntity(Route route) throws ConflictException {
+    routeService.validateRoute(route);
+  }
+
+  @Override
+  protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
+    routeService.validateRoute(newRoute);
   }
 
   /**
