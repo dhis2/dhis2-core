@@ -99,17 +99,15 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
   @State(Scope.Benchmark)
   public static class BenchmarkState {
-    //    @Param({"25", "50", "100", "200", "400", "800"})
-    @Param({"25"})
+    @Param({"25", "50", "100", "200", "400", "800"})
+    //    @Param({"25"})
     public int eventCount;
 
     @Param({
-      "*", // serialization all - baseline
-      //      "event", // only a single String field
-      //      "*,!relationships", // default fields of /tracker/events
-      //            "dataValues[dataElement,value]", // Deep field selection
-      //            "relationships[from[trackedEntity[*]]]", // Complex nested filtering
-      //            "event,dataValues[*,!storedBy]" // Mixed include/exclude
+      "*", // serialize all so we can compare field filtering to pure Jackson serialization
+      "event", // serialize only a single String field so we reduce the actual data Jackson has to
+      // write and so our field filtering is what should dominate
+      "*,!relationships", // default fields of /tracker/events
     })
     public String fields;
 
@@ -270,7 +268,9 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     }
 
     // Write CSV row
-    writer.write(csvQuote(params.getBenchmark()));
+    // method name instead of full package
+    String methodName = params.getBenchmark().substring(params.getBenchmark().lastIndexOf('.') + 1);
+    writer.write(csvQuote(methodName));
     writer.write(",");
     writer.write(csvQuote(params.getMode().shortLabel()));
     writer.write(",");
@@ -284,11 +284,18 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     writer.write(",");
     writer.write(csvQuote(result.getScoreUnit()));
 
-    // Write parameter values
+    // Write parameter values (quote if contains comma)
     for (String paramKey : params.getParamsKeys()) {
       writer.write(",");
       String paramValue = params.getParam(paramKey);
-      writer.write(paramValue != null ? paramValue : "");
+      if (paramValue != null) {
+        // Quote if contains comma (for values like "*,!relationships")
+        if (paramValue.contains(",")) {
+          writer.write("\"" + paramValue + "\"");
+        } else {
+          writer.write(paramValue);
+        }
+      }
     }
 
     // Write events/s
