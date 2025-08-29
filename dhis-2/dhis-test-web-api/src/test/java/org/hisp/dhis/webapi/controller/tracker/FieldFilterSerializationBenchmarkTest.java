@@ -187,8 +187,8 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
             .forks(0) // Run in same JVM to preserve Spring context
             .mode(Mode.Throughput)
             .timeUnit(TimeUnit.SECONDS)
-            .warmupIterations(2)
-            .warmupTime(TimeValue.seconds(2))
+            .warmupIterations(3)
+            .warmupTime(TimeValue.seconds(5))
             .measurementIterations(5)
             .measurementTime(TimeValue.seconds(5))
             .resultFormat(ResultFormatType.CSV)
