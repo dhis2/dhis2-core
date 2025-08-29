@@ -16,17 +16,8 @@ alter table categoryoptiongroupset alter column translations set default '[]'::j
 update categoryoptiongroup set translations = '[]'::jsonb where translations is null;
 alter table categoryoptiongroup alter column translations set default '[]'::jsonb;
 
-update dataelementcategoryoption set translations = '[]'::jsonb where translations is null;
-alter table dataelementcategoryoption alter column translations set default '[]'::jsonb;
-
-update chart set translations = '[]'::jsonb where translations is null;
-alter table chart alter column translations set default '[]'::jsonb;
-
-update colorset set translations = '[]'::jsonb where translations is null;
-alter table colorset alter column translations set default '[]'::jsonb;
-
-update color set translations = '[]'::jsonb where translations is null;
-alter table color alter column translations set default '[]'::jsonb;
+update categoryoption set translations = '[]'::jsonb where translations is null;
+alter table categoryoption alter column translations set default '[]'::jsonb;
 
 update constant set translations = '[]'::jsonb where translations is null;
 alter table constant alter column translations set default '[]'::jsonb;
@@ -40,8 +31,8 @@ alter table dataapprovallevel alter column translations set default '[]'::jsonb;
 update dataapprovalworkflow set translations = '[]'::jsonb where translations is null;
 alter table dataapprovalworkflow alter column translations set default '[]'::jsonb;
 
-update dataelementcategory set translations = '[]'::jsonb where translations is null;
-alter table dataelementcategory alter column translations set default '[]'::jsonb;
+update category set translations = '[]'::jsonb where translations is null;
+alter table category alter column translations set default '[]'::jsonb;
 
 update dataelementgroupset set translations = '[]'::jsonb where translations is null;
 alter table dataelementgroupset alter column translations set default '[]'::jsonb;
