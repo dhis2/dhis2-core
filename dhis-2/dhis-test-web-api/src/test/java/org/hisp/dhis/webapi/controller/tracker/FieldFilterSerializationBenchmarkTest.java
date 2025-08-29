@@ -61,6 +61,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.BenchmarkParams;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -100,6 +101,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
   @State(Scope.Benchmark)
   public static class BenchmarkState {
     @Param({"25", "50", "100", "200", "400", "800"})
+    //    @Param({"25", "50", "100", "200", "400", "800", "1600"})
     //    @Param({"25"})
     public int eventCount;
 
@@ -132,25 +134,29 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
   public static class FieldFilterBenchmarks {
     @Benchmark
-    public String noFieldFiltering(BenchmarkState state) throws JsonProcessingException {
-      return BenchmarkState.objectMapper.writeValueAsString(state.events);
+    public void noFieldFiltering(BenchmarkState state, Blackhole bh)
+        throws JsonProcessingException {
+      bh.consume(BenchmarkState.objectMapper.writeValueAsString(state.events));
     }
 
     @Benchmark
-    public String currentFieldFiltering(BenchmarkState state) throws JsonProcessingException {
+    public void currentFieldFiltering(BenchmarkState state, Blackhole bh)
+        throws JsonProcessingException {
       List<FieldPath> filter = FieldFilterParser.parse(state.fields);
       List<ObjectNode> objectNodes =
           BenchmarkState.fieldFilterService.toObjectNodes(state.events, filter);
-      return BenchmarkState.objectMapper.writeValueAsString(objectNodes);
+      bh.consume(BenchmarkState.objectMapper.writeValueAsString(objectNodes));
     }
 
     @Benchmark
-    public String betterFieldFiltering(BenchmarkState state) throws JsonProcessingException {
+    public void betterFieldFiltering(BenchmarkState state, Blackhole bh)
+        throws JsonProcessingException {
       Fields fields = FieldsParser.parse(state.fields);
-      return BenchmarkState.filterMapper
-          .writer()
-          .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
-          .writeValueAsString(state.events);
+      bh.consume(
+          BenchmarkState.filterMapper
+              .writer()
+              .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
+              .writeValueAsString(state.events));
     }
   }
 
@@ -178,7 +184,6 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
             .include(
                 "org.hisp.dhis.webapi.controller.tracker.FieldFilterSerializationBenchmarkTest.FieldFilterBenchmarks.*")
             .shouldFailOnError(true)
-            .shouldDoGC(true)
             .forks(0) // Run in same JVM to preserve Spring context
             .mode(Mode.Throughput)
             .timeUnit(TimeUnit.SECONDS)
@@ -248,7 +253,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
       writer.write(",\"Param: " + param + "\"");
     }
 
-    writer.write(",\"Events/s\"");
+    writer.write(",\"Events/s\",\"Events/s Error (99.9%)\"");
     writer.newLine();
   }
 
@@ -256,13 +261,15 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     BenchmarkParams params = rr.getParams();
     Result result = rr.getPrimaryResult();
 
-    // Calculate events/s
+    // Calculate events/s and events/s error
     String eventCountStr = params.getParam("eventCount");
     double eventsPerSec = 0;
+    double eventsPerSecError = 0;
     if (eventCountStr != null) {
       try {
         int eventCount = Integer.parseInt(eventCountStr);
         eventsPerSec = result.getScore() * eventCount;
+        eventsPerSecError = result.getScoreError() * eventCount;
       } catch (NumberFormatException ignored) {
       }
     }
@@ -298,9 +305,11 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
       }
     }
 
-    // Write events/s
+    // Write events/s and events/s error
     writer.write(",");
     writer.write(String.format("%.2f", eventsPerSec));
+    writer.write(",");
+    writer.write(String.format("%.2f", eventsPerSecError));
     writer.newLine();
   }
 
