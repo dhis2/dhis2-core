@@ -44,6 +44,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
+
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -59,6 +61,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -103,8 +106,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
-import com.google.common.base.MoreObjects;
-import lombok.Getter;
 
 /**
  * Class representing query parameters for retrieving event data from the event analytics service.

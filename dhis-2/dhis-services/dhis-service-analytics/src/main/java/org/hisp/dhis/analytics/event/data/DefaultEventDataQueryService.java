@@ -47,6 +47,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.EventDataQueryRequest.getStageInValue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -57,6 +58,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -99,8 +102,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
