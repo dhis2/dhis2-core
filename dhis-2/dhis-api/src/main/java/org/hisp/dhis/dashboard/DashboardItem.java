@@ -54,6 +54,7 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -200,10 +201,12 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
     this.uid = uid;
   }
 
-  // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  private transient Access access;
+  // ----------------------------------------------------------------
+  // Transient properties
+  // ----------------------------------------------------------------
+
+  /** Access information for this object. Applies to current user. */
+  @Transient protected transient Access access;
 
   // -------------------------------------------------------------------------
   // Logic
@@ -493,9 +496,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public String getHref() {
-    return DashboardItem.class.isAssignableFrom(getClass())
-        ? "/dashboardItems/" + getUid()
-        : "/" + getClass().getSimpleName().toLowerCase() + "s/" + getUid();
+    return "/dashboardItems/" + getUid();
   }
 
   @Override

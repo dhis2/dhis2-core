@@ -48,5 +48,7 @@ public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {
   @Mapping(target = "userAccesses", ignore = true)
   @Mapping(target = "userGroupAccesses", ignore = true)
   @Mapping(target = "externalAccess", ignore = true)
+  @Mapping(target = "legendSets", ignore = true)
+  @Mapping(target = "favorites", ignore = true)
   CategoryOption map(CategoryOption categoryOption);
 }
