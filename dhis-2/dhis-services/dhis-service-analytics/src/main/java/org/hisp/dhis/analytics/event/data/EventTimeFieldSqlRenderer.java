@@ -36,7 +36,7 @@ import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 

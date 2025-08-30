@@ -31,6 +31,9 @@ package org.hisp.dhis.dimension;
 
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
@@ -369,23 +372,19 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     visualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouA, ouB, ouC, ouD, ouE)));
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(2, visualization.getDataDimensionItems().size());
     assertEquals(2, visualization.getPeriods().size());
@@ -400,23 +399,19 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     eventVisualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouA, ouB, ouC, ouD, ouE)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -436,16 +431,14 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouA, ouB, ouC)));
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(1, visualization.getDataElementDimensions().size());
     assertEquals(2, visualization.getPeriods().size());
@@ -467,16 +460,14 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouA, ouB, ouC)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -497,21 +488,17 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     visualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
-                DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList(ouUser)));
+                ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList(ouUser)));
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(2, visualization.getDataDimensionItems().size());
     assertEquals(1, visualization.getPeriods().size());
@@ -527,21 +514,17 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     eventVisualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
-                DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList(ouUser)));
+                ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList(ouUser)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -558,21 +541,19 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     visualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouLevel2, ouA)));
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(2, visualization.getDataDimensionItems().size());
     assertEquals(1, visualization.getPeriods().size());
@@ -588,21 +569,19 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     eventVisualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouLevel2, ouA)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -619,23 +598,19 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     visualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouA, ouB, ouC, ouD, ouE)));
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peLast12Months)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peLast12Months)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(2, visualization.getDataDimensionItems().size());
     assertEquals(0, visualization.getPeriods().size());
@@ -652,23 +627,19 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     eventVisualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
+                ORGUNIT_DIM_ID,
                 DimensionType.ORGANISATION_UNIT,
                 Lists.newArrayList(ouA, ouB, ouC, ouD, ouE)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peLast12Months)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peLast12Months)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -692,19 +663,17 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA)));
     eventVisualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
-                DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList(ouA)));
+                ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList(ouA)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
+                PERIOD_DIM_ID,
                 DimensionType.PERIOD,
                 Lists.newArrayList(peLast6Months, peLast5Years, peLast3days, peThisWeek)));
 
@@ -739,19 +708,17 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA)));
     eventVisualization
         .getRows()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID,
-                DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList(ouA)));
+                ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList(ouA)));
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
+                PERIOD_DIM_ID,
                 DimensionType.PERIOD,
                 Lists.newArrayList(
                     peLast6Months, peLast5Years, peLast3days, peThisWeek, peA, peB)));
@@ -784,17 +751,13 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     visualization.getRows().add(ouGroupSetA);
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(2, visualization.getDataDimensionItems().size());
     assertEquals(2, visualization.getPeriods().size());
@@ -811,17 +774,13 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     eventVisualization.getRows().add(ouGroupSetA);
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -839,17 +798,13 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     visualization.getRows().add(deGroupSetA);
     visualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     dimensionService.mergeAnalyticalObject(visualization);
     assertEquals(2, visualization.getDataDimensionItems().size());
     assertEquals(2, visualization.getPeriods().size());
@@ -865,17 +820,13 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
         .getColumns()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID,
-                DimensionType.DATA_X,
-                Lists.newArrayList(deA, deB)));
+                DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList(deA, deB)));
     eventVisualization.getRows().add(deGroupSetA);
     eventVisualization
         .getFilters()
         .add(
             new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID,
-                DimensionType.PERIOD,
-                Lists.newArrayList(peA, peB)));
+                PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB)));
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);
     // Then
@@ -1044,7 +995,7 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
     report.addTrackedEntityDataElementDimension(teDeDim);
     report.getOrganisationUnits().addAll(Lists.newArrayList(ouA, ouB, ouC));
     report.getColumnDimensions().add(deA.getUid());
-    report.getRowDimensions().add(DimensionalObject.ORGUNIT_DIM_ID);
+    report.getRowDimensions().add(ORGUNIT_DIM_ID);
     report.populateAnalyticalProperties();
     assertEquals(1, report.getColumns().size());
     assertEquals(1, report.getRows().size());

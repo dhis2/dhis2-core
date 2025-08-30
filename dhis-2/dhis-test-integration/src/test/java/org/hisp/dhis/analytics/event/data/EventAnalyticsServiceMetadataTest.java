@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.QueryFilter.OPTION_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -153,11 +155,9 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
   @SuppressWarnings("unchecked")
   void testGetQueryItemDimensionMetadata() {
     DimensionalObject periods =
-        new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
     DimensionalObject orgUnits =
-        new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA));
+        new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA));
     QueryItem itemLegendSet =
         new QueryItem(deA, lsA, deA.getValueType(), deA.getAggregationType(), null);
     QueryItem itemLegendSetFilter =
@@ -228,11 +228,9 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
   @SuppressWarnings("unchecked")
   void testGetQueryItemMetadata() {
     DimensionalObject periods =
-        new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
     DimensionalObject orgUnits =
-        new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA));
+        new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA));
     QueryItem qiA =
         new QueryItem(deA, deA.getLegendSet(), deA.getValueType(), deA.getAggregationType(), null);
     QueryItem qiB =
@@ -251,8 +249,8 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
     Map<String, Object> metadata = grid.getMetaData();
     Map<String, MetadataItem> itemMap =
         (Map<String, MetadataItem>) metadata.get(AnalyticsMetaDataKey.ITEMS.getKey());
-    assertNotNull(itemMap.get(DimensionalObject.PERIOD_DIM_ID));
-    assertNotNull(itemMap.get(DimensionalObject.ORGUNIT_DIM_ID));
+    assertNotNull(itemMap.get(PERIOD_DIM_ID));
+    assertNotNull(itemMap.get(ORGUNIT_DIM_ID));
     for (Legend legend : deA.getLegendSet().getLegends()) {
       assertNotNull(itemMap.get(legend.getUid()));
     }

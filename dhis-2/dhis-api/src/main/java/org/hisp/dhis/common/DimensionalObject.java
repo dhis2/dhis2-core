@@ -30,6 +30,12 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.LATITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.LONGITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import java.util.List;
 import java.util.Map;
@@ -53,45 +59,6 @@ import org.hisp.dhis.program.ProgramStage;
  * @author Lars Helge Overland
  */
 public interface DimensionalObject extends NameableObject, GroupableItem {
-  String DATA_X_DIM_ID = "dx"; // in, de, ds, do
-
-  String DATA_COLLAPSED_DIM_ID = "dy"; // Collapsed event data dimensions
-
-  String CATEGORYOPTIONCOMBO_DIM_ID = "co";
-
-  String ATTRIBUTEOPTIONCOMBO_DIM_ID = "ao";
-
-  String PERIOD_DIM_ID = "pe";
-
-  String ORGUNIT_DIM_ID = "ou";
-
-  String ORGUNIT_GROUP_DIM_ID = "oug"; // Used for org unit target
-
-  String ITEM_DIM_ID = "item";
-
-  String DIMENSION_SEP = "-";
-
-  String LONGITUDE_DIM_ID = "longitude";
-
-  String LATITUDE_DIM_ID = "latitude";
-
-  String DIMENSION_NAME_SEP = ":";
-
-  String PERIOD_FREE_RANGE_SEPARATOR = "_";
-
-  String QUERY_MODS_ID_SEPARATOR = "_";
-
-  String OPTION_SEP = ";";
-
-  String MULTI_CHOICES_OPTION_SEP = ",";
-
-  String ITEM_SEP = "-";
-
-  String DIMENSION_IDENTIFIER_SEP = ".";
-
-  String VALUE_COLUMN_NAME = "value";
-
-  String TEXTVALUE_COLUMN_NAME = "textvalue";
 
   List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
 
