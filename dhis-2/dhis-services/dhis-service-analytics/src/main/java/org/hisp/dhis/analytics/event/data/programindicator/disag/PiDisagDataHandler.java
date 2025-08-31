@@ -32,7 +32,7 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 import static com.google.common.collect.Iterables.toArray;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.CodeGenerator.UID_CODE_SIZE;
-import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_COLLAPSED_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E4078;

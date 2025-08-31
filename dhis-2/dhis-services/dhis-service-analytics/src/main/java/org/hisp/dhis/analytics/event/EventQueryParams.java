@@ -32,12 +32,14 @@ package org.hisp.dhis.analytics.event;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
@@ -143,6 +145,9 @@ public class EventQueryParams extends DataQueryParams {
 
   /** The dimensional object for which to produce aggregated data. */
   private DimensionalItemObject value;
+
+  /** The incoming "value" param from the request. */
+  private String requestValue;
 
   /** Program indicators specified as dimensional items of the data dimension. */
   private List<ProgramIndicator> itemProgramIndicators = new ArrayList<>();
@@ -285,6 +290,7 @@ public class EventQueryParams extends DataQueryParams {
     params.items = new ArrayList<>(this.items);
     params.itemFilters = new ArrayList<>(this.itemFilters);
     params.value = this.value;
+    params.requestValue = this.requestValue;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -577,6 +583,7 @@ public class EventQueryParams extends DataQueryParams {
     desc.forEach(e -> e.getItem().getUid());
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
+        .addIgnoreNull("requestValue", requestValue)
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
         .addIgnoreNull("page", page)
@@ -678,6 +685,10 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean useStartEndDates() {
     return hasStartEndDate();
+  }
+
+  public boolean hasStageInValue() {
+    return isNotBlank(requestValue) && requestValue.contains(DIMENSION_IDENTIFIER_SEP);
   }
 
   /**
@@ -885,8 +896,7 @@ public class EventQueryParams extends DataQueryParams {
   public Set<OrganisationUnit> getOrganisationUnitChildren() {
     Set<OrganisationUnit> children = new HashSet<>();
 
-    for (DimensionalItemObject object :
-        getDimensionOrFilterItems(DimensionalObject.ORGUNIT_DIM_ID)) {
+    for (DimensionalItemObject object : getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
       children.addAll(unit.getChildren());
     }
@@ -1105,6 +1115,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public DimensionalItemObject getValue() {
     return value;
+  }
+
+  public String getRequestValue() {
+    return requestValue;
   }
 
   public List<ProgramIndicator> getItemProgramIndicators() {
@@ -1336,6 +1350,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withValue(DimensionalItemObject value) {
       this.params.value = value;
+      return this;
+    }
+
+    public Builder withRequestValue(String requestValue) {
+      this.params.requestValue = requestValue;
       return this;
     }
 

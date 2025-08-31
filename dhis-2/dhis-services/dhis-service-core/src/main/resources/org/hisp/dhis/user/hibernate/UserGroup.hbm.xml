@@ -20,6 +20,8 @@
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
+    <property name="description"  column="description" not-null="false" length="255"/>
+
     <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="usergroupmembers">
