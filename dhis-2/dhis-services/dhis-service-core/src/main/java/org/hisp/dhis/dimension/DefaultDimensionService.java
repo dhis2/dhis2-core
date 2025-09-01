@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DYNAMIC_DIMENSION_CLASSES;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -165,8 +166,7 @@ public class DefaultDimensionService implements DimensionService {
   @Override
   @Transactional(readOnly = true)
   public List<DimensionalItemObject> getCanReadDimensionItems(String uid) {
-    DimensionalObject dimension =
-        idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
+    DimensionalObject dimension = idObjectManager.get(DYNAMIC_DIMENSION_CLASSES, uid);
 
     List<DimensionalItemObject> items = new ArrayList<>();
 
@@ -325,8 +325,7 @@ public class DefaultDimensionService implements DimensionService {
   @Transactional(readOnly = true)
   public DimensionalObject getDimensionalObjectCopy(String uid, boolean filterCanRead)
       throws NotFoundException {
-    DimensionalObject dimension =
-        idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
+    DimensionalObject dimension = idObjectManager.get(DYNAMIC_DIMENSION_CLASSES, uid);
     if (dimension == null) {
       throw new NotFoundException("Dimension does not exist: " + uid);
     }

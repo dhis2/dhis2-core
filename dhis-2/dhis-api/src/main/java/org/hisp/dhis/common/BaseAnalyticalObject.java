@@ -45,11 +45,12 @@ import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_Y
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_COLLAPSED_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.LATITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -125,6 +126,8 @@ import org.hisp.dhis.visualization.LegendDefinitions;
  */
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
+
+  private static final List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
 
   /** Line and axis labels. */
   protected String domainAxisLabel;
