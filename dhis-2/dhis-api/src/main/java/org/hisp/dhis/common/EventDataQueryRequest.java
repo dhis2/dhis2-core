@@ -35,7 +35,7 @@ import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
 
 import java.util.Arrays;

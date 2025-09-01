@@ -33,8 +33,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.lang3.ArrayUtils.remove;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.hasPeriod;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
 import static org.hisp.dhis.common.collection.CollectionUtils.addAllUnique;
 import static org.hisp.dhis.common.collection.CollectionUtils.addUnique;
 

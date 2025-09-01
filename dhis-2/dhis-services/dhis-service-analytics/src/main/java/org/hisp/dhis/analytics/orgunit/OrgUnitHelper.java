@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.orgunit;
 
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 
 import java.util.List;
 import java.util.stream.Collectors;

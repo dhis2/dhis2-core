@@ -30,8 +30,8 @@
 package org.hisp.dhis.analytics.data.handler;
 
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.AOC_ONLY;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType.COC_ONLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
