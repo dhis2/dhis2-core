@@ -17,7 +17,8 @@
     <gson.version>2.13.1</gson.version>
     <log4j.version>2.25.1</log4j.version>
     <rest-assured.version>5.5.6</rest-assured.version>
-    <jackson.version>2.20.0</jackson.version>
+    <jackson.version.databind>2.20.0</jackson.version.databind>
+    <jackson.version.annotation>2.20</jackson.version.annotation>
     <guava.version>33.4.8-jre</guava.version>
     <json-tree.version>1.8.1</json-tree.version>
     <epam-reportportal.version>5.3.0</epam-reportportal.version>
@@ -112,6 +113,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.epam.reportportal</groupId>
       <artifactId>agent-java-junit5</artifactId>
       <version>${epam-reportportal.version}</version>
@@ -187,7 +193,6 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>${lombok.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -267,6 +272,7 @@
               <licenseHeader>
                 <file>${rootDir}/license-header</file>
               </licenseHeader>
+              <toggleOffOn/>
             </java>
             <pom>
               <toggleOffOn>
