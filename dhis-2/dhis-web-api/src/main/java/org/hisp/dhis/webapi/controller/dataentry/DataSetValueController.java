@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
@@ -37,6 +38,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -90,7 +92,7 @@ public class DataSetValueController {
     DataSet ds = dataValidator.getAndValidateDataSet(params.getDs());
     Period pe = dataValidator.getAndValidatePeriod(params.getPe());
     OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
-    CategoryOptionCombo ao =
+    CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
     DataExportParams exportParams =
@@ -98,7 +100,7 @@ public class DataSetValueController {
             .setDataSets(Set.of(ds))
             .setPeriods(Set.of(pe))
             .setOrganisationUnits(Set.of(ou))
-            .setAttributeOptionCombos(Set.of(ao));
+            .setAttributeOptionCombos(Set.of(aoc));
 
     List<DataValueEntry> dataValues = dataValueService.getDataValues(exportParams);
 
@@ -109,13 +111,17 @@ public class DataSetValueController {
     UID de = UID.of(ds.getDataElements().iterator().next());
     LockStatus lockStatus =
         dataEntryService.getEntryStatus(
-            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(ao), pe.getIsoDate()));
+            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(aoc), pe.getIsoDate()));
 
     CompleteDataSetRegistration registration =
-        registrationService.getCompleteDataSetRegistration(ds, pe, ou, ao);
+        registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
 
+    DataValueCategoryParams attribute = new DataValueCategoryParams();
+    attribute.setCombo(aoc.getCategoryCombo().getUid());
+    attribute.setOptions(
+        aoc.getCategoryOptions().stream().map(IdentifiableObject::getUid).collect(toSet()));
     return new DataValuesDto()
-        .setDataValues(mapToList(dataValues, DataSetValueController::toDto))
+        .setDataValues(mapToList(dataValues, dv -> toDto(dv, attribute)))
         .setMinMaxValues(mapToList(minMaxValues, DataSetValueController::toDto))
         .setLockStatus(lockStatus)
         .setCompleteStatus(registration != null ? toDto(registration) : new CompleteStatusDto());
@@ -127,14 +133,13 @@ public class DataSetValueController {
    * @param value the {@link DataValue}.
    * @return a {@link DataValuePostParams}.
    */
-  public static DataValuePostParams toDto(DataValueEntry value) {
+  public static DataValuePostParams toDto(DataValueEntry value, DataValueCategoryParams attribute) {
     return new DataValuePostParams()
         .setDataElement(value.dataElement().getValue())
         .setPeriod(value.period())
         .setOrgUnit(value.orgUnit().getValue())
         .setCategoryOptionCombo(value.categoryOptionCombo().getValue())
-        // FIXME need to add a subsequent lookup of AOC CC+COs for a set of COCs
-        // .setAttribute(toDto(value.getAttributeOptionCombo()))
+        .setAttribute(attribute)
         .setValue(value.value())
         .setComment(value.comment())
         .setFollowUp(value.isFollowUp())

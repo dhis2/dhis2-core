@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
-import java.util.Date;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -39,7 +38,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -67,8 +65,6 @@ public class DataValidator {
   private final IdentifiableObjectManager idObjectManager;
 
   private final InputUtils inputUtils;
-
-  private final AggregateAccessManager accessManager;
 
   private final UserService userService;
 
@@ -103,34 +99,6 @@ public class DataValidator {
    */
   public CategoryOptionCombo getAndValidateCategoryOptionCombo(String uid) {
     return idObjectManager.load(CategoryOptionCombo.class, ErrorCode.E1103, uid);
-  }
-
-  /**
-   * Retrieves and verifies a category option combo. If not required, and if the given identifier is
-   * null, the default category option combo will be returned if an object with the given identifier
-   * does not exist.
-   *
-   * @param uid the category option combo identifier.
-   * @param requireCategoryOptionCombo whether an exception should be thrown if the category option
-   *     combo does not exist.
-   * @return the {@link CategoryOptionCombo}.
-   * @throws IllegalQueryException if the validation fails.
-   */
-  public CategoryOptionCombo getAndValidateCategoryOptionCombo(
-      String uid, boolean requireCategoryOptionCombo) {
-    CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo(uid);
-
-    if (categoryOptionCombo == null) {
-      if (requireCategoryOptionCombo) {
-        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2018));
-      } else if (uid != null) {
-        throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1103, uid));
-      } else {
-        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-      }
-    }
-
-    return categoryOptionCombo;
   }
 
   /**
@@ -209,23 +177,5 @@ public class DataValidator {
     }
 
     return organisationUnit;
-  }
-
-  /**
-   * Validates the OrganisationUnit dates against the given period.
-   *
-   * @param organisationUnit the {@link OrganisationUnit} and its dates.
-   * @param period the {@link Period} to be checked.
-   * @throws IllegalQueryException if the validation fails.
-   */
-  public void validateOrganisationUnitPeriod(OrganisationUnit organisationUnit, Period period) {
-    Date openingDate = organisationUnit.getOpeningDate();
-    Date closedDate = organisationUnit.getClosedDate();
-    Date startDate = period.getStartDate();
-    Date endDate = period.getEndDate();
-
-    if ((closedDate != null && closedDate.before(startDate)) || openingDate.after(endDate)) {
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2019, organisationUnit.getUid()));
-    }
   }
 }

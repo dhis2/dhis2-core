@@ -118,8 +118,6 @@ public class DataValueController {
 
   private final FileResourceService fileResourceService;
 
-  private final DataValidator dataValidator;
-
   private final FileResourceUtils fileResourceUtils;
 
   private final DhisConfigurationProvider dhisConfig;
