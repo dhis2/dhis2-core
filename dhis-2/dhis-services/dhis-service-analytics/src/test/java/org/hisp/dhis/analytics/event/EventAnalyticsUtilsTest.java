@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;

@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -163,7 +164,7 @@ public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
       if (!dim.getItems().isEmpty() && !dim.isFixed()) {
         String col = sqlBuilder.quote(dim.getDimensionName());
 
-        if (DimensionalObject.ORGUNIT_DIM_ID.equals(dim.getDimension())) {
+        if (ORGUNIT_DIM_ID.equals(dim.getDimension())) {
           sql += sqlHelper.whereAnd() + " (";
 
           for (DimensionalItemObject item : dim.getItems()) {
