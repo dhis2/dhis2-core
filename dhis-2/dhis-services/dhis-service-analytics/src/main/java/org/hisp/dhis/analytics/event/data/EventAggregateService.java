@@ -86,6 +86,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -609,7 +610,9 @@ public class EventAggregateService {
   }
 
   private List<DimensionalObject> getPeriods(EventQueryParams params) {
-    return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+        .toList();
   }
 
   /**
