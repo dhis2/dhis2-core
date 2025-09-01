@@ -70,7 +70,7 @@ public class CategoryOptionComboObjectBundleHook
 
     checkNonStandardDefaultCatOptionCombo(combo, addReports);
     checkIsValid(combo, addReports);
-    checkIsExpectedState(combo, bundle, addReports);
+    checkFullCatOptComboSetProvided(combo, bundle, addReports);
   }
 
   /**
@@ -95,7 +95,7 @@ public class CategoryOptionComboObjectBundleHook
    * @param bundle bundle
    * @param addReports reports to add errors to
    */
-  private void checkIsExpectedState(
+  private void checkFullCatOptComboSetProvided(
       CategoryOptionCombo optionCombo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     // is it a create or update
     boolean cocIsPersisted = bundle.isPersisted(optionCombo);
