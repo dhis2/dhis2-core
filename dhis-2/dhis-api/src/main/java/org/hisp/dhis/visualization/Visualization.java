@@ -38,11 +38,10 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PRETTY_NAMES;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -90,6 +89,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
@@ -119,12 +119,19 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
-  public static final Map<String, String> COLUMN_NAMES =
+  private static final Map<String, String> COLUMN_NAMES =
       Map.of(
           DATA_X_DIM_ID, "data",
           CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
           PERIOD_DIM_ID, "period",
           ORGUNIT_DIM_ID, "organisationunit");
+
+  private static final Map<String, MetadataItem> DISPLAY_NAMES =
+      Map.of(
+          DATA_X_DIM_ID, new MetadataItem("Data"),
+          CATEGORYOPTIONCOMBO_DIM_ID, new MetadataItem("Data details"),
+          PERIOD_DIM_ID, new MetadataItem("Period"),
+          ORGUNIT_DIM_ID, new MetadataItem("Organisation unit"));
 
   // -------------------------------------------------------------------------
   // Common attributes
@@ -173,9 +180,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   /** The key of the color set to use for visualization items, like columns and bars. */
   private String colorSet;
 
-  /**
-   * The collection of {@link Icon} objects associated. Should be unique for each {@link IconType}.
-   */
+  /** The collection of associated {@link Icon} objects, unique for each {@link IconType}. */
   private Set<Icon> icons = new HashSet<>();
 
   // -------------------------------------------------------------------------
@@ -186,20 +191,14 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   private List<AxisV2> axes = new ArrayList<>();
 
-  /**
-   * The period of years of this visualization. See RelativePeriodEnum for a valid list of enum
-   * based strings.
-   */
+  /** The period of years of this visualization, see {@link RelativePeriodEnum} for options. */
   private List<String> yearlySeries = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Flags
   // -------------------------------------------------------------------------
 
-  /**
-   * Indicates whether the visualization contains regression columns. More likely to be applicable
-   * to pivot and reports.
-   */
+  /** Indicates whether the visualization contains regression columns. */
   private boolean regression;
 
   /** Indicates whether to hide columns with no data values. */
@@ -217,15 +216,14 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   private transient List<Period> relativePeriodsList = new ArrayList<>();
 
-  /** The name of the visualization (monthly based). */
+  /** The name of the visualization. */
   private transient String visualizationPeriodName;
 
-  /** The title for a possible tabulated data. */
+  /** The title for tabulated data. */
   private transient String gridTitle;
 
   /*
-   * Collections mostly used for analytics tabulated data, like pivots or
-   * reports.
+   * Relevant for analytics tabulated data, e.g. pivot tables, reports.
    */
   private transient List<List<DimensionalItemObject>> gridColumns = new ArrayList<>();
 
@@ -233,15 +231,21 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   private transient List<DimensionDescriptor> dimensionDescriptors = new ArrayList<>();
 
+  /** Default constructor. */
   public Visualization() {}
 
+  /**
+   * Constructor.
+   *
+   * @param name the name.
+   */
   public Visualization(String name) {
     this();
     this.name = name;
   }
 
   /**
-   * Default constructor.
+   * Constructor.
    *
    * @param name the name.
    * @param dataElements the data elements.
@@ -1161,7 +1165,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    */
   private void addHeadersForRows(Grid grid) {
     Map<String, MetadataItem> metaData = getMetaData();
-    metaData.putAll(PRETTY_NAMES);
+    metaData.putAll(DISPLAY_NAMES);
 
     for (String dimension : rowDimensions) {
       String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
@@ -1188,8 +1192,8 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   /**
-   * Generates a pretty column name based on the given display property of the argument objects.
-   * Null arguments are ignored in the name.
+   * Generates a pretty column name based on the given display property of the argument objects,
+   * null arguments are ignored.
    */
   public static String getPrettyColumnName(
       List<DimensionalItemObject> objects, DisplayProperty displayProperty) {
@@ -1205,11 +1209,9 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   /**
    * Generates a column name based on short-names of the argument objects. Null arguments are
-   * ignored in the name.
-   *
-   * <p>The period column name must be static when on columns, so it can be re-used in reports,
-   * hence the name property is used which will be formatted only when the period dimension is on
-   * rows.
+   * ignored in the name. The period column name must be static when on columns, so it can be
+   * re-used in reports, hence the name property is used which will be formatted only when the
+   * period dimension is on rows.
    */
   public static String getColumnName(List<DimensionalItemObject> objects) {
     StringBuilder sb = new StringBuilder();

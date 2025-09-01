@@ -41,9 +41,9 @@ import static org.hisp.dhis.analytics.common.processing.MetadataDimensionsHandle
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getCocNameMap;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDimensionMetadataItemMap;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.handleGridForDataValueSet;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;

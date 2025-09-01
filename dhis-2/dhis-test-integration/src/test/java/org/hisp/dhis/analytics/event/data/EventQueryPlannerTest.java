@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,7 +48,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.Partitions;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
@@ -287,7 +287,7 @@ class EventQueryPlannerTest extends PostgresIntegrationTestBase {
             .build();
     EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
     assertEquals(6, params.getItems().size());
-    assertNull(params.getDimension(DimensionalObject.DATA_X_DIM_ID));
+    assertNull(params.getDimension(DATA_X_DIM_ID));
     assertTrue(params.isAggregateData());
     for (QueryItem item : params.getItems()) {
       assertEquals(prA, item.getProgram());

@@ -40,9 +40,9 @@ import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.So
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;

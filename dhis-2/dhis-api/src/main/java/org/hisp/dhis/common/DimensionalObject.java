@@ -32,20 +32,10 @@ package org.hisp.dhis.common;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -53,82 +43,6 @@ import org.hisp.dhis.program.ProgramStage;
  * @author Lars Helge Overland
  */
 public interface DimensionalObject extends NameableObject, GroupableItem {
-  String DATA_X_DIM_ID = "dx"; // in, de, ds, do
-
-  String DATA_COLLAPSED_DIM_ID = "dy"; // Collapsed event data dimensions
-
-  String CATEGORYOPTIONCOMBO_DIM_ID = "co";
-
-  String ATTRIBUTEOPTIONCOMBO_DIM_ID = "ao";
-
-  String PERIOD_DIM_ID = "pe";
-
-  String ORGUNIT_DIM_ID = "ou";
-
-  String ORGUNIT_GROUP_DIM_ID = "oug"; // Used for org unit target
-
-  String ITEM_DIM_ID = "item";
-
-  String DIMENSION_SEP = "-";
-
-  String LONGITUDE_DIM_ID = "longitude";
-
-  String LATITUDE_DIM_ID = "latitude";
-
-  String DIMENSION_NAME_SEP = ":";
-
-  String PERIOD_FREE_RANGE_SEPARATOR = "_";
-
-  String QUERY_MODS_ID_SEPARATOR = "_";
-
-  String OPTION_SEP = ";";
-
-  String MULTI_CHOICES_OPTION_SEP = ",";
-
-  String ITEM_SEP = "-";
-
-  String DIMENSION_IDENTIFIER_SEP = ".";
-
-  String VALUE_COLUMN_NAME = "value";
-
-  String TEXTVALUE_COLUMN_NAME = "textvalue";
-
-  List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
-
-  Map<String, MetadataItem> PRETTY_NAMES =
-      Map.of(
-          DATA_X_DIM_ID, new MetadataItem("Data"),
-          CATEGORYOPTIONCOMBO_DIM_ID, new MetadataItem("Data details"),
-          PERIOD_DIM_ID, new MetadataItem("Period"),
-          ORGUNIT_DIM_ID, new MetadataItem("Organisation unit"));
-
-  Set<Class<? extends DimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
-      Set.of(
-          Category.class,
-          DataElementGroupSet.class,
-          OrganisationUnitGroupSet.class,
-          CategoryOptionGroupSet.class);
-
-  Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>
-      DIMENSION_CLASS_ITEM_CLASS_MAP =
-          Map.of(
-              Category.class, CategoryOption.class,
-              DataElementGroupSet.class, DataElementGroup.class,
-              OrganisationUnitGroupSet.class, OrganisationUnitGroup.class,
-              CategoryOptionGroupSet.class, CategoryOptionGroup.class);
-
-  Set<ValueType> ARITHMETIC_VALUE_TYPES =
-      Set.of(
-          ValueType.BOOLEAN,
-          ValueType.TRUE_ONLY,
-          ValueType.NUMBER,
-          ValueType.INTEGER,
-          ValueType.INTEGER_POSITIVE,
-          ValueType.INTEGER_NEGATIVE,
-          ValueType.INTEGER_ZERO_OR_POSITIVE,
-          ValueType.UNIT_INTERVAL,
-          ValueType.PERCENTAGE);
-
   /** Gets the dimension identifier. */
   String getDimension();
 

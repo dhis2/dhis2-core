@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.util;
 
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_YEARS;
 import static org.junit.jupiter.api.Assertions.assertEquals;

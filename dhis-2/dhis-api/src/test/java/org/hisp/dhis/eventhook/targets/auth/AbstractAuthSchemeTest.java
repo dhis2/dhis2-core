@@ -36,6 +36,7 @@ import org.hisp.dhis.common.auth.AuthScheme;
 
 public abstract class AbstractAuthSchemeTest {
 
+  @SuppressWarnings("unchecked")
   protected <T extends AuthScheme> void assertEncrypt(
       T authScheme, Function<T, String> secretProvider) {
     T encryptedAuthScheme =
@@ -48,6 +49,7 @@ public abstract class AbstractAuthSchemeTest {
     assertEquals("bar", secretProvider.apply(encryptedAuthScheme));
   }
 
+  @SuppressWarnings("unchecked")
   protected <T extends AuthScheme> void assertDecrypt(
       T authScheme, Function<T, String> secretProvider) {
     T decryptedAuthScheme =

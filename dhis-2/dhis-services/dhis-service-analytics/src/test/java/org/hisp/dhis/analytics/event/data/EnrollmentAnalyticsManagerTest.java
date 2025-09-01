@@ -37,7 +37,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;

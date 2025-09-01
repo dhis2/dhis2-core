@@ -30,7 +30,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createPeriod;
