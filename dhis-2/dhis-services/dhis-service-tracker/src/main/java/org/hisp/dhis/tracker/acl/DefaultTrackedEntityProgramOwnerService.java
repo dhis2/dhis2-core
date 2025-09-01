@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey;
 
 import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
@@ -53,9 +53,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
   public DefaultTrackedEntityProgramOwnerService(
       TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore, CacheProvider cacheProvider) {
-    checkNotNull(trackedEntityProgramOwnerStore);
-    checkNotNull(cacheProvider);
-
     this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
   }
@@ -131,9 +128,5 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
   @Transactional(readOnly = true)
   public TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program) {
     return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(te, program);
-  }
-
-  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
-    return trackedEntity.getUid() + "_" + program.getUid();
   }
 }

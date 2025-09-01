@@ -43,6 +43,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -150,22 +151,30 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
   void shouldHaveAccessAfterEnrollmentPersistedAndOwnershipCreatedAndCacheInvalidated() {
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "H8732208127");
     assertNotNull(trackedEntity);
+    OrganisationUnit organisationUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
+    assertNotNull(organisationUnit);
     User user = manager.get(User.class, "lPaILkLkgOM");
 
     injectSecurityContextUser(user);
 
+    // At this point there's no owner for this te-program and the cache is empty, so the te
+    // registering org unit will be used and added to the cache
     assertFalse(
         trackerOwnershipManager.hasAccess(
             UserDetails.fromUser(regularUser), trackedEntity, programA));
 
     Enrollment enrollment =
-        createEnrollment(trackedEntity.getUid(), programA.getUid(), "h4w96yEMlzO");
+        createEnrollment(trackedEntity.getUid(), programA.getUid(), organisationUnit.getUid());
 
+    // As soon as the enrollment is persisted, an owner will be present in the DB and the cache will
+    // be invalidated
     assertNoErrors(
         trackerImportService.importTracker(
             TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
 
+    // The cache is empty again, but this time, the owner should be found in the DB, so the user has
+    // access to the te-program combination
     assertTrue(
         trackerOwnershipManager.hasAccess(
             UserDetails.fromUser(regularUser), trackedEntity, programA));
