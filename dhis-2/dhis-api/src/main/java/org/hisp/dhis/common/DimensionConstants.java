@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
 /** Constants related to analytics dimensions. */
@@ -106,6 +111,8 @@ public final class DimensionConstants {
   /** Text value column name. */
   public static final String TEXTVALUE_COLUMN_NAME = "textvalue";
 
+  // Dynamic dimensions
+
   /** Classes which represent dynamic dimensions. */
   public static final Set<Class<? extends DimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
       Set.of(
@@ -113,4 +120,14 @@ public final class DimensionConstants {
           DataElementGroupSet.class,
           OrganisationUnitGroupSet.class,
           CategoryOptionGroupSet.class);
+
+  /** Mapping between dimension classes and dimension item classes. */
+  public static final Map<
+          Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>
+      DIMENSION_CLASS_ITEM_CLASS_MAP =
+          Map.of(
+              Category.class, CategoryOption.class,
+              DataElementGroupSet.class, DataElementGroup.class,
+              OrganisationUnitGroupSet.class, OrganisationUnitGroup.class,
+              CategoryOptionGroupSet.class, CategoryOptionGroup.class);
 }
