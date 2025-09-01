@@ -53,9 +53,9 @@ public record DataValueEntry(
     @CheckForNull String value,
     @CheckForNull String comment,
     @CheckForNull Boolean followUp,
-    @Nonnull String storedBy,
-    @Nonnull Date created,
-    @Nonnull Date lastUpdated,
+    @CheckForNull String storedBy,
+    @CheckForNull Date created,
+    @CheckForNull Date lastUpdated,
     boolean deleted) {
 
   public DataValueEntry {
@@ -65,9 +65,6 @@ public record DataValueEntry(
     requireNonNull(orgUnit);
     requireNonNull(categoryOptionCombo);
     requireNonNull(attributeOptionCombo);
-    requireNonNull(storedBy);
-    requireNonNull(created);
-    requireNonNull(lastUpdated);
   }
 
   public boolean isFollowUp() {

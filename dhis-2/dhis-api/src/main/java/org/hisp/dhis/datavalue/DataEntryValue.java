@@ -106,7 +106,7 @@ public record DataEntryValue(
         for the category combo effective for the `dataElement`.
         Will only be considered if `categoryOptionCombo` is not present.""")
           @CheckForNull
-          @CSV.Any
+          @CSV.Any(ignore = {"storedBy", "timestamp"})
           Map<String, String> categoryOptions,
       @CheckForNull @OpenApi.Property({UID.class, CategoryOptionCombo.class})
           String attributeOptionCombo,

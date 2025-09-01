@@ -190,9 +190,11 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         WHERE   de.uid = :de
             AND ou.uid = :ou
             AND pe.iso = :iso
-            AND (:coc IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
-            AND (:aoc IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
+            AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
+            AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
+    String coc = key.categoryOptionCombo() == null ? null : key.categoryOptionCombo().getValue();
+    String aoc = key.attributeOptionCombo() == null ? null : key.attributeOptionCombo().getValue();
     @SuppressWarnings("unchecked")
     List<Object[]> rows =
         getSession()
@@ -200,8 +202,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             .setParameter("de", key.dataElement().getValue())
             .setParameter("ou", key.orgUnit().getValue())
             .setParameter("iso", key.period())
-            .setParameter("coc", key.categoryOptionCombo())
-            .setParameter("aoc", key.attributeOptionCombo())
+            .setParameter("coc", coc)
+            .setParameter("aoc", aoc)
             .list();
     if (rows.isEmpty()) return List.of();
     return rows.stream()

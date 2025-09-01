@@ -91,7 +91,13 @@ public final class CSV {
    */
   @Target(ElementType.RECORD_COMPONENT)
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface Any {}
+  public @interface Any {
+    /**
+     * @return lists names of columns that explicitly should not be put in the component otherwise
+     *     collecting all names not mapped otherwise.
+     */
+    String[] ignore() default {};
+  }
 
   @FunctionalInterface
   public interface CsvReader<T> extends Iterable<T> {
@@ -285,6 +291,13 @@ public final class CSV {
         RecordComponent c = components[i];
         if (isAnyTarget(c)) {
           res.put("*", i);
+          Any info = c.getAnnotation(Any.class);
+          if (info != null)
+            for (String ignore : info.ignore()) {
+              // explicitly map to -1 (not mapped)
+              res.put(ignore, -1);
+              res.put(ignore.toLowerCase(), -1);
+            }
         } else {
           res.put(c.getName(), i);
           res.put(c.getName().toLowerCase(), i);

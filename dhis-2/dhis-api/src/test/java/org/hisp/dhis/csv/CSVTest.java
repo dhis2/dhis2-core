@@ -30,6 +30,8 @@
 package org.hisp.dhis.csv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.lang.annotation.ElementType;
@@ -213,5 +215,30 @@ class CSVTest {
             List.of(ElementType.TYPE, ElementType.FIELD),
             Map.of("a", 4L, "b", 2L)),
         actual.get(0));
+  }
+
+  @Test
+  void testCSV_Issue1() {
+    String csv =
+        """
+      "dataelement","period","orgunit","categoryoptioncombo","attributeoptioncombo","value","storedby","timestamp","comment","followup"
+      "f7n9E0hX8qk","201201","DiszpKrYNg8","","","10001","john","2012-01-01","comment","false"
+      "f7n9E0hX8qk","201201","BdfsJfj87js","","","10002","john","2012-01-01","comment","false"
+      "f7n9E0hX8qk","201202","DiszpKrYNg8","","","10003","john","2012-01-01","comment","false"
+      "f7n9E0hX8qk","201202","BdfsJfj87js","","","10004","john","2012-01-01","comment","false"
+      "Ix2HsbDMLea","201201","DiszpKrYNg8","","","10005","john","2012-01-01","comment","false"
+      "Ix2HsbDMLea","201201","BdfsJfj87js","","","10006","john","2012-01-01","comment","false"
+      "Ix2HsbDMLea","201202","DiszpKrYNg8","","","10007","john","2012-01-01","comment","false"
+      "Ix2HsbDMLea","201202","BdfsJfj87js","","","10008","john","2012-01-01","comment","false"
+      "eY5ehpbEsB7","201201","DiszpKrYNg8","","","10009","john","2012-01-01","comment","false"
+      "eY5ehpbEsB7","201201","BdfsJfj87js","","","10010","john","2012-01-01","comment","false"
+      "eY5ehpbEsB7","201202","DiszpKrYNg8","","","10011","john","2012-01-01","comment","false"
+      "eY5ehpbEsB7","201202","BdfsJfj87js","","","10012","john","2012-01-01","comment","false"
+      """;
+    List<DataEntryValue.Input> entries = CSV.of(csv).as(DataEntryValue.Input.class).list();
+    assertEquals(12, entries.size());
+    DataEntryValue.Input e0 = entries.get(0);
+    assertNotNull(e0.dataElement());
+    assertNull(e0.categoryOptions());
   }
 }

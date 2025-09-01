@@ -191,6 +191,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       if (ou == null) throw new BadRequestException(ErrorCode.E8106, i, ouUID);
       // COC
       String cocVal = dv.categoryOptionCombo();
+      if (cocVal != null && cocVal.isEmpty()) cocVal = null;
       Map<String, String> co = dv.categoryOptions();
       String cocUID = null;
       if (cocVal == null && co != null) {
@@ -218,6 +219,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       if (coc == null && cocUID != null) throw new BadRequestException(ErrorCode.E8109, i, cocUID);
       // AOC
       String aocVal = dv.attributeOptionCombo();
+      if (aocVal != null && aocVal.isEmpty()) aocVal = null;
       if (aocVal == null) aocVal = aocGroup;
       String aCc = dv.attributeCombo();
       if (aocVal == null && aCc != null) {
