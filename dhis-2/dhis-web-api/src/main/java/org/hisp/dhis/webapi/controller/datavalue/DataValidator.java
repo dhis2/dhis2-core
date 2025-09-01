@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -58,7 +57,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DataValidator {
-  private final CategoryService categoryService;
 
   private final OrganisationUnitService organisationUnitService;
 

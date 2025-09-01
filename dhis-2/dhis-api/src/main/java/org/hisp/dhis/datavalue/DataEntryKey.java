@@ -34,8 +34,8 @@ import static java.util.Objects.requireNonNull;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -55,7 +55,7 @@ public record DataEntryKey(
     requireNonNull(period);
   }
 
-  @OnlyUsedInTests
+  @UsageTestOnly
   public DataEntryKey(
       @Nonnull DataElement dataElement,
       @Nonnull Period period,

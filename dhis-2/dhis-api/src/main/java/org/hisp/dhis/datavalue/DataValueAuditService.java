@@ -31,7 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.OnlyUsedInTests;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -63,7 +63,7 @@ public interface DataValueAuditService {
    * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
    *     there are no matches.
    */
-  @OnlyUsedInTests
+  @UsageTestOnly
   List<DataValueAuditEntry> getDataValueAudits(DataValueEntry dataValue);
 
   /**

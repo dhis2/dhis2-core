@@ -38,8 +38,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -123,7 +123,7 @@ public interface DataValueStore {
    *
    * @return a list of all DataValues.
    */
-  @OnlyUsedInTests
+  @UsageTestOnly
   List<DataValueEntry> getAllDataValues();
 
   /**

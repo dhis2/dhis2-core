@@ -36,10 +36,10 @@ import java.lang.annotation.Target;
 
 /**
  * A marker annotation for methods that are only used by tests and that should be removed long term.
- * So no new callers should be added to them neither in tests nor in production code.
+ * No new callers should be added to them neither in tests nor in production code.
  *
  * @since 2.43
  */
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.SOURCE)
-public @interface OnlyUsedInTests {}
+public @interface UsageTestOnly {}

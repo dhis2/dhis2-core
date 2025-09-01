@@ -62,8 +62,8 @@ import org.hibernate.type.DateType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
@@ -283,7 +283,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  @OnlyUsedInTests
+  @UsageTestOnly
   public List<DataValueEntry> getAllDataValues() {
     String sql =
         """

@@ -45,8 +45,8 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -346,7 +346,7 @@ public class DataValue implements Serializable {
     this.value = value;
   }
 
-  @OnlyUsedInTests
+  @UsageTestOnly
   public DataEntryKey toKey() {
     return new DataEntryKey(
         UID.of(dataElement),
@@ -356,7 +356,7 @@ public class DataValue implements Serializable {
         period.getIsoDate());
   }
 
-  @OnlyUsedInTests
+  @UsageTestOnly
   public DataValueEntry toEntry() {
     return new DataValueEntry(
         UID.of(dataElement),

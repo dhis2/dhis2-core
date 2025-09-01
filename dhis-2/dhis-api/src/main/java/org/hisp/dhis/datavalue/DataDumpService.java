@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.feedback.BadRequestException;
 
 /**
@@ -56,9 +57,12 @@ public interface DataDumpService {
    * @param values the values to create or update
    * @return number of values written
    */
+  @UsageTestOnly
   int upsertValues(DataValue... values);
 
+  @UsageTestOnly
   int upsertValues(DataEntryValue... values);
 
+  @UsageTestOnly
   int upsertValues(DataEntryValue.Input... values) throws BadRequestException;
 }
