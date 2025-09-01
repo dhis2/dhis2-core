@@ -42,13 +42,13 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_COLLAPSED_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
@@ -309,18 +309,29 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** The font size of the text in the table. */
   private boolean showDimensionLabels;
 
+  /** Interpretations of this visualization. */
+  private Set<Interpretation> interpretations = new HashSet<>();
+
   /**
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
    */
-  private Set<String> addedElementsProgramStages = new HashSet<>();
-
-  private Set<Interpretation> interpretations = new HashSet<>();
+  private transient Set<String> addedElementsProgramStages = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
+  /**
+   * Initializes this analytical object.
+   *
+   * @param user the {@link User}.
+   * @param date the {@link Date} representing the current time.
+   * @param organisationUnit the {@link OrganisationUnit}.
+   * @param organisationUnitsAtLevel the {@link OrganisationUnit} at the current level.
+   * @param organisationUnitsInGroups the {@link OrganisationUnit} part of the current groups.
+   * @param format the {@link I18nFormat}.
+   */
   public abstract void init(
       User user,
       Date date,
@@ -1794,7 +1805,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (this.subscribers == null) {
       this.subscribers = new HashSet<>();
     }
-
     return this.subscribers.add(user.getUid());
   }
 
@@ -1803,7 +1813,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (this.subscribers == null) {
       this.subscribers = new HashSet<>();
     }
-
     return this.subscribers.remove(user.getUid());
   }
 }

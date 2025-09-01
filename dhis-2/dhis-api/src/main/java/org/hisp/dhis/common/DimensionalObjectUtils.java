@@ -35,10 +35,10 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 import com.google.common.collect.Lists;
