@@ -40,6 +40,6 @@ import java.lang.annotation.Target;
  *
  * @since 2.43
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.SOURCE)
 public @interface OnlyUsedInTests {}

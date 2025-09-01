@@ -32,14 +32,12 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +53,7 @@ import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -66,6 +65,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -75,8 +76,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
@@ -248,51 +247,24 @@ public class DataValueController {
   // ---------------------------------------------------------------------
 
   @GetMapping
-  public List<String> getDataValue(
-      DataValueQueryParams params,
-      @CurrentUser UserDetails currentUser,
-      HttpServletResponse response)
-      throws WebMessageException {
-    // ---------------------------------------------------------------------
-    // Input validation
-    // ---------------------------------------------------------------------
+  public List<String> getDataValue(DataValueQueryParams params, HttpServletResponse response)
+      throws BadRequestException, ConflictException, ForbiddenException {
 
-    DataElement dataElement = dataValidator.getAndValidateDataElement(params.getDe());
+    DataValueEntry dataValue =
+        dataValueService.getDataValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
-    CategoryOptionCombo categoryOptionCombo =
-        dataValidator.getAndValidateCategoryOptionCombo(params.getCo(), false);
+    if (dataValue == null) throw new ConflictException("Data value does not exist");
 
-    CategoryOptionCombo attributeOptionCombo =
-        dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
-
-    Period period = dataValidator.getAndValidatePeriod(params.getPe());
-
-    OrganisationUnit organisationUnit =
-        dataValidator.getAndValidateOrganisationUnit(params.getOu());
-
-    // ---------------------------------------------------------------------
-    // Get data value
-    // ---------------------------------------------------------------------
-
-    DataValue dataValue =
-        dataValueService.getDataValue(
-            dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
-
-    if (dataValue == null) {
-      throw new WebMessageException(conflict("Data value does not exist"));
-    }
-
-    // ---------------------------------------------------------------------
-    // Data Sharing check
-    // ---------------------------------------------------------------------
-
-    dataValidator.checkDataValueSharing(currentUser, dataValue);
-
-    List<String> value = new ArrayList<>();
-    value.add(dataValue.getValue());
+    Set<UID> notReadable =
+        dataEntryService.getNotReadableOptionCombos(
+            List.of(dataValue.categoryOptionCombo(), dataValue.attributeOptionCombo()));
+    if (!notReadable.isEmpty())
+      throw new ForbiddenException(
+          "User has no data read access for CategoryOption: "
+              + String.join(",", notReadable.stream().map(UID::getValue).toList()));
 
     setNoStore(response);
-    return value;
+    return List.of(dataValue.value());
   }
 
   // ---------------------------------------------------------------------
@@ -344,54 +316,22 @@ public class DataValueController {
       DataValueQueryParams params,
       @RequestParam(defaultValue = "original") String dimension,
       HttpServletResponse response)
-      throws WebMessageException {
-    // ---------------------------------------------------------------------
-    // Input validation
-    // ---------------------------------------------------------------------
+      throws WebMessageException, BadRequestException, ConflictException, NotFoundException {
 
-    DataElement dataElement = dataValidator.getAndValidateDataElement(params.getDe());
+    DataValueEntry dataValue =
+        dataValueService.getDataValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
-    if (!dataElement.isFileType()) {
-      throw new WebMessageException(conflict("DataElement must be of type file"));
-    }
+    if (dataValue == null) throw new ConflictException("Data value does not exist");
 
-    CategoryOptionCombo categoryOptionCombo =
-        dataValidator.getAndValidateCategoryOptionCombo(params.getCo(), false);
+    String uid = dataValue.value();
 
-    CategoryOptionCombo attributeOptionCombo =
-        dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
-
-    Period period = dataValidator.getAndValidatePeriod(params.getPe());
-
-    OrganisationUnit organisationUnit =
-        dataValidator.getAndValidateOrganisationUnit(params.getOu());
-
-    dataValidator.validateOrganisationUnitPeriod(organisationUnit, period);
-
-    // ---------------------------------------------------------------------
-    // Get data value
-    // ---------------------------------------------------------------------
-
-    DataValue dataValue =
-        dataValueService.getDataValue(
-            dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
-
-    if (dataValue == null) {
-      throw new WebMessageException(conflict("Data value does not exist"));
-    }
-
-    // ---------------------------------------------------------------------
-    // Get file resource
-    // ---------------------------------------------------------------------
-
-    String uid = dataValue.getValue();
+    // NB: this isn't strictly implied but close enough
+    if (!UID.isValid(uid)) throw new ConflictException("DataElement must be of type file");
 
     FileResource fileResource = fileResourceService.getFileResource(uid);
 
-    if (fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE) {
-      throw new WebMessageException(
-          notFound("A data value file resource with id " + uid + " does not exist."));
-    }
+    if (fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE)
+      throw new NotFoundException(FileResource.class, uid);
 
     FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
 

@@ -166,9 +166,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
     assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
     assertTrue(fileResourceService.getFileResource(dataValueA.getValue()).isAssigned());
-    assertNull(
-        dataValueService.getDataValue(
-            dataValueA.getDataElement(), dataValueA.getPeriod(), dataValueA.getSource(), null));
+    assertNull(dataValueService.getDataValue(dataValueA.toKey()));
     assertNull(fileResourceService.getFileResource(dataValueB.getValue()));
   }
 

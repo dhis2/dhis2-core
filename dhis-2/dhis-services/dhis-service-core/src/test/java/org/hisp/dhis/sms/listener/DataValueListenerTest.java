@@ -52,6 +52,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -323,7 +324,8 @@ class DataValueListenerTest extends TestBase {
         .deleteCompleteDataSetRegistration(any());
 
     // Mock for dataValueService
-    when(dataValueService.getDataValue(any(), any(), any(), any())).thenReturn(fetchedDataValue);
+    when(dataValueService.getDataValue(any(DataEntryKey.class)))
+        .thenReturn(fetchedDataValue.toEntry());
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);

@@ -31,14 +31,14 @@ package org.hisp.dhis.datavalue;
 
 import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * The DataValueService interface defines how to work with data values.
@@ -61,38 +61,8 @@ public interface DataValueService {
    */
   void deleteDataValues(DataElement dataElement);
 
-  /**
-   * Returns a DataValue.
-   *
-   * @param dataElement the DataElement of the DataValue.
-   * @param period the Period of the DataValue.
-   * @param source the Source of the DataValue.
-   * @param optionCombo the category option combo.
-   * @return the DataValue which corresponds to the given parameters, or null if no match.
-   */
-  DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo optionCombo);
-
-  /**
-   * Returns a DataValue.
-   *
-   * @param dataElement the DataElement of the DataValue.
-   * @param period the Period of the DataValue.
-   * @param source the Source of the DataValue.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @return the DataValue which corresponds to the given parameters, or null if not found or not
-   *     accessible.
-   */
-  DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo);
+  @CheckForNull
+  DataValueEntry getDataValue(@Nonnull DataEntryKey key);
 
   // -------------------------------------------------------------------------
   // Lists of DataValues

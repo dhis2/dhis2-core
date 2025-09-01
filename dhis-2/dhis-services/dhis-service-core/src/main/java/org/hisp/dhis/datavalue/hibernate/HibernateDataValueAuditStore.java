@@ -34,6 +34,7 @@ import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.query.NativeQuery;
@@ -196,7 +197,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     String coc = key.categoryOptionCombo() == null ? null : key.categoryOptionCombo().getValue();
     String aoc = key.attributeOptionCombo() == null ? null : key.attributeOptionCombo().getValue();
     @SuppressWarnings("unchecked")
-    List<Object[]> rows =
+    Stream<Object[]> rows =
         getSession()
             .createNativeQuery(sql)
             .setParameter("de", key.dataElement().getValue())
@@ -204,10 +205,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
             .setParameter("iso", key.period())
             .setParameter("coc", coc)
             .setParameter("aoc", aoc)
-            .list();
-    if (rows.isEmpty()) return List.of();
-    return rows.stream()
-        .map(
+            .stream();
+    return rows.map(
             row ->
                 new DataValueAuditEntry(
                     (String) row[0],

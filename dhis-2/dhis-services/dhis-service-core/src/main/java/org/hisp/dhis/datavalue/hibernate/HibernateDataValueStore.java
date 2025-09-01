@@ -54,6 +54,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.NativeQuery;
@@ -65,6 +66,7 @@ import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueEntry;
@@ -151,85 +153,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
-    return getDataValue(
-        dataElement, period, source, categoryOptionCombo, attributeOptionCombo, false);
-  }
-
-  @Override
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      boolean includeDeleted) {
-    Period storedPeriod = periodStore.reloadPeriod(period);
-
-    if (storedPeriod == null) return null;
-
-    String sql =
-        includeDeleted
-            ? """
-        SELECT * FROM DataValue dv
-        WHERE dv.dataelementid =:de
-          AND dv.periodid =:pe
-          AND dv.attributeoptioncomboid =:aoc
-          AND dv.categoryoptioncomboid =:coc
-          AND dv.sourceid =:ou
-        """
-            : """
-        SELECT * FROM DataValue dv
-        WHERE dv.dataelementid =:de
-          AND dv.periodid =:pe
-          AND dv.attributeoptioncomboid =:aoc
-          AND dv.categoryoptioncomboid =:coc
-          AND dv.sourceid =:ou
-          AND dv.deleted = false
-        """;
-
-    return getSingleResult(
-        nativeSynchronizedTypedQuery(sql)
-            .setParameter("de", dataElement.getId())
-            .setParameter("pe", storedPeriod.getId())
-            .setParameter("ou", source.getId())
-            .setParameter("aoc", attributeOptionCombo.getId())
-            .setParameter("coc", categoryOptionCombo.getId()));
-  }
-
-  @Override
-  public DataValue getSoftDeletedDataValue(DataValue dataValue) {
-    Period storedPeriod = periodStore.reloadPeriod(dataValue.getPeriod());
-
-    if (storedPeriod == null) return null;
-
-    dataValue.setPeriod(storedPeriod);
-
-    String sql =
-        """
-        SELECT * FROM datavalue
-        WHERE dataelementid = :de
-          AND periodid = :pe
-          AND attributeoptioncomboid = :aoc
-          AND categoryoptioncomboid = :coc
-          AND sourceid = :ou
-          AND deleted is true""";
-
-    return getSingleResult(
-        nativeSynchronizedTypedQuery(sql)
-            .setParameter("de", dataValue.getDataElement().getId())
-            .setParameter("pe", storedPeriod.getId())
-            .setParameter("aoc", dataValue.getAttributeOptionCombo().getId())
-            .setParameter("coc", dataValue.getCategoryOptionCombo().getId())
-            .setParameter("ou", dataValue.getSource().getId()));
-  }
-
-  @Override
   public int getDataValueCountLastUpdatedBetween(
       Date startDate, Date endDate, boolean includeDeleted) {
     if (startDate == null && endDate == null) {
@@ -311,6 +234,53 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
   // getDataValues and related supportive methods
   // -------------------------------------------------------------------------
+
+  @Override
+  @CheckForNull
+  public DataValueEntry getDataValue(@Nonnull DataEntryKey key) {
+    String sql =
+        """
+      SELECT
+        de.uid AS de,
+        pe.iso,
+        ou.uid AS ou,
+        coc.uid AS coc,
+        aoc.uid AS aoc,
+        dv.value,
+        dv.comment,
+        dv.followup,
+        dv.storedby,
+        dv.created,
+        dv.lastupdated,
+        dv.deleted
+      FROM datavalue dv
+      JOIN dataelement de ON dv.dataelementid = de.dataelementid
+      JOIN period pe ON dv.periodid = pe.periodid
+      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE dv.deleted = false
+        AND de.uid = :de
+        AND pe.iso = :pe
+        AND ou.uid = :ou
+        AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
+        AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
+        AND aoc.uid = :aoc
+      LIMIT 1""";
+    String coc = key.categoryOptionCombo() == null ? null : key.categoryOptionCombo().getValue();
+    String aoc = key.attributeOptionCombo() == null ? null : key.attributeOptionCombo().getValue();
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> rows =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("de", key.dataElement().getValue())
+            .setParameter("ou", key.orgUnit().getValue())
+            .setParameter("iso", key.period())
+            .setParameter("coc", coc)
+            .setParameter("aoc", aoc)
+            .stream();
+    return rows.map(HibernateDataValueStore::dataValueEntryOf).findFirst().orElse(null);
+  }
 
   @Override
   @OnlyUsedInTests

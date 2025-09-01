@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -190,4 +192,6 @@ public interface DataEntryService {
    */
   LockStatus getEntryStatus(@CheckForNull UID dataSet, @Nonnull DataEntryKey key)
       throws ConflictException;
+
+  Set<UID> getNotReadableOptionCombos(Collection<UID> optionCombos);
 }

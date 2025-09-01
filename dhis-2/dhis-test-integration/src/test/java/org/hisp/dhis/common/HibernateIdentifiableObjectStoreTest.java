@@ -33,27 +33,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.google.common.collect.Sets;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -148,66 +138,5 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     User reloadedUser4 = manager.get(User.class, user4.getId());
     DataElement dataElement4 = dataElementStore.getDataElement(dataElement.getUid(), reloadedUser4);
     assertNull(dataElement4);
-  }
-
-  @Test
-  void testDataRead() {
-    User user1 = createUserWithAuth("user1", "DATA_READ");
-    User user2 = createUserWithAuth("user2", "DATA_READ");
-    User user3 = createUserWithAuth("user3", "DATA_READ");
-    User user4 = createUserWithAuth("user4", "DATA_READ");
-    UserGroup userGroup1 = createUserGroup('A', Sets.newHashSet(user1));
-    manager.save(userGroup1);
-    UserGroup userGroup2 = createUserGroup('B', Sets.newHashSet(user1, user4));
-    manager.save(userGroup2);
-    user1.getGroups().add(userGroup1);
-    user1.getGroups().add(userGroup2);
-    user4.getGroups().add(userGroup2);
-    Map<String, UserAccess> userSharing = new HashMap<>();
-    userSharing.put(user1.getUid(), new UserAccess(user1, AccessStringHelper.DEFAULT));
-    userSharing.put(user2.getUid(), new UserAccess(user2, AccessStringHelper.DATA_READ));
-    userSharing.put(user3.getUid(), new UserAccess(user3, AccessStringHelper.DEFAULT));
-    userSharing.put(user4.getUid(), new UserAccess(user4, AccessStringHelper.DEFAULT));
-    Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
-    userGroupSharing.put(
-        userGroup1.getUid(), new UserGroupAccess(userGroup1, AccessStringHelper.DATA_READ_WRITE));
-    userGroupSharing.put(
-        userGroup2.getUid(), new UserGroupAccess(userGroup2, AccessStringHelper.DEFAULT));
-    Sharing sharing =
-        Sharing.builder()
-            .external(false)
-            .publicAccess(AccessStringHelper.DEFAULT)
-            .owner("testOwner")
-            .userGroups(userGroupSharing)
-            .users(userSharing)
-            .build();
-    DataElement dataElement = createDataElement('A');
-    dataElement.setValueType(ValueType.TEXT);
-    CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo('D');
-    defaultCategoryOptionCombo.setCategoryCombo(categoryService.getDefaultCategoryCombo());
-    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
-    Period period = createPeriod(new Date(), new Date());
-    period.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    manager.save(dataElement);
-    manager.save(organisationUnitA);
-    manager.save(period);
-    manager.save(defaultCategoryOptionCombo);
-    CategoryOption categoryOption = createCategoryOption('A');
-    categoryOption.setSharing(sharing);
-    categoryOption.setCategoryOptionCombos(Sets.newHashSet(defaultCategoryOptionCombo));
-    manager.save(categoryOption, false);
-    defaultCategoryOptionCombo.getCategoryOptions().add(categoryOption);
-    DataValue dataValue =
-        createDataValue(dataElement, period, organisationUnitA, "test", defaultCategoryOptionCombo);
-    dataDumpService.upsertValues(dataValue);
-    // User1 can't access but it belongs to UserGroup1 which has access
-    assertEquals(0, accessManager.canRead(UserDetails.fromUser(user1), dataValue).size());
-    // User2 has access to DEA
-    assertEquals(0, accessManager.canRead(UserDetails.fromUser(user1), dataValue).size());
-    // User3 doesn't have access and also doesn't belong to any groups
-    assertEquals(1, accessManager.canRead(UserDetails.fromUser(user3), dataValue).size());
-    // User4 doesn't have access and it belong to UserGroup2 which also
-    // doesn't have access
-    assertEquals(1, accessManager.canRead(UserDetails.fromUser(user4), dataValue).size());
   }
 }

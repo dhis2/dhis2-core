@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -73,4 +74,10 @@ public class DataValueQueryParams {
 
   @OpenApi.Property({UID.class, CategoryOption.class})
   private String cp;
+
+  public DataEntryValue.Input toInput() {
+    Set<String> options = cp == null ? null : Set.of(cp.split(";"));
+    return new DataEntryValue.Input(
+        de, ou, co, null, null, cc, options, pe, null, null, null, null);
+  }
 }

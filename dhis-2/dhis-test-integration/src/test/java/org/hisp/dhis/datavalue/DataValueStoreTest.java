@@ -67,25 +67,6 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueStore dataValueStore;
 
   @Test
-  void testGetSoftDeletedDataValue() {
-    Period period = createPeriod(new Date(), new Date());
-    DataValue dataValue = persistDataValue('A', period, "test");
-    addDataValue(dataValue);
-    dataValue.setDeleted(true);
-    addDataValue(dataValue);
-    DataValue deletedDataValue = dataValueStore.getSoftDeletedDataValue(dataValue);
-    assertEquals(dataValue.getDataElement().getId(), deletedDataValue.getDataElement().getId());
-    assertEquals(dataValue.getSource().getId(), deletedDataValue.getSource().getId());
-    assertEquals(
-        dataValue.getCategoryOptionCombo().getId(),
-        deletedDataValue.getCategoryOptionCombo().getId());
-    assertEquals(
-        dataValue.getAttributeOptionCombo().getId(),
-        deletedDataValue.getAttributeOptionCombo().getId());
-    assertEquals(dataValue.getValue(), deletedDataValue.getValue());
-  }
-
-  @Test
   @DisplayName(
       "Merging duplicate DataValues (cat opt combos) leaves only the last updated (source) value remaining")
   void mergeDvWithDuplicatesKeepSource() {

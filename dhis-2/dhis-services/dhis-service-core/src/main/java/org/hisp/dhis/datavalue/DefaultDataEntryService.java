@@ -396,6 +396,13 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     }
   }
 
+  @Override
+  public Set<UID> getNotReadableOptionCombos(Collection<UID> optionCombos) {
+    return store.getCategoryOptionsCanNotDataRead(optionCombos.stream()).stream()
+        .map(UID::of)
+        .collect(toSet());
+  }
+
   /**
    * If the DS was not specified but all DEs only map to the same single DS we can infer that DS
    * without risk of misinterpretation of the request.

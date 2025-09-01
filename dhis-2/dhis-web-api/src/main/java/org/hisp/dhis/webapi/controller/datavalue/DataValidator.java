@@ -29,10 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -43,9 +40,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.util.InputUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
@@ -232,22 +226,6 @@ public class DataValidator {
 
     if ((closedDate != null && closedDate.before(startDate)) || openingDate.after(endDate)) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2019, organisationUnit.getUid()));
-    }
-  }
-
-  /**
-   * Check if the respective User has read access to the given DataValue.
-   *
-   * @param userDetails the User.
-   * @param dataValue the {@link DataValue}.
-   * @throws WebMessageException if the validation fails.
-   */
-  public void checkDataValueSharing(UserDetails userDetails, DataValue dataValue)
-      throws WebMessageException {
-    final List<String> errors = accessManager.canRead(userDetails, dataValue);
-
-    if (!errors.isEmpty()) {
-      throw new WebMessageException(forbidden(errors.toString()));
     }
   }
 }

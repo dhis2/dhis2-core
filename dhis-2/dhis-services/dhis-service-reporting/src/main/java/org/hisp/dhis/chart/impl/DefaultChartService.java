@@ -62,7 +62,8 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.NumericSortWrapper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
@@ -321,16 +322,21 @@ public class DefaultChartService implements ChartService {
 
       period.setName(format.formatPeriod(period));
 
-      DataValue dataValue =
+      DataValueEntry dataValue =
           dataValueService.getDataValue(
-              dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
+              new DataEntryKey(
+                  dataElement,
+                  period,
+                  organisationUnit,
+                  categoryOptionCombo,
+                  attributeOptionCombo));
 
       double value = 0;
 
       if (dataValue != null
-          && dataValue.getValue() != null
-          && MathUtils.isNumeric(dataValue.getValue())) {
-        value = Double.parseDouble(dataValue.getValue());
+          && dataValue.value() != null
+          && MathUtils.isNumeric(dataValue.value())) {
+        value = Double.parseDouble(dataValue.value());
 
         x.add((double) periodCount);
         y.add(value);

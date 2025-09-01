@@ -34,12 +34,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -48,7 +47,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -67,7 +65,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataValueService implements DataValueService {
 
   private final DataValueStore dataValueStore;
-  private final CategoryService categoryService;
 
   @Override
   @Transactional
@@ -81,29 +78,11 @@ public class DefaultDataValueService implements DataValueService {
     dataValueStore.deleteDataValues(dataElement);
   }
 
+  @CheckForNull
   @Override
   @Transactional(readOnly = true)
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo) {
-    CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
-    return dataValueStore.getDataValue(
-        dataElement, period, source, categoryOptionCombo, defaultOptionCombo);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
-    return dataValueStore.getDataValue(
-        dataElement, period, source, categoryOptionCombo, attributeOptionCombo);
+  public DataValueEntry getDataValue(@Nonnull DataEntryKey key) {
+    return dataValueStore.getDataValue(key);
   }
 
   // -------------------------------------------------------------------------

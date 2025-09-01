@@ -33,7 +33,12 @@ import static java.util.Objects.requireNonNull;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OnlyUsedInTests;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /** A record of the ID combination that points to a unique aggregate data value row. */
 public record DataEntryKey(
@@ -48,6 +53,21 @@ public record DataEntryKey(
     requireNonNull(dataElement);
     requireNonNull(orgUnit);
     requireNonNull(period);
+  }
+
+  @OnlyUsedInTests
+  public DataEntryKey(
+      @Nonnull DataElement dataElement,
+      @Nonnull Period period,
+      @Nonnull OrganisationUnit orgUnit,
+      @CheckForNull CategoryOptionCombo categoryOptionCombo,
+      @CheckForNull CategoryOptionCombo attributeOptionCombo) {
+    this(
+        UID.of(dataElement),
+        UID.of(orgUnit),
+        UID.of(categoryOptionCombo),
+        UID.of(attributeOptionCombo),
+        period.getIsoDate());
   }
 
   @Nonnull

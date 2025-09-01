@@ -132,27 +132,30 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouA, optionCombo, optionCombo, "3");
     addDataValues(dataValueA, dataValueB, dataValueC);
-    dataValueA = dataValueService.getDataValue(deA, peA, ouA, optionCombo);
-    assertNotNull(dataValueA);
-    assertNotNull(dataValueA.getCreated());
-    assertEquals(ouA.getId(), dataValueA.getSource().getId());
-    assertEquals(deA, dataValueA.getDataElement());
-    assertEquals(peA, dataValueA.getPeriod());
-    assertEquals("1", dataValueA.getValue());
-    dataValueB = dataValueService.getDataValue(deB, peA, ouA, optionCombo);
-    assertNotNull(dataValueB);
-    assertNotNull(dataValueB.getCreated());
-    assertEquals(ouA.getId(), dataValueB.getSource().getId());
-    assertEquals(deB, dataValueB.getDataElement());
-    assertEquals(peA, dataValueB.getPeriod());
-    assertEquals("2", dataValueB.getValue());
-    dataValueC = dataValueService.getDataValue(deC, peC, ouA, optionCombo);
-    assertNotNull(dataValueC);
-    assertNotNull(dataValueC.getCreated());
-    assertEquals(ouA.getId(), dataValueC.getSource().getId());
-    assertEquals(deC, dataValueC.getDataElement());
-    assertEquals(peC, dataValueC.getPeriod());
-    assertEquals("3", dataValueC.getValue());
+    DataValueEntry dvA =
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
+    assertNotNull(dvA);
+    assertNotNull(dvA.created());
+    assertEquals(ouA.getUid(), dvA.orgUnit().getValue());
+    assertEquals(deA.getUid(), dvA.dataElement().getValue());
+    assertEquals(peA.getIsoDate(), dvA.period());
+    assertEquals("1", dvA.value());
+    DataValueEntry dvB =
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo));
+    assertNotNull(dvB);
+    assertNotNull(dvB.created());
+    assertEquals(ouA.getUid(), dvB.orgUnit().getValue());
+    assertEquals(deB.getUid(), dvB.dataElement().getValue());
+    assertEquals(peA.getIsoDate(), dvB.period());
+    assertEquals("2", dvB.value());
+    DataValueEntry dvC =
+        dataValueService.getDataValue(new DataEntryKey(deC, peC, ouA, optionCombo, optionCombo));
+    assertNotNull(dvC);
+    assertNotNull(dvC.created());
+    assertEquals(ouA.getUid(), dvC.orgUnit().getValue());
+    assertEquals(deC.getUid(), dvC.dataElement().getValue());
+    assertEquals(peC.getIsoDate(), dvC.period());
+    assertEquals("3", dvC.value());
   }
 
   @Test
@@ -160,16 +163,20 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "2");
     addDataValues(dataValueA, dataValueB);
-    assertNotNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deB, peA, ouB, optionCombo));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo)));
     dataValueA.setValue("5");
     addDataValues(dataValueA);
-    dataValueA = dataValueService.getDataValue(deA, peA, ouA, optionCombo);
-    assertNotNull(dataValueA);
-    assertEquals("5", dataValueA.getValue());
-    dataValueB = dataValueService.getDataValue(deB, peA, ouB, optionCombo);
-    assertNotNull(dataValueB);
-    assertEquals("2", dataValueB.getValue());
+    DataValueEntry dvA =
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
+    assertNotNull(dvA);
+    assertEquals("5", dvA.value());
+    DataValueEntry dvB =
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo));
+    assertNotNull(dvB);
+    assertEquals("2", dvB.value());
   }
 
   @Test
@@ -179,30 +186,50 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueC = new DataValue(deC, peC, ouD, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo, "4");
     addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
-    assertNotNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueA);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueB);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueC);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataValueService.getDataValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueD);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNull(
+        dataValueService.getDataValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
   }
 
   // -------------------------------------------------------------------------

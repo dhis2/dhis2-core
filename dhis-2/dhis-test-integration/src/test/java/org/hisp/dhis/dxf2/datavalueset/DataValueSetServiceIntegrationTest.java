@@ -73,6 +73,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
@@ -408,8 +409,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     Date todaysDate = new Date();
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    DataValue dv1 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
-    assertNull(dv1);
+    assertNull(dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
 
     // import data value, ignoring created date supplied - create (value = 20, comment = null,
     // created = "1988-12-21T23:59:38.000+0000")
@@ -417,9 +417,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // get newly-created data value
-    DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    DataValueEntry dv2 = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
-    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getCreated()));
+    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.created()));
   }
 
   @Test
@@ -440,17 +440,17 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // check newly-updated data value
-    DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    DataValueEntry dv2 = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
-    assertEquals("new comment", dv2.getComment());
-    assertEquals("22", dv2.getValue());
+    assertEquals("new comment", dv2.comment());
+    assertEquals("22", dv2.value());
   }
 
   @Test
   void testLastUpdatedDateWhenDataValueCreated_IgnoreLastUpdatedDateSupplied() {
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, cc, cc));
+    assertNull(dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
 
     // import data value, ignoring last updated date supplied (this is always the case now)
     // but still good to confirm that by a test
@@ -458,9 +458,9 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // get newly-created data value
-    DataValue dv = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    DataValueEntry dv = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv);
-    Date lastUpdated = dv.getLastUpdated();
+    Date lastUpdated = dv.lastUpdated();
     assertTrue(
         new Date().getTime() - lastUpdated.getTime() < 1000L,
         "Should be updated during last second");
@@ -471,8 +471,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     Date todaysDate = new Date();
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    DataValue dv1 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
-    assertNull(dv1);
+    assertNull(dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
 
     // import data value for first time - create (value = 20, comment = null, lastUpdated =
     // "1988-12-21T23:59:38.000+0000")
@@ -485,10 +484,10 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // check newly-updated data value
-    DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
+    DataValueEntry dv2 = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
-    assertEquals("new comment", dv2.getComment());
-    assertEquals("22", dv2.getValue());
+    assertEquals("new comment", dv2.comment());
+    assertEquals("22", dv2.value());
   }
 
   /**

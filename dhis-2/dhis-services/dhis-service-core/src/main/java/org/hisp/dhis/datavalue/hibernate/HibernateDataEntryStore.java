@@ -34,6 +34,7 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
+import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.security.acl.AclService.LIKE_WRITE_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
@@ -666,10 +667,21 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
+  public List<String> getCategoryOptionsCanNotDataRead(Stream<UID> optionCombos) {
+    return getCategoryOptionsCanNotDataAccess(optionCombos, LIKE_READ_DATA);
+  }
+
+  @Override
   public List<String> getCategoryOptionsCanNotDataWrite(Stream<UID> optionCombos) {
+    return getCategoryOptionsCanNotDataAccess(optionCombos, LIKE_WRITE_DATA);
+  }
+
+  @Nonnull
+  private List<String> getCategoryOptionsCanNotDataAccess(
+      Stream<UID> optionCombos, String accessPattern) {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return List.of();
-    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_WRITE_DATA);
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, accessPattern);
     @Language("SQL")
     String sql =
         """

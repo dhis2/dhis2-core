@@ -70,8 +70,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -423,7 +425,7 @@ public class DataAnalysisController {
       throws ConflictException {
     log.info("markDataValues from DataAnalysisController input " + params);
 
-    List<DataValue> dataValues = new ArrayList<>();
+    List<DataEntryValue> dataValues = new ArrayList<>();
     for (FollowupParams followup : params.getFollowups()) {
       DataElement dataElement = dataElementService.getDataElement(followup.getDataElementId());
       Period period = periodService.getPeriod(followup.getPeriodId());
@@ -434,20 +436,30 @@ public class DataAnalysisController {
       CategoryOptionCombo attributeOptionCombo =
           categoryService.getCategoryOptionCombo(followup.getAttributeOptionComboId());
 
-      DataValue dataValue =
+      DataValueEntry dv =
           dataValueService.getDataValue(
-              dataElement, period, source, categoryOptionCombo, attributeOptionCombo);
+              new DataEntryKey(
+                  dataElement, period, source, categoryOptionCombo, attributeOptionCombo));
 
-      if (dataValue != null) {
-        dataValue.setFollowup(followup.isFollowup());
-        dataValues.add(dataValue);
-      }
+      if (dv != null)
+        dataValues.add(
+            new DataEntryValue(
+                dataValues.size(),
+                dv.dataElement(),
+                dv.orgUnit(),
+                dv.categoryOptionCombo(),
+                dv.attributeOptionCombo(),
+                dv.period(),
+                dv.value(),
+                dv.comment(),
+                followup.isFollowup(),
+                dv.deleted()));
     }
 
     if (!dataValues.isEmpty()) {
       dataEntryService.upsertGroup(
           new DataEntryGroup.Options(false, true, false),
-          new DataEntryGroup(null, DataValue.toDataEntryValues(dataValues)),
+          new DataEntryGroup(null, dataValues),
           transitory());
     }
   }

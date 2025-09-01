@@ -203,7 +203,6 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
         new DataValue(deB, peA, ouA, cocB, cocB, "1"),
         new DataValue(deB, peA, ouB, cocA, cocA, "1"),
         new DataValue(deB, peA, ouB, cocB, cocB, "1"));
-    // Flush session to make data values visible to JDBC query
 
     dataSetService.updateDataSet(dsA);
     dataSetService.updateDataSet(dsB);

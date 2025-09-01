@@ -34,6 +34,7 @@ import static java.lang.Integer.parseInt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,9 +52,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -242,14 +244,16 @@ public class DataValueSMSListener extends CommandSMSListener {
       return;
     }
 
-    DataValue curValue =
+    DataValueEntry curValue =
         dataValueService.getDataValue(
-            targetDataElement,
-            period,
-            orgUnit,
-            dataElementCategoryService.getDefaultCategoryOptionCombo());
+            new DataEntryKey(targetDataElement, period, orgUnit, null, null));
 
-    int val = curValue == null ? 0 : parseInt(curValue.getValue());
+    int val = 0;
+    if (curValue != null) {
+      String valStr = curValue.value();
+      if (valStr != null) val = parseInt(valStr);
+    }
+    ;
 
     if (operation.equals("+")) {
       val += parseInt(value);
@@ -288,8 +292,9 @@ public class DataValueSMSListener extends CommandSMSListener {
 
       period = getPeriod(command, date);
 
-      DataValue dv =
-          dataValueService.getDataValue(code.getDataElement(), period, orgunit, optionCombo);
+      DataValueEntry dv =
+          dataValueService.getDataValue(
+              new DataEntryKey(code.getDataElement(), period, orgunit, optionCombo, null));
 
       if (dv == null && !StringUtils.isEmpty(code.getCode())) {
         numberOfEmptyValue++;
@@ -330,7 +335,8 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     Period period;
 
-    Map<String, DataValue> codesWithDataValues = new TreeMap<>();
+    Map<String, DataValueEntry> codesWithDataValues = new TreeMap<>();
+    Map<UID, ValueType> valueTypeByDataElement = new HashMap<>();
     List<String> codesWithoutDataValues = new ArrayList<>();
 
     for (SMSCode code : command.getCodes()) {
@@ -340,8 +346,11 @@ public class DataValueSMSListener extends CommandSMSListener {
 
       period = getPeriod(command, date);
 
-      DataValue dv =
-          dataValueService.getDataValue(code.getDataElement(), period, orgunit, optionCombo);
+      DataElement dataElement = code.getDataElement();
+      valueTypeByDataElement.put(UID.of(dataElement), dataElement.getValueType());
+      DataValueEntry dv =
+          dataValueService.getDataValue(
+              new DataEntryKey(dataElement, period, orgunit, optionCombo, null));
 
       if (dv == null && !StringUtils.isEmpty(code.getCode())) {
         codesWithoutDataValues.add(code.getCode());
@@ -351,10 +360,10 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     for (String key : codesWithDataValues.keySet()) {
-      DataValue dv = codesWithDataValues.get(key);
-      String value = dv.getValue();
+      DataValueEntry dv = codesWithDataValues.get(key);
+      String value = dv.value();
 
-      if (ValueType.BOOLEAN == dv.getDataElement().getValueType()) {
+      if (ValueType.BOOLEAN == valueTypeByDataElement.get(dv.dataElement())) {
         if ("true".equals(value)) {
           value = "Yes";
         } else if ("false".equals(value)) {
