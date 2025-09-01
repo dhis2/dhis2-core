@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.category;
 
-import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
