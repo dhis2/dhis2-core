@@ -58,7 +58,6 @@ import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getUidFromGroupParam;
@@ -80,11 +79,16 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
@@ -96,12 +100,14 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
@@ -119,6 +125,15 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DimensionalObjectProvider {
+  private static final Map<
+          Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>
+      DIMENSION_CLASS_ITEM_CLASS_MAP =
+          Map.of(
+              Category.class, CategoryOption.class,
+              DataElementGroupSet.class, DataElementGroup.class,
+              OrganisationUnitGroupSet.class, OrganisationUnitGroup.class,
+              CategoryOptionGroupSet.class, CategoryOptionGroup.class);
+
   private final IdentifiableObjectManager idObjectManager;
 
   private final OrganisationUnitService organisationUnitService;

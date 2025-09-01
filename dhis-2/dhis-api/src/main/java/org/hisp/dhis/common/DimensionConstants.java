@@ -29,8 +29,13 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
 /** Constants related to analytics dimensions. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -100,4 +105,12 @@ public final class DimensionConstants {
 
   /** Text value column name. */
   public static final String TEXTVALUE_COLUMN_NAME = "textvalue";
+
+  /** Classes which represent dynamic dimensions. */
+  public static final Set<Class<? extends DimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
+      Set.of(
+          Category.class,
+          DataElementGroupSet.class,
+          OrganisationUnitGroupSet.class,
+          CategoryOptionGroupSet.class);
 }
