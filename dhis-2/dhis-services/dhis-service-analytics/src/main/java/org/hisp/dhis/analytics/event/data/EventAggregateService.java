@@ -201,7 +201,7 @@ public class EventAggregateService {
 
     if (!queryRequiresOwnership && !isEventAnalyticsDefaultPeriod) {
 
-      // retain original period dimensions
+      // Retain original period dimensions
       List<DimensionalObject> periods = getPeriods(params);
 
       params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();

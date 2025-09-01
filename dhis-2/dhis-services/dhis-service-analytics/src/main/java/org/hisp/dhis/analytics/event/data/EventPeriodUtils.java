@@ -54,12 +54,11 @@ public class EventPeriodUtils {
    *     OCCURRED_DATE
    */
   public static boolean hasAllDefaultPeriod(EventQueryParams params) {
-
-    var period = getPeriodDimension(params);
+    DimensionalObject period = getPeriodDimension(params);
     if (period == null) {
       return true;
     }
-    var items = period.getItems();
+    List<DimensionalItemObject> items = period.getItems();
     for (DimensionalItemObject item : items) {
       Period p = (Period) item;
       // All periods must either have no dateField (default) or OCCURRED_DATE
