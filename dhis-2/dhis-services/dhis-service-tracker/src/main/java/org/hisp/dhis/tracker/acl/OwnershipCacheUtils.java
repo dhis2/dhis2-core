@@ -34,6 +34,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 
 class OwnershipCacheUtils {
 
+  private OwnershipCacheUtils() {}
+
   /**
    * Returns key used to store and retrieve cached records for ownership
    *
