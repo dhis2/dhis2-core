@@ -29,7 +29,13 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -37,6 +43,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -46,7 +53,15 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -60,11 +75,13 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("cache-test")
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
+class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private TrackedEntityService trackedEntityService;
   @Autowired private ProgramService programService;
+  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
+  @Autowired private TrackerImportService trackerImportService;
 
   private User regularUser;
   private Program programA;
@@ -129,6 +146,31 @@ class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
     Assertions.assertContainsOnly(List.of(trackedEntityC), trackedEntities);
   }
 
+  @Test
+  void shouldHaveAccessAfterEnrollmentPersistedAndOwnershipCreatedAndCacheInvalidated() {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "H8732208127");
+    assertNotNull(trackedEntity);
+    User user = manager.get(User.class, "lPaILkLkgOM");
+
+    injectSecurityContextUser(user);
+
+    assertFalse(
+        trackerOwnershipManager.hasAccess(
+            UserDetails.fromUser(regularUser), trackedEntity, programA));
+
+    Enrollment enrollment =
+        createEnrollment(trackedEntity.getUid(), programA.getUid(), "h4w96yEMlzO");
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build(),
+            TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
+
+    assertTrue(
+        trackerOwnershipManager.hasAccess(
+            UserDetails.fromUser(regularUser), trackedEntity, programA));
+  }
+
   private TrackedEntityOperationParams createProgramOperationParams() {
     return TrackedEntityOperationParams.builder()
         .program(programA)
@@ -154,5 +196,17 @@ class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
 
   private List<String> extractUIDs(Page<TrackedEntity> trackedEntities) {
     return trackedEntities.getItems().stream().map(TrackedEntity::getUid).toList();
+  }
+
+  private Enrollment createEnrollment(String trackedEntity, String program, String orgUnit) {
+    return Enrollment.builder()
+        .enrollment(UID.generate())
+        .trackedEntity(UID.of(trackedEntity))
+        .program(MetadataIdentifier.ofUid(program))
+        .orgUnit(MetadataIdentifier.ofUid(orgUnit))
+        .enrolledAt(Instant.now())
+        .occurredAt(Instant.now())
+        .status(EnrollmentStatus.ACTIVE)
+        .build();
   }
 }

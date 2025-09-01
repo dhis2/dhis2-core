@@ -175,9 +175,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
             teProgramOwner.getLastUpdated(),
             teProgramOwner.getCreatedBy());
     programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
+
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         hibernateTrackedEntity, program, orgUnit);
-    ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
   }
 
   @Override
