@@ -127,8 +127,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
       WHERE (cardinality(:types) = 0 OR dva.audittype = ANY(:types))
         AND (cardinality(:de) = 0 OR dva.dataelementid = ANY(:de))
         AND (cardinality(:ou) = 0 OR dva.organisationunitid = ANY(:ou))
-        AND (:coc IS NULL OR dva.categoryoptioncomboid = :coc)
-        AND (:aoc IS NULL OR dva.categoryoptioncomboid = :aoc)
+        AND (cast(:coc as bigint) IS NULL OR dva.categoryoptioncomboid = :coc)
+        AND (cast(:aoc as bigint) IS NULL OR dva.categoryoptioncomboid = :aoc)
         AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))""";
 
     NativeQuery<?> query = nativeSynchronizedQuery(sql);
@@ -138,11 +138,11 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   private <E> NativeQuery<E> setParameters(NativeQuery<E> query, DataValueAuditQueryParams params) {
     String[] types =
         params.getAuditTypes() == null
-            ? null
+            ? new String[0]
             : params.getAuditTypes().stream().map(Enum::name).toArray(String[]::new);
     String[] periods =
         params.getPeriods() == null
-            ? null
+            ? new String[0]
             : params.getPeriods().stream().map(Period::getIsoDate).toArray(String[]::new);
     return query
         .setParameter("types", types, StringArrayType.INSTANCE)
@@ -155,7 +155,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   private static Long[] getIds(List<? extends IdentifiableObject> objects) {
     return objects == null
-        ? null
+        ? new Long[0]
         : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
   }
 

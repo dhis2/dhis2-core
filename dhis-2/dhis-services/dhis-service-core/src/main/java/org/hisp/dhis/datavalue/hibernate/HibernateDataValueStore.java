@@ -365,13 +365,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE de.dataelementid = ANY (:de)
+      WHERE de.dataelementid = ANY(:de)
         AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))
-        AND (:start IS NULL AND :end IS NULL OR pe.startDate >= :start and pe.endDate <= :end)
-        AND (:decendants AND ou.path LIKE ANY(:path) OR NOT :decendents AND (cardinality(:ou) = 0 OR ou.organisationunitid = ANY(:ou)))
+        AND (cast(:start as timestamp) IS NULL AND cast(:end as timestamp) IS NULL OR pe.startDate >= :start and pe.endDate <= :end)
+        AND (:descendants AND ou.path LIKE ANY(:path) OR NOT :descendants AND (cardinality(:ou) = 0 OR ou.organisationunitid = ANY(:ou)))
         AND (cardinality(:coc) = 0 OR coc.categoryoptioncomboid = ANY(:coc))
         AND (cardinality(:aoc) = 0 OR aoc.categoryoptioncomboid = ANY(:aoc))
-        AND (:lastUpdated IS NULL OR dv.lastupdated >= :lastUpdated)
+        AND (cast(:lastUpdated as timestamp) IS NULL OR dv.lastupdated >= :lastUpdated)
         AND (:includeDeleted OR dv.deleted = false)
       """;
     List<String> orders = new ArrayList<>(3);
@@ -381,7 +381,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     Set<Period> periods = params.getPeriods();
     String[] pe =
-        periods == null ? null : periods.stream().map(Period::getIsoDate).toArray(String[]::new);
+        periods == null
+            ? new String[0]
+            : periods.stream().map(Period::getIsoDate).toArray(String[]::new);
     Set<OrganisationUnit> units = params.getAllOrganisationUnits();
     String[] path =
         !params.isIncludeDescendants()
@@ -392,17 +394,17 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       lastUpdated = DateUtils.nowMinusDuration(params.getLastUpdatedDuration());
     if (params.hasLastUpdated()) lastUpdated = params.getLastUpdated();
 
+    Date startDate = params.hasStartEndDate() ? params.getStartDate() : null;
+    Date endDate = params.hasStartEndDate() ? params.getEndDate() : null;
     @SuppressWarnings("unchecked")
     NativeQuery<Object[]> query =
         getSession()
             .createNativeQuery(sql)
             .setParameter("de", getIds(params.getAllDataElements()), LongArrayType.INSTANCE)
             .setParameter("pe", pe, StringArrayType.INSTANCE)
-            .setParameter(
-                "start", params.hasStartEndDate() ? params.getStartDate() : null, DateType.INSTANCE)
-            .setParameter(
-                "end", params.hasStartEndDate() ? params.getEndDate() : null, DateType.INSTANCE)
-            .setParameter("decendants", params.isIncludeDescendants())
+            .setParameter("start", startDate, DateType.INSTANCE)
+            .setParameter("end", endDate, DateType.INSTANCE)
+            .setParameter("descendants", params.isIncludeDescendants())
             .setParameter("path", path, StringArrayType.INSTANCE)
             .setParameter("ou", getIds(units), LongArrayType.INSTANCE)
             .setParameter("coc", getIds(params.getCategoryOptionCombos()), LongArrayType.INSTANCE)
@@ -431,7 +433,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   private static Long[] getIds(Collection<? extends IdentifiableObject> objects) {
     return objects == null || objects.isEmpty()
-        ? null
+        ? new Long[0]
         : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
   }
 
