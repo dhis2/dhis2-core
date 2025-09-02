@@ -62,7 +62,7 @@ public interface DataValueService {
   void deleteDataValues(DataElement dataElement);
 
   @CheckForNull
-  DataValueEntry getDataValue(@Nonnull DataEntryKey key);
+  DataExportValue getDataValue(@Nonnull DataEntryKey key);
 
   // -------------------------------------------------------------------------
   // Lists of DataValues
@@ -89,7 +89,7 @@ public interface DataValueService {
    * @return a list of data values.
    * @throws IllegalArgumentException if parameters are invalid.
    */
-  List<DataValueEntry> getDataValues(DataExportParams params);
+  List<DataExportValue> getDataValues(DataExportStoreParams params);
 
   /**
    * Validates the given data export parameters.
@@ -97,7 +97,7 @@ public interface DataValueService {
    * @param params the data export parameters.
    * @throws IllegalArgumentException if parameters are invalid.
    */
-  void validate(DataExportParams params) throws IllegalQueryException;
+  void validate(DataExportStoreParams params) throws IllegalQueryException;
 
   /**
    * Returns deflated data values for the given data export parameters.
@@ -105,7 +105,7 @@ public interface DataValueService {
    * @param params the data export parameters.
    * @return a list of deflated data values.
    */
-  List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
+  List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params);
 
   /**
    * Gets the number of DataValues persisted since the given number of days.

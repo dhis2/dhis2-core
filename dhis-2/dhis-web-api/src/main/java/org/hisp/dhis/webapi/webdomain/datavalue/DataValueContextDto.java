@@ -36,8 +36,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
-import org.hisp.dhis.datavalue.DataValueEntry;
 
 /**
  * DTO which represents the context, such as data value audit records and data value history, for a
@@ -52,5 +52,5 @@ import org.hisp.dhis.datavalue.DataValueEntry;
 public class DataValueContextDto {
 
   @JsonProperty private List<DataValueAuditEntry> audits = new ArrayList<>();
-  @JsonProperty private List<DataValueEntry> history = new ArrayList<>();
+  @JsonProperty private List<DataExportValue> history = new ArrayList<>();
 }

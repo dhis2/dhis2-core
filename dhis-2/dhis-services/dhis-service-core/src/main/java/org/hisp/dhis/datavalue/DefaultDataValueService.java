@@ -81,7 +81,7 @@ public class DefaultDataValueService implements DataValueService {
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
-  public DataValueEntry getDataValue(@Nonnull DataEntryKey key) {
+  public DataExportValue getDataValue(@Nonnull DataEntryKey key) {
     return dataValueStore.getDataValue(key);
   }
 
@@ -91,14 +91,14 @@ public class DefaultDataValueService implements DataValueService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueEntry> getDataValues(DataExportParams params) {
+  public List<DataExportValue> getDataValues(DataExportStoreParams params) {
     validate(params);
 
     return dataValueStore.getDataValues(params);
   }
 
   @Override
-  public void validate(DataExportParams params) throws IllegalQueryException {
+  public void validate(DataExportStoreParams params) throws IllegalQueryException {
     ErrorMessage error = null;
 
     if (params == null) {
@@ -154,7 +154,7 @@ public class DefaultDataValueService implements DataValueService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params) {
+  public List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params) {
     return dataValueStore.getDeflatedDataValues(params);
   }
 

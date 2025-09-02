@@ -56,7 +56,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -356,8 +356,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       CategoryOptionCombo attributeOptionCombo,
       OrganisationUnit source,
       Period period) {
-    DataExportParams params =
-        new DataExportParams()
+    DataExportStoreParams params =
+        new DataExportStoreParams()
             .setDataElementOperands(Sets.newHashSet(new DataElementOperand(dataElement, combo)))
             .setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo))
             .setOrganisationUnits(Sets.newHashSet(source))

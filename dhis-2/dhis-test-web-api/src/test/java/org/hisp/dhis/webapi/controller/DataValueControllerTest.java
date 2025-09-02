@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpMethod;
@@ -191,7 +191,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
   }
 
   private void assertFollowups(boolean... expected) {
-    List<DataValueEntry> values = dataValueStore.getAllDataValues();
+    List<DataExportValue> values = dataValueStore.getAllDataValues();
     assertEquals(expected.length, values.size());
     int expectedTrue = 0;
     int actualTrue = 0;

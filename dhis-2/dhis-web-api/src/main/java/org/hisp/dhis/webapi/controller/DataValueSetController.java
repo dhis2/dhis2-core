@@ -48,9 +48,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -61,15 +59,11 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.dxf2.adx.AdxDataService;
-import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataExportService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -99,9 +93,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataValueSets")
 public class DataValueSetController {
 
-  private final DataValueSetService dataValueSetService;
+  private final DataExportService dataExportService;
   private final DataEntryPipeline dataEntryPipeline;
-  private final AdxDataService adxDataService;
   private final UserService userService;
   private final JobExecutionService jobExecutionService;
 
@@ -112,12 +105,13 @@ public class DataValueSetController {
   @OpenApi.Response(DataValueSet.class)
   @GetMapping
   public void getDataValueSet(
-      DataValueSetQueryParams params,
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       @RequestParam(required = false) String format,
       HttpServletRequest request,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     if (format == null) {
       String path = request.getPathInfo();
       format = "json";
@@ -134,71 +128,72 @@ public class DataValueSetController {
   }
 
   private void getDataValueSetXml(
-      DataValueSetQueryParams params,
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "xml",
         response,
         CONTENT_TYPE_XML,
-        () -> dataValueSetService.getFromUrl(params),
-        dataValueSetService::exportDataValueSetXml);
+        params,
+        dataExportService::exportDataValueSetXml);
   }
 
   private void getDataValueSetXmlAdx(
-      DataValueSetQueryParams params,
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "xml",
         response,
         CONTENT_TYPE_XML_ADX,
-        () -> adxDataService.getFromUrl(params),
-        (exportParams, out) -> {
-          try {
-            adxDataService.writeDataValueSet(exportParams, out);
-          } catch (AdxException ex) {
-            // this will end up in same exception handler
-            throw new IllegalStateException(ex.getMessage(), ex);
-          }
-        });
+        params,
+        dataExportService::exportDataValueSetXmlAdx);
   }
 
   private void getDataValueSetJson(
-      DataValueSetQueryParams params,
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "json",
         response,
         CONTENT_TYPE_JSON,
-        () -> dataValueSetService.getFromUrl(params),
-        dataValueSetService::exportDataValueSetJson);
+        params,
+        dataExportService::exportDataValueSetJson);
   }
 
   private void getDataValueSetCsv(
-      DataValueSetQueryParams params,
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "csv",
         response,
         CONTENT_TYPE_CSV,
-        () -> dataValueSetService.getFromUrl(params),
-        (exportParams, out) ->
-            dataValueSetService.exportDataValueSetCsv(exportParams, new PrintWriter(out)));
+        params,
+        dataExportService::exportDataValueSetCsv);
+  }
+
+  interface ExportHandler {
+
+    void export(DataExportParams params, OutputStream out) throws ConflictException;
   }
 
   private void getDataValueSet(
@@ -207,17 +202,16 @@ public class DataValueSetController {
       String format,
       HttpServletResponse response,
       String contentType,
-      Provider<DataExportParams> createParams,
-      BiConsumer<DataExportParams, OutputStream> writeOutput) {
-    DataExportParams params = createParams.provide();
-    dataValueSetService.validate(params);
+      DataExportParams params,
+      ExportHandler handler)
+      throws ConflictException {
 
     response.setContentType(contentType);
     setNoStore(response);
 
     try (OutputStream out =
         compress(params, response, attachment, Compression.fromValue(compression), format)) {
-      writeOutput.accept(params, out);
+      handler.export(params, out);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }

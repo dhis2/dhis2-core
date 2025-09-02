@@ -114,7 +114,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValueEntry> preMergeState =
+    List<DataExportValue> preMergeState =
         dataValueStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
@@ -133,7 +133,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValueEntry> postMergeState =
+    List<DataExportValue> postMergeState =
         dataValueStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
@@ -198,7 +198,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValueEntry> preMergeState =
+    List<DataExportValue> preMergeState =
         dataValueStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
@@ -217,7 +217,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValueEntry> postMergeState =
+    List<DataExportValue> postMergeState =
         dataValueStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
@@ -285,7 +285,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValueEntry> preMergeState =
+    List<DataExportValue> preMergeState =
         dataValueStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
@@ -304,7 +304,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValueEntry> postMergeState =
+    List<DataExportValue> postMergeState =
         dataValueStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
@@ -327,25 +327,25 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
             DateUtils.parseDate("2024-12-06")));
   }
 
-  private void checkDatesPresent(List<DataValueEntry> dataValues, List<Date> dates) {
+  private void checkDatesPresent(List<DataExportValue> dataValues, List<Date> dates) {
     assertTrue(
         dataValues.stream()
-            .map(DataValueEntry::lastUpdated)
+            .map(DataExportValue::lastUpdated)
             .collect(Collectors.toSet())
             .containsAll(dates),
         "Expected dates should be present");
   }
 
-  private void checkDataValuesPresent(List<DataValueEntry> dataValues, List<String> values) {
+  private void checkDataValuesPresent(List<DataExportValue> dataValues, List<String> values) {
     assertTrue(
         dataValues.stream()
-            .map(DataValueEntry::value)
+            .map(DataExportValue::value)
             .collect(Collectors.toSet())
             .containsAll(values),
         "Expected DataValues should be present");
   }
 
-  private void checkCocIdsPresent(List<DataValueEntry> dataValues, List<String> cocIds) {
+  private void checkCocIdsPresent(List<DataExportValue> dataValues, List<String> cocIds) {
     assertTrue(
         dataValues.stream()
             .map(dv -> dv.categoryOptionCombo().getValue())

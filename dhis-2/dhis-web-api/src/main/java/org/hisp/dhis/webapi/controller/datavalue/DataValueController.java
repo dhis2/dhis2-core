@@ -52,8 +52,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -105,12 +105,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/dataValues")
 @RequiredArgsConstructor
 public class DataValueController {
-
-  public static final String FILE_PATH = "/file";
-
-  // ---------------------------------------------------------------------
-  // Dependencies
-  // ---------------------------------------------------------------------
 
   private final DataValueService dataValueService;
 
@@ -185,7 +179,7 @@ public class DataValueController {
   }
 
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
-  @PostMapping(FILE_PATH)
+  @PostMapping("/file")
   public WebMessage saveFileDataValue(
       @OpenApi.Param({UID.class, DataElement.class}) @RequestParam String de,
       @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
@@ -248,7 +242,7 @@ public class DataValueController {
   public List<String> getDataValue(DataValueQueryParams params, HttpServletResponse response)
       throws BadRequestException, ConflictException, ForbiddenException {
 
-    DataValueEntry dataValue =
+    DataExportValue dataValue =
         dataValueService.getDataValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
     if (dataValue == null) throw new ConflictException("Data value does not exist");
@@ -316,7 +310,7 @@ public class DataValueController {
       HttpServletResponse response)
       throws WebMessageException, BadRequestException, ConflictException, NotFoundException {
 
-    DataValueEntry dataValue =
+    DataExportValue dataValue =
         dataValueService.getDataValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
     if (dataValue == null) throw new ConflictException("Data value does not exist");

@@ -357,8 +357,8 @@ public class DataValue implements Serializable {
   }
 
   @UsageTestOnly
-  public DataValueEntry toEntry() {
-    return new DataValueEntry(
+  public DataExportValue toEntry() {
+    return new DataExportValue(
         UID.of(dataElement),
         period.getIsoDate(),
         UID.of(source),

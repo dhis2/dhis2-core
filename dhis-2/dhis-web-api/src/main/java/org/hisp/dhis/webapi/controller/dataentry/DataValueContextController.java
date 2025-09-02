@@ -35,11 +35,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -79,9 +79,9 @@ public class DataValueContextController {
 
     List<Period> periods = periodService.getPeriods(pe, 13);
 
-    List<DataValueEntry> dataValues =
+    List<DataExportValue> dataValues =
         dataValueService.getDataValues(
-            new DataExportParams()
+            new DataExportStoreParams()
                 .setDataElements(Set.of(de))
                 .setPeriods(Set.copyOf(periods))
                 .setOrganisationUnits(Set.of(ou))

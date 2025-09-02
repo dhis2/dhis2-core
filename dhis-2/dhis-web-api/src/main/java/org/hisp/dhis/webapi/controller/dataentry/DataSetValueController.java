@@ -47,9 +47,9 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -95,14 +95,14 @@ public class DataSetValueController {
     CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-    DataExportParams exportParams =
-        new DataExportParams()
+    DataExportStoreParams exportParams =
+        new DataExportStoreParams()
             .setDataSets(Set.of(ds))
             .setPeriods(Set.of(pe))
             .setOrganisationUnits(Set.of(ou))
             .setAttributeOptionCombos(Set.of(aoc));
 
-    List<DataValueEntry> dataValues = dataValueService.getDataValues(exportParams);
+    List<DataExportValue> dataValues = dataValueService.getDataValues(exportParams);
 
     List<MinMaxDataElement> minMaxValues =
         minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
@@ -133,7 +133,8 @@ public class DataSetValueController {
    * @param value the {@link DataValue}.
    * @return a {@link DataValuePostParams}.
    */
-  public static DataValuePostParams toDto(DataValueEntry value, DataValueCategoryParams attribute) {
+  public static DataValuePostParams toDto(
+      DataExportValue value, DataValueCategoryParams attribute) {
     return new DataValuePostParams()
         .setDataElement(value.dataElement().getValue())
         .setPeriod(value.period())

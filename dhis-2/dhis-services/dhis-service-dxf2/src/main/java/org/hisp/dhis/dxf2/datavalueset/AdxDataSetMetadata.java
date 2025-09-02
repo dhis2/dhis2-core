@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.dxf2.datavalueset;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.feedback.ConflictException;
 
 /**
  * @author bobj
@@ -50,7 +51,7 @@ public class AdxDataSetMetadata {
 
   private final Map<String, Map<String, String>> categoryOptionMap;
 
-  AdxDataSetMetadata(DataSet dataSet, IdSchemes idSchemes) throws AdxException {
+  AdxDataSetMetadata(DataSet dataSet, IdSchemes idSchemes) throws ConflictException {
     categoryOptionMap = new HashMap<>();
 
     Set<CategoryCombo> catCombos = new HashSet<>();
@@ -69,7 +70,7 @@ public class AdxDataSetMetadata {
   }
 
   private void addExplodedCategoryAttributes(CategoryOptionCombo coc, IdSchemes idSchemes)
-      throws AdxException {
+      throws ConflictException {
     Map<String, String> categoryAttributes = new HashMap<>();
 
     IdScheme cScheme = idSchemes.getCategoryIdScheme();
@@ -80,7 +81,7 @@ public class AdxDataSetMetadata {
         String categoryId = category.getPropertyValue(cScheme);
 
         if (categoryId == null || !XMLChar.isValidName(categoryId)) {
-          throw new AdxException(
+          throw new ConflictException(
               "Category "
                   + cScheme.name()
                   + " for "
@@ -92,7 +93,7 @@ public class AdxDataSetMetadata {
         String catOptId = category.getCategoryOption(coc).getPropertyValue(coScheme);
 
         if (catOptId == null || catOptId.isEmpty()) {
-          throw new AdxException(
+          throw new ConflictException(
               "CategoryOption "
                   + coScheme.name()
                   + " for "

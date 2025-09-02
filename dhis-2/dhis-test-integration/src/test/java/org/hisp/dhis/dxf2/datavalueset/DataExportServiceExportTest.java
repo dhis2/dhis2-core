@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
@@ -51,7 +50,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -59,6 +57,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -77,7 +76,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
+class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
@@ -88,7 +87,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
-  @Autowired private DataValueSetService dataValueSetService;
+  @Autowired private DataExportService dataExportService;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -220,14 +219,15 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   // Tests
   // -------------------------------------------------------------------------
   @Test
-  void testExportBasic() throws IOException {
+  void testExportBasic() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setPeriods(Sets.newHashSet(peA));
-    dataValueSetService.exportDataValueSetJson(params, out);
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -241,9 +241,9 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportBasic_FromUrlParamsWithDataElementIds() throws IOException {
-    DataValueSetQueryParams params =
-        DataValueSetQueryParams.builder()
+  void testExportBasic_FromUrlParamsWithDataElementIds() throws Exception {
+    DataExportParams params =
+        DataExportParams.builder()
             .dataElement(Set.of(deA.getCode(), deB.getCode()))
             .inputDataElementIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouA.getCode()))
@@ -252,7 +252,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
             .idScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(dataValueSetService.getFromUrl(params), out);
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(4, dvs.getDataValues().size());
@@ -264,9 +264,9 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportBasic_FromUrlParamsWithCodes() throws IOException {
-    DataValueSetQueryParams params =
-        DataValueSetQueryParams.builder()
+  void testExportBasic_FromUrlParamsWithCodes() throws Exception {
+    DataExportParams params =
+        DataExportParams.builder()
             .dataSet(singleton(dsA.getCode()))
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouA.getCode()))
@@ -276,7 +276,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnitIdScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(dataValueSetService.getFromUrl(params), out);
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -290,15 +290,16 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportAttributeOptionCombo() throws IOException {
+  void testExportAttributeOptionCombo() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setPeriods(Sets.newHashSet(peA))
-            .setAttributeOptionCombos(Sets.newHashSet(cocA));
-    dataValueSetService.exportDataValueSetJson(params, out);
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouB.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .attributeOptionCombo(Set.of(cocA.getUid()))
+            .build();
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -311,9 +312,9 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportAttributeOptionCombo_FromUrlParamsWithCodes() throws IOException {
-    DataValueSetQueryParams params =
-        DataValueSetQueryParams.builder()
+  void testExportAttributeOptionCombo_FromUrlParamsWithCodes() throws Exception {
+    DataExportParams params =
+        DataExportParams.builder()
             .dataSet(singleton(dsA.getCode()))
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouB.getCode()))
@@ -326,7 +327,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
             .attributeOptionComboIdScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(dataValueSetService.getFromUrl(params), out);
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -340,15 +341,16 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportOrgUnitChildren() throws IOException {
+  void testExportOrgUnitChildren() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setIncludeDescendants(true)
-            .setPeriods(Sets.newHashSet(peA));
-    dataValueSetService.exportDataValueSetJson(params, out);
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .children(true)
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -361,20 +363,18 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportOutputSingleDataValueSetIdSchemeCode() throws IOException {
+  void testExportOutputSingleDataValueSetIdSchemeCode() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    IdSchemes idSchemes =
-        new IdSchemes()
-            .setOrgUnitIdScheme(IdentifiableProperty.CODE.name())
-            .setDataElementIdScheme(IdentifiableProperty.CODE.name())
-            .setDataSetIdScheme(IdentifiableProperty.CODE.name());
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsB))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setPeriods(Sets.newHashSet(peB))
-            .setOutputIdSchemes(idSchemes);
-    dataValueSetService.exportDataValueSetJson(params, out);
+        DataExportParams.builder()
+            .dataSet(Set.of(dsB.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .period(Set.of(peB.getIsoDate()))
+            .orgUnitIdScheme(IdentifiableProperty.CODE.name())
+            .dataElementIdScheme(IdentifiableProperty.CODE.name())
+            .dataSetIdScheme(IdentifiableProperty.CODE.name())
+            .build();
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -390,9 +390,9 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportOutputSingleDataValueSetIdSchemeCode_FromUrlParamsWithCodes() throws IOException {
-    DataValueSetQueryParams params =
-        DataValueSetQueryParams.builder()
+  void testExportOutputSingleDataValueSetIdSchemeCode_FromUrlParamsWithCodes() throws Exception {
+    DataExportParams params =
+        DataExportParams.builder()
             .orgUnitIdScheme(IdentifiableProperty.CODE.name())
             .dataElementIdScheme(IdentifiableProperty.CODE.name())
             .dataSetIdScheme(IdentifiableProperty.CODE.name())
@@ -403,7 +403,7 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
             .inputIdScheme(IdentifiableProperty.CODE)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(dataValueSetService.getFromUrl(params), out);
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -419,21 +419,19 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportOutputIdSchemeAttribute() throws IOException {
+  void testExportOutputIdSchemeAttribute() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
-    IdSchemes idSchemes =
-        new IdSchemes()
-            .setDataElementIdScheme(attributeIdScheme)
-            .setOrgUnitIdScheme(attributeIdScheme)
-            .setCategoryOptionComboIdScheme(attributeIdScheme);
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsB))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setPeriods(Sets.newHashSet(peB))
-            .setOutputIdSchemes(idSchemes);
-    dataValueSetService.exportDataValueSetJson(params, out);
+        DataExportParams.builder()
+            .dataSet(Set.of(dsB.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .period(Set.of(peB.getIsoDate()))
+            .dataElementIdScheme(attributeIdScheme)
+            .orgUnitIdScheme(attributeIdScheme)
+            .categoryOptionComboIdScheme(attributeIdScheme)
+            .build();
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -447,10 +445,10 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportLastUpdated() throws IOException {
+  void testExportLastUpdated() throws Exception {
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
+    dataExportService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(12, dvs.getDataValues().size());
@@ -466,14 +464,14 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
     addDataValues(dvA, dvB);
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
+    dataExportService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(14, dvs.getDataValues().size());
     deleteDataValue(dvA);
     deleteDataValue(dvB);
     out = new ByteArrayOutputStream();
-    dataValueSetService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
+    dataExportService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
     dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(14, dvs.getDataValues().size());
@@ -483,120 +481,122 @@ class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   void testMissingDataSetElementGroup() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setPeriods(Sets.newHashSet(peA));
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .orgUnit(Set.of(ouB.getUid()))
+            .period(Set.of(peA.getUid()))
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2001);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2001, ex.getCode());
   }
 
   @Test
   void testMissingPeriodStartEndDate() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouA));
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2002);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2002, ex.getCode());
   }
 
   @Test
   void testPeriodAndStartEndDate() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setPeriods(Sets.newHashSet(peA))
-            .setStartDate(getDate(2019, 1, 1))
-            .setEndDate(getDate(2019, 1, 31));
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouB.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .startDate(getDate(2019, 1, 1))
+            .endDate(getDate(2019, 1, 31))
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2003);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2003, ex.getCode());
   }
 
   @Test
   void testStartDateAfterEndDate() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setStartDate(getDate(2019, 3, 1))
-            .setEndDate(getDate(2019, 1, 31));
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouB.getUid()))
+            .startDate(getDate(2019, 3, 1))
+            .endDate(getDate(2019, 1, 31))
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2004);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2004, ex.getCode());
   }
 
   @Test
   void testMissingOrgUnit() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams().setDataSets(Sets.newHashSet(dsA)).setPeriods(Sets.newHashSet(peA));
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2006);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2006, ex.getCode());
   }
 
   @Test
   void testAtLestOneOrgUnitWithChildren() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(peA, peB))
-            .setOrganisationUnitGroups(Sets.newHashSet(ogA))
-            .setIncludeDescendants(true);
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
+            .orgUnitGroup(Set.of(ogA.getUid()))
+            .children(true)
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2008);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2008, ex.getCode());
   }
 
   @Test
   void testLimitLimitNotLessThanZero() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(peA, peB))
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setLimit(-2);
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
+            .orgUnit(Set.of(ouB.getUid()))
+            .limit(-2)
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2009);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2009, ex.getCode());
   }
 
   @Test
   void testAccessOutsideOrgUnitHierarchy() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setOrganisationUnits(Sets.newHashSet(ouC))
-            .setPeriods(Sets.newHashSet(peA));
-    assertIllegalQueryEx(
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .orgUnit(Set.of(ouC.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .build();
+    ConflictException ex =
         assertThrows(
-            IllegalQueryException.class,
-            () -> dataValueSetService.exportDataValueSetJson(params, out)),
-        ErrorCode.E2012);
+            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertEquals(ErrorCode.E2012, ex.getCode());
   }
 
   private void addDataValues(DataValue... values) {

@@ -43,7 +43,7 @@ import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.message.MessageService;
@@ -215,7 +215,7 @@ public class DefaultCompleteDataSetRegistrationService
     List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 
     if (!dataSet.getCompulsoryDataElementOperands().isEmpty()) {
-      DataExportParams params = new DataExportParams();
+      DataExportStoreParams params = new DataExportStoreParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
       params.setPeriods(Sets.newHashSet(period));
       params.setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo));

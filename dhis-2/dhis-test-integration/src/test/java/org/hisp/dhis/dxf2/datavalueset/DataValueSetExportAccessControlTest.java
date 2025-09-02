@@ -41,20 +41,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -72,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
-  @Autowired private DataValueSetService dataValueSetService;
+  @Autowired private DataExportService dataExportService;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -166,7 +165,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
    */
   @Disabled("TODO(DHIS2-17768 platform) fix")
   @Test
-  void testExportAttributeOptionComboAccessLimitedUserA() throws IOException {
+  void testExportAttributeOptionComboAccessLimitedUserA() throws Exception {
     // User
     User user = makeUser("A");
     userService.addUser(user);
@@ -187,12 +186,13 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     // Test
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(peA))
-            .setOrganisationUnits(Sets.newHashSet(ouA));
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .build();
     dbmsManager.flushSession();
-    dataValueSetService.exportDataValueSetJson(params, out);
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     Set<String> expectedOptionCombos = Sets.newHashSet(cocA.getUid(), cocB.getUid());
     assertNotNull(dvs);
@@ -208,7 +208,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
 
   /** User is super user. Verifies that no restriction on attribute option combinations are used. */
   @Test
-  void testExportAttributeOptionComboAccessSuperUser() throws IOException {
+  void testExportAttributeOptionComboAccessSuperUser() throws Exception {
     User adminUser = makeUser("A", Lists.newArrayList("ALL"));
     adminUser.setOrganisationUnits(Sets.newHashSet(ouA));
     setCurrentUser(adminUser);
@@ -220,12 +220,13 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     // Test
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(peA))
-            .setOrganisationUnits(Sets.newHashSet(ouA));
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .build();
     dbmsManager.flushSession();
-    dataValueSetService.exportDataValueSetJson(params, out);
+    dataExportService.exportDataValueSetJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -249,13 +250,14 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(peA))
-            .setOrganisationUnits(Sets.newHashSet(ouA));
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .build();
     dbmsManager.flushSession();
     assertThrows(
-        IllegalQueryException.class, () -> dataValueSetService.exportDataValueSetJson(params, out));
+        ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
   }
 
   /**
@@ -277,13 +279,14 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(peA))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setAttributeOptionCombos(Sets.newHashSet(cocA));
+        DataExportParams.builder()
+            .dataSet(Set.of(dsA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .attributeOptionCombo(Set.of(cocA.getUid()))
+            .build();
     assertThrows(
-        IllegalQueryException.class, () -> dataValueSetService.exportDataValueSetJson(params, out));
+        ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
   }
 
   /**

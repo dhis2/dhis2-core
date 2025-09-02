@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.adx;
+package org.hisp.dhis.datavalue;
+
+import static java.util.Objects.requireNonNull;
+
+import java.util.Date;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * Simple class for ADX checked exceptions which can wrap an ImportConflict.
+ * A flat data value using UIDs and ISO period values for the keys.
  *
- * @author bobj
+ * <p>This is mostly how data values should be consumed when reading them to expose in an API or
+ * export. Hence, all columns that are non-null in DB are also required in this record.
+ *
+ * @since 2.43
  */
-public class AdxException extends Exception {
-  private final String object;
+public record DataExportValue(
+    @Nonnull UID dataElement,
+    @Nonnull String period,
+    @Nonnull UID orgUnit,
+    @Nonnull UID categoryOptionCombo,
+    @Nonnull UID attributeOptionCombo,
+    @CheckForNull String value,
+    @CheckForNull String comment,
+    @CheckForNull Boolean followUp,
+    @CheckForNull String storedBy,
+    @CheckForNull Date created,
+    @CheckForNull Date lastUpdated,
+    boolean deleted) {
 
-  public String getObject() {
-    return object;
+  public DataExportValue {
+    // enforce correct nullability by construction
+    requireNonNull(dataElement);
+    requireNonNull(period);
+    requireNonNull(orgUnit);
+    requireNonNull(categoryOptionCombo);
+    requireNonNull(attributeOptionCombo);
   }
 
-  public AdxException(String msg) {
-    this("ADX Error", msg);
+  public boolean isFollowUp() {
+    return followUp != null && followUp;
   }
 
-  public AdxException(String object, String msg) {
-    super(msg);
-    this.object = object;
+  public DataEntryKey toKey() {
+    return new DataEntryKey(
+        dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
   }
 }

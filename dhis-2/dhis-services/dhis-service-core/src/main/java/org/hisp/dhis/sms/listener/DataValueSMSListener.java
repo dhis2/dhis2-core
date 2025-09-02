@@ -55,7 +55,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -244,7 +244,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       return;
     }
 
-    DataValueEntry curValue =
+    DataExportValue curValue =
         dataValueService.getDataValue(
             new DataEntryKey(targetDataElement, period, orgUnit, null, null));
 
@@ -292,7 +292,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
       period = getPeriod(command, date);
 
-      DataValueEntry dv =
+      DataExportValue dv =
           dataValueService.getDataValue(
               new DataEntryKey(code.getDataElement(), period, orgunit, optionCombo, null));
 
@@ -335,7 +335,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     Period period;
 
-    Map<String, DataValueEntry> codesWithDataValues = new TreeMap<>();
+    Map<String, DataExportValue> codesWithDataValues = new TreeMap<>();
     Map<UID, ValueType> valueTypeByDataElement = new HashMap<>();
     List<String> codesWithoutDataValues = new ArrayList<>();
 
@@ -348,7 +348,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
       DataElement dataElement = code.getDataElement();
       valueTypeByDataElement.put(UID.of(dataElement), dataElement.getValueType());
-      DataValueEntry dv =
+      DataExportValue dv =
           dataValueService.getDataValue(
               new DataEntryKey(dataElement, period, orgunit, optionCombo, null));
 
@@ -360,7 +360,7 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     for (String key : codesWithDataValues.keySet()) {
-      DataValueEntry dv = codesWithDataValues.get(key);
+      DataExportValue dv = codesWithDataValues.get(key);
       String value = dv.value();
 
       if (ValueType.BOOLEAN == valueTypeByDataElement.get(dv.dataElement())) {

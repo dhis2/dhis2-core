@@ -30,11 +30,13 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 
 import io.hypersistence.utils.hibernate.type.array.LongArrayType;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
@@ -49,9 +51,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -61,23 +66,28 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.type.DateType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueEntry;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -86,23 +96,68 @@ import org.springframework.stereotype.Repository;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Repository("org.hisp.dhis.datavalue.DataValueStore")
+@Repository
 public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore {
-
-  private final PeriodStore periodStore;
 
   private static final String DELETED = "deleted";
 
   private static final String LAST_UPATED = "lastUpdated";
 
   public HibernateDataValueStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      PeriodStore periodStore) {
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
-    this.periodStore = periodStore;
+  }
+
+  @Nonnull
+  @Override
+  public Map<String, String> getIdMapping(
+      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> identifiers) {
+    if (to == IdProperty.UID)
+      return identifiers.distinct().collect(toMap(UID::getValue, UID::getValue));
+    String[] ids =
+        identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
+    if (ids.length == 0) return Map.of();
+    @Language("sql")
+    String sqlTemplate =
+        """
+      SELECT t.uid, ${property}
+      FROM ${table} t
+      JOIN unnest(:ids) AS input(id) ON t.uid = input.id
+      """;
+    String tableName =
+        switch (type) {
+          case DE -> "dataelement";
+          case OU -> "organisationunit";
+          case COC -> "categoryoptioncombo";
+        };
+    String sql = replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", to)));
+    return listAsStringsMap(sql, q -> q.setParameter("ids", ids));
+  }
+
+  @Nonnull
+  private Map<String, String> listAsStringsMap(
+      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
+    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
+    Stream<Object[]> rows = query.stream();
+    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+  }
+
+  @SuppressWarnings("unchecked")
+  private NativeQuery<Object[]> createNativeRawQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql);
+  }
+
+  @Nonnull
+  private static String columnName(String alias, IdProperty id) {
+    return switch (id.name()) {
+      case UID -> alias + ".uid";
+      case NAME -> alias + ".name";
+      case CODE -> alias + ".code";
+      case ATTR ->
+          "jsonb_extract_path_text(%s.attributeValues, '%s', 'value')"
+              .formatted(alias, id.attributeId());
+    };
   }
 
   // -------------------------------------------------------------------------
@@ -237,7 +292,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   @Override
   @CheckForNull
-  public DataValueEntry getDataValue(@Nonnull DataEntryKey key) {
+  public DataExportValue getDataValue(@Nonnull DataEntryKey key) {
     String sql =
         """
       SELECT
@@ -269,10 +324,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       LIMIT 1""";
     String coc = key.categoryOptionCombo() == null ? null : key.categoryOptionCombo().getValue();
     String aoc = key.attributeOptionCombo() == null ? null : key.attributeOptionCombo().getValue();
-    @SuppressWarnings("unchecked")
     Stream<Object[]> rows =
-        getSession()
-            .createNativeQuery(sql)
+        createNativeRawQuery(sql)
             .setParameter("de", key.dataElement().getValue())
             .setParameter("ou", key.orgUnit().getValue())
             .setParameter("iso", key.period())
@@ -284,7 +337,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   @Override
   @UsageTestOnly
-  public List<DataValueEntry> getAllDataValues() {
+  public List<DataExportValue> getAllDataValues() {
     String sql =
         """
       SELECT
@@ -307,21 +360,20 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
       WHERE dv.deleted = false""";
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows = getSession().createNativeQuery(sql).stream();
+    Stream<Object[]> rows = createNativeRawQuery(sql).stream();
     return rows.map(HibernateDataValueStore::dataValueEntryOf).toList();
   }
 
   @Override
-  public List<DataValueEntry> getDataValues(DataExportParams params) {
+  public List<DataExportValue> getDataValues(DataExportStoreParams params) {
     String sql =
         """
       SELECT
-        de.uid AS de,
+        de.uid AS deid,
         pe.iso,
-        ou.uid AS ou,
-        coc.uid AS coc,
-        aoc.uid AS aoc,
+        ou.uid AS ouid,
+        coc.uid AS cocid,
+        aoc.uid AS aocid,
         dv.value,
         dv.comment,
         dv.followup,
@@ -329,13 +381,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         dv.created,
         dv.lastupdated,
         dv.deleted
-      FROM dataelement de
-      JOIN datavalue dv ON de.dataelementid = dv.dataelementid
+      FROM datavalue dv
+      JOIN dataelement de ON dv.dataelementid = de.dataelementid
       JOIN period pe ON dv.periodid = pe.periodid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE de.dataelementid = ANY(:de)
+      WHERE (cardinality(:de) = 0 OR de.dataelementid = ANY(:de))
         AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))
         AND (cast(:start as timestamp) IS NULL AND cast(:end as timestamp) IS NULL OR pe.startDate >= :start and pe.endDate <= :end)
         AND (:descendants AND ou.path LIKE ANY(:path) OR NOT :descendants AND (cardinality(:ou) = 0 OR ou.organisationunitid = ANY(:ou)))
@@ -344,10 +396,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         AND (cast(:lastUpdated as timestamp) IS NULL OR dv.lastupdated >= :lastUpdated)
         AND (:includeDeleted OR dv.deleted = false)
       """;
+    // SQL mod: adding orders
     List<String> orders = new ArrayList<>(3);
     if (params.isOrderByOrgUnitPath()) orders.add("ou.path");
     if (params.isOrderByPeriod()) orders.addAll(List.of("pe.startdate", "pe.enddate"));
+    if (params.isOrderForSync()) orders = List.of("pe.startdate", "dv.created", "deid");
     if (!orders.isEmpty()) sql += "\nORDER BY %s".formatted(String.join(",", orders));
+    // SQL mod: limit included AOCs by what is accessible to the user
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!currentUser.isSuper()) sql = modifyWhereToAddUserAccessFilter(sql, currentUser);
 
     Set<Period> periods = params.getPeriods();
     String[] pe =
@@ -356,8 +413,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             : periods.stream().map(Period::getIsoDate).toArray(String[]::new);
     Set<OrganisationUnit> units = params.getAllOrganisationUnits();
     String[] path =
-        !params.isIncludeDescendants()
-            ? null
+        !params.isIncludeDescendantsForOrganisationUnits()
+            ? new String[0]
             : units.stream().map(OrganisationUnit::getPath).toArray(String[]::new);
     Date lastUpdated = null;
     if (params.hasLastUpdatedDuration())
@@ -366,10 +423,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     Date startDate = params.hasStartEndDate() ? params.getStartDate() : null;
     Date endDate = params.hasStartEndDate() ? params.getEndDate() : null;
-    @SuppressWarnings("unchecked")
     NativeQuery<Object[]> query =
-        getSession()
-            .createNativeQuery(sql)
+        createNativeRawQuery(sql)
             .setParameter("de", getIds(params.getAllDataElements()), LongArrayType.INSTANCE)
             .setParameter("pe", pe, StringArrayType.INSTANCE)
             .setParameter("start", startDate, DateType.INSTANCE)
@@ -382,11 +437,30 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             .setParameter("lastUpdated", lastUpdated, DateType.INSTANCE)
             .setParameter("includeDeleted", params.isIncludeDeleted());
     if (params.hasLimit()) query.setMaxResults(params.getLimit());
+    if (params.getOffset() != null) query.setFirstResult(params.getOffset());
     return query.stream().map(HibernateDataValueStore::dataValueEntryOf).toList();
   }
 
-  private static DataValueEntry dataValueEntryOf(Object[] row) {
-    return new DataValueEntry(
+  private static String modifyWhereToAddUserAccessFilter(String sql, UserDetails currentUser) {
+    // FIXME JB shouldn't this also filter COCs? Elsewhere we did that...I think
+    String filterSql =
+        """
+        AND dv.attributeoptioncomboid NOT IN (
+          SELECT DISTINCT(coc_co.categoryoptioncomboid)
+          FROM categoryoptioncombos_categoryoptions as coc_co
+          WHERE coc_co.categoryoptionid NOT IN (
+            SELECT co.categoryoptionid FROM categoryoption co WHERE %s
+          )
+        )""";
+    return sql
+        + "\n"
+        + filterSql.formatted(
+            JpaQueryUtils.generateSQlQueryForSharingCheck(
+                "co.sharing", currentUser, AclService.LIKE_READ_DATA));
+  }
+
+  private static DataExportValue dataValueEntryOf(Object[] row) {
+    return new DataExportValue(
         UID.of((String) row[0]),
         (String) row[1],
         UID.of((String) row[2]),
@@ -412,7 +486,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
 
   @Override
-  public List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params) {
+  public List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params) {
     SqlHelper sqlHelper = new SqlHelper(true);
 
     StringBuilder sql = new StringBuilder();
@@ -454,7 +528,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   /** getDeflatedDataValues - Adds SELECT clause and starts FROM clause. */
-  private void getDdvSelectFrom(DataExportParams params, StringBuilder sql) {
+  private void getDdvSelectFrom(DataExportStoreParams params, StringBuilder sql) {
     sql.append(
             """
             select dv.dataelementid, dv.periodid, dv.sourceid, \
@@ -466,7 +540,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses data elements and data element operands. */
   private void getDdvDataElementsAndOperands(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     List<Long> deIds = new ArrayList<>();
     List<Long> cocIds = new ArrayList<>();
     getDdvDataElementLists(params, deIds, cocIds);
@@ -489,7 +563,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses periods. */
   private void getDdvPeriods(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasPeriods()) {
       String periodIdList = getCommaDelimitedString(getIdentifiers(params.getPeriods()));
 
@@ -539,7 +613,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses organisation units. */
   private void getDdvOrgUnits(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.needsOrgUnitDetails()) {
       sql.append(" join organisationunit ou on ou.organisationunitid = dv.sourceid");
     }
@@ -581,7 +655,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses attribute option combinations. */
   private void getDdvAttributeOptionCombos(
-      DataExportParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasAttributeOptionCombos()) {
       String aocIdList = getCommaDelimitedString(getIdentifiers(params.getAttributeOptionCombos()));
 
@@ -595,7 +669,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds user dimension constraints. */
   private void getDdvDimensionConstraints(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasCogDimensionConstraints() || params.hasCoDimensionConstraints()) {
       sql.append(
           " join categoryoptioncombos_categoryoptions cc on dv.attributeoptioncomboid = cc.categoryoptioncomboid");
@@ -629,7 +703,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds LastUpdated constraint. */
   private void getDdvLastUpdated(
-      DataExportParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasLastUpdated()) {
       where
           .append(sqlHelper.whereAnd())
@@ -640,14 +714,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds deleted constraint. */
   private void getDdvIncludeDeleted(
-      DataExportParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (!params.isIncludeDeleted()) {
       where.append(sqlHelper.whereAnd()).append("dv.deleted is false");
     }
   }
 
   /** getDeflatedDataValues - Adds ORDER BY. */
-  private void getDdvOrderBy(DataExportParams params, StringBuilder sql) {
+  private void getDdvOrderBy(DataExportStoreParams params, StringBuilder sql) {
     if (params.isOrderByOrgUnitPath()) {
       sql.append(" order by ou.path");
     }
@@ -669,7 +743,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
    * is populated.
    */
   private void getDdvDataElementLists(
-      DataExportParams params, List<Long> deIds, List<Long> cocIds) {
+      DataExportStoreParams params, List<Long> deIds, List<Long> cocIds) {
     // Get a collection of unique DataElement ids.
     Collection<Long> dataElementIds =
         union(

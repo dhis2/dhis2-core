@@ -29,20 +29,13 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +46,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
-class DataValueSetServiceGetFromUrlTest extends PostgresIntegrationTestBase {
+class DataExportServiceGetFromUrlTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
-  @Autowired private DataValueSetService dataValueSetService;
+  @Autowired private DataExportService dataExportService;
 
   private CategoryOption categoryOptionA;
 
@@ -111,25 +104,5 @@ class DataValueSetServiceGetFromUrlTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(optionComboB);
     categoryService.addCategoryOptionCombo(optionComboC);
     categoryService.addCategoryOptionCombo(optionComboD);
-  }
-
-  @Test
-  void testGetFromUrlWithAttributes() {
-    DataValueSetQueryParams params = new DataValueSetQueryParams();
-    params.setAttributeCombo(categoryComboA.getUid());
-    params.setAttributeOptions(Set.of(categoryOptionA.getUid(), categoryOptionC.getUid()));
-
-    DataExportParams exportParams = dataValueSetService.getFromUrl(params);
-
-    assertContainsOnly(Set.of(optionComboA), exportParams.getAttributeOptionCombos());
-  }
-
-  @Test
-  void testGetFromUrlWithAttributesException() {
-    DataValueSetQueryParams params = new DataValueSetQueryParams();
-    params.setAttributeCombo(categoryComboA.getUid());
-    params.setAttributeOptions(Set.of(categoryOptionA.getUid(), categoryOptionE.getUid()));
-
-    assertThrows(IllegalQueryException.class, () -> dataValueSetService.getFromUrl(params));
   }
 }

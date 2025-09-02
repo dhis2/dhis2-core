@@ -62,7 +62,7 @@ import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.datasetreport.DataSetReportStore;
 import org.hisp.dhis.datavalue.DataEntryKey;
-import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -332,7 +332,7 @@ public class DefaultDataSetReportService implements DataSetReportService {
                     dataValueService.getDataValue(
                         new DataEntryKey(dataElement, p, unit, optionCombo, null)))
             .filter(Objects::nonNull)
-            .map(DataValueEntry::value)
+            .map(DataExportValue::value)
             .filter(Objects::nonNull)
             .map(MathUtils::parseDouble)
             .filter(Objects::nonNull)

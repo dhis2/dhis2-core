@@ -42,7 +42,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,19 +51,17 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueEntry;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
+import org.hisp.dhis.dxf2.datavalueset.DataExportService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,7 +82,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Jim Grace
  */
 class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
-  @Autowired private AdxDataService adxDataService;
+  @Autowired private DataExportService dataExportService;
 
   @Autowired private DataEntryPipeline dataEntryPipeline;
 
@@ -93,7 +90,6 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueService dataValueService;
   @Autowired private DataValueStore dataValueStore;
 
   @Autowired private DataDumpService dataDumpService;
@@ -318,130 +314,61 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   // --------------------------------------------------------------------------
-  // Test get data export params from URL arguments
-  // --------------------------------------------------------------------------
-  @Test
-  void testGetFromUrl1() {
-    Date now = new Date();
-    DataExportParams expected =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsA))
-            .setPeriods(Sets.newHashSet(pe202001))
-            .setOrganisationUnits(Sets.newHashSet(ouA))
-            .setIncludeDescendants(true)
-            .setIncludeDeleted(false)
-            .setLastUpdated(now)
-            .setLimit(999)
-            .setOutputIdSchemes(new IdSchemes().setIdScheme("CODE"));
-    DataExportParams actual =
-        adxDataService.getFromUrl(
-            DataValueSetQueryParams.builder()
-                .dataSet(Sets.newHashSet(dsA.getUid()))
-                .period(Sets.newHashSet("202001"))
-                .orgUnit(Sets.newHashSet(ouA.getUid()))
-                .children(true)
-                .includeDeleted(false)
-                .lastUpdated(now)
-                .limit(999)
-                .build());
-    assertEquals(expected.toString(), actual.toString());
-  }
-
-  @Test
-  void testGetFromUrl2() {
-    Date then = new Date(1L);
-    Date now = new Date();
-    DataExportParams expected =
-        new DataExportParams()
-            .setDataSets(Sets.newHashSet(dsB))
-            .setStartDate(then)
-            .setEndDate(now)
-            .setLastUpdatedDuration("10d")
-            .setOrganisationUnits(Sets.newHashSet(ouB))
-            .setOrganisationUnitGroups(Sets.newHashSet(ougA))
-            .setAttributeOptionCombos(Sets.newHashSet(cocMcDonalds))
-            .setIncludeDescendants(false)
-            .setIncludeDeleted(true)
-            .setLastUpdated(now)
-            .setOutputIdSchemes(new IdSchemes().setIdScheme("UID"));
-    DataExportParams actual =
-        adxDataService.getFromUrl(
-            DataValueSetQueryParams.builder()
-                .dataSet(Sets.newHashSet(dsB.getCode()))
-                .startDate(then)
-                .endDate(now)
-                .orgUnit(Sets.newHashSet(ouB.getCode()))
-                .children(false)
-                .orgUnitGroup(Sets.newHashSet(ougA.getCode()))
-                .attributeOptionCombo(Sets.newHashSet(cocMcDonalds.getUid()))
-                .includeDeleted(true)
-                .lastUpdated(now)
-                .lastUpdatedDuration("10d")
-                .idScheme(IdentifiableProperty.UID.name())
-                .build());
-    assertEquals(expected.toString(), actual.toString());
-  }
-
-  // --------------------------------------------------------------------------
   // Test export
   // --------------------------------------------------------------------------
   @Test
   void testWriteDataValueSetA() throws Exception {
     testExport(
         "adx/exportA.adx.xml",
-        getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataElementIdScheme("NAME")
-                    .setCategoryIdScheme("NAME")
-                    .setCategoryOptionIdScheme("UID")));
+        getCommonExportParams().toBuilder()
+            .idScheme("CODE")
+            .dataElementIdScheme("NAME")
+            .categoryIdScheme("NAME")
+            .categoryOptionIdScheme("UID")
+            .build());
   }
 
   @Test
   void testWriteDataValueSetB() throws Exception {
     testExport(
         "adx/exportB.adx.xml",
-        getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataSetIdScheme("NAME")
-                    .setOrgUnitIdScheme("UID")
-                    .setDataElementIdScheme("UID")
-                    .setCategoryOptionComboIdScheme("NAME"))
-            .setOrganisationUnitGroups(Sets.newHashSet(ougA)));
+        getCommonExportParams().toBuilder()
+            .idScheme("CODE")
+            .dataSetIdScheme("NAME")
+            .orgUnitIdScheme("UID")
+            .dataElementIdScheme("UID")
+            .categoryOptionComboIdScheme("NAME")
+            .orgUnitGroup(Set.of(ougA.getUid()))
+            .build());
   }
 
   @Test
   void testWriteDataValueSetC() throws Exception {
     testExport(
         "adx/exportC.adx.xml",
-        getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataSetIdScheme("UID")
-                    .setOrgUnitIdScheme("NAME")
-                    .setCategoryIdScheme("UID")
-                    .setCategoryOptionIdScheme("NAME"))
-            .setIncludeDescendants(true));
+        getCommonExportParams().toBuilder()
+            .idScheme("CODE")
+            .dataSetIdScheme("UID")
+            .orgUnitIdScheme("NAME")
+            .categoryIdScheme("UID")
+            .categoryOptionIdScheme("NAME")
+            .children(true)
+            .build());
   }
 
   @Test
   void testWriteDataValueSetD() throws Exception {
     testExport(
         "adx/exportD.adx.xml",
-        getCommonExportParams()
-            .setOutputIdSchemes(
-                new IdSchemes()
-                    .setDefaultIdScheme(CODE)
-                    .setDataSetIdScheme("UID")
-                    .setOrgUnitIdScheme("NAME")
-                    .setCategoryIdScheme("UID")
-                    .setCategoryOptionIdScheme("NAME"))
-            .setIncludeDescendants(true)
-            .setAttributeOptionCombos(Sets.newHashSet(cocMcDonalds)));
+        getCommonExportParams().toBuilder()
+            .idScheme("CODE")
+            .dataSetIdScheme("UID")
+            .orgUnitIdScheme("NAME")
+            .categoryIdScheme("UID")
+            .categoryOptionIdScheme("NAME")
+            .children(true)
+            .attributeOptionCombo(Set.of(cocMcDonalds.getUid()))
+            .build());
   }
 
   // --------------------------------------------------------------------------
@@ -522,10 +449,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // Supportive methods
   // --------------------------------------------------------------------------
   private DataExportParams getCommonExportParams() {
-    return new DataExportParams()
-        .setOrganisationUnits(Sets.newHashSet(ouA))
-        .setPeriods(Sets.newHashSet(pe202001, pe202002))
-        .setDataSets(Sets.newHashSet(dsA, dsB));
+    return DataExportParams.builder()
+        .orgUnit(Set.of(ouA.getUid()))
+        .period(Set.of(pe202001.getIsoDate(), pe202002.getIsoDate()))
+        .dataSet(Set.of(dsA.getUid(), dsB.getUid()))
+        .build();
   }
 
   private void testExport(String filePath, DataExportParams params) throws Exception {
@@ -535,7 +463,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
         new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"),
         new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    adxDataService.writeDataValueSet(params, out);
+    dataExportService.exportDataValueSetXmlAdx(params, out);
     String result = out.toString("UTF-8");
     InputStream expectedStream = new ClassPathResource(filePath).getInputStream();
     String expected =
@@ -557,7 +485,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     importOptions.setIdSchemes(idSchemes);
     dataEntryPipeline.importXml(in, importOptions, transitory());
-    List<DataValueEntry> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
     assertContainsOnly(
         List.of(
             new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1").toEntry(),

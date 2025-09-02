@@ -41,7 +41,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 
 /**
- * DB support for the bulk Data Value Import.
+ * DB support for the bulk data value import (AKA data entry).
  *
  * @author Jan Bernitt
  * @since 2.43
@@ -53,7 +53,7 @@ public interface DataEntryStore {
    */
 
   /** Tables for which ID property values may have to be resolved to UID */
-  enum ObjectType {
+  enum DecodeType {
     DS,
     DE,
     OU,
@@ -72,13 +72,13 @@ public interface DataEntryStore {
    * </pre>
    *
    * @param type the target object type or table
-   * @param idsProperty the ID property used (provided)
+   * @param from the known ID property (values given by ids)
    * @param ids the IDs to map from property to UID
    * @return a map from given ID to the corresponding UID (does not include entries for input IDs
    *     that do not exist and thus do not have a corresponding UID)
    */
   Map<String, String> getIdMapping(
-      @Nonnull ObjectType type, @Nonnull IdProperty idsProperty, @Nonnull Stream<String> ids);
+      @Nonnull DecodeType type, @Nonnull IdProperty from, @Nonnull Stream<String> ids);
 
   /**
    * Fetches the IDs of the categories of the DS's CC (as used for AOCs).

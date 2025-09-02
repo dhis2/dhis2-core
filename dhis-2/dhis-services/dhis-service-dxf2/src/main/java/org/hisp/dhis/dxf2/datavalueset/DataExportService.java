@@ -30,34 +30,21 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.feedback.ConflictException;
 
 /**
  * @author Lars Helge Overland
  */
-public interface DataValueSetService {
-  /**
-   * Returns a {@link DataExportParams} based on the given {@link DataValueSetQueryParams}.
-   *
-   * @param params the {@link DataValueSetQueryParams}.
-   * @return a {@link DataExportParams}.
-   */
-  DataExportParams getFromUrl(DataValueSetQueryParams params);
+public interface DataExportService {
 
-  void validate(DataExportParams params);
+  void exportDataValueSetXml(DataExportParams params, OutputStream out) throws ConflictException;
 
-  void decideAccess(DataExportParams params);
+  void exportDataValueSetXmlAdx(DataExportParams params, OutputStream out) throws ConflictException;
 
-  void exportDataValueSetXml(DataExportParams params, OutputStream out);
-
-  void exportDataValueSetJson(DataExportParams params, OutputStream out);
+  void exportDataValueSetJson(DataExportParams params, OutputStream out) throws ConflictException;
 
   /**
    * Query for {@link DataValueSet DataValueSets} and write result as JSON.
@@ -66,7 +53,8 @@ public interface DataValueSetService {
    * @param outputStream the stream to write to
    * @param idSchemes idSchemes
    */
-  void exportDataValueSetJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes);
+  void exportDataValueSetJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes)
+      throws ConflictException;
 
   /**
    * Query for {@link DataValueSet DataValueSets} and write result as JSON.
@@ -78,15 +66,9 @@ public interface DataValueSetService {
    * @param page page
    */
   void exportDataValueSetJson(
-      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page);
+      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page)
+      throws ConflictException;
 
-  void exportDataValueSetCsv(DataExportParams params, Writer writer);
-
-  RootNode getDataValueSetTemplate(
-      DataSet dataSet,
-      Period period,
-      List<String> orgUnits,
-      boolean writeComments,
-      String ouScheme,
-      String deScheme);
+  void exportDataValueSetCsv(DataExportParams params, OutputStream outputStream)
+      throws ConflictException;
 }

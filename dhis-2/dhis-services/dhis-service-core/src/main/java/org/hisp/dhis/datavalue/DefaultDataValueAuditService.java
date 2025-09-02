@@ -61,7 +61,7 @@ public class DefaultDataValueAuditService implements DataValueAuditService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(DataValueEntry dataValue) {
+  public List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue) {
     return dataValueAuditStore.getAuditsByKey(dataValue.toKey());
   }
 

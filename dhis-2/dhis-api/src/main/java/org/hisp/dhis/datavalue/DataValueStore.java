@@ -32,12 +32,16 @@ package org.hisp.dhis.datavalue;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,22 +53,40 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Torgeir Lorange Ostby
  */
 public interface DataValueStore {
-  String ID = DataValueStore.class.getName();
 
   /** Special {@see DeflatedDataValue} to signal "End of file" for queued DDVs. */
-  public static final DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
+  DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
 
   /**
    * Timeout value for {@see DeflatedDataValue} queue, to prevent waiting forever if the other
    * thread has aborted.
    */
-  public static final int DDV_QUEUE_TIMEOUT_VALUE = 10;
+  int DDV_QUEUE_TIMEOUT_VALUE = 10;
 
   /**
    * Timeout unit for {@see DeflatedDataValue} queue, to prevent waiting forever if the other thread
    * has aborted.
    */
-  public static final TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
+  TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
+
+  enum EncodeType {
+    DE,
+    OU,
+    COC
+  }
+
+  /**
+   * Fetches a mapping from the given UIDs for the given {@link EncodeType} to their identifier of
+   * the given {@link IdScheme}
+   *
+   * @param type what object (table)
+   * @param to unknown identifier and requested (result map value)
+   * @param ids known identifiers (result map key)
+   * @return a mapping from the known to the unknown identifier
+   */
+  @Nonnull
+  Map<String, String> getIdMapping(
+      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
 
   // -------------------------------------------------------------------------
   // Basic DataValue
@@ -108,7 +130,7 @@ public interface DataValueStore {
       @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
   @CheckForNull
-  DataValueEntry getDataValue(@Nonnull DataEntryKey key);
+  DataExportValue getDataValue(@Nonnull DataEntryKey key);
 
   /**
    * Returns data values for the given data export parameters.
@@ -116,7 +138,7 @@ public interface DataValueStore {
    * @param params the data export parameters.
    * @return a list of data values.
    */
-  List<DataValueEntry> getDataValues(DataExportParams params);
+  List<DataExportValue> getDataValues(DataExportStoreParams params);
 
   /**
    * Returns all DataValues.
@@ -124,7 +146,7 @@ public interface DataValueStore {
    * @return a list of all DataValues.
    */
   @UsageTestOnly
-  List<DataValueEntry> getAllDataValues();
+  List<DataExportValue> getAllDataValues();
 
   /**
    * Returns deflated data values for the given data export parameters.
@@ -132,7 +154,7 @@ public interface DataValueStore {
    * @param params the data export parameters.
    * @return a list of deflated data values.
    */
-  List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
+  List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params);
 
   /**
    * Gets the number of DataValues which have been updated between the given start and end date.

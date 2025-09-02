@@ -132,7 +132,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouA, optionCombo, optionCombo, "3");
     addDataValues(dataValueA, dataValueB, dataValueC);
-    DataValueEntry dvA =
+    DataExportValue dvA =
         dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
     assertNotNull(dvA);
     assertNotNull(dvA.created());
@@ -140,7 +140,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertEquals(deA.getUid(), dvA.dataElement().getValue());
     assertEquals(peA.getIsoDate(), dvA.period());
     assertEquals("1", dvA.value());
-    DataValueEntry dvB =
+    DataExportValue dvB =
         dataValueService.getDataValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo));
     assertNotNull(dvB);
     assertNotNull(dvB.created());
@@ -148,7 +148,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertEquals(deB.getUid(), dvB.dataElement().getValue());
     assertEquals(peA.getIsoDate(), dvB.period());
     assertEquals("2", dvB.value());
-    DataValueEntry dvC =
+    DataExportValue dvC =
         dataValueService.getDataValue(new DataEntryKey(deC, peC, ouA, optionCombo, optionCombo));
     assertNotNull(dvC);
     assertNotNull(dvC.created());
@@ -169,11 +169,11 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         dataValueService.getDataValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo)));
     dataValueA.setValue("5");
     addDataValues(dataValueA);
-    DataValueEntry dvA =
+    DataExportValue dvA =
         dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
     assertNotNull(dvA);
     assertEquals("5", dvA.value());
-    DataValueEntry dvB =
+    DataExportValue dvB =
         dataValueService.getDataValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo));
     assertNotNull(dvB);
     assertEquals("2", dvB.value());
@@ -259,21 +259,21 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         dataValueH,
         dataValueI,
         dataValueJ);
-    DataExportParams params =
-        new DataExportParams()
+    DataExportStoreParams params =
+        new DataExportStoreParams()
             .setDataElements(Set.of(deA))
             .setPeriods(Set.of(peA, peB, peC))
             .setOrganisationUnits(Set.of(ouA));
-    List<DataValueEntry> values = dataValueService.getDataValues(params);
+    List<DataExportValue> values = dataValueService.getDataValues(params);
     assertEquals(
-        Set.of("1", "3", "9"), values.stream().map(DataValueEntry::value).collect(toSet()));
+        Set.of("1", "3", "9"), values.stream().map(DataExportValue::value).collect(toSet()));
     params =
-        new DataExportParams()
+        new DataExportStoreParams()
             .setDataElements(Set.of(deB))
             .setPeriods(Set.of(peA))
             .setOrganisationUnits(Set.of(ouA, ouB));
     values = dataValueService.getDataValues(params);
-    assertEquals(Set.of("5", "6"), values.stream().map(DataValueEntry::value).collect(toSet()));
+    assertEquals(Set.of("5", "6"), values.stream().map(DataExportValue::value).collect(toSet()));
   }
 
   @Test
@@ -304,7 +304,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA, deB))
                     .setPeriods(Set.of(peB))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -313,7 +313,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA, deB))
                     .setPeriods(Set.of(peA))
                     .setOrganisationUnits(Set.of(ouB)))
@@ -322,7 +322,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setPeriods(Set.of(peA, peC))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -331,7 +331,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deB))
                     .setPeriods(Set.of(peA, peB))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -340,7 +340,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deB))
                     .setPeriods(Set.of(peB))
                     .setOrganisationUnits(Set.of(ouA)))
@@ -349,7 +349,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setPeriods(Set.of(peA))
                     .setOrganisationUnits(Set.of(ouB)))
@@ -358,7 +358,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setStartDate(peA.getStartDate())
                     .setEndDate(peA.getEndDate())
@@ -378,7 +378,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setCategoryOptionCombos(Set.of(optionCombo))
                     .setPeriods(Set.of(peA))
@@ -396,7 +396,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         0,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setCategoryOptionCombos(Set.of(optionCombo))
                     .setPeriods(Set.of(peX))
@@ -416,7 +416,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setCategoryOptionCombos(Set.of(optionCombo))
                     .setPeriods(Set.of(peA, peX))
@@ -465,7 +465,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA, deB))
                     .setPeriods(Set.of(peB))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -474,7 +474,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA, deB))
                     .setPeriods(Set.of(peA))
                     .setOrganisationUnits(Set.of(ouB)))
@@ -483,7 +483,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setPeriods(Set.of(peC))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -492,7 +492,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setPeriods(Set.of(peA, peC))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -501,7 +501,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deB))
                     .setPeriods(Set.of(peA, peB))
                     .setOrganisationUnits(Set.of(ouA, ouB)))
@@ -510,7 +510,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deB))
                     .setPeriods(Set.of(peB))
                     .setOrganisationUnits(Set.of(ouA)))
@@ -519,7 +519,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deB))
                     .setPeriods(Set.of(peB))
                     .setOrganisationUnits(Set.of(ouA)))
@@ -528,7 +528,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataValueService
             .getDataValues(
-                new DataExportParams()
+                new DataExportStoreParams()
                     .setDataElements(Set.of(deA))
                     .setPeriods(Set.of(peA))
                     .setOrganisationUnits(Set.of(ouB)))
@@ -564,7 +564,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
             IllegalQueryException.class,
             () ->
                 dataValueService.validate(
-                    new DataExportParams()
+                    new DataExportStoreParams()
                         .setPeriods(Set.of(peB))
                         .setOrganisationUnits(Set.of(ouA)))),
         ErrorCode.E2001);
@@ -577,7 +577,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
             IllegalQueryException.class,
             () ->
                 dataValueService.validate(
-                    new DataExportParams()
+                    new DataExportStoreParams()
                         .setDataElements(Set.of(deA, deB))
                         .setOrganisationUnits(Set.of(ouB)))),
         ErrorCode.E2002);
@@ -590,7 +590,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
             IllegalQueryException.class,
             () ->
                 dataValueService.validate(
-                    new DataExportParams()
+                    new DataExportStoreParams()
                         .setDataElements(Set.of(deA, deB))
                         .setPeriods(Set.of(peA))
                         .setStartDate(getDate(2022, 1, 1))
@@ -606,7 +606,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
             IllegalQueryException.class,
             () ->
                 dataValueService.validate(
-                    new DataExportParams()
+                    new DataExportStoreParams()
                         .setDataElements(Set.of(deA, deB))
                         .setPeriods(Set.of(peB)))),
         ErrorCode.E2006);

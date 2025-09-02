@@ -63,7 +63,7 @@ import org.hisp.dhis.common.NumericSortWrapper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataEntryKey;
-import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
@@ -322,7 +322,7 @@ public class DefaultChartService implements ChartService {
 
       period.setName(format.formatPeriod(period));
 
-      DataValueEntry dataValue =
+      DataExportValue dataValue =
           dataValueService.getDataValue(
               new DataEntryKey(
                   dataElement,

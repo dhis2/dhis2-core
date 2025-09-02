@@ -58,7 +58,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.datavalueset.DataExportService;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.security.acl.AclService;
@@ -80,7 +80,7 @@ class AggregateDataExchangeServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private DataValueSetService dataValueSetService;
+  @Mock private DataExportService dataExportService;
 
   @InjectMocks private AggregateDataExchangeService service;
 

@@ -116,9 +116,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   public Map<String, String> getIdMapping(
-      @Nonnull ObjectType type,
-      @Nonnull IdProperty idsProperty,
-      @Nonnull Stream<String> identifiers) {
+      @Nonnull DecodeType type, @Nonnull IdProperty from, @Nonnull Stream<String> identifiers) {
     String[] ids = identifiers.filter(Objects::nonNull).distinct().toArray(String[]::new);
     if (ids.length == 0) return Map.of();
     @Language("sql")
@@ -136,7 +134,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           case COC -> "categoryoptioncombo";
         };
     String sql =
-        replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", idsProperty)));
+        replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", from)));
     return listAsStringsMap(sql, q -> q.setParameter("ids", ids));
   }
 

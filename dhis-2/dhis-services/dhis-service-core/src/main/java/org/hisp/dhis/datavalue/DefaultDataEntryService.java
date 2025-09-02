@@ -62,7 +62,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
-import org.hisp.dhis.datavalue.DataEntryStore.ObjectType;
+import org.hisp.dhis.datavalue.DataEntryStore.DecodeType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
@@ -129,25 +129,25 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     String aocGroup = group.attributeOptionCombo();
     if (ids != null) {
       if (dataSet != null && ids.dataSets().isNotUID())
-        dsOf = store.getIdMapping(ObjectType.DS, ids.dataSets(), Stream.of(dataSet))::get;
+        dsOf = store.getIdMapping(DecodeType.DS, ids.dataSets(), Stream.of(dataSet))::get;
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
         if (deGroup != null) deIds = Stream.concat(deIds, Stream.of(deGroup));
-        deOf = store.getIdMapping(ObjectType.DE, ids.dataElements(), deIds)::get;
+        deOf = store.getIdMapping(DecodeType.DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
         if (ouGroup != null) ouIds = Stream.concat(ouIds, Stream.of(ouGroup));
-        ouOf = store.getIdMapping(ObjectType.OU, ids.orgUnits(), ouIds)::get;
+        ouOf = store.getIdMapping(DecodeType.OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
-        cocOf = store.getIdMapping(ObjectType.COC, ids.categoryOptionCombos(), cocIds)::get;
+        cocOf = store.getIdMapping(DecodeType.COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
         if (aocGroup != null) aocIds = Stream.concat(aocIds, Stream.of(aocGroup));
-        aocOf = store.getIdMapping(ObjectType.COC, ids.attributeOptionCombos(), aocIds)::get;
+        aocOf = store.getIdMapping(DecodeType.COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
     int i = 0;

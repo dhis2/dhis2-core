@@ -37,7 +37,7 @@ import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
-import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -220,7 +220,7 @@ public class DefaultHistoryRetriever implements HistoryRetriever {
       CategoryOptionCombo attributeOptionCombo,
       OrganisationUnit organisationUnit,
       Period period) {
-    DataValueEntry dataValue =
+    DataExportValue dataValue =
         dataValueService.getDataValue(
             new DataEntryKey(
                 dataElement, period, organisationUnit, optionCombo, attributeOptionCombo));

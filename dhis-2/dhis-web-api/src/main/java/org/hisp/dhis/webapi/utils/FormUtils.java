@@ -47,7 +47,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
-import org.hisp.dhis.datavalue.DataValueEntry;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
@@ -266,10 +266,10 @@ public class FormUtils {
     return dataElement.getValueType();
   }
 
-  public static void fillWithDataValues(Form form, Collection<DataValueEntry> dataValues) {
+  public static void fillWithDataValues(Form form, Collection<DataExportValue> dataValues) {
     Map<String, Field> operandFieldMap = buildCacheMap(form);
 
-    for (DataValueEntry dataValue : dataValues) {
+    for (DataExportValue dataValue : dataValues) {
       UID dataElement = dataValue.dataElement();
       UID categoryOptionCombo = dataValue.categoryOptionCombo();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,52 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.dxf2.datavalueset;
 
-import static java.util.Objects.requireNonNull;
-
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.Date;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 
 /**
- * A flat data value using UIDs and ISO period values for the keys.
+ * Support for bulk data value export.
  *
- * <p>This is mostly how data values should be consumed when reading them to expose in an API or
- * export. Hence, all columns that are non-null in DB are also required in this record.
- *
- * @since 2.43
+ * @author Lars Helge Overland
  */
-public record DataValueEntry(
-    @Nonnull UID dataElement,
-    @Nonnull String period,
-    @Nonnull UID orgUnit,
-    @Nonnull UID categoryOptionCombo,
-    @Nonnull UID attributeOptionCombo,
-    @CheckForNull String value,
-    @CheckForNull String comment,
-    @CheckForNull Boolean followUp,
-    @CheckForNull String storedBy,
-    @CheckForNull Date created,
-    @CheckForNull Date lastUpdated,
-    boolean deleted) {
+public interface DataExportStore {
 
-  public DataValueEntry {
-    // enforce correct nullability by construction
-    requireNonNull(dataElement);
-    requireNonNull(period);
-    requireNonNull(orgUnit);
-    requireNonNull(categoryOptionCombo);
-    requireNonNull(attributeOptionCombo);
-  }
+  // TODO turn these into Stream<DataValueEntry> getDataValues(DataExportParams params);
+  // reset goes into the service
 
-  public boolean isFollowUp() {
-    return followUp != null && followUp;
-  }
+  // TODO move other data loads to this store
 
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
-        dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
-  }
+  void exportDataValueSetXml(DataExportStoreParams params, Date completeDate, OutputStream out);
+
+  void exportDataValueSetJson(DataExportStoreParams params, Date completeDate, OutputStream out);
+
+  void exportDataValueSetCsv(DataExportStoreParams params, Date completeDate, Writer writer);
 }
