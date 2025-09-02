@@ -111,16 +111,20 @@ public class CategoryOptionComboObjectBundleHook
 
     CategoryCombo expectedCategoryCombo;
 
-    // treat as an update, need to check provided COCs v persisted COCs
+    // get persisted CC, otherwise provided CC from bundle
     if (cocIsPersisted) {
       expectedCategoryCombo =
           bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo).getCategoryCombo();
-      if (isNullCatCombo(expectedCategoryCombo, providedCc, addReports)) return;
     } else {
-      // treat as a create, only check provided COCs
       expectedCategoryCombo =
           bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
-      if (isNullCatCombo(expectedCategoryCombo, providedCc, addReports)) return;
+    }
+
+    if (expectedCategoryCombo == null) {
+      addReports.accept(
+          new ErrorReport(
+              CategoryCombo.class, ErrorCode.E1110, optionCombo.getCategoryCombo().getUid()));
+      return;
     }
 
     // get all provided COCs in bundle with same provided CC
@@ -154,15 +158,6 @@ public class CategoryOptionComboObjectBundleHook
           providedCoSet,
           expectedCategoryCombo);
     }
-  }
-
-  private boolean isNullCatCombo(
-      CategoryCombo expectedCategoryCombo, UID ccUid, Consumer<ErrorReport> addReports) {
-    if (expectedCategoryCombo == null) {
-      addReports.accept(new ErrorReport(CategoryCombo.class, ErrorCode.E1110, ccUid.getValue()));
-      return true;
-    }
-    return false;
   }
 
   private boolean duplicateCocExists(
