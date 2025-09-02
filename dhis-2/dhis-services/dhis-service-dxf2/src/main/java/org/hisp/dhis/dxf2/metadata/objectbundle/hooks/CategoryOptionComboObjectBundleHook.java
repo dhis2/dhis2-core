@@ -100,9 +100,6 @@ public class CategoryOptionComboObjectBundleHook
     // is it a create or update
     boolean cocIsPersisted = bundle.isPersisted(optionCombo);
 
-    // get provided CC UID
-    UID providedCc = UID.of(optionCombo.getCategoryCombo().getUid());
-
     // get provided CO set
     Set<UID> providedCoSet =
         optionCombo.getCategoryOptions().stream()

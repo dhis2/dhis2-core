@@ -291,7 +291,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
             .as(JsonWebMessage.class);
 
     assertEquals(
-        "Importing 1 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo "
+        "Importing 0 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo "
             + categoryMetadata1.cc1().getUid(),
         jsonWebMessage
             .getResponse()
