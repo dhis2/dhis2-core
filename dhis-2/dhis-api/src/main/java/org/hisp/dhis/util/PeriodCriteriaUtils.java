@@ -85,6 +85,8 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
+        || !isBlank(criteria.getCreatedDate())
+        || !isBlank(criteria.getCompletedDate())
         || criteria.getRelativePeriodDate() != null;
   }
 
