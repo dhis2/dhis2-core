@@ -33,8 +33,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.UID;
+import java.util.StringJoiner;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -58,15 +57,12 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
   }
 
   private Optional<ProgramRuleIssue> mapToIssue(ValidationEffect validationEffect) {
-    StringBuilder validationMessage = new StringBuilder(validationEffect.message());
-    String data = validationEffect.data();
-    if (!StringUtils.isEmpty(data)) {
-      validationMessage.append(" ").append(data);
-    }
-    UID field = validationEffect.field();
-    if (field != null) {
-      validationMessage.append(" (").append(field.getValue()).append(")");
-    }
+    StringJoiner validationMessage = new StringJoiner(" ");
+
+    Optional.ofNullable(validationEffect.message()).ifPresent(validationMessage::add);
+    Optional.ofNullable(validationEffect.data()).ifPresent(validationMessage::add);
+    Optional.ofNullable(validationEffect.field())
+        .ifPresent(f -> validationMessage.add("(" + f.getValue() + ")"));
 
     return switch (getIssueType()) {
       case WARNING ->
