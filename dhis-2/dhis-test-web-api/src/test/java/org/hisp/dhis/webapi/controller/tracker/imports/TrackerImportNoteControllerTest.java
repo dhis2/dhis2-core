@@ -49,6 +49,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -56,11 +57,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestBase {
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+
   private User importUser;
 
   private Event event;
@@ -237,6 +241,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     manager.save(enrollmentA, false);
     te.setEnrollments(Set.of(enrollmentA));
     manager.save(te, false);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, program, orgUnit);
     return enrollmentA;
   }
 }
