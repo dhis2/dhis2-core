@@ -109,28 +109,38 @@ public class CategoryOptionComboObjectBundleHook
             .map(co -> UID.of(co.getUid()))
             .collect(Collectors.toSet());
 
+    CategoryCombo expectedCategoryCombo;
+
+    // treat as an update, need to check provided COCs v persisted COCs
+    if (cocIsPersisted) {
+      expectedCategoryCombo =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo).getCategoryCombo();
+      if (isNullCatCombo(expectedCategoryCombo, providedCc, addReports)) return;
+    } else {
+      // treat as a create, only check provided COCs
+      expectedCategoryCombo =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
+      if (isNullCatCombo(expectedCategoryCombo, providedCc, addReports)) return;
+    }
+
     // get all provided COCs in bundle with same provided CC
     List<CategoryOptionCombo> persistedCocs =
         bundle.getObjects(CategoryOptionCombo.class, true).stream()
-            .filter(coc -> hasSameCcUid.test(coc, providedCc))
+            .filter(coc -> hasSameCcUid.test(coc, UID.of(expectedCategoryCombo.getUid())))
             .toList();
 
     List<CategoryOptionCombo> newCocs =
         bundle.getObjects(CategoryOptionCombo.class, false).stream()
-            .filter(coc -> hasSameCcUid.test(coc, providedCc))
+            .filter(coc -> hasSameCcUid.test(coc, UID.of(expectedCategoryCombo.getUid())))
             .toList();
 
     // all COCs provided in import
     List<CategoryOptionCombo> allProvidedCocsForCc =
         Stream.concat(persistedCocs.stream(), newCocs.stream()).toList();
 
-    // get CC
-    CategoryCombo bundleCategoryCombo =
-        bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
-
     // check size
     ExpectedSizeResult expectedSizeResult =
-        checkExpectedSize(allProvidedCocsForCc.size(), bundleCategoryCombo, bundle, addReports);
+        checkExpectedSize(allProvidedCocsForCc.size(), expectedCategoryCombo, bundle, addReports);
 
     // perform state checks if expected size matches
     if (expectedSizeResult.isExpectedSize) {
@@ -138,8 +148,21 @@ public class CategoryOptionComboObjectBundleHook
       if (!cocIsPersisted && duplicateCocExists(optionCombo, addReports)) return;
 
       checkExpectedState(
-          expectedSizeResult, allProvidedCocsForCc, addReports, providedCoSet, bundleCategoryCombo);
+          expectedSizeResult,
+          allProvidedCocsForCc,
+          addReports,
+          providedCoSet,
+          expectedCategoryCombo);
     }
+  }
+
+  private boolean isNullCatCombo(
+      CategoryCombo expectedCategoryCombo, UID ccUid, Consumer<ErrorReport> addReports) {
+    if (expectedCategoryCombo == null) {
+      addReports.accept(new ErrorReport(CategoryCombo.class, ErrorCode.E1110, ccUid.getValue()));
+      return true;
+    }
+    return false;
   }
 
   private boolean duplicateCocExists(
