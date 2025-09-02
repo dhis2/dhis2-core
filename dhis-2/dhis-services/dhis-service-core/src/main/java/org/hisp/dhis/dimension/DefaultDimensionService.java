@@ -37,6 +37,10 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DYNAMIC_DIMENSION_CLASSES;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_ELEMENT_GROUP_SET;
@@ -162,8 +166,7 @@ public class DefaultDimensionService implements DimensionService {
   @Override
   @Transactional(readOnly = true)
   public List<DimensionalItemObject> getCanReadDimensionItems(String uid) {
-    DimensionalObject dimension =
-        idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
+    DimensionalObject dimension = idObjectManager.get(DYNAMIC_DIMENSION_CLASSES, uid);
 
     List<DimensionalItemObject> items = new ArrayList<>();
 
@@ -232,9 +235,9 @@ public class DefaultDimensionService implements DimensionService {
 
     Map<String, DimensionType> dimObjectTypeMap = new HashMap<>();
 
-    dimObjectTypeMap.put(DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X);
-    dimObjectTypeMap.put(DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD);
-    dimObjectTypeMap.put(DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT);
+    dimObjectTypeMap.put(DATA_X_DIM_ID, DimensionType.DATA_X);
+    dimObjectTypeMap.put(PERIOD_DIM_ID, DimensionType.PERIOD);
+    dimObjectTypeMap.put(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT);
 
     return dimObjectTypeMap.get(uid);
   }
@@ -322,8 +325,7 @@ public class DefaultDimensionService implements DimensionService {
   @Transactional(readOnly = true)
   public DimensionalObject getDimensionalObjectCopy(String uid, boolean filterCanRead)
       throws NotFoundException {
-    DimensionalObject dimension =
-        idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
+    DimensionalObject dimension = idObjectManager.get(DYNAMIC_DIMENSION_CLASSES, uid);
     if (dimension == null) {
       throw new NotFoundException("Dimension does not exist: " + uid);
     }

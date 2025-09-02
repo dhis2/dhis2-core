@@ -30,7 +30,7 @@
 package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 
 import java.util.Date;
 import java.util.List;

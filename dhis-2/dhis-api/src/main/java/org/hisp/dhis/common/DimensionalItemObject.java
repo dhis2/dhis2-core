@@ -59,8 +59,6 @@ public interface DimensionalItemObject extends NameableObject {
   /**
    * Gets the first legend set in the legend set list. This field is derived from {@link
    * DimensionalObject#getLegendSet()} and is not persisted.
-   *
-   * <p>Will be removed from serialization in 2.28.
    */
   LegendSet getLegendSet();
 

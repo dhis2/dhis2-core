@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.mapping;
 
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -259,8 +259,7 @@ public class MapView extends BaseAnalyticalObject
       }
     }
 
-    final Optional<DimensionalObject> orgUnitDimension =
-        getDimensionalObject(DimensionalObject.ORGUNIT_DIM_ID);
+    final Optional<DimensionalObject> orgUnitDimension = getDimensionalObject(ORGUNIT_DIM_ID);
     if (orgUnitDimension.isPresent()) {
       rows.add(orgUnitDimension.get());
     }
@@ -433,6 +432,7 @@ public class MapView extends BaseAnalyticalObject
     this.columnDimensions = columnDimensions;
   }
 
+  @Override
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "filterDimensions", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "filterDimension", namespace = DxfNamespaces.DXF_2_0)
@@ -440,6 +440,7 @@ public class MapView extends BaseAnalyticalObject
     return filterDimensions;
   }
 
+  @Override
   public void setFilterDimensions(List<String> filterDimensions) {
     this.filterDimensions = filterDimensions;
   }
