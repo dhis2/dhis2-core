@@ -67,6 +67,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -95,6 +96,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -131,6 +134,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     Enrollment enrollment2 = createEnrollment(program1, duplicate, orgUnit);
     manager.save(enrollment1);
     manager.save(enrollment2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, orgUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program1, orgUnit);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     manager.update(original);
