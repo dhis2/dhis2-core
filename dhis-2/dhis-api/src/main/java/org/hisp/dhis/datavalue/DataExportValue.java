@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
+import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -74,5 +75,34 @@ public record DataExportValue(
   public DataEntryKey toKey() {
     return new DataEntryKey(
         dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
+  }
+
+  /**
+   * A data value as used during export where identifiers might have been substituted with other
+   * identifiers than UIDs. The {@link #categoryOptionCombo} might also be given in terms of the
+   * {@link #categoryOptions}. Key-dimensions might also be null in case they are common for a group
+   * and therefore should not be written out again.
+   */
+  public record Output(
+      @Nonnull String dataElement,
+      @CheckForNull String period,
+      @CheckForNull String orgUnit,
+      @CheckForNull String categoryOptionCombo,
+      @CheckForNull Map<String, String> categoryOptions,
+      @CheckForNull String attributeOptionCombo,
+      @CheckForNull String value,
+      boolean numeric,
+      @CheckForNull String comment,
+      @CheckForNull Boolean followUp,
+      @CheckForNull String storedBy,
+      @CheckForNull Date created,
+      @CheckForNull Date lastUpdated,
+      boolean deleted) {
+
+    public Output {
+      requireNonNull(dataElement);
+      if (categoryOptionCombo == null && categoryOptions == null)
+        requireNonNull(categoryOptionCombo); // fail - one is required
+    }
   }
 }

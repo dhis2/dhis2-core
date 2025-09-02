@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.datavalue;
 
 import java.io.OutputStream;
-import java.util.Date;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Lars Helge Overland
- */
-public interface DataExportService {
+@Component
+@RequiredArgsConstructor
+public class DataExportPipeline {
 
-  void exportDataValueSetXml(DataExportParams params, OutputStream out) throws ConflictException;
+  private final DataExportService service;
 
-  void exportDataValueSetXmlAdx(DataExportParams params, OutputStream out) throws ConflictException;
+  public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {}
 
-  void exportDataValueSetJson(DataExportParams params, OutputStream out) throws ConflictException;
+  public void exportAsJsonSync(DataExportParams params, OutputStream out)
+      throws ConflictException {}
 
-  /**
-   * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-   *
-   * @param lastUpdated specifies the date to filter complete data sets last updated after
-   * @param outputStream the stream to write to
-   * @param idSchemes idSchemes
-   */
-  void exportDataValueSetJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes)
-      throws ConflictException;
+  public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {}
 
-  /**
-   * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-   *
-   * @param lastUpdated specifies the date to filter complete data sets last updated after
-   * @param outputStream the stream to write to
-   * @param idSchemes idSchemes
-   * @param pageSize pageSize
-   * @param page page
-   */
-  void exportDataValueSetJson(
-      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page)
-      throws ConflictException;
+  public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {}
 
-  void exportDataValueSetCsv(DataExportParams params, OutputStream outputStream)
-      throws ConflictException;
+  public void exportAsXmlGroups(DataExportParams params, OutputStream out)
+      throws ConflictException {}
 }

@@ -40,14 +40,19 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
@@ -61,24 +66,23 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueStore;
-import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.staxwax.factory.XMLFactory;
-import org.hisp.staxwax.writer.XMLWriter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -329,6 +333,176 @@ public class DefaultDataExportService implements DataExportService {
   // -------------------------------------------------------------------------
 
   @Override
+  public Stream<DataExportValue.Output> streamValues(DataExportParams params)
+      throws ConflictException {
+    return null;
+  }
+
+  @Override
+  public Stream<DataExportGroup.Output> streamValueGroups(DataExportParams params)
+      throws ConflictException {
+    DataExportStoreParams storeParams = decodeParams(params);
+    validateParams(storeParams);
+    validateAccess(storeParams);
+
+    // TODO for now Stream from List to go with more of the code as it was
+    return listGroupsOfValues(storeParams).stream();
+  }
+
+  private List<DataExportGroup.Output> listGroupsOfValues(DataExportStoreParams params)
+      throws ConflictException {
+    IdSchemes idSchemes = params.getOutputIdSchemes();
+    IdScheme ouScheme = idSchemes.getOrgUnitIdScheme();
+    IdScheme dsScheme = idSchemes.getDataSetIdScheme();
+    IdScheme deScheme = idSchemes.getDataElementIdScheme();
+
+    Set<OrganisationUnit> units = params.getAllOrganisationUnits();
+    Map<UID, OrganisationUnit> unitsById = new HashMap<>();
+    units.forEach(ou -> unitsById.put(UID.of(ou), ou));
+
+    List<DataExportGroup.Output> groups = new ArrayList<>();
+    for (DataSet dataSet : params.getDataSets()) {
+      String groupDataSet = dataSet.getPropertyValue(dsScheme);
+      // COC => C => CO
+      Map<UID, Map<String, String>> categoryOptionMap =
+          createCategoryOptionsMapping(dataSet, idSchemes);
+
+      for (CategoryOptionCombo aoc : getAttributeOptionCombos(dataSet, params)) {
+        Map<String, String> groupAttributeOptions = categoryOptionMap.get(UID.of(aoc));
+
+        Set<DataElement> dsDataElements = dataSet.getDataElements();
+        DataExportStoreParams groupParams =
+            new DataExportStoreParams()
+                .setDataElements(dsDataElements)
+                .setOrganisationUnits(units)
+                .setIncludeDescendants(params.isIncludeDescendants())
+                .setIncludeDeleted(params.isIncludeDeleted())
+                .setLastUpdated(params.getLastUpdated())
+                .setLastUpdatedDuration(params.getLastUpdatedDuration())
+                .setPeriods(params.getPeriods())
+                .setStartDate(params.getStartDate())
+                .setEndDate(params.getEndDate())
+                .setAttributeOptionCombos(Sets.newHashSet(aoc))
+                .setOrderByOrgUnitPath(true)
+                .setOrderByPeriod(true);
+
+        Set<UID> numericDataElements =
+            dsDataElements.stream()
+                .filter(de -> de.getValueType().isNumeric())
+                .map(UID::of)
+                .collect(toSet());
+        Map<String, String> dataElementSchemaId =
+            dsDataElements.stream()
+                .collect(toMap(IdentifiableObject::getUid, de -> de.getPropertyValue(deScheme)));
+
+        List<DataExportValue.Output> groupValues = new ArrayList<>();
+        String groupPeriod = null;
+        UID currentOrgUnit = null;
+        for (DataExportValue dv : dataValueStore.getDataValues(groupParams)) {
+          if (!dv.period().equals(groupPeriod) || !dv.orgUnit().equals(currentOrgUnit)) {
+            if (groupPeriod != null) {
+              // add group (before starting next one)
+              groups.add(
+                  new DataExportGroup.Output(
+                      groupDataSet,
+                      groupPeriod,
+                      unitsById.get(currentOrgUnit).getPropertyValue(ouScheme),
+                      null,
+                      groupAttributeOptions,
+                      groupValues.stream()));
+              groupValues = new ArrayList<>();
+            }
+            groupPeriod = dv.period();
+            currentOrgUnit = dv.orgUnit();
+          }
+          groupValues.add(
+              new DataExportValue.Output(
+                  dataElementSchemaId.get(dv.dataElement().getValue()),
+                  null,
+                  null,
+                  null,
+                  categoryOptionMap.get(dv.categoryOptionCombo()),
+                  null,
+                  dv.value(),
+                  numericDataElements.contains(dv.dataElement()),
+                  dv.comment(),
+                  dv.followUp(),
+                  dv.storedBy(),
+                  dv.created(),
+                  dv.lastUpdated(),
+                  dv.deleted()));
+        }
+        // add last group
+        if (groupPeriod != null) {
+          groups.add(
+              new DataExportGroup.Output(
+                  groupDataSet,
+                  groupPeriod,
+                  unitsById.get(currentOrgUnit).getPropertyValue(ouScheme),
+                  null,
+                  groupAttributeOptions,
+                  groupValues.stream()));
+        }
+      }
+    }
+    return groups;
+  }
+
+  private static Set<CategoryOptionCombo> getAttributeOptionCombos(
+      DataSet dataSet, DataExportStoreParams params) {
+    Set<CategoryOptionCombo> aocs = dataSet.getCategoryCombo().getOptionCombos();
+
+    if (params.hasAttributeOptionCombos()) {
+      aocs = new HashSet<>(aocs);
+
+      aocs.retainAll(params.getAttributeOptionCombos());
+    }
+
+    return aocs;
+  }
+
+  private static Map<UID, Map<String, String>> createCategoryOptionsMapping(
+      DataSet dataSet, IdSchemes idSchemes) throws ConflictException {
+    Map<UID, Map<String, String>> res = new HashMap<>();
+
+    Set<CategoryCombo> combos = new HashSet<>();
+    combos.add(dataSet.getCategoryCombo());
+    for (DataSetElement element : dataSet.getDataSetElements()) {
+      combos.add(element.getResolvedCategoryCombo());
+    }
+
+    IdScheme cScheme = idSchemes.getCategoryIdScheme();
+    IdScheme coScheme = idSchemes.getCategoryOptionIdScheme();
+
+    for (CategoryCombo cc : combos) {
+      for (CategoryOptionCombo coc : cc.getOptionCombos()) {
+        Map<String, String> coByC = new HashMap<>();
+        if (!coc.isDefault()) {
+          for (Category category : coc.getCategoryCombo().getCategories()) {
+            String cId = category.getPropertyValue(cScheme);
+            checkNonEmptyIdentifier("Category ", cId, cScheme, category.getName());
+
+            CategoryOption co = category.getCategoryOption(coc);
+            String coId = co.getPropertyValue(coScheme);
+            checkNonEmptyIdentifier("CategoryOption ", coId, coScheme, co.getName());
+            coByC.put(cId, coId);
+          }
+        }
+        res.put(UID.of(coc), coByC);
+      }
+    }
+    return res;
+  }
+
+  private static void checkNonEmptyIdentifier(
+      String objectType, String id, IdScheme scheme, String name) throws ConflictException {
+    if (id == null || id.isEmpty()) {
+      throw new ConflictException(
+          objectType + scheme.name() + " for " + name + " is missing: " + id);
+    }
+  }
+
+  @Override
   @Transactional
   public void exportDataValueSetXml(DataExportParams params, OutputStream out)
       throws ConflictException {
@@ -405,106 +579,7 @@ public class DefaultDataExportService implements DataExportService {
   }
 
   private void writeDataValuesAdx(OutputStream out, DataExportStoreParams params)
-      throws ConflictException {
-    XMLWriter adxWriter = XMLFactory.getXMLWriter(out);
-
-    adxWriter.openElement("adx");
-    adxWriter.writeAttribute("xmlns", "urn:ihe:qrph:adx:2015");
-
-    IdSchemes idSchemes = params.getOutputIdSchemes();
-    IdScheme ouScheme = idSchemes.getOrgUnitIdScheme();
-    IdScheme dsScheme = idSchemes.getDataSetIdScheme();
-    IdScheme deScheme = idSchemes.getDataElementIdScheme();
-
-    Set<OrganisationUnit> units = params.getAllOrganisationUnits();
-
-    for (DataSet dataSet : params.getDataSets()) {
-      AdxDataSetMetadata metadata = new AdxDataSetMetadata(dataSet, idSchemes);
-
-      for (CategoryOptionCombo aoc : getAttributeOptionCombos(dataSet, params)) {
-        Map<String, String> attributeDimensions =
-            metadata.getExplodedCategoryAttributes(aoc.getUid());
-
-        for (OrganisationUnit orgUnit : units) {
-          String currentPeriod = null;
-          UID currentOrgUnit = null;
-
-          Set<DataElement> dsDataElements = dataSet.getDataElements();
-          DataExportStoreParams groupParams =
-              new DataExportStoreParams()
-                  .setDataElements(dsDataElements)
-                  .setOrganisationUnits(Set.of(orgUnit))
-                  .setIncludeDescendants(params.isIncludeDescendants())
-                  .setIncludeDeleted(params.isIncludeDeleted())
-                  .setLastUpdated(params.getLastUpdated())
-                  .setLastUpdatedDuration(params.getLastUpdatedDuration())
-                  .setPeriods(params.getPeriods())
-                  .setStartDate(params.getStartDate())
-                  .setEndDate(params.getEndDate())
-                  .setAttributeOptionCombos(Sets.newHashSet(aoc))
-                  .setOrderByOrgUnitPath(true)
-                  .setOrderByPeriod(true);
-
-          List<DataExportValue> dataValues = dataValueStore.getDataValues(groupParams);
-          Set<UID> numericDataElements =
-              dsDataElements.stream()
-                  .filter(de -> de.getValueType().isNumeric())
-                  .map(UID::of)
-                  .collect(toSet());
-          Map<String, String> dataElementSchemaId =
-              dsDataElements.stream()
-                  .collect(toMap(IdentifiableObject::getUid, de -> de.getPropertyValue(deScheme)));
-          for (DataExportValue dv : dataValues) {
-            if (!dv.period().equals(currentPeriod) || !dv.orgUnit().equals(currentOrgUnit)) {
-              if (currentPeriod != null) {
-                adxWriter.closeElement(); // GROUP
-              }
-
-              currentPeriod = dv.period();
-              currentOrgUnit = dv.orgUnit();
-
-              adxWriter.openElement("group");
-              adxWriter.writeAttribute("dataSet", dataSet.getPropertyValue(dsScheme));
-              adxWriter.writeAttribute(
-                  "period", AdxPeriod.serialize(PeriodType.getPeriodFromIsoString(currentPeriod)));
-              adxWriter.writeAttribute("orgUnit", orgUnit.getPropertyValue(ouScheme));
-
-              for (Map.Entry<String, String> e : attributeDimensions.entrySet()) {
-                adxWriter.writeAttribute(e.getKey(), e.getValue());
-              }
-            }
-            adxWriter.openElement("dataValue");
-
-            adxWriter.writeAttribute(
-                "dataElement", dataElementSchemaId.get(dv.dataElement().getValue()));
-
-            Map<String, String> categoryDimensions =
-                metadata.getExplodedCategoryAttributes(dv.categoryOptionCombo().getValue());
-
-            for (Map.Entry<String, String> e : categoryDimensions.entrySet()) {
-              adxWriter.writeAttribute(e.getKey(), e.getValue());
-            }
-
-            if (numericDataElements.contains(dv.dataElement())) {
-              adxWriter.writeAttribute("value", dv.value());
-            } else {
-              adxWriter.writeAttribute("value", "0");
-              adxWriter.openElement("annotation");
-              adxWriter.writeCharacters(dv.value());
-              adxWriter.closeElement(); // ANNOTATION
-            }
-            adxWriter.closeElement(); // DATAVALUE
-          }
-
-          if (currentPeriod != null) {
-            adxWriter.closeElement(); // GROUP
-          }
-        }
-      }
-    }
-    adxWriter.closeElement(); // ADX
-    adxWriter.closeWriter();
-  }
+      throws ConflictException {}
 
   private Date getCompleteDate(DataExportStoreParams params) {
     if (params.isSingleDataValueSet()) {
@@ -522,18 +597,5 @@ public class DefaultDataExportService implements DataExportService {
     }
 
     return null;
-  }
-
-  private Set<CategoryOptionCombo> getAttributeOptionCombos(
-      DataSet dataSet, DataExportStoreParams params) {
-    Set<CategoryOptionCombo> aocs = dataSet.getCategoryCombo().getOptionCombos();
-
-    if (params.hasAttributeOptionCombos()) {
-      aocs = new HashSet<>(aocs);
-
-      aocs.retainAll(params.getAttributeOptionCombos());
-    }
-
-    return aocs;
   }
 }
