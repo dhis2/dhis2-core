@@ -98,4 +98,12 @@ public final class DataValue {
   public boolean getFollowup() {
     return followup;
   }
+
+  public String getPrimaryKey() {
+    return getDataElement()
+        + getPeriod()
+        + getOrgUnit()
+        + getCategoryOptionCombo()
+        + getAttributeOptionCombo();
+  }
 }

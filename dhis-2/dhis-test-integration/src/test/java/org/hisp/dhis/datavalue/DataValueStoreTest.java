@@ -65,6 +65,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataDumpService dataDumpService;
   @Autowired private DataExportStore dataExportStore;
+  @Autowired private DataValueStore dataValueStore;
 
   @Test
   @DisplayName(
@@ -355,7 +356,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   private void mergeDataValues(CategoryOptionCombo target, List<CategoryOptionCombo> sources) {
-    dataExportStore.mergeDataValuesWithCategoryOptionCombos(
+    dataValueStore.mergeDataValuesWithCategoryOptionCombos(
         target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     entityManager.flush();
     entityManager.clear();
