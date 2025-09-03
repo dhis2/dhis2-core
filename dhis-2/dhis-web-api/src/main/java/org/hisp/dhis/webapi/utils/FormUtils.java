@@ -30,13 +30,13 @@
 package org.hisp.dhis.webapi.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.NameableObjectUtils;
@@ -266,20 +266,21 @@ public class FormUtils {
     return dataElement.getValueType();
   }
 
-  public static void fillWithDataValues(Form form, Collection<DataExportValue> dataValues) {
+  public static void fillWithDataValues(Form form, Stream<DataExportValue> dataValues) {
     Map<String, Field> operandFieldMap = buildCacheMap(form);
 
-    for (DataExportValue dataValue : dataValues) {
-      UID dataElement = dataValue.dataElement();
-      UID categoryOptionCombo = dataValue.categoryOptionCombo();
+    dataValues.forEach(
+        dataValue -> {
+          UID dataElement = dataValue.dataElement();
+          UID categoryOptionCombo = dataValue.categoryOptionCombo();
 
-      Field field = operandFieldMap.get(dataElement + SEP + categoryOptionCombo);
+          Field field = operandFieldMap.get(dataElement + SEP + categoryOptionCombo);
 
-      if (field != null) {
-        field.setValue(dataValue.value());
-        field.setComment(dataValue.comment());
-      }
-    }
+          if (field != null) {
+            field.setValue(dataValue.value());
+            field.setComment(dataValue.comment());
+          }
+        });
   }
 
   private static Map<String, Field> buildCacheMap(Form form) {

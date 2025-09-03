@@ -65,12 +65,12 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
@@ -176,7 +176,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramIndicatorStore programIndicatorStore;
   @Autowired private EventStore eventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
@@ -2424,14 +2424,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataExportValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(
                 dv ->
                     Set.of(deSource1.getUid(), deSource2.getUid())
                         .contains(dv.dataElement().getValue()))
             .toList();
     List<DataExportValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(deTarget.getUid()))
             .toList();
 

@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -46,7 +43,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -82,8 +78,6 @@ public class DataExportStoreParams {
   private Date includedDate;
 
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-  private OrganisationUnitSelectionMode ouMode = SELECTED;
 
   private Integer orgUnitLevel;
 
@@ -241,10 +235,7 @@ public class DataExportStoreParams {
   }
 
   public boolean needsOrgUnitDetails() {
-    return isOrderByOrgUnitPath()
-        || hasOrgUnitLevel()
-        || getOuMode() == DESCENDANTS
-        || isIncludeDescendants();
+    return isOrderByOrgUnitPath() || hasOrgUnitLevel() || isIncludeDescendants();
   }
 
   /**
@@ -271,7 +262,6 @@ public class DataExportStoreParams {
         .add("end date", endDate)
         .add("included date", includedDate)
         .add("org units", organisationUnits)
-        .add("org unit selection mode", ouMode)
         .add("org unit level", orgUnitLevel)
         .add("descendants", includeDescendants)
         .add("order by org unit path", orderByOrgUnitPath)

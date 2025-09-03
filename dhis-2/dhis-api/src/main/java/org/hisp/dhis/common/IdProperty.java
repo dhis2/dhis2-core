@@ -46,6 +46,7 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
 
   public static final IdProperty UID = new IdProperty(Name.UID, null);
   public static final IdProperty CODE = new IdProperty(Name.CODE, null);
+  public static final IdProperty NAME = new IdProperty(Name.NAME, null);
 
   public IdProperty {
     requireNonNull(name);
@@ -55,14 +56,14 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
       throw new IllegalArgumentException("When property is not ATTR the attributeId must be null");
   }
 
-  public static IdProperty of(IdScheme scheme) {
-    if (scheme == null) return new IdProperty(Name.UID, null);
+  public static IdProperty of(@CheckForNull IdScheme scheme) {
+    if (scheme == null) return UID;
     IdentifiableProperty property = scheme.getIdentifiableProperty();
-    if (property == null) return new IdProperty(Name.UID, null);
+    if (property == null) return UID;
     return switch (property) {
       case ID, UID -> UID;
       case CODE -> CODE;
-      case NAME -> new IdProperty(Name.NAME, null);
+      case NAME -> NAME;
       case ATTRIBUTE ->
           new IdProperty(Name.ATTR, org.hisp.dhis.common.UID.of(scheme.getAttribute()));
       case UUID ->

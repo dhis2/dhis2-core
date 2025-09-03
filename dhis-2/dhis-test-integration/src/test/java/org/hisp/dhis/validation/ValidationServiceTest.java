@@ -71,9 +71,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
@@ -120,7 +120,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataDumpService dataDumpService;
 
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -571,7 +571,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   private String getAllDataValues() {
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     StringBuilder sb = new StringBuilder("All data values (" + allDataValues.size() + "):\n");
     allDataValues.forEach(d -> sb.append("  ").append(d.toString()).append("\n"));
     return sb.toString();

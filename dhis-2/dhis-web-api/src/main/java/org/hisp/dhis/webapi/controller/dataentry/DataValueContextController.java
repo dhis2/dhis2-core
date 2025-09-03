@@ -29,23 +29,23 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,36 +58,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
 public class DataValueContextController {
+
   private final DataValueAuditService dataValueAuditService;
-
-  private final DataValueService dataValueService;
-
+  private final DataExportService dataExportService;
   private final PeriodService periodService;
 
-  private final DataValidator dataValidator;
-
   @GetMapping("/dataValueContext")
-  public DataValueContextDto getChangeLog(DataValueQueryParams params) {
-    DataElement de = dataValidator.getAndValidateDataElement(params.getDe());
-    Period pe = dataValidator.getAndValidatePeriod(params.getPe());
-    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
-    CategoryOptionCombo co = dataValidator.getAndValidateCategoryOptionCombo(params.getCo());
-    CategoryOptionCombo ao =
-        dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
+  public DataValueContextDto getChangeLog(DataValueQueryParams params) throws ConflictException {
 
     List<DataValueAuditEntry> audits = dataValueAuditService.getDataValueAudits(params);
 
-    List<Period> periods = periodService.getPeriods(pe, 13);
+    Set<String> periods =
+        periodService.getPeriods(PeriodType.getPeriodFromIsoString(params.getPe()), 13).stream()
+            .map(Period::getIsoDate)
+            .collect(toSet());
 
     List<DataExportValue> dataValues =
-        dataValueService.getDataValues(
-            new DataExportStoreParams()
-                .setDataElements(Set.of(de))
-                .setPeriods(Set.copyOf(periods))
-                .setOrganisationUnits(Set.of(ou))
-                .setCategoryOptionCombos(Set.of(co))
-                .setAttributeOptionCombos(Set.of(ao))
-                .setOrderByPeriod(true));
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(params.getDe()))
+                    .period(periods)
+                    .orgUnit(Set.of(params.getOu()))
+                    .categoryOptionCombo(Set.of(params.getCo()))
+                    .attributeCombo(params.getCc())
+                    .attributeOptions(Set.of(params.getCp().split(";")))
+                    .orderByPeriod(true)
+                    .build())
+            .toList();
 
     return new DataValueContextDto().setAudits(audits).setHistory(dataValues);
   }

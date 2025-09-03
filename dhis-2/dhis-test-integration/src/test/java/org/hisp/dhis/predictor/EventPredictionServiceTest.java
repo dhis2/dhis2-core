@@ -57,10 +57,11 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -119,7 +120,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportService dataExportService;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -390,11 +391,12 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
    * @return the value
    */
   private String getDataValue(DataElement dataElement, Period period) {
-    DataExportValue dv =
-        dataValueService.getDataValue(
-            new DataEntryKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo));
-    if (dv != null) {
-      return dv.value();
+    DataEntryKey key = new DataEntryKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
+    try {
+      DataExportValue dv = dataExportService.exportValue(key);
+      if (dv != null) return dv.value();
+    } catch (ConflictException e) {
+      fail("Failed to read data value: " + key, e);
     }
     return null;
   }

@@ -51,7 +51,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ConflictException;
@@ -72,7 +72,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
-  @Autowired private DataExportService dataExportService;
+  @Autowired private DataExportPipeline dataExportPipeline;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -193,7 +193,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
             .orgUnit(Set.of(ouA.getUid()))
             .build();
     dbmsManager.flushSession();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     Set<String> expectedOptionCombos = Sets.newHashSet(cocA.getUid(), cocB.getUid());
     assertNotNull(dvs);
@@ -227,7 +227,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
             .orgUnit(Set.of(ouA.getUid()))
             .build();
     dbmsManager.flushSession();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -257,8 +257,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
             .orgUnit(Set.of(ouA.getUid()))
             .build();
     dbmsManager.flushSession();
-    assertThrows(
-        ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
   }
 
   /**
@@ -286,8 +285,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
             .orgUnit(Set.of(ouA.getUid()))
             .attributeOptionCombo(Set.of(cocA.getUid()))
             .build();
-    assertThrows(
-        ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+    assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
   }
 
   /**

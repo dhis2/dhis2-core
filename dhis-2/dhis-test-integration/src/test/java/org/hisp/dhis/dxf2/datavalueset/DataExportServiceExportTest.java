@@ -47,7 +47,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,7 +55,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -88,7 +87,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
-  @Autowired private DataExportService dataExportService;
+  @Autowired private DataExportPipeline dataExportPipeline;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -228,7 +227,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnit(Set.of(ouA.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .build();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -253,7 +252,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .idScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(4, dvs.getDataValues().size());
@@ -277,7 +276,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnitIdScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -300,7 +299,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .period(Set.of(peA.getIsoDate()))
             .attributeOptionCombo(Set.of(cocA.getUid()))
             .build();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -328,7 +327,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .attributeOptionComboIdScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -351,7 +350,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .children(true)
             .period(Set.of(peA.getIsoDate()))
             .build();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -375,7 +374,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .dataElementIdScheme(IdentifiableProperty.CODE.name())
             .dataSetIdScheme(IdentifiableProperty.CODE.name())
             .build();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -404,7 +403,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .inputIdScheme(IdentifiableProperty.CODE)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -432,7 +431,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnitIdScheme(attributeIdScheme)
             .categoryOptionComboIdScheme(attributeIdScheme)
             .build();
-    dataExportService.exportDataValueSetJson(params, out);
+    dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
@@ -449,7 +448,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   void testExportLastUpdated() throws Exception {
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
+    DataExportParams params = DataExportParams.builder().lastUpdated(lastUpdated).build();
+    dataExportPipeline.exportAsJsonSync(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(12, dvs.getDataValues().size());
@@ -465,14 +465,15 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     addDataValues(dvA, dvB);
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
+    DataExportParams params = DataExportParams.builder().lastUpdated(lastUpdated).build();
+    dataExportPipeline.exportAsJsonSync(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(14, dvs.getDataValues().size());
     deleteDataValue(dvA);
     deleteDataValue(dvB);
     out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetJson(lastUpdated, out, new IdSchemes());
+    dataExportPipeline.exportAsJsonSync(params, out);
     dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertEquals(14, dvs.getDataValues().size());
@@ -487,8 +488,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .period(Set.of(peA.getUid()))
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2001, ex.getCode());
   }
 
@@ -501,8 +501,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnit(Set.of(ouA.getUid()))
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2002, ex.getCode());
   }
 
@@ -518,8 +517,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .endDate(getDate(2019, 1, 31))
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2003, ex.getCode());
   }
 
@@ -534,8 +532,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .endDate(getDate(2019, 1, 31))
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2004, ex.getCode());
   }
 
@@ -548,8 +545,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .period(Set.of(peA.getIsoDate()))
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2006, ex.getCode());
   }
 
@@ -564,8 +560,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .children(true)
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2008, ex.getCode());
   }
 
@@ -580,8 +575,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .limit(-2)
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2009, ex.getCode());
   }
 
@@ -595,8 +589,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .period(Set.of(peA.getIsoDate()))
             .build();
     ConflictException ex =
-        assertThrows(
-            ConflictException.class, () -> dataExportService.exportDataValueSetJson(params, out));
+        assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
     assertEquals(ErrorCode.E2012, ex.getCode());
   }
 

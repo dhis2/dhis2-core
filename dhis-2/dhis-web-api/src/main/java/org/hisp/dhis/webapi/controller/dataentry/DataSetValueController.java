@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,10 +48,10 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -77,7 +78,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
 public class DataSetValueController {
-  private final DataValueService dataValueService;
+  private final DataExportService dataExportService;
 
   private final MinMaxDataElementService minMaxValueService;
 
@@ -95,14 +96,15 @@ public class DataSetValueController {
     CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-    DataExportStoreParams exportParams =
-        new DataExportStoreParams()
-            .setDataSets(Set.of(ds))
-            .setPeriods(Set.of(pe))
-            .setOrganisationUnits(Set.of(ou))
-            .setAttributeOptionCombos(Set.of(aoc));
+    DataExportParams exportParams =
+        DataExportParams.builder()
+            .dataSet(Set.of(params.getDs()))
+            .period(Set.of(params.getPe()))
+            .orgUnit(Set.of(params.getOu()))
+            .attributeOptionCombo(Set.of(aoc.getUid()))
+            .build();
 
-    List<DataExportValue> dataValues = dataValueService.getDataValues(exportParams);
+    Stream<DataExportValue> dataValues = dataExportService.exportValues(exportParams);
 
     List<MinMaxDataElement> minMaxValues =
         minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
@@ -121,7 +123,7 @@ public class DataSetValueController {
     attribute.setOptions(
         aoc.getCategoryOptions().stream().map(IdentifiableObject::getUid).collect(toSet()));
     return new DataValuesDto()
-        .setDataValues(mapToList(dataValues, dv -> toDto(dv, attribute)))
+        .setDataValues(dataValues.map(dv -> toDto(dv, attribute)).toList())
         .setMinMaxValues(mapToList(minMaxValues, DataSetValueController::toDto))
         .setLockStatus(lockStatus)
         .setCompleteStatus(registration != null ? toDto(registration) : new CompleteStatusDto());

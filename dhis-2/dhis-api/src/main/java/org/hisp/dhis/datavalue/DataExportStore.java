@@ -27,45 +27,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.datavalue;
 
-import org.hisp.dhis.period.Period;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 
 /**
- * @author Torgeir Lorange Ostby
+ * Support for bulk data value export.
+ *
+ * @author Lars Helge Overland
  */
-public class DataElementHistoryPoint {
-  private Period period;
+public interface DataExportStore {
 
-  private Double value;
-
-  private double average;
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public double getAverage() {
-    return average;
+  enum EncodeType {
+    DE,
+    OU,
+    COC
   }
 
-  public void setAverage(double average) {
-    this.average = average;
-  }
+  /**
+   * Fetches a mapping from the given UIDs for the given {@link EncodeType} to their identifier of
+   * the given {@link IdScheme}
+   *
+   * @param type what object (table)
+   * @param to unknown identifier and requested (result map value)
+   * @param ids known identifiers (result map key)
+   * @return a mapping from the known to the unknown identifier
+   */
+  @Nonnull
+  Map<String, String> getIdMapping(
+      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
 
-  public Period getPeriod() {
-    return period;
-  }
+  @CheckForNull
+  DataExportValue getDataValue(@Nonnull DataEntryKey key);
 
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
+  /**
+   * Returns data values for the given data export parameters.
+   *
+   * @param params the data export parameters.
+   * @return a list of data values.
+   */
+  Stream<DataExportValue> getDataValues(DataExportStoreParams params);
 
-  public Double getValue() {
-    return value;
-  }
-
-  public void setValue(Double value) {
-    this.value = value;
-  }
+  /**
+   * Returns all DataValues.
+   *
+   * @return a list of all DataValues.
+   */
+  @UsageTestOnly
+  List<DataExportValue> getAllDataValues();
 }

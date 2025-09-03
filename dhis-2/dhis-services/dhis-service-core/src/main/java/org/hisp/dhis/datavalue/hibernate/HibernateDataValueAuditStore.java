@@ -34,7 +34,6 @@ import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.query.NativeQuery;
@@ -52,8 +51,10 @@ import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueAuditType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.RawNativeQuery;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -188,37 +189,27 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         JOIN organisationunit ou ON dva.organisationunitid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dva.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dva.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE   de.uid = :de
+        WHERE -- allow for erasure
+                de.uid = :de
             AND ou.uid = :ou
             AND pe.iso = :iso
             AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
             AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
-    String coc = key.categoryOptionCombo() == null ? null : key.categoryOptionCombo().getValue();
-    String aoc = key.attributeOptionCombo() == null ? null : key.attributeOptionCombo().getValue();
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> rows =
-        getSession()
-            .createNativeQuery(sql)
-            .setParameter("de", key.dataElement().getValue())
-            .setParameter("ou", key.orgUnit().getValue())
-            .setParameter("iso", key.period())
-            .setParameter("coc", coc)
-            .setParameter("aoc", aoc)
-            .stream();
-    return rows.map(
-            row ->
-                new DataValueAuditEntry(
-                    (String) row[0],
-                    (String) row[1],
-                    (String) row[2],
-                    (String) row[3],
-                    (String) row[4],
-                    (String) row[5],
-                    (String) row[6],
-                    (Date) row[7],
-                    DataValueAuditType.valueOf((String) row[8])))
+    return createRawNativeQuery(sql)
+        .setParameter("de", key.dataElement())
+        .setParameter("ou", key.orgUnit())
+        .setParameter("iso", key.period())
+        .eraseNullParameterLines()
+        .setParameter("coc", key.categoryOptionCombo())
+        .setParameter("aoc", key.attributeOptionCombo())
+        .stream()
+        .map(HibernateDataValueAuditStore::toEntry)
         .toList();
+  }
+
+  private RawNativeQuery createRawNativeQuery(@Language("SQL") String sql) {
+    return new RawNativeQuery(sql, getSession());
   }
 
   @CheckForNull
@@ -244,5 +235,18 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
                 .setParameter("cc", categoryCombo)
                 .setParameterList("cos", categoryOptions.split(";")));
     return aocId instanceof String s ? s : null;
+  }
+
+  private static DataValueAuditEntry toEntry(Object[] row) {
+    return new DataValueAuditEntry(
+        (String) row[0],
+        (String) row[1],
+        (String) row[2],
+        (String) row[3],
+        (String) row[4],
+        (String) row[5],
+        (String) row[6],
+        (Date) row[7],
+        DataValueAuditType.valueOf((String) row[8]));
   }
 }

@@ -35,8 +35,8 @@ import java.util.Date;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -70,7 +70,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class DefaultSynchronizationManager implements SynchronizationManager {
   private static final String HEADER_AUTHORIZATION = "Authorization";
-  private final DataExportService dataExportService;
+  private final DataExportPipeline dataExportPipeline;
   private final DataValueService dataValueService;
   private final MetadataImportService importService;
   private final SchemaService schemaService;
@@ -155,8 +155,9 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
           try {
-            dataExportService.exportDataValueSetJson(
-                lastUpdatedAfter, request.getBody(), new IdSchemes());
+            DataExportParams params =
+                DataExportParams.builder().lastUpdated(lastUpdatedAfter).build();
+            dataExportPipeline.exportAsJsonSync(params, request.getBody());
           } catch (ConflictException e) {
             throw new RuntimeException(e);
           }

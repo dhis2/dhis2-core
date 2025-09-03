@@ -71,6 +71,8 @@ public class DataExportParams {
 
   private Set<String> orgUnitGroup;
 
+  private Set<String> categoryOptionCombo;
+
   private Set<String> attributeOptionCombo;
 
   /**
@@ -92,6 +94,9 @@ public class DataExportParams {
   private String lastUpdatedDuration;
 
   private Integer limit;
+  private Integer offset;
+
+  private boolean orderByPeriod;
 
   /*
    * Input IdSchemes

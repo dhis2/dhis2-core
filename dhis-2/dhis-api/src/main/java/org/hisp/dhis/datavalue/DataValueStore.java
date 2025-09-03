@@ -32,18 +32,12 @@ package org.hisp.dhis.datavalue;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -68,25 +62,6 @@ public interface DataValueStore {
    * has aborted.
    */
   TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
-
-  enum EncodeType {
-    DE,
-    OU,
-    COC
-  }
-
-  /**
-   * Fetches a mapping from the given UIDs for the given {@link EncodeType} to their identifier of
-   * the given {@link IdScheme}
-   *
-   * @param type what object (table)
-   * @param to unknown identifier and requested (result map value)
-   * @param ids known identifiers (result map key)
-   * @return a mapping from the known to the unknown identifier
-   */
-  @Nonnull
-  Map<String, String> getIdMapping(
-      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
 
   // -------------------------------------------------------------------------
   // Basic DataValue
@@ -128,25 +103,6 @@ public interface DataValueStore {
    */
   void deleteDataValuesByAttributeOptionCombo(
       @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
-
-  @CheckForNull
-  DataExportValue getDataValue(@Nonnull DataEntryKey key);
-
-  /**
-   * Returns data values for the given data export parameters.
-   *
-   * @param params the data export parameters.
-   * @return a list of data values.
-   */
-  List<DataExportValue> getDataValues(DataExportStoreParams params);
-
-  /**
-   * Returns all DataValues.
-   *
-   * @return a list of all DataValues.
-   */
-  @UsageTestOnly
-  List<DataExportValue> getAllDataValues();
 
   /**
    * Returns deflated data values for the given data export parameters.

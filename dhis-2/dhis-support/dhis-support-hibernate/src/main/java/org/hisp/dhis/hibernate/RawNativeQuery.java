@@ -1,0 +1,402 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.hibernate;
+
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+
+import io.hypersistence.utils.hibernate.type.array.LongArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.type.BooleanType;
+import org.hibernate.type.DateType;
+import org.hibernate.type.IntegerType;
+import org.hibernate.type.StringType;
+import org.hibernate.type.Type;
+import org.hisp.dhis.common.UID;
+import org.intellij.lang.annotations.Language;
+
+/**
+ * A simpler (to use), safer wrapper around {@link org.hibernate.query.NativeQuery} specifically
+ * targeting accessing data as raw column data which hibernate provides as rows of {@link Object[]}.
+ *
+ * <p>The API is specifically designed to work nicely when SQL should support a predefined set of
+ * filters and orders. The SQL provided should then simply apply them all, those not used based on
+ * bindings are erased. It is not meant to be used for dynamically composed SQL. Instead, it is
+ * provided with the SQL that would apply all possible filters and orders and then erases those
+ * bound to a null (or empty array) value. That does not mean named parameters can be left unbound.
+ * It means when they are bound to {@code null} (or empty array) this qualifies the parameter for
+ * erasure if and only if (and when) {@link #eraseNullParameterLines()} is called.
+ *
+ * <p>The fundamental assumption of erasure is that the SQL provided can be processed line by line
+ * using simple string find + replace techniques. The input SQL is NOT parsed into an AST and
+ * recomposed from an updated AST. It is a strict line-pattern based substitution that can be
+ * exploited by an author to get a convenient erasure. Formatting the SQL properly for this
+ * conveniently also makes for very readable and reasonably formatted SQL.
+ *
+ * @since 2.43
+ * @author Jan Bernitt
+ */
+@RequiredArgsConstructor
+public final class RawNativeQuery {
+
+  private record NamedParameter(@CheckForNull Object value, @Nonnull Type type) {}
+
+  @Language("SQL")
+  private final String sql;
+
+  private final Session session;
+  private final Map<String, NamedParameter> params = new HashMap<>();
+  private final Map<String, String> clauses = new HashMap<>();
+  private final Map<String, Set<String>> erasedJoins = new HashMap<>();
+  private final Set<String> erasedOrders = new HashSet<>();
+  private final Set<String> erasedClause = new HashSet<>();
+  private final Set<String> nullParams = new HashSet<>();
+  private final Set<String> erasedParams = new HashSet<>();
+  private Integer limit;
+  private Integer offset;
+
+  public <T> RawNativeQuery setInOrAnyParameter(
+      String name, Collection<T> value, Function<T, String> f) {
+    return setInOrAnyParameter(name, value == null ? Stream.empty() : value.stream(), f);
+  }
+
+  public <T> RawNativeQuery setInOrAnyParameter(
+      String name, Stream<T> value, Function<T, String> f) {
+    String[] arr =
+        value
+            .filter(Objects::nonNull) // from was null
+            .map(f)
+            .filter(Objects::nonNull) // to was null
+            .distinct()
+            .toArray(String[]::new);
+    return setParameter(name, arr, StringArrayType.INSTANCE);
+  }
+
+  public <T> RawNativeQuery setInOrAnyParameter(String name, Stream<UID> value) {
+    return setInOrAnyParameter(name, value, UID::getValue);
+  }
+
+  public RawNativeQuery setInOrAnyParameter(String name, String[] value) {
+    return setParameter(name, value, StringArrayType.INSTANCE);
+  }
+
+  public RawNativeQuery setInOrAnyParameter(String name, Long[] value) {
+    return setParameter(name, value, LongArrayType.INSTANCE);
+  }
+
+  public RawNativeQuery setUnnestParameter(String name, String[] value) {
+    return setParameter(name, value, StringArrayType.INSTANCE);
+  }
+
+  public RawNativeQuery setParameter(String name, UID value) {
+    return setParameter(name, value == null ? null : value.getValue(), StringType.INSTANCE);
+  }
+
+  public RawNativeQuery setParameter(String name, String value) {
+    return setParameter(name, value, StringType.INSTANCE);
+  }
+
+  public RawNativeQuery setParameter(String name, Date value) {
+    return setParameter(name, value, DateType.INSTANCE);
+  }
+
+  public RawNativeQuery setParameter(String name, Integer value) {
+    return setParameter(name, value, IntegerType.INSTANCE);
+  }
+
+  public RawNativeQuery setParameter(String name, Boolean value) {
+    return setParameter(name, value, BooleanType.INSTANCE);
+  }
+
+  private RawNativeQuery setParameter(
+      @Nonnull String name, @CheckForNull Object value, @Nonnull Type type) {
+    params.put(name, new NamedParameter(value, type));
+    if (value == null || value instanceof Object[] arr && arr.length == 0) nullParams.add(name);
+    return this;
+  }
+
+  /**
+   * A dynamic SQL clause exploits the fact that a named parameter placeholder could be understood
+   * as a boolean variable. Just that in case of dynamic clauses it is not bound as a named
+   * parameter but replaced with the provided SQL. If that SQL is null or empty the line containing
+   * the named placeholder is always erased.
+   *
+   * <p>The SQL provided could potentially enable SQL injection attacks, so callers have to be
+   * careful to only provide SQL that is considered safe in that regard.
+   */
+  public RawNativeQuery setDynamicClause(
+      @Nonnull String name, @CheckForNull @Language("SQL") String sql) {
+    if (sql == null || sql.isEmpty()) {
+      erasedClause.add(name);
+    } else {
+      clauses.put(name, sql);
+    }
+    return this;
+  }
+
+  /**
+   * @implNote Assumes that given qualified name occurs somewhere in the ORDER BY clause of the
+   *     provided SQL. When #erase is true the ORDER BY clause is modified to not include the named
+   *     order. For that the qualified named given in the ORDER BY clause has to match the provided
+   *     name exactly. It can be followed by ASC or DESC.
+   *     <p>This means the priority (sequence) and direction of orders is always given by the ORDER
+   *     BY clause of the provided SQL.
+   */
+  public RawNativeQuery eraseOrder(String qname, boolean erase) {
+    if (erase) erasedOrders.add(qname);
+    return this;
+  }
+
+  public RawNativeQuery setLimit(Integer limit) {
+    this.limit = limit;
+    return this;
+  }
+
+  public RawNativeQuery setOffset(Integer offset) {
+    this.offset = offset;
+    return this;
+  }
+
+  /**
+   * When this method is called all null (or empty array) parameters set thus far will be erased.
+   * Null parameters set afterward are kept to allow using a mix where some parameter can be set to
+   * null and kept.
+   *
+   * <p>This means: when erasure should apply to all named parameters this method must be called
+   * after all set parameter calls.
+   *
+   * @implNote
+   *     <p>Splits the SQL into lines, finds the lines containing named parameters and removes them
+   *     if the parameter is set to null (or an empty array). It is up to the author of the SQL to
+   *     write the SQL in a way that leaves the SQL in a correct state when this erasure is
+   *     performed. This also means the author has to pick names that do not wrongly match SQL that
+   *     isn't actually a named parameter. Note that such accidents would only be possible if the
+   *     SQL contains {@code :} used in other roles than named parameters, for example in a string
+   *     literal, type cast, or other operator.
+   *     <p>Empty arrays here are always considered to be equivalent to null in their semantic since
+   *     the caller should have short-circuited the entire query if the empty array parameter should
+   *     mean an impossible condition like {@code x IN ()}
+   */
+  public RawNativeQuery eraseNullParameterLines() {
+    erasedParams.addAll(nullParams);
+    return this;
+  }
+
+  /**
+   * Erase a JOIN clause to a named table given by alias in case all the given parameters are indeed
+   * considered null and therefore erased when calling {@link #eraseNullParameterLines()} making the
+   * JOIN unnecessary.
+   *
+   * @implNote As the name indicates this will always erase an entire line should it be identified
+   *     as the only using the given alias.
+   * @param alias table name alias of the tabled joined
+   * @param nullParams names of the parameters that require the join
+   * @return this for chaining
+   */
+  public RawNativeQuery eraseNullJoinLine(String alias, String... nullParams) {
+    erasedJoins.put(alias, Set.of(nullParams));
+    return this;
+  }
+
+  /**
+   * @apiNote The API intentionally does NOT provide a {@code list()} method as more often than not
+   *     results are further transformed which is better done using stream processing to avoid
+   *     unnecessary intermediate collections (high memory load). The absence of {@code list()}
+   *     should enforce callers to at least consider this options. It is always easy enough to call
+   *     {@link Stream#toList()} on the returned stream if lists are required.
+   * @return a stream of result rows
+   */
+  public Stream<Object[]> stream() {
+    NativeQuery<?> query = toNativeQuery(false);
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> res = (Stream<Object[]>) query.stream();
+    return res;
+  }
+
+  /**
+   * Count does allow to use the same provided SQL used for fetch as it erases the SELECT list of
+   * the main query and replaces it with {@code count(*)}.
+   *
+   * <p>It also allows to call {@link #setLimit(Integer)} and/or {@link #setOffset(Integer)} without
+   * affecting the count.
+   */
+  public int count() {
+    return toNativeQuery(true).getSingleResult() instanceof Number n ? n.intValue() : 0;
+  }
+
+  public Map<String, String> listAsStringsMap() {
+    return stream().collect(toMap(row -> (String) row[0], row -> (String) row[1]));
+  }
+
+  private NativeQuery<?> toNativeQuery(boolean count) {
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    NativeQuery<?> query = session.createNativeQuery(toSQL(count));
+    params.forEach(
+        (name, param) -> {
+          if (!erasedParams.contains(name)) {
+            query.setParameter(name, param.value, param.type);
+          }
+        });
+    if (!count) {
+      if (offset != null) query.setFirstResult(offset);
+      if (limit != null) query.setMaxResults(limit);
+    }
+    return query;
+  }
+
+  public String toSQL() {
+    return toSQL(false);
+  }
+
+  public String toSQL(boolean count) {
+    String minSql = eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql))));
+    if (count) return replaceSelect(minSql);
+    return minSql;
+  }
+
+  private String eraseNullParams(String sql) {
+    if (erasedParams.isEmpty()) return sql;
+    return sql.lines().filter(not(this::containsErasedParameter)).collect(joining("\n"));
+  }
+
+  private String eraseOrders(String sql) {
+    if (erasedOrders.isEmpty()) return sql;
+    return sql.lines().map(this::replaceOrders).collect(joining("\n"));
+  }
+
+  private String eraseNullJoins(String sql) {
+    if (erasedJoins.isEmpty() || erasedParams.isEmpty()) return sql;
+    return sql.lines().filter(this::containsErasedJoin).collect(joining("\n"));
+  }
+
+  private String eraseNullClauses(String sql) {
+    if (clauses.isEmpty()) return sql;
+    return sql.lines()
+        .filter(not(this::containsErasedClause))
+        .map(this::replaceClauses)
+        .collect(joining("\n"));
+  }
+
+  private boolean containsErasedParameter(String line) {
+    return erasedParams.stream().anyMatch(name -> line.contains(":" + name));
+  }
+
+  private boolean containsErasedJoin(String line) {
+    int iJoin = line.indexOf("JOIN ");
+    if (iJoin < 0) return false;
+    int iNextSpace = line.indexOf(' ', iJoin + 1);
+    if (iNextSpace < 0) return false; // give up
+    int iOn = line.indexOf(" ON ", iNextSpace);
+    if (iOn < 0) return false; // give up
+    String alias = line.substring(iNextSpace, iOn).trim();
+    if (!erasedJoins.containsKey(alias)) return false;
+    return erasedParams.containsAll(erasedJoins.get(alias));
+  }
+
+  private boolean containsErasedClause(String line) {
+    return erasedClause.stream().anyMatch(name -> line.contains(":" + name));
+  }
+
+  private boolean containsErasedOrder(String order) {
+    return erasedOrders.stream().anyMatch(order::startsWith);
+  }
+
+  private String replaceClauses(String line) {
+    if (clauses.isEmpty()) return line;
+    String res = line;
+    for (Map.Entry<String, String> clause : clauses.entrySet())
+      res = res.replace(":" + clause.getKey(), clause.getValue());
+    return res;
+  }
+
+  /**
+   * @implNote Assumes the main ORDER BY clause is on a separate line and that all orders are listed
+   *     on the same line. Orders may have ASC or DESC or none (default). If all orders get erased
+   *     the entire line will be erased.
+   */
+  private String replaceOrders(String line) {
+    int idx = line.indexOf("ORDER BY ");
+    if (idx < 0) return line;
+    // make sure it is not a nested order
+    if (!line.trim().startsWith("ORDER BY")) return line;
+    String[] allOrders = line.substring(idx + 9).split("\\s*,\\s*");
+    List<String> keptOrders = Stream.of(allOrders).filter(not(this::containsErasedOrder)).toList();
+    if (keptOrders.isEmpty()) return ""; // erase entire ORDER BY line
+    return line.substring(0, idx + 9) + String.join(" , ", keptOrders);
+  }
+
+  /**
+   * @implNote Assumes the main SELECT starts on a line (no indent), in which case it replaces the
+   *     list of extracted fields with {@code count(*)}.
+   */
+  private String replaceSelect(String sql) {
+    List<String> lines = sql.lines().toList();
+    // look for line starts SELECT (no indent to avoid accidentally modifying sub-selects as well)
+    int n = lines.size();
+    int si = 0;
+    while (si < n && !lines.get(si).startsWith("SELECT ")) si++;
+    if (si >= n) return sql; // give up
+    // found the SELECT, look for FROM
+    int fi = si;
+    while (fi < n && !lines.get(fi).contains("FROM ")) fi++;
+    if (fi >= n) return sql; // give up
+    String preLines = si == 0 ? "" : String.join("\n", lines.subList(0, si));
+    String postLines = fi + 1 == n ? "" : String.join("\n", lines.subList(fi + 1, n));
+    if (si == fi) {
+      // SELECT ... FROM in one line
+      String line = lines.get(si);
+      return preLines
+          + "SELECT count(*) "
+          + line.substring(line.indexOf("FROM"))
+          + "\n"
+          + postLines;
+    }
+    // SELECT
+    // ...
+    // FROM
+    return preLines + "SELECT count(*) \n" + postLines;
+  }
+}

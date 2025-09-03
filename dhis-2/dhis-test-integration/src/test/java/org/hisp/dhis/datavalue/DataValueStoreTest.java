@@ -64,7 +64,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   private @PersistenceContext EntityManager manager;
 
   @Autowired private DataDumpService dataDumpService;
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
 
   @Test
   @DisplayName(
@@ -115,7 +115,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // check pre merge state
     List<DataExportValue> preMergeState =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
@@ -134,7 +134,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataExportValue> postMergeState =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
@@ -199,7 +199,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // check pre merge state
     List<DataExportValue> preMergeState =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
@@ -218,7 +218,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataExportValue> postMergeState =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
@@ -286,7 +286,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // check pre merge state
     List<DataExportValue> preMergeState =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
@@ -305,7 +305,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataExportValue> postMergeState =
-        dataValueStore.getAllDataValues().stream()
+        dataExportStore.getAllDataValues().stream()
             .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
@@ -355,7 +355,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   private void mergeDataValues(CategoryOptionCombo target, List<CategoryOptionCombo> sources) {
-    dataValueStore.mergeDataValuesWithCategoryOptionCombos(
+    dataExportStore.mergeDataValuesWithCategoryOptionCombos(
         target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     entityManager.flush();
     entityManager.clear();

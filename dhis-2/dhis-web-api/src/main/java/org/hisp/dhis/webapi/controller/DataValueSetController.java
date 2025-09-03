@@ -58,7 +58,7 @@ import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -68,8 +68,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
@@ -93,9 +91,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataValueSets")
 public class DataValueSetController {
 
-  private final DataExportService dataExportService;
+  private final DataExportPipeline dataExportPipeline;
   private final DataEntryPipeline dataEntryPipeline;
-  private final UserService userService;
   private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
@@ -140,7 +137,7 @@ public class DataValueSetController {
         response,
         CONTENT_TYPE_XML,
         params,
-        dataExportService::exportDataValueSetXml);
+        dataExportPipeline::exportAsXml);
   }
 
   private void getDataValueSetXmlAdx(
@@ -156,7 +153,7 @@ public class DataValueSetController {
         response,
         CONTENT_TYPE_XML_ADX,
         params,
-        dataExportService::exportDataValueSetXmlAdx);
+        dataExportPipeline::exportAsXmlGroups);
   }
 
   private void getDataValueSetJson(
@@ -172,7 +169,7 @@ public class DataValueSetController {
         response,
         CONTENT_TYPE_JSON,
         params,
-        dataExportService::exportDataValueSetJson);
+        dataExportPipeline::exportAsJson);
   }
 
   private void getDataValueSetCsv(
@@ -188,7 +185,7 @@ public class DataValueSetController {
         response,
         CONTENT_TYPE_CSV,
         params,
-        dataExportService::exportDataValueSetCsv);
+        dataExportPipeline::exportAsCsv);
   }
 
   interface ExportHandler {
@@ -290,8 +287,7 @@ public class DataValueSetController {
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
       throws ConflictException, IOException {
     JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    config.setExecutedBy(currentUser.getUid());
+    config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(importOptions);
 
     jobExecutionService.executeOnceNow(config, mimeType, request.getInputStream());

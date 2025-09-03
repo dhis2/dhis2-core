@@ -73,8 +73,8 @@ import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
@@ -151,7 +151,7 @@ public class DataAnalysisController {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportService dataExportService;
 
   @Autowired private DataEntryService dataEntryService;
 
@@ -437,7 +437,7 @@ public class DataAnalysisController {
           categoryService.getCategoryOptionCombo(followup.getAttributeOptionComboId());
 
       DataExportValue dv =
-          dataValueService.getDataValue(
+          dataExportService.exportValue(
               new DataEntryKey(
                   dataElement, period, source, categoryOptionCombo, attributeOptionCombo));
 

@@ -77,11 +77,11 @@ import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -126,8 +126,8 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueService dataValueService;
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportService dataExportService;
+  @Autowired private DataExportStore dataExportStore;
 
   @Autowired private DataValueAuditService dataValueAuditService;
 
@@ -405,11 +405,11 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testCreatedDateWhenDataValueCreated_IgnoreCreatedDateSupplied() {
+  void testCreatedDateWhenDataValueCreated_IgnoreCreatedDateSupplied() throws ConflictException {
     Date todaysDate = new Date();
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
 
     // import data value, ignoring created date supplied - create (value = 20, comment = null,
     // created = "1988-12-21T23:59:38.000+0000")
@@ -417,13 +417,13 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // get newly-created data value
-    DataExportValue dv2 = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.created()));
   }
 
   @Test
-  void testCreatedDateWhenDataValueUpdated_IgnoreCreatedDateSupplied() {
+  void testCreatedDateWhenDataValueUpdated_IgnoreCreatedDateSupplied() throws ConflictException {
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
 
@@ -440,17 +440,18 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // check newly-updated data value
-    DataExportValue dv2 = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
     assertEquals("new comment", dv2.comment());
     assertEquals("22", dv2.value());
   }
 
   @Test
-  void testLastUpdatedDateWhenDataValueCreated_IgnoreLastUpdatedDateSupplied() {
+  void testLastUpdatedDateWhenDataValueCreated_IgnoreLastUpdatedDateSupplied()
+      throws ConflictException {
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
 
     // import data value, ignoring last updated date supplied (this is always the case now)
     // but still good to confirm that by a test
@@ -458,7 +459,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // get newly-created data value
-    DataExportValue dv = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv);
     Date lastUpdated = dv.lastUpdated();
     assertTrue(
@@ -467,11 +468,12 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testLastUpdatedDateWhenDataValueUpdated_IgnoreLastUpdatedDateSupplied() {
+  void testLastUpdatedDateWhenDataValueUpdated_IgnoreLastUpdatedDateSupplied()
+      throws ConflictException {
     Date todaysDate = new Date();
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-    assertNull(dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
 
     // import data value for first time - create (value = 20, comment = null, lastUpdated =
     // "1988-12-21T23:59:38.000+0000")
@@ -484,7 +486,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 0, summary);
 
     // check newly-updated data value
-    DataExportValue dv2 = dataValueService.getDataValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
     assertNotNull(dv2);
     assertEquals("new comment", dv2.comment());
     assertEquals("22", dv2.value());
@@ -598,7 +600,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
     assertImported(3, 0, summary);
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
@@ -616,7 +618,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
 
     assertImported(3, 0, summary);
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
@@ -633,7 +635,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesXmlWithCodeA() {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACode.xml"));
     assertImported(3, 0, summary);
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
@@ -881,7 +883,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertArrayEquals(new int[] {16, 17}, conflicts.next().getIndexes());
     assertEquals(
         Set.of("true", "false"),
-        dataValueStore.getAllDataValues().stream().map(DataExportValue::value).collect(toSet()));
+        dataExportStore.getAllDataValues().stream().map(DataExportValue::value).collect(toSet()));
   }
 
   @Test
@@ -952,7 +954,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetD.xml"));
 
     assertImported(3, 0, summary);
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(3, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocA), dataValues);
@@ -968,7 +970,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     assertEquals(ImportStatus.WARNING, summary.getStatus());
     assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(1, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocA), dataValues);
@@ -1117,7 +1119,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(1, 2, summary);
     assertEquals(ImportStatus.WARNING, summary.getStatus());
 
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(1, dataValues.size());
     assertContainsValue(new DataValue(deB, peB, ouB, ocDef, ocA), dataValues);
@@ -1136,7 +1138,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(1, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(2, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocA), dataValues);
@@ -1237,7 +1239,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(3, summary.getImportCount().getIgnored());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(2, dataValues.size());
     assertContainsValue(new DataValue(deB, okBefore, ouA, ocDef, ocDef), dataValues);
@@ -1281,7 +1283,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   private void assertImportDataValues(ImportSummary summary) {
     assertNotNull(summary);
     assertNotNull(summary.getImportCount());
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
     assertEquals(12, dataValues.size());
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
@@ -1328,7 +1330,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private List<DataExportValue> assertDataValuesCount(int expected) {
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertEquals(
         expected,
         dataValues.size(),

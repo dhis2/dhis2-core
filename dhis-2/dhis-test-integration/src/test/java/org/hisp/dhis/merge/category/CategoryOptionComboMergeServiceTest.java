@@ -68,12 +68,12 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -139,7 +139,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
@@ -744,7 +744,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDvs = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDvs = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDvs.stream()
             .filter(
@@ -801,7 +801,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -856,7 +856,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -914,7 +914,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -979,7 +979,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -1035,7 +1035,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDvs = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDvs = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDvs.stream()
             .filter(
@@ -1091,7 +1091,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -1146,7 +1146,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -1204,7 +1204,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
@@ -1269,7 +1269,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataExportValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(

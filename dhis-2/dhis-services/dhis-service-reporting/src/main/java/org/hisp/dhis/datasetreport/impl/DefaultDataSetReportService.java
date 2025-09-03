@@ -62,8 +62,9 @@ import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.datasetreport.DataSetReportStore;
 import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -96,7 +97,7 @@ public class DefaultDataSetReportService implements DataSetReportService {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final DataValueService dataValueService;
+  private final DataExportService dataExportService;
 
   private final DataSetReportStore dataSetReportStore;
 
@@ -325,12 +326,21 @@ public class DefaultDataSetReportService implements DataSetReportService {
       List<Period> periods,
       OrganisationUnit unit,
       CategoryOptionCombo optionCombo) {
+    // TODO this entire way of looking up data 1 by 1 should be replaced
+    // this is called within 4 levels of for-loops
+    // and adds the periods level on top
+    // all that should be loaded in 1 go and then summed into buckets
     List<Double> values =
         periods.stream()
             .map(
-                p ->
-                    dataValueService.getDataValue(
-                        new DataEntryKey(dataElement, p, unit, optionCombo, null)))
+                p -> {
+                  try {
+                    return dataExportService.exportValue(
+                        new DataEntryKey(dataElement, p, unit, optionCombo, null));
+                  } catch (ConflictException e) {
+                    return null; // best we can do ATM
+                  }
+                })
             .filter(Objects::nonNull)
             .map(DataExportValue::value)
             .filter(Objects::nonNull)

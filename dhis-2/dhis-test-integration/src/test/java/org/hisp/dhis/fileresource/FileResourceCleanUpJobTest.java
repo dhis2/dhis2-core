@@ -43,11 +43,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
 import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -84,10 +84,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValueAuditService dataValueAuditService;
 
-  /** We use the store directly to backdate audit entries what is usually not possible */
-  @Autowired private DataValueAuditStore dataValueAuditStore;
-
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportService dataExportService;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -136,7 +133,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testRetention() {
+  void testRetention() throws ConflictException {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 
     settingsService.put(
@@ -166,7 +163,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
     assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
     assertTrue(fileResourceService.getFileResource(dataValueA.getValue()).isAssigned());
-    assertNull(dataValueService.getDataValue(dataValueA.toKey()));
+    assertNull(dataExportService.exportValue(dataValueA.toKey()));
     assertNull(fileResourceService.getFileResource(dataValueB.getValue()));
   }
 

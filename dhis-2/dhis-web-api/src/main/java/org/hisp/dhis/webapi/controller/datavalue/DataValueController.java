@@ -52,10 +52,10 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
@@ -106,7 +106,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class DataValueController {
 
-  private final DataValueService dataValueService;
+  private final DataExportService dataExportService;
 
   private final DataEntryService dataEntryService;
 
@@ -243,7 +243,7 @@ public class DataValueController {
       throws BadRequestException, ConflictException, ForbiddenException {
 
     DataExportValue dataValue =
-        dataValueService.getDataValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
+        dataExportService.exportValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
     if (dataValue == null) throw new ConflictException("Data value does not exist");
 
@@ -311,7 +311,7 @@ public class DataValueController {
       throws WebMessageException, BadRequestException, ConflictException, NotFoundException {
 
     DataExportValue dataValue =
-        dataValueService.getDataValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
+        dataExportService.exportValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
     if (dataValue == null) throw new ConflictException("Data value does not exist");
 

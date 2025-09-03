@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toSet;
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
@@ -43,7 +44,6 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -78,14 +79,15 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportService;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -271,7 +273,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       @RequestParam(value = "pe", required = false) String period,
       @RequestParam(value = "categoryOptions", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData)
-      throws NotFoundException {
+      throws NotFoundException, ConflictException {
 
     OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
@@ -294,7 +296,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       @RequestParam(value = "catOpts", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData,
       HttpServletResponse response)
-      throws IOException, NotFoundException {
+      throws IOException, NotFoundException, ConflictException {
 
     OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
@@ -314,7 +316,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       OrganisationUnit ou,
       Period pe,
       String categoryOptions,
-      boolean metaData) {
+      boolean metaData)
+      throws ConflictException {
     DataSet dataSet = dataSets.get(0);
 
     Form form = FormUtils.fromDataSet(dataSets.get(0), metaData, null);
@@ -330,20 +333,25 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
     }
 
     if (ou != null && pe != null) {
-      Set<CategoryOptionCombo> attrOptionCombos =
+      Set<String> attrOptionCombos =
           options == null || options.isEmpty()
-              ? null
-              : Sets.newHashSet(
-                  inputUtils.getAttributeOptionCombo(
-                      dataSet.getCategoryCombo(), options, IdScheme.UID));
+              ? Set.of()
+              : Set.of(
+                  inputUtils
+                      .getAttributeOptionCombo(dataSet.getCategoryCombo(), options, IdScheme.UID)
+                      .getUid());
 
-      List<DataExportValue> dataValues =
-          dataValueService.getDataValues(
-              new DataExportStoreParams()
-                  .setDataElements(dataSets.get(0).getDataElements())
-                  .setPeriods(Sets.newHashSet(pe))
-                  .setOrganisationUnits(Sets.newHashSet(ou))
-                  .setAttributeOptionCombos(attrOptionCombos));
+      Stream<DataExportValue> dataValues =
+          dataExportService.exportValues(
+              DataExportParams.builder()
+                  .dataElement(
+                      dataSets.get(0).getDataElements().stream()
+                          .map(DataElement::getUid)
+                          .collect(toSet()))
+                  .period(Set.of(pe.getIsoDate()))
+                  .orgUnit(Set.of(ou.getUid()))
+                  .attributeOptionCombo(attrOptionCombos)
+                  .build());
 
       FormUtils.fillWithDataValues(form, dataValues);
     }

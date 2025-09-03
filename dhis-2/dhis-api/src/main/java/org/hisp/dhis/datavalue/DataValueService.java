@@ -31,10 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import java.util.Date;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ConflictException;
@@ -60,44 +57,6 @@ public interface DataValueService {
    * @param dataElement the data element.
    */
   void deleteDataValues(DataElement dataElement);
-
-  @CheckForNull
-  DataExportValue getDataValue(@Nonnull DataEntryKey key);
-
-  // -------------------------------------------------------------------------
-  // Lists of DataValues
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns data values for the given data export parameters.
-   *
-   * <p>Example usage:
-   *
-   * <p>
-   *
-   * <pre>
-   * {
-   *     &#64;code
-   *     List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-   *         .setDataElements( dataElements )
-   *         .setPeriods( Sets.newHashSet( period ) )
-   *         .setOrganisationUnits( orgUnits ) );
-   * }
-   * </pre>
-   *
-   * @param params the data export parameters.
-   * @return a list of data values.
-   * @throws IllegalArgumentException if parameters are invalid.
-   */
-  List<DataExportValue> getDataValues(DataExportStoreParams params);
-
-  /**
-   * Validates the given data export parameters.
-   *
-   * @param params the data export parameters.
-   * @throws IllegalArgumentException if parameters are invalid.
-   */
-  void validate(DataExportStoreParams params) throws IllegalQueryException;
 
   /**
    * Returns deflated data values for the given data export parameters.

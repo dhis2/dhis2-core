@@ -29,51 +29,40 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.io.OutputStream;
-import java.util.Date;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.IdSchemes;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 
 /**
- * @author Lars Helge Overland
+ * API to export aggregate data values.
+ *
+ * <p>Any and all access to data to expose it in some form should always read the data using one of
+ * the provided lookup methods to make sure access validation is always applied consistently.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
  */
 public interface DataExportService {
 
-  Stream<DataExportValue.Output> streamValues(DataExportParams params) throws ConflictException;
-
-  Stream<DataExportGroup.Output> streamValueGroups(DataExportParams params)
-      throws ConflictException;
-
-  void exportDataValueSetXml(DataExportParams params, OutputStream out) throws ConflictException;
-
-  void exportDataValueSetXmlAdx(DataExportParams params, OutputStream out) throws ConflictException;
-
-  void exportDataValueSetJson(DataExportParams params, OutputStream out) throws ConflictException;
-
   /**
-   * Write data values as JSON.
+   * Export a single value.
    *
-   * @param lastUpdated specifies the date to filter complete data sets last updated after
-   * @param outputStream the stream to write to
-   * @param idSchemes idSchemes
+   * @apiNote Looking at the callers of this method is a good way to find places that are doing data
+   *     processing wrong ;) Ideally nobody should call this (except the odd controller endpoint
+   *     that is actually about 1 value). Most other callers are calling this in a loop - which
+   *     really should use a bulk export instead.
+   * @param key unique dimensions, null for COC + AOC are understood as default
+   * @return the value if it exists or null
+   * @throws ConflictException in case current user has no access to the value
    */
-  void exportDataValueSetJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes)
-      throws ConflictException;
+  @CheckForNull
+  DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException;
 
-  /**
-   * Write data values as JSON.
-   *
-   * @param lastUpdated specifies the date to filter complete data sets last updated after
-   * @param outputStream the stream to write to
-   * @param idSchemes idSchemes
-   * @param pageSize pageSize
-   * @param page page
-   */
-  void exportDataValueSetJson(
-      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page)
-      throws ConflictException;
+  Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) throws ConflictException;
 
-  void exportDataValueSetCsv(DataExportParams params, OutputStream outputStream)
+  DataExportGroup.Output exportGroup(@Nonnull DataExportParams params) throws ConflictException;
+
+  Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportParams params)
       throws ConflictException;
 }

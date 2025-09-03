@@ -55,8 +55,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
@@ -85,7 +85,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
   private final CompleteDataSetRegistrationService registrationService;
 
-  private final DataValueService dataValueService;
+  private final DataExportService dataExportService;
 
   private final CategoryService dataElementCategoryService;
 
@@ -100,14 +100,14 @@ public class DataValueSMSListener extends CommandSMSListener {
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       CompleteDataSetRegistrationService registrationService,
-      DataValueService dataValueService,
+      DataExportService dataExportService,
       CategoryService dataElementCategoryService1,
       SMSCommandService smsCommandService,
       DataEntryService dataEntryService,
       DataElementService dataElementService) {
     super(userService, incomingSmsService, smsMessageSender);
     this.registrationService = registrationService;
-    this.dataValueService = dataValueService;
+    this.dataExportService = dataExportService;
     this.dataElementCategoryService = dataElementCategoryService1;
     this.smsCommandService = smsCommandService;
     this.dataEntryService = dataEntryService;
@@ -119,7 +119,8 @@ public class DataValueSMSListener extends CommandSMSListener {
       @Nonnull IncomingSms sms,
       @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
-      @Nonnull Map<String, String> codeValues) {
+      @Nonnull Map<String, String> codeValues)
+      throws ConflictException {
 
     if (codeValues.isEmpty()) {
       sendFeedback(
@@ -245,7 +246,7 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     DataExportValue curValue =
-        dataValueService.getDataValue(
+        dataExportService.exportValue(
             new DataEntryKey(targetDataElement, period, orgUnit, null, null));
 
     int val = 0;
@@ -280,7 +281,8 @@ public class DataValueSMSListener extends CommandSMSListener {
       UserDetails smsCreatedBy,
       OrganisationUnit orgunit,
       SMSCommand command,
-      Date date) {
+      Date date)
+      throws ConflictException {
     String sender = sms.getOriginator();
 
     Period period = null;
@@ -293,7 +295,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       period = getPeriod(command, date);
 
       DataExportValue dv =
-          dataValueService.getDataValue(
+          dataExportService.exportValue(
               new DataEntryKey(code.getDataElement(), period, orgunit, optionCombo, null));
 
       if (dv == null && !StringUtils.isEmpty(code.getCode())) {
@@ -329,7 +331,8 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   protected void sendSuccessFeedback(
-      String sender, SMSCommand command, Date date, OrganisationUnit orgunit) {
+      String sender, SMSCommand command, Date date, OrganisationUnit orgunit)
+      throws ConflictException {
     String reportBack = "Thank you! Values entered: ";
     String notInReport = "Missing values for: ";
 
@@ -349,7 +352,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       DataElement dataElement = code.getDataElement();
       valueTypeByDataElement.put(UID.of(dataElement), dataElement.getValueType());
       DataExportValue dv =
-          dataValueService.getDataValue(
+          dataExportService.exportValue(
               new DataEntryKey(dataElement, period, orgunit, optionCombo, null));
 
       if (dv == null && !StringUtils.isEmpty(code.getCode())) {

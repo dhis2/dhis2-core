@@ -68,6 +68,28 @@ public record DataExportValue(
     requireNonNull(attributeOptionCombo);
   }
 
+  /**
+   * Create records from DB rows. Assumes types based on DB column types and persistence mapping.
+   *
+   * @param row a row as returned by the DB
+   * @return the row as {@link DataExportValue} record
+   */
+  public static DataExportValue of(Object[] row) {
+    return new DataExportValue(
+        UID.of((String) row[0]),
+        (String) row[1],
+        UID.of((String) row[2]),
+        UID.of((String) row[3]),
+        UID.of((String) row[4]),
+        (String) row[5],
+        (String) row[6],
+        (Boolean) row[7],
+        (String) row[8],
+        (Date) row[9],
+        (Date) row[10],
+        (Boolean) row[11]);
+  }
+
   public boolean isFollowUp() {
     return followUp != null && followUp;
   }
@@ -91,7 +113,6 @@ public record DataExportValue(
       @CheckForNull Map<String, String> categoryOptions,
       @CheckForNull String attributeOptionCombo,
       @CheckForNull String value,
-      boolean numeric,
       @CheckForNull String comment,
       @CheckForNull Boolean followUp,
       @CheckForNull String storedBy,

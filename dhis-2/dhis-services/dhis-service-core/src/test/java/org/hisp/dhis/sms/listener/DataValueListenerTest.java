@@ -38,6 +38,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,8 +55,9 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -123,7 +125,7 @@ class DataValueListenerTest extends TestBase {
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
-  @Mock private DataValueService dataValueService;
+  @Mock private DataExportService dataExportService;
 
   @Mock private SMSCommandService smsCommandService;
 
@@ -197,7 +199,7 @@ class DataValueListenerTest extends TestBase {
             incomingSmsService,
             smsSender,
             registrationService,
-            dataValueService,
+            dataExportService,
             dataElementCategoryService,
             smsCommandService,
             dataEntryService,
@@ -309,7 +311,7 @@ class DataValueListenerTest extends TestBase {
             });
   }
 
-  private void mockServices() {
+  private void mockServices() throws ConflictException {
     // Mock for registrationService
     when(registrationService.getCompleteDataSetRegistration(any(), any(), any(), any()))
         .thenReturn(fetchedCompleteDataSetRegistration);
@@ -324,8 +326,9 @@ class DataValueListenerTest extends TestBase {
         .deleteCompleteDataSetRegistration(any());
 
     // Mock for dataValueService
-    when(dataValueService.getDataValue(any(DataEntryKey.class)))
-        .thenReturn(fetchedDataValue.toEntry());
+    doReturn(fetchedDataValue.toEntry())
+        .when(dataExportService)
+        .exportValue(any(DataEntryKey.class));
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
@@ -373,7 +376,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testReceive() {
+  void testReceive() throws ConflictException {
     mockServices();
     incomingSms.setCreatedBy(user);
     subject.receive(incomingSms, UserDetails.fromUser(user));
@@ -460,7 +463,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfMandatoryParameterMissing() {
+  void testIfMandatoryParameterMissing() throws ConflictException {
     mockSmsSender();
     mockServices();
     keyValueCommand.getCodes().add(smsCodeForcompulsory);
@@ -509,7 +512,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testDefaultSeparator() {
+  void testDefaultSeparator() throws ConflictException {
     mockServices();
     keyValueCommand.setSeparator(null);
     keyValueCommand.setCodeValueSeparator(null);
@@ -523,7 +526,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testCustomSeparator() {
+  void testCustomSeparator() throws ConflictException {
     mockSmsSender();
     mockServices();
     keyValueCommand.setSeparator(".");

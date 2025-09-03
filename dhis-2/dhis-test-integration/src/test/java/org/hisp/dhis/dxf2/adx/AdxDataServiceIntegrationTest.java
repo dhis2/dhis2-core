@@ -57,10 +57,10 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -82,7 +82,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Jim Grace
  */
 class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
-  @Autowired private DataExportService dataExportService;
+  @Autowired private DataExportPipeline dataExportPipeline;
 
   @Autowired private DataEntryPipeline dataEntryPipeline;
 
@@ -90,7 +90,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -415,7 +415,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportDataIgnoreDatesOnCreate() throws IOException {
-    assertEquals(0, dataValueStore.getAllDataValues().size());
+    assertEquals(0, dataExportStore.getAllDataValues().size());
 
     InputStream in = new ClassPathResource("adx/importDates.adx.xml").getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
@@ -463,7 +463,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
         new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"),
         new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportService.exportDataValueSetXmlAdx(params, out);
+    dataExportPipeline.exportAsXmlGroups(params, out);
     String result = out.toString("UTF-8");
     InputStream expectedStream = new ClassPathResource(filePath).getInputStream();
     String expected =
@@ -480,12 +480,12 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private void testImport(String filePath, IdSchemes idSchemes) throws IOException {
-    assertEquals(0, dataValueStore.getAllDataValues().size());
+    assertEquals(0, dataExportStore.getAllDataValues().size());
     InputStream in = new ClassPathResource(filePath).getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     importOptions.setIdSchemes(idSchemes);
     dataEntryPipeline.importXml(in, importOptions, transitory());
-    List<DataExportValue> dataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertContainsOnly(
         List.of(
             new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1").toEntry(),

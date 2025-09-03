@@ -34,21 +34,39 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Component;
 
+/**
+ * Utility to convert between internal data records {@link DataExportGroup.Output} and external text
+ * formats.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
 @Component
 @RequiredArgsConstructor
 public class DataExportPipeline {
 
   private final DataExportService service;
 
-  public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {}
+  public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {
+    DataExportOutput.toJson(service.exportGroup(params), out);
+  }
 
-  public void exportAsJsonSync(DataExportParams params, OutputStream out)
-      throws ConflictException {}
+  public void exportAsJsonSync(DataExportParams params, OutputStream out) throws ConflictException {
+    // TODO params.setOrderForSync(true); // make sure
+    // TODO also make it skip validation
+    exportAsJson(params, out);
+  }
 
-  public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {}
+  public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {
+    DataExportOutput.toCsv(service.exportGroup(params), out);
+  }
 
-  public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {}
+  public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {
+    DataExportOutput.toXml(service.exportGroup(params), out);
+  }
 
   public void exportAsXmlGroups(DataExportParams params, OutputStream out)
-      throws ConflictException {}
+      throws ConflictException {
+    DataExportOutput.toXml(service.exportInGroups(params), out);
+  }
 }
