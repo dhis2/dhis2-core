@@ -124,15 +124,17 @@ public class CategoryOptionComboObjectBundleHook
       return;
     }
 
+    UID expectedCategoryComboUid = UID.of(expectedCategoryCombo.getUid());
+
     // get all provided COCs in bundle with same provided CC
     List<CategoryOptionCombo> persistedCocs =
         bundle.getObjects(CategoryOptionCombo.class, true).stream()
-            .filter(coc -> hasSameCcUid.test(coc, UID.of(expectedCategoryCombo.getUid())))
+            .filter(coc -> hasSameCcUid.test(coc, expectedCategoryComboUid))
             .toList();
 
     List<CategoryOptionCombo> newCocs =
         bundle.getObjects(CategoryOptionCombo.class, false).stream()
-            .filter(coc -> hasSameCcUid.test(coc, UID.of(expectedCategoryCombo.getUid())))
+            .filter(coc -> hasSameCcUid.test(coc, expectedCategoryComboUid))
             .toList();
 
     // all COCs provided in import
@@ -153,7 +155,7 @@ public class CategoryOptionComboObjectBundleHook
           allProvidedCocsForCc,
           addReports,
           providedCoSet,
-          expectedCategoryCombo);
+          expectedCategoryComboUid);
     }
   }
 
@@ -193,7 +195,7 @@ public class CategoryOptionComboObjectBundleHook
       List<CategoryOptionCombo> allProvidedCocsForCc,
       Consumer<ErrorReport> addReports,
       Set<UID> providedCoSet,
-      CategoryCombo bundleCategoryCombo) {
+      UID bundleCategoryCombo) {
     Set<Set<UID>> expectedSetOfCos =
         expectedSizeResult.expectedCocs.stream().map(HashSet::new).collect(Collectors.toSet());
 
@@ -224,7 +226,7 @@ public class CategoryOptionComboObjectBundleHook
                 CategoryOptionCombo.class,
                 ErrorCode.E1131,
                 providedCoSet,
-                bundleCategoryCombo.getUid(),
+                bundleCategoryCombo,
                 expectedCos));
       }
     }
