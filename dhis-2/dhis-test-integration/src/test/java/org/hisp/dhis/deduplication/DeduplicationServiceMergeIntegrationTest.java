@@ -44,6 +44,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -70,6 +71,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Override
   public void setUpTest() {
@@ -100,6 +103,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
     enrollmentService.addEnrollment(enrollment1);
     enrollmentService.addEnrollment(enrollment2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program1, ou);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     trackedEntityService.updateTrackedEntity(original);
@@ -152,6 +157,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
     enrollmentService.addEnrollment(enrollment1);
     enrollmentService.addEnrollment(enrollment2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program1, ou);
     enrollmentService.updateEnrollment(enrollment1);
     enrollmentService.updateEnrollment(enrollment2);
     original.getEnrollments().add(enrollment1);

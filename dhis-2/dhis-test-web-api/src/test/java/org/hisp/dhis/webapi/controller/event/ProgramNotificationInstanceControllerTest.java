@@ -46,6 +46,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -66,6 +67,9 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Autowired private TrackedEntityService teiService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+
   private Enrollment enrollment;
   private Event event;
   private ProgramNotificationInstance enrollmentNotification1;
@@ -85,6 +89,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     teiService.addTrackedEntity(teiA);
     enrollment = createEnrollment(prA, teiA, ouA);
     enrollmentService.addEnrollment(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(teiA, prA, ouA);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
     enrollmentNotification1.setName("enrollment A notification 1");
