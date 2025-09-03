@@ -27,8 +27,8 @@
 ---
 name: single_events_null_occurred_date
 description: Single events without an occurred date
-section: Tracker
-section_order: 1
+section: Programs
+section_order: 3
 summary_sql: >-
   WITH rs as (
   SELECT e.uid
@@ -72,9 +72,8 @@ recommendation: >-
   ensure that you have a backup of your database before running this command, 
   ensure that DHIS2 is not running, perform the change in a test environment first. 
   
-  After linking fixing the single event, 
-  restart DHIS2 and re-run the integrity check to ensure that the single event has an occurred date
-  and the integrity check no longer flags it.
+  After fixing the single event, restart DHIS2 and re-run the integrity check 
+  to ensure that the single event has an occurred date and the integrity check no longer flags it.
   
   Alternatively, if you know that the event is not needed or used, you can delete it.
   You can delete the single event using the following SQL command:
@@ -88,3 +87,4 @@ recommendation: >-
   
   If you are unsure how to proceed or encounter issues when either trying to fix or delete a single event, 
   please feel free to reach out on the DHIS2 Community of Practice forum at https://community.dhis2.org.
+is_slow: true
