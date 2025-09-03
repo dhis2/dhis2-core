@@ -47,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -75,6 +76,8 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
   @Autowired private ProgramStageInstanceService programStageInstanceService;
 
   @Autowired protected UserService _userService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private Date incidentDate;
 
@@ -165,7 +168,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
     programInstanceD.setUid("UID-D");
     programInstanceD.setOrganisationUnit(organisationUnitB);
     programInstanceE = new ProgramInstance(enrollmentDate, incidentDate, entityInstanceB, programA);
-    programInstanceE.setUid("UID-F");
+    programInstanceE.setUid("UID-E");
     programInstanceE.setOrganisationUnit(organisationUnitA);
 
     injectSecurityContext(user);
@@ -173,16 +176,16 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testAddProgramInstance() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
-    long idB = programInstanceService.addProgramInstance(programInstanceB);
+    long idA = addProgramInstance(programInstanceA);
+    long idB = addProgramInstance(programInstanceB);
     assertNotNull(programInstanceService.getProgramInstance(idA));
     assertNotNull(programInstanceService.getProgramInstance(idB));
   }
 
   @Test
   void testDeleteProgramInstance() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
-    long idB = programInstanceService.addProgramInstance(programInstanceB);
+    long idA = addProgramInstance(programInstanceA);
+    long idB = addProgramInstance(programInstanceB);
     assertNotNull(programInstanceService.getProgramInstance(idA));
     assertNotNull(programInstanceService.getProgramInstance(idB));
     programInstanceService.deleteProgramInstance(programInstanceA);
@@ -195,7 +198,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
+    long idA = addProgramInstance(programInstanceA);
     long psiIdA = programStageInstanceService.addProgramStageInstance(programStageInstanceA);
     programInstanceA.setProgramStageInstances(Sets.newHashSet(programStageInstanceA));
     programInstanceService.updateProgramInstance(programInstanceA);
@@ -208,7 +211,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testUpdateProgramInstance() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
+    long idA = addProgramInstance(programInstanceA);
     assertNotNull(programInstanceService.getProgramInstance(idA));
     programInstanceA.setIncidentDate(enrollmentDate);
     programInstanceService.updateProgramInstance(programInstanceA);
@@ -217,25 +220,25 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetProgramInstanceById() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
-    long idB = programInstanceService.addProgramInstance(programInstanceB);
+    long idA = addProgramInstance(programInstanceA);
+    long idB = addProgramInstance(programInstanceB);
     assertEquals(programInstanceA, programInstanceService.getProgramInstance(idA));
     assertEquals(programInstanceB, programInstanceService.getProgramInstance(idB));
   }
 
   @Test
   void testGetProgramInstanceByUid() {
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceB);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceB);
     assertEquals("UID-A", programInstanceService.getProgramInstance("UID-A").getUid());
     assertEquals("UID-B", programInstanceService.getProgramInstance("UID-B").getUid());
   }
 
   @Test
   void testGetProgramInstancesByProgram() {
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceB);
-    programInstanceService.addProgramInstance(programInstanceD);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceB);
+    addProgramInstance(programInstanceD);
     List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(programA);
     assertEquals(2, programInstances.size());
     assertTrue(programInstances.contains(programInstanceA));
@@ -247,7 +250,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetProgramInstancesByEntityInstanceProgramStatus() {
-    programInstanceService.addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceA);
     ProgramInstance programInstance1 =
         programInstanceService.enrollTrackedEntityInstance(
             entityInstanceA, programA, enrollmentDate, incidentDate, organisationUnitA);
@@ -272,9 +275,9 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetProgramInstancesByOuProgram() {
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceC);
+    addProgramInstance(programInstanceD);
     List<ProgramInstance> programInstances =
         programInstanceService.getProgramInstances(
             new ProgramInstanceQueryParams()
@@ -289,9 +292,9 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
   void shouldFindSearchScopeEnrollmentsWhenOrgUnitModeAccessible() {
     User user = new User();
     user.setOrganisationUnits(Set.of(organisationUnitA));
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceC);
+    addProgramInstance(programInstanceD);
 
     List<ProgramInstance> programInstances =
         programInstanceService.getProgramInstances(
@@ -302,9 +305,9 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldFindOnlyCaptureScopeEnrollmentsWhenOrgUnitModeCapture() {
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceC);
+    addProgramInstance(programInstanceD);
 
     ProgramInstanceQueryParams params =
         new ProgramInstanceQueryParams().setOrganisationUnitMode(CAPTURE);
@@ -323,9 +326,9 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
   void shouldFailWhenOrgUnitModeRequiresOrgUnit(OrganisationUnitSelectionMode orgUnitMode) {
     User user = new User();
     user.setOrganisationUnits(Set.of(organisationUnitA));
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceC);
+    addProgramInstance(programInstanceD);
 
     ProgramInstanceQueryParams queryParams =
         new ProgramInstanceQueryParams().setOrganisationUnitMode(orgUnitMode).setUser(user);
@@ -348,8 +351,8 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testCompleteProgramInstanceStatus() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
-    long idD = programInstanceService.addProgramInstance(programInstanceD);
+    long idA = addProgramInstance(programInstanceA);
+    long idD = addProgramInstance(programInstanceD);
     programInstanceService.completeProgramInstanceStatus(programInstanceA);
     programInstanceService.completeProgramInstanceStatus(programInstanceD);
     assertEquals(
@@ -362,8 +365,8 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
   void testIncompleteProgramInstanceStatus() {
     programInstanceA.setStatus(ProgramStatus.COMPLETED);
     programInstanceD.setStatus(ProgramStatus.COMPLETED);
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
-    long idD = programInstanceService.addProgramInstance(programInstanceD);
+    long idA = addProgramInstance(programInstanceA);
+    long idD = addProgramInstance(programInstanceD);
     programInstanceService.incompleteProgramInstanceStatus(programInstanceA);
     programInstanceService.incompleteProgramInstanceStatus(programInstanceD);
     assertEquals(ProgramStatus.ACTIVE, programInstanceService.getProgramInstance(idA).getStatus());
@@ -372,8 +375,8 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testCancelProgramInstanceStatus() {
-    long idA = programInstanceService.addProgramInstance(programInstanceA);
-    long idD = programInstanceService.addProgramInstance(programInstanceD);
+    long idA = addProgramInstance(programInstanceA);
+    long idD = addProgramInstance(programInstanceD);
     programInstanceService.cancelProgramInstanceStatus(programInstanceA);
     programInstanceService.cancelProgramInstanceStatus(programInstanceD);
     assertEquals(
@@ -387,22 +390,25 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(organisationUnitA));
     programInstanceA.setEnrollmentDate(DateTime.now().toDate());
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceB);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceB);
     programInstanceC.setEnrollmentDate(DateTime.now().minusDays(1).toDate());
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
-    programInstanceE.setEnrollmentDate(DateTime.now().plusDays(1).toDate());
-    programInstanceService.addProgramInstance(programInstanceE);
+    addProgramInstance(programInstanceC);
+    programInstanceD.setEnrollmentDate(DateTime.now().plusDays(1).toDate());
+    addProgramInstance(programInstanceD);
+    programInstanceE.setEnrollmentDate(DateTime.now().plusDays(2).toDate());
+    addProgramInstance(programInstanceE);
 
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
     params.setOrganisationUnits(Set.of(organisationUnitA));
-    params.setOrder(List.of(new OrderParam("enrollmentdate", SortDirection.ASC)));
+    params.setOrder(List.of(new OrderParam("enrollmentDate", SortDirection.ASC)));
     params.setUser(user);
 
     List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
 
-    assertEquals(List.of(programInstanceC, programInstanceA, programInstanceE), programInstances);
+    assertEquals(
+        List.of(programInstanceC, programInstanceA, programInstanceD, programInstanceE),
+        programInstances);
   }
 
   @Test
@@ -410,22 +416,25 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(organisationUnitA));
     programInstanceA.setEndDate(DateTime.now().toDate());
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceB);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceB);
     programInstanceC.setEndDate(DateTime.now().plusDays(1).toDate());
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
-    programInstanceE.setEndDate(DateTime.now().minusDays(1).toDate());
-    programInstanceService.addProgramInstance(programInstanceE);
+    addProgramInstance(programInstanceC);
+    programInstanceD.setEndDate(DateTime.now().minusDays(1).toDate());
+    addProgramInstance(programInstanceD);
+    programInstanceE.setEndDate(DateTime.now().minusDays(2).toDate());
+    addProgramInstance(programInstanceE);
 
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
     params.setOrganisationUnits(Set.of(organisationUnitA));
-    params.setOrder(List.of(new OrderParam("enddate", SortDirection.ASC)));
+    params.setOrder(List.of(new OrderParam("endDate", SortDirection.ASC)));
     params.setUser(user);
 
     List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
 
-    assertEquals(List.of(programInstanceE, programInstanceA, programInstanceC), programInstances);
+    assertEquals(
+        List.of(programInstanceE, programInstanceD, programInstanceA, programInstanceC),
+        programInstances);
   }
 
   @Test
@@ -433,13 +442,14 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(organisationUnitA));
     programInstanceA.setCreated(DateTime.now().plusDays(1).toDate());
-    programInstanceService.addProgramInstance(programInstanceA);
-    programInstanceService.addProgramInstance(programInstanceB);
-    programInstanceC.setCreated(DateTime.now().minusDays(1).toDate());
-    programInstanceService.addProgramInstance(programInstanceC);
-    programInstanceService.addProgramInstance(programInstanceD);
+    addProgramInstance(programInstanceA);
+    addProgramInstance(programInstanceB);
+    programInstanceC.setCreated(DateTime.now().minusDays(2).toDate());
+    addProgramInstance(programInstanceC);
+    programInstanceD.setCreated(DateTime.now().minusDays(1).toDate());
+    addProgramInstance(programInstanceD);
     programInstanceE.setCreated(DateTime.now().toDate());
-    programInstanceService.addProgramInstance(programInstanceE);
+    addProgramInstance(programInstanceE);
 
     ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
     params.setOrganisationUnits(Set.of(organisationUnitA));
@@ -448,6 +458,18 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest {
 
     List<ProgramInstance> programInstances = programInstanceService.getProgramInstances(params);
 
-    assertEquals(List.of(programInstanceA, programInstanceE, programInstanceC), programInstances);
+    assertEquals(
+        List.of(programInstanceA, programInstanceE, programInstanceD, programInstanceC),
+        programInstances);
+  }
+
+  private long addProgramInstance(ProgramInstance programInstance) {
+    long programInstanceId = programInstanceService.addProgramInstance(programInstance);
+    trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(
+        programInstance.getEntityInstance(),
+        programInstance.getProgram(),
+        programInstance.getOrganisationUnit());
+
+    return programInstanceId;
   }
 }

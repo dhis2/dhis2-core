@@ -45,6 +45,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -70,6 +71,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Override
   public void setUpTest() {
@@ -100,6 +103,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     ProgramInstance programInstance2 = createProgramInstance(program1, duplicate, ou);
     programInstanceService.addProgramInstance(programInstance1);
     programInstanceService.addProgramInstance(programInstance2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program1, ou);
     original.getProgramInstances().add(programInstance1);
     duplicate.getProgramInstances().add(programInstance2);
     trackedEntityInstanceService.updateTrackedEntityInstance(original);
@@ -155,6 +160,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     ProgramInstance programInstance2 = createProgramInstance(program1, duplicate, ou);
     programInstanceService.addProgramInstance(programInstance1);
     programInstanceService.addProgramInstance(programInstance2);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program1, ou);
     programInstanceService.updateProgramInstance(programInstance1);
     programInstanceService.updateProgramInstance(programInstance2);
     original.getProgramInstances().add(programInstance1);

@@ -71,6 +71,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
@@ -89,6 +91,8 @@ public class HibernatePotentialDuplicateStore
 
   private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
 
+  private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
+
   private final DhisConfigurationProvider config;
 
   public HibernatePotentialDuplicateStore(
@@ -100,6 +104,7 @@ public class HibernatePotentialDuplicateStore
       TrackedEntityInstanceStore trackedEntityInstanceStore,
       AuditManager auditManager,
       TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
+      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore,
       DhisConfigurationProvider config) {
     super(
         sessionFactory,
@@ -112,6 +117,7 @@ public class HibernatePotentialDuplicateStore
     this.trackedEntityInstanceStore = trackedEntityInstanceStore;
     this.auditManager = auditManager;
     this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
+    this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
     this.config = config;
   }
 
@@ -304,6 +310,11 @@ public class HibernatePotentialDuplicateStore
           e.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUserService.getCurrentUser()));
           e.setLastUpdated(new Date());
           getSession().update(e);
+          TrackedEntityProgramOwner trackedEntityProgramOwner =
+              trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
+                  duplicate.getId(), e.getProgram().getId());
+          trackedEntityProgramOwner.setEntityInstance(original);
+          trackedEntityProgramOwnerStore.update(trackedEntityProgramOwner);
         });
 
     // Flush to update records before we delete duplicate, or else it might
