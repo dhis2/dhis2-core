@@ -36,6 +36,7 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -45,7 +46,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -109,7 +109,7 @@ public class HibernateTrackedEntityProgramOwnerStore
   }
 
   @Override
-  public void save(@NotNull TrackedEntityProgramOwner trackedEntityProgramOwner) {
+  public void save(@Nonnull TrackedEntityProgramOwner trackedEntityProgramOwner) {
     super.save(trackedEntityProgramOwner);
     ownerCache.invalidate(
         getOwnershipCacheKey(
@@ -117,7 +117,7 @@ public class HibernateTrackedEntityProgramOwnerStore
   }
 
   @Override
-  public void update(@NotNull TrackedEntityProgramOwner trackedEntityProgramOwner) {
+  public void update(@Nonnull TrackedEntityProgramOwner trackedEntityProgramOwner) {
     super.update(trackedEntityProgramOwner);
     ownerCache.invalidate(
         getOwnershipCacheKey(
