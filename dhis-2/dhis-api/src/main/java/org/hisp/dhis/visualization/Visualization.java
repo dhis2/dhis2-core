@@ -42,7 +42,6 @@ import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PRETTY_NAMES;
 import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -120,12 +119,19 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
 
   private static final String ILLEGAL_FILENAME_CHARS_REGEX = "[/\\?%*:|\"'<>.]";
 
-  public static final Map<String, String> COLUMN_NAMES =
+  private static final Map<String, String> COLUMN_NAMES =
       Map.of(
           DATA_X_DIM_ID, "data",
           CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
           PERIOD_DIM_ID, "period",
           ORGUNIT_DIM_ID, "organisationunit");
+
+  private static final Map<String, MetadataItem> DISPLAY_NAMES =
+      Map.of(
+          DATA_X_DIM_ID, new MetadataItem("Data"),
+          CATEGORYOPTIONCOMBO_DIM_ID, new MetadataItem("Data details"),
+          PERIOD_DIM_ID, new MetadataItem("Period"),
+          ORGUNIT_DIM_ID, new MetadataItem("Organisation unit"));
 
   // -------------------------------------------------------------------------
   // Common attributes
@@ -1159,7 +1165,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    */
   private void addHeadersForRows(Grid grid) {
     Map<String, MetadataItem> metaData = getMetaData();
-    metaData.putAll(PRETTY_NAMES);
+    metaData.putAll(DISPLAY_NAMES);
 
     for (String dimension : rowDimensions) {
       String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());

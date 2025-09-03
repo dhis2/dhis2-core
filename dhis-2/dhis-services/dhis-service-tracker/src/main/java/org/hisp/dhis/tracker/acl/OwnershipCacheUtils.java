@@ -27,38 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.tracker.acl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-import java.util.function.Function;
-import org.hisp.dhis.common.auth.AuthScheme;
+class OwnershipCacheUtils {
 
-public abstract class AbstractAuthSchemeTest {
+  private OwnershipCacheUtils() {}
 
-  @SuppressWarnings("unchecked")
-  protected <T extends AuthScheme> void assertEncrypt(
-      T authScheme, Function<T, String> secretProvider) {
-    T encryptedAuthScheme =
-        (T)
-            authScheme.encrypt(
-                value -> {
-                  assertEquals(secretProvider.apply(authScheme), value);
-                  return "bar";
-                });
-    assertEquals("bar", secretProvider.apply(encryptedAuthScheme));
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  static String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+    return trackedEntity.getUid() + "_" + program.getUid();
   }
 
-  @SuppressWarnings("unchecked")
-  protected <T extends AuthScheme> void assertDecrypt(
-      T authScheme, Function<T, String> secretProvider) {
-    T decryptedAuthScheme =
-        (T)
-            authScheme.decrypt(
-                value -> {
-                  assertEquals(secretProvider.apply(authScheme), value);
-                  return "foo";
-                });
-    assertEquals("foo", secretProvider.apply(decryptedAuthScheme));
+  /**
+   * Returns key used to store and retrieve cached records for temporary ownership
+   *
+   * @return a String representing a record of temporary ownership
+   */
+  static String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
+    return teUid + "-" + programUid + "-" + userUid;
   }
 }
