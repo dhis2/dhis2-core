@@ -46,6 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   @Autowired private ProgramInstanceService programInstanceService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Test
   void shouldDeleteTrackedEntityInstance() {
@@ -159,6 +162,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     programInstanceService.addProgramInstance(programInstance2);
     programInstanceService.addProgramInstance(programInstance3);
     programInstanceService.addProgramInstance(programInstance4);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(control1, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(control2, program, ou);
     original.getProgramInstances().add(programInstance1);
     duplicate.getProgramInstances().add(programInstance2);
     control1.getProgramInstances().add(programInstance3);
