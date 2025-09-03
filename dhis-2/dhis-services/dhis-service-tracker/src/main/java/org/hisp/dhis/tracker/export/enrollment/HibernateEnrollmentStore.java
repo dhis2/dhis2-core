@@ -68,7 +68,7 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
 class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment> {
 
-  private static final String DEFAULT_ORDER = "id desc";
+  private static final String DEFAULT_ORDER = "en.id desc";
 
   private static final String STATUS = "status";
 
@@ -96,7 +96,8 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
     return buildEnrollmentHql(params)
         .getQuery()
-        .replaceFirst("from Enrollment en", "select count(distinct uid) from Enrollment en");
+        .replaceFirst(
+            "select en\\s+from Enrollment en", "select count(distinct en.uid) from Enrollment en");
   }
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
@@ -123,7 +124,15 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
-    String hql = "from Enrollment en";
+    String hql =
+        """
+        select en
+        from Enrollment en
+        join TrackedEntityProgramOwner tepo
+        on en.program = tepo.program
+        and en.trackedEntity = tepo.trackedEntity
+      """;
+
     SqlHelper hlp = new SqlHelper(true);
 
     if (params.hasEnrollmentUids()) {
@@ -218,7 +227,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     for (OrganisationUnit organisationUnit : organisationUnits) {
       ouClause
           .append(orHlp.or())
-          .append("en.organisationUnit.path LIKE '")
+          .append("tepo.organisationUnit.path LIKE '")
           .append(organisationUnit.getStoredPath())
           .append("%'");
     }
@@ -233,12 +242,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     for (OrganisationUnit organisationUnit : organisationUnits) {
       orgUnits
           .append(hlp.or())
-          .append("en.organisationUnit.path LIKE '")
+          .append("tepo.organisationUnit.path LIKE '")
           .append(organisationUnit.getStoredPath())
           .append("%'")
-          .append(" AND (en.organisationUnit.hierarchyLevel = ")
+          .append(" AND (tepo.organisationUnit.hierarchyLevel = ")
           .append(organisationUnit.getHierarchyLevel())
-          .append(" OR en.organisationUnit.hierarchyLevel = ")
+          .append(" OR tepo.organisationUnit.hierarchyLevel = ")
           .append((organisationUnit.getHierarchyLevel() + 1))
           .append(")");
     }
@@ -246,7 +255,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   }
 
   private String getSelectedQuery(Set<OrganisationUnit> organisationUnits) {
-    return "en.organisationUnit.uid in ("
+    return "tepo.organisationUnit.uid in ("
         + getQuotedCommaDelimitedString(getUids(organisationUnits))
         + ")";
   }

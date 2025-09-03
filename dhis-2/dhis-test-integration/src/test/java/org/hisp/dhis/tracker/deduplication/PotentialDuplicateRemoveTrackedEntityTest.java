@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -79,6 +80,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private RelationshipService relationshipService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private TrackedEntityType trackedEntityType;
 
@@ -188,6 +191,14 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.save(enrollment2);
     manager.save(enrollment3);
     manager.save(enrollment4);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        original, program, organisationUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        duplicate, program, organisationUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        control1, program, organisationUnit);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        control2, program, organisationUnit);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     control1.getEnrollments().add(enrollment3);
