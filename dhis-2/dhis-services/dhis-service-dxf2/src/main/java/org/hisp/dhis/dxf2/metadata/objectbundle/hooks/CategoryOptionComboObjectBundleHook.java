@@ -100,37 +100,50 @@ public class CategoryOptionComboObjectBundleHook
     // is it a create or update
     boolean cocIsPersisted = bundle.isPersisted(optionCombo);
 
-    // get provided CC UID
-    UID providedCc = UID.of(optionCombo.getCategoryCombo().getUid());
-
     // get provided CO set
     Set<UID> providedCoSet =
         optionCombo.getCategoryOptions().stream()
             .map(co -> UID.of(co.getUid()))
             .collect(Collectors.toSet());
 
+    CategoryCombo expectedCategoryCombo;
+
+    // get persisted CC, otherwise provided CC from bundle
+    if (cocIsPersisted) {
+      expectedCategoryCombo =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo).getCategoryCombo();
+    } else {
+      expectedCategoryCombo =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
+    }
+
+    if (expectedCategoryCombo == null) {
+      addReports.accept(
+          new ErrorReport(
+              CategoryCombo.class, ErrorCode.E1110, optionCombo.getCategoryCombo().getUid()));
+      return;
+    }
+
+    UID expectedCategoryComboUid = UID.of(expectedCategoryCombo.getUid());
+
     // get all provided COCs in bundle with same provided CC
     List<CategoryOptionCombo> persistedCocs =
         bundle.getObjects(CategoryOptionCombo.class, true).stream()
-            .filter(coc -> hasSameCcUid.test(coc, providedCc))
+            .filter(coc -> hasSameCcUid.test(coc, expectedCategoryComboUid))
             .toList();
 
     List<CategoryOptionCombo> newCocs =
         bundle.getObjects(CategoryOptionCombo.class, false).stream()
-            .filter(coc -> hasSameCcUid.test(coc, providedCc))
+            .filter(coc -> hasSameCcUid.test(coc, expectedCategoryComboUid))
             .toList();
 
     // all COCs provided in import
     List<CategoryOptionCombo> allProvidedCocsForCc =
         Stream.concat(persistedCocs.stream(), newCocs.stream()).toList();
 
-    // get CC
-    CategoryCombo bundleCategoryCombo =
-        bundle.getPreheat().get(bundle.getPreheatIdentifier(), optionCombo.getCategoryCombo());
-
     // check size
     ExpectedSizeResult expectedSizeResult =
-        checkExpectedSize(allProvidedCocsForCc.size(), bundleCategoryCombo, bundle, addReports);
+        checkExpectedSize(allProvidedCocsForCc.size(), expectedCategoryCombo, bundle, addReports);
 
     // perform state checks if expected size matches
     if (expectedSizeResult.isExpectedSize) {
@@ -138,7 +151,11 @@ public class CategoryOptionComboObjectBundleHook
       if (!cocIsPersisted && duplicateCocExists(optionCombo, addReports)) return;
 
       checkExpectedState(
-          expectedSizeResult, allProvidedCocsForCc, addReports, providedCoSet, bundleCategoryCombo);
+          expectedSizeResult,
+          allProvidedCocsForCc,
+          addReports,
+          providedCoSet,
+          expectedCategoryComboUid);
     }
   }
 
@@ -178,7 +195,7 @@ public class CategoryOptionComboObjectBundleHook
       List<CategoryOptionCombo> allProvidedCocsForCc,
       Consumer<ErrorReport> addReports,
       Set<UID> providedCoSet,
-      CategoryCombo bundleCategoryCombo) {
+      UID bundleCategoryCombo) {
     Set<Set<UID>> expectedSetOfCos =
         expectedSizeResult.expectedCocs.stream().map(HashSet::new).collect(Collectors.toSet());
 
@@ -209,7 +226,7 @@ public class CategoryOptionComboObjectBundleHook
                 CategoryOptionCombo.class,
                 ErrorCode.E1131,
                 providedCoSet,
-                bundleCategoryCombo.getUid(),
+                bundleCategoryCombo,
                 expectedCos));
       }
     }
