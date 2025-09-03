@@ -45,6 +45,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Test
   void shouldDeleteTrackedEntity() {
@@ -155,6 +158,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     enrollmentService.addEnrollment(enrollment2);
     enrollmentService.addEnrollment(enrollment3);
     enrollmentService.addEnrollment(enrollment4);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(original, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(duplicate, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(control1, program, ou);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(control2, program, ou);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     control1.getEnrollments().add(enrollment3);
