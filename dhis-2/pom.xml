@@ -1874,7 +1874,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>4.0.0.4121</version>
+          <version>5.2.0.4988</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
