@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey;
+
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -43,10 +46,16 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Ameen Mohamed
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService")
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService {
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
+  private final Cache<OrganisationUnit> ownerCache;
+
+  public DefaultTrackedEntityProgramOwnerService(
+      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore, CacheProvider cacheProvider) {
+    this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
+    this.ownerCache = cacheProvider.createProgramOwnerCache();
+  }
 
   @Override
   @Transactional
@@ -57,6 +66,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     trackedEntityProgramOwnerStore.save(
         buildTrackedEntityProgramOwner(trackedEntity, program, orgUnit));
+    ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
   }
 
   private TrackedEntityProgramOwner buildTrackedEntityProgramOwner(
@@ -84,6 +94,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
       trackedEntityProgramOwnerStore.update(teProgramOwner);
     }
+    ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
   }
 
   @Override
@@ -103,6 +114,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
+    ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
   }
 
   private void updateTrackedEntityProgramOwner(
