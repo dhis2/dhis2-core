@@ -902,7 +902,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .get("response")
             .as(JsonImportSummary.class);
 
-    // Then the import is successful and the COCs show as ignored
+    // Then the import fails and the COCs show as ignored
     assertEquals("ERROR", report.getStatus());
     assertEquals(0, report.getStats().getUpdated());
     assertEquals(5, report.getStats().getIgnored());
@@ -930,7 +930,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .get("response")
             .as(JsonImportSummary.class);
 
-    // Then the import is successful and the COCs show as ignored
+    // Then the import fails and the COCs show as ignored
     assertEquals("ERROR", report.getStatus());
     assertEquals(0, report.getStats().getUpdated());
     assertEquals(5, report.getStats().getIgnored());
