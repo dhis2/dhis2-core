@@ -905,7 +905,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Then the import fails and the COCs show as ignored
     assertEquals("ERROR", report.getStatus());
     assertEquals(0, report.getStats().getUpdated());
-    assertEquals(5, report.getStats().getIgnored());
+    assertEquals(2, report.getStats().getIgnored());
 
     JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
     JsonErrorReport errorReport = getFirstErrorReport(typeReport);
@@ -913,7 +913,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     String errorMessage = errorReport.getMessage();
     assertNotNull(errorMessage, "Expecting an error message in the import report");
     assertEquals(
-        "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        "Importing 0 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
         errorMessage);
   }
 
