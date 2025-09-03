@@ -1,0 +1,207 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.hibernate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Date;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.Test;
+
+class RawNativeQueryTest {
+
+  @Language("SQL")
+  String sql =
+      """
+    SELECT
+      de.uid AS deid,
+      pe.iso,
+      ou.uid AS ouid,
+      coc.uid AS cocid,
+      aoc.uid AS aocid,
+      dv.value,
+      dv.comment,
+      dv.followup,
+      dv.storedby,
+      dv.created,
+      dv.lastupdated,
+      dv.deleted
+    FROM datavalue dv
+    JOIN dataelement de ON dv.dataelementid = de.dataelementid
+    JOIN period pe ON dv.periodid = pe.periodid
+    JOIN periodtype pt ON pe.periodtypeid = pt.periodtypeid
+    JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+    JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+    JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+    WHERE -- filters use null-erasure...
+          dv.dataelementid = ANY(:de)
+      AND pe.iso = ANY(:pe)
+      AND pe.startDate >= :start
+      AND pe.endDate <= :end
+      AND pe.startdate <= :includedDate AND pe.enddate >= :includedDate
+      AND pt.name = ANY(:pt)
+      AND dv.sourceid = ANY(:ou)
+      AND ou.hierarchylevel = :level
+      AND ou.hierarchylevel >= :minLevel
+      AND ou.path LIKE ANY(:path)
+      AND dv.categoryoptioncomboid = ANY(:coc)
+      AND dv.categoryoptioncomboid = ANY(:aoc)
+      AND dv.lastupdated >= :lastUpdated
+      AND dv.deleted = :deleted
+      -- access check below must be 1 line for erasure
+      AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND :access)
+    ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
+    """;
+
+  private RawNativeQuery createNativeRawQuery(String sql) {
+    return new RawNativeQuery(sql, null);
+  }
+
+  @Test
+  void testAllParamsNull() {
+    Long[] noLongs = null;
+    String[] noStrings = null;
+    Date noDate = null;
+    Integer noInt = null;
+    Boolean noBool = null;
+    String minSql =
+        createNativeRawQuery(sql)
+            .setInOrAnyParameter("de", noLongs)
+            .setInOrAnyParameter("pe", noStrings)
+            .setInOrAnyParameter("pt", noStrings)
+            .setParameter("start", noDate)
+            .setParameter("end", noDate)
+            .setParameter("includedDate", noDate)
+            .setInOrAnyParameter("path", noStrings)
+            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("level", noInt)
+            .setParameter("minLevel", noInt)
+            .setInOrAnyParameter("coc", noLongs)
+            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("lastUpdated", noDate)
+            .setParameter("deleted", noBool)
+            .setDynamicClause("access", null)
+            .eraseOrder("ou.path", true)
+            .eraseOrder("pe.startdate", true)
+            .eraseOrder("pe.enddate", true)
+            .eraseOrder("dv.created", true)
+            .eraseOrder("deid", true)
+            .eraseNullParameterLines()
+            .eraseNullJoinLine("pt", "pt")
+            .setLimit(null)
+            .setOffset(null)
+            .toSQL();
+    assertEquals(
+        """
+      SELECT
+        de.uid AS deid,
+        pe.iso,
+        ou.uid AS ouid,
+        coc.uid AS cocid,
+        aoc.uid AS aocid,
+        dv.value,
+        dv.comment,
+        dv.followup,
+        dv.storedby,
+        dv.created,
+        dv.lastupdated,
+        dv.deleted
+      FROM datavalue dv
+      JOIN dataelement de ON dv.dataelementid = de.dataelementid
+      JOIN period pe ON dv.periodid = pe.periodid
+      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid""",
+        minSql);
+  }
+
+  @Test
+  void testSomeFilers() {
+    Long[] noLongs = null;
+    String[] noStrings = null;
+    Date noDate = null;
+    Integer noInt = null;
+    Boolean noBool = null;
+    String minSql =
+        createNativeRawQuery(sql)
+            .setInOrAnyParameter("de", noLongs)
+            .setInOrAnyParameter("pe", noStrings)
+            .setInOrAnyParameter("pt", "MONTHLY", "DAILY")
+            .setParameter("start", noDate)
+            .setParameter("end", noDate)
+            .setParameter("includedDate", noDate)
+            .setInOrAnyParameter("path", noStrings)
+            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("level", noInt)
+            .setParameter("minLevel", 3)
+            .setInOrAnyParameter("coc", noLongs)
+            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("lastUpdated", noDate)
+            .setParameter("deleted", noBool)
+            .setDynamicClause("access", null)
+            .eraseOrder("ou.path", false)
+            .eraseOrder("pe.startdate", true)
+            .eraseOrder("pe.enddate", true)
+            .eraseOrder("dv.created", true)
+            .eraseOrder("deid", true)
+            .eraseNullParameterLines()
+            .eraseNullJoinLine("pt", "pt")
+            .setLimit(null)
+            .setOffset(null)
+            .toSQL();
+    assertEquals(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN periodtype pt ON pe.periodtypeid = pt.periodtypeid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE
+          AND pt.name = ANY(:pt)
+          AND ou.hierarchylevel >= :minLevel
+        ORDER BY ou.path""",
+        minSql);
+  }
+}

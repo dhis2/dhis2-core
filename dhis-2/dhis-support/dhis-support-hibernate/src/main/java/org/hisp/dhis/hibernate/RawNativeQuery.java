@@ -119,15 +119,15 @@ public final class RawNativeQuery {
     return setInOrAnyParameter(name, value, UID::getValue);
   }
 
-  public RawNativeQuery setInOrAnyParameter(String name, String[] value) {
+  public RawNativeQuery setInOrAnyParameter(String name, String... value) {
     return setParameter(name, value, StringArrayType.INSTANCE);
   }
 
-  public RawNativeQuery setInOrAnyParameter(String name, Long[] value) {
+  public RawNativeQuery setInOrAnyParameter(String name, Long... value) {
     return setParameter(name, value, LongArrayType.INSTANCE);
   }
 
-  public RawNativeQuery setUnnestParameter(String name, String[] value) {
+  public RawNativeQuery setUnnestParameter(String name, String... value) {
     return setParameter(name, value, StringArrayType.INSTANCE);
   }
 
@@ -272,8 +272,9 @@ public final class RawNativeQuery {
   }
 
   private NativeQuery<?> toNativeQuery(boolean count) {
+    String minSql = toSQL(count);
     @SuppressWarnings("SqlSourceToSinkFlow")
-    NativeQuery<?> query = session.createNativeQuery(toSQL(count));
+    NativeQuery<?> query = session.createNativeQuery(minSql);
     params.forEach(
         (name, param) -> {
           if (!erasedParams.contains(name)) {
@@ -292,7 +293,8 @@ public final class RawNativeQuery {
   }
 
   public String toSQL(boolean count) {
-    String minSql = eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql))));
+    String minSql =
+        eraseComments(eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql)))));
     if (count) return replaceSelect(minSql);
     return minSql;
   }
@@ -309,15 +311,25 @@ public final class RawNativeQuery {
 
   private String eraseNullJoins(String sql) {
     if (erasedJoins.isEmpty() || erasedParams.isEmpty()) return sql;
-    return sql.lines().filter(this::containsErasedJoin).collect(joining("\n"));
+    return sql.lines().filter(not(this::containsErasedJoin)).collect(joining("\n"));
   }
 
   private String eraseNullClauses(String sql) {
-    if (clauses.isEmpty()) return sql;
+    if (erasedClause.isEmpty()) return sql;
     return sql.lines()
         .filter(not(this::containsErasedClause))
         .map(this::replaceClauses)
         .collect(joining("\n"));
+  }
+
+  private String eraseComments(String sql) {
+    List<String> lines =
+        sql.lines().map(this::replaceComments).filter(not(String::isBlank)).toList();
+    // also erase dangling WHERE
+    String lastLine = lines.get(lines.size() - 1);
+    if (lastLine.contains("WHERE") && lastLine.trim().equals("WHERE"))
+      lines = lines.subList(0, lines.size() - 1);
+    return String.join("\n", lines);
   }
 
   private boolean containsErasedParameter(String line) {
@@ -327,11 +339,10 @@ public final class RawNativeQuery {
   private boolean containsErasedJoin(String line) {
     int iJoin = line.indexOf("JOIN ");
     if (iJoin < 0) return false;
-    int iNextSpace = line.indexOf(' ', iJoin + 1);
-    if (iNextSpace < 0) return false; // give up
-    int iOn = line.indexOf(" ON ", iNextSpace);
+    int iOn = line.indexOf(" ON ", iJoin + 5);
     if (iOn < 0) return false; // give up
-    String alias = line.substring(iNextSpace, iOn).trim();
+    int iSpace = line.lastIndexOf(' ', iOn - 1);
+    String alias = line.substring(iSpace, iOn).trim();
     if (!erasedJoins.containsKey(alias)) return false;
     return erasedParams.containsAll(erasedJoins.get(alias));
   }
@@ -350,6 +361,32 @@ public final class RawNativeQuery {
     for (Map.Entry<String, String> clause : clauses.entrySet())
       res = res.replace(":" + clause.getKey(), clause.getValue());
     return res;
+  }
+
+  private String replaceComments(String line) {
+    if (!line.contains("--")) return line;
+    // from back of the line walk only alphanumeric and whitespace and see of there is a --
+    char[] chars = line.toCharArray();
+    int i = line.length() - 1;
+    while (i >= 0) {
+      while (i >= 0 && isCommentText(chars[i])) i--;
+      if (i < 0) return line;
+      if (chars[i] == '-' && i > 0 && chars[i - 1] == '-') {
+        // found a comment
+        i--;
+        while (i > 1 && " \t".indexOf(chars[i - 1]) >= 0) i--;
+        return line.substring(0, i);
+      }
+      i--;
+    }
+    return line;
+  }
+
+  private static boolean isCommentText(char c) {
+    return c >= 'a' && c <= 'z'
+        || c >= 'A' && c <= 'Z'
+        || c >= '0' && c <= '9'
+        || "+:;,._ \t".indexOf(c) >= 0;
   }
 
   /**
