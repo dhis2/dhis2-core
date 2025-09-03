@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey;
+import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -145,8 +148,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
             hibernateTrackedEntity, program, orgUnit);
       }
-
-      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
     } else {
       log.error("Unauthorized attempt to change ownership");
       throw new ForbiddenException(
@@ -370,23 +371,5 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         s ->
             programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntityUid, user)
                 > 0);
-  }
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @return a String representing a record of ownership
-   */
-  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
-    return trackedEntity.getUid() + "_" + program.getUid();
-  }
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @return a String representing a record of ownership
-   */
-  private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
-    return teUid + "-" + programUid + "-" + userUid;
   }
 }
