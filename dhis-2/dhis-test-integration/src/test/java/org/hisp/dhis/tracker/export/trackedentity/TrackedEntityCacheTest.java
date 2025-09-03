@@ -30,14 +30,20 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -51,9 +57,11 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -67,6 +75,9 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,14 +86,16 @@ import org.springframework.transaction.annotation.Transactional;
 // use a cache in our integration tests
 @ActiveProfiles("cache-test")
 @Transactional
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(Lifecycle.PER_CLASS)
 class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
-  @Autowired private TestSetup testSetup;
-  @Autowired private IdentifiableObjectManager manager;
-  @Autowired private TrackedEntityService trackedEntityService;
-  @Autowired private ProgramService programService;
-  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
-  @Autowired private TrackerImportService trackerImportService;
+  private final TestSetup testSetup;
+  private final IdentifiableObjectManager manager;
+  private final TrackedEntityService trackedEntityService;
+  private final ProgramService programService;
+  private final TrackerOwnershipManager trackerOwnershipManager;
+  private final TrackerImportService trackerImportService;
+  private final Cache<OrganisationUnit> ownerCache;
+  private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
   private User regularUser;
   private Program programA;
@@ -90,6 +103,26 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
   private String trackedEntityB;
   private String trackedEntityC;
   private PageParams defaultPageParams;
+
+  @Autowired
+  public TrackedEntityCacheTest(
+      TestSetup testSetup,
+      IdentifiableObjectManager manager,
+      TrackedEntityService trackedEntityService,
+      ProgramService programService,
+      TrackerOwnershipManager trackerOwnershipManager,
+      TrackerImportService trackerImportService,
+      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore,
+      CacheProvider cacheProvider) {
+    this.testSetup = testSetup;
+    this.manager = manager;
+    this.trackedEntityService = trackedEntityService;
+    this.programService = programService;
+    this.trackerOwnershipManager = trackerOwnershipManager;
+    this.trackerImportService = trackerImportService;
+    this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
+    this.ownerCache = cacheProvider.createProgramOwnerCache();
+  }
 
   @BeforeAll
   void setUp() throws IOException, BadRequestException, ForbiddenException, NotFoundException {
@@ -180,6 +213,35 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
             UserDetails.fromUser(regularUser), trackedEntity, programA));
   }
 
+  @ParameterizedTest
+  @MethodSource("programOwnerConsumers")
+  void shouldInvalidateCacheAfterSavingOrUpdatingProgramOwner(
+      Consumer<TrackedEntityProgramOwner> programOwnerConsumer) {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
+    assertNotNull(orgUnit);
+    injectSecurityContextUser(regularUser);
+
+    assertTrue(
+        trackerOwnershipManager.hasAccess(
+            UserDetails.fromUser(regularUser), trackedEntity, programA));
+    assertTrue(ownerCache.get(trackedEntityA + "_" + programA.getUid()).isPresent());
+    assertEquals(
+        orgUnit.getUid(), ownerCache.get(trackedEntityA + "_" + programA.getUid()).get().getUid());
+
+    OrganisationUnit ownerOrgUnit = manager.get(OrganisationUnit.class, "tSsGrtfRzjY");
+    TrackedEntityProgramOwner trackedEntityProgramOwner =
+        createProgramOwner(trackedEntity, programA, ownerOrgUnit);
+
+    programOwnerConsumer.accept(trackedEntityProgramOwner);
+
+    assertTrue(ownerCache.get(trackedEntityA + "_" + programA.getUid()).isEmpty());
+  }
+
+  private Stream<Consumer<TrackedEntityProgramOwner>> programOwnerConsumers() {
+    return Stream.of(trackedEntityProgramOwnerStore::save, trackedEntityProgramOwnerStore::update);
+  }
+
   private TrackedEntityOperationParams createProgramOperationParams() {
     return TrackedEntityOperationParams.builder()
         .program(programA)
@@ -217,5 +279,15 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
         .occurredAt(Instant.now())
         .status(EnrollmentStatus.ACTIVE)
         .build();
+  }
+
+  private TrackedEntityProgramOwner createProgramOwner(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
+    TrackedEntityProgramOwner trackedEntityProgramOwner =
+        new TrackedEntityProgramOwner(trackedEntity, program, orgUnit);
+    trackedEntityProgramOwner.setCreated(Date.from(Instant.now()));
+    trackedEntityProgramOwner.setLastUpdated(Date.from(Instant.now()));
+
+    return trackedEntityProgramOwner;
   }
 }
