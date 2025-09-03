@@ -127,7 +127,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.19.2</jackson.version>
+    <jackson.version>2.20.0</jackson.version>
     <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
