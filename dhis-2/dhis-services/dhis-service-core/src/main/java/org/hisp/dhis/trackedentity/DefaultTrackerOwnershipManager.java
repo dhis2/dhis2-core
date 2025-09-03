@@ -28,10 +28,11 @@
 package org.hisp.dhis.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.trackedentity.OwnershipCacheUtils.getOwnershipCacheKey;
+import static org.hisp.dhis.trackedentity.OwnershipCacheUtils.getTempOwnershipCacheKey;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -447,33 +448,5 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           return (programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntity, user)
               > 0);
         });
-  }
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @param trackedEntityIdSupplier
-   * @param program
-   * @return a String representing a record of ownership
-   */
-  private String getOwnershipCacheKey(LongSupplier trackedEntityIdSupplier, Program program) {
-    return trackedEntityIdSupplier.getAsLong() + "_" + program.getUid();
-  }
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @param teUid
-   * @param programUid
-   * @return a String representing a record of ownership
-   */
-  private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
-    return new StringBuilder()
-        .append(teUid)
-        .append("-")
-        .append(programUid)
-        .append("-")
-        .append(userUid)
-        .toString();
   }
 }

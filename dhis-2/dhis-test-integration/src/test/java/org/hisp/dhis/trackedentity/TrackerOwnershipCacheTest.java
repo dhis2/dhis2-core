@@ -28,11 +28,14 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -53,21 +56,23 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("cache-test")
 class TrackerOwnershipCacheTest extends IntegrationTestBase {
 
-  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
+  private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  @Autowired private UserService _userService;
+  private final UserService _userService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  private final TrackedEntityService entityInstanceService;
 
-  @Autowired private OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-  @Autowired private ProgramService programService;
+  private final ProgramService programService;
 
-  @Autowired private EnrollmentService enrollmentService;
+  private final EnrollmentService enrollmentService;
 
-  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+  private final TrackedEntityTypeService trackedEntityTypeService;
+
+  private final Cache<OrganisationUnit> ownerCache;
 
   private TrackedEntity entityInstanceB1;
 
@@ -76,6 +81,28 @@ class TrackerOwnershipCacheTest extends IntegrationTestBase {
   private Program programA;
 
   private User userA;
+
+  @Autowired
+  public TrackerOwnershipCacheTest(
+      TrackerOwnershipManager trackerOwnershipAccessManager,
+      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
+      UserService _userService,
+      TrackedEntityService entityInstanceService,
+      OrganisationUnitService organisationUnitService,
+      ProgramService programService,
+      EnrollmentService enrollmentService,
+      CacheProvider cacheProvider,
+      TrackedEntityTypeService trackedEntityTypeService) {
+    this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+    this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+    this._userService = _userService;
+    this.entityInstanceService = entityInstanceService;
+    this.organisationUnitService = organisationUnitService;
+    this.programService = programService;
+    this.enrollmentService = enrollmentService;
+    this.ownerCache = cacheProvider.createProgramOwnerCache();
+    this.trackedEntityTypeService = trackedEntityTypeService;
+  }
 
   @Override
   protected void setUpTest() throws Exception {
@@ -132,6 +159,19 @@ class TrackerOwnershipCacheTest extends IntegrationTestBase {
   void shouldOnlyHaveAccessWhenOwnerPresentIfRegisteringOrgUnitNotAccessible() {
     assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceB1, programA));
     assignOwnership(entityInstanceB1, programA, organisationUnitA);
+    assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceB1, programA));
+  }
+
+  @Test
+  void shouldInvalidateCacheAfterSavingProgramOwner() {
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceB1, programA));
+    assertTrue(ownerCache.get(entityInstanceB1.getId() + "_" + programA.getUid()).isPresent());
+    assertEquals(
+        entityInstanceB1.getOrganisationUnit().getUid(),
+        ownerCache.get(entityInstanceB1.getId() + "_" + programA.getUid()).get().getUid());
+
+    assignOwnership(entityInstanceB1, programA, organisationUnitA);
+    assertTrue(ownerCache.get(entityInstanceB1.getId() + "_" + programA.getUid()).isEmpty());
     assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceB1, programA));
   }
 

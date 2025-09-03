@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -42,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Ameen Mohamed
  */
+@RequiredArgsConstructor
 @Service("org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService")
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService {
   // -------------------------------------------------------------------------
@@ -52,25 +50,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
   private final ProgramService programService;
   private final OrganisationUnitService orgUnitService;
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
-  private final Cache<OrganisationUnit> ownerCache;
-
-  public DefaultTrackedEntityProgramOwnerService(
-      TrackedEntityService trackedEntityService,
-      ProgramService programService,
-      OrganisationUnitService orgUnitService,
-      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore,
-      CacheProvider cacheProvider) {
-    checkNotNull(programService);
-    checkNotNull(orgUnitService);
-    checkNotNull(trackedEntityProgramOwnerStore);
-    checkNotNull(cacheProvider);
-
-    this.trackedEntityService = trackedEntityService;
-    this.programService = programService;
-    this.orgUnitService = orgUnitService;
-    this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
-    this.ownerCache = cacheProvider.createProgramOwnerCache();
-  }
 
   @Override
   @Transactional
@@ -89,8 +68,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     trackedEntityProgramOwnerStore.save(
         buildTrackedEntityProgramOwner(entityInstance, program, ou));
-
-    ownerCache.invalidate(getOwnershipCacheKey(entityInstance, program));
   }
 
   @Override
@@ -102,8 +79,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     trackedEntityProgramOwnerStore.save(
         buildTrackedEntityProgramOwner(entityInstance, program, ou));
-
-    ownerCache.invalidate(getOwnershipCacheKey(entityInstance, program));
   }
 
   private TrackedEntityProgramOwner buildTrackedEntityProgramOwner(
@@ -142,7 +117,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, ou);
       trackedEntityProgramOwnerStore.update(teProgramOwner);
     }
-    ownerCache.invalidate(getOwnershipCacheKey(entityInstance, program));
   }
 
   @Override
@@ -188,7 +162,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, ou);
       trackedEntityProgramOwnerStore.update(teProgramOwner);
     }
-    ownerCache.invalidate(getOwnershipCacheKey(entityInstance, program));
   }
 
   @Override
@@ -206,7 +179,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, ou);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
-    ownerCache.invalidate(getOwnershipCacheKey(entityInstance, program));
   }
 
   private TrackedEntityProgramOwner updateTrackedEntityProgramOwner(
@@ -296,9 +268,5 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
         entityInstance.getId(), program.getId());
-  }
-
-  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
-    return trackedEntity.getId() + "_" + program.getUid();
   }
 }
