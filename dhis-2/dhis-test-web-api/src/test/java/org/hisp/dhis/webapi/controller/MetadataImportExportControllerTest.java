@@ -895,7 +895,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Given category metadata exists
     POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
 
-    // When only importing (update) COCs that match the expected COC state
+    // When updating a COC's CC
     JsonImportSummary report =
         POST("/metadata", Path.of("metadata/category/update_coc_cc.json"))
             .contentUnchecked()
@@ -923,7 +923,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     // Given category metadata exists
     POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
 
-    // When only importing (update) COCs that match the expected COC state
+    // When updating a COC's COs
     JsonImportSummary report =
         POST("/metadata", Path.of("metadata/category/update_coc_co.json"))
             .contentUnchecked()
