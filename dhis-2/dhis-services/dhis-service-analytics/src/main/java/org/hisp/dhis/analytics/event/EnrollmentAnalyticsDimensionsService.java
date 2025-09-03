@@ -36,4 +36,6 @@ public interface EnrollmentAnalyticsDimensionsService {
   List<PrefixedDimension> getQueryDimensionsByProgramId(String programId);
 
   List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programId);
+
+  List<PrefixedDimension> getAggregateDimensionsByProgramId(String programId);
 }

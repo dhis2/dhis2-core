@@ -65,9 +65,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService {
   private final ProgramStageService programStageService;
 
@@ -90,6 +92,26 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
           .collect(Collectors.toList());
     }
     return List.of();
+  }
+
+  @Override
+  public List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programStageId) {
+    return Optional.of(programStageId)
+        .map(programStageService::getProgramStage)
+        .map(
+            ps ->
+                collectDimensions(
+                    List.of(
+                        filterByValueType(AGGREGATE, ofDataElements(ps)),
+                        filterByValueType(
+                            QUERY,
+                            ofItemsWithProgram(
+                                ps.getProgram(), ps.getProgram().getTrackedEntityAttributes())),
+                        ofItemsWithProgram(ps.getProgram(), getCategories(ps.getProgram())),
+                        ofItemsWithProgram(
+                            ps.getProgram(),
+                            getAttributeCategoryOptionGroupSetsIfNeeded(ps.getProgram())))))
+        .orElse(List.of());
   }
 
   private Set<ProgramStage> getProgramStages(String programId, String programStageId) {
@@ -142,26 +164,6 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                             ofItemsWithProgram(p, getTeasIfRegistrationAndNotConfidential(p))),
                         ofItemsWithProgram(p, getCategories(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
-        .orElse(List.of());
-  }
-
-  @Override
-  public List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programStageId) {
-    return Optional.of(programStageId)
-        .map(programStageService::getProgramStage)
-        .map(
-            ps ->
-                collectDimensions(
-                    List.of(
-                        filterByValueType(AGGREGATE, ofDataElements(ps)),
-                        filterByValueType(
-                            AGGREGATE,
-                            ofItemsWithProgram(
-                                ps.getProgram(), ps.getProgram().getTrackedEntityAttributes())),
-                        ofItemsWithProgram(ps.getProgram(), getCategories(ps.getProgram())),
-                        ofItemsWithProgram(
-                            ps.getProgram(),
-                            getAttributeCategoryOptionGroupSetsIfNeeded(ps.getProgram())))))
         .orElse(List.of());
   }
 
