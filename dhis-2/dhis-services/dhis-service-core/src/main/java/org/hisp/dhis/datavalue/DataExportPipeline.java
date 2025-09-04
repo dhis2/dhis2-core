@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.datavalue;
+
+import java.io.OutputStream;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ConflictException;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Utility to convert between internal data records {@link DataExportGroup.Output} and external text
+ * formats.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
+ */
+@Component
+@RequiredArgsConstructor
+public class DataExportPipeline {
+
+  private final DataExportService service;
+
+  @Transactional(readOnly = true)
+  public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {
+    DataExportOutput.toJson(service.exportGroup(params), out);
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsJsonSync(DataExportParams params, OutputStream out) throws ConflictException {
+    // TODO params.setOrderForSync(true); // make sure
+    // TODO also make it skip validation
+    exportAsJson(params, out);
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {
+    DataExportOutput.toCsv(service.exportGroup(params), out);
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {
+    DataExportOutput.toXml(service.exportGroup(params), out);
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsXmlGroups(DataExportParams params, OutputStream out)
+      throws ConflictException {
+    DataExportOutput.toXml(service.exportInGroups(params), out);
+  }
+}

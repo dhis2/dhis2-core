@@ -29,23 +29,26 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +64,11 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
+  @Autowired private DataExportService dataExportService;
   @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportStore dataExportStore;
+
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -101,10 +108,10 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     dataElementService.addDataElement(deB);
     dataElementService.addDataElement(deC);
     dataElementService.addDataElement(deD);
-    peA = createPeriod(getDay(5), getDay(6));
-    peB = createPeriod(getDay(6), getDay(7));
-    peC = createPeriod(getDay(7), getDay(8));
-    peX = createPeriod(getDay(27), getDay(28));
+    peA = PeriodType.getPeriodType(DAILY).createPeriod(getDay(5));
+    peB = peA.next();
+    peC = peB.next();
+    peX = PeriodType.getPeriodType(DAILY).createPeriod(getDay(27));
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     ouC = createOrganisationUnit('C');
@@ -121,88 +128,109 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   @Test
-  void testAddDataValue() {
+  void testAddDataValue() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouA, optionCombo, optionCombo, "3");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueA = dataValueService.getDataValue(deA, peA, ouA, optionCombo);
-    assertNotNull(dataValueA);
-    assertNotNull(dataValueA.getCreated());
-    assertEquals(ouA.getId(), dataValueA.getSource().getId());
-    assertEquals(deA, dataValueA.getDataElement());
-    assertEquals(peA, dataValueA.getPeriod());
-    assertEquals("1", dataValueA.getValue());
-    dataValueB = dataValueService.getDataValue(deB, peA, ouA, optionCombo);
-    assertNotNull(dataValueB);
-    assertNotNull(dataValueB.getCreated());
-    assertEquals(ouA.getId(), dataValueB.getSource().getId());
-    assertEquals(deB, dataValueB.getDataElement());
-    assertEquals(peA, dataValueB.getPeriod());
-    assertEquals("2", dataValueB.getValue());
-    dataValueC = dataValueService.getDataValue(deC, peC, ouA, optionCombo);
-    assertNotNull(dataValueC);
-    assertNotNull(dataValueC.getCreated());
-    assertEquals(ouA.getId(), dataValueC.getSource().getId());
-    assertEquals(deC, dataValueC.getDataElement());
-    assertEquals(peC, dataValueC.getPeriod());
-    assertEquals("3", dataValueC.getValue());
+    addDataValues(dataValueA, dataValueB, dataValueC);
+    DataExportValue dvA =
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
+    assertNotNull(dvA);
+    assertNotNull(dvA.created());
+    assertEquals(ouA.getUid(), dvA.orgUnit().getValue());
+    assertEquals(deA.getUid(), dvA.dataElement().getValue());
+    assertEquals(peA.getIsoDate(), dvA.period());
+    assertEquals("1", dvA.value());
+    DataExportValue dvB =
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo));
+    assertNotNull(dvB);
+    assertNotNull(dvB.created());
+    assertEquals(ouA.getUid(), dvB.orgUnit().getValue());
+    assertEquals(deB.getUid(), dvB.dataElement().getValue());
+    assertEquals(peA.getIsoDate(), dvB.period());
+    assertEquals("2", dvB.value());
+    DataExportValue dvC =
+        dataExportService.exportValue(new DataEntryKey(deC, peC, ouA, optionCombo, optionCombo));
+    assertNotNull(dvC);
+    assertNotNull(dvC.created());
+    assertEquals(ouA.getUid(), dvC.orgUnit().getValue());
+    assertEquals(deC.getUid(), dvC.dataElement().getValue());
+    assertEquals(peC.getIsoDate(), dvC.period());
+    assertEquals("3", dvC.value());
   }
 
   @Test
-  void testUpdataDataValue() {
+  void testUpdateDataValue() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "2");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    assertNotNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deB, peA, ouB, optionCombo));
+    addDataValues(dataValueA, dataValueB);
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo)));
     dataValueA.setValue("5");
-    dataValueService.updateDataValue(dataValueA);
-    dataValueA = dataValueService.getDataValue(deA, peA, ouA, optionCombo);
-    assertNotNull(dataValueA);
-    assertEquals("5", dataValueA.getValue());
-    dataValueB = dataValueService.getDataValue(deB, peA, ouB, optionCombo);
-    assertNotNull(dataValueB);
-    assertEquals("2", dataValueB.getValue());
+    addDataValues(dataValueA);
+    DataExportValue dvA =
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
+    assertNotNull(dvA);
+    assertEquals("5", dvA.value());
+    DataExportValue dvB =
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo));
+    assertNotNull(dvB);
+    assertEquals("2", dvB.value());
   }
 
   @Test
-  void testDeleteAndGetDataValue() {
+  void testDeleteAndGetDataValue() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deC, peC, ouD, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    assertNotNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueA);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueB);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueC);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNotNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
-    dataValueService.deleteDataValue(dataValueD);
-    assertNull(dataValueService.getDataValue(deA, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deB, peA, ouA, optionCombo));
-    assertNull(dataValueService.getDataValue(deC, peC, ouD, optionCombo));
-    assertNull(dataValueService.getDataValue(deD, peC, ouB, optionCombo));
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+    deleteDataValue(dataValueA);
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+    deleteDataValue(dataValueB);
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+    deleteDataValue(dataValueC);
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNotNull(
+        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+    deleteDataValue(dataValueD);
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+    assertNull(
+        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
   }
 
   // -------------------------------------------------------------------------
@@ -210,7 +238,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   @Test
-  void testGetDataValuesDataExportParamsA() {
+  void testGetDataValuesDataExportParamsA() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deA, peB, ouA, optionCombo, optionCombo, "3");
@@ -221,39 +249,37 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueH = new DataValue(deB, peB, ouB, optionCombo, optionCombo, "8");
     DataValue dataValueI = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "9");
     DataValue dataValueJ = new DataValue(deA, peC, ouB, optionCombo, optionCombo, "10");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    dataValueService.addDataValue(dataValueE);
-    dataValueService.addDataValue(dataValueF);
-    dataValueService.addDataValue(dataValueG);
-    dataValueService.addDataValue(dataValueH);
-    dataValueService.addDataValue(dataValueI);
-    dataValueService.addDataValue(dataValueJ);
+    addDataValues(
+        dataValueA,
+        dataValueB,
+        dataValueC,
+        dataValueD,
+        dataValueE,
+        dataValueF,
+        dataValueG,
+        dataValueH,
+        dataValueI,
+        dataValueJ);
     DataExportParams params =
-        new DataExportParams()
-            .setDataElements(Set.of(deA))
-            .setPeriods(Set.of(peA, peB, peC))
-            .setOrganisationUnits(Set.of(ouA));
-    List<DataValue> values = dataValueService.getDataValues(params);
-    assertEquals(3, values.size());
-    assertTrue(values.contains(dataValueA));
-    assertTrue(values.contains(dataValueC));
-    assertTrue(values.contains(dataValueI));
+        DataExportParams.builder()
+            .dataElement(Set.of(deA.getUid()))
+            .period(Set.of(peA.getIsoDate(), peB.getIsoDate(), peC.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .build();
+    Stream<DataExportValue> values = dataExportService.exportValues(params);
+    assertEquals(Set.of("1", "3", "9"), values.map(DataExportValue::value).collect(toSet()));
     params =
-        new DataExportParams()
-            .setDataElements(Set.of(deB))
-            .setPeriods(Set.of(peA))
-            .setOrganisationUnits(Set.of(ouA, ouB));
-    values = dataValueService.getDataValues(params);
-    assertEquals(2, values.size());
-    assertTrue(values.contains(dataValueE));
-    assertTrue(values.contains(dataValueF));
+        DataExportParams.builder()
+            .dataElement(Set.of(deB.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+            .build();
+    values = dataExportService.exportValues(params);
+    assertEquals(Set.of("5", "6"), values.map(DataExportValue::value).collect(toSet()));
   }
 
   @Test
-  void testGetDataValuesDataExportParamsB() {
+  void testGetDataValuesDataExportParamsB() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deA, peB, ouA, optionCombo, optionCombo, "3");
@@ -264,145 +290,147 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueH = new DataValue(deB, peB, ouB, optionCombo, optionCombo, "8");
     DataValue dataValueI = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "9");
     DataValue dataValueJ = new DataValue(deA, peC, ouB, optionCombo, optionCombo, "10");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    dataValueService.addDataValue(dataValueE);
-    dataValueService.addDataValue(dataValueF);
-    dataValueService.addDataValue(dataValueG);
-    dataValueService.addDataValue(dataValueH);
-    dataValueService.addDataValue(dataValueI);
-    dataValueService.addDataValue(dataValueJ);
+    addDataValues(
+        dataValueA,
+        dataValueB,
+        dataValueC,
+        dataValueD,
+        dataValueE,
+        dataValueF,
+        dataValueG,
+        dataValueH,
+        dataValueI,
+        dataValueJ);
 
     assertEquals(
         4,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA, deB))
-                    .setPeriods(Set.of(peB))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid(), deB.getUid()))
+                    .period(Set.of(peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         2,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA, deB))
-                    .setPeriods(Set.of(peA))
-                    .setOrganisationUnits(Set.of(ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid(), deB.getUid()))
+                    .period(Set.of(peA.getIsoDate()))
+                    .orgUnit(Set.of(ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         4,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setPeriods(Set.of(peA, peC))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peA.getIsoDate(), peC.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         4,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deB))
-                    .setPeriods(Set.of(peA, peB))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deB.getUid()))
+                    .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         1,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deB))
-                    .setPeriods(Set.of(peB))
-                    .setOrganisationUnits(Set.of(ouA)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deB.getUid()))
+                    .period(Set.of(peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid()))
+                    .build())
+            .count());
     assertEquals(
         1,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setPeriods(Set.of(peA))
-                    .setOrganisationUnits(Set.of(ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peA.getIsoDate()))
+                    .orgUnit(Set.of(ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         1,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setStartDate(peA.getStartDate())
-                    .setEndDate(peA.getEndDate())
-                    .setOrganisationUnits(Set.of(ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .startDate(peA.getStartDate())
+                    .endDate(peA.getEndDate())
+                    .orgUnit(Set.of(ouB.getUid()))
+                    .build())
+            .count());
   }
 
   @Test
-  void testGetDataValuesExportParamsC() {
+  void testGetDataValuesExportParamsC() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
 
     assertEquals(
         2,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setCategoryOptionCombos(Set.of(optionCombo))
-                    .setPeriods(Set.of(peA))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peA.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
   }
 
   @Test
-  void testGetDataValuesNonExistingPeriodA() {
+  void testGetDataValuesNonExistingPeriodA() throws ConflictException {
 
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
-    dataValueService.addDataValue(dataValueA);
+    addDataValues(dataValueA);
 
     assertEquals(
         0,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setCategoryOptionCombos(Set.of(optionCombo))
-                    .setPeriods(Set.of(peX))
-                    .setOrganisationUnits(Set.of(ouA)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peX.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid()))
+                    .build())
+            .count());
   }
 
   @Test
-  void testGetDataValuesNonExistingPeriodB() {
+  void testGetDataValuesNonExistingPeriodB() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouA, optionCombo, optionCombo, "3");
     DataValue dataValueD = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
 
     assertEquals(
         2,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setCategoryOptionCombos(Set.of(optionCombo))
-                    .setPeriods(Set.of(peA, peX))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peA.getIsoDate(), peX.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
   }
 
   @Test
@@ -415,17 +443,12 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     dataValueC.setValue("3");
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo);
     dataValueD.setValue("4");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    List<DataValue> dataValues = dataValueService.getAllDataValues();
-    assertNotNull(dataValues);
-    assertEquals(4, dataValues.size());
+    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
+    assertEquals(4, dataExportStore.getAllDataValues().size());
   }
 
   @Test
-  void testGetDataValuesDataElementsPeriodsOrgUnits() {
+  void testGetDataValuesDataElementsPeriodsOrgUnits() throws ConflictException {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deA, peB, ouA, optionCombo, optionCombo, "3");
@@ -436,88 +459,97 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueH = new DataValue(deB, peB, ouB, optionCombo, optionCombo, "8");
     DataValue dataValueI = new DataValue(deA, peC, ouA, optionCombo, optionCombo, "9");
     DataValue dataValueJ = new DataValue(deA, peC, ouB, optionCombo, optionCombo, "10");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
-    dataValueService.addDataValue(dataValueD);
-    dataValueService.addDataValue(dataValueE);
-    dataValueService.addDataValue(dataValueF);
-    dataValueService.addDataValue(dataValueG);
-    dataValueService.addDataValue(dataValueH);
-    dataValueService.addDataValue(dataValueI);
-    dataValueService.addDataValue(dataValueJ);
+    addDataValues(
+        dataValueA,
+        dataValueB,
+        dataValueC,
+        dataValueD,
+        dataValueE,
+        dataValueF,
+        dataValueG,
+        dataValueH,
+        dataValueI,
+        dataValueJ);
     assertEquals(
         4,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA, deB))
-                    .setPeriods(Set.of(peB))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid(), deB.getUid()))
+                    .period(Set.of(peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         2,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA, deB))
-                    .setPeriods(Set.of(peA))
-                    .setOrganisationUnits(Set.of(ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid(), deB.getUid()))
+                    .period(Set.of(peA.getIsoDate()))
+                    .orgUnit(Set.of(ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         2,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setPeriods(Set.of(peC))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peC.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         4,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setPeriods(Set.of(peA, peC))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peA.getIsoDate(), peC.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         4,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deB))
-                    .setPeriods(Set.of(peA, peB))
-                    .setOrganisationUnits(Set.of(ouA, ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deB.getUid()))
+                    .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+                    .build())
+            .count());
     assertEquals(
         1,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deB))
-                    .setPeriods(Set.of(peB))
-                    .setOrganisationUnits(Set.of(ouA)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deB.getUid()))
+                    .period(Set.of(peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid()))
+                    .build())
+            .count());
     assertEquals(
         1,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deB))
-                    .setPeriods(Set.of(peB))
-                    .setOrganisationUnits(Set.of(ouA)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deB.getUid()))
+                    .period(Set.of(peB.getIsoDate()))
+                    .orgUnit(Set.of(ouA.getUid()))
+                    .build())
+            .count());
     assertEquals(
         1,
-        dataValueService
-            .getDataValues(
-                new DataExportParams()
-                    .setDataElements(Set.of(deA))
-                    .setPeriods(Set.of(peA))
-                    .setOrganisationUnits(Set.of(ouB)))
-            .size());
+        dataExportService
+            .exportValues(
+                DataExportParams.builder()
+                    .dataElement(Set.of(deA.getUid()))
+                    .period(Set.of(peA.getIsoDate()))
+                    .orgUnit(Set.of(ouB.getUid()))
+                    .build())
+            .count());
   }
 
   @Test
@@ -525,19 +557,17 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueA = new DataValue(deA, peA, ouA, optionCombo, optionCombo, "1");
     DataValue dataValueB = new DataValue(deA, peA, ouB, optionCombo, optionCombo, "2");
     DataValue dataValueC = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "3");
-    dataValueService.addDataValue(dataValueA);
-    dataValueService.addDataValue(dataValueB);
-    dataValueService.addDataValue(dataValueC);
+    addDataValues(dataValueA, dataValueB, dataValueC);
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
-    dataValueService.deleteDataValue(dataValueC);
+    deleteDataValue(dataValueC);
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
     assertEquals(
         2, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, false));
-    dataValueService.deleteDataValue(dataValueB);
+    deleteDataValue(dataValueB);
     assertEquals(
         3, dataValueService.getDataValueCountLastUpdatedBetween(getDate(1970, 1, 1), null, true));
     assertEquals(
@@ -545,57 +575,62 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testVAlidateMissingDataElement() {
-    assertIllegalQueryEx(
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                dataValueService.validate(
-                    new DataExportParams()
-                        .setPeriods(Set.of(peB))
-                        .setOrganisationUnits(Set.of(ouA)))),
-        ErrorCode.E2001);
+  void testValidateMissingDataElement() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .period(Set.of(peB.getIsoDate()))
+            .orgUnit(Set.of(ouA.getUid()))
+            .build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> dataExportService.exportValues(params));
+    assertEquals(ErrorCode.E2001, ex.getCode());
   }
 
   @Test
   void testValidateMissingPeriod() {
-    assertIllegalQueryEx(
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                dataValueService.validate(
-                    new DataExportParams()
-                        .setDataElements(Set.of(deA, deB))
-                        .setOrganisationUnits(Set.of(ouB)))),
-        ErrorCode.E2002);
+    DataExportParams params =
+        DataExportParams.builder()
+            .dataElement(Set.of(deA.getUid(), deB.getUid()))
+            .orgUnit(Set.of(ouB.getUid()))
+            .build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> dataExportService.exportValues(params));
+    assertEquals(ErrorCode.E2002, ex.getCode());
   }
 
   @Test
   void testValidatePeriodAndStartEndDate() {
-    assertIllegalQueryEx(
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                dataValueService.validate(
-                    new DataExportParams()
-                        .setDataElements(Set.of(deA, deB))
-                        .setPeriods(Set.of(peA))
-                        .setStartDate(getDate(2022, 1, 1))
-                        .setEndDate(getDate(2022, 3, 1))
-                        .setOrganisationUnits(Set.of(ouB)))),
-        ErrorCode.E2003);
+    DataExportParams params =
+        DataExportParams.builder()
+            .dataElement(Set.of(deA.getUid(), deB.getUid()))
+            .period(Set.of(peA.getIsoDate()))
+            .startDate(getDate(2022, 1, 1))
+            .endDate(getDate(2022, 3, 1))
+            .orgUnit(Set.of(ouB.getUid()))
+            .build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> dataExportService.exportValues(params));
+    assertEquals(ErrorCode.E2003, ex.getCode());
   }
 
   @Test
   void testValidateMissingOrgUnit() {
-    assertIllegalQueryEx(
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                dataValueService.validate(
-                    new DataExportParams()
-                        .setDataElements(Set.of(deA, deB))
-                        .setPeriods(Set.of(peB)))),
-        ErrorCode.E2006);
+    DataExportParams params =
+        DataExportParams.builder()
+            .dataElement(Set.of(deA.getUid(), deB.getUid()))
+            .period(Set.of(peB.getUid()))
+            .build();
+    ConflictException ex =
+        assertThrows(ConflictException.class, () -> dataExportService.exportValues(params));
+    assertEquals(ErrorCode.E2006, ex.getCode());
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
+  }
+
+  private void deleteDataValue(DataValue dv) {
+    dv.setDeleted(true);
+    addDataValues(dv);
   }
 }

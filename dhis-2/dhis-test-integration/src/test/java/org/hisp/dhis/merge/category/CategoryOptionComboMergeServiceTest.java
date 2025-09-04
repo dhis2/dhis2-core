@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.Date;
@@ -42,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -66,14 +66,18 @@ import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -135,7 +139,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private MergeService categoryOptionComboMergeService;
   @Autowired private PeriodService periodService;
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
+  @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
@@ -729,9 +734,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocDuplicate2, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
     dbmsManager.clearSession();
 
     // when
@@ -741,17 +744,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDvs = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDvs = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDvs.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDvs.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -786,9 +789,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocDuplicate, cocRandom, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocTarget, cocRandom, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -800,17 +801,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -845,9 +846,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2024-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -857,17 +856,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -879,7 +878,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("source value 2"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataExportValue::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -905,9 +904,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -917,17 +914,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -939,7 +936,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("target value 3"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataExportValue::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -972,12 +969,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3b = createDataValue(de3, p1, ou1, cocTarget, cocRandom, "keep target value 3b");
     dv3b.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1a);
-    dataValueStore.addDataValue(dv1b);
-    dataValueStore.addDataValue(dv2a);
-    dataValueStore.addDataValue(dv2b);
-    dataValueStore.addDataValue(dv3a);
-    dataValueStore.addDataValue(dv3b);
+    addDataValues(dv1a, dv1b, dv2a, dv2b, dv3a, dv3b);
 
     dbmsManager.clearSession();
 
@@ -987,17 +979,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getCategoryOptionCombo().getUid()))
+                        .contains(dv.categoryOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getCategoryOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.categoryOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1009,7 +1001,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("keep source value 1b", "keep source value 2a", "keep target value 3b"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataExportValue::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1033,9 +1025,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocDuplicate2, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
     dbmsManager.clearSession();
 
     // when
@@ -1045,17 +1035,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDvs = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDvs = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDvs.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDvs.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1090,9 +1080,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(de2, p2, ou1, cocRandom, cocDuplicate, "value2");
     DataValue dv3 = createDataValue(de3, p3, ou1, cocRandom, cocTarget, "value3");
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1103,17 +1091,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1148,9 +1136,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2024-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -1160,17 +1146,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1182,7 +1168,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("source value 2"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataExportValue::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1208,9 +1194,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3 = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3");
     dv3.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     dbmsManager.clearSession();
 
@@ -1220,17 +1204,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1242,7 +1226,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("target value 3"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataExportValue::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1275,12 +1259,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv3b = createDataValue(de3, p1, ou1, cocRandom, cocTarget, "keep target value 3b");
     dv3b.setLastUpdated(DateUtils.parseDate("2025-01-04"));
 
-    dataValueStore.addDataValue(dv1a);
-    dataValueStore.addDataValue(dv1b);
-    dataValueStore.addDataValue(dv2a);
-    dataValueStore.addDataValue(dv2b);
-    dataValueStore.addDataValue(dv3a);
-    dataValueStore.addDataValue(dv3b);
+    addDataValues(dv1a, dv1b, dv2a, dv2b, dv3a, dv3b);
 
     dbmsManager.clearSession();
 
@@ -1290,17 +1269,17 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
-    List<DataValue> sourceItems =
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
+    List<DataExportValue> sourceItems =
         allDataValues.stream()
             .filter(
                 dv ->
                     Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())
-                        .contains(dv.getAttributeOptionCombo().getUid()))
+                        .contains(dv.attributeOptionCombo().getValue()))
             .toList();
-    List<DataValue> targetItems =
+    List<DataExportValue> targetItems =
         allDataValues.stream()
-            .filter(dv -> dv.getAttributeOptionCombo().getUid().equals(cocTarget.getUid()))
+            .filter(dv -> dv.attributeOptionCombo().getValue().equals(cocTarget.getUid()))
             .toList();
 
     List<CategoryOptionCombo> allCategoryOptionCombos =
@@ -1312,7 +1291,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertEquals(
         Set.of("keep source value 1b", "keep source value 2a", "keep target value 3b"),
-        targetItems.stream().map(DataValue::getValue).collect(Collectors.toSet()));
+        targetItems.stream().map(DataExportValue::value).collect(Collectors.toSet()));
     assertTrue(
         allCategoryOptionCombos.stream().anyMatch(coc -> cocTarget.getUid().equals(coc.getUid())),
         "Target COC should be present");
@@ -1332,19 +1311,14 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "DataValueAudits with references to source COCs are deleted when sources are deleted")
-  void dataValueAuditMergeDeleteTest() throws ConflictException {
+  void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
-    DataValueAudit dva1 = createDataValueAudit(cocDuplicate, "1", p1);
-    DataValueAudit dva2 = createDataValueAudit(cocDuplicate, "2", p1);
-    DataValueAudit dva3 = createDataValueAudit(cocDuplicate, "1", p1);
-    DataValueAudit dva4 = createDataValueAudit(cocDuplicate, "2", p1);
-    DataValueAudit dva5 = createDataValueAudit(cocTarget, "1", p1);
-
-    dataValueAuditStore.addDataValueAudit(dva1);
-    dataValueAuditStore.addDataValueAudit(dva2);
-    dataValueAuditStore.addDataValueAudit(dva3);
-    dataValueAuditStore.addDataValueAudit(dva4);
-    dataValueAuditStore.addDataValueAudit(dva5);
+    dataDumpService.upsertValues(
+        createDataValue(cocDuplicate, "1", p1),
+        createDataValue(cocDuplicate, "2", p1),
+        createDataValue(cocDuplicate, "1", p1),
+        createDataValue(cocDuplicate, "2", p1),
+        createDataValue(cocTarget, "1", p1));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2231,17 +2205,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return mergeParams;
   }
 
-  private DataValueAudit createDataValueAudit(CategoryOptionCombo coc, String value, Period p) {
-    DataValueAudit dva = new DataValueAudit();
-    dva.setDataElement(de1);
-    dva.setValue(value);
-    dva.setAuditType(AuditOperationType.CREATE);
-    dva.setCreated(new Date());
-    dva.setCategoryOptionCombo(coc);
-    dva.setAttributeOptionCombo(coc);
-    dva.setPeriod(p);
-    dva.setOrganisationUnit(ou1);
-    return dva;
+  private DataEntryValue.Input createDataValue(CategoryOptionCombo coc, String value, Period p) {
+    return new DataEntryValue.Input(
+        de1.getUid(), ou1.getUid(), p.getIsoDate(), coc.getUid(), coc.getUid(), value, null);
   }
 
   private DataApprovalAudit createDataApprovalAudit(
@@ -2272,5 +2238,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {
     return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

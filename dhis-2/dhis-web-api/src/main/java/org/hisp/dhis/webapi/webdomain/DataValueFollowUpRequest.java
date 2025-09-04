@@ -29,16 +29,17 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
 import lombok.Data;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
 
 /**
  * @author Lars Helge Overland
@@ -47,7 +48,7 @@ import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 @OpenApi.Shared
 public class DataValueFollowUpRequest {
   @JsonProperty
-  @OpenApi.Property({UID.class, DataSet.class})
+  @OpenApi.Property({UID.class, DataElement.class})
   private String dataElement;
 
   @JsonProperty
@@ -66,12 +67,27 @@ public class DataValueFollowUpRequest {
   @OpenApi.Property({UID.class, CategoryOptionCombo.class})
   private String attributeOptionCombo;
 
-  @JsonProperty private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryParams attribute;
 
   @JsonProperty private Boolean followup;
 
-  @JsonIgnore
-  public boolean hasAttribute() {
-    return attribute != null;
+  public DataEntryValue.Input toDataEntryValue() {
+    // note: here null for non-key properties means "keep current value"
+    // because this uses partial update later
+    String attributeCombo = attribute == null ? null : attribute.getCombo();
+    Set<String> attributeOptions = attribute == null ? null : attribute.getOptions();
+    return new DataEntryValue.Input(
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        null,
+        attributeOptionCombo,
+        attributeCombo,
+        attributeOptions,
+        period,
+        null,
+        null,
+        followup,
+        null);
   }
 }

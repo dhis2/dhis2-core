@@ -44,6 +44,7 @@ import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -69,9 +70,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
@@ -116,9 +118,9 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataDumpService dataDumpService;
 
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -569,7 +571,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   private String getAllDataValues() {
-    List<DataValue> allDataValues = dataValueStore.getAllDataValues();
+    List<DataExportValue> allDataValues = dataExportStore.getAllDataValues();
     StringBuilder sb = new StringBuilder("All data values (" + allDataValues.size() + "):\n");
     allDataValues.forEach(d -> sb.append("  ").append(d.toString()).append("\n"));
     return sb.toString();
@@ -594,7 +596,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void useDataValue(DataElement e, Period p, OrganisationUnit s, String value) {
-    dataValueService.addDataValue(createDataValue(e, p, s, optionCombo, optionCombo, value));
+    addDataValues(createDataValue(e, p, s, optionCombo, optionCombo, value));
   }
 
   private void useDataValue(
@@ -604,7 +606,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
       String value,
       CategoryOptionCombo oc1,
       CategoryOptionCombo oc2) {
-    dataValueService.addDataValue(createDataValue(e, p, s, oc1, oc2, value));
+    addDataValues(createDataValue(e, p, s, oc1, oc2, value));
   }
 
   // -------------------------------------------------------------------------
@@ -1710,5 +1712,9 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   private ValidationAnalysisParams createParamsMonthlySourceAPeriodA() {
     return validationService.newParamsBuilder(dataSetMonthly, sourceA, periodA).build();
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

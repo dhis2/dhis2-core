@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -39,24 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditStore {
-  String ID = DataValueAuditStore.class.getName();
-
-  /**
-   * Updates the given audit.
-   *
-   * <p>OBS! This is for use in tests only!
-   *
-   * @param dataValueAudit entry to update
-   */
-  void updateDataValueAudit(DataValueAudit dataValueAudit);
-
-  /**
-   * Adds a DataValueAudit.
-   *
-   * @param dataValueAudit the DataValueAudit to add.
-   */
-  void addDataValueAudit(DataValueAudit dataValueAudit);
+public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
 
   /**
    * Deletes all data value audits for the given organisation unit.
@@ -87,6 +71,24 @@ public interface DataValueAuditStore {
    * @return a list of {@link DataValueAudit}.
    */
   List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+
+  /**
+   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
+   * AOC are unspecified in the parameters the default is used.
+   *
+   * @param params the key to the value
+   * @return the audit events for the value stored most recent to oldest
+   */
+  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params);
+
+  /**
+   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
+   * AOC are unspecified in the parameters the default is used.
+   *
+   * @param key the key to the value
+   * @return the audit events for the value stored most recent to oldest
+   */
+  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataEntryKey key);
 
   /**
    * Counts data value audits for the given query.

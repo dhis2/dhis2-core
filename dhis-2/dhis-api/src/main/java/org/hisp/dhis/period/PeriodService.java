@@ -32,23 +32,17 @@ package org.hisp.dhis.period;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * @author Kristian Nordal
  */
 public interface PeriodService {
-  // -------------------------------------------------------------------------
-  // Period
-  // -------------------------------------------------------------------------
-
   /**
    * Adds a Period.
    *
    * @param period the Period to add.
-   * @return a generated unique id of the added Period.
    */
-  long addPeriod(Period period);
+  void addPeriod(Period period);
 
   /**
    * Deletes a Period.
@@ -72,26 +66,6 @@ public interface PeriodService {
    * @return the Period with the given ISO period identifier.
    */
   Period getPeriod(String isoPeriod);
-
-  /**
-   * Returns a Period.
-   *
-   * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
-   * @param periodType the PeriodType of the Period
-   * @return the Period matching the dates and periodtype, or null if no match.
-   */
-  Period getPeriod(Date startDate, Date endDate, PeriodType periodType);
-
-  /**
-   * Returns a Period.
-   *
-   * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
-   * @param periodType the PeriodType of the Period
-   * @return the Period matching the dates and periodtype, or null if no match.
-   */
-  Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType);
 
   /**
    * Returns all persisted Periods.
@@ -124,16 +98,6 @@ public interface PeriodService {
   List<Period> getPeriodsBetweenDates(PeriodType periodType, Date startDate, Date endDate);
 
   /**
-   * Returns all Periods with either i) start and end date between the given start and end date or
-   * ii) start date before the given start date and end date after the given end date.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return a list of Periods.
-   */
-  List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate);
-
-  /**
    * Returns Periods where at least one its days are between the given start date and end date.
    *
    * @param startDate the start date.
@@ -163,14 +127,6 @@ public interface PeriodService {
   List<Period> getInclusivePeriods(Period period, Collection<Period> periods);
 
   /**
-   * Returns all Periods with a given PeriodType.
-   *
-   * @param periodType the PeriodType of the Periods to return.
-   * @return all Periods with the given PeriodType, or an empty list if no Periods match.
-   */
-  List<Period> getPeriodsByPeriodType(PeriodType periodType);
-
-  /**
    * Enforces that each Period in the given collection is loaded in the current session. Persists
    * the Period if it does not exist.
    *
@@ -188,16 +144,6 @@ public interface PeriodService {
    * @return a list of {@link Period}.
    */
   List<Period> getPeriods(Period lastPeriod, int previousPeriods);
-
-  /**
-   * Populates the name property of Period with the formatted name for the Periods in the given
-   * collection.
-   *
-   * @param periods the collection of Periods.
-   * @param format the I18nFormat.
-   * @return a collection of Periods.
-   */
-  Collection<Period> namePeriods(Collection<Period> periods, I18nFormat format);
 
   /**
    * Checks if the given Period is associated with the current session. If not, replaces the Period
@@ -230,14 +176,6 @@ public interface PeriodService {
   List<Period> reloadIsoPeriods(List<String> isoPeriods);
 
   /**
-   * Returns a PeriodHierarchy instance.
-   *
-   * @param periods the Periods to include in the PeriodHierarchy.
-   * @return a PeriodHierarchy instance.
-   */
-  PeriodHierarchy getPeriodHierarchy(Collection<Period> periods);
-
-  /**
    * Returns how many days into period date is. If date is before period.startDate, returns 0. If
    * date is after period.endDate, return last day of period.
    *
@@ -250,14 +188,6 @@ public interface PeriodService {
   // -------------------------------------------------------------------------
   // PeriodType
   // -------------------------------------------------------------------------
-
-  /**
-   * Returns a persisted PeriodType.
-   *
-   * @param id the id of the PeriodType to return.
-   * @return the PeriodType with the given id, or null if no match.
-   */
-  PeriodType getPeriodType(int id);
 
   /**
    * Returns a PeriodType with the given name.
@@ -293,15 +223,4 @@ public interface PeriodService {
   default PeriodType getPeriodType(PeriodTypeEnum periodType) {
     return getPeriodTypeByName(periodType.getName());
   }
-
-  // -------------------------------------------------------------------------
-  // RelativePeriods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Deletes a RelativePeriods instance.
-   *
-   * @param relativePeriods the RelativePeriods instance.
-   */
-  void deleteRelativePeriods(RelativePeriods relativePeriods);
 }

@@ -30,23 +30,24 @@
 package org.hisp.dhis.webapi.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.NameableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
@@ -265,20 +266,21 @@ public class FormUtils {
     return dataElement.getValueType();
   }
 
-  public static void fillWithDataValues(Form form, Collection<DataValue> dataValues) {
+  public static void fillWithDataValues(Form form, Stream<DataExportValue> dataValues) {
     Map<String, Field> operandFieldMap = buildCacheMap(form);
 
-    for (DataValue dataValue : dataValues) {
-      DataElement dataElement = dataValue.getDataElement();
-      CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
+    dataValues.forEach(
+        dataValue -> {
+          UID dataElement = dataValue.dataElement();
+          UID categoryOptionCombo = dataValue.categoryOptionCombo();
 
-      Field field = operandFieldMap.get(dataElement.getUid() + SEP + categoryOptionCombo.getUid());
+          Field field = operandFieldMap.get(dataElement + SEP + categoryOptionCombo);
 
-      if (field != null) {
-        field.setValue(dataValue.getValue());
-        field.setComment(dataValue.getComment());
-      }
-    }
+          if (field != null) {
+            field.setValue(dataValue.value());
+            field.setComment(dataValue.comment());
+          }
+        });
   }
 
   private static Map<String, Field> buildCacheMap(Form form) {

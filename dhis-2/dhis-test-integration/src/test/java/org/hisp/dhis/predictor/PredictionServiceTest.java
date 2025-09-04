@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -54,13 +55,13 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
-import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -74,8 +75,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +107,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private BatchHandlerFactory batchHandlerFactory;
+  @Autowired private DataDumpService dataDumpService;
 
   private OrganisationUnitLevel orgUnitLevel1;
 
@@ -177,7 +176,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   private DataSet dataSetMonthly;
 
-  private BatchHandler<DataValue> dataValueBatchHandler;
+  private List<DataValue> pendingValues = new ArrayList<>();
 
   private PredictionSummary summary;
 
@@ -294,8 +293,6 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             "sum(#{" + dataElementA.getUid() + "}+#{" + dataElementB.getUid() + "})",
             "descriptionG");
     summary = new PredictionSummary();
-    dataValueBatchHandler =
-        batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
     Set<OrganisationUnit> units = Sets.newHashSet(sourceA, sourceB, sourceG);
 
     User user = createAndAddUser(true, "mockUser", units, units);
@@ -337,7 +334,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       CategoryOptionCombo attributeOptionCombo,
       Object value,
       boolean deleted) {
-    dataValueBatchHandler.addObject(
+    pendingValues.add(
         createDataValue(
             e,
             periodService.reloadPeriod(p),
@@ -359,8 +356,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       CategoryOptionCombo attributeOptionCombo,
       OrganisationUnit source,
       Period period) {
-    DataExportParams params =
-        new DataExportParams()
+    DataExportStoreParams params =
+        new DataExportStoreParams()
             .setDataElementOperands(Sets.newHashSet(new DataElementOperand(dataElement, combo)))
             .setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo))
             .setOrganisationUnits(Sets.newHashSet(source))
@@ -489,12 +486,17 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2003, 7), sourceF, 1);
     useDataValue(dataElementB, makeMonth(2003, 9), sourceF, 1);
     useDataValue(dataElementB, makeMonth(2003, 10), sourceF, 1);
-    dataValueBatchHandler.flush();
+    flushDataValues();
+  }
+
+  private void flushDataValues() {
+    dataDumpService.upsertValues(pendingValues.toArray(DataValue[]::new));
+    pendingValues.clear();
   }
 
   private void testPredictMissingValuesFunction(String function) {
     useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 33);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             function + "(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}",
@@ -538,7 +540,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictWithCategoryOptionCombo() {
     useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 5);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -622,7 +624,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2023, 3), sourceA, 40);
 
     useDataValue(dataElementB, makeMonth(2023, 2), sourceA, 10);
-    dataValueBatchHandler.flush();
+    flushDataValues();
 
     Expression expression = new Expression("sum(#{" + dataElementA.getUid() + "})", "expression");
     Expression skipTest = new Expression("#{" + dataElementB.getUid() + "} == 10", "skipTest");
@@ -818,7 +820,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 7), sourceE, 2);
     useDataValue(dataElementA, makeMonth(2001, 6), sourceF, 4);
     useDataValue(dataElementA, makeMonth(2001, 7), sourceF, 8);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Set<OrganisationUnitLevel> orgUnitLevels =
         Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor p =
@@ -951,7 +953,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2001, 8), sourceA, 2);
     useDataValue(dataElementB, makeMonth(2001, 9), sourceA, 3);
     useDataValue(dataElementB, makeMonth(2001, 10), sourceA, 4);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -982,7 +984,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2001, 8), sourceA, 2);
     useDataValue(dataElementB, makeMonth(2001, 9), sourceA, 3);
     useDataValue(dataElementB, makeMonth(2001, 10), sourceA, 4);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1007,7 +1009,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   void testPredictMultipleDataElements() {
     useDataValue(dataElementA, makeMonth(2010, 6), sourceA, 3);
     useDataValue(dataElementB, makeMonth(2010, 6), sourceA, 5);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1051,7 +1053,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2011, 6), sourceA, optionComboJL, 2);
     useDataValue(dataElementA, makeMonth(2011, 6), sourceA, optionComboKL, 3);
     useDataValue(dataElementB, makeMonth(2011, 6), sourceA, optionComboKL, 4);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1080,7 +1082,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 10);
     useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 20);
     useDataValue(dataElementB, makeMonth(2001, 7), sourceA, 40);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1152,7 +1154,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 1);
     useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 2);
     useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 3);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1184,7 +1186,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 1);
     useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 2);
     useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 4);
-    dataValueBatchHandler.flush();
+    flushDataValues();
 
     Expression expressionX =
         new Expression(
@@ -1291,7 +1293,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 6), sourceG, 1);
     useDataValue(dataElementB, makeMonth(2001, 6), sourceG, 2);
     useDataValue(dataElementA, makeMonth(2001, 7), sourceG, 4);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expressionX =
         new Expression(
             "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}",
@@ -1368,7 +1370,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 6), sourceG, 1);
     useDataValue(dataElementB, makeMonth(2001, 6), sourceG, 2);
     useDataValue(dataElementA, makeMonth(2001, 7), sourceG, 4);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expressionX =
         new Expression(
             "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}",
@@ -1442,7 +1444,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   void testPredictTaskPredictors() {
     useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
     useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 20);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor predictorA =
         createPredictor(
             dataElementX,
@@ -1492,7 +1494,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   void testPredictTaskPredictorGroups() {
     useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
     useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 20);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Predictor predictorA =
         createPredictor(
             dataElementX,
@@ -1544,7 +1546,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 3), sourceA, 40);
     useDataValue(dataElementA, makeMonth(2001, 4), sourceA, 30);
     useDataValue(dataElementA, makeMonth(2001, 5), sourceA, 20);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expressionM = new Expression("median(#{" + dataElementA.getUid() + "})", "median");
     Predictor predictorM =
         createPredictor(
@@ -1578,7 +1580,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 1), sourceA, 10);
     useDataValue(dataElementA, makeMonth(2001, 2), sourceA, 30);
     useDataValue(dataElementA, makeMonth(2001, 3), sourceA, 20);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expressionP25 =
         new Expression("percentileCont(.25, #{" + dataElementA.getUid() + "})", "percentileCont25");
     Expression expressionP50 =
@@ -1627,7 +1629,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   void testPredictNullDataValue() {
     useDataValue(dataElementA, makeMonth(2010, 6), sourceA, 42);
     useDataValue(dataElementA, makeMonth(2010, 7), sourceA, null);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression = new Expression("sum(#{" + dataElementA.getUid() + "})", "description");
     Predictor predictor =
         createPredictor(
@@ -1669,7 +1671,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMissingValuesCount() {
     useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 33);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "count(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}",
@@ -1704,7 +1706,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMissingValuesPercentileCont() {
     useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 33);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "percentileCont(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}",
@@ -1738,7 +1740,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "if(orgUnit.ancestor( "
@@ -1782,7 +1784,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "if(orgUnit.group( "
@@ -1835,7 +1837,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    dataValueBatchHandler.flush();
+    flushDataValues();
 
     Expression expression =
         new Expression(
@@ -1891,7 +1893,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
     useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    dataValueBatchHandler.flush();
+    flushDataValues();
 
     Expression expression =
         new Expression(
@@ -1933,7 +1935,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictCarryingForwardPredictedDataElement() {
     useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 1);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "2 * sum(#{" + dataElementA.getUid() + "})",
@@ -1962,7 +1964,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictCarryingForwardPredictedDataElementOperand() {
     useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 1);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "3 * sum(#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "})",
@@ -1994,7 +1996,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2010, 9), sourceA, defaultCombo, 33);
     useDataValue(dataElementZ, makeMonth(2010, 8), sourceA, defaultCombo, 22, true);
     useDataValue(dataElementZ, makeMonth(2010, 9), sourceA, defaultCombo, 1, true);
-    dataValueBatchHandler.flush();
+    flushDataValues();
     Expression expression =
         new Expression(
             "#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "}",
@@ -2021,7 +2023,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictString() {
     useDataValue(dataElementE, makeMonth(2021, 8), sourceA, defaultCombo, "Hello");
-    dataValueBatchHandler.flush();
+    flushDataValues();
     String expr =
         "if( isNull(#{"
             + dataElementE.getUid()
@@ -2050,7 +2052,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictDate() {
     useDataValue(dataElementG, makeMonth(2021, 8), sourceA, defaultCombo, "2021-09-10");
-    dataValueBatchHandler.flush();
+    flushDataValues();
     String expr =
         "if( isNull(#{"
             + dataElementG.getUid()
@@ -2080,7 +2082,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictBoolean() {
     useDataValue(dataElementI, makeMonth(2021, 8), sourceA, defaultCombo, "true");
-    dataValueBatchHandler.flush();
+    flushDataValues();
     String expr =
         "if( isNull(#{" + dataElementI.getUid() + "}), 'false', #{" + dataElementI.getUid() + "} )";
     Expression expression =
@@ -2155,13 +2157,13 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     dataElementService.addDataElement(deS);
 
     Period per = periodService.reloadPeriod(makeMonth(2022, 1));
-    dataValueBatchHandler.addObject(createDataValue(deQ, per, sourceA, cocAa, defaultCombo, "1"));
-    dataValueBatchHandler.addObject(createDataValue(deQ, per, sourceA, cocAb, defaultCombo, "2"));
-    dataValueBatchHandler.addObject(createDataValue(deR, per, sourceA, cocBa, defaultCombo, "4"));
-    dataValueBatchHandler.addObject(createDataValue(deR, per, sourceA, cocBb, defaultCombo, "8"));
-    dataValueBatchHandler.addObject(createDataValue(deS, per, sourceA, cocCa, defaultCombo, "16"));
-    dataValueBatchHandler.addObject(createDataValue(deS, per, sourceA, cocCc, defaultCombo, "32"));
-    dataValueBatchHandler.flush();
+    pendingValues.add(createDataValue(deQ, per, sourceA, cocAa, defaultCombo, "1"));
+    pendingValues.add(createDataValue(deQ, per, sourceA, cocAb, defaultCombo, "2"));
+    pendingValues.add(createDataValue(deR, per, sourceA, cocBa, defaultCombo, "4"));
+    pendingValues.add(createDataValue(deR, per, sourceA, cocBb, defaultCombo, "8"));
+    pendingValues.add(createDataValue(deS, per, sourceA, cocCa, defaultCombo, "16"));
+    pendingValues.add(createDataValue(deS, per, sourceA, cocCc, defaultCombo, "32"));
+    flushDataValues();
 
     String expectedA = String.valueOf(1 + 4 + 16);
     String expectedB = String.valueOf(2 + 8);
@@ -2215,7 +2217,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2022, 8), sourceA, 16);
     useDataValue(dataElementB, makeMonth(2022, 9), sourceA, 32);
 
-    dataValueBatchHandler.flush();
+    flushDataValues();
 
     String expectedValue = String.valueOf(1 + 2 + 4 + 16);
 
@@ -2261,7 +2263,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testOrderWithinPredictorGroup() {
     useDataValue(dataElementA, makeMonth(2021, 12), sourceA, defaultCombo, "0");
-    dataValueBatchHandler.flush();
+    flushDataValues();
     // 0 + 1 * 2 + 2 * 3 + 3 * 4 + 4 = 64, if operations are in order
     Expression e1 = new Expression("#{" + dataElementA.getUid() + "} + 1", "e1");
     Expression e2 = new Expression("#{" + dataElementA.getUid() + "} * 2", "e2");
@@ -2318,7 +2320,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementB, makeMonth(2023, 1), sourceA, defaultCombo, "2");
     useDataValue(dataElementC, makeMonth(2023, 1), sourceA, defaultCombo, "3");
 
-    dataValueBatchHandler.flush();
+    flushDataValues();
 
     DataElementGroup dataElementGroup =
         createDataElementGroup('A', dataElementA, dataElementB, dataElementC);

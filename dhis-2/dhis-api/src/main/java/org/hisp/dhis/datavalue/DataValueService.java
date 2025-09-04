@@ -32,13 +32,10 @@ package org.hisp.dhis.datavalue;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * The DataValueService interface defines how to work with data values.
@@ -46,43 +43,6 @@ import org.hisp.dhis.period.Period;
  * @author Kristian Nordal
  */
 public interface DataValueService {
-  // -------------------------------------------------------------------------
-  // Basic DataValue
-  // -------------------------------------------------------------------------
-
-  /**
-   * Adds a DataValue. If both the value and the comment properties of the specified DataValue
-   * object are null, then the object should not be persisted. The value will be validated and not
-   * be saved if not passing validation.
-   *
-   * @param dataValue the DataValue to add.
-   * @return false whether the data value is null or invalid, true if value is valid and attempted
-   *     to be saved.
-   */
-  boolean addDataValue(DataValue dataValue);
-
-  /**
-   * Updates a DataValue. If both the value and the comment properties of the specified DataValue
-   * object are null, then the object should be deleted from the underlying storage.
-   *
-   * @param dataValue the DataValue to update.
-   */
-  void updateDataValue(DataValue dataValue);
-
-  /**
-   * Updates multiple DataValues. If both the value and the comment properties of the specified
-   * DataValue object are null, then the object should be deleted from the underlying storage.
-   *
-   * @param dataValues list of DataValues to update.
-   */
-  void updateDataValues(List<DataValue> dataValues);
-
-  /**
-   * Deletes a DataValue.
-   *
-   * @param dataValue the DataValue to delete.
-   */
-  void deleteDataValue(DataValue dataValue);
 
   /**
    * Deletes all data values for the given organisation unit.
@@ -99,87 +59,12 @@ public interface DataValueService {
   void deleteDataValues(DataElement dataElement);
 
   /**
-   * Returns a DataValue.
-   *
-   * @param dataElement the DataElement of the DataValue.
-   * @param period the Period of the DataValue.
-   * @param source the Source of the DataValue.
-   * @param optionCombo the category option combo.
-   * @return the DataValue which corresponds to the given parameters, or null if no match.
-   */
-  DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo optionCombo);
-
-  /**
-   * Returns a DataValue.
-   *
-   * @param dataElement the DataElement of the DataValue.
-   * @param period the Period of the DataValue.
-   * @param source the Source of the DataValue.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @return the DataValue which corresponds to the given parameters, or null if not found or not
-   *     accessible.
-   */
-  DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo);
-
-  // -------------------------------------------------------------------------
-  // Lists of DataValues
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns data values for the given data export parameters.
-   *
-   * <p>Example usage:
-   *
-   * <p>
-   *
-   * <pre>
-   * {
-   *     &#64;code
-   *     List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-   *         .setDataElements( dataElements )
-   *         .setPeriods( Sets.newHashSet( period ) )
-   *         .setOrganisationUnits( orgUnits ) );
-   * }
-   * </pre>
-   *
-   * @param params the data export parameters.
-   * @return a list of data values.
-   * @throws IllegalArgumentException if parameters are invalid.
-   */
-  List<DataValue> getDataValues(DataExportParams params);
-
-  /**
-   * Validates the given data export parameters.
-   *
-   * @param params the data export parameters.
-   * @throws IllegalArgumentException if parameters are invalid.
-   */
-  void validate(DataExportParams params) throws IllegalQueryException;
-
-  /**
-   * Returns all DataValues.
-   *
-   * @return a collection of all DataValues.
-   */
-  List<DataValue> getAllDataValues();
-
-  /**
    * Returns deflated data values for the given data export parameters.
    *
    * @param params the data export parameters.
    * @return a list of deflated data values.
    */
-  List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
+  List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params);
 
   /**
    * Gets the number of DataValues persisted since the given number of days.
