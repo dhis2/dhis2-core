@@ -175,7 +175,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.42.0</artemis-jakarta.version>
-    <netty-all.version>4.2.1.Final</netty-all.version>
+    <netty-all.version>4.2.5.Final</netty-all.version>
     <classgraph.version>4.8.180</classgraph.version>
 
     <!-- SMS/SMPP -->
