@@ -333,7 +333,14 @@ public final class RawNativeQuery {
   }
 
   private boolean containsErasedParameter(String line) {
-    return erasedParams.stream().anyMatch(name -> line.contains(":" + name));
+    return erasedParams.stream().anyMatch(name -> containsNamedPlaceholder(line, name));
+  }
+
+  private boolean containsNamedPlaceholder(String line, String name) {
+    int iName = line.indexOf(":" + name);
+    if (iName < 0) return false;
+    int iAfter = iName + 1 + name.length();
+    return iAfter >= line.length() || !isAlphanumericChar(line.charAt(iAfter));
   }
 
   private boolean containsErasedJoin(String line) {
@@ -348,7 +355,7 @@ public final class RawNativeQuery {
   }
 
   private boolean containsErasedClause(String line) {
-    return erasedClause.stream().anyMatch(name -> line.contains(":" + name));
+    return erasedClause.stream().anyMatch(name -> containsNamedPlaceholder(line, name));
   }
 
   private boolean containsErasedOrder(String order) {
@@ -369,7 +376,7 @@ public final class RawNativeQuery {
     char[] chars = line.toCharArray();
     int i = line.length() - 1;
     while (i >= 0) {
-      while (i >= 0 && isCommentText(chars[i])) i--;
+      while (i >= 0 && isCommentChar(chars[i])) i--;
       if (i < 0) return line;
       if (chars[i] == '-' && i > 0 && chars[i - 1] == '-') {
         // found a comment
@@ -382,11 +389,12 @@ public final class RawNativeQuery {
     return line;
   }
 
-  private static boolean isCommentText(char c) {
-    return c >= 'a' && c <= 'z'
-        || c >= 'A' && c <= 'Z'
-        || c >= '0' && c <= '9'
-        || "+:;,._ \t".indexOf(c) >= 0;
+  private static boolean isCommentChar(char c) {
+    return isAlphanumericChar(c) || "+:;,._ \t".indexOf(c) >= 0;
+  }
+
+  private static boolean isAlphanumericChar(char c) {
+    return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
   }
 
   /**

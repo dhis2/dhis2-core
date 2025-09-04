@@ -204,4 +204,44 @@ class RawNativeQueryTest {
         ORDER BY ou.path""",
         minSql);
   }
+
+  @Test
+  void testDeletedOnly() {
+    Long[] noLongs = null;
+    String[] noStrings = null;
+    Date noDate = null;
+    Integer noInt = null;
+    Boolean noBool = null;
+    String minSql =
+        createNativeRawQuery(sql)
+            .setInOrAnyParameter("de", noLongs)
+            .setInOrAnyParameter("pe", noStrings)
+            .setInOrAnyParameter("pt", noStrings)
+            .setParameter("start", noDate)
+            .setParameter("end", noDate)
+            .setParameter("includedDate", noDate)
+            .setInOrAnyParameter("path", noStrings)
+            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("level", noInt)
+            .setParameter("minLevel", noInt)
+            .setInOrAnyParameter("coc", noLongs)
+            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("lastUpdated", noDate)
+            .setParameter("deleted", false)
+            .setDynamicClause("access", null)
+            .eraseOrder("ou.path", true)
+            .eraseOrder("pe.startdate", true)
+            .eraseOrder("pe.enddate", true)
+            .eraseOrder("dv.created", true)
+            .eraseOrder("deid", true)
+            .eraseNullParameterLines()
+            .eraseNullJoinLine("pt", "pt")
+            .setLimit(null)
+            .setOffset(null)
+            .toSQL();
+    assertEquals(
+        """
+         """,
+        minSql);
+  }
 }
