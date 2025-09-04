@@ -90,8 +90,8 @@ public interface DimensionalItemObject extends NameableObject {
   /** Gets the dimension item identifier with queryModsId if present. */
   default String getDimensionItemWithQueryModsId() {
     return getDimensionItem()
-           + ((getQueryMods() != null && getQueryMods().getQueryModsId() != null)
-        ? QUERY_MODS_ID_SEPARATOR + getQueryMods().getQueryModsId()
-        : "");
+        + ((getQueryMods() != null && getQueryMods().getQueryModsId() != null)
+            ? QUERY_MODS_ID_SEPARATOR + getQueryMods().getQueryModsId()
+            : "");
   }
 }

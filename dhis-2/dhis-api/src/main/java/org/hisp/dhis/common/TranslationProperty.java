@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.common;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import java.io.Serializable;
@@ -42,7 +41,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;

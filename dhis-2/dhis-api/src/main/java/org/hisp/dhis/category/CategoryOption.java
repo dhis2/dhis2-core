@@ -105,7 +105,6 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -119,10 +118,8 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
 public class CategoryOption extends BaseMetadataObject
-    implements DimensionalItemObject,
-        SystemDefaultMetadataObject,
-        Serializable {
-  
+    implements DimensionalItemObject, SystemDefaultMetadataObject, Serializable {
+
   public static final String DEFAULT_NAME = "default";
 
   @Id
@@ -219,14 +216,11 @@ public class CategoryOption extends BaseMetadataObject
 
   @Override
   public int hashCode() {
-    int result = getUid() != null ? getUid().hashCode() : 0; 
+    int result = getUid() != null ? getUid().hashCode() : 0;
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-    result =
-        31 * result
-            + (getShortName() != null ? getShortName().hashCode() : 0); 
-    result =
-        31 * result + (queryMods != null ? queryMods.hashCode() : 0); 
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
     return result;
   }
 
@@ -731,18 +725,14 @@ public class CategoryOption extends BaseMetadataObject
   // Deprecated methods for non-mapped properties
   // -------------------------------------------------------------------------
 
-  /**
-   * Category options do not have legendSets, so this method is deprecated.
-   */
+  /** Category options do not have legendSets, so this method is deprecated. */
   @Override
   @Deprecated(since = "43", forRemoval = true)
   public List<LegendSet> getLegendSets() {
     return List.of();
   }
 
-  /**
-   * Category options do not have a legend set, so this method is deprecated.
-   */
+  /** Category options do not have a legend set, so this method is deprecated. */
   @Override
   @Deprecated(since = "43", forRemoval = true)
   public LegendSet getLegendSet() {

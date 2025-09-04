@@ -372,8 +372,7 @@ public abstract class AbstractCrudController<
       return ok(
           String.format(
               "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername()));
-    }
-    else {
+    } else {
       throw new ConflictException("Objects of this class cannot be set as favorite");
     }
   }
@@ -545,9 +544,8 @@ public abstract class AbstractCrudController<
 
       return ok(
           String.format(
-              "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername()));  
-    }
-    else {
+              "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername()));
+    } else {
       throw new ConflictException("Objects of this class cannot be set as favorite");
     }
   }
