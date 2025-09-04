@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class HibernateTrackedEntityProgramOwnerStoreTest {
+class HibernateTrackedEntityProgramOwnerStoreTest {
   private Cache<OrganisationUnit> ownerCache;
   private HibernateTrackedEntityProgramOwnerStore store;
 
