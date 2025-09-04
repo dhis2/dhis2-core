@@ -154,7 +154,7 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
                     from organisationunit ou
                     where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
                 from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
-                from event inner_evt) as l1) as l2
+                from trackerevent inner_evt) as l1) as l2
             where l2.uid = ev.uid
             group by l2.uid)::jsonb
             """;

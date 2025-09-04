@@ -130,7 +130,7 @@ public class PeriodDataProvider {
             + " ( select distinct (extract(year from "
             + dueDateOrExecutionDate
             + ")) as datayear"
-            + " from event ev"
+            + " from trackerevent ev"
             + " where "
             + dueDateOrExecutionDate
             + " is not null"

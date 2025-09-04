@@ -30,12 +30,16 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumn.getCommonSingleEventColumns;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumn.getJsonColumns;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumn.getSingleEventGeometryColumns;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -278,7 +282,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             sqlBuilder,
             """
             select ev.eventid \
-            from ${event} ev \
+            from ${trackerevent} ev \
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
             where en.programid = ${programId} \
             and ev.lastupdated >= '${startDate}' \
@@ -304,7 +308,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               delete from ${tableName} ax \
               where ax.event in ( \
               select ev.uid \
-              from ${event} ev \
+              from ${trackerevent} ev \
               inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
               where en.programid = ${programId} \
               and ev.lastupdated >= '${startDate}' \
@@ -332,14 +336,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
-    String partitionClause = getPartitionClause(partition);
+    String partitionClause = getPartitionClause(partition, false);
     String attributeJoinClause = getAttributeValueJoinClause(program);
 
     String fromClause =
         replaceQualify(
             sqlBuilder,
             """
-            \sfrom ${event} ev \
+            \sfrom ${trackerevent} ev \
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
             inner join ${programstage} ps on ev.programstageid=ps.programstageid \
             inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
@@ -373,7 +377,53 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "latestDataYear", String.valueOf(latestDataYear),
                 "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
 
-    populateTableInternal(partition, fromClause);
+    String tableName = partition.getName();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+
+    populateTableInternal(tableName, columns, fromClause);
+
+    String partitionClauseSingleEvent = getPartitionClause(partition, true);
+
+    String fromClauseSingleEvent =
+        replaceQualify(
+            sqlBuilder,
+            """
+            \sfrom ${singleevent} ev \
+   
+            inner join ${programstage} ps on ev.programstageid=ps.programstageid \
+
+
+            inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
+  
+            inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+
+            where ev.lastupdated < '${startTime}' ${partitionClause} \
+
+            and ev.organisationunitid is not null \
+            and (${eventDateExpression}) is not null \
+            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
+            and dps.year >= ${firstDataYear} \
+            and dps.year <= ${latestDataYear} \
+            and ev.status in (${exportableEventStatues}) \
+            and ev.deleted = false""",
+            Map.of(
+                "eventDateExpression", "ev.occurreddate",
+                "partitionClause", partitionClauseSingleEvent,
+                "startTime", toLongDate(params.getStartTime()),
+                "programId", String.valueOf(program.getId()),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
+                "firstDataYear", String.valueOf(firstDataYear),
+                "latestDataYear", String.valueOf(latestDataYear),
+                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
+
+    List<AnalyticsTableColumn> singleEventColumns = getSingleEventColumns(program).stream().collect(toCollection(ArrayList::new));
+    singleEventColumns.addAll(getJsonColumns(sqlBuilder));
+
+    populateTableInternal(tableName, singleEventColumns, fromClauseSingleEvent);
   }
 
   /**
@@ -382,10 +432,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param partition the {@link AnalyticsTablePartition}.
    * @return a partition SQL clause.
    */
-  private String getPartitionClause(AnalyticsTablePartition partition) {
+  private String getPartitionClause(AnalyticsTablePartition partition, boolean isSingleEvent) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
     String statusDate = eventDateExpression;
+
+    if (isSingleEvent) {
+      statusDate = "ev.occurreddate";
+    }
+
     String latestFilter = format("and ev.lastupdated >= '{}' ", start);
     String partitionFilter =
         format("and ({}) >= '{}' and ({}) < '{}' ", statusDate, start, statusDate, end);
@@ -421,6 +476,36 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
     if (sqlBuilder.supportsDeclarativePartitioning()) {
       columns.add(getPartitionColumn());
+    }
+
+    return filterDimensionColumns(columns);
+  }
+
+  /**
+   * Returns dimensional analytics table columns.
+   *
+   * @param program the program.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getSingleEventColumns(Program program) {
+    List<AnalyticsTableColumn> columns =
+        EventAnalyticsColumn.getCommonSingleEventColumns(sqlBuilder);
+    columns = columns.stream().collect(toCollection(ArrayList::new));
+
+    columns.addAll(getAttributeCategoryColumns(program));
+    columns.addAll(getOrganisationUnitLevelColumns());
+    columns.add(getOrganisationUnitNameHierarchyColumn());
+    columns.addAll(getOrganisationUnitGroupSetColumns());
+    columns.addAll(getAttributeCategoryOptionGroupSetColumns());
+    columns.addAll(getPeriodTypeColumns("dps"));
+    columns.addAll(getDataElementColumns(program));
+    columns.addAll(getAttributeColumns(program));
+
+    if (sqlBuilder.supportsDeclarativePartitioning()) {
+      columns.add(getPartitionColumn());
+    }
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.addAll(getSingleEventGeometryColumns(useCentroidForOuColumns()));
     }
 
     return filterDimensionColumns(columns);
@@ -580,8 +665,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String query =
         """
             \s(select l.uid \
-              from   ${maplegend} l \
-              join   trackedentityattributevalue av \
+              from ${maplegend} l \
+              join trackedentityattributevalue av \
                      on av.trackedentityattributeid=${attributeId} \
                     ${numericClause} \
                     and l.maplegendsetid=${legendSetId} \
@@ -631,7 +716,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String query =
         """
         (select l.uid from ${maplegend} l \
-        inner join ${event} on l.startvalue <= ${select} \
+        inner join ${trackerevent} on l.startvalue <= ${select} \
         and l.endvalue > ${select} \
         and l.maplegendsetid=${legendSetId} \
         ${dataClause} where eventid = ev.eventid) as ${column}""";
@@ -710,7 +795,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from ${event} ev \
+            from ${trackerevent} ev \
             inner join ${enrollment} en on ev.enrollmentid = en.enrollmentid \
             where ev.lastupdated <= '${startTime}' and en.programid = ${programId} \
             and (${eventDateExpression}) is not null \

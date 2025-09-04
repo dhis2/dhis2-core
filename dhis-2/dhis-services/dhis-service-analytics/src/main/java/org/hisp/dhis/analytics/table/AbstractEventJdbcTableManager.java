@@ -90,20 +90,17 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
   @Override
   public boolean validState() {
-    return tableIsNotEmpty("event");
+    return tableIsNotEmpty("trackerevent");
   }
 
   /**
    * Populates the given analytics table partition using the given columns and join statement.
    *
-   * @param partition the {@link AnalyticsTablePartition}.
+   * @param tableName the table name.
+   * @param columns the table columns.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getName();
-
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
-
+  protected void populateTableInternal(String tableName, List<AnalyticsTableColumn> columns, String fromClause) {
     String sql = "insert into " + tableName + " (";
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
     sql += ") select ";
