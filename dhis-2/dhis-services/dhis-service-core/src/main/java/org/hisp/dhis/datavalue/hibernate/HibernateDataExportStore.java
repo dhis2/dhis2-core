@@ -133,7 +133,7 @@ public class HibernateDataExportStore implements DataExportStore {
     return createNativeRawQuery(sql)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
-        .setParameter("iso", key.period())
+        .setParameter("pe", key.period())
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())
         .stream()
@@ -172,8 +172,8 @@ public class HibernateDataExportStore implements DataExportStore {
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE -- filters use null-erasure...
-            dv.dataelementid = ANY(:de)
+      WHERE 1=1 -- filters use null-erasure...
+        AND dv.dataelementid = ANY(:de)
         AND pe.iso = ANY(:pe)
         AND pe.startDate >= :start
         AND pe.endDate <= :end

@@ -60,8 +60,8 @@ class RawNativeQueryTest {
     JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
     JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
     JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-    WHERE -- filters use null-erasure...
-          dv.dataelementid = ANY(:de)
+    WHERE 1=1 -- filters use null-erasure...
+      AND dv.dataelementid = ANY(:de)
       AND pe.iso = ANY(:pe)
       AND pe.startDate >= :start
       AND pe.endDate <= :end
@@ -138,7 +138,8 @@ class RawNativeQueryTest {
       JOIN period pe ON dv.periodid = pe.periodid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid""",
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE 1=1""",
         minSql);
   }
 
@@ -198,7 +199,7 @@ class RawNativeQueryTest {
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE
+        WHERE 1=1
           AND pt.name = ANY(:pt)
           AND ou.hierarchylevel >= :minLevel
         ORDER BY ou.path""",
@@ -241,7 +242,27 @@ class RawNativeQueryTest {
             .toSQL();
     assertEquals(
         """
-         """,
+         SELECT
+           de.uid AS deid,
+           pe.iso,
+           ou.uid AS ouid,
+           coc.uid AS cocid,
+           aoc.uid AS aocid,
+           dv.value,
+           dv.comment,
+           dv.followup,
+           dv.storedby,
+           dv.created,
+           dv.lastupdated,
+           dv.deleted
+         FROM datavalue dv
+         JOIN dataelement de ON dv.dataelementid = de.dataelementid
+         JOIN period pe ON dv.periodid = pe.periodid
+         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+         WHERE 1=1
+           AND dv.deleted = :deleted""",
         minSql);
   }
 }
