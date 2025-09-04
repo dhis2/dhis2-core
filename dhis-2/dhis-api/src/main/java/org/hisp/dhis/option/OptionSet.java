@@ -320,7 +320,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getTranslation("NAME", name);
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
@@ -489,45 +489,6 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
     } else {
       return getPropertyValue(idScheme);
     }
-  }
-
-  /**
-   * Returns a translated value for this object for the given property. The current locale is read
-   * from the user context.
-   *
-   * @param translationKey the translation key.
-   * @param defaultValue the value to use if there are no translations.
-   * @return a translated value.
-   */
-  protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-
-    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
-
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
-      return defaultValue;
-    }
-
-    return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
-  }
-
-  /**
-   * Get Translation value from {@code Set<Translation>} by given locale and translationKey
-   *
-   * @return Translation value if exists, otherwise return default value.
-   */
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
-    for (Translation translation : translations) {
-      if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
-          && !StringUtils.isEmpty(translation.getValue())) {
-        return translation.getValue();
-      }
-    }
-
-    return defaultValue;
   }
 
   @Override
