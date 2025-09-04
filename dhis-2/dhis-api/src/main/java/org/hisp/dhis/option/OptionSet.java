@@ -42,6 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -54,16 +55,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +80,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.annotation.Description;
@@ -130,9 +128,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  @Type(type = "jblTranslations")
-  @Column(name = "translations")
-  private Set<Translation> translations = new HashSet<>();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_optionset_optionid"))
@@ -148,24 +144,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "sharing")
   private Sharing sharing = new Sharing();
 
-  // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
-
-  /**
-   * Cache for object translations, where the cache key is a combination of locale and translation
-   * property, and value is the translated value.
-   */
-  @Transient
-  private final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
-
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  @Transient private transient String href;
+  
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -444,18 +423,13 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    if (translations == null) {
-      translations = new HashSet<>();
-    }
-
-    return translations;
+    return translations.getTranslations();
   }
 
   /** Clears out cache when setting translations. */
   @Override
   public void setTranslations(Set<Translation> translations) {
-    this.translationCache.clear();
-    this.translations = translations;
+    this.translations.setTranslations(translations);
   }
 
   @Override

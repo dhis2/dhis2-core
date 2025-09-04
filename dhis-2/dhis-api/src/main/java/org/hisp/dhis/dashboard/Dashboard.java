@@ -167,14 +167,6 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
-  // ----------------------------------------------------------------
-  // Transient properties
-  // ----------------------------------------------------------------
-
-  @Transient private transient String href;
-
-  @Transient private transient Access access;
-
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
