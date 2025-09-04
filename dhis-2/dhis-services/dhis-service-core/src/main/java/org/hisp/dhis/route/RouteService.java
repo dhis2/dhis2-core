@@ -343,7 +343,7 @@ public class RouteService {
 
     uriComponentsBuilder.path(getSubPath(route, subPath));
 
-    return uriComponentsBuilder.toUriString();
+    return uriComponentsBuilder.build().toUriString();
   }
 
   protected WebClient.RequestHeadersSpec<?> buildRequestSpec(
