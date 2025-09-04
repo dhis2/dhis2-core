@@ -85,7 +85,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
  * @author Bob Jolliffe
  */
 @JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
-public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
+public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject, FavoritableObject {
   /** The database internal identifier for this Object. */
   @Setter protected long id;
 

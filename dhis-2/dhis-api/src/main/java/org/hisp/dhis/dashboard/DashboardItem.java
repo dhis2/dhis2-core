@@ -580,51 +580,6 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   // -------------------------------------------------------------------------
 
   /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   * @return empty set
-   */
-  @Override
-  @Deprecated(since = "44", forRemoval = true)
-  @JsonIgnore
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   */
-  @Override
-  @Deprecated(since = "44", forRemoval = true)
-  @JsonIgnore
-  public boolean isFavorite() {
-    return false;
-  }
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   * @return false
-   */
-  @Deprecated(since = "44", forRemoval = true)
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   * @return false
-   */
-  @Deprecated(since = "44", forRemoval = true)
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  /**
    * @deprecated DashboardItem does not support sharing
    */
   @Override

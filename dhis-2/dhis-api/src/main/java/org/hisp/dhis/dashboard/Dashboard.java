@@ -67,6 +67,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -103,7 +104,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "dashboard", namespace = DxfNamespaces.DXF_2_0)
-public class Dashboard extends BaseMetadataObject implements IdentifiableObject {
+public class Dashboard extends BaseMetadataObject implements IdentifiableObject, FavoritableObject {
   public static final int MAX_ITEMS = 40;
 
   @Id

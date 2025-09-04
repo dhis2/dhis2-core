@@ -71,14 +71,6 @@ public interface IdentifiableObject
 
   void setAccess(Access access);
 
-  Set<String> getFavorites();
-
-  boolean isFavorite();
-
-  boolean setAsFavorite(UserDetails user);
-
-  boolean removeAsFavorite(UserDetails user);
-
   // -----------------------------------------------------------------------------
   // Sharing
   // -----------------------------------------------------------------------------

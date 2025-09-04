@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.category;
 
-import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -77,7 +76,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.OpenApi;
@@ -123,8 +121,8 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 public class CategoryOption extends BaseMetadataObject
     implements DimensionalItemObject,
         SystemDefaultMetadataObject,
-        IdentifiableObject,
         Serializable {
+  
   public static final String DEFAULT_NAME = "default";
 
   @Id
@@ -137,7 +135,7 @@ public class CategoryOption extends BaseMetadataObject
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  @Column(name = "shortname", unique = true, nullable = false, length = 50)
+  @Column(name = "shortname", nullable = false, unique = true, length = 50)
   private String shortName;
 
   @Column(name = "description", columnDefinition = "text")
@@ -162,12 +160,12 @@ public class CategoryOption extends BaseMetadataObject
   private AttributeValues attributeValues = AttributeValues.empty();
 
   @ManyToMany
-  @BatchSize(size = 100)
   @JoinTable(
       name = "categoryoption_organisationunits",
       joinColumns = @JoinColumn(name = "categoryoptionid"),
       inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @BatchSize(size = 100)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   @ManyToMany(mappedBy = "categoryOptions")
@@ -221,14 +219,14 @@ public class CategoryOption extends BaseMetadataObject
 
   @Override
   public int hashCode() {
-    int result = getUid() != null ? getUid().hashCode() : 0; // BaseIdentifiableObject
+    int result = getUid() != null ? getUid().hashCode() : 0; 
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     result =
         31 * result
-            + (getShortName() != null ? getShortName().hashCode() : 0); // BaseNameableObject
+            + (getShortName() != null ? getShortName().hashCode() : 0); 
     result =
-        31 * result + (queryMods != null ? queryMods.hashCode() : 0); // BaseDimensionalItemObject
+        31 * result + (queryMods != null ? queryMods.hashCode() : 0); 
     return result;
   }
 
@@ -356,14 +354,6 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   public String getDimensionItem() {
     return getUid();
-  }
-
-  @Override
-  public String getDimensionItemWithQueryModsId() {
-    return getDimensionItem()
-        + ((queryMods != null && queryMods.getQueryModsId() != null)
-            ? QUERY_MODS_ID_SEPARATOR + queryMods.getQueryModsId()
-            : "");
   }
 
   @Override
@@ -743,58 +733,24 @@ public class CategoryOption extends BaseMetadataObject
 
   /**
    * Category options do not have legendSets, so this method is deprecated.
-   *
-   * @return
    */
   @Override
-  @Deprecated(forRemoval = true, since = "43")
+  @Deprecated(since = "43", forRemoval = true)
   public List<LegendSet> getLegendSets() {
     return List.of();
   }
 
   /**
    * Category options do not have a legend set, so this method is deprecated.
-   *
-   * @return
    */
   @Override
-  @Deprecated(forRemoval = true, since = "43")
+  @Deprecated(since = "43", forRemoval = true)
   public LegendSet getLegendSet() {
     return null;
   }
 
   @Override
   public boolean hasLegendSet() {
-    return false;
-  }
-
-  /** Category options do not have favorites, so this method is deprecated. */
-  @Override
-  @JsonIgnore
-  @Deprecated(forRemoval = true, since = "43")
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  /** Category options do not have favorites, so this method is deprecated. */
-  @Override
-  @JsonIgnore
-  @Deprecated(forRemoval = true, since = "43")
-  public boolean isFavorite() {
-    return false;
-  }
-
-  /** Category options do not have favorites, so this method is deprecated. */
-  @Override
-  @Deprecated(forRemoval = true, since = "43")
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  /** Category options do not have favorites, so this method is deprecated. */
-  @Override
-  @Deprecated(forRemoval = true, since = "43")
-  public boolean removeAsFavorite(UserDetails user) {
     return false;
   }
 }

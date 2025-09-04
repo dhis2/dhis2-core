@@ -61,10 +61,7 @@ import org.hisp.dhis.translation.Translation;
 @AllArgsConstructor
 public class TranslationProperty implements Serializable {
 
-  @Column
-  @Type(
-      type = "jblTranslations",
-      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
+  @Type(type = "jblTranslations")
   private Set<Translation> translations = new HashSet<>();
 
   /**

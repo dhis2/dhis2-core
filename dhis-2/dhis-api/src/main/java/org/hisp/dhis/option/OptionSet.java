@@ -576,28 +576,4 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public String getAttributeValue(String attributeUid) {
     return attributeValues.get(attributeUid);
   }
-
-  // -------------------------------------------------
-  // Not Supported methods overridden from IdentifiableObject
-  // -------------------------------------------------
-
-  @Override
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  @Override
-  public boolean isFavorite() {
-    return false;
-  }
-
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
-  }
 }

@@ -614,24 +614,4 @@ public class CategoryCombo extends BaseMetadataObject
   public void removeAttributeValue(String attributeId) {
     // DO NOTHING as this class does not have attributes
   }
-
-  @Override
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  @Override
-  public boolean isFavorite() {
-    return false;
-  }
-
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
-  }
 }

@@ -49,6 +49,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Maturity.Beta;
@@ -365,13 +366,16 @@ public abstract class AbstractCrudController<
     }
 
     T object = getEntity(pvUid);
-
-    object.setAsFavorite(currentUser);
-    manager.updateNoAcl(object);
-
-    return ok(
-        String.format(
-            "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername()));
+    if (object instanceof FavoritableObject favoritableObject) {
+      favoritableObject.setAsFavorite(currentUser);
+      manager.updateNoAcl(object);
+      return ok(
+          String.format(
+              "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername()));
+    }
+    else {
+      throw new ConflictException("Objects of this class cannot be set as favorite");
+    }
   }
 
   @OpenApi.Filter(
@@ -535,13 +539,17 @@ public abstract class AbstractCrudController<
     }
 
     T object = getEntity(pvUid);
+    if (object instanceof FavoritableObject favoritableObject) {
+      favoritableObject.removeAsFavorite(currentUser);
+      manager.updateNoAcl(object);
 
-    object.removeAsFavorite(currentUser);
-    manager.updateNoAcl(object);
-
-    return ok(
-        String.format(
-            "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername()));
+      return ok(
+          String.format(
+              "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername()));  
+    }
+    else {
+      throw new ConflictException("Objects of this class cannot be set as favorite");
+    }
   }
 
   @OpenApi.Filter(
