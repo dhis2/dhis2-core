@@ -45,7 +45,7 @@ public interface CompleteDataSetRegistrationService {
    * Saves a CompleteDataSetRegistration.
    *
    * @param registration the CompleteDataSetRegistration to save.
-   * @return
+   * @return ImportSummary
    */
   ImportSummary saveCompleteDataSetRegistration(CompleteDataSetRegistration registration);
 
@@ -53,7 +53,7 @@ public interface CompleteDataSetRegistrationService {
    * Updates a CompleteDataSetRegistration.
    *
    * @param registration the CompleteDataSetRegistration to update.
-   * @return
+   * @return ImportSummary
    */
   ImportSummary updateCompleteDataSetRegistration(CompleteDataSetRegistration registration);
 

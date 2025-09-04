@@ -626,7 +626,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     return totalCount;
   }
 
-  public static void finalizeSummary(
+  private static void finalizeSummary(
       ImportSummary summary, int totalCount, int importCount, int updateCount, int deleteCount) {
     int ignores = totalCount - importCount - updateCount - deleteCount;
 

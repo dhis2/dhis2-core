@@ -45,7 +45,6 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.message.MessageService;
@@ -152,7 +151,7 @@ public class DefaultCompleteDataSetRegistrationService
               dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory.");
         }
         importSummary.setStatus(ImportStatus.ERROR);
-        importSummary.setImportCount(new ImportCount(0, 0, 1, 0));
+        importSummary.incrementIgnored();
         return importSummary;
       }
     }
