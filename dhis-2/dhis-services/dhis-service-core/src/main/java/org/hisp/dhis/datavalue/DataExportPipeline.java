@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Utility to convert between internal data records {@link DataExportGroup.Output} and external text
@@ -47,24 +48,29 @@ public class DataExportPipeline {
 
   private final DataExportService service;
 
+  @Transactional(readOnly = true)
   public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toJson(service.exportGroup(params), out);
   }
 
+  @Transactional(readOnly = true)
   public void exportAsJsonSync(DataExportParams params, OutputStream out) throws ConflictException {
     // TODO params.setOrderForSync(true); // make sure
     // TODO also make it skip validation
     exportAsJson(params, out);
   }
 
+  @Transactional(readOnly = true)
   public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toCsv(service.exportGroup(params), out);
   }
 
+  @Transactional(readOnly = true)
   public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toXml(service.exportGroup(params), out);
   }
 
+  @Transactional(readOnly = true)
   public void exportAsXmlGroups(DataExportParams params, OutputStream out)
       throws ConflictException {
     DataExportOutput.toXml(service.exportInGroups(params), out);

@@ -34,12 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -53,15 +51,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DataValidatorTest {
-  @Mock private CategoryService categoryService;
-
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private InputUtils inputUtils;
-
-  @Mock private AggregateAccessManager accessManager;
 
   @Mock private DataValidator dataValidator;
   @Mock private UserService userService;
@@ -77,13 +71,7 @@ class DataValidatorTest {
   @BeforeEach
   public void setUp() {
     dataValidator =
-        new DataValidator(
-            categoryService,
-            organisationUnitService,
-            idObjectManager,
-            inputUtils,
-            accessManager,
-            userService);
+        new DataValidator(organisationUnitService, idObjectManager, inputUtils, userService);
 
     dsA = new DataSet("dataSet", new MonthlyPeriodType());
     deA = new DataElement();
