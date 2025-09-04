@@ -174,8 +174,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
             entityInstance, program, orgUnit);
       }
-
-      ownerCache.invalidate(getOwnershipCacheKey(() -> entityInstance.getId(), program));
     } else {
       log.error("Unauthorized attempt to change ownership");
       throw new AccessDeniedException(
@@ -218,8 +216,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
             entityInstance, program, organisationUnit);
       }
-
-      ownerCache.invalidate(getOwnershipCacheKey(() -> entityInstance.getId(), program));
     } else {
       log.error("Unauthorized attempt to assign ownership");
       throw new AccessDeniedException(
