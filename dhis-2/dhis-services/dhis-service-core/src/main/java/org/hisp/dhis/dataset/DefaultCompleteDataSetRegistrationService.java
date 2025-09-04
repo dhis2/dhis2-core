@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -46,6 +45,9 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -85,9 +87,10 @@ public class DefaultCompleteDataSetRegistrationService
 
   @Override
   @Transactional
-  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+  public ImportSummary saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
     registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
-    checkCompulsoryDeOperands(registration);
+    ImportSummary importSummary = checkCompulsoryDeOperands(registration);
+    if (importSummary.hasConflicts()) return importSummary;
 
     Date date = new Date();
 
@@ -118,6 +121,8 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     notificationEventPublisher.publishEvent(registration);
+    importSummary.incrementImported();
+    return importSummary;
   }
 
   /**
@@ -130,7 +135,8 @@ public class DefaultCompleteDataSetRegistrationService
    *
    * @param registration registration to check
    */
-  private void checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
+  public ImportSummary checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
+    ImportSummary importSummary = new ImportSummary();
     // only get missing compulsory elements if they are actually compulsory
     if (registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
       List<DataElementOperand> missingDataElementOperands =
@@ -140,26 +146,32 @@ public class DefaultCompleteDataSetRegistrationService
               registration.getSource(),
               registration.getAttributeOptionCombo());
       if (!missingDataElementOperands.isEmpty()) {
-        String deos =
-            missingDataElementOperands.stream()
-                .map(DataElementOperand::getDisplayName)
-                .collect(Collectors.joining(","));
-        throw new IllegalStateException(
-            "All compulsory data element operands need to be filled: [%s]".formatted(deos));
+        for (DataElementOperand dataElementOperand : missingDataElementOperands) {
+          importSummary.addConflict(
+              "dataElementOperand",
+              dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory.");
+        }
+        importSummary.setStatus(ImportStatus.ERROR);
+        importSummary.setImportCount(new ImportCount(0, 0, missingDataElementOperands.size(), 0));
+        return importSummary;
       }
     }
+    return importSummary;
   }
 
   @Override
   @Transactional
-  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
-    checkCompulsoryDeOperands(registration);
+  public ImportSummary updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    ImportSummary importSummary = checkCompulsoryDeOperands(registration);
+    if (importSummary.hasConflicts()) return importSummary;
 
     registration.setLastUpdated(new Date());
 
     registration.setLastUpdatedBy(CurrentUserUtil.getCurrentUsername());
 
     completeDataSetRegistrationStore.updateCompleteDataSetRegistration(registration);
+    importSummary.incrementUpdated();
+    return importSummary;
   }
 
   @Override

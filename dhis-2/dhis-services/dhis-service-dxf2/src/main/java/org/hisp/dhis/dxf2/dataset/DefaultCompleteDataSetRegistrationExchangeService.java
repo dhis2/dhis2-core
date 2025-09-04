@@ -525,6 +525,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       // Compulsory fields validation
       // ---------------------------------------------------------------------
 
+      // todo reuse common check
       List<DataElementOperand> missingDataElementOperands =
           registrationService.getMissingCompulsoryFields(
               mdProps.dataSet, mdProps.period,
@@ -626,7 +627,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     return totalCount;
   }
 
-  private static void finalizeSummary(
+  public static void finalizeSummary(
       ImportSummary summary, int totalCount, int importCount, int updateCount, int deleteCount) {
     int ignores = totalCount - importCount - updateCount - deleteCount;
 
