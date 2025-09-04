@@ -525,7 +525,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       // Compulsory fields validation
       // ---------------------------------------------------------------------
 
-      // todo reuse common check
       List<DataElementOperand> missingDataElementOperands =
           registrationService.getMissingCompulsoryFields(
               mdProps.dataSet, mdProps.period,

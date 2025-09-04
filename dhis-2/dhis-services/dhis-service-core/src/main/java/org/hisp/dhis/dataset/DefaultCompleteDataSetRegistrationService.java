@@ -152,7 +152,7 @@ public class DefaultCompleteDataSetRegistrationService
               dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory.");
         }
         importSummary.setStatus(ImportStatus.ERROR);
-        importSummary.setImportCount(new ImportCount(0, 0, missingDataElementOperands.size(), 0));
+        importSummary.setImportCount(new ImportCount(0, 0, 1, 0));
         return importSummary;
       }
     }

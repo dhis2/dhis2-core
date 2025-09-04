@@ -588,7 +588,6 @@ public enum ErrorCode {
   E7602("A valid dataset is required"),
   E7603("Org unit not found or not accessible: `{0}`"),
   E7604("Attribute option combo not found or not accessible: `{0}`"),
-  E7605("{0} needs to be filled. It is compulsory."),
 
   // Data Value validation
   E7610("Data element not found or not accessible: `{0}`"),
