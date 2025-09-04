@@ -122,7 +122,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                     List.of(
                         getProgramStageDataElements(AGGREGATE, program),
                         filterByValueType(
-                            QUERY,
+                            AGGREGATE,
                             ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
         .orElse(List.of());
   }

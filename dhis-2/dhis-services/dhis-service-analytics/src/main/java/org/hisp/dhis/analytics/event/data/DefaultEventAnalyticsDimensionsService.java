@@ -102,7 +102,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                     List.of(
                         filterByValueType(AGGREGATE, ofDataElements(ps)),
                         filterByValueType(
-                            QUERY,
+                            AGGREGATE,
                             ofItemsWithProgram(
                                 ps.getProgram(), ps.getProgram().getTrackedEntityAttributes())),
                         ofItemsWithProgram(ps.getProgram(), getCategories(ps.getProgram())),
