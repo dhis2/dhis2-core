@@ -39,6 +39,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -119,6 +120,14 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
 
     operationParamsBuilder =
         TrackerEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenWhenProgramIsWithoutRegistration() {
+    TrackerEventOperationParams params =
+        operationParamsBuilder.program(UID.of("iS7eutanDry")).build();
+
+    assertThrows(BadRequestException.class, () -> trackerEventService.findEvents(params));
   }
 
   @Test

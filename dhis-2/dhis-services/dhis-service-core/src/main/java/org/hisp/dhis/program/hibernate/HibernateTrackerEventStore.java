@@ -37,8 +37,8 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,10 +50,10 @@ import org.springframework.stereotype.Repository;
  */
 @Slf4j
 @Repository("org.hisp.dhis.program.EventStore")
-public class HibernateEventStore extends SoftDeleteHibernateObjectStore<TrackerEvent>
-    implements EventStore {
+public class HibernateTrackerEventStore extends SoftDeleteHibernateObjectStore<TrackerEvent>
+    implements TrackerEventStore {
 
-  public HibernateEventStore(
+  public HibernateTrackerEventStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
@@ -84,7 +84,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<TrackerE
 
           -- loop through each event that has a source DataElement in its event data values json
           for source_event in
-            select eventid, eventdatavalues from event, jsonb_each(eventdatavalues)
+            select eventid, eventdatavalues from trackerevent, jsonb_each(eventdatavalues)
             where key in (%s)
             loop
 
@@ -98,13 +98,13 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<TrackerE
 
             -- use the last updated value as the new value for the target key
             -- this will override any value for the target key if it is already present
-            update event
+            update trackerevent
             set eventdatavalues = jsonb_set(eventdatavalues, '{%s}', lastupdated_dv)
-            where event.eventid = source_event.eventid;
+            where trackerevent.eventid = source_event.eventid;
 
             -- remove all source key values as no longer needed
-            update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
-            where event.eventid = source_event.eventid;
+            update trackerevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
+            where trackerevent.eventid = source_event.eventid;
 
           end loop;
         end;
@@ -136,7 +136,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<TrackerE
 
     String sql =
         """
-        update event set eventdatavalues = eventdatavalues - '{%s}'::text[]
+        update trackerevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
         where eventdatavalues::jsonb ?| array[%s];"""
             .formatted(sourceUidsString, sourceUidsInSingleQuotesString);
     log.debug("Event data values deleting SQL query to be used: \n{}", sql);
@@ -148,7 +148,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<TrackerE
     if (cocs.isEmpty()) return;
     String sql =
         """
-        update event
+        update trackerevent
         set attributeoptioncomboid = %s
         where attributeoptioncomboid in (%s)"""
             .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));

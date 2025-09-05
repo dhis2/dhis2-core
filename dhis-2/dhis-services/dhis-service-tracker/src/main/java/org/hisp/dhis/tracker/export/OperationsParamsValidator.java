@@ -151,6 +151,28 @@ public class OperationsParamsValidator {
   }
 
   /**
+   * Validates the specified event program uid exists and is accessible by the supplied user
+   *
+   * @return the program if found and accessible
+   * @throws BadRequestException if the program uid does not exist or is not an event program
+   * @throws ForbiddenException if the user has no data read access to the program
+   */
+  public Program validateEventProgram(UID uid, UserDetails user)
+      throws BadRequestException, ForbiddenException {
+    Program program = validateProgramAccess(uid, user);
+
+    if (program == null) {
+      return null;
+    }
+
+    if (program.isRegistration()) {
+      throw new BadRequestException("Program specified is not an event program: " + uid);
+    }
+
+    return program;
+  }
+
+  /**
    * Validates the specified program uid exists and is accessible by the supplied user. If no other
    * program related validation is done, to be used by event programs only.
    *
@@ -158,7 +180,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the program uid does not exist
    * @throws ForbiddenException if the user has no data read access to the program
    */
-  public Program validateProgramAccess(UID uid, UserDetails user)
+  private Program validateProgramAccess(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;

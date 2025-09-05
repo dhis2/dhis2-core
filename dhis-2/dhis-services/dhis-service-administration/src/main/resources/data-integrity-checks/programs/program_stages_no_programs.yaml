@@ -45,7 +45,11 @@ details_sql: >-
     CASE 
       WHEN EXISTS (
         SELECT 1 
-        FROM event e 
+        FROM singleevent e 
+        WHERE e.programstageid = a.programstageid
+        UNION ALL
+        SELECT 1 
+        FROM trackerevent e 
         WHERE e.programstageid = a.programstageid
         LIMIT 1
       )
