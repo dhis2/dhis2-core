@@ -128,7 +128,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         .klass(ProgramStageInstance.class)
         .enrollmentRuleEffects(new HashMap<>())
         .eventRuleEffects(
-            sideEffectConverterService.toTrackerSideEffects(bundle.getEventRuleEffects()))
+            sideEffectConverterService.toTrackerSideEffects(
+                programStageInstance.getProgramStage().getUid(), bundle.getEventRuleEffects()))
         .object(programStageInstance.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
