@@ -39,7 +39,7 @@ import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
  */
 public interface TrackerSideEffectConverterService {
   Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
-      String psi, Map<String, List<RuleEffect>> ruleEffects);
+      String entityUid, Map<String, List<RuleEffect>> ruleEffects);
 
   Map<String, List<RuleEffect>> toRuleEffects(
       Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects);

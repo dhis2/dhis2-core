@@ -119,6 +119,9 @@ class ProgramRuleTest extends TrackerTest {
 
     TrackedEntityAttribute trackedEntityAttribute =
         bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "dIVt4l5vIOa");
+
+    TrackedEntityAttribute trackedEntityAttributeNumber =
+        bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "numericAttr");
     programStageOnInsert =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO");
     programStageOnComplete =
@@ -130,10 +133,15 @@ class ProgramRuleTest extends TrackerTest {
         createProgramRuleVariableWithDataElement('D', programWithRegistration, dataElement6);
     ProgramRuleVariable programRuleVariable2 =
         createProgramRuleVariableWithTEA('B', programWithRegistration, trackedEntityAttribute);
+    ProgramRuleVariable programRuleVariableNumber =
+        createProgramRuleVariableWithTEA(
+            'D', programWithRegistration, trackedEntityAttributeNumber);
+    programRuleVariableNumber.setName("integer_prv_attr");
     programRuleVariableDE6.setName("integer_prv_de6");
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableDE6);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariableNumber);
     constantService.saveConstant(constant());
 
     injectAdminUser();
@@ -246,6 +254,37 @@ class ProgramRuleTest extends TrackerTest {
   }
 
   @Test
+  void shouldApplyNotificationSideEffectOnlyToConfiguredEnrollment() throws IOException {
+    String enrollmentWithNotification = "TvctPPhpD8u";
+
+    storeScheduleNotificationProgramRule(
+        'Q', programWithRegistration, null, TEMPLATE_UID, "#{integer_prv_attr} > 4");
+
+    TrackerImportParams importParams =
+        fromJson("tracker/programrule/tei_enrollment_with_more_than_one_event.json");
+    importParams.setImportStrategy(TrackerImportStrategy.CREATE);
+
+    ImportReport report = trackerImportService.importTracker(importParams);
+    assertNotNull(report);
+
+    PersistenceReport persistenceReport = report.getPersistenceReport();
+    TrackerTypeReport enrollmentTypeReport =
+        persistenceReport.getTypeReportMap().get(TrackerType.ENROLLMENT);
+
+    List<TrackerSideEffectDataBundle> enrollmentSideEffects =
+        enrollmentTypeReport.getSideEffectDataBundles();
+
+    enrollmentSideEffects.stream()
+        .filter(bundle -> bundle.getProgramInstance().getUid().equals(enrollmentWithNotification))
+        .forEach(
+            bundle ->
+                assertEquals(
+                    1,
+                    bundle.getEnrollmentRuleEffects().size(),
+                    "Expected exactly one side effect for enrollment with notification"));
+  }
+
+  @Test
   void shouldApplyNotificationSideEffectOnlyToConfiguredEvent() throws IOException {
     String eventWithNotification = "D9PbzJY8bJO";
     String eventWithoutNotification = "D9PbzJY8bJ2";
@@ -266,11 +305,12 @@ class ProgramRuleTest extends TrackerTest {
 
     PersistenceReport persistenceReport = report.getPersistenceReport();
     TrackerTypeReport eventTypeReport = persistenceReport.getTypeReportMap().get(TrackerType.EVENT);
-    List<TrackerSideEffectDataBundle> sideEffectBundles =
+
+    List<TrackerSideEffectDataBundle> eventSideEffectBundles =
         eventTypeReport.getSideEffectDataBundles();
 
     // Validate event with notification
-    sideEffectBundles.stream()
+    eventSideEffectBundles.stream()
         .filter(bundle -> bundle.getProgramStageInstance().getUid().equals(eventWithNotification))
         .forEach(
             bundle ->
@@ -280,7 +320,7 @@ class ProgramRuleTest extends TrackerTest {
                     "Expected exactly one side effect for event with notification"));
 
     // Validate event without notification
-    sideEffectBundles.stream()
+    eventSideEffectBundles.stream()
         .filter(
             bundle -> bundle.getProgramStageInstance().getUid().equals(eventWithoutNotification))
         .forEach(

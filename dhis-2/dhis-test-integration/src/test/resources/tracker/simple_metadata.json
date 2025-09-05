@@ -2162,6 +2162,43 @@
           "favorites": [],
           "translations": [],
           "attributeValues": []
+        },
+        {
+          "lastUpdated": "2022-01-07T12:45:47.386",
+          "id": "r56Tmr3PnPg",
+          "created": "2019-04-25T11:04:29.212",
+          "displayName": "TA Tracker_program TA num",
+          "mandatory": false,
+          "displayShortName": "TA Tracker_program TA num",
+          "renderOptionsAsRadio": false,
+          "valueType": "INTEGER",
+          "searchable": true,
+          "displayInList": true,
+          "sortOrder": 2,
+          "name": "TA Tracker_program TA Test",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "write": true,
+            "delete": true,
+            "manage": true
+          },
+          "program": {
+            "id": "BFcipDERJnf"
+          },
+          "trackedEntityAttribute": {
+            "id": "numericAttr"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "favorites": [],
+          "translations": [],
+          "attributeValues": []
         }
       ],
       "notificationTemplates": [],

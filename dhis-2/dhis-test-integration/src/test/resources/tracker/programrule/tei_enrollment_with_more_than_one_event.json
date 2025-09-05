@@ -57,6 +57,12 @@
           "storedBy": "admin",
           "valueType": "INTEGER_POSITIVE",
           "value": null
+        }, {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 10
         }
       ],
       "enrollments": []
@@ -83,8 +89,17 @@
       "deleted": false,
       "events": [],
       "relationships": [],
-      "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributes": [
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": 10
+        }
+
+      ]
     }
   ],
   "events": [
