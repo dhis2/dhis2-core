@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import static org.hisp.dhis.tracker.imports.programrule.executor.ScheduleEventHelper.validateAndScheduleEvent;
+
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
+import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Zubair Asghar
  */
-public interface HistoryRetriever {
-  String ID = HistoryRetriever.class.getName();
+@RequiredArgsConstructor
+public class ScheduleEventExecutor implements RuleActionExecutor<Event> {
+  private final ValidationEffect validationEffect;
 
-  DataElementHistory getHistory(
-      DataElement dataElement,
-      CategoryOptionCombo optionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      OrganisationUnit organisationUnit,
-      Period lastPeriod,
-      int historyLength);
+  @Nonnull private final AclService aclService;
+
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    ProgramStage ps = bundle.getPreheat().getProgramStage(validationEffect.field().getValue());
+
+    return validateAndScheduleEvent(
+        validationEffect,
+        aclService.canWrite(bundle.getUser(), ps),
+        bundle,
+        event.getEnrollment(),
+        event.getAttributeOptionCombo(),
+        event.getProgram(),
+        event.getOrgUnit());
+  }
 }

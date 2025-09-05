@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.common.QueryOperator.EW;
-import static org.hisp.dhis.common.QueryOperator.LIKE;
-
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -42,7 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
+class DataIntegrityTrackedEntityAttributesPartialTrigramIndexesOverviewControllerTest
     extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
@@ -79,58 +76,18 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
   }
 
   @Test
-  void testTrackedEntityAttributesWithoutIndexableFlagAndIndexNotCreated() {
+  void testTrackedEntityAttributesWithNoTrigramIndexesCreated() {
     assertHasNoDataIntegrityIssues(
-        "trackedEntityAttributes", "tracked_entity_attributes_trigram_index_out_of_sync", true);
+        "trackedEntityAttributes", "tracked_entity_attributes_trigram_index_overview", true);
   }
 
   @Test
-  void testTrackedEntityAttributesWithIndexableFlagAndNoBlockedOperatorsAndIndexCreated() {
-    enableIndexableFlag(attributes);
-    createTrigramIndexes(attributes);
-
-    assertHasNoDataIntegrityIssues(
-        "trackedEntityAttributes", "tracked_entity_attributes_trigram_index_out_of_sync", true);
-  }
-
-  @Test
-  void
-      testTrackedEntityAttributesWithIndexableFlagAndNoBlockedOperatorsButIndexNotCreatedInOneAttribute() {
-    enableIndexableFlag(attributes);
-    createTrigramIndexes(Set.of(teaB));
-
-    assertHasDataIntegrityIssues(
-        "trackedEntityAttributes",
-        "tracked_entity_attributes_trigram_index_out_of_sync",
-        50,
-        Set.of(teaA.getUid()),
-        Set.of(teaA.getName()),
-        Set.of(),
-        true);
-  }
-
-  @Test
-  void
-      testTrackedEntityAttributesWithIndexableFlagAndNoBlockedOperatorsButIndexNotCreatedInAllAttributes() {
-    enableIndexableFlag(attributes);
-
-    assertHasDataIntegrityIssues(
-        "trackedEntityAttributes",
-        "tracked_entity_attributes_trigram_index_out_of_sync",
-        100,
-        Set.of(teaA.getUid(), teaB.getUid()),
-        Set.of(teaA.getName(), teaB.getName()),
-        Set.of(),
-        true);
-  }
-
-  @Test
-  void testTrackedEntityAttributesWithoutIndexableFlagAndIndexCreatedInOneAttribute() {
+  void testTrackedEntityAttributesWithOneHavingATrigramIndexCreated() {
     createTrigramIndexes(Set.of(teaA));
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_trigram_index_out_of_sync",
+        "tracked_entity_attributes_trigram_index_overview",
         50,
         Set.of(teaA.getUid()),
         Set.of(teaA.getName()),
@@ -139,12 +96,12 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
   }
 
   @Test
-  void testTrackedEntityAttributesWithoutIndexableFlagAndIndexCreatedInAllAttributes() {
+  void testTrackedEntityAttributesWithAllHavingATrigramIndexCreated() {
     createTrigramIndexes(attributes);
 
     assertHasDataIntegrityIssues(
         "trackedEntityAttributes",
-        "tracked_entity_attributes_trigram_index_out_of_sync",
+        "tracked_entity_attributes_trigram_index_overview",
         100,
         Set.of(teaA.getUid(), teaB.getUid()),
         Set.of(teaA.getName(), teaB.getName()),
@@ -152,57 +109,7 @@ class DataIntegrityTrackedEntityAttributesRunTrigramIndexJobControllerTest
         true);
   }
 
-  @Test
-  void
-      testTrackedEntityAttributesWithIndexableFlagAndBlockedOperatorsButIndexCreatedInOneAttribute() {
-    enableIndexableFlag(attributes);
-    blockTrigramOperators(attributes);
-    createTrigramIndexes(Set.of(teaA));
-
-    assertHasDataIntegrityIssues(
-        "trackedEntityAttributes",
-        "tracked_entity_attributes_trigram_index_out_of_sync",
-        50,
-        Set.of(teaA.getUid()),
-        Set.of(teaA.getName()),
-        Set.of(),
-        true);
-  }
-
-  @Test
-  void
-      testTrackedEntityAttributesWithIndexableFlagAndBlockedOperatorsButIndexCreatedInAllAttributes() {
-    enableIndexableFlag(attributes);
-    blockTrigramOperators(attributes);
-    createTrigramIndexes(attributes);
-
-    assertHasDataIntegrityIssues(
-        "trackedEntityAttributes",
-        "tracked_entity_attributes_trigram_index_out_of_sync",
-        100,
-        Set.of(teaA.getUid(), teaB.getUid()),
-        Set.of(teaA.getName(), teaB.getName()),
-        Set.of(),
-        true);
-  }
-
-  private void enableIndexableFlag(Set<TrackedEntityAttribute> attributes) {
-    attributes.forEach(
-        attr -> {
-          attr.setTrigramIndexable(true);
-          manager.update(attr);
-        });
-  }
-
-  private void blockTrigramOperators(Set<TrackedEntityAttribute> attributes) {
-    attributes.forEach(
-        attr -> {
-          attr.setBlockedSearchOperators(Set.of(LIKE, EW));
-          manager.update(attr);
-        });
-  }
-
-  private void createTrigramIndexes(Set<TrackedEntityAttribute> attributes) {
+  public void createTrigramIndexes(Set<TrackedEntityAttribute> attributes) {
     attributes.forEach(
         attr -> {
           String query = String.format(TRIGRAM_INDEX_CREATE_QUERY, attr.getId(), attr.getId());

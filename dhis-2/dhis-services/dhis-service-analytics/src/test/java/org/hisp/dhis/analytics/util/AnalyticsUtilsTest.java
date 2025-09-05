@@ -31,8 +31,12 @@ package org.hisp.dhis.analytics.util;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY_POINT;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -286,9 +290,7 @@ class AnalyticsUtilsTest extends TestBase {
     DataSet dsA = createDataSet('A');
     DimensionalObject dx =
         new BaseDimensionalObject(
-            DimensionalObject.DATA_X_DIM_ID,
-            DimensionType.DATA_X,
-            DimensionalObjectUtils.getList(deA, inA, dsA));
+            DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList(deA, inA, dsA));
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .addDimension(dx)
@@ -309,12 +311,10 @@ class AnalyticsUtilsTest extends TestBase {
     OrganisationUnit ouB = createOrganisationUnit('B');
     DimensionalObject dx =
         new BaseDimensionalObject(
-            DimensionalObject.DATA_X_DIM_ID,
-            DimensionType.DATA_X,
-            DimensionalObjectUtils.getList(deA, inA, dsA));
+            DATA_X_DIM_ID, DimensionType.DATA_X, DimensionalObjectUtils.getList(deA, inA, dsA));
     DimensionalObject ou =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB));
+            ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB));
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .addDimension(dx)
@@ -342,8 +342,7 @@ class AnalyticsUtilsTest extends TestBase {
     deA.setCategoryCombo(ccA);
     deB.setCategoryCombo(ccB);
     DimensionalObject dx =
-        new BaseDimensionalObject(
-            DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of(deA, deB));
+        new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(deA, deB));
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .addDimension(dx)
@@ -361,9 +360,9 @@ class AnalyticsUtilsTest extends TestBase {
         DataQueryParams.newBuilder()
             .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()))
             .build();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     assertEquals(4, grid.getHeaders().size());
     assertEquals(0, grid.getWidth());
@@ -402,9 +401,9 @@ class AnalyticsUtilsTest extends TestBase {
                     DATA_X_DIM_ID, DimensionType.DATA_X, List.of(dxA, dxB, dxC, dxD, dxE, dxF)))
             .build();
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow().addValuesAsList(Lists.newArrayList("deabcdefghA", "ouA", "peA", 1d));
     grid.addRow().addValuesAsList(Lists.newArrayList("deabcdefghB", "ouA", "peA", 2d));
@@ -460,9 +459,9 @@ class AnalyticsUtilsTest extends TestBase {
             .build();
 
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow().addValuesAsList(List.of("programIndA", "ouA", "peA", 1d));
     grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.*", "ouA", "peA", 2d));
@@ -508,11 +507,11 @@ class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetDataValueSetFromGridEmpty() {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     DataValueSet dvs = AnalyticsUtils.getDataValueSet(DataQueryParams.newBuilder().build(), grid);
     assertNotNull(dvs);
@@ -523,11 +522,11 @@ class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetDataValueSetFromGrid() {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "ouA", "peA", "coA", "aoA", 1d));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "ouA", "peB", null, null, 2d));
@@ -584,11 +583,11 @@ class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetDataValueSetFromGridWithDuplicates() {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "ouA", "peA", null, null, 1d));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "ouA", "peB", null, null, 2d));
@@ -615,11 +614,11 @@ class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetDataValueSetAsGridFromGrid() {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "ouA", "peA", "coA", "aoA", 1d));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "ouA", "peB", "coB", "aoB", 2d));
@@ -670,10 +669,10 @@ class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetDataValueSetAsGridFromGridMissingOrgUnitColumn() {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow().addValuesAsList(Lists.newArrayList("dxA", "peA", "coA", "aoA", 1d));
 

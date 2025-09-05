@@ -33,8 +33,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionalObject.TEXTVALUE_COLUMN_NAME;
-import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
+import static org.hisp.dhis.common.DimensionConstants.TEXTVALUE_COLUMN_NAME;
+import static org.hisp.dhis.common.DimensionConstants.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
