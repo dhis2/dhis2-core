@@ -65,11 +65,13 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
 
   @Override
   public Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
-      Map<String, List<RuleEffect>> ruleEffects) {
+      String entityUid, Map<String, List<RuleEffect>> ruleEffects) {
     Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects = new HashMap<>();
 
     for (Map.Entry<String, List<RuleEffect>> entry : ruleEffects.entrySet()) {
-      if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+      if (entry.getKey().equals(entityUid)
+          && entry.getValue() != null
+          && !entry.getValue().isEmpty()) {
         List<RuleEffect> ruleEffectList = entry.getValue();
 
         trackerSideEffects.put(entry.getKey(), toTrackerSideEffectList(ruleEffectList));

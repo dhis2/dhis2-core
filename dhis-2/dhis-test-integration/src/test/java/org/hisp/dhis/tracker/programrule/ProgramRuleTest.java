@@ -39,8 +39,13 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrorsAndNoWarnings;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1300;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,11 +65,16 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.PersistenceReport;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 class ProgramRuleTest extends TrackerTest {
   private static final String ENROLLMENT_UID = "TvctPPhpD8u";
 
@@ -109,6 +119,9 @@ class ProgramRuleTest extends TrackerTest {
 
     TrackedEntityAttribute trackedEntityAttribute =
         bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "dIVt4l5vIOa");
+
+    TrackedEntityAttribute trackedEntityAttributeNumber =
+        bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "numericAttr");
     programStageOnInsert =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO");
     programStageOnComplete =
@@ -120,10 +133,15 @@ class ProgramRuleTest extends TrackerTest {
         createProgramRuleVariableWithDataElement('D', programWithRegistration, dataElement6);
     ProgramRuleVariable programRuleVariable2 =
         createProgramRuleVariableWithTEA('B', programWithRegistration, trackedEntityAttribute);
+    ProgramRuleVariable programRuleVariableNumber =
+        createProgramRuleVariableWithTEA(
+            'D', programWithRegistration, trackedEntityAttributeNumber);
+    programRuleVariableNumber.setName("integer_prv_attr");
     programRuleVariableDE6.setName("integer_prv_de6");
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableDE6);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariableNumber);
     constantService.saveConstant(constant());
 
     injectAdminUser();
@@ -233,6 +251,83 @@ class ProgramRuleTest extends TrackerTest {
     report = trackerImportService.importTracker(importParams);
 
     assertHasScheduleNotificationForCurrentDate(report);
+  }
+
+  @Test
+  void shouldApplyNotificationSideEffectOnlyToConfiguredEnrollment() throws IOException {
+    String enrollmentWithNotification = "TvctPPhpD8u";
+
+    storeScheduleNotificationProgramRule(
+        'Q', programWithRegistration, null, TEMPLATE_UID, "#{integer_prv_attr} > 4");
+
+    TrackerImportParams importParams =
+        fromJson("tracker/programrule/tei_enrollment_with_more_than_one_event.json");
+    importParams.setImportStrategy(TrackerImportStrategy.CREATE);
+
+    ImportReport report = trackerImportService.importTracker(importParams);
+    assertNotNull(report);
+
+    PersistenceReport persistenceReport = report.getPersistenceReport();
+    TrackerTypeReport enrollmentTypeReport =
+        persistenceReport.getTypeReportMap().get(TrackerType.ENROLLMENT);
+
+    List<TrackerSideEffectDataBundle> enrollmentSideEffects =
+        enrollmentTypeReport.getSideEffectDataBundles();
+
+    enrollmentSideEffects.stream()
+        .filter(bundle -> bundle.getProgramInstance().getUid().equals(enrollmentWithNotification))
+        .forEach(
+            bundle ->
+                assertEquals(
+                    1,
+                    bundle.getEnrollmentRuleEffects().size(),
+                    "Expected exactly one side effect for enrollment with notification"));
+  }
+
+  @Test
+  void shouldApplyNotificationSideEffectOnlyToConfiguredEvent() throws IOException {
+    String eventWithNotification = "D9PbzJY8bJO";
+    String eventWithoutNotification = "D9PbzJY8bJ2";
+
+    storeScheduleNotificationProgramRule(
+        'P',
+        programWithRegistration,
+        programStageOnInsert,
+        TEMPLATE_UID,
+        "#{integer_prv_de6} > 10");
+
+    TrackerImportParams importParams =
+        fromJson("tracker/programrule/tei_enrollment_with_more_than_one_event.json");
+    importParams.setImportStrategy(TrackerImportStrategy.CREATE);
+
+    ImportReport report = trackerImportService.importTracker(importParams);
+    assertNotNull(report);
+
+    PersistenceReport persistenceReport = report.getPersistenceReport();
+    TrackerTypeReport eventTypeReport = persistenceReport.getTypeReportMap().get(TrackerType.EVENT);
+
+    List<TrackerSideEffectDataBundle> eventSideEffectBundles =
+        eventTypeReport.getSideEffectDataBundles();
+
+    // Validate event with notification
+    eventSideEffectBundles.stream()
+        .filter(bundle -> bundle.getProgramStageInstance().getUid().equals(eventWithNotification))
+        .forEach(
+            bundle ->
+                assertEquals(
+                    1,
+                    bundle.getEventRuleEffects().size(),
+                    "Expected exactly one side effect for event with notification"));
+
+    // Validate event without notification
+    eventSideEffectBundles.stream()
+        .filter(
+            bundle -> bundle.getProgramStageInstance().getUid().equals(eventWithoutNotification))
+        .forEach(
+            bundle ->
+                assertTrue(
+                    bundle.getEventRuleEffects().isEmpty(),
+                    "Expected no side effects for event without notification"));
   }
 
   @Test
