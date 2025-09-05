@@ -133,7 +133,8 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     return TrackerSideEffectDataBundle.builder()
         .klass(ProgramInstance.class)
         .enrollmentRuleEffects(
-            sideEffectConverterService.toTrackerSideEffects(bundle.getEnrollmentRuleEffects()))
+            sideEffectConverterService.toTrackerSideEffects(
+                null, bundle.getEnrollmentRuleEffects()))
         .eventRuleEffects(new HashMap<>())
         .object(programInstance.getUid())
         .importStrategy(bundle.getImportStrategy())
