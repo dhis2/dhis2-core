@@ -47,11 +47,8 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
   // -------------------------------------------------------------------------
 
   private final TrackedEntityService trackedEntityService;
-
   private final ProgramService programService;
-
   private final OrganisationUnitService orgUnitService;
-
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
   @Override

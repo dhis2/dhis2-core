@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
+import static org.hisp.dhis.trackedentity.OwnershipCacheUtils.getOwnershipCacheKey;
+
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
@@ -48,9 +54,15 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityProgramOwnerStore
     extends HibernateGenericStore<TrackedEntityProgramOwner>
     implements TrackedEntityProgramOwnerStore {
+  private final Cache<OrganisationUnit> ownerCache;
+
   public HibernateTrackedEntityProgramOwnerStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CacheProvider cacheProvider) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false);
+    this.ownerCache = cacheProvider.createProgramOwnerCache();
   }
 
   @Override
@@ -109,5 +121,23 @@ public class HibernateTrackedEntityProgramOwnerStore
         });
 
     return trackedEntityProgramOwnerOrgUnits;
+  }
+
+  @Override
+  public void save(@Nonnull TrackedEntityProgramOwner trackedEntityProgramOwner) {
+    super.save(trackedEntityProgramOwner);
+    ownerCache.invalidate(
+        getOwnershipCacheKey(
+            () -> trackedEntityProgramOwner.getTrackedEntity().getId(),
+            trackedEntityProgramOwner.getProgram()));
+  }
+
+  @Override
+  public void update(@Nonnull TrackedEntityProgramOwner trackedEntityProgramOwner) {
+    super.update(trackedEntityProgramOwner);
+    ownerCache.invalidate(
+        getOwnershipCacheKey(
+            () -> trackedEntityProgramOwner.getTrackedEntity().getId(),
+            trackedEntityProgramOwner.getProgram()));
   }
 }
