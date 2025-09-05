@@ -40,19 +40,14 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -85,12 +80,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
   private OrganisationUnit orgUnitA;
 
-  private ProgramRule programRuleA;
-
-  private ProgramRuleVariable programRuleVariableA;
-
-  private DataElement dataElementA;
-
   private TrackedEntityType trackedEntityTypeA;
 
   private TrackedEntityInstance trackedEntityA;
@@ -109,10 +98,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
 
-    dataElementA = createDataElement('A');
-    dataElementA.setValueType(ValueType.NUMBER);
-    manager.save(dataElementA, false);
-
     trackedEntityTypeA = createTrackedEntityType('A');
     manager.save(trackedEntityTypeA, false);
 
@@ -123,24 +108,8 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
     programStageA = createProgramStage('S', programA);
     manager.save(programStageA, false);
 
-    ProgramStageDataElement programStageDataElementA =
-        createProgramStageDataElement(programStageA, dataElementA, 1);
-    manager.save(programStageDataElementA, false);
-    programStageA.getProgramStageDataElements().add(programStageDataElementA);
-    manager.update(programStageA);
-
     programA.getProgramStages().add(programStageA);
     manager.update(programA);
-
-    programRuleVariableA = createProgramRuleVariable('A', programA);
-    programRuleVariableA.setDataElement(dataElementA);
-    programRuleVariableA.setValueType(ValueType.NUMBER);
-    manager.save(programRuleVariableA, false);
-
-    programRuleA = createProgramRule('R', programA);
-    programRuleA.setCondition(
-        "d2:hasValue(#{ProgramRuleVariableA}) && #{ProgramRuleVariableA} > 10");
-    manager.save(programRuleA, false);
 
     trackedEntityA = createTrackedEntityInstance('T', orgUnitA);
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
