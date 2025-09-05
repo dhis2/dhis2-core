@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering.better;
+package org.hisp.dhis.tracker.export.fieldfiltering;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.better.Fields.Transformation;
 import org.hisp.dhis.schema.Schema;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -563,7 +562,7 @@ class FieldsParserTest {
   void testParserSortsTransformationsWithRenameLast() {
     Fields fields = FieldsParser.parse("field::rename(newName)~isEmpty");
 
-    List<Transformation> actual = fields.getTransformations("field");
+    List<Fields.Transformation> actual = fields.getTransformations("field");
 
     assertEquals(
         List.of(
@@ -631,7 +630,7 @@ class FieldsParserTest {
       current = current.getChildren(segments[i]);
     }
     String lastSegment = segments[segments.length - 1];
-    List<Transformation> actual = current.getTransformations(lastSegment);
+    List<Fields.Transformation> actual = current.getTransformations(lastSegment);
 
     if (expected.transformations.length == 0) {
       assertIsEmpty(
@@ -649,7 +648,7 @@ class FieldsParserTest {
     }
   }
 
-  private static Function<Transformation, ExpectTransformation> toExpectTransformation() {
+  private static Function<Fields.Transformation, ExpectTransformation> toExpectTransformation() {
     return t -> new ExpectTransformation(t.name(), t.argument());
   }
 

@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
-import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 
 /**
  * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to

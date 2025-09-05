@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.fieldfiltering.better.Fields;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 
 /**
  * Wrapper that carries both a single entity and the Fields for field filtering. This allows the

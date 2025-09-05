@@ -38,7 +38,7 @@
  *
  * Controllers use {@code @RequestParam Fields fields} which Spring converts via a converter.
  * Response serialization happens through the configured Jackson {@link
- * org.hisp.dhis.fieldfiltering.better.FieldsConfig#jsonFilterMapper(org.hisp.dhis.fieldfiltering.better.FieldsPropertyFilter)}
+ * org.hisp.dhis.tracker.export.fieldfiltering.FieldsConfig#jsonFilterMapper(FieldsPropertyFilter)}
  * bean.
  */
-package org.hisp.dhis.fieldfiltering.better;
+package org.hisp.dhis.tracker.export.fieldfiltering;

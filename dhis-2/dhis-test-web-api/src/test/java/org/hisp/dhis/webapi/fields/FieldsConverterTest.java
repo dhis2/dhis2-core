@@ -41,10 +41,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.fieldfiltering.better.Fields;
-import org.hisp.dhis.fieldfiltering.better.SchemaFieldsPresets;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
+import org.hisp.dhis.tracker.export.fieldfiltering.SchemaFieldsPresets;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
