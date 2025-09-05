@@ -8,6 +8,7 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import java.io.IOException;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.http.HttpMethod;
 
 public record Contract(
@@ -17,6 +18,7 @@ public record Contract(
     int responseStatus,
     @JsonDeserialize(using = JsonSchemaDeserializer.class) JsonSchema jsonSchema) {
 
+  @Nonnull
   @Override
   public String toString() {
     return name;

@@ -36,7 +36,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This test class executes tests against all contracts from the dhis2-api-contracts repo. There is
- * 1 parameterized test which iterates over all contracts found.
+ * 1 parameterized test which iterates over all contracts found. <br>
+ * Test steps are:
+ *
+ * <ul>
+ *   <li>Read in contract
+ *   <li>Create and save a type expected in the contract e.g. Category
+ *   <li>Make the HTTP request from the contract e.g. GET, POST...
+ *   <li>Assert HTTP response code
+ *   <li>Assert response has no validation errors when the contract JSON schema is applied
+ * </ul>
  */
 @Slf4j
 @Transactional
@@ -86,7 +95,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // get type from contract
     String type = contract.name();
 
-    // change to lowercase to use to get schema //todo change contract to have lower?
+    // change 1st char to lowercase for get schema use
     String typeLowerCase = Character.toLowerCase(type.charAt(0)) + type.substring(1);
     Schema schema = schemaService.getSchemaBySingularName(typeLowerCase);
 
