@@ -44,6 +44,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -476,7 +478,9 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   // The adx groups could be in any order, but each contains only one value
   private Set<String> adxGroups(String adx) {
-    return Sets.newHashSet(adx.split("</*group"));
+    Pattern pattern = Pattern.compile("<group>\\s*(.*?)\\s*</group>", Pattern.DOTALL);
+    Matcher matcher = pattern.matcher(adx);
+    return matcher.results().map(match -> match.group(1).trim()).collect(Collectors.toSet());
   }
 
   private void testImport(String filePath, IdSchemes idSchemes) throws IOException {

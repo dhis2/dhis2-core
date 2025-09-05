@@ -80,7 +80,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -99,7 +99,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataExportService implements DataExportService {
 
   private final IdentifiableObjectManager identifiableObjectManager;
-  private final PeriodService periodService;
   private final DataExportStore store;
   private final InputUtils inputUtils;
   private final AclService aclService;
@@ -342,7 +341,7 @@ public class DefaultDataExportService implements DataExportService {
     if (!isEmpty(urlParams.getPeriod())) {
       params
           .getPeriods()
-          .addAll(periodService.reloadIsoPeriods(new ArrayList<>(urlParams.getPeriod())));
+          .addAll(urlParams.getPeriod().stream().map(PeriodType::getPeriodFromIsoString).toList());
     } else if (urlParams.getStartDate() != null && urlParams.getEndDate() != null) {
       params.setStartDate(urlParams.getStartDate());
       params.setEndDate(urlParams.getEndDate());
@@ -432,7 +431,7 @@ public class DefaultDataExportService implements DataExportService {
     if (!isEmpty(urlParams.getPeriod())) {
       params
           .getPeriods()
-          .addAll(periodService.reloadIsoPeriods(new ArrayList<>(urlParams.getPeriod())));
+          .addAll(urlParams.getPeriod().stream().map(PeriodType::getPeriodFromIsoString).toList());
     } else if (urlParams.getStartDate() != null && urlParams.getEndDate() != null) {
       params.setStartDate(urlParams.getStartDate()).setEndDate(urlParams.getEndDate());
     }
