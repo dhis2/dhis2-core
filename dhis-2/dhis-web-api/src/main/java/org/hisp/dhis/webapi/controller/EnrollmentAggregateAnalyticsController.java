@@ -231,7 +231,7 @@ public class EnrollmentAggregateAnalyticsController {
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
     return dimensionFilteringAndPagingService.pageAndFilter(
         dimensionMapperService.toDimensionResponse(
-            enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId(programId),
+            enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramId(programId),
             INSTANCE),
         dimensionsCriteria,
         fields);

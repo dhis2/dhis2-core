@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allV
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,6 +43,9 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
@@ -59,18 +63,24 @@ import org.junit.jupiter.api.Test;
 class EventAnalyticsDimensionsServiceTest {
   private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
+  private ProgramService programService;
+  private ProgramStageService programStageService;
+  private CategoryService categoryService;
+  private Program program;
+  private ProgramStage programStage;
+
   private static final String PROGRAM_UID = "aProgramUid";
 
   @BeforeEach
   void setup() {
     injectSecurityContextNoSettings(new SystemUser());
 
-    ProgramService programService = mock(ProgramService.class);
-    ProgramStageService programStageService = mock(ProgramStageService.class);
-    CategoryService categoryService = mock(CategoryService.class);
+    programService = mock(ProgramService.class);
+    programStageService = mock(ProgramStageService.class);
+    categoryService = mock(CategoryService.class);
 
-    Program program = mock(Program.class);
-    ProgramStage programStage = mock(ProgramStage.class);
+    program = mock(Program.class);
+    programStage = mock(ProgramStage.class);
 
     when(programService.getProgram(any())).thenReturn(program);
     when(program.getUid()).thenReturn(PROGRAM_UID);
@@ -123,5 +133,54 @@ class EventAnalyticsDimensionsServiceTest {
             .filter(b -> b instanceof TrackedEntityAttribute)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .allMatch(aggregateAllowedValueTypesPredicate()));
+  }
+
+  @Test
+  void testAggregateIncludesCategoriesAndAttributeGroupSetsWhenNonDefaultCategoryCombo() {
+    // Given a program with non-default category combo
+    when(program.hasNonDefaultCategoryCombo()).thenReturn(true);
+
+    // Categories linked to the program's category combo
+    Category categoryA = new Category();
+    categoryA.setUid("CatA");
+    Category categoryB = new Category();
+    categoryB.setUid("CatB");
+
+    CategoryCombo categoryCombo = new CategoryCombo();
+    categoryCombo.setCategories(List.of(categoryA, categoryB));
+    when(program.getCategoryCombo()).thenReturn(categoryCombo);
+
+    // Only attribute type group sets should be included
+    CategoryOptionGroupSet attrGogs =
+        new CategoryOptionGroupSet("AttrGOGS", org.hisp.dhis.common.DataDimensionType.ATTRIBUTE);
+    attrGogs.setUid("COGS_ATTR");
+    CategoryOptionGroupSet disaggGogs =
+        new CategoryOptionGroupSet(
+            "DisGOGS", org.hisp.dhis.common.DataDimensionType.DISAGGREGATION);
+    disaggGogs.setUid("COGS_DIS");
+    when(categoryService.getAllCategoryOptionGroupSets()).thenReturn(List.of(attrGogs, disaggGogs));
+
+    // When
+    List<BaseIdentifiableObject> items =
+        eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId("stage1").stream()
+            .map(PrefixedDimension::getItem)
+            .toList();
+
+    // Then: categories are included
+    List<String> categoryUids =
+        items.stream()
+            .filter(i -> i instanceof Category)
+            .map(BaseIdentifiableObject::getUid)
+            .toList();
+    assertTrue(categoryUids.containsAll(List.of("CatA", "CatB")));
+
+    // And: only attribute COGS are included (DISAGGREGATION filtered out)
+    List<String> cogsUids =
+        items.stream()
+            .filter(i -> i instanceof CategoryOptionGroupSet)
+            .map(BaseIdentifiableObject::getUid)
+            .toList();
+    assertTrue(cogsUids.contains("COGS_ATTR"));
+    assertFalse(cogsUids.contains("COGS_DIS"));
   }
 }
