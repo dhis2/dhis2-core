@@ -11,7 +11,7 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.http.HttpMethod;
 
-public record Contract(
+public record ApiContract(
     String name,
     HttpMethod httpMethod,
     String requestUrl,

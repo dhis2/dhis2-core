@@ -59,7 +59,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   @ParameterizedTest(name = "{0} test")
   @MethodSource("getContracts")
   @DisplayName("Test API contracts")
-  void contractTest(Contract contract)
+  void apiContractTest(ApiContract contract)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
@@ -67,7 +67,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     assertGetRequestContract(contract);
   }
 
-  private <T extends IdentifiableObject> void assertGetRequestContract(Contract contract)
+  private <T extends IdentifiableObject> void assertGetRequestContract(ApiContract contract)
       throws InvocationTargetException,
           NoSuchMethodException,
           IllegalAccessException,
@@ -90,7 +90,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> T createTypeAndSave(Contract contract)
+  private <T extends IdentifiableObject> T createTypeAndSave(ApiContract contract)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     // get type from contract
     String type = contract.name();
@@ -113,13 +113,13 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
 
   /**
    * Reads in JSON contracts from a jar at classpath /contracts. Returns a set of instantiated
-   * {@link Contract}s.
+   * {@link ApiContract}s.
    *
-   * @return set of instantiated {@link Contract}s.
+   * @return set of instantiated {@link ApiContract}s.
    * @throws URISyntaxException URISyntaxException
    */
-  private static Set<Contract> getContracts() throws URISyntaxException {
-    Set<Contract> contracts = new HashSet<>();
+  private static Set<ApiContract> getContracts() throws URISyntaxException {
+    Set<ApiContract> contracts = new HashSet<>();
 
     URI uri =
         Objects.requireNonNull(
@@ -139,7 +139,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
                 filePath -> {
                   try {
                     JsonNode jsonNode = mapper.readTree(Files.readString(filePath));
-                    contracts.add(mapper.treeToValue(jsonNode, Contract.class));
+                    contracts.add(mapper.treeToValue(jsonNode, ApiContract.class));
                   } catch (Exception e) {
                     log.error(e.getMessage());
                   }
