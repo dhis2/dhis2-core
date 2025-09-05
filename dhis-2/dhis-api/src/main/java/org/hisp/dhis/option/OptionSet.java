@@ -58,12 +58,10 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
@@ -93,7 +91,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -143,8 +140,6 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Type(type = "jsbObjectSharing")
   @Column(name = "sharing")
   private Sharing sharing = new Sharing();
-
-  
 
   // -------------------------------------------------------------------------
   // Constructors
