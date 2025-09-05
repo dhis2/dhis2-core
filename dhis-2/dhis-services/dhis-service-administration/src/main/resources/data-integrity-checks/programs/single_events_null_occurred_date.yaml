@@ -1,0 +1,90 @@
+# Copyright (c) 2004-2025, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: single_events_null_occurred_date
+description: Single events without an occurred date
+section: Programs
+section_order: 3
+summary_sql: >-
+  WITH rs as (
+  SELECT e.uid
+  FROM programstageinstance e
+  INNER JOIN programstage ps ON ps.programstageid = e.programstageid
+  INNER JOIN program p ON p.programid = ps.programid
+  WHERE e.executiondate IS NULL
+  AND p.type = 'WITHOUT_REGISTRATION'
+  )
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) from programstageinstance),0) as percent
+  from rs;
+details_sql: >-
+  SELECT 
+    e.uid as uid,
+    e.uid as name,
+    'single event without occurred date' AS comment
+   FROM programstageinstance e
+   INNER JOIN programstage ps ON ps.programstageid = e.programstageid
+   INNER JOIN program p ON p.programid = ps.programid
+   WHERE e.executiondate IS NULL
+   AND p.type = 'WITHOUT_REGISTRATION';
+severity: SEVERE
+introduction: >
+  Single event cannot be scheduled, hence occurred date is mandatory. This was enforced by the system
+  but it is not enforced in the database. Starting from v43, the occurred date column for single events
+  will not accept null values. This check must pass in order to be able to upgrade to v43 and later.
+details_id_type: events
+recommendation: >-
+  You will need to either assign an occurred date to the single event or delete the single event.
+  
+  One way it so try to assign to occurreddate column a value getting it from scheduleddate or completeddate
+  or a manually inserted value:
+  
+  UPDATE singleevent
+  SET occurreddate = COALESCE(event.scheduleddate, event.completeddate, '2025-09-01 11:26:00')
+  WHERE uid = '<event_uid>';
+     
+  Be sure to replace `<event_uid>` with the UID of the single event you want to fix.
+  As is always the case with direct database manipulation, you should
+  ensure that you have a backup of your database before running this command, 
+  ensure that DHIS2 is not running, perform the change in a test environment first. 
+  
+  After fixing the single event, restart DHIS2 and re-run the integrity check 
+  to ensure that the single event has an occurred date and the integrity check no longer flags it.
+  
+  Alternatively, if you know that the event is not needed or used, you can delete it.
+  You can delete the single event using the following SQL command:
+  
+  UPDATE event SET deleted = true WHERE uid = '<event_uid>';
+    
+  Replace `<event_uid>` with the UID of the single event you want to delete. 
+  Once you have run this command return to the Data Administration app and choose "Maintenance" 
+  and then tick "Permanently remove soft deleted events". Click "Perform maintenance" to 
+  permanently delete the soft-deleted events.
+  
+  If you are unsure how to proceed or encounter issues when either trying to fix or delete a single event, 
+  please feel free to reach out on the DHIS2 Community of Practice forum at https://community.dhis2.org.
+is_slow: true

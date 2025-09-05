@@ -31,6 +31,8 @@ checks:
   - option_sets/unused_option_sets.yaml
   - option_sets/option_sets_wrong_sort_order.yaml
   - programs/tracker_geometry_invalid_srid.yaml
+  - programs/single_events_null_occurred_date.yaml
+  - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_no_expression.yaml
   - program_rules/program_rules_message_no_template.yaml
