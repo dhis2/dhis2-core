@@ -101,6 +101,12 @@ public enum ConfigurationKey {
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
+  /**
+   * If present, overrides the connection.url value - useful when running Apache Doris in a
+   * container
+   */
+  DORIS_CATALOG_CONNECTION_URL("doris.catalog.connection.url", "", false),
+
   /** Analytics Database connection URL. */
   ANALYTICS_CONNECTION_URL("analytics.connection.url", "", false),
 
