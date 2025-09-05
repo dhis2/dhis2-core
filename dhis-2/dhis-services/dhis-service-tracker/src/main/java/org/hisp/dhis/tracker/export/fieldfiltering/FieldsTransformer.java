@@ -168,7 +168,6 @@ public class FieldsTransformer {
       @Nonnull String field, @Nonnull ObjectNode parent, @Nullable String argument) {
     JsonNode value = parent.get(field);
 
-    // TODO(ivo) apart from array/text this is a noop right? why are there more than 2 cases?
     if (value.isArray()) {
       parent.put(field, value.size());
     } else if (value.isTextual()) {

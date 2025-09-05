@@ -109,8 +109,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "*",
         ":all",
         "!*",
-        "!:all", // TODO(ivo) should this be invalid? the exclusion is ignored and the preset is
-        // applied
+        "!:all", // should this be invalid? the exclusion is ignored and the preset is applied
         ":simple",
         "!event",
         "event,dataValues",

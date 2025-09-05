@@ -57,9 +57,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Tests the {@link FieldsParser} and its backwards compatibility with the current {@link
- * FieldFilterParser}. Some tests are ported over from {@code FieldFilterParserTest}. Comments
- * indicate where the tests differ.
+ * Tests the {@link FieldsParser} and its backwards compatibility with the {@link FieldFilterParser}
+ * which tracker used previously. Some tests are ported over from {@code FieldFilterParserTest}.
+ * Comments indicate where the tests differ.
  */
 class FieldsParserTest {
 
@@ -209,7 +209,7 @@ class FieldsParserTest {
                 new ExpectField(true, "group.name"),
                 new ExpectField(true, "code"))),
 
-        // TODO(ivo) bug or wanted? this is the behavior of the current FieldFilterParser not sure
+        // this is the behavior of the org.hisp.dhis.fieldfiltering.FieldFilterParser
         // I replicated it for backwards compatibility but am unsure if we want to trim whitespace
         // inside of a field name
         Arguments.of(
@@ -266,7 +266,8 @@ class FieldsParserTest {
                 new ExpectField(false, "group.code"),
                 new ExpectField(true, "group.hello"))),
 
-        // adapted current transformer tests as the better parser includes validation of args
+        // adapted org.hisp.dhis.fieldfiltering.FieldFilterParser transformer tests as the better
+        // parser includes validation of args
         // testParseWithTransformer1
         Arguments.of(
             "name::rename(a),id~rename(b),code|rename(c)",
@@ -350,15 +351,16 @@ class FieldsParserTest {
                 new ExpectField(true, "displayName"))));
   }
 
-  // The following tests show where the current and better implementations differ. Some differences
-  // are due to an improved API in the better parser, some are due to what I think are bugs in the
-  // current implementation which we need to go through case by case.
+  // The following tests show where the org.hisp.dhis.fieldfiltering.FieldFilterParser and tracker
+  // implementations differ. Some differences
+  // are due to an improved API in the tracker parser, some are due to what I think are bugs in
+  // org.hisp.dhis.fieldfiltering.FieldFilterParser.
 
-  // TODO(ivo) better API compared to current:
   // /api/organisationUnits?fields=dataSets[name],!dataSets will return an empty object
-  // The better parser clearly shows that excluding has precedence over inclusion.
-  // The current parser does not as exclusions are handled in the FieldFilterService. This makes it
-  // confusion to read the expectations of the current parser.
+  // The tracker parser clearly shows that excluding has precedence over inclusion.
+  // The org.hisp.dhis.fieldfiltering.FieldFilterParser does not as exclusions are handled in its
+  // FieldFilterService. This makes it
+  // confusion to read the expectations of org.hisp.dhis.fieldfiltering.FieldFilterParser.
   @Test
   void testBetterParserIncludeChildOfExcludedParent() {
     Fields fields = FieldsParser.parse("group[code],!group");
@@ -375,7 +377,7 @@ class FieldsParserTest {
         List.of(new ExpectField(false, "group"), new ExpectField(true, "group.code")), fieldPaths);
   }
 
-  // TODO(ivo) this is a bug IMHO as it leads to an HTTP 500 instead of 400
+  // this leads to an HTTP 500 instead of 400 in org.hisp.dhis.fieldfiltering.FieldFilterParser
   @Test
   void bugInCurrentParserUnbalancedClosingParen() {
     assertThrows(
@@ -399,7 +401,8 @@ class FieldsParserTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        // TODO(ivo) old parser ignores this, I think this should be invalid
+        // org.hisp.dhis.fieldfiltering.FieldFilterParser ignores this, I think this should be
+        // invalid
         "[value]"
       })
   void betterParserFailsOnBlockWithoutName(String input) {
@@ -412,7 +415,8 @@ class FieldsParserTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        // TODO old parser throws EmptyStackException which leads to a 500 error
+        // org.hisp.dhis.fieldfiltering.FieldFilterParser throws EmptyStackException which leads to
+        // a 500 error
         "]",
         ")",
         "group[name]]",
