@@ -70,6 +70,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -113,6 +114,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
   @Autowired private AuditService auditService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private Date incidenDate;
 
@@ -187,6 +190,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     trackedEntityService.addTrackedEntity(entityInstanceWithAssociations);
     enrollmentService.addEnrollment(enrollmentWithTeiAssociation);
     enrollmentService.addEnrollment(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, program, organisationUnit);
     event = new Event(enrollment, stageA);
     event.setUid("PSUID-B");
     event.setOrganisationUnit(organisationUnit);

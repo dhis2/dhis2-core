@@ -105,7 +105,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.8.0.RELEASE</lettuce.version>
+    <lettuce.version>6.8.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -127,7 +127,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.19.2</jackson.version>
+    <jackson.version>2.20.0</jackson.version>
     <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -168,7 +168,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.21.1</jsoup.version>
+    <jsoup.version>1.21.2</jsoup.version>
     <jetty.version>10.0.24</jetty.version>
 
     <!-- Div. utils -->
@@ -193,7 +193,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
     <httpcomponents-client.version>4.5.14</httpcomponents-client.version>
-    <kafka.version>4.0.0</kafka.version>
+    <kafka.version>4.1.0</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
@@ -213,7 +213,7 @@
     <testcontainers.version>1.21.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.32</swagger.version>
+    <swagger.version>2.1.33</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
@@ -229,10 +229,10 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
+    <restrict-imports-enforcer.version>3.0.0</restrict-imports-enforcer.version>
+    <versions-maven-plugin.version>2.19.0</versions-maven-plugin.version>
     <dependency-check-maven.version>12.1.3</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.9.4.0</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.9.4.1</spotbugs-maven-plugin.version>
     <spotless.version>2.46.1</spotless.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -1854,7 +1854,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>4.0.0.4121</version>
+          <version>5.2.0.4988</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
