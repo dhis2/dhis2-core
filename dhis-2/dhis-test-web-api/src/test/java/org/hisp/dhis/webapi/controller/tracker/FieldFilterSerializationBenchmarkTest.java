@@ -174,7 +174,7 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
   @Test
   @Timeout(unit = TimeUnit.MINUTES, value = 200)
-  public void executeJmhRunner() throws Exception {
+  void executeJmhRunner() throws Exception {
     // Inject Spring services into static benchmark state
     BenchmarkState.fieldFilterService = this.fieldFilterService;
     BenchmarkState.objectMapper = this.objectMapper;
@@ -246,11 +246,10 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
   private void writeHeader(BufferedWriter writer, Collection<RunResult> results)
       throws IOException {
     // Get parameter keys from first result
-    SortedSet<String> params = new TreeSet<>();
-    for (RunResult res : results) {
-      params.addAll(res.getParams().getParamsKeys());
-      break;
-    }
+    SortedSet<String> params =
+        results.isEmpty()
+            ? new TreeSet<>()
+            : new TreeSet<>(results.iterator().next().getParams().getParamsKeys());
 
     writer.write(
         "\"Benchmark\",\"Mode\",\"Threads\",\"Samples\",\"Score\",\"Score Error (99.9% CI)\",\"Unit\"");
@@ -272,12 +271,9 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
     double eventsPerSec = 0;
     double eventsPerSecError = 0;
     if (eventCountStr != null) {
-      try {
-        int eventCount = Integer.parseInt(eventCountStr);
-        eventsPerSec = result.getScore() * eventCount;
-        eventsPerSecError = result.getScoreError() * eventCount;
-      } catch (NumberFormatException ignored) {
-      }
+      int eventCount = Integer.parseInt(eventCountStr);
+      eventsPerSec = result.getScore() * eventCount;
+      eventsPerSecError = result.getScoreError() * eventCount;
     }
 
     // Write CSV row

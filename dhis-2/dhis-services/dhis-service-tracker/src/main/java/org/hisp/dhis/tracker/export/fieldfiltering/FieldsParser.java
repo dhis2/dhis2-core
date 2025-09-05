@@ -156,9 +156,7 @@ public class FieldsParser {
           }
           break;
 
-        case COLON_COLON:
-        case TILDE:
-        case PIPE:
+        case COLON_COLON, TILDE, PIPE:
           if (parser.pendingTransformation != null && !parser.pendingTransformation.isEmpty()) {
             parser.currentTransformation.add(new Transformation(parser.pendingTransformation));
           }
@@ -505,7 +503,7 @@ public class FieldsParser {
     }
   }
 
-  record Transformation(String name, String... arguments) {
+  private record Transformation(String name, String... arguments) {
     @Override
     public @Nonnull String toString() {
       return name + "(" + String.join(",", arguments) + ")";

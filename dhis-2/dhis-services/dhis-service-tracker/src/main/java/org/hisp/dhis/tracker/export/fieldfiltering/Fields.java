@@ -109,11 +109,6 @@ public final class Fields implements Predicate<String> {
     // this handles cases like: fields=dataValues[value], fields=dataValues[!value],
     // fields=dataValues[*]
     return children.getOrDefault(field, Fields.ALL);
-    // TODO(ivo) Children are not automatically included when it comes to metadata. The behavior is
-    // schema
-    // dependent. References like fields=program will turn into fields=program[id]. There is more
-    // logic with regards to "complex" objects ... We can come up with a mechanism to override this
-    // behavior via a Function<String, Fields> for example.
   }
 
   /**
