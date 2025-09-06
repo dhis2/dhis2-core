@@ -1324,7 +1324,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("births attended by", response.get(0).getDisplayName());
     assertEquals("Child Health", response.get(1).getDisplayName());
   }
-  
+
   @Test
   void testCreateCategoryOption() {
     // First create an organisation unit to reference from the category option
@@ -1351,7 +1351,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     + "'code':'C-A',"
                     + "'description':'A category option',"
                     + "'formName':'Form A',"
-                    + "'organisationUnits':[{'id':'" + ouId + "'}]"
+                    + "'organisationUnits':[{'id':'"
+                    + ouId
+                    + "'}]"
                     + "}"));
 
     // Fetch and verify all properties including collections
@@ -1375,7 +1377,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     // property name for groups is categoryOptionGroups in JSON
     assertEquals(0, co.getArray("categoryOptionGroups").size());
   }
-  
+
   @Test
   void testCategoryOptionCategoriesPopulatedAfterLinkingCategory() {
     // Create a category option
@@ -1401,7 +1403,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, cats.size());
     assertEquals(catId, cats.getObject(0).getString("id").string());
   }
-  
+
   @Test
   void testCategoryOptionCombosPopulatedAfterCreatingCategoryCombo() {
     // Create a category option
@@ -1451,7 +1453,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     }
     assertTrue(contains);
   }
-  
+
   @Test
   void testCategoryOptionGroupsPopulatedAfterLinkingGroup() {
     // Create a category option
@@ -1477,7 +1479,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, groups.size());
     assertEquals(cogId, groups.getObject(0).getString("id").string());
   }
-  
+
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
     JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
     JsonList<JsonErrorReport> errorReports = msg.getTypeReport().getErrorReports();
