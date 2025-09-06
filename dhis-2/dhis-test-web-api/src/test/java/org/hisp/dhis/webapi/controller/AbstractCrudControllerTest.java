@@ -1325,6 +1325,161 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Child Health", response.get(1).getDisplayName());
   }
 
+  @Test
+  void testCreateCategoryOption() {
+    // First create an organisation unit to reference from the category option
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{"
+                    + "'name':'OU A',"
+                    + "'shortName':'OUA',"
+                    + "'openingDate':'2020-01-01'"
+                    + "}"));
+
+    // Create category option with various scalar properties and the organisationUnits collection
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptions",
+                "{"
+                    + "'name':'CO A',"
+                    + "'shortName':'COA',"
+                    + "'code':'C-A',"
+                    + "'description':'A category option',"
+                    + "'formName':'Form A',"
+                    + "'organisationUnits':[{'id':'"
+                    + ouId
+                    + "'}]"
+                    + "}"));
+
+    // Fetch and verify all properties including collections
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+
+    assertEquals("CO A", co.getString("displayName").string());
+    assertEquals("COA", co.getString("shortName").string());
+    assertEquals("C-A", co.getString("code").string());
+    assertEquals("A category option", co.getString("description").string());
+    assertEquals("Form A", co.getString("formName").string());
+
+    // organisationUnits collection should contain the created OU
+    JsonArray ouArr = co.getArray("organisationUnits");
+    assertNotNull(ouArr);
+    assertEquals(1, ouArr.size());
+    assertEquals(ouId, ouArr.getObject(0).getString("id").string());
+
+    // Other collections should be present and empty upon creation
+    assertEquals(0, co.getArray("categories").size());
+    assertEquals(0, co.getArray("categoryOptionCombos").size());
+    // property name for groups is categoryOptionGroups in JSON
+    assertEquals(0, co.getArray("categoryOptionGroups").size());
+  }
+
+  @Test
+  void testCategoryOptionCategoriesPopulatedAfterLinkingCategory() {
+    // Create a category option
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name':'CO B', 'shortName':'COB' }"));
+
+    // Create a category that includes the created category option
+    String catId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name':'Cat A', 'shortName':'CatA', 'dataDimensionType':'DISAGGREGATION',"
+                    + " 'categoryOptions': [ { 'id': '"
+                    + coId
+                    + "' } ] }"));
+
+    // Verify the category option now shows the category in its categories collection
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray cats = co.getArray("categories");
+    assertNotNull(cats);
+    assertEquals(1, cats.size());
+    assertEquals(catId, cats.getObject(0).getString("id").string());
+  }
+
+  @Test
+  void testCategoryOptionCombosPopulatedAfterCreatingCategoryCombo() {
+    // Create a category option
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name':'CO C', 'shortName':'COC' }"));
+
+    // Create a category that includes the created category option
+    String catId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name':'Cat B', 'shortName':'CatB', 'dataDimensionType':'DISAGGREGATION',"
+                    + " 'categoryOptions': [ { 'id': '"
+                    + coId
+                    + "' } ] }"));
+
+    // Create a category combo that includes the category
+    String ccId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name':'CC B', 'dataDimensionType':'DISAGGREGATION', 'categories': [ { 'id': '"
+                    + catId
+                    + "' } ] }"));
+
+    // Read the category combo to get the generated category option combo id
+    JsonObject cc = GET("/categoryCombos/" + ccId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray comboCocs = cc.getArray("categoryOptionCombos");
+    assertNotNull(comboCocs);
+    assertTrue(comboCocs.size() >= 1);
+    String expectedCocId = comboCocs.getObject(0).getString("id").string();
+
+    // Verify the category option now shows the related COC in its categoryOptionCombos collection
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray coCocs = co.getArray("categoryOptionCombos");
+    assertNotNull(coCocs);
+    assertTrue(coCocs.size() >= 1);
+    boolean contains = false;
+    for (int i = 0; i < coCocs.size(); i++) {
+      if (expectedCocId.equals(coCocs.getObject(i).getString("id").string())) {
+        contains = true;
+        break;
+      }
+    }
+    assertTrue(contains);
+  }
+
+  @Test
+  void testCategoryOptionGroupsPopulatedAfterLinkingGroup() {
+    // Create a category option
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name':'CO D', 'shortName':'COD' }"));
+
+    // Create a category option group that includes the category option as a member
+    String cogId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptionGroups",
+                "{ 'name':'Group A', 'shortName':'GroupA', 'dataDimensionType':'DISAGGREGATION',"
+                    + " 'categoryOptions': [ { 'id': '"
+                    + coId
+                    + "' } ] }"));
+
+    // Verify the category option now shows the group in its categoryOptionGroups collection
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray groups = co.getArray("categoryOptionGroups");
+    assertNotNull(groups);
+    assertEquals(1, groups.size());
+    assertEquals(cogId, groups.getObject(0).getString("id").string());
+  }
+
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
     JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
     JsonList<JsonErrorReport> errorReports = msg.getTypeReport().getErrorReports();

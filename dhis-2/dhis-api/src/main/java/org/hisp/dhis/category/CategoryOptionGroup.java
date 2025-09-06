@@ -42,6 +42,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 
 /**
@@ -85,7 +86,7 @@ public class CategoryOptionGroup extends BaseDimensionalItemObject implements Me
   // -------------------------------------------------------------------------
 
   @JsonProperty("categoryOptions")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryOption> getMembers() {

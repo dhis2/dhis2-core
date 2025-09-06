@@ -42,6 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -54,19 +55,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
@@ -83,6 +78,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.annotation.Description;
@@ -95,11 +91,9 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -131,9 +125,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  @Type(type = "jblTranslations")
-  @Column(name = "translations")
-  private Set<Translation> translations = new HashSet<>();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_optionset_optionid"))
@@ -148,25 +140,6 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Type(type = "jsbObjectSharing")
   @Column(name = "sharing")
   private Sharing sharing = new Sharing();
-
-  // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
-
-  /**
-   * Cache for object translations, where the cache key is a combination of locale and translation
-   * property, and value is the translated value.
-   */
-  @Transient
-  private final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
-
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  @Transient private transient String href;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -342,7 +315,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getTranslation("NAME", name);
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
@@ -445,18 +418,13 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    if (translations == null) {
-      translations = new HashSet<>();
-    }
-
-    return translations;
+    return translations.getTranslations();
   }
 
   /** Clears out cache when setting translations. */
   @Override
   public void setTranslations(Set<Translation> translations) {
-    this.translationCache.clear();
-    this.translations = translations;
+    this.translations.setTranslations(translations);
   }
 
   @Override
@@ -518,45 +486,6 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
     }
   }
 
-  /**
-   * Returns a translated value for this object for the given property. The current locale is read
-   * from the user context.
-   *
-   * @param translationKey the translation key.
-   * @param defaultValue the value to use if there are no translations.
-   * @return a translated value.
-   */
-  protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-
-    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
-
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
-      return defaultValue;
-    }
-
-    return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
-  }
-
-  /**
-   * Get Translation value from {@code Set<Translation>} by given locale and translationKey
-   *
-   * @return Translation value if exists, otherwise return default value.
-   */
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
-    for (Translation translation : translations) {
-      if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
-          && !StringUtils.isEmpty(translation.getValue())) {
-        return translation.getValue();
-      }
-    }
-
-    return defaultValue;
-  }
-
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
     this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
@@ -575,29 +504,5 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @JsonIgnore
   public String getAttributeValue(String attributeUid) {
     return attributeValues.get(attributeUid);
-  }
-
-  // -------------------------------------------------
-  // Not Supported methods overridden from IdentifiableObject
-  // -------------------------------------------------
-
-  @Override
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  @Override
-  public boolean isFavorite() {
-    return false;
-  }
-
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
   }
 }

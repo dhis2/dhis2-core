@@ -52,7 +52,6 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -67,6 +66,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.FavoritableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -103,7 +103,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "dashboard", namespace = DxfNamespaces.DXF_2_0)
-public class Dashboard extends BaseMetadataObject implements IdentifiableObject {
+public class Dashboard extends BaseMetadataObject implements IdentifiableObject, FavoritableObject {
   public static final int MAX_ITEMS = 40;
 
   @Id
@@ -165,14 +165,6 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject 
   private Set<String> favorites = new HashSet<>();
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
-
-  // ----------------------------------------------------------------
-  // Transient properties
-  // ----------------------------------------------------------------
-
-  @Transient private transient String href;
-
-  @Transient private transient Access access;
 
   // -------------------------------------------------------------------------
   // Constructors
