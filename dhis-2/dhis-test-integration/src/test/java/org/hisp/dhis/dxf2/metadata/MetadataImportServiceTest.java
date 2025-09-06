@@ -1151,7 +1151,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(visualization.getLegendDefinitions().getLegendSet());
     assertEquals("CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid());
   }
-
+  
   private MetadataImportParams createParams(ImportStrategy importStrategy) {
     return new MetadataImportParams()
         .setImportMode(ObjectBundleMode.COMMIT)
