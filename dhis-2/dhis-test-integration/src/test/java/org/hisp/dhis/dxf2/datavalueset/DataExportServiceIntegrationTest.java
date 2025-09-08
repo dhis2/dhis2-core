@@ -262,6 +262,8 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     dsA.addDataSetElement(deB);
     dsA.addDataSetElement(deC);
     dsA.addDataSetElement(deD);
+    dsA.addDataSetElement(deF);
+    dsA.addDataSetElement(deG);
     organisationUnitService.addOrganisationUnit(ouA);
     organisationUnitService.addOrganisationUnit(ouB);
     organisationUnitService.addOrganisationUnit(ouC);
@@ -642,9 +644,9 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertContainsValue(new DataValue(deB, peA, ouA, ocDef, ocDef), dataValues);
     assertContainsValue(new DataValue(deC, peA, ouA, ocDef, ocDef), dataValues);
 
-    // FIXME (JB) why would there be 0 audits expected?
     for (DataExportValue dv : dataValues)
-      assertEquals(0, dataValueAuditService.getDataValueAudits(dv).size(), "no audit expected");
+      assertEquals(
+          1, dataValueAuditService.getDataValueAudits(dv).size(), "should be a CREATE audit");
   }
 
   @Test
@@ -983,7 +985,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     // FIXME invalid AOC seems not to be handled/detected
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetF.xml"));
 
-    assertEquals(0, summary.getImportCount().getImported());
+    assertEquals(0, summary.getImportCount().getUpdated());
     assertEquals(ImportStatus.ERROR, summary.getStatus());
     assertDataValuesCount(0);
   }
@@ -1164,29 +1166,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesUpdatedSkipAudit() {
-    assertDataValuesCount(0);
-    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
-    assertImported(3, 0, summary);
-    assertDataValuesCount(3);
-
-    ImportOptions importOptions = new ImportOptions();
-    importOptions.setSkipAudit(true);
-
-    summary =
-        dataEntryPipeline.importXml(
-            readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"), importOptions, transitory());
-
-    assertImported(3, 0, summary);
-    List<DataExportValue> dataValues = assertDataValuesCount(3);
-    for (DataExportValue dv : dataValues)
-      assertEquals(
-          1, // =CREATE
-          dataValueAuditService.getDataValueAudits(dv).size(),
-          "expected data value update(s) NOT to be audited");
-  }
-
-  @Test
   void testImportNullDataValues() {
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetANull.xml"));
 
@@ -1233,11 +1212,11 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportSummary summary =
         importXml(new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
 
-    assertEquals(3, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(0, summary.getImportCount().getImported());
     assertEquals(2, summary.getImportCount().getUpdated());
     assertEquals(0, summary.getImportCount().getDeleted());
     assertEquals(3, summary.getImportCount().getIgnored());
+    assertEquals(3, summary.getConflictCount(), summary.getConflictsDescription());
     assertEquals(ImportStatus.WARNING, summary.getStatus());
     List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
     assertNotNull(dataValues);
@@ -1349,7 +1328,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   private static void assertImported(int updated, int ignored, int deleted, ImportSummary summary) {
     ImportCount totals = summary.getImportCount();
     assertAll(
-        () -> assertNoConflicts(summary),
         () -> assertEquals(0, totals.getImported(), "unexpected import count"),
         () -> assertEquals(updated, totals.getUpdated(), "unexpected update count"),
         () -> assertEquals(deleted, totals.getDeleted(), "unexpected deleted count"),

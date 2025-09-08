@@ -432,7 +432,8 @@ public class DefaultDataExportService implements DataExportService {
       params
           .getPeriods()
           .addAll(urlParams.getPeriod().stream().map(PeriodType::getPeriodFromIsoString).toList());
-    } else if (urlParams.getStartDate() != null && urlParams.getEndDate() != null) {
+    }
+    if (urlParams.getStartDate() != null && urlParams.getEndDate() != null) {
       params.setStartDate(urlParams.getStartDate()).setEndDate(urlParams.getEndDate());
     }
 
