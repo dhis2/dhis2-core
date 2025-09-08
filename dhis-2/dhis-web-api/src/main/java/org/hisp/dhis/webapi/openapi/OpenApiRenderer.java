@@ -87,10 +87,10 @@ public class OpenApiRenderer {
        --p-op-bg: 15%;
        --color-delete: tomato;
        --color-patch: orchid;
-       --color-post: lightskyblue;
-       --color-put: sienna;
+       --color-post: mediumpurple;
+       --color-put: olivedrab;
        --color-options: rosybrown;
-       --color-get: #147cd7;
+       --color-get: royalblue;
        --color-trace: palevioletred;
        --color-head: thistle;
        --color-dep: khaki;
@@ -110,8 +110,9 @@ public class OpenApiRenderer {
     margin: 0;
     padding-right: 40px;
     min-height: 100%;
-    font-family: "Mulish", sans-serif;
+    font-family: "JetBrains Mono", monospace;
     font-size: 16px;
+    font-weight: 200;
     text-rendering: optimizespeed;
   }
   nav h1 { font-size: 110%; text-align: right; }
@@ -132,8 +133,12 @@ public class OpenApiRenderer {
   #hotkeys a:visited { color: #eee; }
   button, input { font-family: inherit; }
 
-  pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
-  pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
+  pre { background-color: honeydew; color: #222; margin-right: 2em; padding: 0.5rem;
+    font-variant-ligatures: contextual;
+    font-feature-settings: "calt";
+    overflow: auto;
+  }
+  pre, code { font-family: "JetBrains Mono", monospace; font-weight: normal; }
   code + b { padding: 0 0.5em; }
 
   dt { font-weight: bold; margin-top: 0.5em; }
@@ -228,11 +233,11 @@ public class OpenApiRenderer {
       list-style-type: none;
       cursor: pointer;
   }
-  details.op, details.schema { margin-bottom: 1rem;  border-style: solid; border-width: 1px; border-left-width: 7px; border-radius: 2px; }
+  details.op, details.schema { margin-bottom: 1rem;  border-style: solid; border-width: 0; border-top-width: 2px; }
   details.op[open], details.schema[open] { padding-bottom: 1rem; }
-  details.op > summary, details.schema > summary { padding: 0.5rem; margin-top: 0; }
+  details.op > summary, details.schema > summary { padding: 0.5rem; padding-left: 0; margin-top: 0; }
   details > header { padding: 0.5rem 1rem; font-size: 95%; }
-  details > aside { padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
+  details > aside { padding: 0.5rem 1rem; margin-bottom: 0.5rem; margin-left: 5em; background-color: #eee; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
@@ -242,27 +247,27 @@ public class OpenApiRenderer {
   code.http.content > span.status2xx { color: black; }
   body:not([content-]) code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
-  code.http.method { width: 4rem; text-align: right; color: dimgray; }
+  code.http.method { width: 4rem; text-align: left; color: white; padding: 5px 0.5em; position: relative; top: -10px; border-radius: 0 0 4px 4px; }
   .desc code { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
   code.property { padding: 0.25em 0.5em; background-color:  #eee; }
   code.property.secondary, code.property.secondary ~ code.type { background-color: #f6f6f6; }
-  code.url, .desc code.keyword { padding: 0.25em 0.5em; background-color: #eee; }
+  code.url, .desc code.keyword { padding: 0.25em 0.5em; }
   code.url.path { font-weight: bold; border-radius: 4px; }
-  code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background-color: #f6f6f6; }
+  code.url em, code.url.secondary { color: teal; font-style: normal; font-weight: normal; }
   code.url small { color: gray; }
   code.tag { color: dimgray; margin-left: 2em; }
-  code.tag > span + span { color: darkblue; padding: 0.25em; background-color: #eee; }
+  code.tag > span + span { color: navy; padding: 0.25em; }
   code.tag.columns { display: inline-block; padding-left: 100px; }
   code.tag.columns > span:first-of-type { margin-left: -100px; padding-right: 1em; }
-  code.secondary ~ code.type { color: darkslateblue; padding: 0.25em 0.5em; }
+  code.secondary ~ code.type { color: darkmagenta; padding: 0.25em 0.5em; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.request, code.response { padding: 0.25em 0.5em; color: dimgray; font-weight: bold; }
-  code.mime { background-color: #ddd; font-style: italic; padding: 0.25em 0.5em; }
-  code.mime.secondary, code.mime.secondary + code.type { background-color: #f0f0f0; }
+  code.mime { font-style: italic; padding: 0.25em 0.5em; }
+  code.mime.secondary, code.mime.secondary + code.type {  }
 
-  code.status { padding: 0.25em 0.5em; font-weight: bold; }
-  code.status2xx { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
-  code.status4xx { background: color-mix(in srgb, tomato 70%, transparent); color: snow; }
+  code.status { padding: 0.25em 0.5em; }
+  code.status2xx { background: color-mix(in srgb, seagreen 10%, transparent); color: seagreen; }
+  code.status4xx { background: color-mix(in srgb, tomato 10%, transparent); color: tomato; }
 
   .deprecated summary > code.url { background-color: var(--color-dep); color: #666; }
   .deprecated summary > code.url.secondary { background: color-mix(in srgb, var(--color-dep) 70%, transparent); }
@@ -296,19 +301,12 @@ public class OpenApiRenderer {
     animation: spin 2s linear 0s infinite reverse; font-weight: bold; }
 
   /* operation background colors */
-  details.GET > summary .http.method { color: var(--color-get); }
-  details.POST > summary .http.method { color: var(--color-post); }
-  details.PUT > summary .http.method { color: var(--color-put); }
-  details.PATCH > summary .http.method { color: var(--color-patch); }
-  details.DELETE > summary .http.method { color: var(--color-delete); }
-  details.schema > summary .http.method { color: var(--color-schema); }
-
-  details[open].GET > aside { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-aside), transparent); }
-  details[open].POST > aside { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-aside), transparent); }
-  details[open].PUT > aside { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-aside), transparent); }
-  details[open].PATCH > aside { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-aside), transparent); }
-  details[open].DELETE > aside { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-aside), transparent); }
-  details[open].schema > aside { background: color-mix(in srgb, var(--color-schema) var(--percent-op-bg-aside), transparent); }
+  details.GET > summary .http.method { background-color: color-mix(in srgb, var(--color-get) 20%, transparent); color: var(--color-get); }
+  details.POST > summary .http.method { background-color: color-mix(in srgb, var(--color-post) 20%, transparent); color: var(--color-post); }
+  details.PUT > summary .http.method { background-color: color-mix(in srgb, var(--color-put) 20%, transparent); color: var(--color-put); }
+  details.PATCH > summary .http.method { background-color: color-mix(in srgb, var(--color-patch) 20%, transparent); color: var(--color-patch); }
+  details.DELETE > summary .http.method { background-color: color-mix(in srgb, var(--color-delete) 20%, transparent); color: var(--color-delete); }
+  details.schema > summary .http.method { background-color: color-mix(in srgb, var(--color-schema) 20%, transparent); color: var(--color-schema); }
 
   /* operation visibility filters */
   #body[get-] .op.GET,
@@ -386,11 +384,11 @@ public class OpenApiRenderer {
   .op.beta > summary > code.url.path:before { content: '🔧'; padding: 0.25em; }
   .op.stable > summary > code.url.path:before { content: '🛡️'; padding: 0.25em; }
   .op.deprecated > summary > code.url.path:before,
-   nav code.deprecated:before { content: '⚠️'; padding: 0.25em; font-family: sans-serif; }
+   nav code.deprecated:before { content: '⚠️'; padding: 0.25em; }
   /* parameter markers */
   .required > summary > code:first-of-type { font-weight: bold; }
   .required > summary > code:first-of-type:after { content: '*'; color: tomato; }
-  .deprecated > summary > code:first-of-type:before { content: '⚠️'; font-family: sans-serif; display: inline-block; padding-right: 0.25rem; }
+  .deprecated > summary > code:first-of-type:before { content: '⚠️'; display: inline-block; padding-right: 0.25rem; }
   /* +/- buttons for expand/collapse */
   .box aside > button.toggle { pointer-events: none; opacity: 0.65; }
   .box aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; }
@@ -405,7 +403,7 @@ public class OpenApiRenderer {
   .schema.boolean > summary > code:first-of-type:before { content: '01'; }
 
   article.desc { margin: 0.25em 2.5em; color: #333; } /* note: margin is in pixels as the font-size changes */
-  article.desc > p { margin: 0 0 0.5em 0; }
+  article.desc > p { margin: 0 0 0.5em 0; font-size: 90%; }
   article.desc > *:first-child { margin-top: 10px; }
   article.desc a[target="_blank"]:after { content: '🗗'; }
   body[desc-] article.desc:not(:hover) { font-size: 0.1rem; }
@@ -652,6 +650,12 @@ public class OpenApiRenderer {
           appendTag(
               "head",
               () -> {
+                appendRaw(
+                    """
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+                """);
                 appendTag("title", api.info().title() + " " + api.info().version());
                 appendTag("link", Map.of("rel", "icon", "href", "./favicon.ico"), "");
                 appendTag("style", CSS);
@@ -913,6 +917,8 @@ public class OpenApiRenderer {
   private void renderPathGroupSummary(OperationsGroupItem group) {
     appendTag("h3", Map.of("class", group.group()), group.group());
 
+    // TODO run this into "Query /api/x/... [12][24]" with numbers indicating GETs, PUTs and so on
+    // just by color
     group.operations().stream()
         .collect(groupingBy(OperationObject::operationMethod, counting()))
         .forEach(
@@ -992,12 +998,9 @@ public class OpenApiRenderer {
     String method = op.operationMethod().toUpperCase();
     String path = op.operationPath();
 
-    renderMediaSubTypesIndicator(op.responseMediaSubTypes());
-    appendCode(
-        "http content",
-        () ->
-            op.responseCodes().forEach(code -> appendSpan("status" + code.charAt(0) + "xx", code)));
     appendCode("http method", method);
+    // TODO the /api should be greyed out as it is common for all
+    // FIXME endpoints with a # (merged?) start with api/ instead of /api/ (bug in merge?)
     appendCode("url path", getUrlPathInSections(path));
     List<ParameterObject> queryParams = op.parameters(ParameterObject.In.query);
     if (!queryParams.isEmpty()) {
@@ -1017,9 +1020,14 @@ public class OpenApiRenderer {
       renderSchemaSignature(request);
       appendCode("request secondary", "}");
     }
+    appendCode("response secondary", "::");
+    appendCode(
+        "http content",
+        () ->
+            op.responseCodes().forEach(code -> appendSpan("status" + code.charAt(0) + "xx", code)));
+    renderMediaSubTypesIndicator(op.responseMediaSubTypes());
     List<SchemaObject> successOneOf = op.responseSuccessSchemas();
     if (!successOneOf.isEmpty()) {
-      appendCode("response secondary", "::");
       renderSchemaSignature(successOneOf);
     }
   }
