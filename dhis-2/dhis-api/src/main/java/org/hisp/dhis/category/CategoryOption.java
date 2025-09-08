@@ -138,7 +138,7 @@ public class CategoryOption extends BaseMetadataObject
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  @Column(name = "formName", length = 230)
+  @Column(name = "formname", length = 230)
   private String formName;
 
   @Temporal(TemporalType.DATE)

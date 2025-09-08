@@ -52,14 +52,14 @@ import org.hisp.dhis.user.User;
 @MappedSuperclass
 public class BaseMetadataObject implements MetadataObject {
 
-  @Column(name = "uid", unique = true, length = 11)
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
   protected String uid;
 
-  @Column(name = "created", updatable = false)
+  @Column(name = "created", nullable = false, updatable = false)
   @Temporal(TemporalType.TIMESTAMP)
   protected Date created;
 
-  @Column(name = "lastUpdated")
+  @Column(name = "lastUpdated", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
   protected Date lastUpdated;
 
