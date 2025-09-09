@@ -293,7 +293,8 @@ public class ServiceConfig {
         getCheckerByClass(EventGeometryCheck.class),
         getCheckerByClass(DataValueCheck.class),
         getCheckerByClass(FilteredDataValueCheck.class),
-        getCheckerByClass(ExpirationDaysCheck.class));
+        getCheckerByClass(ExpirationDaysCheck.class),
+        getCheckerByClass(UpdateProgramStageInstanceAclCheck.class));
   }
 
   @Bean
