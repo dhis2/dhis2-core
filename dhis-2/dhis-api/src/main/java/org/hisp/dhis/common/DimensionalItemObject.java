@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
+
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
@@ -39,9 +41,6 @@ import org.hisp.dhis.legend.LegendSet;
 public interface DimensionalItemObject extends NameableObject {
   /** Gets the dimension item identifier. */
   String getDimensionItem();
-
-  /** Gets the dimension item identifier with queryModsId if present. */
-  String getDimensionItemWithQueryModsId();
 
   /**
    * Gets the dimension item identifier based on the given identifier scheme.
@@ -86,5 +85,13 @@ public interface DimensionalItemObject extends NameableObject {
   /** Gets the absolute period offset regardless of whether there are query modifiers. */
   default int getPeriodOffset() {
     return (getQueryMods() != null) ? getQueryMods().getPeriodOffset() : 0;
+  }
+
+  /** Gets the dimension item identifier with queryModsId if present. */
+  default String getDimensionItemWithQueryModsId() {
+    return getDimensionItem()
+        + ((getQueryMods() != null && getQueryMods().getQueryModsId() != null)
+            ? QUERY_MODS_ID_SEPARATOR + getQueryMods().getQueryModsId()
+            : "");
   }
 }

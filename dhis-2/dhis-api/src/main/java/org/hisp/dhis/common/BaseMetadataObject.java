@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -36,8 +38,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.Date;
 import lombok.Setter;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.User;
 
 /**
@@ -66,4 +70,27 @@ public class BaseMetadataObject implements MetadataObject {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "userid")
   protected User createdBy;
+
+  // -------------------------------------------------------------------------------------------
+  // Transient fields
+  // -------------------------------------------------------------------------------------------
+
+  /**
+   * As part of the serializing process, this field can be set to indicate a link to this
+   * identifiable object (will be used on the web layer for navigating the REST API)
+   */
+  @Transient protected transient String href;
+
+  /** Access information for this object. Applies to current user. */
+  @Transient protected transient Access access;
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getHref() {
+    return href;
+  }
+
+  public void setHref(String href) {
+    this.href = href;
+  }
 }
