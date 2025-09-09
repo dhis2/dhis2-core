@@ -46,6 +46,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,6 +66,8 @@ class SupplementaryDataProviderTest extends TestBase {
   @Mock private OrganisationUnitGroupService organisationUnitGroupService;
 
   @Mock private UserService userService;
+
+  @Mock private UserGroupService userGroupService;
 
   @InjectMocks private SupplementaryDataProvider providerToTest;
 
