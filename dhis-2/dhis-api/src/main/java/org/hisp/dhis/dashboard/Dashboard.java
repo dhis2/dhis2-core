@@ -186,17 +186,7 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
   // -------------------------------------------------------------------------
   // Getters
   // -------------------------------------------------------------------------
-
-  @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @Description("The Unique Identifier for this Object.")
-  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
-  }
-
+  
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getItemCount() {
@@ -279,57 +269,6 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDisplayName() {
     return translations.getTranslation("NAME", name);
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was created.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getCreated() {
-    return created;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  @Override
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
-  }
-
-  @Override
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
-  @Override
-  @OpenApi.Ignore
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return createdBy;
   }
 
   @Override

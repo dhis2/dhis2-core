@@ -280,17 +280,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public void setDescription(String description) {
     this.description = description;
   }
-
-  @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @Description("The Unique Identifier for this Object.")
-  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
-  }
-
+  
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -317,36 +307,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public String getDisplayName() {
     return translations.getTranslation("NAME", name);
   }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was created.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getCreated() {
-    return created;
-  }
-
-  @Override
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
+  
   @Override
   @OpenApi.Property(AttributeValue[].class)
   @JsonProperty("attributeValues")
@@ -364,16 +325,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public Sharing getSharing() {
     return sharing;
   }
-
-  @Override
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
-  public Access getAccess() {
-    return access;
-  }
-
+  
   @Override
   @OpenApi.Ignore
   @JsonProperty
@@ -391,21 +343,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
-
-  @Override
-  @Sortable(value = false)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(isAttribute = true)
-  @Property(PropertyType.URL)
-  public String getHref() {
-    return href;
-  }
-
-  @Override
-  public void setHref(String href) {
-    this.href = href;
-  }
-
+  
   @Override
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);
@@ -431,19 +369,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public long getId() {
     return id;
   }
-
-  @Override
-  @Gist(included = Include.FALSE)
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
+  
   // --------------------------------------------------
   // Copy methods from BaseIdentifiableObject
   // --------------------------------------------------

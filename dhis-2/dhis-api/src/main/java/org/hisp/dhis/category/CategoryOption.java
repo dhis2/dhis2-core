@@ -394,15 +394,7 @@ public class CategoryOption extends BaseMetadataObject
   public long getId() {
     return id;
   }
-
-  @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
-  }
-
+  
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -430,33 +422,6 @@ public class CategoryOption extends BaseMetadataObject
     return translations.getTranslation("NAME", name);
   }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was created.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getCreated() {
-    return created;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
-  }
 
   @Override
   @JsonProperty
@@ -472,29 +437,6 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
-  @Gist(included = Include.FALSE)
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
-  @Override
-  @OpenApi.Ignore
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return createdBy;
-  }
-
-  @Override
   public void setCreatedBy(User createdBy) {
     this.createdBy = createdBy;
   }
@@ -504,21 +446,7 @@ public class CategoryOption extends BaseMetadataObject
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
-
-  @Override
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
-  public Access getAccess() {
-    return access;
-  }
-
-  @Override
-  public void setAccess(Access access) {
-    this.access = access;
-  }
-
+  
   @Override
   @Sortable(value = false)
   @Gist(included = Include.FALSE)
