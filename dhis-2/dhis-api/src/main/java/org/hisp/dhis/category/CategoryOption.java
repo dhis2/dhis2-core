@@ -127,6 +127,7 @@ public class CategoryOption extends BaseMetadataObject
   @Column(name = "categoryoptionid")
   private long id;
 
+  @Column(name = "code", unique = true, length = 50)
   private String code;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
@@ -397,6 +398,7 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @PropertyRange(min = 11, max = 11)
   public String getUid() {
     return uid;
   }
@@ -404,6 +406,8 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
   public String getCode() {
     return code;
   }
@@ -411,6 +415,8 @@ public class CategoryOption extends BaseMetadataObject
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
   public String getName() {
     return name;
   }
