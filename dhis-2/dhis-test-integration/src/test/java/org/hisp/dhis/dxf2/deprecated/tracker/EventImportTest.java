@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.tracker.Assertions.assertTrackedEntityDataValueChangeLog;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.util.DateUtils.toIso8601NoTz;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -89,6 +90,8 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
@@ -97,7 +100,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -260,7 +265,8 @@ class EventImportTest extends TransactionalIntegrationTest {
     enrollment.setName("EventImportTestPI");
     enrollment.setUid(CodeGenerator.generateUid());
     manager.save(enrollment);
-    event = createEvent("eventUid001");
+    event =
+        createEvent("eventUid001", programB, programStageB, organisationUnitB, enrollment.getUid());
     superUser = createAndAddAdminUser(AUTHORITY_ALL);
     injectSecurityContextUser(superUser);
   }
@@ -277,7 +283,8 @@ class EventImportTest extends TransactionalIntegrationTest {
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(uid, programB, programStageB, organisationUnitB, enrollment.getUid());
 
     Event ev = programStageInstanceService.getEvent(event.getUid());
 
@@ -345,6 +352,54 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldNotUpdateEventWhenProgramNorProgramStageNotAccessible() {
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment testEnrollment =
+        createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    assertEquals(
+        ImportStatus.SUCCESS,
+        enrollmentService.addEnrollment(testEnrollment, null, null).getStatus());
+
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(
+            CodeGenerator.generateUid(),
+            programA,
+            programStageA,
+            organisationUnitA,
+            testEnrollment.getEnrollment());
+
+    ImportSummary addEventSummary =
+        eventService.addEvent(
+            event, new ImportOptions().setImportStrategy(ImportStrategy.CREATE), true);
+    assertEquals(ImportStatus.SUCCESS, addEventSummary.getStatus());
+
+    ImportSummary updateEventSummary =
+        eventService.updateEvent(
+            event, false, new ImportOptions().setImportStrategy(ImportStrategy.UPDATE), false);
+    assertEquals(ImportStatus.SUCCESS, updateEventSummary.getStatus());
+
+    User user =
+        createAndAddUser(
+            "userUpdate",
+            organisationUnitA,
+            Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+
+    programStageA.getSharing().addUserAccess(new UserAccess(user, AccessStringHelper.DATA_READ));
+    manager.update(programStageA);
+
+    injectSecurityContext(UserDetails.fromUser(user));
+
+    updateEventSummary =
+        eventService.updateEvent(
+            event, false, new ImportOptions().setImportStrategy(ImportStrategy.UPDATE), false);
+    assertEquals(ImportStatus.ERROR, updateEventSummary.getStatus());
+    assertContains(
+        "User has no data read access to program:", updateEventSummary.getConflictsDescription());
+    assertContains(
+        "User has no data write access to program stage:",
+        updateEventSummary.getConflictsDescription());
+  }
+
+  @Test
   void shouldAuditChangelogWhenUpdatingEventDataValues() throws IOException {
     String previousValueB = "10";
     String newValueB = "15";
@@ -359,7 +414,8 @@ class EventImportTest extends TransactionalIntegrationTest {
             previousValueB);
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event dxfEvent = createEvent(uid);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event dxfEvent =
+        createEvent(uid, programB, programStageB, organisationUnitB, enrollment.getUid());
 
     Event ev = programStageInstanceService.getEvent(dxfEvent.getUid());
 
@@ -420,7 +476,8 @@ class EventImportTest extends TransactionalIntegrationTest {
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event dxfEvent = createEvent(uid);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event dxfEvent =
+        createEvent(uid, programB, programStageB, organisationUnitB, enrollment.getUid());
 
     Event ev = programStageInstanceService.getEvent(dxfEvent.getUid());
 
@@ -464,7 +521,8 @@ class EventImportTest extends TransactionalIntegrationTest {
             "10");
     String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
 
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(uid, programB, programStageB, organisationUnitB, enrollment.getUid());
 
     Event ev = programStageInstanceService.getEvent(event.getUid());
 
@@ -706,8 +764,10 @@ class EventImportTest extends TransactionalIntegrationTest {
 
   @Test
   void testAddOneValidAndOneInvalidEvent() throws IOException {
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event validEvent = createEvent("eventUid004");
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event invalidEvent = createEvent("eventUid005");
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event validEvent =
+        createEvent("eventUid004", programB, programStageB, organisationUnitB, enrollment.getUid());
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event invalidEvent =
+        createEvent("eventUid005", programB, programStageB, organisationUnitB, enrollment.getUid());
     invalidEvent.setOrgUnit("INVALID");
     InputStream is =
         createEventsJsonInputStream(
@@ -722,14 +782,16 @@ class EventImportTest extends TransactionalIntegrationTest {
 
   @Test
   void testAddValidEnrollmentWithOneValidAndOneInvalidEvent() {
-    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
+    org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment testEnrollment =
         createEnrollment(programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance());
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event validEvent = createEvent("eventUid004");
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event validEvent =
+        createEvent("eventUid004", programB, programStageB, organisationUnitB, enrollment.getUid());
     validEvent.setOrgUnit(organisationUnitA.getUid());
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event invalidEvent = createEvent("eventUid005");
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event invalidEvent =
+        createEvent("eventUid005", programB, programStageB, organisationUnitB, enrollment.getUid());
     invalidEvent.setOrgUnit("INVALID");
-    enrollment.setEvents(Lists.newArrayList(validEvent, invalidEvent));
-    ImportSummary importSummary = enrollmentService.addEnrollment(enrollment, null);
+    testEnrollment.setEvents(Lists.newArrayList(validEvent, invalidEvent));
+    ImportSummary importSummary = enrollmentService.addEnrollment(testEnrollment, null);
     assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
     assertEquals(1, importSummary.getImportCount().getImported());
     assertEquals(0, importSummary.getImportCount().getIgnored());
@@ -781,8 +843,10 @@ class EventImportTest extends TransactionalIntegrationTest {
     eventService.addEvent(event, importOptions, false);
     eventService.deleteEvent(event.getUid());
     manager.flush();
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event2 = createEvent("eventUid002");
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event3 = createEvent("eventUid003");
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event2 =
+        createEvent("eventUid002", programB, programStageB, organisationUnitB, enrollment.getUid());
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event3 =
+        createEvent("eventUid003", programB, programStageB, organisationUnitB, enrollment.getUid());
     importOptions.setImportStrategy(ImportStrategy.CREATE);
     event.setDeleted(true);
     List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = new ArrayList<>();
@@ -1052,7 +1116,8 @@ class EventImportTest extends TransactionalIntegrationTest {
       String person,
       DataElement dataElement,
       String value) {
-    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(null);
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
+        createEvent(null, programB, programStageB, organisationUnitB, enrollment.getUid());
     event.setProgram(program);
     event.setProgramStage(programStage);
     event.setOrgUnit(orgUnit);
@@ -1101,17 +1166,22 @@ class EventImportTest extends TransactionalIntegrationTest {
     return enrollment;
   }
 
-  private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent(String uid) {
+  private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent(
+      String uid,
+      Program program,
+      ProgramStage programStage,
+      OrganisationUnit orgUnit,
+      String enrollment) {
     org.hisp.dhis.dxf2.deprecated.tracker.event.Event event =
         new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
     event.setUid(uid);
     event.setEvent(uid);
     event.setStatus(EventStatus.ACTIVE);
-    event.setProgram(programB.getUid());
-    event.setProgramStage(programStageB.getUid());
+    event.setProgram(program.getUid());
+    event.setProgramStage(programStage.getUid());
     event.setTrackedEntityInstance(trackedEntityInstanceMaleA.getTrackedEntityInstance());
-    event.setOrgUnit(organisationUnitB.getUid());
-    event.setEnrollment(enrollment.getUid());
+    event.setOrgUnit(orgUnit.getUid());
+    event.setEnrollment(enrollment);
     event.setEventDate(EVENT_DATE);
     event.setDeleted(false);
     return event;
