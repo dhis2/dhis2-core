@@ -63,23 +63,28 @@ import org.hisp.dhis.user.User;
 public class BaseMetadataObject implements MetadataObject {
 
   @Column(name = "uid", unique = true, nullable = false, length = 11)
-  @Setter protected String uid;
+  @Setter
+  protected String uid;
 
   @Column(name = "created", nullable = false, updatable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  @Setter protected Date created;
+  @Setter
+  protected Date created;
 
   @Column(name = "lastUpdated", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  @Setter protected Date lastUpdated;
+  @Setter
+  protected Date lastUpdated;
 
   @ManyToOne
   @JoinColumn(name = "lastupdatedby")
-  @Setter protected User lastUpdatedBy;
+  @Setter
+  protected User lastUpdatedBy;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "userid")
-  @Setter protected User createdBy;
+  @Setter
+  protected User createdBy;
 
   // -------------------------------------------------------------------------------------------
   // Transient fields
@@ -89,17 +94,17 @@ public class BaseMetadataObject implements MetadataObject {
    * As part of the serializing process, this field can be set to indicate a link to this
    * identifiable object (will be used on the web layer for navigating the REST API)
    */
-  @Transient @Setter protected transient String href;
+  @Transient @Setter protected String href;
 
   /** Access information for this object. Applies to current user. */
-  @Transient @Setter protected transient Access access;
+  @Transient @Setter protected Access access;
 
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public String getHref() {
     return href;
   }
-  
+
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
   @PropertyRange(min = 11, max = 11)
@@ -162,5 +167,4 @@ public class BaseMetadataObject implements MetadataObject {
   public User getUser() {
     return createdBy;
   }
-
 }

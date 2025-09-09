@@ -56,7 +56,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -86,11 +85,9 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -280,7 +277,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public void setDescription(String description) {
     this.description = description;
   }
-  
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -307,7 +304,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public String getDisplayName() {
     return translations.getTranslation("NAME", name);
   }
-  
+
   @Override
   @OpenApi.Property(AttributeValue[].class)
   @JsonProperty("attributeValues")
@@ -325,7 +322,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public Sharing getSharing() {
     return sharing;
   }
-  
+
   @Override
   @OpenApi.Ignore
   @JsonProperty
@@ -343,7 +340,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
-  
+
   @Override
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);
@@ -369,7 +366,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public long getId() {
     return id;
   }
-  
+
   // --------------------------------------------------
   // Copy methods from BaseIdentifiableObject
   // --------------------------------------------------

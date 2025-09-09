@@ -33,7 +33,6 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -56,7 +55,6 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -77,7 +75,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TranslationProperty;
@@ -86,11 +83,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -361,7 +354,7 @@ public class CategoryCombo extends BaseMetadataObject
   public List<Category> getCategories() {
     return categories;
   }
-  
+
   @JsonProperty("categoryOptionCombos")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0)
@@ -381,7 +374,7 @@ public class CategoryCombo extends BaseMetadataObject
   public boolean isSkipTotal() {
     return skipTotal;
   }
-  
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -408,7 +401,7 @@ public class CategoryCombo extends BaseMetadataObject
   public String getDisplayName() {
     return translations.getTranslation("NAME", name);
   }
-  
+
   @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
@@ -422,13 +415,13 @@ public class CategoryCombo extends BaseMetadataObject
   public Sharing getSharing() {
     return sharing;
   }
-  
+
   @Override
   public void setUser(User user) {
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
-  
+
   @Override
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);

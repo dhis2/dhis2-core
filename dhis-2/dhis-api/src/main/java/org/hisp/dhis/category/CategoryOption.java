@@ -97,11 +97,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -394,7 +390,7 @@ public class CategoryOption extends BaseMetadataObject
   public long getId() {
     return id;
   }
-  
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -422,7 +418,6 @@ public class CategoryOption extends BaseMetadataObject
     return translations.getTranslation("NAME", name);
   }
 
-
   @Override
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
@@ -446,7 +441,7 @@ public class CategoryOption extends BaseMetadataObject
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
-  
+
   @Override
   @Sortable(value = false)
   @Gist(included = Include.FALSE)
