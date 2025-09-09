@@ -90,11 +90,10 @@ public class Main {
   }
 
   private static String getContextPath() {
-    //    return ObjectUtils.firstNonNull(
-    //        System.getProperty("server.servlet.context.path"),
-    //        System.getenv("SERVER_SERVLET_CONTEXT_PATH"),
-    //        "");
-    return "dev";
+    return ObjectUtils.firstNonNull(
+        System.getProperty("server.servlet.context.path"),
+        System.getenv("SERVER_SERVLET_CONTEXT_PATH"),
+        "");
   }
 
   public static void main(String[] args) throws Exception {
