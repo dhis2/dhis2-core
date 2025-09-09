@@ -54,7 +54,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -95,7 +94,6 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -152,18 +150,6 @@ public class CategoryCombo extends BaseMetadataObject
   private Sharing sharing = new Sharing();
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
-
-  // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
-
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  @Transient private transient String href;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -626,25 +612,5 @@ public class CategoryCombo extends BaseMetadataObject
   @Override
   public void removeAttributeValue(String attributeId) {
     // DO NOTHING as this class does not have attributes
-  }
-
-  @Override
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  @Override
-  public boolean isFavorite() {
-    return false;
-  }
-
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
   }
 }

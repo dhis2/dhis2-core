@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.period.Period;
+import java.util.Set;
+import org.hisp.dhis.user.UserDetails;
 
 /**
- * @author Torgeir Lorange Ostby
+ * Interface for objects which can be marked as favorite by users. Object implementing this
+ * interface must have a property of type {@code Set<String>} with the name 'favorites' where the
+ * set contains the UIDs of users having marked the object as favorite.
  */
-public class DataElementHistoryPoint {
-  private Period period;
+public interface FavoritableObject {
 
-  private Double value;
+  Set<String> getFavorites();
 
-  private double average;
+  boolean isFavorite();
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+  boolean setAsFavorite(UserDetails user);
 
-  public double getAverage() {
-    return average;
-  }
-
-  public void setAverage(double average) {
-    this.average = average;
-  }
-
-  public Period getPeriod() {
-    return period;
-  }
-
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
-
-  public Double getValue() {
-    return value;
-  }
-
-  public void setValue(Double value) {
-    this.value = value;
-  }
+  boolean removeAsFavorite(UserDetails user);
 }

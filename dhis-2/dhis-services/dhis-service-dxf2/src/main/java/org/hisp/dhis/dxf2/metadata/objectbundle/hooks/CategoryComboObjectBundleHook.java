@@ -52,7 +52,7 @@ public class CategoryComboObjectBundleHook extends AbstractObjectBundleHook<Cate
   @Override
   public void validate(CategoryCombo combo, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     checkIsValid(combo, addReports);
-    checkIfDataBecomesInaccessible(combo, bundle, addReports);
+    if (bundle.isPersisted(combo)) checkIfDataBecomesInaccessible(combo, bundle, addReports);
   }
 
   private void checkIfDataBecomesInaccessible(
