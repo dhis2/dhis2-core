@@ -29,11 +29,15 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.feedback.ErrorCode.E7605;
+
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -45,8 +49,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -86,10 +89,11 @@ public class DefaultCompleteDataSetRegistrationService
 
   @Override
   @Transactional
-  public ImportSummary saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+  public Optional<ErrorMessage> saveCompleteDataSetRegistration(
+      CompleteDataSetRegistration registration) {
     registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
-    ImportSummary importSummary = checkCompulsoryDeOperands(registration);
-    if (importSummary.hasConflicts()) return importSummary;
+    Optional<ErrorMessage> errorMessage = checkCompulsoryDeOperands(registration);
+    if (errorMessage.isPresent()) return errorMessage;
 
     Date date = new Date();
 
@@ -120,8 +124,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     notificationEventPublisher.publishEvent(registration);
-    importSummary.incrementImported();
-    return importSummary;
+    return Optional.empty();
   }
 
   /**
@@ -134,8 +137,8 @@ public class DefaultCompleteDataSetRegistrationService
    *
    * @param registration registration to check
    */
-  public ImportSummary checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
-    ImportSummary importSummary = new ImportSummary();
+  public Optional<ErrorMessage> checkCompulsoryDeOperands(
+      CompleteDataSetRegistration registration) {
     // only get missing compulsory elements if they are actually compulsory
     if (registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
       List<DataElementOperand> missingDataElementOperands =
@@ -145,32 +148,29 @@ public class DefaultCompleteDataSetRegistrationService
               registration.getSource(),
               registration.getAttributeOptionCombo());
       if (!missingDataElementOperands.isEmpty()) {
-        for (DataElementOperand dataElementOperand : missingDataElementOperands) {
-          importSummary.addConflict(
-              "dataElementOperand",
-              dataElementOperand.getDisplayName() + " needs to be filled. It is compulsory.");
-        }
-        importSummary.setStatus(ImportStatus.ERROR);
-        importSummary.incrementIgnored();
-        return importSummary;
+        String missingDeos =
+            missingDataElementOperands.stream()
+                .map(DataElementOperand::getDisplayName)
+                .collect(Collectors.joining(","));
+        return Optional.of(new ErrorMessage(E7605, missingDeos));
       }
     }
-    return importSummary;
+    return Optional.empty();
   }
 
   @Override
   @Transactional
-  public ImportSummary updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
-    ImportSummary importSummary = checkCompulsoryDeOperands(registration);
-    if (importSummary.hasConflicts()) return importSummary;
+  public Optional<ErrorMessage> updateCompleteDataSetRegistration(
+      CompleteDataSetRegistration registration) {
+    Optional<ErrorMessage> errorMessage = checkCompulsoryDeOperands(registration);
+    if (errorMessage.isPresent()) return errorMessage;
 
     registration.setLastUpdated(new Date());
 
     registration.setLastUpdatedBy(CurrentUserUtil.getCurrentUsername());
 
     completeDataSetRegistrationStore.updateCompleteDataSetRegistration(registration);
-    importSummary.incrementUpdated();
-    return importSummary;
+    return Optional.empty();
   }
 
   @Override

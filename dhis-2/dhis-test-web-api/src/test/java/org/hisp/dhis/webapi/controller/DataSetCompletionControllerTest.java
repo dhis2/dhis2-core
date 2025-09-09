@@ -29,14 +29,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.feedback.ErrorCode.E7605;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,16 +74,13 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
             .as(JsonWebMessage.class);
 
     // then it should fail
-    JsonImportSummary summary = jsonWebMessage.getResponse().as(JsonImportSummary.class);
-    assertEquals("ERROR", summary.getStatus());
-    assertEquals(1, summary.getImportCount().getIgnored());
-    assertEquals(0, summary.getImportCount().getImported());
-    assertEquals(0, summary.getImportCount().getUpdated());
-    assertEquals(0, summary.getImportCount().getDeleted());
-    assertEquals("dataElementOperand", summary.getConflicts().get(0).getObject());
+    assertEquals(409, jsonWebMessage.getHttpStatusCode());
+    assertEquals("Conflict", jsonWebMessage.getHttpStatus());
+    assertEquals("ERROR", jsonWebMessage.getStatus());
+    assertEquals(E7605, jsonWebMessage.getErrorCode());
     assertEquals(
-        "test-de-1 needs to be filled. It is compulsory.",
-        summary.getConflicts().get(0).getValue());
+        "All compulsory data element operands need to be filled: `test-de-1`",
+        jsonWebMessage.getMessage());
 
     // and complete dataset reg should be empty
     JsonMixed cdsr =
@@ -111,13 +109,10 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
         POST("/dataEntry/dataSetCompletion", completeDataSetReg())
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
-    JsonImportSummary summary = jsonWebMessage.getResponse().as(JsonImportSummary.class);
-    assertEquals("SUCCESS", summary.getStatus());
-    assertEquals(0, summary.getImportCount().getIgnored());
-    assertEquals(1, summary.getImportCount().getImported());
-    assertEquals(0, summary.getImportCount().getUpdated());
-    assertEquals(0, summary.getImportCount().getDeleted());
-    assertEquals(0, summary.getConflicts().size());
+    assertEquals(200, jsonWebMessage.getHttpStatusCode());
+    assertEquals("OK", jsonWebMessage.getHttpStatus());
+    assertEquals("OK", jsonWebMessage.getStatus());
+    assertNull(jsonWebMessage.getErrorCode());
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
@@ -149,13 +144,10 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
         POST("/dataEntry/dataSetCompletion", completeDataSetReg())
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
-    JsonImportSummary summary = jsonWebMessage.getResponse().as(JsonImportSummary.class);
-    assertEquals("SUCCESS", summary.getStatus());
-    assertEquals(0, summary.getImportCount().getIgnored());
-    assertEquals(1, summary.getImportCount().getImported());
-    assertEquals(0, summary.getImportCount().getUpdated());
-    assertEquals(0, summary.getImportCount().getDeleted());
-    assertEquals(0, summary.getConflicts().size());
+    assertEquals(200, jsonWebMessage.getHttpStatusCode());
+    assertEquals("OK", jsonWebMessage.getHttpStatus());
+    assertEquals("OK", jsonWebMessage.getStatus());
+    assertNull(jsonWebMessage.getErrorCode());
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
@@ -184,26 +176,10 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
         POST("/dataEntry/dataSetCompletion", completeDataSetReg())
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
-    JsonImportSummary summary = jsonWebMessage.getResponse().as(JsonImportSummary.class);
-    assertEquals("SUCCESS", summary.getStatus());
-    assertEquals(0, summary.getImportCount().getIgnored());
-    assertEquals(1, summary.getImportCount().getImported());
-    assertEquals(0, summary.getImportCount().getUpdated());
-    assertEquals(0, summary.getImportCount().getDeleted());
-    assertEquals(0, summary.getConflicts().size());
-
-    // and posting the same completion again results in an update of 1
-    JsonWebMessage jsonWebMessage2 =
-        POST("/dataEntry/dataSetCompletion", completeDataSetReg())
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    JsonImportSummary summary2 = jsonWebMessage2.getResponse().as(JsonImportSummary.class);
-    assertEquals("SUCCESS", summary2.getStatus());
-    assertEquals(0, summary2.getImportCount().getIgnored());
-    assertEquals(0, summary2.getImportCount().getImported());
-    assertEquals(1, summary2.getImportCount().getUpdated());
-    assertEquals(0, summary2.getImportCount().getDeleted());
-    assertEquals(0, summary2.getConflicts().size());
+    assertEquals(200, jsonWebMessage.getHttpStatusCode());
+    assertEquals("OK", jsonWebMessage.getHttpStatus());
+    assertEquals("OK", jsonWebMessage.getStatus());
+    assertNull(jsonWebMessage.getErrorCode());
 
     // and complete dataset reg should have 1 entry
     JsonMixed cdsr =

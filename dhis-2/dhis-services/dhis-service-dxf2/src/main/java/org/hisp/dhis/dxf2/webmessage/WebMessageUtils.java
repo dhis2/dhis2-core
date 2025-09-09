@@ -163,6 +163,12 @@ public final class WebMessageUtils {
     return new WebMessage(status, httpStatus).setErrorCode(errorCode).setMessage(message);
   }
 
+  public static WebMessage createWebMessageFromErrorMessage(ErrorMessage errorMessage) {
+    return errorMessage != null
+        ? conflict(errorMessage.getMessage(), errorMessage.getErrorCode())
+        : createWebMessage(Status.OK, HttpStatus.OK);
+  }
+
   public static WebMessage createWebMessage(
       String message, String devMessage, Status status, HttpStatus httpStatus) {
     return new WebMessage(status, httpStatus).setMessage(message).setDevMessage(devMessage);
