@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import java.util.Set;
+import org.hisp.dhis.user.UserDetails;
 
 /**
- * @author Torgeir Lorange Ostby
+ * Interface for objects which can be marked as favorite by users. Object implementing this
+ * interface must have a property of type {@code Set<String>} with the name 'favorites' where the
+ * set contains the UIDs of users having marked the object as favorite.
  */
-public interface HistoryRetriever {
-  String ID = HistoryRetriever.class.getName();
+public interface FavoritableObject {
 
-  DataElementHistory getHistory(
-      DataElement dataElement,
-      CategoryOptionCombo optionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      OrganisationUnit organisationUnit,
-      Period lastPeriod,
-      int historyLength);
+  Set<String> getFavorites();
+
+  boolean isFavorite();
+
+  boolean setAsFavorite(UserDetails user);
+
+  boolean removeAsFavorite(UserDetails user);
 }

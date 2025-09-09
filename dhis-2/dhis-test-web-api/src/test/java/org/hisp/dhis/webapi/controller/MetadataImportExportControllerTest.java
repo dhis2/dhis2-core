@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -58,6 +59,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
+import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
@@ -81,6 +83,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase {
+
+  private static final Path CAT_METADATA_IMPORT =
+      Path.of("metadata/category/cat_model_expected_cocs.json");
 
   @Autowired private DataElementService dataElementService;
 
@@ -859,6 +864,426 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .string());
   }
 
+  @Test
+  @DisplayName("Partial import (update) with expected CategoryOptionCombos should succeed")
+  void partialImportExpectedCocsTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When only importing (update) COCs that match the expected COC state
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/partial_cat_model_expected_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("OK", report.getStatus());
+    assertEquals(4, report.getStats().getUpdated());
+
+    // And triggering auto generation has no effect on the existing COCs
+    POST("/maintenance/categoryOptionComboUpdate/categoryCombo/CatComUida1").content(HttpStatus.OK);
+
+    GET("/categoryOptionCombos/CocUid000a1").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a2").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a3").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a4").content(HttpStatus.OK);
+  }
+
+  @Test
+  @DisplayName(
+      "Updating CategoryOptionCombo ignoreApproval field should succeed when expected CategoryOptionCombos provided")
+  void updateCocsIgnoreApprovalTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // And the ignoreApproval field is 'false'
+    assertFalse(
+        GET("/categoryOptionCombos/CocUid000a1")
+            .content(HttpStatus.OK)
+            .as(JsonCategoryOptionCombo.class)
+            .getIgnoreApproval());
+
+    // When importing (update) COCs with a new value for the field 'ignoreApproval'
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/update_cocs_ignore_approval.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("OK", report.getStatus());
+    assertEquals(4, report.getStats().getUpdated());
+
+    // And the new value of true is present
+    assertTrue(
+        GET("/categoryOptionCombos/CocUid000a1")
+            .content(HttpStatus.OK)
+            .as(JsonCategoryOptionCombo.class)
+            .getIgnoreApproval());
+  }
+
+  @Test
+  @DisplayName("Updating a CategoryOptionCombo's CategoryCombo should fail")
+  void updateCocCcTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When updating a COC's CC
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/update_coc_cc.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(2, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    assertEquals(
+        "Importing 0 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        errorMessage);
+  }
+
+  @Test
+  @DisplayName("Updating a CategoryOptionCombo's CategoryOption should fail")
+  void updateCocCoTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When updating a COC's COs
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/update_coc_co.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(5, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String unexpectedPart = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String expectedPart = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        unexpectedPart.contains("Unexpected CategoryOptionCombo provided with CategoryOptions"));
+    assertTrue(unexpectedPart.contains("CatOptUida1"));
+    assertTrue(unexpectedPart.contains("CatOptU8888"));
+    assertTrue(unexpectedPart.contains("CatComUida1"));
+
+    assertTrue(
+        expectedPart.contains("Missing expected CategoryOptionCombos with CategoryOption sets"));
+    assertTrue(expectedPart.contains("CatOptUida1"));
+    assertTrue(expectedPart.contains("CatOptUida3"));
+  }
+
+  @Test
+  @DisplayName("Importing (update) expected CategoryOptionCombos should succeed")
+  void importExpectedCocsTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // And 5 COCs now exist
+    assertEquals(
+        5,
+        GET("/categoryOptionCombos")
+            .content(HttpStatus.OK)
+            .getObject("pager")
+            .getNumber("total")
+            .intValue());
+
+    // When importing (update) COCs (full cat model) that match the expected COC state
+    JsonImportSummary report =
+        POST("/metadata", CAT_METADATA_IMPORT)
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("OK", report.getStatus());
+    assertEquals(11, report.getStats().getUpdated());
+
+    // And triggering auto generation has no effect on the existing COCs
+    POST("/maintenance/categoryOptionComboUpdate/categoryCombo/CatComUida1").content(HttpStatus.OK);
+
+    GET("/categoryOptionCombos/CocUid000a1").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a2").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a3").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a4").content(HttpStatus.OK);
+
+    // And no extra COCs have been generated unknowingly in the system
+    assertEquals(
+        5,
+        GET("/categoryOptionCombos")
+            .content(HttpStatus.OK)
+            .getObject("pager")
+            .getNumber("total")
+            .intValue());
+  }
+
+  @Test
+  @DisplayName("Importing (update) expected number, but invalid CategoryOptionCombos, should fail")
+  void importExpectedCocsDifferentTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When importing COCs that match expected number, but differ from the expected COC state
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_expected_num_but_invalid_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(11, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String unexpectedPart = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String expectedPart = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        unexpectedPart.contains("Unexpected CategoryOptionCombo provided with CategoryOptions"));
+    assertTrue(unexpectedPart.contains("CatOptUida1"));
+    assertTrue(unexpectedPart.contains("CatOptUida2"));
+    assertTrue(unexpectedPart.contains("CatComUida1"));
+
+    assertTrue(
+        expectedPart.contains("Missing expected CategoryOptionCombos with CategoryOption sets"));
+    assertTrue(expectedPart.contains("CatOptUida1"));
+    assertTrue(expectedPart.contains("CatOptUida4"));
+  }
+
+  /**
+   * This test scenario can be viewed as both (i) importing new duplicate COCs or (ii) updating
+   * existing COCs UIDs. The important thing is that the CategoryCombo and CategoryOptions are the
+   * same as an existing set of COCs
+   */
+  @Test
+  @DisplayName("Importing existing CategoryOptionCombos with new UIDs should fail")
+  void importExistingCocsUpdateUidsFailTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When importing COCs that are viewed as duplicates
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/update_existing_cocs_uids.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(0, report.getStats().getCreated());
+    assertEquals(4, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String invalidCoc = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String existingCoc = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        invalidCoc.contains(
+            "Provided CategoryOptionCombo CocUid000a5 cannot be processed (potential duplicate)"));
+    assertTrue(existingCoc.contains("CocUid000a1"));
+    assertTrue(existingCoc.contains("CatComUida1"));
+    assertTrue(existingCoc.contains("CatOptUida1"));
+    assertTrue(existingCoc.contains("CatOptUida3"));
+  }
+
+  @Test
+  @DisplayName("Importing (update) fewer CategoryOptionCombos than expected should fail")
+  void importFewerCocsTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When importing COCs that do not match the expected COC state (3 supplied, 4 expected)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_fewer_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(10, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertEquals(
+        "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("partial importing (update) fewer CategoryOptionCombos than expected should fail")
+  void partialImportFewerCocsTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When only importing COCs that do not match the expected COC state (3 supplied, 4 expected)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/partial_cat_model_fewer_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(3, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertEquals(
+        "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("Importing (update) more CategoryOptionCombos than expected should fail")
+  void importMoreCocsTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // When importing COCs that do not match the expected COC state (5 supplied, 4 expected)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_more_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(12, report.getStats().getIgnored());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertEquals(
+        "Importing 5 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("Importing (create) expected CategoryOptionCombos should succeed")
+  void importCreateExpectedCocsTest() {
+    // When importing COCs that match the generated COC state
+    JsonImportSummary report =
+        POST("/metadata", CAT_METADATA_IMPORT)
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as created (4 cocs + 7 other metadata)
+    assertEquals("OK", report.getStatus());
+    assertEquals(11, report.getStats().getCreated());
+
+    // And triggering auto generation has no effect on the existing COCs
+    POST("/maintenance/categoryOptionComboUpdate/categoryCombo/CatComUida1").content(HttpStatus.OK);
+
+    GET("/categoryOptionCombos/CocUid000a1").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a2").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a3").content(HttpStatus.OK);
+    GET("/categoryOptionCombos/CocUid000a4").content(HttpStatus.OK);
+  }
+
+  @Test
+  @DisplayName(
+      "Importing (create) expected number, but with duplicate CategoryOptionCombo, should fail")
+  void importExpectedCocsDifferentCreateTest() {
+    // When importing COCs that match expected number, but differ from the generated COC state
+    JsonImportSummary report =
+        POST(
+                "/metadata",
+                Path.of("metadata/category/cat_model_expected_num_but_duplicate_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getUpdated());
+    assertEquals(11, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertNotNull(errorReport, "Expecting an error report in the import report");
+    String errorMessage = errorReport.getMessage();
+    assertNotNull(errorMessage, "Expecting an error message in the import report");
+    String unexpectedPart = errorMessage.substring(0, errorMessage.indexOf('.'));
+    String expectedPart = errorMessage.substring(errorMessage.indexOf('.'));
+
+    assertTrue(
+        unexpectedPart.contains("Unexpected CategoryOptionCombo provided with CategoryOptions"));
+    assertTrue(unexpectedPart.contains("CatOptUida1"));
+    assertTrue(unexpectedPart.contains("CatOptUida3"));
+    assertTrue(unexpectedPart.contains("CatComUida1"));
+
+    assertTrue(
+        expectedPart.contains("Missing expected CategoryOptionCombos with CategoryOption sets"));
+    assertTrue(expectedPart.contains("CatOptUida2"));
+    assertTrue(expectedPart.contains("CatOptUida3"));
+  }
+
+  @Test
+  @DisplayName("Importing (create) fewer CategoryOptionCombos than expected should fail")
+  void importCreateFewerCocsTest() {
+    // When importing COCs that do not match the generated COC state (3 supplied, 4 expected)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_fewer_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(10, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getCreated());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertEquals(
+        "Importing 3 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("Importing (create) more CategoryOptionCombos than expected should fail")
+  void importCreateMoreCocsTest() {
+    // When importing COCs that do not match the generated COC state (more supplied)
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/cat_model_more_cocs.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import fails and the COCs show as ignored
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(12, report.getStats().getIgnored());
+    assertEquals(0, report.getStats().getCreated());
+    JsonTypeReport typeReport = report.getTypeReport(CategoryOptionCombo.class);
+    JsonErrorReport errorReport = getFirstErrorReport(typeReport);
+    assertEquals(
+        "Importing 5 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo CatComUida1",
+        errorReport.getMessage());
+  }
+
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {
     DataElement deA = createDataElement('A', categoryCombos[0]);
     DataElement deB = createDataElement('B', categoryCombos[1]);
@@ -868,5 +1293,12 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     dataElementService.addDataElement(deB);
     dataElementService.addDataElement(deC);
     dataElementService.addDataElement(deZ);
+  }
+
+  public static JsonErrorReport getFirstErrorReport(JsonTypeReport typeReport) {
+    return typeReport.getObjectReports().stream().findFirst().stream()
+        .flatMap(or -> or.getErrorReports().stream())
+        .findFirst()
+        .orElse(null);
   }
 }
