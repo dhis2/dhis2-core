@@ -35,15 +35,22 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
@@ -56,7 +63,10 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement(localName = "category", namespace = DxfNamespaces.DXF_2_0)
-public class Category extends BaseDimensionalObject implements SystemDefaultMetadataObject {
+@Entity
+@Table(name = "category")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+public class Category extends BaseMetadataObject implements DimensionalObject SystemDefaultMetadataObject {
   public static final String DEFAULT_NAME = "default";
 
   private List<CategoryOption> categoryOptions = new ArrayList<>();
