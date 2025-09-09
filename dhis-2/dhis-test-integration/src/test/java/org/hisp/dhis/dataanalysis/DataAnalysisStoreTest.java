@@ -54,13 +54,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
  */
 @TestInstance(Lifecycle.PER_CLASS)
-@Transactional
 class DataAnalysisStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataAnalysisStore dataAnalysisStore;
@@ -72,6 +71,8 @@ class DataAnalysisStoreTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private DataDumpService dataDumpService;
+
+  @Autowired private TransactionTemplate transactionTemplate;
 
   private DataElement dataElementA;
 
@@ -153,8 +154,11 @@ class DataAnalysisStoreTest extends PostgresIntegrationTestBase {
         createDataValue(dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo),
         createDataValue(dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo));
     List<DataAnalysisMeasures> measures =
-        dataAnalysisStore.getDataAnalysisMeasures(
-            dataElementA, Lists.newArrayList(categoryOptionCombo), organisationUnitA, from);
+        transactionTemplate.execute(
+            status -> {
+              return dataAnalysisStore.getDataAnalysisMeasures(
+                  dataElementA, Lists.newArrayList(categoryOptionCombo), organisationUnitA, from);
+            });
     assertEquals(1, measures.size());
     assertEquals(measures.get(0).getAverage(), DELTA, 12.78);
     assertEquals(measures.get(0).getStandardDeviation(), DELTA, 15.26);

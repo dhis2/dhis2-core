@@ -420,40 +420,43 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public List<String> getOrgUnitsNotInDataSet(UID dataSet, Stream<UID> orgUnits) {
     String sql =
         """
-     SELECT DISTINCT ou.uid
-     FROM organisationunit ou
-     LEFT JOIN (
-       SELECT s.sourceid
-       FROM datasetsource s
-       JOIN dataset ds ON s.datasetid = ds.datasetid AND ds.uid = :ds
-     ) excluded ON ou.organisationunitid = excluded.sourceid
-     WHERE ou.uid IN (:ou)
-       AND excluded.sourceid IS NULL""";
+        WITH ou_list(uid) AS ( SELECT DISTINCT UNNEST(:ou) AS uid )
+        SELECT ou_list.uid
+        FROM ou_list
+        LEFT JOIN organisationunit ou ON ou_list.uid = ou.uid
+        LEFT JOIN (
+            SELECT s.sourceid
+            FROM datasetsource s
+            JOIN dataset ds ON s.datasetid = ds.datasetid AND ds.uid = :ds
+        ) excluded ON ou.organisationunitid = excluded.sourceid
+        WHERE excluded.sourceid IS NULL""";
     String ds = dataSet.getValue();
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql, q -> q.setParameterList("ou", ou).setParameter("ds", ds));
+    return listAsStrings(sql, q -> q.setParameter("ou", ou).setParameter("ds", ds));
   }
 
   @Override
   public List<String> getCocNotInDataSet(UID dataSet, UID dataElement, Stream<UID> optionCombos) {
     String sql =
         """
-      SELECT DISTINCT coc.uid
-      FROM categoryoptioncombo coc
-      LEFT JOIN (
-          SELECT m.categoryoptioncomboid
-          FROM categorycombos_optioncombos m
-          WHERE m.categorycomboid = (
-              SELECT coalesce(dse.categorycomboid, de.categorycomboid)
+      WITH coc_list(uid) AS ( SELECT DISTINCT UNNEST(:coc) AS uid ),
+      dsde_coc AS (
+          SELECT coc_cc.categoryoptioncomboid
+          FROM categorycombos_optioncombos coc_cc
+          WHERE coc_cc.categorycomboid = (
+              SELECT COALESCE(dse.categorycomboid, de.categorycomboid)
               FROM datasetelement dse
               JOIN dataelement de ON de.dataelementid = dse.dataelementid
               JOIN dataset ds ON ds.datasetid = dse.datasetid
               WHERE ds.uid = :ds
                 AND de.uid = :de
           )
-      ) excluded ON coc.categoryoptioncomboid = excluded.categoryoptioncomboid
-      WHERE coc.uid IN (:coc)
-        AND excluded.categoryoptioncomboid IS NULL""";
+      )
+      SELECT coc_list.uid
+      FROM coc_list
+      LEFT JOIN categoryoptioncombo coc ON coc_list.uid = coc.uid
+      LEFT JOIN dsde_coc excluded ON coc.categoryoptioncomboid = excluded.categoryoptioncomboid
+      WHERE excluded.categoryoptioncomboid IS NULL""";
     String ds = dataSet.getValue();
     String de = dataElement.getValue();
     UID defaultCoc = getDefaultCategoryOptionComboUid();
@@ -464,31 +467,39 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             .distinct()
             .toArray(String[]::new);
     return listAsStrings(
-        sql, q -> q.setParameterList("coc", coc).setParameter("ds", ds).setParameter("de", de));
+        sql, q -> q.setParameter("coc", coc).setParameter("ds", ds).setParameter("de", de));
   }
 
   @Override
   public List<String> getAocNotInDataSet(UID dataSet, Stream<UID> optionCombos) {
     String sql =
         """
-        SELECT DISTINCT aoc.uid
-        FROM categoryoptioncombo aoc
-        CROSS JOIN (
+        WITH aoc_list(uid) AS ( SELECT DISTINCT UNNEST(:aoc) AS uid ),
+        ds_cc AS (
             SELECT ds.categorycomboid, cc.name AS cc_name
             FROM dataset ds
             JOIN categorycombo cc ON ds.categorycomboid = cc.categorycomboid
             WHERE ds.uid = :ds
-        ) cc_info
-        LEFT JOIN categorycombos_optioncombos m ON aoc.categoryoptioncomboid = m.categoryoptioncomboid
-            AND cc_info.categorycomboid = m.categorycomboid
-        WHERE aoc.uid IN (:aoc)
-          AND (
-              -- when CC is 'default' AOC must also be 'default'
-              (cc_info.cc_name = 'default' AND NOT aoc.name = 'default')
-              OR
-              -- For all other cases, a AOC not linked to DS is an issue
-              m.categoryoptioncomboid IS NULL
-          )""";
+        )
+        SELECT aoc_list.uid
+        FROM aoc_list
+        LEFT JOIN categoryoptioncombo aoc ON aoc_list.uid = aoc.uid
+        CROSS JOIN ds_cc
+        LEFT JOIN categorycombos_optioncombos aoc_cc ON aoc.categoryoptioncomboid = aoc_cc.categoryoptioncomboid
+            AND ds_cc.categorycomboid = aoc_cc.categorycomboid
+        WHERE (
+            -- Include UIDs that don't exist in categoryoptioncombo table
+            aoc.uid IS NULL
+            OR
+            -- Include UIDs that fail the existing conditions
+            (
+                -- When CC is 'default', AOC must also be 'default'
+                (ds_cc.cc_name = 'default' AND NOT aoc.name = 'default')
+                OR
+                -- For all other cases, an AOC not linked to DS is an issue
+                aoc_cc.categoryoptioncomboid IS NULL
+            )
+        )""";
     String ds = dataSet.getValue();
     UID defaultAoc = getDefaultCategoryOptionComboUid();
     String[] aoc =
@@ -497,7 +508,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             .map(UID::getValue)
             .distinct()
             .toArray(String[]::new);
-    return listAsStrings(sql, q -> q.setParameterList("aoc", aoc).setParameter("ds", ds));
+    return listAsStrings(sql, q -> q.setParameter("aoc", aoc).setParameter("ds", ds));
   }
 
   @Override
@@ -555,18 +566,19 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public List<String> getDataElementsNotInDataSet(UID dataSet, Stream<UID> dataElements) {
     String sql =
         """
-      SELECT DISTINCT de.uid
-      FROM dataelement de
+      WITH de_list(uid) AS ( SELECT DISTINCT UNNEST(:de) AS uid )
+      SELECT de_list.uid
+      FROM de_list
+      LEFT JOIN dataelement de ON de_list.uid = de.uid
       LEFT JOIN (
           SELECT de_ds.dataelementid
           FROM datasetelement de_ds
           JOIN dataset ds ON de_ds.datasetid = ds.datasetid AND ds.uid = :ds
       ) excluded ON de.dataelementid = excluded.dataelementid
-      WHERE de.uid IN (:de)
-        AND excluded.dataelementid IS NULL""";
+      WHERE excluded.dataelementid IS NULL""";
     String ds = dataSet.getValue();
     String[] de = dataElements.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStrings(sql, q -> q.setParameter("ds", ds).setParameterList("de", de));
+    return listAsStrings(sql, q -> q.setParameter("ds", ds).setParameter("de", de));
   }
 
   @Override

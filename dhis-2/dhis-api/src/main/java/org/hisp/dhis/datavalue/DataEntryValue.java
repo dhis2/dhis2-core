@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -84,6 +85,22 @@ public record DataEntryValue(
   public DataEntryKey toKey() {
     return new DataEntryKey(
         dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
+  }
+
+  public DataEntryValue withValue(String newValue) {
+    return Objects.equals(newValue, value)
+        ? this
+        : new DataEntryValue(
+            index,
+            dataElement,
+            orgUnit,
+            categoryOptionCombo,
+            attributeOptionCombo,
+            period,
+            newValue,
+            comment,
+            followUp,
+            deleted);
   }
 
   /**

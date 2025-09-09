@@ -65,4 +65,14 @@ public interface DataDumpService {
 
   @UsageTestOnly
   int upsertValues(DataEntryValue.Input... values) throws BadRequestException;
+
+  /**
+   * Same as {@link #upsertValues(DataValue...)} except that JDBC is used to do the actual operation
+   * so that those values (hopefully) become visible for JDBC when reading them in a test.
+   *
+   * @param values the values to create or update
+   * @return number of values written
+   */
+  @UsageTestOnly
+  int upsertValueWithJdbc(DataValue... values);
 }

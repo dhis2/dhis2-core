@@ -30,6 +30,7 @@
 package org.hisp.dhis.datavalue;
 
 import static java.lang.System.Logger.Level.INFO;
+import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
@@ -299,6 +300,13 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
+  public int upsertValueWithJdbc(DataValue... values) {
+    // TODO use JDBC
+    return upsertValues(values);
+  }
+
+  @Override
+  @Transactional
   public int upsertValues(DataValue... values) {
     if (values == null || values.length == 0) return 0;
     return store.upsertValues(DataValue.toDataEntryValues(List.of(values)));
@@ -457,6 +465,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   /**
    * Are the data value components that make a unique data value key consistent with the metadata?
+   * These also implicitly make sure the used key dimensions do actually exist
    */
   private void validateKeyConsistency(UID ds, List<DataEntryValue> values)
       throws ConflictException {
@@ -511,6 +520,24 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                 aoc, e.getValue().stream().map(DataEntryValue::orgUnit));
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E8025, aoc, ouNotInAoc);
       }
+    }
+
+    // - require: no two values may affect the same data value (=key =row)
+    Map<DataEntryKey, List<DataEntryValue>> valuesByKey =
+        values.stream().collect(groupingBy(DataEntryValue::toKey));
+    if (valuesByKey.size() != values.size()) {
+      // only report first to keep error message manageable
+      List<DataEntryValue> duplicates =
+          valuesByKey.values().stream()
+              .filter(l -> l.size() > 1)
+              // to make it deterministic take the lowest index offender
+              .min(comparingInt(e -> e.get(0).index()))
+              .orElse(List.of());
+      if (!duplicates.isEmpty())
+        throw new ConflictException(
+            ErrorCode.E8128,
+            duplicates.stream().map(DataEntryValue::index).toList(),
+            duplicates.get(0).toKey());
     }
 
     // - require: PEs must be within the OU's operational span
@@ -597,7 +624,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                 errors.add(error(e, ErrorCode.E8125, e.index(), 5000));
               } else {
                 // finally: all is good, we try to upsert this value
-                res.add(e);
+                res.add(e.withValue(val));
               }
             }
           }

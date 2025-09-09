@@ -50,7 +50,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -874,18 +873,31 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportDataValuesBooleanCsv() {
-    ImportConflicts summary = importCsv(readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"));
+    ImportSummary summary = importCsv(readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"));
 
-    String description = summary.getConflictsDescription();
-    assertEquals(4, summary.getTotalConflictOccurrenceCount(), description);
-    assertEquals(4, summary.getConflictOccurrenceCount(ErrorCode.E8122), description);
-    assertEquals(2, summary.getConflictCount(), description);
-    Iterator<ImportConflict> conflicts = summary.getConflicts().iterator();
-    assertArrayEquals(new int[] {10, 11}, conflicts.next().getIndexes());
-    assertArrayEquals(new int[] {16, 17}, conflicts.next().getIndexes());
+    assertEquals(ImportStatus.WARNING, summary.getStatus());
+    assertEquals(4, summary.getTotalConflictOccurrenceCount());
+    assertEquals(4, summary.getImportCount().getIgnored());
+    assertEquals(14, summary.getImportCount().getUpdated());
+    assertEquals(List.of(10, 11, 16, 17), summary.getRejectedIndexes());
     assertEquals(
         Set.of("true", "false"),
         dataExportStore.getAllDataValues().stream().map(DataExportValue::value).collect(toSet()));
+  }
+
+  @Test
+  void testImportDataValuesBooleanDuplicatesCsv() {
+    ImportSummary summary =
+        importCsv(readFile("dxf2/datavalueset/dataValueSetBooleanDuplicatesTest.csv"));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(18, summary.getRejectedIndexes().size());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8128, conflict.getErrorCode());
+    assertEquals(
+        "Value [0, 1] all affect the same data value: `DataEntryKey[dataElement=jH26dja2f30, orgUnit=DiszpKrYNg8, categoryOptionCombo=null, attributeOptionCombo=null, period=201201]`",
+        conflict.getValue());
   }
 
   @Test
@@ -982,7 +994,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesWithInvalidAttributeOptionCombo() {
     assertDataValuesCount(0);
 
-    // FIXME invalid AOC seems not to be handled/detected
     ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetF.xml"));
 
     assertEquals(0, summary.getImportCount().getUpdated());
