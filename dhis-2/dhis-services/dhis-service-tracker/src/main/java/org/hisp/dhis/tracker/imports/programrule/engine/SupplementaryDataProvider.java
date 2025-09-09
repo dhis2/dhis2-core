@@ -43,13 +43,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroupService;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class SupplementaryDataProvider {
-
   private static final String USER = "USER";
 
   private static final String ORG_UNIT_GROUP_REGEX =
@@ -62,6 +63,7 @@ public class SupplementaryDataProvider {
   private static final Pattern USER_GROUP_PATTERN = Pattern.compile(USER_GROUP_REGEX);
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
+  @Nonnull private final UserGroupService userGroupService;
 
   public Map<String, List<String>> getSupplementaryData(
       List<ProgramRule> programRules, UserDetails user) {
@@ -109,10 +111,21 @@ public class SupplementaryDataProvider {
       Matcher matcher =
           USER_GROUP_PATTERN.matcher(StringUtils.defaultIfBlank(programRule.getCondition(), ""));
       while (matcher.find()) {
-        userGroups.add(matcher.group(1)); // capture user group id
+        userGroups.add(matcher.group(1));
       }
     }
 
-    return Collections.emptyMap();
+    if (userGroups.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    return userGroups.stream()
+        .collect(
+            Collectors.toMap(
+                g -> g,
+                g ->
+                    userGroupService.getUserGroup(g).getMembers().stream()
+                        .map(User::getUid)
+                        .toList()));
   }
 }
