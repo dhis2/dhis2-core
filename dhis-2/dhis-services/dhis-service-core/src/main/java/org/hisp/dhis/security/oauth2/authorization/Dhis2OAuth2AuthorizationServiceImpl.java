@@ -422,7 +422,7 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     if (data == null || data.isBlank()) {
       return Map.of();
     }
-
+    log.error("Parsing data: " + data);
     try {
       return this.objectMapper.readValue(data, new TypeReference<>() {});
     } catch (Exception ex) {
