@@ -57,7 +57,9 @@ public class SupplementaryDataProvider {
       "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
           + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
-  private static final String USER_GROUP_REGEX = "d2:hasUserGroup\\( *'([^']*)' *\\)";
+  private static final String USER_GROUP_REGEX =
+      "d2:inUserGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
+          + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
   private static final Pattern ORG_UNIT_GROUP_PATTERN = Pattern.compile(ORG_UNIT_GROUP_REGEX);
   private static final Pattern USER_GROUP_PATTERN = Pattern.compile(USER_GROUP_REGEX);
