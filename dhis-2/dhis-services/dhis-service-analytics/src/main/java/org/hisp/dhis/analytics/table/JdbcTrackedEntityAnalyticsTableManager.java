@@ -130,6 +130,13 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         sqlBuilder);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
+
+    /*
+     * TEA Analytics does not use Doris/Clickhouse and always defaults to Postgres SQL Builder.
+     * Since ColumnMapper is SQL Builder dependent and it's managed by Spring we need to set the
+     * "correct" SQL Builder here.
+     */
+    this.columnMapper.setSqlBuilder(sqlBuilder);
   }
 
   /**

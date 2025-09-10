@@ -43,7 +43,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -63,14 +63,18 @@ import org.springframework.transaction.annotation.Transactional;
  * to {@link AnalyticsTableColumn} objects, which are used in analytics tables.
  */
 @Component
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ColumnMapper {
 
-  private final SqlBuilder sqlBuilder;
+  @Setter private SqlBuilder sqlBuilder;
   private final SystemSettingsProvider settingsProvider;
   private static final EnumSet<ValueType> NO_INDEX_VAL_TYPES =
       EnumSet.of(ValueType.TEXT, ValueType.LONG_TEXT);
+
+  public ColumnMapper(SqlBuilder sqlBuilder, SystemSettingsProvider settingsProvider) {
+    this.sqlBuilder = sqlBuilder;
+    this.settingsProvider = settingsProvider;
+  }
 
   /**
    * Matches the following patterns:
