@@ -134,9 +134,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   private User user;
 
-  private String peAUid;
+  private String peAIso;
 
-  private String peBUid;
+  private String peBIso;
 
   @BeforeEach
   void setUp() {
@@ -152,8 +152,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             getDate(2016, 4, 30));
     periodService.addPeriod(peA);
     periodService.addPeriod(peB);
-    peAUid = peA.getUid();
-    peBUid = peB.getUid();
+    peAIso = peA.getUid();
+    peBIso = peB.getUid();
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');
@@ -237,12 +237,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
     assertEquals(dsA.getUid(), dvs.getDataSet());
+    assertEquals(ouA.getUid(), dvs.getOrgUnit());
+    assertEquals(peAIso, dvs.getPeriod());
     assertEquals(4, dvs.getDataValues().size());
-    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
-      assertNotNull(dv);
-      assertEquals(ouA.getUid(), dv.getOrgUnit());
-      assertEquals(peAUid, dv.getPeriod());
-    }
   }
 
   @Test
@@ -253,7 +250,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .inputDataElementIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouA.getCode()))
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
-            .period(singleton(peAUid))
+            .period(singleton(peAIso))
             .idScheme(IdentifiableProperty.CODE.name())
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -276,7 +273,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouA.getCode()))
             .inputDataSetIdScheme(IdentifiableProperty.CODE)
-            .period(singleton(peAUid))
+            .period(singleton(peAIso))
             .dataSetIdScheme(IdentifiableProperty.CODE.name())
             .orgUnitIdScheme(IdentifiableProperty.CODE.name())
             .build();
@@ -286,12 +283,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
     assertEquals(dsA.getCode(), dvs.getDataSet());
+    assertEquals(ouA.getCode(), dvs.getOrgUnit());
+    assertEquals(peAIso, dvs.getPeriod());
     assertEquals(4, dvs.getDataValues().size());
-    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
-      assertNotNull(dv);
-      assertEquals(ouA.getCode(), dv.getOrgUnit());
-      assertEquals(peAUid, dv.getPeriod());
-    }
   }
 
   @Test
@@ -308,12 +302,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
+    assertEquals(ouB.getUid(), dvs.getOrgUnit());
+    assertEquals(peAIso, dvs.getPeriod());
     assertEquals(2, dvs.getDataValues().size());
-    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
-      assertNotNull(dv);
-      assertEquals(ouB.getUid(), dv.getOrgUnit());
-      assertEquals(peAUid, dv.getPeriod());
-    }
   }
 
   @Test
@@ -324,7 +315,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouB.getCode()))
             .inputDataSetIdScheme(IdentifiableProperty.CODE)
-            .period(singleton(peAUid))
+            .period(singleton(peAIso))
             .attributeOptionCombo(singleton(cocA.getCode()))
             .inputIdScheme(IdentifiableProperty.CODE)
             .dataSetIdScheme(IdentifiableProperty.CODE.name())
@@ -333,16 +324,14 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     dataExportPipeline.exportAsJson(params, out);
-    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
-    assertNotNull(dvs);
-    assertNotNull(dvs.getDataSet());
-    assertEquals(2, dvs.getDataValues().size());
-    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
-      assertNotNull(dv);
-      assertEquals(ouB.getCode(), dv.getOrgUnit());
-      assertEquals(cocA.getCode(), dv.getAttributeOptionCombo());
-      assertEquals(peAUid, dv.getPeriod());
-    }
+    JsonObject dvs = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
+    JsonArray values = dvs.getArray("dataValues");
+    assertEquals(2, values.size());
+    // since COC, PE, OU are all common for all values
+    // these should be in the set's header
+    assertEquals(cocA.getCode(), dvs.getString("attributeOptionCombo").string());
+    assertEquals(peAIso, dvs.getString("period").string());
+    assertEquals(ouB.getCode(), dvs.getString("orgUnit").string());
   }
 
   @Test
@@ -356,15 +345,10 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .period(Set.of(peA.getIsoDate()))
             .build();
     dataExportPipeline.exportAsJson(params, out);
-    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
-    assertNotNull(dvs);
-    assertNotNull(dvs.getDataSet());
-    assertEquals(dsA.getUid(), dvs.getDataSet());
-    assertEquals(8, dvs.getDataValues().size());
-    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
-      assertNotNull(dv);
-      assertEquals(peAUid, dv.getPeriod());
-    }
+    JsonObject dvs = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
+    assertEquals(dsA.getUid(), dvs.getString("dataSet").string());
+    assertEquals(peAIso, dvs.getString("period").string());
+    assertEquals(8, dvs.getArray("dataValues").size());
   }
 
   @Test
@@ -390,7 +374,6 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
       assertEquals(deA.getCode(), dv.getDataElement());
-      assertEquals(ouA.getCode(), dv.getOrgUnit());
     }
   }
 
@@ -404,7 +387,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             . //
             dataSet(singleton(dsB.getCode()))
             .orgUnit(singleton(ouA.getCode()))
-            .period(singleton(peBUid))
+            .period(singleton(peBIso))
             .inputIdScheme(IdentifiableProperty.CODE)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -419,7 +402,6 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
       assertEquals(deA.getCode(), dv.getDataElement());
-      assertEquals(ouA.getCode(), dv.getOrgUnit());
     }
   }
 
@@ -441,11 +423,11 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     assertNotNull(dvs);
     assertNotNull(dvs.getDataSet());
     assertEquals(dsB.getUid(), dvs.getDataSet());
+    assertEquals("AttributeValueB", dvs.getOrgUnit());
     assertEquals(2, dvs.getDataValues().size());
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
       assertEquals("AttributeValueA", dv.getDataElement());
-      assertEquals("AttributeValueB", dv.getOrgUnit());
     }
   }
 
@@ -567,7 +549,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .build();
     ConflictException ex =
         assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));
-    assertEquals(ErrorCode.E2008, ex.getCode());
+    assertEquals(ErrorCode.E2007, ex.getCode());
   }
 
   @Test

@@ -146,7 +146,7 @@ public class DefaultDataExportService implements DataExportService {
     if (params.getAttributeOptionCombos().size() == 1) {
       groupAoc =
           params
-              .getAllOrganisationUnits()
+              .getAttributeOptionCombos()
               .iterator()
               .next()
               .getPropertyValue(schemes.getAttributeOptionComboIdScheme());
@@ -278,8 +278,8 @@ public class DefaultDataExportService implements DataExportService {
       DataExportGroup.Output group, Stream<DataExportValue> values, IdSchemes schemes) {
     IdProperty deAs = IdProperty.of(schemes.getDataElementIdScheme());
     IdProperty ouAs = IdProperty.of(schemes.getOrgUnitIdScheme());
-    IdProperty cocAs = IdProperty.of(schemes.getAttributeOptionComboIdScheme());
-    IdProperty aocAs = IdProperty.of(schemes.getCategoryOptionComboIdScheme());
+    IdProperty cocAs = IdProperty.of(schemes.getCategoryOptionComboIdScheme());
+    IdProperty aocAs = IdProperty.of(schemes.getAttributeOptionComboIdScheme());
     UnaryOperator<String> deOf = UnaryOperator.identity();
     UnaryOperator<String> ouOf = UnaryOperator.identity();
     UnaryOperator<String> cocOf = UnaryOperator.identity();
@@ -290,6 +290,7 @@ public class DefaultDataExportService implements DataExportService {
     boolean ouMap = ouAs.isNotUID() && group.orgUnit() == null;
     boolean cocMap = cocAs.isNotUID();
     boolean aocMap = aocAs.isNotUID() && group.attributeOptionCombo() == null;
+    String groupPeriod = group.period();
     if (deMap || ouMap || cocMap || aocMap) {
       List<DataExportValue> list = values.toList();
       if (deMap)
@@ -315,7 +316,7 @@ public class DefaultDataExportService implements DataExportService {
         dv ->
             new DataExportValue.Output(
                 deOfFinal.apply(dv.dataElement().getValue()),
-                dv.period(),
+                groupPeriod != null ? null : dv.period(),
                 ouOfFinal.apply(dv.orgUnit().getValue()),
                 cocOfFinal.apply(dv.categoryOptionCombo().getValue()),
                 null, // COs not yet supported
