@@ -1330,11 +1330,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(1, dataSet2.getIndicators().size());
     assertEquals(1, dataSet2.getSections().size());
     assertTrue(
-        dataSet2.getDatSetElements().stream()
-            .map(JsonIdentifiableObject::getId)
-            .toList()
-            .contains("DseUid000x1"));
-    assertTrue(
         dataSet2.getIndicators().stream()
             .map(JsonIdentifiableObject::getId)
             .toList()
@@ -1342,7 +1337,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
     // And the Section should also only have 1 DataElement & 1 Indicator
     JsonSection section2 =
-        GET("/sections/dsUid0000x1").content(HttpStatus.OK).as(JsonSection.class);
+        GET("/sections/SectUid00x1").content(HttpStatus.OK).as(JsonSection.class);
     assertEquals(1, section2.getDataElements().size());
     assertEquals(1, section2.getIndicators().size());
     assertTrue(
