@@ -30,6 +30,7 @@ package org.hisp.dhis.hibernate.jsonb.type;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,16 +59,18 @@ public class JsonAttributeValueBinaryType extends JsonBinaryType {
       Map<String, AttributeValue> attrValueMap = new HashMap<>();
 
       for (AttributeValue attributeValue : attributeValues) {
-        if (attributeValue.getAttribute() != null) {
-          attributeValue.setAttribute(new Attribute(attributeValue.getAttribute().getUid()));
-          attrValueMap.put(attributeValue.getAttribute().getUid(), attributeValue);
+        if (attributeValue.getAttribute() != null
+            && attributeValue.getAttribute().getUid() != null) {
+          String uid = attributeValue.getAttribute().getUid();
+          attributeValue.setAttribute(new Attribute(uid));
+          attrValueMap.put(uid, attributeValue);
         }
       }
 
       return writer.writeValueAsString(attrValueMap);
 
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException ex) {
+      throw new UncheckedIOException("Failed to serialize JSON", ex);
     }
   }
 
@@ -83,8 +86,8 @@ public class JsonAttributeValueBinaryType extends JsonBinaryType {
       Map<String, AttributeValue> data = reader.readValue(content);
 
       return convertAttributeValueMapIntoSet(data);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException ex) {
+      throw new UncheckedIOException("Failed to deserialize JSON", ex);
     }
   }
 
