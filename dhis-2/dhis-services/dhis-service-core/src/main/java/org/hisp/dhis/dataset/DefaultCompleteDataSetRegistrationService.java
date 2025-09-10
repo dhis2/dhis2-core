@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,7 +48,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -89,11 +88,10 @@ public class DefaultCompleteDataSetRegistrationService
 
   @Override
   @Transactional
-  public Optional<ErrorMessage> saveCompleteDataSetRegistration(
-      CompleteDataSetRegistration registration) {
+  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException {
     registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
-    Optional<ErrorMessage> errorMessage = checkCompulsoryDeOperands(registration);
-    if (errorMessage.isPresent()) return errorMessage;
+    checkCompulsoryDeOperands(registration);
 
     Date date = new Date();
 
@@ -124,7 +122,6 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     notificationEventPublisher.publishEvent(registration);
-    return Optional.empty();
   }
 
   /**
@@ -137,8 +134,8 @@ public class DefaultCompleteDataSetRegistrationService
    *
    * @param registration registration to check
    */
-  public Optional<ErrorMessage> checkCompulsoryDeOperands(
-      CompleteDataSetRegistration registration) {
+  public void checkCompulsoryDeOperands(CompleteDataSetRegistration registration)
+      throws ConflictException {
     // only get missing compulsory elements if they are actually compulsory
     if (registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
       List<DataElementOperand> missingDataElementOperands =
@@ -152,25 +149,22 @@ public class DefaultCompleteDataSetRegistrationService
             missingDataElementOperands.stream()
                 .map(DataElementOperand::getDisplayName)
                 .collect(Collectors.joining(","));
-        return Optional.of(new ErrorMessage(E7605, missingDeos));
+        throw new ConflictException(E7605, missingDeos);
       }
     }
-    return Optional.empty();
   }
 
   @Override
   @Transactional
-  public Optional<ErrorMessage> updateCompleteDataSetRegistration(
-      CompleteDataSetRegistration registration) {
-    Optional<ErrorMessage> errorMessage = checkCompulsoryDeOperands(registration);
-    if (errorMessage.isPresent()) return errorMessage;
+  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException {
+    checkCompulsoryDeOperands(registration);
 
     registration.setLastUpdated(new Date());
 
     registration.setLastUpdatedBy(CurrentUserUtil.getCurrentUsername());
 
     completeDataSetRegistrationStore.updateCompleteDataSetRegistration(registration);
-    return Optional.empty();
   }
 
   @Override

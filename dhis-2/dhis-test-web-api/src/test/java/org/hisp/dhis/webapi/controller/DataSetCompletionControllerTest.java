@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.feedback.ErrorCode.E7605;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.UID;
@@ -105,14 +104,9 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     POST("dataValueSets", dataValue()).content(HttpStatus.OK);
 
     // when trying to complete the data set that has missing compulsory data, it should succeed
-    JsonWebMessage jsonWebMessage =
-        POST("/dataEntry/dataSetCompletion", completeDataSetReg())
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(200, jsonWebMessage.getHttpStatusCode());
-    assertEquals("OK", jsonWebMessage.getHttpStatus());
-    assertEquals("OK", jsonWebMessage.getStatus());
-    assertNull(jsonWebMessage.getErrorCode());
+    POST("/dataEntry/dataSetCompletion", completeDataSetReg())
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
@@ -140,14 +134,9 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
 
     // when trying to complete the data set that has missing compulsory data, it should succeed
-    JsonWebMessage jsonWebMessage =
-        POST("/dataEntry/dataSetCompletion", completeDataSetReg())
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(200, jsonWebMessage.getHttpStatusCode());
-    assertEquals("OK", jsonWebMessage.getHttpStatus());
-    assertEquals("OK", jsonWebMessage.getStatus());
-    assertNull(jsonWebMessage.getErrorCode());
+    POST("/dataEntry/dataSetCompletion", completeDataSetReg())
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
@@ -172,14 +161,9 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
 
     // when trying to complete the data set with no compulsory data, it should succeed
-    JsonWebMessage jsonWebMessage =
-        POST("/dataEntry/dataSetCompletion", completeDataSetReg())
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(200, jsonWebMessage.getHttpStatusCode());
-    assertEquals("OK", jsonWebMessage.getHttpStatus());
-    assertEquals("OK", jsonWebMessage.getStatus());
-    assertNull(jsonWebMessage.getErrorCode());
+    POST("/dataEntry/dataSetCompletion", completeDataSetReg())
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
     // and complete dataset reg should have 1 entry
     JsonMixed cdsr =

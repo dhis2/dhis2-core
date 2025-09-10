@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -38,9 +37,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
@@ -68,7 +65,8 @@ public class DataSetCompletionController {
 
   @PostMapping("/dataSetCompletion")
   @ResponseStatus(value = HttpStatus.OK)
-  public WebMessage saveDataSetCompletion(@RequestBody DataSetCompletionDto dto) {
+  public void saveDataSetCompletion(@RequestBody DataSetCompletionDto dto)
+      throws ConflictException {
     DataSet ds = dataValidator.getAndValidateDataSet(dto.getDataSet());
     Period pe = dataValidator.getAndValidatePeriod(dto.getPeriod());
     OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit());
@@ -78,14 +76,12 @@ public class DataSetCompletionController {
     CompleteDataSetRegistration cdr =
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
 
-    Optional<ErrorMessage> errorMessage;
     if (cdr != null) {
       cdr.setCompleted(completed);
-      errorMessage = registrationService.updateCompleteDataSetRegistration(cdr);
+      registrationService.updateCompleteDataSetRegistration(cdr);
     } else {
       cdr = new CompleteDataSetRegistration(ds, pe, ou, aoc, completed);
-      errorMessage = registrationService.saveCompleteDataSetRegistration(cdr);
+      registrationService.saveCompleteDataSetRegistration(cdr);
     }
-    return WebMessageUtils.createWebMessageFromErrorMessage(errorMessage.orElse(null));
   }
 }

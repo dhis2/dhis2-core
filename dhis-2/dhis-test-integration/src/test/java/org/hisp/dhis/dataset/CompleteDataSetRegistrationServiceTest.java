@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -152,7 +153,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testSaveGet() {
+  void testSaveGet() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
             dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true);
@@ -172,7 +173,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testSaveAutoProperties() {
+  void testSaveAutoProperties() throws ConflictException {
     CompleteDataSetRegistration registration =
         new CompleteDataSetRegistration(dataSetA, periodA, sourceA, optionCombo, true);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registration);
@@ -185,7 +186,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testDelete() {
+  void testDelete() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
             dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true);
@@ -210,7 +211,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testGetAll() {
+  void testGetAll() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
             dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true);
@@ -227,7 +228,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testDeleteByDataSet() {
+  void testDeleteByDataSet() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
             dataSetA, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true);
