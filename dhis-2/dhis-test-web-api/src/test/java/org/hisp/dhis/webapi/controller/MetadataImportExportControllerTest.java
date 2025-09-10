@@ -59,6 +59,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
+import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
@@ -887,6 +888,39 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     GET("/categoryOptionCombos/CocUid000a2").content(HttpStatus.OK);
     GET("/categoryOptionCombos/CocUid000a3").content(HttpStatus.OK);
     GET("/categoryOptionCombos/CocUid000a4").content(HttpStatus.OK);
+  }
+
+  @Test
+  @DisplayName(
+      "Updating CategoryOptionCombo ignoreApproval field should succeed when expected CategoryOptionCombos provided")
+  void updateCocsIgnoreApprovalTest() {
+    // Given category metadata exists
+    POST("/metadata", CAT_METADATA_IMPORT).content(HttpStatus.OK);
+
+    // And the ignoreApproval field is 'false'
+    assertFalse(
+        GET("/categoryOptionCombos/CocUid000a1")
+            .content(HttpStatus.OK)
+            .as(JsonCategoryOptionCombo.class)
+            .getIgnoreApproval());
+
+    // When importing (update) COCs with a new value for the field 'ignoreApproval'
+    JsonImportSummary report =
+        POST("/metadata", Path.of("metadata/category/update_cocs_ignore_approval.json"))
+            .contentUnchecked()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then the import is successful and the COCs show as updated
+    assertEquals("OK", report.getStatus());
+    assertEquals(4, report.getStats().getUpdated());
+
+    // And the new value of true is present
+    assertTrue(
+        GET("/categoryOptionCombos/CocUid000a1")
+            .content(HttpStatus.OK)
+            .as(JsonCategoryOptionCombo.class)
+            .getIgnoreApproval());
   }
 
   @Test
