@@ -182,12 +182,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject
   // -------------------------------------------------------------------------
 
   @Override
-  @JsonIgnore
-  public long getId() {
-    return id;
-  }
-
-  @Override
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
   @Description("The Unique Identifier for this Object.")
@@ -195,6 +189,12 @@ public class BaseIdentifiableObject extends BaseLinkableObject
   @PropertyRange(min = 11, max = 11)
   public String getUid() {
     return uid;
+  }
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
   }
 
   @Override
