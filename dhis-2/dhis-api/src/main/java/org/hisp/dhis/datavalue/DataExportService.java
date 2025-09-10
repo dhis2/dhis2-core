@@ -61,7 +61,8 @@ public interface DataExportService {
 
   Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) throws ConflictException;
 
-  DataExportGroup.Output exportGroup(@Nonnull DataExportParams params) throws ConflictException;
+  DataExportGroup.Output exportGroup(@Nonnull DataExportParams params, boolean sync)
+      throws ConflictException;
 
   Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportParams params)
       throws ConflictException;

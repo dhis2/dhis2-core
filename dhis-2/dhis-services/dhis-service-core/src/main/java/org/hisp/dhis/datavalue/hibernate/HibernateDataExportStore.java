@@ -188,7 +188,7 @@ public class HibernateDataExportStore implements DataExportStore {
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         -- access check below must be 1 line for erasure
-        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND :access)
+        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))
       ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
       """;
     Set<OrganisationUnit> units = params.getAllOrganisationUnits();
@@ -204,7 +204,9 @@ public class HibernateDataExportStore implements DataExportStore {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     String accessSql =
-        currentUser.isSuper() || !params.getAttributeOptionCombos().isEmpty()
+        currentUser.isSuper()
+                || params.isOrderForSync()
+                || !params.getAttributeOptionCombos().isEmpty()
             ? null // explicit AOCs mean they are already sharing checked
             : generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
     return createNativeRawQuery(sql)

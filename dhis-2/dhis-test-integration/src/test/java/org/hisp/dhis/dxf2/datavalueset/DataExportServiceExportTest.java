@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
@@ -59,6 +60,10 @@ import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -467,16 +472,17 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     DataExportParams params = DataExportParams.builder().lastUpdated(lastUpdated).build();
     dataExportPipeline.exportAsJsonSync(params, out);
-    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
-    assertNotNull(dvs);
-    assertEquals(14, dvs.getDataValues().size());
+    JsonObject json = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
+    assertEquals(14, json.getArray("dataValues").size());
     deleteDataValue(dvA);
     deleteDataValue(dvB);
     out = new ByteArrayOutputStream();
     dataExportPipeline.exportAsJsonSync(params, out);
-    dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
-    assertNotNull(dvs);
-    assertEquals(14, dvs.getDataValues().size());
+    json = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
+    JsonArray values = json.getArray("dataValues");
+    assertEquals(14, values.size());
+    assertEquals(
+        2, values.count(JsonValue::asObject, dv -> dv.getBoolean("deleted").booleanValue(false)));
   }
 
   @Test

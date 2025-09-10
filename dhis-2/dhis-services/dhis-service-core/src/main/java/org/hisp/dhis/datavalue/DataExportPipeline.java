@@ -50,24 +50,22 @@ public class DataExportPipeline {
 
   @Transactional(readOnly = true)
   public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toJson(service.exportGroup(params), out);
+    DataExportOutput.toJson(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)
   public void exportAsJsonSync(DataExportParams params, OutputStream out) throws ConflictException {
-    // TODO params.setOrderForSync(true); // make sure
-    // TODO also make it skip validation
-    exportAsJson(params, out);
+    DataExportOutput.toJson(service.exportGroup(params, true), out);
   }
 
   @Transactional(readOnly = true)
   public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toCsv(service.exportGroup(params), out);
+    DataExportOutput.toCsv(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)
   public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toXml(service.exportGroup(params), out);
+    DataExportOutput.toXml(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)

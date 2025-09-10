@@ -167,8 +167,7 @@ public final class RawNativeQuery {
    * <p>The SQL provided could potentially enable SQL injection attacks, so callers have to be
    * careful to only provide SQL that is considered safe in that regard.
    */
-  public RawNativeQuery setDynamicClause(
-      @Nonnull String name, @CheckForNull @Language("SQL") String sql) {
+  public RawNativeQuery setDynamicClause(@Nonnull String name, @CheckForNull String sql) {
     if (sql == null || sql.isEmpty()) {
       erasedClause.add(name);
     } else {
@@ -294,7 +293,8 @@ public final class RawNativeQuery {
 
   public String toSQL(boolean count) {
     String minSql =
-        eraseComments(eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql)))));
+        replaceDynamicClauses(
+            eraseComments(eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql))))));
     if (count) return replaceSelect(minSql);
     return minSql;
   }
@@ -316,10 +316,7 @@ public final class RawNativeQuery {
 
   private String eraseNullClauses(String sql) {
     if (erasedClause.isEmpty()) return sql;
-    return sql.lines()
-        .filter(not(this::containsErasedClause))
-        .map(this::replaceClauses)
-        .collect(joining("\n"));
+    return sql.lines().filter(not(this::containsErasedClause)).collect(joining("\n"));
   }
 
   private String eraseComments(String sql) {
@@ -362,12 +359,20 @@ public final class RawNativeQuery {
     return erasedOrders.stream().anyMatch(order::startsWith);
   }
 
-  private String replaceClauses(String line) {
-    if (clauses.isEmpty()) return line;
-    String res = line;
-    for (Map.Entry<String, String> clause : clauses.entrySet())
-      res = res.replace(":" + clause.getKey(), clause.getValue());
-    return res;
+  private String replaceDynamicClauses(String sql) {
+    if (clauses.isEmpty()) return sql;
+    return sql.lines()
+        .map(
+            line -> {
+              for (Map.Entry<String, String> clause : clauses.entrySet()) {
+                String name = clause.getKey();
+                if (containsNamedPlaceholder(line, name)) {
+                  line = line.replace(":" + name, clause.getValue());
+                }
+              }
+              return line;
+            })
+        .collect(joining("\n"));
   }
 
   private String replaceComments(String line) {

@@ -121,11 +121,16 @@ public class DefaultDataExportService implements DataExportService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataExportGroup.Output exportGroup(@Nonnull DataExportParams parameters)
+  public DataExportGroup.Output exportGroup(@Nonnull DataExportParams parameters, boolean sync)
       throws ConflictException {
     DataExportStoreParams params = decodeParams(parameters);
-    validateFilters(params);
-    validateAccess(params);
+    if (sync) {
+      params.setOrderForSync(true);
+      params.setIncludeDeleted(true);
+    } else {
+      validateFilters(params);
+      validateAccess(params);
+    }
 
     IdSchemes schemes = parameters.getOutputIdSchemes();
     String groupDataSet = null;

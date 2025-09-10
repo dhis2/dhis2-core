@@ -265,4 +265,64 @@ class RawNativeQueryTest {
            AND dv.deleted = :deleted""",
         minSql);
   }
+
+  @Test
+  void testDynamicClause() {
+    Long[] noLongs = null;
+    String[] noStrings = null;
+    Date noDate = null;
+    Integer noInt = null;
+    Boolean noBool = null;
+    String minSql =
+        createNativeRawQuery(sql)
+            .setInOrAnyParameter("de", noLongs)
+            .setInOrAnyParameter("pe", noStrings)
+            .setInOrAnyParameter("pt", noStrings)
+            .setParameter("start", noDate)
+            .setParameter("end", noDate)
+            .setParameter("includedDate", noDate)
+            .setInOrAnyParameter("path", noStrings)
+            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("level", noInt)
+            .setParameter("minLevel", noInt)
+            .setInOrAnyParameter("coc", noLongs)
+            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("lastUpdated", noDate)
+            .setParameter("deleted", noBool)
+            .setDynamicClause("access", "x.sharing = 'good'")
+            .eraseOrder("ou.path", true)
+            .eraseOrder("pe.startdate", true)
+            .eraseOrder("pe.enddate", true)
+            .eraseOrder("dv.created", true)
+            .eraseOrder("deid", true)
+            .eraseNullParameterLines()
+            .eraseNullJoinLine("pt", "pt")
+            .setLimit(null)
+            .setOffset(null)
+            .toSQL();
+    assertEquals(
+        """
+      SELECT
+        de.uid AS deid,
+        pe.iso,
+        ou.uid AS ouid,
+        coc.uid AS cocid,
+        aoc.uid AS aocid,
+        dv.value,
+        dv.comment,
+        dv.followup,
+        dv.storedby,
+        dv.created,
+        dv.lastupdated,
+        dv.deleted
+      FROM datavalue dv
+      JOIN dataelement de ON dv.dataelementid = de.dataelementid
+      JOIN period pe ON dv.periodid = pe.periodid
+      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE 1=1
+        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND x.sharing = 'good')""",
+        minSql);
+  }
 }
