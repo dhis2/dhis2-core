@@ -71,7 +71,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
     if (object == null || !object.getClass().isAssignableFrom(DataSet.class)) return;
 
     deleteRemovedDataElementFromSection(persistedObject, object);
-    deleteRemovedIndicatorFromSection(persistedObject, object);
+    deleteRemovedIndicatorFromSectionsIndicators(persistedObject, object);
     deleteRemovedSection(persistedObject, object, bundle);
     deleteCompulsoryDataElementOperands(object);
   }
@@ -118,14 +118,15 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
 
   /**
    * When an Indicator is removed from a DataSet's Indicators, it should also be removed from the
-   * DataSet's Section's Indicators. This method finds the missing imported DataSet's Indicators
+   * DataSet's Section's Indicators. This method finds the removed imported DataSet's Indicators
    * from the existing DataSet's Indicators and ensures that all the DataSet's Section's Indicators
    * don't include these.
    *
    * @param persistedDataSet persisted DataSet
    * @param importDataSet DataSet being imported
    */
-  private void deleteRemovedIndicatorFromSection(DataSet persistedDataSet, DataSet importDataSet) {
+  private void deleteRemovedIndicatorFromSectionsIndicators(
+      DataSet persistedDataSet, DataSet importDataSet) {
     Set<String> updatedDataSetIndicators =
         importDataSet.getIndicators().stream()
             .map(BaseIdentifiableObject::getUid)
@@ -137,7 +138,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
             .collect(Collectors.toSet());
 
     // get elements that are in the existing collection but not in the imported collection
-    List<String> missingIndicators =
+    List<String> removedIndicators =
         CollectionUtils.difference(existingDataSetIndicators, updatedDataSetIndicators);
 
     persistedDataSet
@@ -146,7 +147,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
             s ->
                 s.setIndicators(
                     s.getIndicators().stream()
-                        .filter(i -> !missingIndicators.contains(i.getUid()))
+                        .filter(i -> !removedIndicators.contains(i.getUid()))
                         .toList()));
   }
 
