@@ -155,15 +155,6 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
-  public <V> Cache<V> createIsDataApprovedCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.isDataApproved.name())
-            .expireAfterWrite(12, TimeUnit.HOURS)
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
   public <V> Cache<V> createAllConstantsCache() {
     return registerCache(
         this.<V>newBuilder()
@@ -179,17 +170,6 @@ public class DefaultCacheProvider implements CacheProvider {
     return registerCache(
         this.<V>newBuilder()
             .forRegion(Region.inUserOrgUnitHierarchy.name())
-            .expireAfterWrite(1, TimeUnit.HOURS)
-            .withInitialCapacity((int) getActualSize(SIZE_1K))
-            .forceInMemory()
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
-  }
-
-  @Override
-  public <V> Cache<V> createInUserSearchOrgUnitHierarchyCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.inUserSearchOrgUnitHierarchy.name())
             .expireAfterWrite(1, TimeUnit.HOURS)
             .withInitialCapacity((int) getActualSize(SIZE_1K))
             .forceInMemory()
