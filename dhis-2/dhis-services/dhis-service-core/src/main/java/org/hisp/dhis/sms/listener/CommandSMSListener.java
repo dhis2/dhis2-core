@@ -37,6 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -74,7 +75,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy)
+      throws ConflictException {
     // we cannot annotate getSMSCommand itself with Nonnull as it can return null but
     // receive is only called when accept returned true, which is if there is a non-null command
     SMSCommand smsCommand = getSMSCommand(sms);
@@ -93,7 +95,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       @Nonnull IncomingSms sms,
       @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
-      @Nonnull Map<String, String> codeValues);
+      @Nonnull Map<String, String> codeValues)
+      throws ConflictException;
 
   protected abstract SMSCommand getSMSCommand(@Nonnull IncomingSms sms);
 

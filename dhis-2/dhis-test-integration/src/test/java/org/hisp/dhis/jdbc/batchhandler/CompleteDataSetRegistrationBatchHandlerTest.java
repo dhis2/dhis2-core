@@ -43,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -182,7 +183,7 @@ class CompleteDataSetRegistrationBatchHandlerTest extends PostgresIntegrationTes
   }
 
   @Test
-  void testFindObject() {
+  void testFindObject() throws ConflictException {
     registrationService.saveCompleteDataSetRegistration(regA);
     registrationService.saveCompleteDataSetRegistration(regD);
     CompleteDataSetRegistration retrievedRegA = batchHandler.findObject(regA);
@@ -193,7 +194,7 @@ class CompleteDataSetRegistrationBatchHandlerTest extends PostgresIntegrationTes
   }
 
   @Test
-  void testObjectExists() {
+  void testObjectExists() throws ConflictException {
     registrationService.saveCompleteDataSetRegistration(regA);
     registrationService.saveCompleteDataSetRegistration(regD);
     assertTrue(batchHandler.objectExists(regA));
@@ -204,7 +205,7 @@ class CompleteDataSetRegistrationBatchHandlerTest extends PostgresIntegrationTes
 
   @Test
   @Disabled("ERROR: cannot execute UPDATE in a read-only transaction")
-  void testUpdateObject() {
+  void testUpdateObject() throws ConflictException {
     registrationService.saveCompleteDataSetRegistration(regA);
     regA.setStoredBy("tom");
     batchHandler.updateObject(regA);
@@ -216,7 +217,7 @@ class CompleteDataSetRegistrationBatchHandlerTest extends PostgresIntegrationTes
   }
 
   @Test
-  void testDeleteObject() {
+  void testDeleteObject() throws ConflictException {
     registrationService.saveCompleteDataSetRegistration(regA);
     registrationService.saveCompleteDataSetRegistration(regD);
     assertTrue(batchHandler.objectExists(regA));
