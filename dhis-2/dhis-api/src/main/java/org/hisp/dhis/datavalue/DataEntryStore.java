@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 
 /**
@@ -202,6 +203,9 @@ public interface DataEntryStore {
   int deleteByKeys(List<DataEntryKey> keys);
 
   int upsertValues(List<DataEntryValue> values);
+
+  @UsageTestOnly
+  int addValuesForJdbcTest(List<DataEntryValue> values);
 
   /*
   Validation support

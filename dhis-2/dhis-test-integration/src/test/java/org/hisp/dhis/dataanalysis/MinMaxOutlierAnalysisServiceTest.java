@@ -185,6 +185,7 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
+    if (dataDumpService.addValuesForJdbcTest(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

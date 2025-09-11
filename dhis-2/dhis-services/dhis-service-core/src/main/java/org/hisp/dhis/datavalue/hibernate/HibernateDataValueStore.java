@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -46,6 +47,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
@@ -62,6 +64,8 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -80,9 +84,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   private static final String LAST_UPATED = "lastUpdated";
 
+  private final PeriodStore periodStore;
+
   public HibernateDataValueStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      PeriodStore periodStore) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
+    this.periodStore = periodStore;
   }
 
   // -------------------------------------------------------------------------
@@ -295,7 +305,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   private void getDdvPeriods(
       DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasPeriods()) {
-      String periodIdList = getCommaDelimitedString(getIdentifiers(params.getPeriods()));
+      String periodIdList = getPeriodIds(params.getPeriods());
 
       where
           .append(sqlHelper.whereAnd())
@@ -702,5 +712,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     DATA_ELEMENT,
     CATEGORY_OPTION_COMBO,
     ATTRIBUTE_OPTION_COMBO
+  }
+
+  private String getPeriodIds(Collection<Period> periods) {
+    return periods.stream()
+        .map(periodStore::reloadPeriod)
+        .filter(Objects::nonNull)
+        .map(Period::getId)
+        .map(String::valueOf)
+        .collect(joining(","));
   }
 }

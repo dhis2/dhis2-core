@@ -300,9 +300,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  public int upsertValueWithJdbc(DataValue... values) {
-    // TODO use JDBC
-    return upsertValues(values);
+  public int addValuesForJdbcTest(DataValue... values) {
+    if (values == null || values.length == 0) return 0;
+    return store.addValuesForJdbcTest(DataValue.toDataEntryValues(List.of(values)));
   }
 
   @Override

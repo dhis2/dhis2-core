@@ -60,6 +60,7 @@ import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
@@ -713,6 +714,40 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     // ATM it does not seem worth it to make a dedicated implementation
     // instead we do...
     return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
+  }
+
+  @Override
+  @UsageTestOnly
+  public int addValuesForJdbcTest(List<DataEntryValue> values) {
+    if (values == null || values.isEmpty()) return 0;
+
+    List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
+    if (internalValues.isEmpty()) return 0;
+
+    @Language("sql")
+    String sql =
+        """
+        INSERT INTO datavalue
+      (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted, storedby)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+    int imported = 0;
+    for (DataEntryRow row : internalValues) {
+      imported +=
+          jdbcTemplate.update(
+              sql,
+              row.de(),
+              row.pe(),
+              row.ou(),
+              row.coc(),
+              row.aoc(),
+              row.value(),
+              row.comment(),
+              row.followup(),
+              row.deleted(),
+              "test");
+    }
+    return imported;
   }
 
   @Override

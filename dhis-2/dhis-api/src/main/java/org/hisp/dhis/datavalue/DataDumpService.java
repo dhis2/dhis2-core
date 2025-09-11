@@ -74,5 +74,5 @@ public interface DataDumpService {
    * @return number of values written
    */
   @UsageTestOnly
-  int upsertValueWithJdbc(DataValue... values);
+  int addValuesForJdbcTest(DataValue... values);
 }
