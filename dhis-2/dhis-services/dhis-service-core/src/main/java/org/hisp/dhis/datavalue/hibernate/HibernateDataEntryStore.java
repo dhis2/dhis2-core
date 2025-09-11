@@ -728,11 +728,12 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     String sql =
         """
         INSERT INTO datavalue
-      (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted, storedby)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted, storedby, lastupdated, created)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
     int imported = 0;
     for (DataEntryRow row : internalValues) {
+      Date now = new Date();
       imported +=
           jdbcTemplate.update(
               sql,
@@ -745,7 +746,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
               row.comment(),
               row.followup(),
               row.deleted(),
-              "test");
+              "test",
+              now,
+              now);
     }
     return imported;
   }

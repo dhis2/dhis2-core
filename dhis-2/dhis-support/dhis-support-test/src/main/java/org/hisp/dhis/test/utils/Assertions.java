@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.List;
@@ -360,6 +361,11 @@ public final class Assertions {
       CharSequence expected, String actual, Supplier<String> messageSupplier) {
     assertNotEmpty(actual, messageSupplier);
     assertTrue(actual.contains(expected), messageSupplier);
+  }
+
+  public static <T> void assertContainsAll(Collection<T> expected, Collection<T> actual) {
+    if (!actual.containsAll(expected))
+      fail("Expected %s to contain all in %s".formatted(expected, actual));
   }
 
   /**
