@@ -547,9 +547,4 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
   }
-
-  @Override
-  protected String getQuoteSymbol() {
-    return QUOTE;
-  }
 }

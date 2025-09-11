@@ -324,22 +324,4 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static boolean isSingleQuoted(String input) {
     return RegexUtils.matches(IS_SINGLE_QUOTED, input);
   }
-
-  @Override
-  public String unquote(String value) {
-    if (value == null || value.isEmpty()) {
-      return "";
-    }
-    final String quote = getQuoteSymbol();
-    // If value is wrapped in double quotes, remove them and unescape inner quotes
-    if (value.length() >= 2 && value.startsWith(quote) && value.endsWith(quote)) {
-      String inner = value.substring(1, value.length() - 1);
-      return inner.replace(quote + quote, quote);
-    }
-
-    // Otherwise, return as is
-    return value;
-  }
-
-  protected abstract String getQuoteSymbol();
 }
