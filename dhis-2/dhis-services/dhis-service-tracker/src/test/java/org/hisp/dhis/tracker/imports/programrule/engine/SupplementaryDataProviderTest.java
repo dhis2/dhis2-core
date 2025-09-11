@@ -102,7 +102,7 @@ class SupplementaryDataProviderTest extends TestBase {
     Map<String, List<String>> supplementaryData =
         providerToTest.getSupplementaryData(getProgramRules(), currentUser);
     assertFalse(supplementaryData.isEmpty());
-    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER")));
+    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER_ROLES")));
     assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
     assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
     assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
