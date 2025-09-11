@@ -15,7 +15,6 @@ public class DimensionalObjectFactoryImpl implements DimensionalObjectFactory {
   @Override
   public DimensionalObject create(String dimension, DimensionType dimensionType,
       List<? extends DimensionalItemObject> items) {
-    DimensionalObject object = c
     return null;
   }
 
