@@ -228,14 +228,6 @@ public interface SqlBuilder {
   String singleQuote(String value);
 
   /**
-   * Removes quotes from the given value.
-   *
-   * @param value the quoted value to unquote.
-   * @return the unquoted value.
-   */
-  String unquote(String value);
-
-  /**
    * @param value the value to escape.
    * @return the escaped value, with single quotes doubled up.
    */

@@ -135,6 +135,7 @@ import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
+import org.hisp.dhis.analytics.util.sql.QuoteUtils;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
@@ -1375,7 +1376,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   private String unquote(String value) {
-    return sqlBuilder.unquote(value);
+    return QuoteUtils.unquote(value);
   }
 
   /**

@@ -66,7 +66,7 @@ public class QuoteUtils {
    * @return The string without surrounding quotes, or the original string if it is not quoted.
    *     Returns an empty string if the input is <code>null</code> or empty.
    */
-  static String unquote(String quoted) {
+  public static String unquote(String quoted) {
     if (StringUtils.isBlank(quoted)) {
       return "";
     }
