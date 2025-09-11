@@ -124,14 +124,9 @@ do $$
         if (select (select count(*) from event) - (select count(*) from singleevent) - (select count(*) from trackerevent) > 0)
             then begin
                 create table inconsistentevent as
-                select * from event
-                where eventid not in (
-                    select eventid
-                    from singleevent
-                    union
-                    select eventid
-                    from trackerevent
-                );
+                select e.* from event e
+                join programstage ps on ps.programstageid = e.programstageid
+                where ps.programid is null;
             raise warning 'There is inconsistent data in your DB. Please check https://github.com/dhis2/dhis2-releases/blob/master/releases/2.43/migration-notes.md#inconsistent-events to have more information on the issue and to find ways to fix it.';
             end;
         end if;
