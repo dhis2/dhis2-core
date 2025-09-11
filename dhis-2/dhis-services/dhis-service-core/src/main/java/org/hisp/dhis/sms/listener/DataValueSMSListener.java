@@ -396,7 +396,8 @@ public class DataValueSMSListener extends CommandSMSListener {
   }
 
   private void registerCompleteDataSet(
-      DataSet dataSet, Period period, OrganisationUnit organisationUnit, String storedBy) {
+      DataSet dataSet, Period period, OrganisationUnit organisationUnit, String storedBy)
+      throws ConflictException {
     CategoryOptionCombo optionCombo =
         dataElementCategoryService.getDefaultCategoryOptionCombo(); // TODO
 

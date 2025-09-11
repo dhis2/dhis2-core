@@ -387,7 +387,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfDataSetIsLocked() {
+  void testIfDataSetIsLocked() throws ConflictException {
     ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass(IncomingSms.class);
 
     mockSmsSender();
@@ -409,7 +409,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfUserHasNoOu() {
+  void testIfUserHasNoOu() throws ConflictException {
     mockSmsSender();
 
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
@@ -423,7 +423,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfUserHasMultipleOUs() {
+  void testIfUserHasMultipleOUs() throws ConflictException {
     mockSmsSender();
 
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
@@ -444,7 +444,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfCommandHasCorrectFormat() {
+  void testIfCommandHasCorrectFormat() throws ConflictException {
     mockSmsSender();
 
     // Mock for smsCommandService
@@ -489,7 +489,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfOrgUnitNotInDataSet() {
+  void testIfOrgUnitNotInDataSet() throws ConflictException {
     when(userService.getUser(anyString())).thenReturn(user);
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
     doAnswer(

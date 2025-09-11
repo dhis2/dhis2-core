@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.feedback.ErrorCode.E7605;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +48,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -86,7 +89,8 @@ public class DefaultCompleteDataSetRegistrationService
 
   @Override
   @Transactional
-  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException {
     registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     checkCompulsoryDeOperands(registration);
 
@@ -131,7 +135,8 @@ public class DefaultCompleteDataSetRegistrationService
    *
    * @param registration registration to check
    */
-  private void checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
+  public void checkCompulsoryDeOperands(CompleteDataSetRegistration registration)
+      throws ConflictException {
     // only get missing compulsory elements if they are actually compulsory
     if (registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
       List<DataElementOperand> missingDataElementOperands =
@@ -141,19 +146,19 @@ public class DefaultCompleteDataSetRegistrationService
               registration.getSource(),
               registration.getAttributeOptionCombo());
       if (!missingDataElementOperands.isEmpty()) {
-        String deos =
+        String missingDeos =
             missingDataElementOperands.stream()
                 .map(DataElementOperand::getDisplayName)
                 .collect(Collectors.joining(","));
-        throw new IllegalStateException(
-            "All compulsory data element operands need to be filled: [%s]".formatted(deos));
+        throw new ConflictException(E7605, missingDeos);
       }
     }
   }
 
   @Override
   @Transactional
-  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException {
     checkCompulsoryDeOperands(registration);
 
     registration.setLastUpdated(new Date());

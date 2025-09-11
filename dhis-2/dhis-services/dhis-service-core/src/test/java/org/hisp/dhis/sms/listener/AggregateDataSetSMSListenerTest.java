@@ -175,7 +175,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testAggregateDatasetListener() {
+  void testAggregateDatasetListener() throws ConflictException {
     subject.receive(incomingSmsAggregate, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);
@@ -186,7 +186,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testAggregateDatasetListenerRepeat() {
+  void testAggregateDatasetListenerRepeat() throws ConflictException {
     subject.receive(incomingSmsAggregate, userDetails("frank"));
     subject.receive(incomingSmsAggregate, userDetails("frank"));
 
@@ -198,7 +198,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testAggregateDatasetListenerNoValues() {
+  void testAggregateDatasetListenerNoValues() throws ConflictException {
     subject.receive(incomingSmsAggregateNoValues, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);

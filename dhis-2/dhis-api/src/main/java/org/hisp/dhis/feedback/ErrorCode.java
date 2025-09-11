@@ -591,6 +591,7 @@ public enum ErrorCode {
 
   /* (Old) Data import validation */
   /* E7600-E7610 retired */
+  E7605("All compulsory data element operands need to be filled: `{0}`"),
   E7611("Period not valid: `{0}`"),
   /* E7612-E7616 retired */
   E7617("Organisation unit: `{0}` not in hierarchy of current user: `{1}`"),

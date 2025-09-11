@@ -529,7 +529,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
    *
    * @param lines the list of arrays of property values.
    */
-  private void parseDataSetRegistrations(List<String[]> lines) {
+  private void parseDataSetRegistrations(List<String[]> lines) throws Exception {
     String storedBy = "johndoe";
     String lastUpdatedBy = "johndoe";
     Date now = new Date();

@@ -99,7 +99,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
   @Override
   protected SmsResponse postProcess(
       IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
-      throws SMSProcessingException {
+      throws SMSProcessingException, ConflictException {
     AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
     Uid ouid = subm.getOrgUnit();

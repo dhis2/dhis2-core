@@ -76,7 +76,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy)
+      throws ConflictException {
     // we cannot annotate getSMSCommand itself with Nonnull as it can return null but
     // receive is only called when accept returned true, which is if there is a non-null command
     SMSCommand smsCommand = getSMSCommand(sms);

@@ -35,6 +35,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
@@ -111,7 +112,10 @@ public class AnalyticsDatabaseInit {
    * transaction database as an external data source.
    */
   private void createDorisJdbcCatalog() {
-    String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
+    String connectionUrl =
+        StringUtils.firstNonBlank(
+            config.getProperty(ConfigurationKey.DORIS_CATALOG_CONNECTION_URL),
+            config.getProperty(ConfigurationKey.CONNECTION_URL));
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String password = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
 
