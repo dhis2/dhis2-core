@@ -51,15 +51,14 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -73,6 +72,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
@@ -85,7 +85,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 class PredictionServiceTest extends PostgresIntegrationTestBase {
-  private final JobProgress progress = JobProgress.noop();
+
+  private final JobProgress progress = RecordingJobProgress.transitory();
 
   @Autowired private PredictionService predictionService;
 
@@ -99,7 +100,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportStore dataExportStore;
 
   @Autowired private PeriodService periodService;
 
@@ -183,6 +184,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     PeriodType.invalidatePeriodCache();
+
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     orgUnitLevel2 = new OrganisationUnitLevel(2, "Level2");
     orgUnitLevel3 = new OrganisationUnitLevel(3, "Level3");
@@ -356,17 +358,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       CategoryOptionCombo attributeOptionCombo,
       OrganisationUnit source,
       Period period) {
-    DataExportStoreParams params =
-        new DataExportStoreParams()
-            .setDataElementOperands(Sets.newHashSet(new DataElementOperand(dataElement, combo)))
-            .setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo))
-            .setOrganisationUnits(Sets.newHashSet(source))
-            .setPeriods(Sets.newHashSet(periodService.reloadPeriod(period)));
-    List<DeflatedDataValue> values = dataValueService.getDeflatedDataValues(params);
-    if (values != null && values.size() > 0) {
-      return values.get(0).getValue();
-    }
-    return null;
+    DataExportValue value =
+        dataExportStore.getDataValue(
+            new DataEntryKey(dataElement, period, source, combo, attributeOptionCombo));
+    return value == null ? null : value.value();
   }
 
   private String shortSummary(PredictionSummary summary) {

@@ -89,7 +89,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -232,12 +231,7 @@ public class DefaultPredictionService implements PredictionService {
     return preprocessor.getDescription(expression);
   }
 
-  // Each simple predictor run must be in its own transaction in case the
-  // predictions are made to a new period. If this is not done, one predictor
-  // run might create a new period for a prediction and a subsequent run might
-  // use the BatchHandler because it is thought to be a pre-exising period,
-  // but the BatchHandler outside the Spring transaction won't see the period.
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public void predictSimple(
       Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary) {
     Expression generator = predictor.getGenerator();
@@ -265,7 +259,6 @@ public class DefaultPredictionService implements PredictionService {
         getAnalyticsQueryPeriods(exInfo, allSamplePeriods, existingOutputPeriods);
     Set<Period> dataValueQueryPeriods =
         getDataValueQueryPeriods(analyticsQueryPeriods, existingOutputPeriods);
-    outputPeriods = periodService.reloadPeriods(outputPeriods);
 
     boolean forwardReference = isForwardReference(predictor, baseExParams.getItemMap().values());
     boolean requireData =
