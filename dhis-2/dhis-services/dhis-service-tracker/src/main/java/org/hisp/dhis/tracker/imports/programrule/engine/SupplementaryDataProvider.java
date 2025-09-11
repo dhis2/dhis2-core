@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.stereotype.Component;
@@ -51,15 +50,15 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SupplementaryDataProvider {
-  private static final String USER = "USER";
+  private static final String USER_ROLES = "USER_ROLES";
+  private static final String USER_GROUPS = "USER_GROUPS";
 
   private static final String ORG_UNIT_GROUP_REGEX =
       "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
           + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
   private static final String USER_GROUP_REGEX =
-      "d2:inUserGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
-          + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
+      "d2:inUserGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)| *'[^']*') *\\)";
 
   private static final Pattern ORG_UNIT_GROUP_PATTERN = Pattern.compile(ORG_UNIT_GROUP_REGEX);
   private static final Pattern USER_GROUP_PATTERN = Pattern.compile(USER_GROUP_REGEX);
@@ -74,10 +73,10 @@ public class SupplementaryDataProvider {
     Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(programRules);
     supplementaryData.putAll(orgUnitGroupData);
 
-    Map<String, List<String>> userGroupData = extractUserGroups(programRules);
+    Map<String, List<String>> userGroupData = extractUserGroups(programRules, user);
     supplementaryData.putAll(userGroupData);
 
-    supplementaryData.put(USER, new ArrayList<>(user.getUserRoleIds()));
+    supplementaryData.put(USER_ROLES, new ArrayList<>(user.getUserRoleIds()));
 
     return supplementaryData;
   }
@@ -107,7 +106,8 @@ public class SupplementaryDataProvider {
                         .toList()));
   }
 
-  private Map<String, List<String>> extractUserGroups(List<ProgramRule> programRules) {
+  private Map<String, List<String>> extractUserGroups(
+      List<ProgramRule> programRules, UserDetails user) {
     List<String> userGroups = new ArrayList<>();
     for (ProgramRule programRule : programRules) {
       Matcher matcher =
@@ -121,13 +121,6 @@ public class SupplementaryDataProvider {
       return Collections.emptyMap();
     }
 
-    return userGroups.stream()
-        .collect(
-            Collectors.toMap(
-                g -> g,
-                g ->
-                    userGroupService.getUserGroup(g).getMembers().stream()
-                        .map(User::getUid)
-                        .toList()));
+    return Map.of(USER_GROUPS, user.getUserGroupIds().stream().toList());
   }
 }
