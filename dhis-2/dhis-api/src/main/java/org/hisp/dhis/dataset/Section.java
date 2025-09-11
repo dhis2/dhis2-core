@@ -45,11 +45,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -95,7 +97,7 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   @Column(name = "sectionid")
   private long id;
 
-  @Column(name = "code", unique = true, nullable = true, length = 50)
+  @Column(name = "code", unique = true, length = 50)
   private String code;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
@@ -115,6 +117,7 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
       name = "sectiondataelements",
       joinColumns = @JoinColumn(name = "sectionid"),
       inverseJoinColumns = @JoinColumn(name = "dataelementid"))
+  @OrderColumn(name = "sort_order")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<DataElement> dataElements = new ArrayList<>();
 
@@ -123,6 +126,7 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
       name = "sectionindicators",
       joinColumns = @JoinColumn(name = "sectionid"),
       inverseJoinColumns = @JoinColumn(name = "indicatorid"))
+  @OrderColumn(name = "sort_order")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
@@ -152,7 +156,11 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
 
-  private transient Sharing sharing;
+  /**
+   * Section does not have userid column.
+   */
+  @Transient
+  private transient User createdBy;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -223,19 +231,11 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     return description;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataSet getDataSet() {
     return dataSet;
-  }
-
-  public void setDataSet(DataSet dataSet) {
-    this.dataSet = dataSet;
   }
 
   @JsonProperty
@@ -246,10 +246,6 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     return dataElements;
   }
 
-  public void setDataElements(List<DataElement> dataElements) {
-    this.dataElements = dataElements;
-  }
-
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "indicators", namespace = DxfNamespaces.DXF_2_0)
@@ -258,18 +254,10 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     return indicators;
   }
 
-  public void setIndicators(List<Indicator> indicators) {
-    this.indicators = indicators;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getSortOrder() {
     return sortOrder;
-  }
-
-  public void setSortOrder(int sortOrder) {
-    this.sortOrder = sortOrder;
   }
 
   @JsonProperty
@@ -279,28 +267,16 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     return greyedFields;
   }
 
-  public void setGreyedFields(Set<DataElementOperand> greyedFields) {
-    this.greyedFields = greyedFields;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isShowRowTotals() {
     return showRowTotals;
   }
 
-  public void setShowRowTotals(boolean showRowTotals) {
-    this.showRowTotals = showRowTotals;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isShowColumnTotals() {
     return showColumnTotals;
-  }
-
-  public void setShowColumnTotals(boolean showColumnTotals) {
-    this.showColumnTotals = showColumnTotals;
   }
 
   @JsonProperty
@@ -310,18 +286,10 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     return displayOptions;
   }
 
-  public void setDisplayOptions(String displayOptions) {
-    this.displayOptions = displayOptions;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isDisableDataElementAutoGroup() {
     return disableDataElementAutoGroup;
-  }
-
-  public void setDisableDataElementAutoGroup(boolean disableDataElementAutoGroup) {
-    this.disableDataElementAutoGroup = disableDataElementAutoGroup;
   }
 
   public void removeIndicator(Indicator i) {
@@ -372,10 +340,6 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   @PropertyRange(min = 1)
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   @Override
@@ -474,27 +438,48 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     this.translations.setTranslations(translations);
   }
 
+  /**
+   * Section does not have userid column.
+   */
   public void setUser(User user) {
-    setCreatedBy(getCreatedBy() == null ? user : getCreatedBy());
   }
 
+  /**
+   * Section does not have userid column.
+   */
+  @Override
+  public User getCreatedBy() {
+    return null;
+  }
+
+  /**
+   * Section does not have userid column.
+   */
+  @Override
+  public void setCreatedBy(User createdBy) {
+  }
+
+  /**
+   * Section does not have sharing.
+   */
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Sharing getSharing() {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-    return sharing;
+    return null;
   }
 
+  /**
+   * Section does not have userid column.
+   */
   @Override
   public void setSharing(Sharing sharing) {
-    this.sharing = sharing;
   }
 
+  /**
+   * Section does not have userid column.
+   */
   @Override
   public void setOwner(String ownerId) {
-    getSharing().setOwner(ownerId);
   }
 }
