@@ -97,11 +97,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -396,14 +392,6 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Description("The unique code for this Object.")
@@ -432,34 +420,6 @@ public class CategoryOption extends BaseMetadataObject
 
   @Override
   @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was created.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getCreated() {
-    return created;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
-  }
-
-  @Override
-  @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
@@ -472,29 +432,6 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
-  @Gist(included = Include.FALSE)
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
-  @Override
-  @OpenApi.Ignore
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return createdBy;
-  }
-
-  @Override
   public void setCreatedBy(User createdBy) {
     this.createdBy = createdBy;
   }
@@ -503,20 +440,6 @@ public class CategoryOption extends BaseMetadataObject
   public void setUser(User user) {
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
-  }
-
-  @Override
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
-  public Access getAccess() {
-    return access;
-  }
-
-  @Override
-  public void setAccess(Access access) {
-    this.access = access;
   }
 
   @Override
