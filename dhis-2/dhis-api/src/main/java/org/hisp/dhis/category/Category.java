@@ -30,22 +30,40 @@
 package org.hisp.dhis.category;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
-import jakarta.persistence.Cacheable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hibernate.annotations.ListIndexBase;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.common.AttributeObject;
+import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
@@ -53,7 +71,11 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.dimensional.DimensionalProperties;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * A Category is a dimension of a data element. DataElements can have sets of dimensions (known as
@@ -64,15 +86,69 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
  */
 @JacksonXmlRootElement(localName = "category", namespace = DxfNamespaces.DXF_2_0)
 @Entity
+@Setter
 @Table(name = "category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Category extends BaseMetadataObject implements DimensionalObject SystemDefaultMetadataObject {
+public class Category extends BaseMetadataObject implements DimensionalObject, AttributeObject, SystemDefaultMetadataObject {
   public static final String DEFAULT_NAME = "default";
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "categoryid")
+  private Long id;
+  
+  @Column(nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(nullable = false, unique = true, length = 50)
+  private String shortName;
+
+  @Column(columnDefinition = "text")
+  private String description;
+  
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
+  /**
+   * The data dimension type of this dimension. Can be null. Only applicable for {@link
+   * DimensionType#CATEGORY}.
+   */
+  @Column(nullable = false)
+  @Type(type = "org.hisp.dhis.common.DataDimensionTypeUserType" )
+  private DataDimensionType dataDimensionType;
+
+  @ManyToMany
+  @JoinTable(
+      name = "categories_categoryoptions",
+      joinColumns = @JoinColumn(name = "categoryid"),
+      inverseJoinColumns = @JoinColumn(name = "categoryoptionid")
+  )
+  
+  @OrderColumn(name = "sort_order")
+  @ListIndexBase(value = 1)
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<CategoryOption> categoryOptions = new ArrayList<>();
 
+
+  @ManyToMany(mappedBy = "categories")
   private Set<CategoryCombo> categoryCombos = new HashSet<>();
 
+  /** Indicates whether this object should be handled as a data dimension. */
+  @Column(name = "datadimension", nullable = false)
+  private boolean dataDimension = true;
+
+  @AuditAttribute
+  @Type(type = "jsbAttributeValues")
+  private AttributeValues attributeValues = AttributeValues.empty();
+
+  @Type(type = "jsbObjectSharing")
+  private Sharing sharing = new Sharing();
+
+  // -------------------------------------------------------------------------
+  // Transient properties
+  // -------------------------------------------------------------------------
+
+  @Transient private transient DimensionalProperties dimensionalProperties = new DimensionalProperties();
+  
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -167,6 +243,17 @@ public class Category extends BaseMetadataObject implements DimensionalObject Sy
     return DimensionType.CATEGORY;
   }
 
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataDimensionType getDataDimensionType() {
+    return dataDimensionType;
+  }
+
+  @Override
+  public DimensionalProperties getDimensionalProperties() {
+    return dimensionalProperties;
+  }
   // ------------------------------------------------------------------------
   // Getters and setters
   // ------------------------------------------------------------------------
@@ -179,10 +266,6 @@ public class Category extends BaseMetadataObject implements DimensionalObject Sy
     return categoryOptions;
   }
 
-  public void setCategoryOptions(List<CategoryOption> categoryOptions) {
-    this.categoryOptions = categoryOptions;
-  }
-
   @JsonProperty
   @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0)
@@ -191,7 +274,24 @@ public class Category extends BaseMetadataObject implements DimensionalObject Sy
     return categoryCombos;
   }
 
-  public void setCategoryCombos(Set<CategoryCombo> categoryCombos) {
-    this.categoryCombos = categoryCombos;
+
+  @Override
+  @OpenApi.Property(AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+
+  @Override
+  public void setDimensionName(String dimensionName) {
+    this.dimensionalProperties.setDimensionName(dimensionName);
   }
 }

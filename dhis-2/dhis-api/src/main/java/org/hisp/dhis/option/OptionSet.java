@@ -130,8 +130,8 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Option> options = new ArrayList<>();
 
-  @Type(type = "jsbAttributeValues")
   @AuditAttribute
+  @Type(type = "jsbAttributeValues")
   private AttributeValues attributeValues = AttributeValues.empty();
 
   @Type(type = "jsbObjectSharing")

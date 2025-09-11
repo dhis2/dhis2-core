@@ -31,8 +31,11 @@ package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dimensional.DimensionalProperties;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
@@ -44,8 +47,12 @@ import org.hisp.dhis.program.ProgramStage;
  */
 public interface DimensionalObject extends NameableObject, GroupableItem {
   /** Gets the dimension identifier. */
-  String getDimension();
-
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  default String getDimension() {
+    return getUid();
+  }
+  
   /** Gets the dimension type. */
   DimensionType getDimensionType();
 
@@ -54,14 +61,26 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
    */
   DataDimensionType getDataDimensionType();
 
+  // -------------------------------------------------------------------------
+  // Dimensional properties
+  // -------------------------------------------------------------------------
+
+  default DimensionalProperties getDimensionalProperties() {
+    return new DimensionalProperties();
+  }
+  
   /**
    * Gets the dimension name, which corresponds to a column in the analytics tables, with fall back
    * to dimension.
    */
-  String getDimensionName();
+  default String getDimensionName() {
+    return getDimensionalProperties().getDimensionName();
+  }
 
   /** Gets the dimension display name. */
-  String getDimensionDisplayName();
+  default String getDimensionDisplayName() {
+    return getDimensionalProperties().getDimensionDisplayName();
+  }
 
   /**
    * Returns the value type of the dimension.
@@ -69,10 +88,16 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
    * <p>NOTE: not all dimensional objects have a ValueType, hence this method will return null in
    * such cases.
    */
-  ValueType getValueType();
+  default ValueType getValueType() {
+    return getDimensionalProperties().getValueType();
+  }
 
   /** Returns the option set of the dimension, if any. */
-  OptionSet getOptionSet();
+  default OptionSet getOptionSet() {
+    return getDimensionalProperties().getOptionSet();
+  }
+  
+  // -------------------------------------------------------------------------
 
   /** Dimension items. */
   List<DimensionalItemObject> getItems();
