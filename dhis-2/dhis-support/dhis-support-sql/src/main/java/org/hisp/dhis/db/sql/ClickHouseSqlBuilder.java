@@ -441,4 +441,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         "%s = %s", quote(pair.getKey()), singleQuote(String.valueOf(pair.getValue())));
   }
+
+  @Override
+  protected String getQuoteSymbol() {
+    return QUOTE;
+  }
 }

@@ -714,7 +714,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           String alias = columnAndAlias.getAlias();
 
           if (isEmpty(alias)) {
-            alias = queryItem.getItemName();
+            alias = unquote(columnAndAlias.getColumn());
           }
 
           String itemName = rowSet.getString(alias);
@@ -1372,6 +1372,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String quoteAliasCommaDelimited(Collection<String> items) {
     return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  private String unquote(String value) {
+    return sqlBuilder.unquote(value);
   }
 
   /**

@@ -34,6 +34,13 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "dataElementOrgUnitTypeFilterDimensionAndOrgUnitAsFilter",
+      "query": "/api/analytics/events/aggregate/WSGAb5XwJ3Y.json?dimension=PFDfvmGpsR3.n1rtSHYf6O6:IN:g8upMTyEZGZ&filter=pe:202107;202106&stage=PFDfvmGpsR3&displayProperty=NAME&totalPages=false&outputType=EVENT",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

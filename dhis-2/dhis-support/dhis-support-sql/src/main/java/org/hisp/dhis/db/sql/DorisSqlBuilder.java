@@ -484,7 +484,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * Doris supports indexes but relies on concurrency and compression for query performance instead
-   * of indexes on arbitrary columns. Read more at {@link https://t.ly/uNK5T}.
+   * of indexes on arbitrary columns. Read more at {@link <a href="https://t.ly/uNK5T">Doris
+   * docs</a>}.
    */
   @Override
   public String createIndex(Index index) {
@@ -546,5 +547,10 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
    */
   public String dropCatalogIfExists() {
     return String.format("drop catalog if exists %s;", quote(catalog));
+  }
+
+  @Override
+  protected String getQuoteSymbol() {
+    return QUOTE;
   }
 }
