@@ -89,7 +89,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Table(name = "section")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Section extends BaseMetadataObject implements IdentifiableObject, MetadataObject {
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "sectionid")
@@ -104,31 +104,33 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  @Embedded 
-  private TranslationProperty translations = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @ManyToOne
   @JoinColumn(name = "datasetid", nullable = false)
   private DataSet dataSet;
 
   @ManyToMany
-  @JoinTable(name = "sectiondataelements", 
-    joinColumns = @JoinColumn(name = "sectionid"),
-    inverseJoinColumns = @JoinColumn(name = "dataelementid"))
+  @JoinTable(
+      name = "sectiondataelements",
+      joinColumns = @JoinColumn(name = "sectionid"),
+      inverseJoinColumns = @JoinColumn(name = "dataelementid"))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<DataElement> dataElements = new ArrayList<>();
 
   @ManyToMany
-  @JoinTable(name = "sectionindicators",
-    joinColumns = @JoinColumn(name = "sectionid"),
-    inverseJoinColumns = @JoinColumn(name = "indicatorid"))
+  @JoinTable(
+      name = "sectionindicators",
+      joinColumns = @JoinColumn(name = "sectionid"),
+      inverseJoinColumns = @JoinColumn(name = "indicatorid"))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
   @ManyToMany
-  @JoinTable(name = "sectiongreyedfields",
-    joinColumns = @JoinColumn(name = "sectionid"),
-    inverseJoinColumns = @JoinColumn(name = "dataelementoperandid"))
+  @JoinTable(
+      name = "sectiongreyedfields",
+      joinColumns = @JoinColumn(name = "sectionid"),
+      inverseJoinColumns = @JoinColumn(name = "dataelementoperandid"))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<DataElementOperand> greyedFields = new HashSet<>();
 
@@ -495,5 +497,4 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   public void setOwner(String ownerId) {
     getSharing().setOwner(ownerId);
   }
-
 }

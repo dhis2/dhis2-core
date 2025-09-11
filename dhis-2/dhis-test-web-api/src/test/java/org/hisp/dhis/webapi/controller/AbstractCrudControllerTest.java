@@ -1479,8 +1479,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, groups.size());
     assertEquals(cogId, groups.getObject(0).getString("id").string());
   }
-  
-  
 
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
     JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
@@ -1519,20 +1517,26 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testSectionCanBeCreatedSuccessfully() {
     // First create a DataSet (required for Section)
-    String dataSetId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataSets/", """
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
             {
                 'name': 'Test DataSet',
                 'shortName': 'TDS',
                 'periodType': 'Monthly'
             }
             """));
-    
+
     // Create a Section
-    String sectionId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/sections/", """
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
             {
                 'name': 'Test Section',
                 'description': 'A test section',
@@ -1541,8 +1545,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 },
                 'sortOrder': 1
             }
-            """.formatted(dataSetId)));
-    
+            """
+                    .formatted(dataSetId)));
+
     // Verify the section was created correctly
     JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
     assertNotNull(section);
@@ -1555,20 +1560,26 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testSectionCanBeCreatedWithDataElements() {
     // Create DataSet
-    String dataSetId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataSets/", """
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
             {
                 'name': 'Test DataSet',
                 'shortName': 'TDS',
                 'periodType': 'Monthly'
             }
             """));
-    
+
     // Create DataElements
-    String de1Id = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataElements/", """
+    String de1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
+                """
             {
                 'name': 'Data Element 1',
                 'shortName': 'DE1',
@@ -1577,10 +1588,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 'aggregationType': 'SUM'
             }
             """));
-    
-    String de2Id = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataElements/", """
+
+    String de2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
+                """
             {
                 'name': 'Data Element 2',
                 'shortName': 'DE2',
@@ -1589,11 +1603,14 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 'aggregationType': 'SUM'
             }
             """));
-    
+
     // Create Section with DataElements
-    String sectionId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/sections/", """
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
             {
                 'name': 'Test Section with DEs',
                 'dataSet': {
@@ -1605,8 +1622,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 ],
                 'sortOrder': 1
             }
-            """.formatted(dataSetId, de1Id, de2Id)));
-    
+            """
+                    .formatted(dataSetId, de1Id, de2Id)));
+
     // Verify section has the data elements
     JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
     JsonArray dataElements = section.getArray("dataElements");
@@ -1614,23 +1632,29 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(2, dataElements.size());
   }
 
-  @Test  
+  @Test
   void testSectionCanBeCreatedWithDisplayOptions() {
     // Create DataSet
-    String dataSetId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataSets/", """
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
             {
                 'name': 'Test DataSet',
                 'shortName': 'TDS',
                 'periodType': 'Monthly'
             }
             """));
-    
+
     // Create Section with display options
-    String sectionId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/sections/", """
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
             {
                 'name': 'Section with Display Options',
                 'dataSet': {
@@ -1641,8 +1665,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 'disableDataElementAutoGroup': true,
                 'sortOrder': 1
             }
-            """.formatted(dataSetId)));
-    
+            """
+                    .formatted(dataSetId)));
+
     // Verify display options
     JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
     assertTrue(section.getBoolean("showRowTotals").booleanValue());
@@ -1653,9 +1678,12 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testSectionSupportsAttributeValues() {
     // Create attribute first
-    String attributeId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/attributes/", """
+    String attributeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes/",
+                """
             {
                 'name': 'Test Attribute',
                 'shortName': 'TA',
@@ -1663,22 +1691,28 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 'sectionAttribute': true
             }
             """));
-    
+
     // Create DataSet
-    String dataSetId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataSets/", """
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
             {
                 'name': 'Test DataSet',
                 'shortName': 'TDS',
                 'periodType': 'Monthly'
             }
             """));
-    
+
     // Create Section with attribute value
-    String sectionId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/sections/", """
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
             {
                 'name': 'Section with Attributes',
                 'code': 'SEC001',
@@ -1693,12 +1727,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 ],
                 'sortOrder': 1
             }
-            """.formatted(dataSetId, attributeId)));
-    
+            """
+                    .formatted(dataSetId, attributeId)));
+
     // Verify attribute values and code
     JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
     assertEquals("SEC001", section.getString("code").string());
-    
+
     JsonArray attributeValues = section.getArray("attributeValues");
     assertNotNull(attributeValues);
     assertEquals(1, attributeValues.size());
@@ -1708,20 +1743,26 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testSectionCanBeCreatedWithIndicators() {
     // Create DataSet
-    String dataSetId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/dataSets/", """
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
             {
                 'name': 'Test DataSet',
                 'shortName': 'TDS',
                 'periodType': 'Monthly'
             }
             """));
-    
+
     // Create IndicatorType first
-    String indicatorTypeId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/indicatorTypes/", """
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
             {
                 'name': 'Test Indicator Type',
                 'factor': 100
@@ -1729,9 +1770,12 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             """));
 
     // Create Indicator
-    String indicatorId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/indicators/", """
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
             {
                 'name': 'Test Indicator',
                 'shortName': 'TI',
@@ -1741,12 +1785,16 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 'numerator': '1',
                 'denominator': '1'
             }
-            """.formatted(indicatorTypeId)));
-    
+            """
+                    .formatted(indicatorTypeId)));
+
     // Create Section with indicators
-    String sectionId = assertStatus(
-        HttpStatus.CREATED,
-        POST("/sections/", """
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
             {
                 'name': 'Section with Indicators',
                 'description': 'Section with indicators',
@@ -1758,12 +1806,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 ],
                 'sortOrder': 2
             }
-            """.formatted(dataSetId, indicatorId)));
-    
+            """
+                    .formatted(dataSetId, indicatorId)));
+
     // Verify the section with indicators
     JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
     assertEquals("Section with Indicators", section.getString("name").string());
-    
+
     JsonArray indicators = section.getArray("indicators");
     assertNotNull(indicators);
     assertEquals(1, indicators.size());
