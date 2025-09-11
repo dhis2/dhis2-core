@@ -59,6 +59,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.LockStatus;
@@ -299,7 +300,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public int addValuesForJdbcTest(DataValue... values) {
     if (values == null || values.length == 0) return 0;
     return store.addValuesForJdbcTest(DataValue.toDataEntryValues(List.of(values)));
