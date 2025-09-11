@@ -472,4 +472,9 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
             "create %sindex %s on %s using %s(%s %s);",
             unique, quote(index.getName()), quote(tableName), typeName, columns, sortOrder);
   }
+
+  @Override
+  protected String getQuoteSymbol() {
+    return QUOTE;
+  }
 }
