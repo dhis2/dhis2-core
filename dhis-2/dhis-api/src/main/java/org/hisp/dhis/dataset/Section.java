@@ -29,49 +29,128 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 @JacksonXmlRootElement(localName = "section", namespace = DxfNamespaces.DXF_2_0)
-public class Section extends BaseIdentifiableObject implements MetadataObject {
+@Setter
+@Entity
+@Table(name = "section")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+public class Section extends BaseMetadataObject implements IdentifiableObject, MetadataObject {
+  
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "sectionid")
+  private long id;
+
+  @Column(name = "code", unique = true, nullable = true, length = 50)
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(name = "description", columnDefinition = "text")
   private String description;
 
+  @Embedded 
+  private TranslationProperty translations = new TranslationProperty();
+
+  @ManyToOne
+  @JoinColumn(name = "datasetid", nullable = false)
   private DataSet dataSet;
 
+  @ManyToMany
+  @JoinTable(name = "sectiondataelements", 
+    joinColumns = @JoinColumn(name = "sectionid"),
+    inverseJoinColumns = @JoinColumn(name = "dataelementid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<DataElement> dataElements = new ArrayList<>();
 
+  @ManyToMany
+  @JoinTable(name = "sectionindicators",
+    joinColumns = @JoinColumn(name = "sectionid"),
+    inverseJoinColumns = @JoinColumn(name = "indicatorid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
+  @ManyToMany
+  @JoinTable(name = "sectiongreyedfields",
+    joinColumns = @JoinColumn(name = "sectionid"),
+    inverseJoinColumns = @JoinColumn(name = "dataelementoperandid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<DataElementOperand> greyedFields = new HashSet<>();
 
+  @Column(name = "sortorder", nullable = false)
   private int sortOrder;
 
   private boolean showRowTotals;
 
   private boolean showColumnTotals;
 
+  @Column(name = "disabledataelementautogroup")
   private boolean disableDataElementAutoGroup;
 
+  @Type(type = "jbPlainString")
+  @Column(name = "displayoptions", length = 50000)
   private String displayOptions;
+
+  @Type(type = "jsbAttributeValues")
+  @AuditAttribute
+  private AttributeValues attributeValues = AttributeValues.empty();
+
+  private transient Sharing sharing;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -120,15 +199,15 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
   }
 
   public List<DataElement> getDataElementsByCategoryCombo(CategoryCombo categoryCombo) {
-    List<DataElement> dataElements = new ArrayList<>();
+    List<DataElement> result = new ArrayList<>();
 
     for (DataElement dataElement : this.dataElements) {
       if (dataElement.getDataElementCategoryCombo(this.dataSet).equals(categoryCombo)) {
-        dataElements.add(dataElement);
+        result.add(dataElement);
       }
     }
 
-    return dataElements;
+    return result;
   }
 
   // -------------------------------------------------------------------------
@@ -262,4 +341,159 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
   public void removeIndicators(List<Indicator> sources) {
     for (Indicator i : sources) removeIndicator(i);
   }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject interface implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return translations.getTranslation("NAME", name);
+  }
+
+  @Override
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return attributeValues.get(attributeUid);
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getUid();
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return attributeValues.get(idScheme.getAttribute());
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof IdentifiableObject identifiableObject)) return false;
+    return getRealClass(this) == getRealClass(obj) && typedEquals(identifiableObject);
+  }
+
+  public final boolean typedEquals(IdentifiableObject other) {
+    if (other == null) {
+      return false;
+    }
+    return Objects.equals(getUid(), other.getUid())
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName());
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translations.getTranslations();
+  }
+
+  public void setTranslations(Set<Translation> translations) {
+    this.translations.setTranslations(translations);
+  }
+
+  public void setUser(User user) {
+    setCreatedBy(getCreatedBy() == null ? user : getCreatedBy());
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  @Override
+  public void setOwner(String ownerId) {
+    getSharing().setOwner(ownerId);
+  }
+
 }
