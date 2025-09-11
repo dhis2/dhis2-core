@@ -484,8 +484,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * Doris supports indexes but relies on concurrency and compression for query performance instead
-   * of indexes on arbitrary columns. Read more at {@link <a href="https://t.ly/uNK5T">Doris
-   * docs</a>}.
+   * of indexes on arbitrary columns. Read more at {@link https://t.ly/uNK5T Doris docs}.
    */
   @Override
   public String createIndex(Index index) {
