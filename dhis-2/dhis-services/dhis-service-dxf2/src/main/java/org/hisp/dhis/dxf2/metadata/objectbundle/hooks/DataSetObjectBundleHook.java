@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataInputPeriod;
@@ -67,6 +69,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
     if (object == null || !object.getClass().isAssignableFrom(DataSet.class)) return;
 
     deleteRemovedDataElementFromSection(persistedObject, object);
+    deleteRemovedIndicatorFromSectionsIndicators(persistedObject, object);
     deleteRemovedSection(persistedObject, object, bundle);
     deleteCompulsoryDataElementOperands(object);
   }
@@ -109,6 +112,41 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
     persistedDataSet.getSections().stream()
         .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)))
         .forEach(getSession()::update);
+  }
+
+  /**
+   * When an Indicator is removed from a DataSet's Indicators, it should also be removed from the
+   * DataSet's Section's Indicators. This method finds the removed imported DataSet's Indicators
+   * from the existing DataSet's Indicators and ensures that all the DataSet's Section's Indicators
+   * don't include these.
+   *
+   * @param persistedDataSet persisted DataSet
+   * @param importDataSet DataSet being imported
+   */
+  private void deleteRemovedIndicatorFromSectionsIndicators(
+      DataSet persistedDataSet, DataSet importDataSet) {
+    Set<String> updatedDataSetIndicators =
+        importDataSet.getIndicators().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+
+    Set<String> existingDataSetIndicators =
+        persistedDataSet.getIndicators().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+
+    // get elements that are in the existing collection but not in the imported collection
+    List<String> removedIndicators =
+        CollectionUtils.difference(existingDataSetIndicators, updatedDataSetIndicators);
+
+    persistedDataSet
+        .getSections()
+        .forEach(
+            s ->
+                s.setIndicators(
+                    s.getIndicators().stream()
+                        .filter(i -> !removedIndicators.contains(i.getUid()))
+                        .toList()));
   }
 
   private List<DataElement> getUpdatedDataElements(DataSet importDataSet, Section section) {

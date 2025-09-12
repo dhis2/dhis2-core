@@ -58,10 +58,12 @@ import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonDataElement;
+import org.hisp.dhis.webapi.json.domain.JsonDataSet;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
+import org.hisp.dhis.webapi.json.domain.JsonSection;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -786,6 +788,72 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
             .getObject(0)
             .getString("id")
             .string());
+  }
+
+  @Test
+  @DisplayName(
+      "When removing an Indicator from a DataSet, it should be removed from the DataSet's Sections also")
+  void removeDataSetIndicatorTest() {
+    // Given a DataSet exists with 2 DataElements, 2 Indicators &
+    // 1 Section, which has the same 2 DataElements & 2 Indicators
+    POST("/metadata", WebClient.Body("dataset/dataset_with_dataelements_indicators_section.json"))
+        .content(HttpStatus.OK);
+
+    JsonDataSet dataSet = GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
+    assertEquals(2, dataSet.getDatSetElements().size());
+    assertEquals(2, dataSet.getIndicators().size());
+    assertEquals(1, dataSet.getSections().size());
+    assertTrue(
+        dataSet.getIndicators().stream()
+            .map(JsonIdentifiableObject::getId)
+            .toList()
+            .containsAll(List.of("IndUid000x1", "IndUid000x2")));
+
+    JsonSection section = GET("/sections/SectUid00x1").content(HttpStatus.OK).as(JsonSection.class);
+    assertEquals(2, section.getDataElements().size());
+    assertEquals(2, section.getIndicators().size());
+    assertTrue(
+        section.getDataElements().stream()
+            .map(JsonIdentifiableObject::getId)
+            .toList()
+            .containsAll(List.of("DeUid0000x1", "DeUid0000x2")));
+    assertTrue(
+        section.getIndicators().stream()
+            .map(JsonIdentifiableObject::getId)
+            .toList()
+            .containsAll(List.of("IndUid000x1", "IndUid000x2")));
+
+    // When removing 1 DataElement & 1 Indicator from the DataSet
+    POST("/metadata", WebClient.Body("dataset/dataset_remove_dataelement_indicator.json"))
+        .content(HttpStatus.OK);
+
+    // Then the DataSet should have only 1 DataElement & 1 Indicator
+    JsonDataSet dataSet2 =
+        GET("/dataSets/dsUid0000x1").content(HttpStatus.OK).as(JsonDataSet.class);
+    assertEquals(1, dataSet2.getDatSetElements().size());
+    assertEquals(1, dataSet2.getIndicators().size());
+    assertEquals(1, dataSet2.getSections().size());
+    assertTrue(
+        dataSet2.getIndicators().stream()
+            .map(JsonIdentifiableObject::getId)
+            .toList()
+            .contains("IndUid000x1"));
+
+    // And the Section should also only have 1 DataElement & 1 Indicator
+    JsonSection section2 =
+        GET("/sections/SectUid00x1").content(HttpStatus.OK).as(JsonSection.class);
+    assertEquals(1, section2.getDataElements().size());
+    assertEquals(1, section2.getIndicators().size());
+    assertTrue(
+        section2.getDataElements().stream()
+            .map(JsonIdentifiableObject::getId)
+            .toList()
+            .contains("DeUid0000x1"));
+    assertTrue(
+        section2.getIndicators().stream()
+            .map(JsonIdentifiableObject::getId)
+            .toList()
+            .contains("IndUid000x1"));
   }
 
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {
