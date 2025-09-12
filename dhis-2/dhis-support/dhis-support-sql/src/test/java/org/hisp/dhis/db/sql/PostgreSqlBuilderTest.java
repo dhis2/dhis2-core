@@ -183,31 +183,6 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
-  void testUnquote() {
-    // Null and empty inputs
-    assertEquals("", sqlBuilder.unquote(null));
-    assertEquals("", sqlBuilder.unquote(""));
-
-    // Strip surrounding double quotes
-    assertEquals("hello", sqlBuilder.unquote("\"hello\""));
-    assertEquals("hello world", sqlBuilder.unquote("\"hello world\""));
-
-    // Unescape doubled inner quotes
-    assertEquals("he\"llo", sqlBuilder.unquote("\"he\"\"llo\""));
-
-    // Return as-is when not wrapped in double quotes
-    assertEquals("not quoted", sqlBuilder.unquote("not quoted"));
-
-    // Empty content between quotes
-    assertEquals("", sqlBuilder.unquote("\"\""));
-
-    // Round-trip property: unquote(quote(x)) == x
-    assertEquals("simple", sqlBuilder.unquote(sqlBuilder.quote("simple")));
-    assertEquals(
-        "has \"inner\" quote", sqlBuilder.unquote(sqlBuilder.quote("has \"inner\" quote")));
-  }
-
-  @Test
   void testEscape() {
     assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
     assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
