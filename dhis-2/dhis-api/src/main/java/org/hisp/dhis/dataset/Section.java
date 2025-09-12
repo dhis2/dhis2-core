@@ -466,7 +466,7 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Sharing getSharing() {
-    return null;
+    return Sharing.empty();
   }
 
   /**
