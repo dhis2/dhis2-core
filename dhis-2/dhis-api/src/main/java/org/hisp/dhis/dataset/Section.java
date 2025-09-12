@@ -52,6 +52,9 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -68,7 +71,7 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -80,6 +83,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -90,18 +94,33 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "section")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Section extends BaseMetadataObject implements IdentifiableObject, MetadataObject {
+public class Section extends BaseLinkableObject implements IdentifiableObject, MetadataObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "sectionid")
   private long id;
 
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  private String uid;
+
   @Column(name = "code", unique = true, length = 50)
   private String code;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
+
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
+  private User lastUpdatedBy;
 
   @Column(name = "description", columnDefinition = "text")
   private String description;
@@ -155,12 +174,12 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   @Type(type = "jsbAttributeValues")
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
-
-  /**
-   * Section does not have userid column.
-   */
-  @Transient
-  private transient User createdBy;
+  
+  // -------------------------------------------------------------------------
+  // Transient properties
+  // -------------------------------------------------------------------------
+  
+  @Transient transient private Access access;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -322,6 +341,49 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   }
 
   @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  @Override
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
+  }
+
+  public void setLastUpdatedBy(User lastUpdatedBy) {
+    this.lastUpdatedBy = lastUpdatedBy;
+  }
+
+  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @PropertyRange(min = 1)
@@ -434,6 +496,11 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
     return translations.getTranslations();
   }
 
+  @Override
+  public void setAccess(Access access) {
+    this.access = access;
+  }
+
   public void setTranslations(Set<Translation> translations) {
     this.translations.setTranslations(translations);
   }
@@ -444,11 +511,27 @@ public class Section extends BaseMetadataObject implements IdentifiableObject, M
   public void setUser(User user) {
   }
 
+  @Override
+  public Access getAccess() {
+    return access;
+  }
+
   /**
    * Section does not have userid column.
    */
   @Override
+  @Transient
+  @JsonIgnore
   public User getCreatedBy() {
+    return null;
+  }
+
+  /**
+   * @deprecated This method is replaced by {@link #getCreatedBy()} Currently it is only used for
+   * web api backward compatibility
+   */
+  @Override
+  public User getUser() {
     return null;
   }
 
