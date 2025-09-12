@@ -1,2 +1,2 @@
 ln -s ../../docker-compose.doris.yml .
-ln -s ../../doris .
+ln -s ../../docker .
