@@ -135,6 +135,7 @@ import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
+import org.hisp.dhis.analytics.util.sql.QuoteUtils;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
@@ -714,7 +715,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           String alias = columnAndAlias.getAlias();
 
           if (isEmpty(alias)) {
-            alias = queryItem.getItemName();
+            alias = unquote(columnAndAlias.getColumn());
           }
 
           String itemName = rowSet.getString(alias);
@@ -1372,6 +1373,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String quoteAliasCommaDelimited(Collection<String> items) {
     return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  private String unquote(String value) {
+    return QuoteUtils.unquote(value);
   }
 
   /**

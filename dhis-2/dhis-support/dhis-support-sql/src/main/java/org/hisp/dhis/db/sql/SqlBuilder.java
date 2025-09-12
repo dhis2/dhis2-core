@@ -205,13 +205,13 @@ public interface SqlBuilder {
 
   /**
    * @param relation the relation to quote, e.g. a table or column name.
-   * @return a double quoted relation.
+   * @return a double-quoted relation.
    */
   String quote(String relation);
 
   /**
    * @param relation the relation to quote, e.g. a column name.
-   * @return an aliased and double quoted relation.
+   * @return an aliased and double-quoted relation.
    */
   String quote(String alias, String relation);
 
