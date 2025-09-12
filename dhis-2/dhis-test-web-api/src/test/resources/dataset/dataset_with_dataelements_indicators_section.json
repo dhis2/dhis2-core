@@ -1,0 +1,119 @@
+{
+  "dataElements": [
+    {
+      "id": "DeUid0000x1",
+      "aggregationType": "DEFAULT",
+      "domainType": "AGGREGATE",
+      "name": "test de 1",
+      "shortName": "test de 1",
+      "valueType": "TEXT"
+    },
+    {
+      "id": "DeUid0000x2",
+      "aggregationType": "DEFAULT",
+      "domainType": "AGGREGATE",
+      "name": "test de 2",
+      "shortName": "test de 2",
+      "valueType": "TEXT"
+    }
+  ],
+  "indicators": [
+    {
+      "id": "IndUid000x1",
+      "name": "test indicator1",
+      "shortName": "test short indicator1",
+      "dimensionItemType": "INDICATOR",
+      "numerator": "1",
+      "denominator": "2",
+      "indicatorType": {
+        "id": "IndTypeUid1"
+      }
+    },
+    {
+      "id": "IndUid000x2",
+      "name": "test indicator2",
+      "shortName": "test short indicator2",
+      "dimensionItemType": "INDICATOR",
+      "numerator": "1",
+      "denominator": "3",
+      "indicatorType": {
+        "id": "IndTypeUid1"
+      }
+    }
+  ],
+  "indicatorTypes": [
+    {
+      "id": "IndTypeUid1",
+      "name": "test indicator type",
+      "factor": 12,
+      "number": true
+    }
+  ],
+  "dataSets": [
+    {
+      "id": "dsUid0000x1",
+      "timelyDays": 15,
+      "name": "test ds 1",
+      "shortName": "test ds 1",
+      "periodType": "Monthly",
+      "dataSetElements": [
+        {
+          "dataSet": {
+            "id": "dsUid0000x1"
+          },
+          "id": "DseUid000x1",
+          "dataElement": {
+            "id": "DeUid0000x1"
+          }
+        },
+        {
+          "dataSet": {
+            "id": "dsUid0000x1"
+          },
+          "id": "DseUid000x2",
+          "dataElement": {
+            "id": "DeUid0000x2"
+          }
+        }
+      ],
+      "indicators": [
+        {
+          "id": "IndUid000x1"
+        },
+        {
+          "id": "IndUid000x2"
+        }
+      ],
+      "sections": [
+        {
+          "id": "SectUid00x1"
+        }
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "id": "SectUid00x1",
+      "name": "test-section-1",
+      "dataSet": {
+        "id": "dsUid0000x1"
+      },
+      "dataElements": [
+        {
+          "id": "DeUid0000x1"
+        },
+        {
+          "id": "DeUid0000x2"
+        }
+      ],
+      "indicators": [
+        {
+          "id": "IndUid000x1"
+        },
+        {
+          "id": "IndUid000x2"
+        }
+      ]
+    }
+  ]
+}
