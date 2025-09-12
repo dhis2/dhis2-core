@@ -78,6 +78,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -254,7 +255,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------
 
   @BeforeAll
-  void setUp() throws IOException {
+  void setUp() throws IOException, ConflictException {
 
     setUpMetadata();
     setUpDataValues();
@@ -420,7 +421,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     reportingRateB = new ReportingRate(dataSetB);
   }
 
-  private void setUpDataValues() throws IOException {
+  private void setUpDataValues() throws IOException, ConflictException {
     // Read data values from CSV files
     List<String[]> dataValueLines =
         CsvUtils.readCsvAsListFromClasspath("analytics/csv/dataValues.csv", true);
@@ -537,7 +538,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
    *
    * @param lines the list of arrays of property values.
    */
-  private void parseDataSetRegistrations(List<String[]> lines) {
+  private void parseDataSetRegistrations(List<String[]> lines) throws ConflictException {
     String storedBy = "johndoe";
     String lastUpdatedBy = "johndoe";
     Date now = new Date();

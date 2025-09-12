@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.incoming;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import javax.annotation.Nonnull;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.jsontree.JsonList;
 
-public interface IncomingSmsListener {
-  boolean accept(@Nonnull IncomingSms sms);
+/** Web API equivalent of a {@link org.hisp.dhis.dataset.Section}. */
+public interface JsonSection extends JsonIdentifiableObject {
 
-  /** Receive processes an sms sent by the given user. */
-  void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy)
-      throws ConflictException;
+  default JsonList<JsonDataElement> getDataElements() {
+    return getList("dataElements", JsonDataElement.class);
+  }
+
+  default JsonList<JsonIndicator> getIndicators() {
+    return getList("indicators", JsonIndicator.class);
+  }
 }
