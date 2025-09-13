@@ -47,6 +47,15 @@ import org.intellij.lang.annotations.Language;
  */
 public @interface OpenApi {
 
+  /**
+   * Marker annotation to declare inputs that are semantically required but cannot be
+   * declared @{@link javax.annotation.Nonnull} because it is not guaranteed that the input layer
+   * will always provide a non-null value.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.RECORD_COMPONENT, ElementType.METHOD, ElementType.FIELD})
+  @interface Required {}
+
   /** Is a property output, input, input+output (explicitly) or input+output (assumed) */
   enum Access {
     READ,

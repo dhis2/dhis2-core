@@ -30,10 +30,10 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * @author Quang Nguyen
@@ -41,13 +41,6 @@ import org.hisp.dhis.period.Period;
  */
 public interface DataValueAuditService {
   String ID = DataValueAuditService.class.getName();
-
-  /**
-   * Adds a data value audit.
-   *
-   * @param dataValueAudit the DataValueAudit to add.
-   */
-  void addDataValueAudit(DataValueAudit dataValueAudit);
 
   /**
    * Deletes all data value audits for the given organisation unit.
@@ -70,25 +63,8 @@ public interface DataValueAuditService {
    * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
    *     there are no matches.
    */
-  List<DataValueAudit> getDataValueAudits(DataValue dataValue);
-
-  /**
-   * Returns data value audits for the given parameters. This is a special version that also adds
-   * current data value, and marks the first audit as type CREATE.
-   *
-   * @param dataElement the {@link DataElement}.
-   * @param period the {@link Period}.
-   * @param organisationUnit the {@link OrganisationUnit}.
-   * @param categoryOptionCombo the {@link CategoryOptionCombo}.
-   * @param attributeOptionCombo the {@link CategoryOptionCombo}.
-   * @return a list of {@link DataValueAudit}.
-   */
-  List<DataValueAudit> getDataValueAudits(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo);
+  @UsageTestOnly
+  List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue);
 
   /**
    * Returns data value audits for the given parameters.
@@ -97,6 +73,15 @@ public interface DataValueAuditService {
    * @return a list of {@link DataValueAudit}.
    */
   List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+
+  /**
+   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
+   * AOC are unspecified in the parameters the default is used.
+   *
+   * @param params the key to the value
+   * @return the audit events for the value stored most recent to oldest
+   */
+  List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params);
 
   /**
    * Returns the count of data value audits for the given parameters.

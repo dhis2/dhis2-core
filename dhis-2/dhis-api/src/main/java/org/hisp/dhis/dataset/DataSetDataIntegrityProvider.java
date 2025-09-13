@@ -29,13 +29,7 @@
  */
 package org.hisp.dhis.dataset;
 
-import java.util.List;
-
 /**
  * @author Jan Bernitt
  */
-public interface DataSetDataIntegrityProvider {
-
-  /** Gets all data sets which are not assigned to any organisation units. */
-  List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
-}
+public interface DataSetDataIntegrityProvider {}

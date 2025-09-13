@@ -1,0 +1,3 @@
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" dataSet="pBOMPrpg1QX">
+    <dataValue dataElement="eY5ehpbEsB7" period="201201" value="10003" orgUnit="missingOrgu" storedBy="john" timestamp="2012-01-03" comment="comment" followup="false"/>
+</dataValueSet>

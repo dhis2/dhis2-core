@@ -85,9 +85,9 @@ class DefaultCacheProviderTest {
   @Test
   void testInvalidateSpecificKey() {
 
-    registerCache(Region.isDataApproved, () -> defaultCacheProvider.createIsDataApprovedCache());
+    registerCache(Region.allConstantsCache, () -> defaultCacheProvider.createAllConstantsCache());
     String key = "specificKeyInRegionToInvalidate";
-    CacheInvalidationEvent event = new CacheInvalidationEvent(this, Region.isDataApproved, key);
+    CacheInvalidationEvent event = new CacheInvalidationEvent(this, Region.allConstantsCache, key);
 
     defaultCacheProvider.handleCacheInvalidationEvent(event);
 

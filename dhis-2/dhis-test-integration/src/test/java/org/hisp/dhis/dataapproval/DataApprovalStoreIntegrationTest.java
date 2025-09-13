@@ -36,7 +36,6 @@ import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -84,8 +82,6 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private PeriodStore periodStore;
-
   @Autowired private CategoryService categoryService;
 
   @Autowired private UserGroupService userGroupService;
@@ -99,8 +95,6 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @Autowired private ApplicationEventPublisher publisher;
-
-  @Autowired private CacheProvider cacheProvider;
 
   @Autowired private SystemSettingsService settingsService;
 
@@ -151,9 +145,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
             entityManager,
             jdbcTemplate,
             publisher,
-            cacheProvider,
             periodService,
-            periodStore,
             categoryService,
             settingsService,
             userService);

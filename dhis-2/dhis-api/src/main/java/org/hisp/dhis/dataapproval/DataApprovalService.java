@@ -140,21 +140,6 @@ public interface DataApprovalService {
   DataApproval getDataApproval(DataApproval approval);
 
   /**
-   * Tells whether data is approved (and therefore locked by approval.)
-   *
-   * @param workflow workflow to check for approval.
-   * @param period Period to check for approval.
-   * @param organisationUnit OrganisationUnit to check for approval.
-   * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
-   * @return true if data is approved.
-   */
-  boolean isApproved(
-      DataApprovalWorkflow workflow,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo);
-
-  /**
    * Returns a map showing each data approval status for a list of data approval objects.
    *
    * @param dataApprovalList the data approvals to check.

@@ -32,12 +32,9 @@ package org.hisp.dhis.dataset;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.collections4.SetValuedMap;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -162,13 +159,6 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
   LockException getLockException(long id);
 
   /**
-   * Get number of LockExceptions in total.
-   *
-   * @return the total count of lock exceptions.
-   */
-  int getLockExceptionCount();
-
-  /**
    * Returns all lock exceptions.
    *
    * @return a list of all lock exceptions.
@@ -190,92 +180,6 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @return list of all unique combinations (only data set and period are set).
    */
   List<LockException> getLockExceptionCombinations();
-
-  /**
-   * Checks whether the system is locked for data entry for the given input, checking expiry days,
-   * lock exceptions and data approvals.
-   *
-   * @param dataSet the data set
-   * @param period the period.
-   * @param organisationUnit the organisation unit.
-   * @param attributeOptionCombo the attribute option combo.
-   * @return the {@link LockStatus}.
-   */
-  LockStatus getLockStatus(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo);
-
-  /**
-   * Checks whether the system is locked for data entry for the given input, checking expiry days,
-   * lock exceptions and data approvals.
-   *
-   * @param dataSet the data set
-   * @param period the period.
-   * @param organisationUnit the organisation unit.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param user the user for deciding lock status.
-   * @param now the base date for deciding locked date, current date if null.
-   * @return the {@link LockStatus}.
-   */
-  LockStatus getLockStatus(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      UserDetails user,
-      Date now);
-
-  /**
-   * Checks whether the system is locked for data entry for the given input, checking expiry days,
-   * lock exceptions and data approvals.
-   *
-   * @param dataSet the data set
-   * @param period the period.
-   * @param organisationUnit the organisation unit.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param user the user for deciding lock status.
-   * @param now the base date for deciding locked date, current date if null.
-   * @param useOrgUnitChildren whether to check children of the given org unit or the org unit only.
-   * @return the {@link LockStatus}.
-   */
-  LockStatus getLockStatus(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      UserDetails user,
-      Date now,
-      boolean useOrgUnitChildren);
-
-  /**
-   * Checks whether the system is locked for data entry for the given input, checking expiry days,
-   * lock exceptions and data approvals.
-   *
-   * @param dataElement the data element.
-   * @param period the period.
-   * @param organisationUnit the organisation unit.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param user the user for deciding lock status.
-   * @param now the base date for deciding locked date, current date if null.
-   * @return the {@link LockStatus}.
-   */
-  LockStatus getLockStatus(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      UserDetails user,
-      Date now);
-
-  LockStatus getLockStatus(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      User user,
-      Date now);
 
   /**
    * Deletes a dataSet and period combination, used for batch removal, e.g. when you have a lock
@@ -312,23 +216,6 @@ public interface DataSetService extends DataSetDataIntegrityProvider {
    * @return number of deleted lock exceptions
    */
   int deleteExpiredLockExceptions(Date createdBefore);
-
-  /**
-   * Checks whether the period is locked for data entry for the given input, checking the dataset's
-   * expiryDays and lockExceptions.
-   *
-   * @param dataSet the data set
-   * @param period the period.
-   * @param organisationUnit the organisation unit.
-   * @param now the base date for deciding locked date, current date if null.
-   * @return true or false indicating whether the system is locked or not.
-   */
-  boolean isLocked(
-      UserDetails user,
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      Date now);
 
   /**
    * Return a list of LockException with given filter list

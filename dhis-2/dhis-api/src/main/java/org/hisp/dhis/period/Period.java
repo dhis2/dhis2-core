@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -93,23 +94,6 @@ public class Period extends BaseDimensionalItemObject {
     return (from == null || !sample.isBefore(from)) && (to == null || !sample.isAfter(to));
   }
 
-  /**
-   * Check if a date is within the date range as provided by a period.
-   *
-   * @param start inclusive, null is open to any time before end
-   * @param end inclusive, null is open to any time after start
-   * @param checked the date checked, maybe null
-   * @return true, if the checked date is non-null and is between start and end date. Exact times
-   *     are considered.
-   */
-  public static boolean isDateWithTimeInTimeFrame(
-      @CheckForNull Date start, @CheckForNull Date end, @CheckForNull Date checked) {
-    if (checked == null) {
-      return false;
-    }
-    return (start == null || !checked.before(start)) && (end == null || !checked.after(end));
-  }
-
   /** Required. */
   private PeriodType periodType;
 
@@ -123,7 +107,7 @@ public class Period extends BaseDimensionalItemObject {
   private transient String isoPeriod;
 
   /** date field this period refers to */
-  @Getter @Setter private String dateField;
+  @Getter @Setter private transient String dateField;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -169,6 +153,10 @@ public class Period extends BaseDimensionalItemObject {
     this.isoPeriod = isoPeriod;
   }
 
+  public Period next() {
+    return periodType.getNextPeriod(this);
+  }
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -184,10 +172,6 @@ public class Period extends BaseDimensionalItemObject {
   @Override
   public String getUid() {
     return uid != null ? uid : getIsoDate();
-  }
-
-  public String getRealUid() {
-    return uid;
   }
 
   @Override
@@ -210,6 +194,7 @@ public class Period extends BaseDimensionalItemObject {
    *
    * @return the period string
    */
+  @Nonnull
   public String getIsoDate() {
     return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
   }
@@ -219,26 +204,13 @@ public class Period extends BaseDimensionalItemObject {
    *
    * @return the ISO date.
    */
+  @Nonnull
   private String getPeriodTypeIsoDate() {
     if (periodType != null) {
       return periodType.getIsoDate(this);
     }
 
     return "";
-  }
-
-  /**
-   * Copies the transient properties (name) from the argument Period to this Period.
-   *
-   * @param other Period to copy from.
-   * @return this Period.
-   */
-  public Period copyTransientProperties(Period other) {
-    this.name = other.getName();
-    this.shortName = other.getShortName();
-    this.code = other.getCode();
-
-    return this;
   }
 
   /**
@@ -333,11 +305,6 @@ public class Period extends BaseDimensionalItemObject {
     return getEndDate().after(period.getEndDate());
   }
 
-  /** Returns a unique key suitable for caching and lookups. */
-  public String getCacheKey() {
-    return periodType.getName() + "-" + startDate.toString() + "-" + endDate.toString();
-  }
-
   // -------------------------------------------------------------------------
   // DimensionalItemObject
   // -------------------------------------------------------------------------
@@ -353,15 +320,7 @@ public class Period extends BaseDimensionalItemObject {
 
   @Override
   public int hashCode() {
-    int prime = 31;
-    int result = 1;
-
-    result = result * prime + (startDate != null ? startDate.hashCode() : 0);
-    result = result * prime + (endDate != null ? endDate.hashCode() : 0);
-    result = result * prime + (getCode() != null ? getCode().hashCode() : 0);
-    result = result * prime + (periodType != null ? periodType.hashCode() : 0);
-
-    return result;
+    return Objects.hash(getIsoDate().hashCode(), dateField);
   }
 
   @Override
@@ -370,12 +329,8 @@ public class Period extends BaseDimensionalItemObject {
   }
 
   private boolean objectEquals(Period other) {
-    return startDate.equals(other.getStartDate())
-        && endDate.equals(other.getEndDate())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getIsoDate(), other.getIsoDate())
-        && Objects.equals(periodType, other.periodType)
-        && Objects.equals(dateField, other.getDateField());
+    return Objects.equals(getIsoDate(), other.getIsoDate())
+        && Objects.equals(dateField, other.dateField);
   }
 
   @Override

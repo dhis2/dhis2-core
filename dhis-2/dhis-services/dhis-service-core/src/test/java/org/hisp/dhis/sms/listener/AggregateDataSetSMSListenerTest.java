@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,9 +50,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -103,7 +104,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
-  @Mock private DataValueService dataValueService;
+  @Mock private DataEntryService dataEntryService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
@@ -134,16 +135,15 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   private DataSet dataSet;
 
   @BeforeEach
-  public void initTest() throws SmsCompressionException {
+  void initTest() throws SmsCompressionException, ConflictException {
     subject =
         new AggregateDataSetSMSListener(
             incomingSmsService,
             smsSender,
             organisationUnitService,
             categoryService,
-            dataElementService,
             dataSetService,
-            dataValueService,
+            dataEntryService,
             registrationService,
             identifiableObjectManager);
 
@@ -160,9 +160,8 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(dataSetService.getDataSet(anyString())).thenReturn(dataSet);
-    when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
-        .thenReturn(LockStatus.OPEN);
-    when(dataValueService.addDataValue(any())).thenReturn(true);
+    when(dataEntryService.upsertGroup(any(), any(), any()))
+        .thenReturn(new DataEntrySummary(0, 0, 0, List.of()));
     when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
     when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
 
