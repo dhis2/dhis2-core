@@ -29,41 +29,25 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -74,96 +58,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProgramObjectBundleHookTest {
   private ProgramObjectBundleHook subject;
 
-  @Mock private EventProgramEnrollmentService eventProgramEnrollmentService;
-
   @Mock private ProgramStageService programStageService;
 
-  @Mock private OrganisationUnitService organisationUnitService;
-
   @Mock private AclService aclService;
-
-  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
   private Program programA;
 
   @BeforeEach
   public void setUp() {
-    this.subject =
-        new ProgramObjectBundleHook(
-            eventProgramEnrollmentService,
-            programStageService,
-            organisationUnitService,
-            aclService,
-            identifiableObjectManager);
+    this.subject = new ProgramObjectBundleHook(programStageService, aclService);
 
     programA = createProgram('A');
     programA.setId(100);
   }
 
   @Test
-  void verifyNullObjectIsIgnored() {
-    subject.preCreate(null, null);
-
-    verifyNoInteractions(eventProgramEnrollmentService);
-  }
-
-  @Test
-  void verifyMissingBundleIsIgnored() {
-    subject.preCreate(programA, null);
-
-    verifyNoInteractions(eventProgramEnrollmentService);
-  }
-
-  @Test
-  void verifyProgramInstanceIsSavedForEventProgram() {
-    when(organisationUnitService.getRootOrganisationUnits())
-        .thenReturn(List.of(createOrganisationUnit('A')));
-    ArgumentCaptor<Enrollment> argument = ArgumentCaptor.forClass(Enrollment.class);
-
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    subject.postCreate(programA, null);
-
-    verify(identifiableObjectManager).save(argument.capture());
-
-    assertThat(argument.getValue().getEnrollmentDate(), is(notNullValue()));
-    assertThat(argument.getValue().getOccurredDate(), is(notNullValue()));
-    assertThat(argument.getValue().getProgram(), is(programA));
-    assertThat(argument.getValue().getStatus(), is(EnrollmentStatus.ACTIVE));
-    assertThat(argument.getValue().getStoredBy(), is("system-process"));
-  }
-
-  @Test
-  void verifyProgramInstanceIsNotSavedForTrackerProgram() {
-    ArgumentCaptor<Enrollment> argument = ArgumentCaptor.forClass(Enrollment.class);
-
-    programA.setProgramType(ProgramType.WITH_REGISTRATION);
-    subject.postCreate(programA, null);
-
-    verify(identifiableObjectManager, times(0)).save(argument.capture());
-  }
-
-  @Test
   void verifyProgramValidates() {
     assertEquals(0, subject.validate(programA, null).size());
-  }
-
-  @Test
-  void verifyProgramFailsValidation() {
-    when(eventProgramEnrollmentService.getEnrollments(programA, EnrollmentStatus.ACTIVE))
-        .thenReturn(Lists.newArrayList(new Enrollment(), new Enrollment()));
-
-    List<ErrorReport> errors = subject.validate(programA, null);
-
-    assertEquals(1, errors.size());
-    assertEquals(errors.get(0).getErrorCode(), ErrorCode.E6000);
-  }
-
-  @Test
-  void verifyValidationIsSkippedWhenObjectIsTransient() {
-    Program transientObj = createProgram('A');
-    subject.validate(transientObj, null);
-
-    verifyNoInteractions(eventProgramEnrollmentService);
   }
 
   @Test

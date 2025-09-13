@@ -686,7 +686,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   /** Adds event query with event related query params to given {@code sql}. */
   private void addEventFilter(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select ev.enrollmentid ").append("from event ev ");
+    sql.append("select ev.enrollmentid ").append("from trackerevent ev ");
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
       sql.append("inner join (")

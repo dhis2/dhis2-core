@@ -52,7 +52,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -149,7 +148,9 @@ public class TrackerIdentifierCollector {
         });
   }
 
-  private void collectEvents(Map<Class<?>, Set<String>> identifiers, List<Event> events) {
+  private void collectEvents(
+      Map<Class<?>, Set<String>> identifiers,
+      List<org.hisp.dhis.tracker.imports.domain.TrackerEvent> events) {
     events.forEach(
         event -> {
           addIdentifier(identifiers, Enrollment.class, event.getEnrollment());

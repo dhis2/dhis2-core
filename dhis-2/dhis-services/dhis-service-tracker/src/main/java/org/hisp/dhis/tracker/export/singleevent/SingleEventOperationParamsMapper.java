@@ -77,7 +77,7 @@ class SingleEventOperationParamsMapper {
   public SingleEventQueryParams map(
       @Nonnull SingleEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
+    Program program = paramsValidator.validateEventProgram(operationParams.getProgram(), user);
 
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);

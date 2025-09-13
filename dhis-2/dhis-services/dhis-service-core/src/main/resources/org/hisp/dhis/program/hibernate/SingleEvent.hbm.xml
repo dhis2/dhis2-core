@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.SingleEvent" table="event">
+  <class name="org.hisp.dhis.program.SingleEvent" table="singleevent">
 
     <id name="id" column="eventid">
       <generator class="sequence">
@@ -13,8 +13,6 @@
     </id>
 
     <property name="uid" column="uid" unique="true" length="11" />
-
-    <property name="code" column="code" not-null="false" unique="true" length="50" />
 
     <property name="created" type="timestamp" not-null="true" />
 
@@ -30,24 +28,20 @@
 
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
-    <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
-                 column="enrollmentid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
-                 index="programstageinstance_programinstanceid" />
-
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
-      column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
+      column="programstageid" not-null="true" foreign-key="fk_singleevent_programstageid" />
 
     <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
-      column="attributeoptioncomboid" not-null="true" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
+      column="attributeoptioncomboid" not-null="true" foreign-key="fk_singleevent_attributeoptioncomboid" />
 
     <property name="deleted" column="deleted" />
 
     <property name="storedBy" />
 
-    <property name="occurredDate" column="occurreddate" type="timestamp" index="programstageinstance_executiondate" />
+    <property name="occurredDate" column="occurreddate" type="timestamp" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
-      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" not-null="true"/>
+      foreign-key="fk_singleevent_organisationunitid" not-null="true"/>
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
@@ -58,7 +52,7 @@
     <property name="geometry" />
 
     <many-to-one name="assignedUser" class="org.hisp.dhis.user.User" column="assigneduserid"
-                 foreign-key="fk_programstageinstance_assigneduserid" />
+                 foreign-key="fk_singleevent_assigneduserid" />
 
     <property name="eventDataValues" type="jsbEventDataValues" />
 
@@ -69,7 +63,7 @@ fields=!notes. reconsider this if we do implement that optimization -->
       <key column="eventid" foreign-key="fk_singleevent_notes_eventid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.note.Note" column="noteid"
-                    unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
+                    unique="true" foreign-key="fk_singleevent_notes_eventid" />
     </list>
 
     <set name="relationshipItems" inverse="true">

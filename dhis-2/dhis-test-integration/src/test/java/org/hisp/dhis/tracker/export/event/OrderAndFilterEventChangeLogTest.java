@@ -48,6 +48,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
@@ -119,7 +120,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
       String field, SortDirection sortDirection) throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
-    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+    SingleEvent event = getSingleEvent("OTmjvJDn0Fu");
     String dataElementUid = getFirstDataElement(event);
 
     updateDataValues(event, dataElementUid, "20", "25");
@@ -142,7 +143,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("createdAt", SortDirection.ASC).build();
 
-    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+    SingleEvent event = getSingleEvent("OTmjvJDn0Fu");
     String dataElementUid = getFirstDataElement(event);
 
     updateDataValues(event, dataElementUid, "20", "25");
@@ -164,7 +165,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsForSingleEventWhenOrderingByDataElementAsc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.ASC).build();
-    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+    SingleEvent event = getSingleEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
@@ -186,7 +187,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   void shouldSortChangeLogsForSingleEventWhenOrderingByChangeDesc() throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+    SingleEvent event = getSingleEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "GieVkTxp4HH", "20", "25");
 
@@ -264,7 +265,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
           throws NotFoundException {
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder().orderBy("change", SortDirection.DESC).build();
-    TrackerEvent event = getEvent("OTmjvJDn0Fu");
+    SingleEvent event = getSingleEvent("OTmjvJDn0Fu");
 
     updateDataValues(event, "DATAEL00001", "value00002", "value00003");
 
@@ -299,7 +300,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFilterChangeLogsForSingleEventWhenFilteringByDataElement() throws NotFoundException {
-    TrackerEvent event = getEvent("kWjSezkXHVp");
+    SingleEvent event = getSingleEvent("kWjSezkXHVp");
     String dataElement = getFirstDataElement(event);
     EventChangeLogOperationParams params =
         EventChangeLogOperationParams.builder()
@@ -628,21 +629,24 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .occurredAt(newDate)
-                      .scheduledAt(newDate)
-                      .build();
+              e.setOccurredAt(newDate);
+              e.setScheduledAt(newDate);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
   private TrackerEvent getEvent(String uid) {
     TrackerEvent event = manager.get(TrackerEvent.class, uid);
+    assertNotNull(event);
+    return event;
+  }
+
+  private SingleEvent getSingleEvent(String uid) {
+    SingleEvent event = manager.get(SingleEvent.class, uid);
     assertNotNull(event);
     return event;
   }
@@ -752,7 +756,17 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
     }
   }
 
+  private void updateDataValues(SingleEvent event, String dataElementUid, String... values) {
+    for (String value : values) {
+      updateDataValue(event.getUid(), dataElementUid, value);
+    }
+  }
+
   private String getFirstDataElement(TrackerEvent event) {
+    return event.getEventDataValues().iterator().next().getDataElement();
+  }
+
+  private String getFirstDataElement(SingleEvent event) {
     return event.getEventDataValues().iterator().next().getDataElement();
   }
 

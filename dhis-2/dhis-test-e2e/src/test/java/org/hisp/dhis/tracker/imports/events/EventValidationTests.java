@@ -88,7 +88,7 @@ public class EventValidationTests extends TrackerApiTest {
         Arguments.arguments(null, eventProgramId, eventProgramStageId, "E1123"),
         Arguments.arguments(ouIdWithoutAccess, eventProgramId, eventProgramStageId, "E1029"),
         Arguments.arguments(OU_ID, trackerProgramId, null, "E1123"),
-        Arguments.arguments(OU_ID, trackerProgramId, eventProgramStageId, "E1089"));
+        Arguments.arguments(OU_ID, eventProgramId, trackerProgramStageId, "E1089"));
   }
 
   @BeforeAll
