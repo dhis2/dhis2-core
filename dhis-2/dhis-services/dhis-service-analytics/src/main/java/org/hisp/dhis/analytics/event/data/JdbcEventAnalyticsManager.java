@@ -526,7 +526,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
       String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
       if (StringUtils.isNotBlank(timeFieldSql)) {
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+        sql += hlp.whereAnd() + " " + timeFieldSql;
       }
     }
 
@@ -722,6 +722,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (!params.isSkipPartitioning()
         && params.hasPartitions()
+        && !params.hasTimeDateRanges()
         && !params.hasNonDefaultBoundaries()
         && !params.hasTimeField()
         && !params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {

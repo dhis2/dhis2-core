@@ -207,8 +207,8 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(5)))
-        .body("rows", hasSize(equalTo(2)))
-        .body("height", equalTo(2))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
         .body("width", equalTo(5))
         .body("headerWidth", equalTo(5));
 
@@ -255,10 +255,6 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         0,
-        List.of("Ngelehun CHC", "2018-05-22 22:34:09.668", "0", "ACTIVE", "2023-10-14 02:00:00.0"));
-    validateRow(
-        response,
-        1,
         List.of("Ngelehun CHC", "2018-02-20 18:47:35.335", "0", "ACTIVE", "2023-10-15 02:00:00.0"));
   }
 
