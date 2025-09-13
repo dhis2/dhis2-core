@@ -112,6 +112,21 @@ public class DefaultEnrollmentAnalyticsDimensionsService
         .orElse(List.of());
   }
 
+  @Override
+  public List<PrefixedDimension> getAggregateDimensionsByProgramId(String programId) {
+    return Optional.of(programId)
+        .map(programService::getProgram)
+        .map(
+            program ->
+                collectDimensions(
+                    List.of(
+                        getProgramStageDataElements(AGGREGATE, program),
+                        filterByValueType(
+                            AGGREGATE,
+                            ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
+        .orElse(List.of());
+  }
+
   private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
       Program program) {
     return Optional.of(program)

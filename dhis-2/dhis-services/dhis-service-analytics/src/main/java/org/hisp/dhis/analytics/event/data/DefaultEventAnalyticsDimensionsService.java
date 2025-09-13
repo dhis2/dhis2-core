@@ -92,6 +92,26 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     return List.of();
   }
 
+  @Override
+  public List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programStageId) {
+    return Optional.of(programStageId)
+        .map(programStageService::getProgramStage)
+        .map(
+            ps ->
+                collectDimensions(
+                    List.of(
+                        filterByValueType(AGGREGATE, ofDataElements(ps)),
+                        filterByValueType(
+                            AGGREGATE,
+                            ofItemsWithProgram(
+                                ps.getProgram(), ps.getProgram().getTrackedEntityAttributes())),
+                        ofItemsWithProgram(ps.getProgram(), getCategories(ps.getProgram())),
+                        ofItemsWithProgram(
+                            ps.getProgram(),
+                            getAttributeCategoryOptionGroupSetsIfNeeded(ps.getProgram())))))
+        .orElse(List.of());
+  }
+
   private Set<ProgramStage> getProgramStages(String programId, String programStageId) {
     checkProgramStageIsInProgramIfNecessary(programId, programStageId);
     return Optional.ofNullable(programStageId)
@@ -142,26 +162,6 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                             ofItemsWithProgram(p, getTeasIfRegistrationAndNotConfidential(p))),
                         ofItemsWithProgram(p, getCategories(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
-        .orElse(List.of());
-  }
-
-  @Override
-  public List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programStageId) {
-    return Optional.of(programStageId)
-        .map(programStageService::getProgramStage)
-        .map(
-            ps ->
-                collectDimensions(
-                    List.of(
-                        filterByValueType(AGGREGATE, ofDataElements(ps)),
-                        filterByValueType(
-                            AGGREGATE,
-                            ofItemsWithProgram(
-                                ps.getProgram(), ps.getProgram().getTrackedEntityAttributes())),
-                        ofItemsWithProgram(ps.getProgram(), getCategories(ps.getProgram())),
-                        ofItemsWithProgram(
-                            ps.getProgram(),
-                            getAttributeCategoryOptionGroupSetsIfNeeded(ps.getProgram())))))
         .orElse(List.of());
   }
 
