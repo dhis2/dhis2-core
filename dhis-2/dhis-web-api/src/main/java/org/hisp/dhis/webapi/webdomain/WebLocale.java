@@ -34,6 +34,7 @@ import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 
 /**
  * Class that represents a Locale for the web
@@ -44,6 +45,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class WebLocale {
   @JsonProperty private final String locale;
+
+  @JsonProperty private final String languageTag;
 
   @JsonProperty private final String name;
 
@@ -56,7 +59,40 @@ public class WebLocale {
    * @return A WebLocale instance
    */
   public static WebLocale fromLocale(Locale locale, Locale userLocale) {
+    String localeStr = LocaleUtils.toUnderscoreFormat(locale);
+    String languageTag = locale.toLanguageTag();
+
+    if (!locale.getScript().isEmpty()) {
+      String name = buildLocaleDisplay(locale, locale);
+      String displayName = buildLocaleDisplay(locale, userLocale);
+      return new WebLocale(localeStr, languageTag, name, displayName);
+    }
+
     return new WebLocale(
-        locale.toString(), locale.getDisplayName(locale), locale.getDisplayName(userLocale));
+        localeStr, languageTag, locale.getDisplayName(locale), locale.getDisplayName(userLocale));
+  }
+
+  private static String buildLocaleDisplay(Locale target, Locale displayLocale) {
+    String language = target.getDisplayLanguage(displayLocale);
+    String country = target.getDisplayCountry(displayLocale);
+    String variant = target.getVariant();
+
+    StringBuilder sb = new StringBuilder(language);
+
+    if (!country.isEmpty() || !variant.isEmpty()) {
+      sb.append(" (");
+      if (!country.isEmpty()) {
+        sb.append(country);
+        if (!variant.isEmpty()) {
+          sb.append(", ");
+        }
+      }
+      if (!variant.isEmpty()) {
+        sb.append(variant);
+      }
+      sb.append(")");
+    }
+
+    return sb.toString();
   }
 }
