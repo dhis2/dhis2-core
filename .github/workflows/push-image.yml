@@ -33,7 +33,7 @@ jobs:
         run: |
           mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/pom.xml" -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
           mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhis-web/pom.xml"
-          mvn -DskipTests -Djib.to.image=${{ env.TAG }} -Dmaven.test.skip=true -f "${DIR}/dhis-web/dhis-web-portal/pom.xml" jib:dockerBuild $JIB_PROFILE \
+          mvn -DskipTests -Djib.to.image=${{ env.FULL_IMAGE_NAME }} -Dmaven.test.skip=true -f "${DIR}/dhis-web/dhis-web-portal/pom.xml" jib:dockerBuild $JIB_PROFILE \
             -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"
         env:
           DIR: dhis-2
