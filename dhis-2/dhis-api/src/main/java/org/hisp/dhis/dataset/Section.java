@@ -65,6 +65,7 @@ import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -155,6 +156,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   private List<Indicator> indicators = new ArrayList<>();
 
   @ManyToMany(cascade = CascadeType.ALL)
+  @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
   @JoinTable(
       name = "sectiongreyedfields",
       joinColumns = @JoinColumn(name = "sectionid"),
