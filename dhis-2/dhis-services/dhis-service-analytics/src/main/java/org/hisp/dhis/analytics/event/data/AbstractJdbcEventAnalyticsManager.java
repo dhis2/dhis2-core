@@ -715,7 +715,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           String alias = columnAndAlias.getAlias();
 
           if (isEmpty(alias)) {
-            alias = unquote(columnAndAlias.getColumn());
+            alias = columnAndAlias.getColumn();
           }
 
           String itemName = rowSet.getString(alias);
