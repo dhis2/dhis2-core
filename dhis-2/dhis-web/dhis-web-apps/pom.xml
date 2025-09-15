@@ -53,9 +53,11 @@
           <arguments>
             <argument>run</argument>
             <argument>bundle-apps</argument>
+            <argument>--omit=dev</argument>
           </arguments>
           <environmentVariables>
             <BUILD_DIR>${project.build.directory}</BUILD_DIR>
+            <NODE_ENV>production</NODE_ENV>
             <ARTIFACT_ID>dhis-web-apps</ARTIFACT_ID>
             <APPS>./apps-to-bundle.json</APPS>
             <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
