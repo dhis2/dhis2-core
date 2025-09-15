@@ -36,7 +36,9 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -119,6 +121,8 @@ public class PeriodDataProvider {
    * @return the list of distinct years found in the database, or current year.
    */
   private List<Integer> fetchAvailableYears() {
+    Set<Integer> distinctYears = new HashSet<>();
+
     String dueDateOrExecutionDate =
         "(case when 'SCHEDULE' = ev.status then ev.scheduleddate else ev.occurreddate end)";
 
@@ -136,12 +140,23 @@ public class PeriodDataProvider {
             + " is not null"
             + " and ev.deleted is false ) order by datayear asc";
 
-    List<Integer> years = jdbcTemplate.queryForList(sql, Integer.class);
+    String sqlSingleEvents =
+        "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from ev.occurreddate)) as datayear"
+            + " from singleevent ev"
+            + " where ev.occurreddate is not null"
+            + " and ev.deleted is false ) order by datayear asc";
 
-    if (isEmpty(years)) {
-      years.add(now().getYear());
+    distinctYears.addAll(jdbcTemplate.queryForList(sql, Integer.class));
+    distinctYears.addAll(jdbcTemplate.queryForList(sqlSingleEvents, Integer.class));
+
+    if (isEmpty(distinctYears)) {
+      distinctYears.add(now().getYear());
     }
 
-    return years;
+    return distinctYears.stream().toList();
   }
 }

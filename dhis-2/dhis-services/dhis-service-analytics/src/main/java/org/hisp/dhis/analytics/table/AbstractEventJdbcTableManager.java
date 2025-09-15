@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
@@ -100,7 +99,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param columns the table columns.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(String tableName, List<AnalyticsTableColumn> columns, String fromClause) {
+  protected void populateTableInternal(
+      String tableName, List<AnalyticsTableColumn> columns, String fromClause) {
     String sql = "insert into " + tableName + " (";
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
     sql += ") select ";

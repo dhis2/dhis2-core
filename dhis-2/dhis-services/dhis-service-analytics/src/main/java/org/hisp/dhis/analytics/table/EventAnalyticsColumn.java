@@ -198,13 +198,13 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
+            .nullable(NULL)
             .selectExpression("coalesce(registrationou.uid,ou.uid)")
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
+            .nullable(NULL)
             .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
             .build());
   }
@@ -322,7 +322,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
+            .nullable(NULL)
             .selectExpression("null")
             .build(),
         AnalyticsTableColumn.builder()
