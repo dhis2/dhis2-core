@@ -56,7 +56,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private SchemaService schemaService;
 
-  @ParameterizedTest(name = "{0} test")
+  @ParameterizedTest(name = "{0} API contract test")
   @MethodSource("getContracts")
   @DisplayName("Test API contracts")
   void apiContractTest(ApiContract contract)
@@ -72,7 +72,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
           NoSuchMethodException,
           IllegalAccessException,
           JsonProcessingException {
-    // Given a object exists
+    // Given an object exists
     T identifiableObject = createTypeAndSave(contract);
 
     // When a GET call is made for that object
