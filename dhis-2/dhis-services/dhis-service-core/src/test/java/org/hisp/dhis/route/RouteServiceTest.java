@@ -71,7 +71,7 @@ class RouteServiceTest {
   }
 
   @Test
-  public void testCreateTargetUriDoesNotEscapeUrl() throws BadGatewayException {
+  void testCreateTargetUriDoesNotEscapeUrl() throws BadGatewayException {
     RouteService routeService = new RouteService(null, null, null, null, null);
     String targetUri =
         routeService.createTargetUri(
