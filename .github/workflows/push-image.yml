@@ -5,9 +5,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: openmrs-appointments
+  IMAGE_NAME: dhis2-core
   IMAGE_VERSION: 2.41.6
-  CONTEXT: .
 
 jobs:
   deploy:
@@ -38,8 +37,8 @@ jobs:
             -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"
         env:
           DIR: dhis-2
-          IMAGE: ghrc.io/dhis2-core-icrc
-          TAG:
+          IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          TAG: ${{ steps.meta.outputs.tags }}
           BUILD_REVISION: ${{ github.sha }}
           BUILD_BRANCH: ${{ github.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
