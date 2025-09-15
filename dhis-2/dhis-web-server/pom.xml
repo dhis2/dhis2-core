@@ -15,7 +15,7 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.10</tomcat.version>
+    <tomcat.version>11.0.11</tomcat.version>
     <jib.version>3.4.6</jib.version>
     <jib.from.image>tomcat:${tomcat.version}-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
