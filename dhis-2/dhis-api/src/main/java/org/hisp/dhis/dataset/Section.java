@@ -39,7 +39,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -156,7 +155,11 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   private List<Indicator> indicators = new ArrayList<>();
 
   @ManyToMany
-  @Cascade(value={org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
+  @Cascade(
+      value = {
+        org.hibernate.annotations.CascadeType.ALL,
+        org.hibernate.annotations.CascadeType.DELETE_ORPHAN
+      })
   @JoinTable(
       name = "sectiongreyedfields",
       joinColumns = @JoinColumn(name = "sectionid"),
