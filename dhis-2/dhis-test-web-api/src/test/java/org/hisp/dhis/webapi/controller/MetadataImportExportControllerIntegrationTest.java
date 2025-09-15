@@ -185,6 +185,21 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     assertEquals(0, updateImport.getStats().getIgnored());
   }
 
+  @Test
+  @DisplayName("Importing a new CategoryCombo with no Categories succeeds")
+  void importNewCategoryComboNoCategoriesTest() {
+    // When importing a new Category Combo with no Categories
+    JsonImportSummary importSummary =
+        POST("/metadata", Body(getCatComboWithoutCategory()))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then it shows as success & created
+    assertEquals("OK", importSummary.getStatus());
+    assertEquals(1, importSummary.getStats().getCreated());
+  }
+
   private String updateUserOrgUnit(String orgUnit) {
     return """
         [
@@ -416,5 +431,20 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
           ]
       }
       """;
+  }
+
+  private String getCatComboWithoutCategory() {
+    return """
+          {
+            "categoryCombos": [
+               {
+                 "id": "CatComUid11",
+                 "name": "cat combo 11",
+                 "dataDimensionType": "DISAGGREGATION",
+                 "categories": []
+               }
+             ]
+          }
+          """;
   }
 }

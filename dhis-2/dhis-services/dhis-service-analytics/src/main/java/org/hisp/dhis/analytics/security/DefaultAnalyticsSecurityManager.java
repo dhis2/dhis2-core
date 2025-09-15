@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.security;
 
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.security.Authorities.F_VIEW_EVENT_ANALYTICS;
 import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
 
@@ -320,7 +321,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     // Check if request already has organisation units specified
     // ---------------------------------------------------------------------
 
-    if (params.hasDimensionOrFilterWithItems(DimensionalObject.ORGUNIT_DIM_ID)) {
+    if (params.hasDimensionOrFilterWithItems(ORGUNIT_DIM_ID)) {
       return;
     }
 
@@ -328,13 +329,12 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     // Apply constraint as filter, and remove potential all-dimension
     // -----------------------------------------------------------------
 
-    builder.removeDimensionOrFilter(DimensionalObject.ORGUNIT_DIM_ID);
+    builder.removeDimensionOrFilter(ORGUNIT_DIM_ID);
 
     List<OrganisationUnit> orgUnits = new ArrayList<>(currentUser.getDataViewOrganisationUnits());
 
     DimensionalObject constraint =
-        new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits);
+        new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits);
 
     builder.addFilter(constraint);
 

@@ -31,7 +31,7 @@ package org.hisp.dhis.util;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
@@ -97,6 +97,7 @@ public class PeriodCriteriaUtils {
    */
   public static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
+        || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())

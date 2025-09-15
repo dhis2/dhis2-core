@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.tracker.acl;
 
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-/**
- * @author Torgeir Lorange Ostby
- */
-public class DataElementHistoryPoint {
-  private Period period;
+class OwnershipCacheUtils {
 
-  private Double value;
+  private OwnershipCacheUtils() {}
 
-  private double average;
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public double getAverage() {
-    return average;
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  static String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+    return trackedEntity.getUid() + "_" + program.getUid();
   }
 
-  public void setAverage(double average) {
-    this.average = average;
-  }
-
-  public Period getPeriod() {
-    return period;
-  }
-
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
-
-  public Double getValue() {
-    return value;
-  }
-
-  public void setValue(Double value) {
-    this.value = value;
+  /**
+   * Returns key used to store and retrieve cached records for temporary ownership
+   *
+   * @return a String representing a record of temporary ownership
+   */
+  static String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
+    return teUid + "-" + programUid + "-" + userUid;
   }
 }
