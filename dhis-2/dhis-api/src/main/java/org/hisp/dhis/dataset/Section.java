@@ -46,17 +46,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OrderColumn;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import java.util.Date;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -179,12 +179,12 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Type(type = "jsbAttributeValues")
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
-  
+
   // -------------------------------------------------------------------------
   // Transient properties
   // -------------------------------------------------------------------------
-  
-  @Transient transient private Access access;
+
+  @Transient private transient Access access;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -364,19 +364,19 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   public Date getCreated() {
     return created;
   }
-  
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public Date getLastUpdated() {
     return lastUpdated;
   }
-  
+
   @Override
   public User getLastUpdatedBy() {
     return lastUpdatedBy;
   }
-  
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -499,20 +499,15 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
     this.translations.setTranslations(translations);
   }
 
-  /**
-   * Section does not have userid column.
-   */
-  public void setUser(User user) {
-  }
+  /** Section does not have userid column. */
+  public void setUser(User user) {}
 
   @Override
   public Access getAccess() {
     return access;
   }
 
-  /**
-   * Section does not have userid column.
-   */
+  /** Section does not have userid column. */
   @Override
   @Transient
   @JsonIgnore
@@ -522,23 +517,18 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
 
   /**
    * @deprecated This method is replaced by {@link #getCreatedBy()} Currently it is only used for
-   * web api backward compatibility
+   *     web api backward compatibility
    */
   @Override
   public User getUser() {
     return null;
   }
 
-  /**
-   * Section does not have userid column.
-   */
+  /** Section does not have userid column. */
   @Override
-  public void setCreatedBy(User createdBy) {
-  }
+  public void setCreatedBy(User createdBy) {}
 
-  /**
-   * Section does not have sharing.
-   */
+  /** Section does not have sharing. */
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -546,17 +536,11 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
     return Sharing.empty();
   }
 
-  /**
-   * Section does not have userid column.
-   */
+  /** Section does not have userid column. */
   @Override
-  public void setSharing(Sharing sharing) {
-  }
+  public void setSharing(Sharing sharing) {}
 
-  /**
-   * Section does not have userid column.
-   */
+  /** Section does not have userid column. */
   @Override
-  public void setOwner(String ownerId) {
-  }
+  public void setOwner(String ownerId) {}
 }
