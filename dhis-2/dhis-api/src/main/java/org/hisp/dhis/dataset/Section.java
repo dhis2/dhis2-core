@@ -520,10 +520,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
     return null;
   }
 
-  /**
-   * @deprecated This method is replaced by {@link #getCreatedBy()} Currently it is only used for
-   *     web api backward compatibility
-   */
+  /** Section does not have userid column. */
   @Override
   public User getUser() {
     return null;
@@ -541,7 +538,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
     return Sharing.empty();
   }
 
-  /** Section does not have userid column. */
+  /** Section does not have sharing. */
   @Override
   public void setSharing(Sharing sharing) {}
 
