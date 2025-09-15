@@ -32,7 +32,7 @@ package org.hisp.dhis.analytics.table;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class ColumnSuffix {
-  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
-  public static final String OU_NAME_COL_SUFFIX = "_name";
+public class ColumnPostfix {
+  public static final String OU_GEOMETRY_COL_POSTFIX = "_geom";
+  public static final String OU_NAME_COL_POSTFIX = "_name";
 }
