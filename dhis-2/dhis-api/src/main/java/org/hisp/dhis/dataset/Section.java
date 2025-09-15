@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -105,16 +106,16 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Column(name = "sectionid")
   private long id;
 
-  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  @Column(unique = true, nullable = false, length = 11)
   private String uid;
 
-  @Column(name = "code", unique = true, length = 50)
+  @Column(unique = true, length = 50)
   private String code;
 
-  @Column(name = "name", nullable = false, unique = true, length = 230)
+  @Column(nullable = false, unique = true, length = 230)
   private String name;
 
-  @Column(name = "created", updatable = false)
+  @Column(updatable = false)
   @Temporal(TemporalType.TIMESTAMP)
   private Date created;
 
@@ -153,7 +154,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
-  @ManyToMany
+  @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
       name = "sectiongreyedfields",
       joinColumns = @JoinColumn(name = "sectionid"),
