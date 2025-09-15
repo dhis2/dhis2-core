@@ -58,23 +58,34 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.AttributeObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.dimensional.DimensionalProperties;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -89,7 +100,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Table(name = "category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Category extends BaseMetadataObject implements DimensionalObject, AttributeObject, SystemDefaultMetadataObject {
+public class Category extends BaseMetadataObject implements DimensionalObject, SystemDefaultMetadataObject {
   public static final String DEFAULT_NAME = "default";
 
   @Id
@@ -112,7 +123,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, A
    * The data dimension type of this dimension. Can be null. Only applicable for {@link
    * DimensionType#CATEGORY}.
    */
-  @Column(nullable = false)
+  @Column(name = "datadimensiontype", nullable = false)
   @Type(type = "org.hisp.dhis.common.DataDimensionTypeUserType" )
   private DataDimensionType dataDimensionType;
 
@@ -238,6 +249,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, A
     return Lists.newArrayList(categoryOptions);
   }
 
+
   @Override
   public DimensionType getDimensionType() {
     return DimensionType.CATEGORY;
@@ -293,5 +305,227 @@ public class Category extends BaseMetadataObject implements DimensionalObject, A
   @Override
   public void setDimensionName(String dimensionName) {
     this.dimensionalProperties.setDimensionName(dimensionName);
+  }
+
+  /**
+   * Indicates whether this object should be handled as a data dimension. Persistent property.
+   */
+  @Override
+  public boolean isDataDimension() {
+    return dataDimension;
+  }
+
+
+  @Override
+  public String getShortName() {
+    return shortName;
+  }
+
+
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+
+
+  /**
+   * Return all sharing settings of current object
+   */
+  @Override
+  public Sharing getSharing() {
+    return sharing;
+  }
+
+  // -------------------------------------------------------------------------
+  // Not supported dimensional object methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Indicates whether all available items in this dimension are included.
+   */
+  @Override
+  public boolean isAllItems() {
+    return false;
+  }
+
+  /**
+   * Gets the legend set.
+   */
+  @Override
+  public LegendSet getLegendSet() {
+    return null;
+  }
+
+  /**
+   * Gets the program stage (not persisted).
+   */
+  @Override
+  public ProgramStage getProgramStage() {
+    return null;
+  }
+
+  /**
+   * Gets the program (not persisted).
+   */
+  @Override
+  public Program getProgram() {
+    return null;
+  }
+
+  /**
+   * Gets the aggregation type.
+   */
+  @Override
+  public AggregationType getAggregationType() {
+    return null;
+  }
+
+  /**
+   * Gets the filter. Contains operator and filter. Applicable for events.
+   */
+  @Override
+  public String getFilter() {
+    return "";
+  }
+
+  /**
+   * Gets the events repetition. Only applicable for events.
+   */
+  @Override
+  public EventRepetition getEventRepetition() {
+    return null;
+  }
+
+  /**
+   * Indicates the analytics type of this dimensional object.
+   */
+  @Override
+  public AnalyticsType getAnalyticsType() {
+    return null;
+  }
+
+  @Override
+  public void setEventRepetition(EventRepetition eventRepetition) {
+
+  }
+
+  /**
+   * Indicates whether this dimension is fixed, meaning that the name of the dimension will be
+   * returned as is for all dimension items in the response.
+   */
+  @Override
+  public boolean isFixed() {
+    return false;
+  }
+
+  @Override
+  public List<String> getFilterItemsAsList() {
+    return List.of();
+  }
+
+  /**
+   * Returns a unique key representing this dimension.
+   */
+  @Override
+  public String getKey() {
+    return "";
+  }
+
+  @Override
+  public void setFixed(boolean fixed) {
+
+  }
+
+  /**
+   * Returns dimension item keywords for this dimension.
+   */
+  @Override
+  public DimensionItemKeywords getDimensionItemKeywords() {
+    return null;
+  }
+
+  @Override
+  public String getDisplayShortName() {
+    return "";
+  }
+
+  @Override
+  public String getDisplayDescription() {
+    return "";
+  }
+
+  @Override
+  public String getDisplayProperty(DisplayProperty property) {
+    return "";
+  }
+
+  @Override
+  public String getCode() {
+    return "";
+  }
+
+  @Override
+  public String getDisplayName() {
+    return "";
+  }
+
+  @Override
+  public Set<Translation> getTranslations() {
+    return Set.of();
+  }
+
+  /**
+   * @param user
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
+   * used for web api backward compatibility
+   */
+  @Override
+  public void setUser(User user) {
+
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    return "";
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    return "";
+  }
+
+  @Override
+  public void setId(long id) {
+
+  }
+
+  @Override
+  public void setCode(String code) {
+
+  }
+
+  @Override
+  public void setOwner(String owner) {
+
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+
+  }
+
+  /**
+   * @return internal unique ID of the object as used in the database
+   */
+  @Override
+  public long getId() {
+    return 0;
   }
 }
