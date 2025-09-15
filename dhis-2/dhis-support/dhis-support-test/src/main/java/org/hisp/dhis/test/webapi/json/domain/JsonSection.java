@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import org.hisp.dhis.category.CategoryOption;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.jsontree.JsonList;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      OrganisationUnitMapper.class,
-      AttributeValuesMapper.class,
-      SharingMapper.class
-    })
-public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {
-  CategoryOptionMapper INSTANCE = Mappers.getMapper(CategoryOptionMapper.class);
+/** Web API equivalent of a {@link org.hisp.dhis.dataset.Section}. */
+public interface JsonSection extends JsonIdentifiableObject {
 
-  @Mapping(target = "publicAccess", ignore = true)
-  @Mapping(target = "userAccesses", ignore = true)
-  @Mapping(target = "userGroupAccesses", ignore = true)
-  @Mapping(target = "externalAccess", ignore = true)
-  @Mapping(target = "legendSets", ignore = true)
-  CategoryOption map(CategoryOption categoryOption);
+  default JsonList<JsonDataElement> getDataElements() {
+    return getList("dataElements", JsonDataElement.class);
+  }
+
+  default JsonList<JsonIndicator> getIndicators() {
+    return getList("indicators", JsonIndicator.class);
+  }
 }
