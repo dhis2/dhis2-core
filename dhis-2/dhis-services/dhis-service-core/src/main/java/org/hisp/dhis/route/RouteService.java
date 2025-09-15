@@ -199,22 +199,11 @@ public class RouteService {
       route.getAuth().decrypt(encryptor::decrypt).apply(headers, queryParameters);
     }
 
-    UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
-
-    if (subPath.isPresent()) {
-      if (!route.allowsSubpaths()) {
-        throw new BadRequestException(
-            String.format("Route '%s' does not allow sub-paths", route.getId()));
-      }
-      uriComponentsBuilder.path(subPath.get());
-    }
-
     String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
     HttpEntity<String> entity = new HttpEntity<>(body, headers);
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.resolve(request.getMethod()), HttpMethod.GET);
-    String targetUri = uriComponentsBuilder.toUriString();
+    String targetUri = createTargetUri(route, subPath, queryParameters);
 
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
@@ -243,6 +232,23 @@ public class RouteService {
         route.getUid());
 
     return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
+  }
+
+  protected String createTargetUri(
+      Route route, Optional<String> subPath, MultiValueMap<String, String> queryParameters)
+      throws BadRequestException {
+    UriComponentsBuilder uriComponentsBuilder =
+        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
+
+    if (subPath.isPresent()) {
+      if (!route.allowsSubpaths()) {
+        throw new BadRequestException(
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
+      }
+      uriComponentsBuilder.path(subPath.get());
+    }
+
+    return uriComponentsBuilder.build().toUriString();
   }
 
   protected RestTemplate newRestTemplate(Route route) {

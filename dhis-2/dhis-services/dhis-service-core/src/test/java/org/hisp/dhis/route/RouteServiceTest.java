@@ -27,16 +27,22 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.mockserver.client.MockServerClient;
+import org.springframework.util.LinkedMultiValueMap;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
@@ -69,6 +75,20 @@ class RouteServiceTest {
     for (int i = 0; i < RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE; i++) {
       httpClient.execute(httpUriRequest);
     }
+  }
+
+  @Test
+  void testCreateTargetUriDoesNotEscapeUrl() throws BadRequestException {
+    RouteService routeService = new RouteService(null, null);
+    String targetUri =
+        routeService.createTargetUri(
+            new Route().setUrl("https://play.im.dhis2.org/stable-2-42-1/api/**"),
+            Optional.of("/organisationUnits"),
+            new LinkedMultiValueMap<>(
+                Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]"))));
+    assertEquals(
+        "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?filter=id:in:[Rp268JB6Ne4,cDw53Ej8rju]",
+        targetUri);
   }
 
   @Test
