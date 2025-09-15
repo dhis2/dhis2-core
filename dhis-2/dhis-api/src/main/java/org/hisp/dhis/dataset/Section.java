@@ -79,9 +79,13 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
@@ -110,11 +114,11 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  @Column(name = "created", nullable = false, updatable = false)
+  @Column(name = "created", updatable = false)
   @Temporal(TemporalType.TIMESTAMP)
   private Date created;
 
-  @Column(name = "lastUpdated", nullable = false)
+  @Column(name = "lastUpdated")
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdated;
 
@@ -352,37 +356,26 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
     this.uid = uid;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getCreated() {
     return created;
   }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
+  
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public Date getLastUpdated() {
     return lastUpdated;
   }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
+  
   @Override
   public User getLastUpdatedBy() {
     return lastUpdatedBy;
   }
-
-  public void setLastUpdatedBy(User lastUpdatedBy) {
-    this.lastUpdatedBy = lastUpdatedBy;
-  }
-
+  
   @Override
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
