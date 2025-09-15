@@ -51,6 +51,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -175,7 +176,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testAggregateDatasetListener() {
+  void testAggregateDatasetListener() throws ConflictException {
     subject.receive(incomingSmsAggregate, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);
@@ -186,7 +187,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testAggregateDatasetListenerRepeat() {
+  void testAggregateDatasetListenerRepeat() throws ConflictException {
     subject.receive(incomingSmsAggregate, userDetails("frank"));
     subject.receive(incomingSmsAggregate, userDetails("frank"));
 
@@ -198,7 +199,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testAggregateDatasetListenerNoValues() {
+  void testAggregateDatasetListenerNoValues() throws ConflictException {
     subject.receive(incomingSmsAggregateNoValues, userDetails("frank"));
 
     assertNotNull(updatedIncomingSms);

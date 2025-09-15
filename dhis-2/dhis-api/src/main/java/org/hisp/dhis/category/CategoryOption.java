@@ -29,53 +29,160 @@
  */
 package org.hisp.dhis.category;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.TotalAggregationType;
+import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Abyot Asalefew
  */
-@JacksonXmlRootElement(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryOption extends BaseDimensionalItemObject
-    implements SystemDefaultMetadataObject {
+@Entity
+@Table(name = "categoryoption")
+@Setter
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@JacksonXmlRootElement(localName = "categoryOption", namespace = DXF_2_0)
+public class CategoryOption extends BaseMetadataObject
+    implements DimensionalItemObject, SystemDefaultMetadataObject, Serializable {
+
   public static final String DEFAULT_NAME = "default";
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "categoryoptionid")
+  private long id;
+
+  @Column(name = "code", unique = true, length = 50)
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(name = "shortname", nullable = false, unique = true, length = 50)
+  private String shortName;
+
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
+
+  @Column(name = "formname", length = 230)
+  private String formName;
+
+  @Temporal(TemporalType.DATE)
   private Date startDate;
 
+  @Temporal(TemporalType.DATE)
   private Date endDate;
 
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-  private Set<Category> categories = new HashSet<>();
-
-  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-  private Set<CategoryOptionGroup> groups = new HashSet<>();
-
+  @Type(type = "jbObjectStyle")
   private ObjectStyle style;
 
-  /** The name to appear in forms. */
-  private String formName;
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
+  @AuditAttribute
+  @Type(type = "jsbAttributeValues")
+  private AttributeValues attributeValues = AttributeValues.empty();
+
+  @ManyToMany
+  @JoinTable(
+      name = "categoryoption_organisationunits",
+      joinColumns = @JoinColumn(name = "categoryoptionid"),
+      inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @BatchSize(size = 100)
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+
+  @ManyToMany(mappedBy = "categoryOptions")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  @BatchSize(size = 100)
+  private Set<Category> categories = new HashSet<>();
+
+  @ManyToMany(mappedBy = "categoryOptions")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+
+  @ManyToMany(mappedBy = "members")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<CategoryOptionGroup> groups = new HashSet<>();
+
+  @Type(type = "jsbObjectSharing")
+  private Sharing sharing = new Sharing();
+
+  // -----------------------------------------------------------------------------
+  // Transient fields
+  // -----------------------------------------------------------------------------
+
+  @Transient private transient QueryModifiers queryMods;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -86,6 +193,32 @@ public class CategoryOption extends BaseDimensionalItemObject
   public CategoryOption(String name) {
     this.name = name;
     this.shortName = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof CategoryOption other
+            && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName())
+            && Objects.equals(getShortName(), other.getShortName())
+            && Objects.equals(queryMods, other.queryMods);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
+    return result;
   }
 
   // -------------------------------------------------------------------------
@@ -206,16 +339,185 @@ public class CategoryOption extends BaseDimensionalItemObject
   }
 
   // -------------------------------------------------------------------------
-  // DimensionalItemObject
+  // DimensionalItemObject implementation
   // -------------------------------------------------------------------------
+
+  @Override
+  public String getDimensionItem() {
+    return getUid();
+  }
+
+  @Override
+  public String getDimensionItem(IdScheme idScheme) {
+    return getPropertyValue(idScheme);
+  }
 
   @Override
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.CATEGORY_OPTION;
   }
 
+  @Override
+  public AggregationType getAggregationType() {
+    return (queryMods != null && queryMods.getAggregationType() != null)
+        ? queryMods.getAggregationType()
+        : null;
+  }
+
+  @Override
+  public boolean hasAggregationType() {
+    return false;
+  }
+
+  @Override
+  public TotalAggregationType getTotalAggregationType() {
+    return null;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public QueryModifiers getQueryMods() {
+    return queryMods;
+  }
+
   // -------------------------------------------------------------------------
-  // Getters and setters
+  // IdentifiableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return translations.getTranslation("NAME", name);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translations.getTranslations();
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {
+    this.createdBy = createdBy;
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return attributeValues.get(idScheme.getAttribute());
+    }
+    return null;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // AttributeValues
+  // -------------------------------------------------------------------------
+
+  @Override
+  @OpenApi.Property(AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return attributeValues.get(attributeUid);
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters
   // -------------------------------------------------------------------------
 
   @JsonProperty
@@ -224,18 +526,10 @@ public class CategoryOption extends BaseDimensionalItemObject
     return startDate;
   }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getEndDate() {
     return endDate;
-  }
-
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
   }
 
   @JsonProperty
@@ -246,20 +540,12 @@ public class CategoryOption extends BaseDimensionalItemObject
     return organisationUnits;
   }
 
-  public void setOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    this.organisationUnits = organisationUnits;
-  }
-
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categories", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
   public Set<Category> getCategories() {
     return categories;
-  }
-
-  public void setCategories(Set<Category> categories) {
-    this.categories = categories;
   }
 
   @JsonProperty
@@ -270,10 +556,6 @@ public class CategoryOption extends BaseDimensionalItemObject
     return categoryOptionCombos;
   }
 
-  public void setCategoryOptionCombos(Set<CategoryOptionCombo> categoryOptionCombos) {
-    this.categoryOptionCombos = categoryOptionCombos;
-  }
-
   @JsonProperty("categoryOptionGroups")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0)
@@ -282,21 +564,12 @@ public class CategoryOption extends BaseDimensionalItemObject
     return groups;
   }
 
-  public void setGroups(Set<CategoryOptionGroup> groups) {
-    this.groups = groups;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ObjectStyle getStyle() {
     return style;
   }
 
-  public void setStyle(ObjectStyle style) {
-    this.style = style;
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
@@ -304,14 +577,99 @@ public class CategoryOption extends BaseDimensionalItemObject
     return formName;
   }
 
+  // -------------------------------------------------------------------------
+  // NameableObject implementation
+  // -------------------------------------------------------------------------
+
   @Override
-  public void setFormName(String formName) {
-    this.formName = formName;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getShortName() {
+    return shortName;
   }
 
-  /** Returns the form name, or the name if it does not exist. */
   @Override
-  public String getFormNameFallback() {
-    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORTNAME")
+  public String getDisplayShortName() {
+    return translations.getTranslation("SHORTNAME", shortName);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return translations.getTranslation("DESCRIPTION", description);
+  }
+
+  @Override
+  @JsonIgnore
+  public String getDisplayProperty(DisplayProperty property) {
+    if (DisplayProperty.SHORTNAME == property && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
+  }
+
+  @Override
+  public void setOwner(String owner) {
+    getSharing().setOwner(owner);
+  }
+
+  // -------------------------------------------------------------------------
+  // Sharing helpers
+  // -------------------------------------------------------------------------
+
+  public void setExternalAccess(boolean externalAccess) {
+    getSharing().setExternal(externalAccess);
+  }
+
+  public void setPublicAccess(String access) {
+    getSharing().setPublicAccess(access);
+  }
+
+  public String getPublicAccess() {
+    return getSharing().getPublicAccess();
+  }
+
+  public Collection<UserAccess> getUserAccesses() {
+    return getSharing().getUsers().values();
+  }
+
+  public Collection<UserGroupAccess> getUserGroupAccesses() {
+    return getSharing().getUserGroups().values();
+  }
+
+  // -------------------------------------------------------------------------
+  // Deprecated methods for non-mapped properties
+  // -------------------------------------------------------------------------
+
+  /** Category options do not have legendSets, so this method is deprecated. */
+  @Override
+  @Deprecated(since = "43", forRemoval = true)
+  public List<LegendSet> getLegendSets() {
+    return List.of();
+  }
+
+  /** Category options do not have a legend set, so this method is deprecated. */
+  @Override
+  @Deprecated(since = "43", forRemoval = true)
+  public LegendSet getLegendSet() {
+    return null;
+  }
+
+  @Override
+  public boolean hasLegendSet() {
+    return false;
   }
 }

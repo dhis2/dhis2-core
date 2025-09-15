@@ -30,6 +30,9 @@
 package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
@@ -61,7 +64,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MapMap;
@@ -636,12 +638,9 @@ public class DataValidationRunner {
         return map;
       }
 
-      int dxInx = grid.getIndexOfHeader(DimensionalObject.DATA_X_DIM_ID);
-      int ouInx = grid.getIndexOfHeader(DimensionalObject.ORGUNIT_DIM_ID);
-      int aoInx =
-          hasAttributeOptions
-              ? grid.getIndexOfHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID)
-              : 0;
+      int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
+      int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
+      int aoInx = hasAttributeOptions ? grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID) : 0;
       int vlInx = grid.getWidth() - 1;
 
       Map<String, OrganisationUnit> ouLookup =

@@ -57,6 +57,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -387,7 +388,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testReceive() {
+  void testReceive() throws ConflictException {
     mockServices();
     incomingSms.setCreatedBy(user);
     subject.receive(incomingSms, UserDetails.fromUser(user));
@@ -398,7 +399,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfDataSetIsLocked() {
+  void testIfDataSetIsLocked() throws ConflictException {
     ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass(IncomingSms.class);
 
     mockSmsSender();
@@ -426,7 +427,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfUserHasNoOu() {
+  void testIfUserHasNoOu() throws ConflictException {
     mockSmsSender();
 
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
@@ -441,7 +442,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfUserHasMultipleOUs() {
+  void testIfUserHasMultipleOUs() throws ConflictException {
     mockSmsSender();
 
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
@@ -463,7 +464,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfCommandHasCorrectFormat() {
+  void testIfCommandHasCorrectFormat() throws ConflictException {
     mockSmsSender();
 
     // Mock for smsCommandService
@@ -483,7 +484,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfMandatoryParameterMissing() {
+  void testIfMandatoryParameterMissing() throws ConflictException {
     mockSmsSender();
     mockServices();
     keyValueCommand.getCodes().add(smsCodeForcompulsory);
@@ -509,7 +510,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfOrgUnitNotInDataSet() {
+  void testIfOrgUnitNotInDataSet() throws ConflictException {
     when(userService.getUser(anyString())).thenReturn(user);
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
     doAnswer(
@@ -538,7 +539,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testDefaultSeparator() {
+  void testDefaultSeparator() throws ConflictException {
     mockServices();
     keyValueCommand.setSeparator(null);
     keyValueCommand.setCodeValueSeparator(null);
@@ -552,7 +553,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testCustomSeparator() {
+  void testCustomSeparator() throws ConflictException {
     mockSmsSender();
     mockServices();
     keyValueCommand.setSeparator(".");

@@ -47,15 +47,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class CollectionUtilsTest {
   @Test
@@ -118,14 +123,26 @@ class CollectionUtilsTest {
     assertNull(firstMatch(collection, "x"::equals));
   }
 
-  @Test
-  void testDifference() {
-    List<String> collection1 = List.of("One", "Two", "Three");
-    List<String> collection2 = List.of("One", "Two", "Four");
-    List<String> difference = CollectionUtils.difference(collection1, collection2);
+  @ParameterizedTest
+  @MethodSource("differenceInput")
+  <T> void testDifference(Collection<T> col1, Collection<T> col2, Collection<T> expected) {
+    List<T> difference = CollectionUtils.difference(col1, col2);
 
-    assertEquals(1, difference.size());
-    assertEquals("Three", difference.get(0));
+    assertEquals(expected.size(), difference.size());
+    assertTrue(expected.containsAll(difference));
+  }
+
+  public static Stream<Arguments> differenceInput() {
+    return Stream.of(
+        Arguments.of(Set.of(1, 2, 3), Set.of(4, 5, 6), Set.of(1, 2, 3)),
+        Arguments.of(Set.of(1, 2, 3), Set.of(1, 2), Set.of(3)),
+        Arguments.of(Set.of(1, 2), Set.of(1, 2, 3), Set.of()),
+        Arguments.of(Set.of(2), List.of(5, 6), Set.of(2)),
+        Arguments.of(Set.of(), List.of(5, 6), Set.of()),
+        Arguments.of(
+            List.of("One", "Two", "Three"), List.of("One", "Two", "Four"), List.of("Three")),
+        Arguments.of(Set.of("A"), Set.of("A", "B", "C"), Set.of()),
+        Arguments.of(Set.of("A", "B", "C"), Set.of("A"), Set.of("B", "C")));
   }
 
   @Test

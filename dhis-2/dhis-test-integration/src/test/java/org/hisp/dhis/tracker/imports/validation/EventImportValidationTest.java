@@ -193,11 +193,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(
-        importReport,
-        ValidationCode.E1096,
-        ValidationCode.E1099,
-        ValidationCode.E1104,
-        ValidationCode.E1095);
+        importReport, ValidationCode.E1096, ValidationCode.E1104, ValidationCode.E1095);
   }
 
   @Test
