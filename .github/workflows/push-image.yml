@@ -14,6 +14,14 @@ jobs:
     permissions: write-all
     steps:
       - uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -29,7 +37,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,prefix=${{ env.IMAGE_VERSION }}-
-      - name: build and publish image
+      - name: Build image
         run: |
           mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/pom.xml" -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
           mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhis-web/pom.xml"
@@ -42,3 +50,7 @@ jobs:
           BUILD_BRANCH: ${{ github.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
+      - name: Push image
+        run: |
+          docker push ${{ steps.meta.outputs.tags }}
+        
