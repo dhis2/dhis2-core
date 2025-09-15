@@ -155,8 +155,8 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
-  @ManyToMany(cascade = CascadeType.ALL)
-  @Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
+  @ManyToMany
+  @Cascade(value={org.hibernate.annotations.CascadeType.ALL, org.hibernate.annotations.CascadeType.DELETE_ORPHAN})
   @JoinTable(
       name = "sectiongreyedfields",
       joinColumns = @JoinColumn(name = "sectionid"),
