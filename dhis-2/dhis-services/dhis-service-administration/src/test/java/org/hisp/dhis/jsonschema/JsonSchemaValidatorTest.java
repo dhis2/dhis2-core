@@ -67,7 +67,7 @@ class JsonSchemaValidatorTest {
         JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
     assertEquals(1, validationMessages.size());
     assertContainsValidationMessages(
-        validationMessages, Set.of("$.description: is missing but it is required"));
+        validationMessages, Set.of("$: required property 'description' not found"));
   }
 
   @Test
@@ -77,7 +77,7 @@ class JsonSchemaValidatorTest {
         JsonSchemaValidator.validateDataIntegrityCheck(jsonNode);
     assertEquals(1, validationMessages.size());
     assertContainsValidationMessages(
-        validationMessages, Set.of("$.name: is missing but it is required"));
+        validationMessages, Set.of("$: required property 'name' not found"));
   }
 
   @Test
@@ -89,14 +89,14 @@ class JsonSchemaValidatorTest {
     assertContainsValidationMessages(
         validationMessages,
         Set.of(
-            "$.details_id_type: is missing but it is required",
-            "$.details_sql: is missing but it is required",
-            "$.introduction: is missing but it is required",
-            "$.recommendation: is missing but it is required",
-            "$.section: is missing but it is required",
-            "$.section_order: is missing but it is required",
-            "$.severity: is missing but it is required",
-            "$.summary_sql: is missing but it is required"));
+            "$: required property 'details_id_type' not found",
+            "$: required property 'details_sql' not found",
+            "$: required property 'introduction' not found",
+            "$: required property 'recommendation' not found",
+            "$: required property 'section' not found",
+            "$: required property 'section_order' not found",
+            "$: required property 'severity' not found",
+            "$: required property 'summary_sql' not found"));
   }
 
   private void assertContainsValidationMessages(
