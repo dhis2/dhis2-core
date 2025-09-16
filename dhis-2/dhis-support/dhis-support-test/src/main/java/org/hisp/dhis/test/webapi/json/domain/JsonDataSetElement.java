@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import java.util.List;
-import org.hisp.dhis.common.PrefixedDimension;
+/** Web API equivalent of a {@link org.hisp.dhis.dataset.DataSetElement}. */
+public interface JsonDataSetElement extends JsonIdentifiableObject {
 
-public interface EnrollmentAnalyticsDimensionsService {
-  List<PrefixedDimension> getQueryDimensionsByProgramId(String programId);
+  default JsonDataSet getDatSet() {
+    return get("dataSet", JsonDataSet.class);
+  }
 
-  List<PrefixedDimension> getAggregateDimensionsByProgramStageId(String programId);
-
-  List<PrefixedDimension> getAggregateDimensionsByProgramId(String programId);
+  default JsonDataElement getDatElement() {
+    return get("dataElement", JsonDataElement.class);
+  }
 }
