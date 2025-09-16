@@ -48,6 +48,7 @@ import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.user.UserSettingsService;
+import org.hisp.dhis.webapi.fields.FieldsConverter;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -56,6 +57,7 @@ import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
+import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
@@ -117,9 +119,15 @@ public class MvcTestConfig implements WebMvcConfigurer {
   private CurrentSystemSettingsHandlerMethodArgumentResolver
       currentSystemSettingsHandlerMethodArgumentResolver;
 
+  @Autowired private FieldsConverter fieldsConverter;
+
   @Autowired
   @Qualifier("jsonMapper")
   private ObjectMapper jsonMapper;
+
+  @Qualifier("jsonFilterMapper")
+  @Autowired
+  private ObjectMapper jsonFilterMapper;
 
   @Autowired
   @Qualifier("xmlMapper")
@@ -259,6 +267,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
             compression ->
                 converters.add(
                     new StreamingJsonRootMessageConverter(fieldFilterService, compression)));
+    converters.add(new FilteredPageHttpMessageConverter(jsonFilterMapper));
 
     converters.add(new StringHttpMessageConverter());
     converters.add(new ByteArrayHttpMessageConverter());
@@ -272,6 +281,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Override
   public void addFormatters(FormatterRegistry registry) {
     registry.addConverter(new FieldPathConverter());
+    registry.addConverter(fieldsConverter);
   }
 
   @Bean

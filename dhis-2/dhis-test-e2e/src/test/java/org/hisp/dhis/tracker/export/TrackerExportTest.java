@@ -557,13 +557,19 @@ public class TrackerExportTest extends TrackerApiTest {
 
   @Test
   void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
-    ApiResponse response =
-        trackerImportExportActions.getWithHeaders(
-            "events?events=" + event,
-            null,
-            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+    List<String> events =
+        trackerImportExportActions
+            .getWithHeaders(
+                "events?events=" + event,
+                null,
+                new Headers(new Header(HttpHeaders.ACCEPT, "text/html")))
+            .validate()
+            .statusCode(200)
+            .contentType("application/json;charset=utf-8")
+            .extract()
+            .jsonPath()
+            .getList("events.event.flatten()");
 
-    List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
         List.of(event),
         events,
@@ -583,13 +589,19 @@ public class TrackerExportTest extends TrackerApiTest {
 
   @Test
   void whenGetTrackedEntitiesShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
-    ApiResponse response =
-        trackerImportExportActions.getWithHeaders(
-            "trackedEntities?trackedEntities=" + trackedEntityA,
-            null,
-            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+    List<String> trackedEntities =
+        trackerImportExportActions
+            .getWithHeaders(
+                "trackedEntities?trackedEntities=" + trackedEntityA,
+                null,
+                new Headers(new Header(HttpHeaders.ACCEPT, "text/html")))
+            .validate()
+            .statusCode(200)
+            .contentType("application/json;charset=utf-8")
+            .extract()
+            .jsonPath()
+            .getList("trackedEntities.trackedEntity.flatten()");
 
-    List<String> trackedEntities = response.extractList("trackedEntities.trackedEntity.flatten()");
     assertEquals(
         List.of(trackedEntityA),
         trackedEntities,
@@ -609,13 +621,19 @@ public class TrackerExportTest extends TrackerApiTest {
 
   @Test
   void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
-    ApiResponse response =
-        trackerImportExportActions.getWithHeaders(
-            "enrollments?enrollments=" + enrollment,
-            null,
-            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+    List<String> enrollments =
+        trackerImportExportActions
+            .getWithHeaders(
+                "enrollments?enrollments=" + enrollment,
+                null,
+                new Headers(new Header(HttpHeaders.ACCEPT, "text/html")))
+            .validate()
+            .statusCode(200)
+            .contentType("application/json;charset=utf-8")
+            .extract()
+            .jsonPath()
+            .getList("enrollments.enrollment.flatten()");
 
-    List<String> enrollments = response.extractList("enrollments.enrollment.flatten()");
     assertEquals(
         List.of(enrollment),
         enrollments,
@@ -624,13 +642,19 @@ public class TrackerExportTest extends TrackerApiTest {
 
   @Test
   void whenGetRelationshipsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
-    ApiResponse response =
-        trackerImportExportActions.getWithHeaders(
-            "relationships?trackedEntity=" + trackedEntityA,
-            null,
-            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+    List<String> relationships =
+        trackerImportExportActions
+            .getWithHeaders(
+                "relationships?trackedEntity=" + trackedEntityA,
+                null,
+                new Headers(new Header(HttpHeaders.ACCEPT, "text/html")))
+            .validate()
+            .statusCode(200)
+            .contentType("application/json;charset=utf-8")
+            .extract()
+            .jsonPath()
+            .getList("relationships.relationship.flatten()");
 
-    List<String> relationships = response.extractList("relationships.relationship.flatten()");
     assertEquals(
         List.of(trackedEntityToTrackedEntityRelationship),
         relationships,

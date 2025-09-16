@@ -87,7 +87,8 @@ public interface EventService {
    * TrackerIdSchemeParams}.
    */
   @Nonnull
-  Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, EventFields fields)
+  Event getEvent(
+      @Nonnull UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, @Nonnull EventFields fields)
       throws NotFoundException;
 
   /**

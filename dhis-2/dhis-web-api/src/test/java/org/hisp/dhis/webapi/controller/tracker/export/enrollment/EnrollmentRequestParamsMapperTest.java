@@ -43,7 +43,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
@@ -52,15 +51,7 @@ import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-@MockitoSettings(strictness = Strictness.LENIENT) // common setup
-@ExtendWith(MockitoExtension.class)
 class EnrollmentRequestParamsMapperTest {
 
   private static final UID ORG_UNIT_1_UID = UID.of("lW0T2U7gZUi");
@@ -73,17 +64,13 @@ class EnrollmentRequestParamsMapperTest {
 
   private static final UID TRACKED_ENTITY_UID = UID.of("DGbr8GHG4li");
 
-  @Mock private FieldFilterService fieldFilterService;
-
-  @InjectMocks private EnrollmentRequestParamsMapper mapper;
-
   @Test
   void testMappingOrgUnits() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID));
     enrollmentRequestParams.setProgram(PROGRAM_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
   }
@@ -93,7 +80,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
@@ -105,7 +92,9 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setStatus(EnrollmentStatus.ACTIVE);
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
+        assertThrows(
+            BadRequestException.class,
+            () -> EnrollmentRequestParamsMapper.map(enrollmentRequestParams));
 
     assertStartsWith("Only one parameter of 'programStatus' and 'status'", exception.getMessage());
   }
@@ -115,7 +104,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setProgram(PROGRAM_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(PROGRAM_UID, params.getProgram());
   }
@@ -125,7 +114,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityType());
   }
@@ -135,7 +124,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setTrackedEntity(TRACKED_ENTITY_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntity());
   }
@@ -146,7 +135,7 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setOrder(
         OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(
         List.of(
@@ -162,7 +151,9 @@ class EnrollmentRequestParamsMapperTest {
         OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
+        assertThrows(
+            BadRequestException.class,
+            () -> EnrollmentRequestParamsMapper.map(enrollmentRequestParams));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
@@ -172,7 +163,7 @@ class EnrollmentRequestParamsMapperTest {
   void testMappingOrderParamsNoOrder() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertIsEmpty(params.getOrder());
   }
@@ -184,7 +175,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setTrackedEntityType(UID.of("madeUpUid02"));
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         "`program` and `trackedEntityType` cannot be specified simultaneously",
@@ -197,7 +189,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
 
     Exception exception =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertStartsWith("`program` must be defined when `programStatus`", exception.getMessage());
   }
@@ -208,7 +201,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setStatus(EnrollmentStatus.ACTIVE);
 
     Exception exception =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertStartsWith("`program` must be defined when `status`", exception.getMessage());
   }
@@ -219,7 +213,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setFollowUp(true);
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         "`program` must be defined when `followUp` status is defined",
@@ -232,7 +227,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setEnrolledAfter(StartDateTime.of("2020-01-01"));
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         "`program` must be defined when `enrolledAfter` is specified",
@@ -245,7 +241,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setEnrolledBefore(EndDateTime.of("2020-01-01"));
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         "`program` must be defined when `enrolledBefore` is specified",
@@ -259,7 +256,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setUpdatedWithin("2h");
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         "`updatedAfter` and `updatedWithin` cannot be specified simultaneously",
@@ -272,7 +270,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setUpdatedWithin("invalid value");
 
     Exception badRequestException =
-        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        Assertions.assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         String.format("`updatedWithin` is not valid: %s", requestParams.getUpdatedWithin()),
