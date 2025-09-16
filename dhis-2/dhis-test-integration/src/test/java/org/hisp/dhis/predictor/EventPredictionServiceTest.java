@@ -427,6 +427,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
+    if (dataDumpService.upsertValuesForJdbcTest(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }
