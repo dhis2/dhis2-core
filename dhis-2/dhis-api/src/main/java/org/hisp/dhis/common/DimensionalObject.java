@@ -52,7 +52,7 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   default String getDimension() {
     return getUid();
   }
-  
+
   /** Gets the dimension type. */
   DimensionType getDimensionType();
 
@@ -68,7 +68,7 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   default DimensionalProperties getDimensionalProperties() {
     return new DimensionalProperties();
   }
-  
+
   /**
    * Gets the dimension name, which corresponds to a column in the analytics tables, with fall back
    * to dimension.
@@ -96,7 +96,7 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   default OptionSet getOptionSet() {
     return getDimensionalProperties().getOptionSet();
   }
-  
+
   // -------------------------------------------------------------------------
 
   /** Dimension items. */

@@ -70,11 +70,7 @@ class CategoryTest {
   @MethodSource("categoryEqualsParams")
   @DisplayName("Category equals check has expected result")
   void categoryEqualsTest(
-      String name,
-      String uid,
-      String code,
-      String shortName,
-      boolean expectedResult) {
+      String name, String uid, String code, String shortName, boolean expectedResult) {
     Category cParams = new Category();
     cParams.setName(name);
     cParams.setUid(uid);
@@ -90,7 +86,7 @@ class CategoryTest {
     boolean isNotEqual = false;
 
     return Stream.of(
-        Arguments.of("name", "uid", "code", "shortName",  isEqual),
+        Arguments.of("name", "uid", "code", "shortName", isEqual),
         Arguments.of("name", "uid", "code", "shortName diff", isEqual),
         Arguments.of("name", "uid", "code diff", "shortName", isNotEqual),
         Arguments.of("name", "uid diff", "code", "shortName", isNotEqual),

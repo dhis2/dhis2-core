@@ -47,7 +47,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
@@ -169,10 +168,7 @@ class EventAnalyticsDimensionsServiceTest {
 
     // Then: categories are included
     List<String> categoryUids =
-        items.stream()
-            .filter(i -> i instanceof Category)
-            .map(IdentifiableObject::getUid)
-            .toList();
+        items.stream().filter(i -> i instanceof Category).map(IdentifiableObject::getUid).toList();
     assertTrue(categoryUids.containsAll(List.of("CatA", "CatB")));
 
     // And: only attribute COGS are included (DISAGGREGATION filtered out)

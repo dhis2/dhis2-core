@@ -66,7 +66,6 @@ import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.AnalyticsType;
-import org.hisp.dhis.common.AttributeObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
@@ -81,19 +80,19 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dimensional.DimensionalProperties;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.schema.annotation.Gist;
-import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -111,14 +110,15 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 @Table(name = "category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Category extends BaseMetadataObject implements DimensionalObject, SystemDefaultMetadataObject {
+public class Category extends BaseMetadataObject
+    implements DimensionalObject, SystemDefaultMetadataObject {
   public static final String DEFAULT_NAME = "default";
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "categoryid")
   private long id;
-  
+
   @Column(nullable = false, unique = true, length = 230)
   private String name;
 
@@ -127,10 +127,10 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
 
   @Column(columnDefinition = "text")
   private String description;
-  
+
   @Column(length = 50, unique = true, nullable = false)
   private String code;
-  
+
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
   /**
@@ -138,21 +138,18 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
    * DimensionType#CATEGORY}.
    */
   @Column(name = "datadimensiontype", nullable = false)
-  @Type(type = "org.hisp.dhis.common.DataDimensionTypeUserType" )
+  @Type(type = "org.hisp.dhis.common.DataDimensionTypeUserType")
   private DataDimensionType dataDimensionType;
 
   @ManyToMany
   @JoinTable(
       name = "categories_categoryoptions",
       joinColumns = @JoinColumn(name = "categoryid"),
-      inverseJoinColumns = @JoinColumn(name = "categoryoptionid")
-  )
-  
+      inverseJoinColumns = @JoinColumn(name = "categoryoptionid"))
   @OrderColumn(name = "sort_order")
   @ListIndexBase(value = 1)
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<CategoryOption> categoryOptions = new ArrayList<>();
-
 
   @ManyToMany(mappedBy = "categories")
   private Set<CategoryCombo> categoryCombos = new HashSet<>();
@@ -172,7 +169,8 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   // Transient properties
   // -------------------------------------------------------------------------
 
-  @Transient private transient DimensionalProperties dimensionalProperties = new DimensionalProperties();
+  @Transient
+  private transient DimensionalProperties dimensionalProperties = new DimensionalProperties();
 
   /** The name of this dimension. */
   @Transient private transient String dimensionName;
@@ -212,7 +210,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
 
   /** Indicates whether this dimension is fixed. */
   @Transient private transient boolean fixed;
-  
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -236,11 +234,11 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   @Override
   public boolean equals(Object obj) {
     return this == obj
-           || obj instanceof Category other
-              && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
-              && Objects.equals(getUid(), other.getUid())
-              && Objects.equals(getCode(), other.getCode())
-              && Objects.equals(getName(), other.getName());
+        || obj instanceof Category other
+            && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName());
   }
 
   @Override
@@ -250,7 +248,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
     return result;
   }
-  
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -323,7 +321,6 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return Lists.newArrayList(categoryOptions);
   }
 
-
   @Override
   public DimensionType getDimensionType() {
     return DimensionType.CATEGORY;
@@ -350,6 +347,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   public String getDimensionDisplayName() {
     return dimensionDisplayName;
   }
+
   // ------------------------------------------------------------------------
   // Getters and setters
   // ------------------------------------------------------------------------
@@ -369,7 +367,6 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   public Set<CategoryCombo> getCategoryCombos() {
     return categoryCombos;
   }
-
 
   @OpenApi.Property(AttributeValue[].class)
   @JsonProperty("attributeValues")
@@ -399,32 +396,26 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return attributeValues.get(attributeUid);
   }
 
-
   @Override
   public void setDimensionName(String dimensionName) {
     this.dimensionalProperties.setDimensionName(dimensionName);
   }
 
-  /**
-   * Indicates whether this object should be handled as a data dimension. Persistent property.
-   */
+  /** Indicates whether this object should be handled as a data dimension. Persistent property. */
   @Override
   public boolean isDataDimension() {
     return dataDimension;
   }
-
 
   @Override
   public String getShortName() {
     return shortName;
   }
 
-
   @Override
   public String getDescription() {
     return description;
   }
-
 
   @Override
   public String getName() {
@@ -454,9 +445,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   // Not supported dimensional object methods
   // -------------------------------------------------------------------------
 
-  /**
-   * Indicates whether all available items in this dimension are included.
-   */
+  /** Indicates whether all available items in this dimension are included. */
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -464,9 +453,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return allItems;
   }
 
-  /**
-   * Gets the legend set.
-   */
+  /** Gets the legend set. */
   @Override
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -475,9 +462,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return legendSet;
   }
 
-  /**
-   * Gets the program stage (not persisted).
-   */
+  /** Gets the program stage (not persisted). */
   @Override
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -486,9 +471,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return programStage;
   }
 
-  /**
-   * Gets the program (not persisted).
-   */
+  /** Gets the program (not persisted). */
   @Override
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -497,9 +480,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return program;
   }
 
-  /**
-   * Gets the aggregation type.
-   */
+  /** Gets the aggregation type. */
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -507,9 +488,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return aggregationType;
   }
 
-  /**
-   * Gets the filter. Contains operator and filter. Applicable for events.
-   */
+  /** Gets the filter. Contains operator and filter. Applicable for events. */
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -517,9 +496,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return filter;
   }
 
-  /**
-   * Gets the events repetition. Only applicable for events.
-   */
+  /** Gets the events repetition. Only applicable for events. */
   @Override
   @JsonProperty("repetition")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -527,9 +504,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return eventRepetition;
   }
 
-  /**
-   * Indicates the analytics type of this dimensional object.
-   */
+  /** Indicates the analytics type of this dimensional object. */
   @Override
   public AnalyticsType getAnalyticsType() {
     return null;
@@ -555,9 +530,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return List.of();
   }
 
-  /**
-   * Returns a unique key representing this dimension.
-   */
+  /** Returns a unique key representing this dimension. */
   @Override
   public String getKey() {
     return "";
@@ -568,9 +541,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     this.fixed = fixed;
   }
 
-  /**
-   * Returns dimension item keywords for this dimension.
-   */
+  /** Returns dimension item keywords for this dimension. */
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -585,7 +556,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   public String getDisplayShortName() {
     return translations.getTranslation("SHORTNAME", shortName);
   }
-  
+
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -630,7 +601,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   /**
    * @param user
    * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
-   * used for web api backward compatibility
+   *     used for web api backward compatibility
    */
   @Override
   public void setUser(User user) {
