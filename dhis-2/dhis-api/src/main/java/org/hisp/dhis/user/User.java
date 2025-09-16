@@ -396,7 +396,6 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     }
 
     for (Category cat : catDimensionConstraints) {
-      cat.setDimensionType(DimensionType.CATEGORY);
       constraints.add(cat);
     }
 

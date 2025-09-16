@@ -58,6 +58,14 @@ public interface IdentifiableObject
 
   User getLastUpdatedBy();
 
+  AttributeValues getAttributeValues();
+
+  void setAttributeValues(AttributeValues attributeValues);
+
+  void addAttributeValue(String attributeUid, String value);
+
+  void removeAttributeValue(String attributeId);
+
   Set<Translation> getTranslations();
 
   void setAccess(Access access);

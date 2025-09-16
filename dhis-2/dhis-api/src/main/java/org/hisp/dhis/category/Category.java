@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -65,6 +66,7 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.AttributeObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DataDimensionType;
@@ -78,12 +80,18 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dimensional.DimensionalProperties;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -159,6 +167,45 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   // -------------------------------------------------------------------------
 
   @Transient private transient DimensionalProperties dimensionalProperties = new DimensionalProperties();
+
+  /** The name of this dimension. */
+  @Transient private transient String dimensionName;
+
+  /** The display name to use for this dimension. */
+  @Transient private transient String dimensionDisplayName;
+
+  /** Holds the value type of the parent dimension. */
+  @Transient private transient ValueType valueType;
+
+  /** The option set associated with the dimension, if any. */
+  @Transient private transient OptionSet optionSet;
+
+  /** Indicates whether all available items in this dimension are included. */
+  @Transient private transient boolean allItems;
+
+  /** The legend set for this dimension. */
+  @Transient private transient LegendSet legendSet;
+
+  /** The program stage for this dimension. */
+  @Transient private transient ProgramStage programStage;
+
+  /** The program for this dimension. */
+  @Transient private transient Program program;
+
+  /** The aggregation type for this dimension. */
+  @Transient private transient AggregationType aggregationType;
+
+  /** Filter. Applicable for events. Contains operator and filter. */
+  @Transient private transient String filter;
+
+  /** Applicable only for events. Holds the indexes relate to the repetition object. */
+  @Transient private transient EventRepetition eventRepetition;
+
+  /** Defines a pre-defined group of items. */
+  @Transient private transient DimensionItemKeywords dimensionItemKeywords;
+
+  /** Indicates whether this dimension is fixed. */
+  @Transient private transient boolean fixed;
   
   // -------------------------------------------------------------------------
   // Constructors
@@ -287,7 +334,6 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   }
 
 
-  @Override
   @OpenApi.Property(AttributeValue[].class)
   @JsonProperty("attributeValues")
   @JsonDeserialize(using = AttributeValuesDeserializer.class)
@@ -299,6 +345,21 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
     this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return attributeValues.get(attributeUid);
   }
 
 
@@ -333,14 +394,23 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     return name;
   }
 
-
-
-  /**
-   * Return all sharing settings of current object
-   */
   @Override
   public Sharing getSharing() {
     return sharing;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ValueType getValueType() {
+    return valueType;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OptionSet getOptionSet() {
+    return optionSet;
   }
 
   // -------------------------------------------------------------------------
@@ -351,56 +421,73 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
    * Indicates whether all available items in this dimension are included.
    */
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isAllItems() {
-    return false;
+    return allItems;
   }
 
   /**
    * Gets the legend set.
    */
   @Override
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
-    return null;
+    return legendSet;
   }
 
   /**
    * Gets the program stage (not persisted).
    */
   @Override
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ProgramStage getProgramStage() {
-    return null;
+    return programStage;
   }
 
   /**
    * Gets the program (not persisted).
    */
   @Override
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
-    return null;
+    return program;
   }
 
   /**
    * Gets the aggregation type.
    */
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AggregationType getAggregationType() {
-    return null;
+    return aggregationType;
   }
 
   /**
    * Gets the filter. Contains operator and filter. Applicable for events.
    */
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFilter() {
-    return "";
+    return filter;
   }
 
   /**
    * Gets the events repetition. Only applicable for events.
    */
   @Override
+  @JsonProperty("repetition")
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EventRepetition getEventRepetition() {
-    return null;
+    return eventRepetition;
   }
 
   /**
@@ -413,7 +500,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
 
   @Override
   public void setEventRepetition(EventRepetition eventRepetition) {
-
+    this.eventRepetition = eventRepetition;
   }
 
   /**
@@ -421,8 +508,9 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
    * returned as is for all dimension items in the response.
    */
   @Override
+  @JsonIgnore
   public boolean isFixed() {
-    return false;
+    return fixed;
   }
 
   @Override
@@ -440,15 +528,17 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
 
   @Override
   public void setFixed(boolean fixed) {
-
+    this.fixed = fixed;
   }
 
   /**
    * Returns dimension item keywords for this dimension.
    */
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DimensionItemKeywords getDimensionItemKeywords() {
-    return null;
+    return dimensionItemKeywords;
   }
 
   @Override
@@ -472,13 +562,22 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   }
 
   @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return "";
+    return translations.getTranslation("NAME", name);
   }
 
+  @Gist(included = Include.FALSE)
   @Override
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    return Set.of();
+    return translations.getTranslations();
   }
 
   /**
@@ -516,9 +615,10 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
 
   }
 
+  /** Clears out cache when setting translations. */
   @Override
   public void setTranslations(Set<Translation> translations) {
-
+    this.translations.setTranslations(translations);
   }
 
   /**
