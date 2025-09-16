@@ -103,7 +103,6 @@ class JdbcValidationResultTableManagerTest {
 
   @BeforeEach
   void setUp() {
-    // lenient().when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     // Avoid NPEs when building dynamic columns
     lenient().when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(List.of());
     lenient()
