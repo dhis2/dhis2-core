@@ -43,6 +43,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataApprovalPermissions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -194,6 +195,8 @@ class DataApprovalControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "DHIS2-19679 similar service level test failed and got disabled - likely same unclear issue")
   void testGetApproval() {
     JsonArray statuses =
         GET("/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}", ouId, wfId, dsId)

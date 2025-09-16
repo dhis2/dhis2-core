@@ -222,6 +222,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
                         "name": "ds 1",
                         "shortName": "ds 1",
                         "periodType": "Monthly",
+                        "organisationUnits": [ { "id": "OrgUnitUid1"}],
                         "dataSetElements": [
                             {
                                 "dataElement": {
