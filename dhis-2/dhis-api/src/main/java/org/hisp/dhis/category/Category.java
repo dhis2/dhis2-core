@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
@@ -85,6 +86,7 @@ import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dimensional.DimensionalProperties;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.eventvisualization.EventRepetition;
@@ -228,6 +230,29 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     this.categoryOptions = categoryOptions;
   }
 
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+           || obj instanceof CategoryOption other
+              && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
+              && Objects.equals(getUid(), other.getUid())
+              && Objects.equals(getCode(), other.getCode())
+              && Objects.equals(getName(), other.getName())
+              && Objects.equals(getShortName(), other.getShortName());
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    return result;
+  }
+  
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------

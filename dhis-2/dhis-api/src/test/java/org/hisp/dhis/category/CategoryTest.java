@@ -74,14 +74,12 @@ class CategoryTest {
       String uid,
       String code,
       String shortName,
-      String description,
       boolean expectedResult) {
     Category cParams = new Category();
     cParams.setName(name);
     cParams.setUid(uid);
     cParams.setCode(code);
     cParams.setShortName(shortName);
-    cParams.setDescription(description);
 
     assertEquals(
         expectedResult, getCategory().equals(cParams), "Category equals check has expected result");
@@ -92,12 +90,11 @@ class CategoryTest {
     boolean isNotEqual = false;
 
     return Stream.of(
-        Arguments.of("name", "uid", "code", "shortName", "description", isEqual),
-        Arguments.of("name", "uid", "code", "shortName", "description diff", isNotEqual),
-        Arguments.of("name", "uid", "code", "shortName diff", "description", isNotEqual),
-        Arguments.of("name", "uid", "code diff", "shortName", "description", isNotEqual),
-        Arguments.of("name", "uid diff", "code", "shortName", "description", isNotEqual),
-        Arguments.of("name diff", "uid", "code", "shortName", "description", isNotEqual));
+        Arguments.of("name", "uid", "code", "shortName",  isEqual),
+        Arguments.of("name", "uid", "code", "shortName diff", isNotEqual),
+        Arguments.of("name", "uid", "code diff", "shortName", isNotEqual),
+        Arguments.of("name", "uid diff", "code", "shortName", isNotEqual),
+        Arguments.of("name diff", "uid", "code", "shortName", isNotEqual));
   }
 
   private Category getCategory() {
@@ -106,7 +103,6 @@ class CategoryTest {
     c.setUid("uid");
     c.setCode("code");
     c.setShortName("shortName");
-    c.setDescription("description");
     return c;
   }
 }
