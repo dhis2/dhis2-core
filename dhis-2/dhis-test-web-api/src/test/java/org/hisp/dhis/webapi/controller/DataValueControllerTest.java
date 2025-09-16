@@ -44,6 +44,8 @@ import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -55,6 +57,13 @@ import org.springframework.test.web.servlet.MvcResult;
  */
 class DataValueControllerTest extends AbstractDataValueControllerTest {
   @Autowired private DataExportStore dataExportStore;
+
+  private String dsId;
+
+  @BeforeEach
+  void setUpDataSet() {
+    dsId = setupDataSet();
+  }
 
   @Test
   void testSetDataValuesFollowUp_Empty() {
@@ -151,21 +160,12 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
   /** Check if the dataValueSet endpoint return correct fileName. */
   @Test
   void testGetDataValueSetJsonWithAttachment() {
-    String dsId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataSets/",
-                "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
-                    + dataElementId
-                    + "'}}]}"));
-
     String body =
         format(
             "{"
                 + "'dataElement':'%s',"
                 + "'categoryOptionCombo':'%s',"
-                + "'period':'20220102',"
+                + "'period':'202201',"
                 + "'orgUnit':'%s',"
                 + "'value':'24',"
                 + "'comment':'OK'}",
@@ -188,6 +188,20 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
             .getResponse()
             .getHeader("Content-Disposition")
             .contains("dataValues_2022-01-01_2022-01-30.json.zip"));
+  }
+
+  private String setupDataSet() {
+    @Language("JSON5")
+    String json =
+        """
+      {'name':'My data set',
+      'shortName':'MDS',
+      'periodType':'Monthly',
+      'dataSetElements':[{'dataElement':{'id':'%s'}}],
+      'organisationUnits': [{ 'id': '%s'}]
+      }""";
+    return assertStatus(
+        HttpStatus.CREATED, POST("/dataSets/", json.formatted(dataElementId, orgUnitId)));
   }
 
   private void assertFollowups(boolean... expected) {

@@ -285,7 +285,7 @@ public class DataValueController {
     if (values == null
         || values.isEmpty()
         || values.stream().anyMatch(e -> e.getFollowup() == null))
-      throw new IllegalQueryException(ErrorCode.E2033);
+      throw new ConflictException(ErrorCode.E2033);
 
     DataEntrySummary summary =
         dataEntryService.upsertGroup(

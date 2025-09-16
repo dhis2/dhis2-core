@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -72,6 +71,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -80,9 +80,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
-import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
@@ -102,6 +100,7 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
+import org.hisp.dhis.webapi.webdomain.form.Field;
 import org.hisp.dhis.webapi.webdomain.form.Form;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -136,9 +135,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
   @Autowired private DataEntryFormService dataEntryFormService;
 
-  @Autowired private DataValueService dataValueService;
-
-  @Autowired private DataExportService dataExportService;
+  @Autowired private DataExportPipeline dataExportPipeline;
 
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
@@ -341,19 +338,30 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
                       .getAttributeOptionCombo(dataSet.getCategoryCombo(), options, IdScheme.UID)
                       .getUid());
 
-      Stream<DataExportValue> dataValues =
-          dataExportService.exportValues(
-              DataExportParams.builder()
-                  .dataElement(
-                      dataSets.get(0).getDataElements().stream()
-                          .map(DataElement::getUid)
-                          .collect(toSet()))
-                  .period(Set.of(pe.getIsoDate()))
-                  .orgUnit(Set.of(ou.getUid()))
-                  .attributeOptionCombo(attrOptionCombos)
-                  .build());
+      DataExportParams params =
+          DataExportParams.builder()
+              .dataElement(
+                  dataSets.get(0).getDataElements().stream()
+                      .map(DataElement::getUid)
+                      .collect(toSet()))
+              .period(Set.of(pe.getIsoDate()))
+              .orgUnit(Set.of(ou.getUid()))
+              .attributeOptionCombo(attrOptionCombos)
+              .build();
+      Map<String, Field> operandFieldMap = FormUtils.buildCacheMap(form);
+      dataExportPipeline.exportToConsumer(
+          params,
+          dv -> {
+            UID dataElement = dv.dataElement();
+            UID categoryOptionCombo = dv.categoryOptionCombo();
 
-      FormUtils.fillWithDataValues(form, dataValues);
+            Field field = operandFieldMap.get(dataElement + FormUtils.SEP + categoryOptionCombo);
+
+            if (field != null) {
+              field.setValue(dv.value());
+              field.setComment(dv.comment());
+            }
+          });
     }
 
     return form;

@@ -622,7 +622,7 @@ public enum ErrorCode {
 
   /* Data entry (SQL backed implementation) */
   // set level decoding and general input issues
-  E8000("Atomic mode requires all values to be valid but only {0}/{1} were."),
+  E8000("Atomic mode requires all values to be valid but only {0}/{1} were. First issue: {2}"),
   E8001("PDF input does not support Acro fields"),
   E8002("Data set detection failed, found multiple sets: `${datasets:{0}}`"),
   E8003("Data set detection failed, found no set for data element(s): `${elements:{0}}`"),

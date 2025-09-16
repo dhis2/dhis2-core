@@ -30,6 +30,9 @@
 package org.hisp.dhis.datavalue;
 
 import java.io.OutputStream;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Component;
@@ -39,6 +42,10 @@ import org.springframework.transaction.annotation.Transactional;
  * Utility to convert between internal data records {@link DataExportGroup.Output} and external text
  * formats.
  *
+ * @implNote While being a layer above {@link org.springframework.stereotype.Service} this class
+ *     needs to use {@link Transactional} because the values streamed from database have to be
+ *     consumed within the transaction scope. But IO formatting is not a service level concern so
+ *     instead this layer is responsible for transactions.
  * @author Jan Bernitt
  * @since 2.43
  */
@@ -47,6 +54,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataExportPipeline {
 
   private final DataExportService service;
+
+  @Transactional(readOnly = true)
+  public <T> List<T> exportAsList(DataExportParams params, Function<DataExportValue, T> f)
+      throws ConflictException {
+    // it might appear silly to just have this bit of code in here
+    // limiting what can be done with the Stream, but we have to process the stream
+    // within the transaction boundaries - that is why it is inside of this method
+    return service.exportValues(params).map(f).toList();
+  }
+
+  @Transactional(readOnly = true)
+  public void exportToConsumer(DataExportParams params, Consumer<DataExportValue> f)
+      throws ConflictException {
+    // it might appear silly to just have this bit of code in here
+    // limiting what can be done with the Stream, but we have to process the stream
+    // within the transaction boundaries - that is why it is inside of this method
+    service.exportValues(params).forEach(f);
+  }
 
   @Transactional(readOnly = true)
   public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {

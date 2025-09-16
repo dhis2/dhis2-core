@@ -33,10 +33,11 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditEntry;
@@ -60,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataValueContextController {
 
   private final DataValueAuditService dataValueAuditService;
-  private final DataExportService dataExportService;
+  private final DataExportPipeline dataExportPipeline;
   private final PeriodService periodService;
 
   @GetMapping("/dataValueContext")
@@ -74,18 +75,17 @@ public class DataValueContextController {
             .collect(toSet());
 
     List<DataExportValue> dataValues =
-        dataExportService
-            .exportValues(
-                DataExportParams.builder()
-                    .dataElement(Set.of(params.getDe()))
-                    .period(periods)
-                    .orgUnit(Set.of(params.getOu()))
-                    .categoryOptionCombo(Set.of(params.getCo()))
-                    .attributeCombo(params.getCc())
-                    .attributeOptions(Set.of(params.getCp().split(";")))
-                    .orderByPeriod(true)
-                    .build())
-            .toList();
+        dataExportPipeline.exportAsList(
+            DataExportParams.builder()
+                .dataElement(Set.of(params.getDe()))
+                .period(periods)
+                .orgUnit(Set.of(params.getOu()))
+                .categoryOptionCombo(Set.of(params.getCo()))
+                .attributeCombo(params.getCc())
+                .attributeOptions(Set.of(params.getCp().split(";")))
+                .orderByPeriod(true)
+                .build(),
+            Function.identity());
 
     return new DataValueContextDto().setAudits(audits).setHistory(dataValues);
   }

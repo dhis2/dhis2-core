@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,7 +48,7 @@ import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.ConflictException;
@@ -78,7 +77,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
 public class DataSetValueController {
-  private final DataExportService dataExportService;
+
+  private final DataExportPipeline dataExportPipeline;
 
   private final MinMaxDataElementService minMaxValueService;
 
@@ -104,7 +104,13 @@ public class DataSetValueController {
             .attributeOptionCombo(Set.of(aoc.getUid()))
             .build();
 
-    Stream<DataExportValue> dataValues = dataExportService.exportValues(exportParams);
+    DataValueCategoryParams attribute = new DataValueCategoryParams();
+    attribute.setCombo(aoc.getCategoryCombo().getUid());
+    attribute.setOptions(
+        aoc.getCategoryOptions().stream().map(IdentifiableObject::getUid).collect(toSet()));
+
+    List<DataValuePostParams> dataValues =
+        dataExportPipeline.exportAsList(exportParams, dv -> toDto(dv, attribute));
 
     List<MinMaxDataElement> minMaxValues =
         minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
@@ -118,12 +124,8 @@ public class DataSetValueController {
     CompleteDataSetRegistration registration =
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
 
-    DataValueCategoryParams attribute = new DataValueCategoryParams();
-    attribute.setCombo(aoc.getCategoryCombo().getUid());
-    attribute.setOptions(
-        aoc.getCategoryOptions().stream().map(IdentifiableObject::getUid).collect(toSet()));
     return new DataValuesDto()
-        .setDataValues(dataValues.map(dv -> toDto(dv, attribute)).toList())
+        .setDataValues(dataValues)
         .setMinMaxValues(mapToList(minMaxValues, DataSetValueController::toDto))
         .setLockStatus(lockStatus)
         .setCompleteStatus(registration != null ? toDto(registration) : new CompleteStatusDto());

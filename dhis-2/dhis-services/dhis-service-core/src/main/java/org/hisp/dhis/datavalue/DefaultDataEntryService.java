@@ -354,8 +354,15 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
             () -> validate(options.force(), group.dataSet(), values, errors));
     int entered = values.size();
     int attempted = valid.values().size();
-    if (options.atomic() && entered > attempted)
-      throw new ConflictException(ErrorCode.E8000, attempted, entered);
+    if (options.atomic() && entered > attempted) {
+      // keep original single error if possible
+      if (entered == 1 && errors.size() == 1) {
+        DataEntryError error = errors.get(0);
+        throw new ConflictException(error.code(), error.args());
+      }
+      String error = errors.isEmpty() ? "" : errors.get(0).message();
+      throw new ConflictException(ErrorCode.E8000, attempted, entered, error);
+    }
 
     String verb = "Upserting";
     if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";

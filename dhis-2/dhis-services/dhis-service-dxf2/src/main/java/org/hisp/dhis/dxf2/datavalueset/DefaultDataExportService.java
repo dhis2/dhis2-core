@@ -86,6 +86,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -105,12 +106,19 @@ public class DefaultDataExportService implements DataExportService {
 
   @CheckForNull
   @Override
+  @Transactional(readOnly = true)
   public DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException {
     // TODO access validation
     return store.getDataValue(key);
   }
 
+  /**
+   * @implNote since we return a stream whoever is calling must already be in a transaction because
+   *     only then it is safe to process the stream in that transaction outside of this method. Once
+   *     the transaction closes the stream becomes invalid.
+   */
   @Override
+  @Transactional(propagation = Propagation.MANDATORY)
   public Stream<DataExportValue> exportValues(@Nonnull DataExportParams parameters)
       throws ConflictException {
     DataExportStoreParams params = decodeParams(parameters);
