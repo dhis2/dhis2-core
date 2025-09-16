@@ -89,7 +89,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
   @Override
   public boolean validState() {
-    return tableIsNotEmpty("trackerevent");
+    // At least one table must have row(s).
+    return tableIsNotEmpty("trackerevent") || tableIsNotEmpty("singleevent");
   }
 
   /**

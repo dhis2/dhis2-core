@@ -39,7 +39,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
-import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,16 +69,17 @@ public final class EventAnalyticsColumn {
    *
    * @param sqlBuilder the {@link SqlBuilder}.
    * @param useCentroidForOuGeometry if true, use the Postgis's ST_Centroid function for OU geometry
+   * @param isTrackerProgram indicates if the current program is a tracker program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
   public static List<AnalyticsTableColumn> getColumns(
-      SqlBuilder sqlBuilder, boolean useCentroidForOuGeometry) {
+      SqlBuilder sqlBuilder, boolean useCentroidForOuGeometry, boolean isTrackerProgram) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(getCommonTrackerEventColumns(sqlBuilder));
+    columns.addAll(getEventColumns(sqlBuilder, isTrackerProgram));
     columns.addAll(getJsonColumns(sqlBuilder));
 
     if (sqlBuilder.supportsGeospatialData()) {
-      columns.addAll(getGeometryColumns(useCentroidForOuGeometry));
+      columns.addAll(getGeometryColumns(useCentroidForOuGeometry, isTrackerProgram));
     }
 
     return columns;
@@ -89,9 +89,11 @@ public final class EventAnalyticsColumn {
    * Returns a list of {@link AnalyticsTableColumn}.
    *
    * @param sqlBuilder the {@link SqlBuilder}.
+   * @param isTrackerProgram indicates if the current program is a tracker program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private static List<AnalyticsTableColumn> getCommonTrackerEventColumns(SqlBuilder sqlBuilder) {
+  public static List<AnalyticsTableColumn> getEventColumns(
+      SqlBuilder sqlBuilder, boolean isTrackerProgram) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.EVENT_COLUMN_NAME)
@@ -102,8 +104,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NULL)
-            .selectExpression("en.uid")
+            .selectExpression(getSelectExpression("en.uid", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.PS_COLUMN_NAME)
@@ -120,12 +121,12 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("en.enrollmentdate")
+            .selectExpression(getSelectExpression("en.enrollmentdate", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("en.occurreddate")
+            .selectExpression(getSelectExpression("en.occurreddate", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
@@ -135,7 +136,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("ev.scheduleddate")
+            .selectExpression(getSelectExpression("ev.scheduleddate", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
@@ -171,7 +172,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
             .dataType(VARCHAR_50)
-            .selectExpression("en.status")
+            .selectExpression(getSelectExpression("en.status", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.OU_COLUMN_NAME)
@@ -198,147 +199,40 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NULL)
-            .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .selectExpression(
+                getSelectExpression("coalesce(registrationou.uid,ou.uid)", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NULL)
-            .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
+            .selectExpression(
+                getSelectExpression("coalesce(enrollmentou.uid,ou.uid)", isTrackerProgram))
             .build());
   }
 
   /**
-   * Returns a list of {@link AnalyticsTableColumn}.
+   * It returns the correct SQL expression, based on the given boolean flag and expression. In
+   * certain cases, only tracker programs should have a dedicated expression, while single programs
+   * will return "null". This is the main goal of this method.
    *
-   * @param sqlBuilder the {@link SqlBuilder}.
-   * @return a list of {@link AnalyticsTableColumn}.
+   * @param trackerProgramExpression the expression to be returned.
+   * @param isTrackerProgram indicates if the current program is a tracker program.
+   * @return the expression.
    */
-  public static List<AnalyticsTableColumn> getCommonSingleEventColumns(SqlBuilder sqlBuilder) {
-    return List.of(
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.EVENT_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("ev.uid")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NULL)
-            .selectExpression("null")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.PS_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("ps.uid")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.AO_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("acs.categoryoptioncombouid")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression("null")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression("null")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression("ev.occurreddate")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression("null")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression("ev.completeddate")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression(
-                sqlBuilder.ifThenElse(
-                    "ev.createdatclient is not null", "ev.createdatclient", "ev.created"))
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
-            .dataType(TIMESTAMP)
-            .selectExpression(
-                sqlBuilder.ifThenElse(
-                    "ev.lastupdatedatclient is not null",
-                    "ev.lastupdatedatclient",
-                    "ev.lastupdated"))
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.STORED_BY_COLUMN_NAME)
-            .dataType(VARCHAR_255)
-            .selectExpression("ev.storedby")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME)
-            .dataType(VARCHAR_50)
-            .selectExpression("ev.status")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
-            .dataType(VARCHAR_50)
-            .selectExpression("null")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.OU_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("ou.uid")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-            .dataType(TEXT)
-            .nullable(NOT_NULL)
-            .selectExpression("ou.name")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-            .dataType(TEXT)
-            .selectExpression("ou.code")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.OU_LEVEL_COLUMN_NAME)
-            .dataType(INTEGER)
-            .selectExpression("ous.level")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NULL)
-            .selectExpression("null")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME)
-            .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("null")
-            .build());
+  private static String getSelectExpression(
+      String trackerProgramExpression, boolean isTrackerProgram) {
+    final String eventProgramExpression = "null";
+    return isTrackerProgram ? trackerProgramExpression : eventProgramExpression;
   }
 
   /**
    * Returns a list of geometry {@link AnalyticsTableColumn}.
    *
+   * @param isTrackerProgram indicates if the current program is a tracker program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private static List<AnalyticsTableColumn> getGeometryColumns(boolean useCentroid) {
+  public static List<AnalyticsTableColumn> getGeometryColumns(
+      boolean useCentroid, boolean isTrackerProgram) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.EVENT_GEOMETRY_COLUMN_NAME)
@@ -355,46 +249,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
             .dataType(GEOMETRY)
-            .selectExpression("en.geometry")
-            .indexType(IndexType.GIST)
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME)
-            .dataType(DOUBLE)
-            .selectExpression(
-                "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_X(ev.geometry) ELSE null END")
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.LATITUDE_COLUMN_NAME)
-            .dataType(DOUBLE)
-            .selectExpression(
-                "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_Y(ev.geometry) ELSE null END")
-            .build());
-  }
-
-  /**
-   * Returns a list of geometry {@link AnalyticsTableColumn}.
-   *
-   * @return a list of {@link AnalyticsTableColumn}.
-   */
-  public static List<AnalyticsTableColumn> getSingleEventGeometryColumns(boolean useCentroid) {
-    return List.of(
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.EVENT_GEOMETRY_COLUMN_NAME)
-            .dataType(GEOMETRY)
-            .selectExpression("ev.geometry")
-            .indexType(IndexType.GIST)
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.OU_GEOMETRY_COLUMN_NAME)
-            .dataType(GEOMETRY)
-            .selectExpression(useCentroid ? "ST_Centroid(ou.geometry)" : "ou.geometry")
-            .indexType(IndexType.GIST)
-            .build(),
-        AnalyticsTableColumn.builder()
-            .name(EventAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
-            .dataType(GEOMETRY)
-            .selectExpression("null")
+            .selectExpression(getSelectExpression("en.geometry", isTrackerProgram))
             .indexType(IndexType.GIST)
             .build(),
         AnalyticsTableColumn.builder()
