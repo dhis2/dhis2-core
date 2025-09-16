@@ -1048,28 +1048,27 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Disabled("Not sure we have or want that feature any more")
+  @Disabled("DHIS2-19679 COC is now always required but null/empty means use default")
   void testImportDataValuesWithRequiredCategoryOptionCombo() {
     ImportOptions options = new ImportOptions().setRequireCategoryOptionCombo(true);
-    // TODO do these exist to disallow default COC?
 
     ImportSummary summary =
         dataEntryPipeline.importXml(
             readFile("dxf2/datavalueset/dataValue?.xml"), options, transitory());
 
-    // TODO asserts once we know how this should work
+    // assertions were removed since the semantics are unclear
   }
 
   @Test
-  @Disabled("Not sure we have or want that feature any more")
+  @Disabled("DHIS2-19679 AOC is now always required but null/empty means use default")
   void testImportDataValuesWithRequiredAttributeOptionCombo() {
     ImportOptions options = new ImportOptions().setRequireAttributeOptionCombo(true);
-    // TODO do these exist to disallow default AOC?
 
     ImportSummary summary =
         dataEntryPipeline.importXml(
             readFile("dxf2/datavalueset/dataValueSetNon?.xml"), options, transitory());
-    // TODO asserts once we know how this should work
+
+    // assertions were removed since the semantics are unclear
   }
 
   @Test
@@ -1098,7 +1097,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled(
-      "The issue is that the DS does not actually use coA but must use default or other test fail - this needs an entire new setup")
+      "DHIS2-19679 DS does not actually use coA as expected by the setup and thus the import is invalid")
   void testImportDataValuesInvalidAttributeOptionComboDates() {
     categoryOptionA.setStartDate(peB.getStartDate());
     categoryOptionA.setEndDate(peB.getEndDate());
@@ -1113,7 +1112,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled(
-      "The issue is that the DS does not actually use coA but must use default or other test fail - this needs an entire new setup")
+      "DHIS2-19679 DS does not actually use coA as expected by the setup and thus the import is invalid")
   void testImportDataValuesInvalidAttributeOptionComboOrgUnit() {
     categoryOptionA.setOrganisationUnits(Set.of(ouA, ouB));
     categoryService.updateCategoryOption(categoryOptionA);
@@ -1159,7 +1158,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled(
-      "This does not pass the new assert because the test runs as superuser who can enter anytime and fixing the setup is quite some work")
+      "DHIS2-19679 test runs as superuser who can enter anytime so the expected issue does not occur")
   void testImportDataValuesWithDataSetAllowsPeriods() {
     Date thisMonth = DateUtils.truncate(new Date(), Calendar.MONTH);
     dsA.setExpiryDays(62);
