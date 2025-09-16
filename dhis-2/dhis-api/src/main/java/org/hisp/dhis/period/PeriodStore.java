@@ -39,6 +39,9 @@ import org.hisp.dhis.common.GenericStore;
  * @author Torgeir Lorange Ostby
  */
 public interface PeriodStore extends GenericStore<Period> {
+
+  void invalidateCache();
+
   // -------------------------------------------------------------------------
   // Period
   // -------------------------------------------------------------------------

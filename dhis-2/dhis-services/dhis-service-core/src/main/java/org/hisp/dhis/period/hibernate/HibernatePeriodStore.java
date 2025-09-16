@@ -95,6 +95,11 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     transientIdentifiableProperties = true;
   }
 
+  @Override
+  public void invalidateCache() {
+    periodIdByIsoPeriod.clear();
+  }
+
   // -------------------------------------------------------------------------
   // Period
   // -------------------------------------------------------------------------

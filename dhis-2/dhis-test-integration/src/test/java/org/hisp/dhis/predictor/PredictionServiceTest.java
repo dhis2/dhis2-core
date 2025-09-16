@@ -34,10 +34,10 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -68,6 +68,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -103,6 +104,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataExportStore dataExportStore;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodStore periodStore;
 
   @Autowired private DataSetService dataSetService;
 
@@ -177,12 +179,9 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   private DataSet dataSetMonthly;
 
-  private List<DataValue> pendingValues = new ArrayList<>();
-
-  private PredictionSummary summary;
-
   @BeforeEach
   void setUp() {
+    periodStore.invalidateCache();
     PeriodType.invalidatePeriodCache();
 
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
@@ -294,7 +293,6 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
         new Expression(
             "sum(#{" + dataElementA.getUid() + "}+#{" + dataElementB.getUid() + "})",
             "descriptionG");
-    summary = new PredictionSummary();
     Set<OrganisationUnit> units = Sets.newHashSet(sourceA, sourceB, sourceG);
 
     User user = createAndAddUser(true, "mockUser", units, units);
@@ -304,7 +302,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
-  private Period makeMonth(int year, int month) {
+  private Period monthlyPeriod(int year, int month) {
     Date start = getDate(year, month, 1);
     Period period = periodTypeMonthly.createPeriod(start);
     Date end = getDate(year, month, period.getDaysInPeriod());
@@ -316,35 +314,34 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     return starting.toDate();
   }
 
-  private void useDataValue(DataElement e, Period p, OrganisationUnit s, Object value) {
-    useDataValue(e, p, s, defaultCombo, value);
+  private DataValue createDataValue(DataElement e, Period p, OrganisationUnit s, Object value) {
+    return createDataValue(e, p, s, defaultCombo, value);
   }
 
-  private void useDataValue(
+  private DataValue createDataValue(
       DataElement e,
       Period p,
       OrganisationUnit s,
       CategoryOptionCombo attributeOptionCombo,
       Object value) {
-    useDataValue(e, p, s, attributeOptionCombo, value, false);
+    return createDataValue(e, p, s, attributeOptionCombo, value, false);
   }
 
-  private void useDataValue(
+  private DataValue createDataValue(
       DataElement e,
       Period p,
       OrganisationUnit s,
       CategoryOptionCombo attributeOptionCombo,
       Object value,
       boolean deleted) {
-    pendingValues.add(
-        createDataValue(
-            e,
-            periodService.reloadPeriod(p),
-            s,
-            defaultCombo,
-            attributeOptionCombo,
-            value == null ? null : value.toString(),
-            deleted));
+    return createDataValue(
+        e,
+        p,
+        s,
+        defaultCombo,
+        attributeOptionCombo,
+        value == null ? null : value.toString(),
+        deleted);
   }
 
   private String getDataValue(
@@ -379,119 +376,123 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   private void setupTestData() {
     // dataElementA - 2001
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 5);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 3);
-    useDataValue(dataElementA, makeMonth(2001, 8), sourceA, 8);
-    useDataValue(dataElementA, makeMonth(2001, 9), sourceA, 4);
-    useDataValue(dataElementA, makeMonth(2001, 10), sourceA, 7);
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceC, 6);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2001, 8), sourceC, 7);
-    useDataValue(dataElementA, makeMonth(2001, 9), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2001, 10), sourceC, 7);
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceE, 1);
-    useDataValue(dataElementA, makeMonth(2001, 8), sourceE, 3);
-    useDataValue(dataElementA, makeMonth(2001, 9), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2001, 10), sourceE, 1);
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceF, 3);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceF, 2);
-    useDataValue(dataElementA, makeMonth(2001, 8), sourceF, 4);
-    useDataValue(dataElementA, makeMonth(2001, 9), sourceF, 3);
-    useDataValue(dataElementA, makeMonth(2001, 10), sourceF, 2);
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 5),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceA, 3),
+        createDataValue(dataElementA, monthlyPeriod(2001, 8), sourceA, 8),
+        createDataValue(dataElementA, monthlyPeriod(2001, 9), sourceA, 4),
+        createDataValue(dataElementA, monthlyPeriod(2001, 10), sourceA, 7),
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceC, 6),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2001, 8), sourceC, 7),
+        createDataValue(dataElementA, monthlyPeriod(2001, 9), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2001, 10), sourceC, 7),
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceE, 1),
+        createDataValue(dataElementA, monthlyPeriod(2001, 8), sourceE, 3),
+        createDataValue(dataElementA, monthlyPeriod(2001, 9), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 10), sourceE, 1),
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceF, 3),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceF, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 8), sourceF, 4),
+        createDataValue(dataElementA, monthlyPeriod(2001, 9), sourceF, 3),
+        createDataValue(dataElementA, monthlyPeriod(2001, 10), sourceF, 2));
     // dataElementA - 2002
-    useDataValue(dataElementA, makeMonth(2002, 6), sourceA, 8);
-    useDataValue(dataElementA, makeMonth(2002, 7), sourceA, 4);
-    useDataValue(dataElementA, makeMonth(2002, 8), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2002, 9), sourceA, 5);
-    useDataValue(dataElementA, makeMonth(2002, 10), sourceA, 7);
-    useDataValue(dataElementA, makeMonth(2002, 6), sourceC, 7);
-    useDataValue(dataElementA, makeMonth(2002, 7), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2002, 8), sourceC, 11);
-    useDataValue(dataElementA, makeMonth(2002, 9), sourceC, 5);
-    useDataValue(dataElementA, makeMonth(2002, 10), sourceC, 6);
-    useDataValue(dataElementA, makeMonth(2002, 6), sourceE, 3);
-    useDataValue(dataElementA, makeMonth(2002, 7), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2002, 8), sourceE, 1);
-    useDataValue(dataElementA, makeMonth(2002, 9), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2002, 10), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2002, 6), sourceF, 4);
-    useDataValue(dataElementA, makeMonth(2002, 7), sourceF, 3);
-    useDataValue(dataElementA, makeMonth(2002, 8), sourceF, 2);
-    useDataValue(dataElementA, makeMonth(2002, 9), sourceF, 3);
-    useDataValue(dataElementA, makeMonth(2002, 10), sourceF, 3);
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2002, 6), sourceA, 8),
+        createDataValue(dataElementA, monthlyPeriod(2002, 7), sourceA, 4),
+        createDataValue(dataElementA, monthlyPeriod(2002, 8), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2002, 9), sourceA, 5),
+        createDataValue(dataElementA, monthlyPeriod(2002, 10), sourceA, 7),
+        createDataValue(dataElementA, monthlyPeriod(2002, 6), sourceC, 7),
+        createDataValue(dataElementA, monthlyPeriod(2002, 7), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2002, 8), sourceC, 11),
+        createDataValue(dataElementA, monthlyPeriod(2002, 9), sourceC, 5),
+        createDataValue(dataElementA, monthlyPeriod(2002, 10), sourceC, 6),
+        createDataValue(dataElementA, monthlyPeriod(2002, 6), sourceE, 3),
+        createDataValue(dataElementA, monthlyPeriod(2002, 7), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2002, 8), sourceE, 1),
+        createDataValue(dataElementA, monthlyPeriod(2002, 9), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2002, 10), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2002, 6), sourceF, 4),
+        createDataValue(dataElementA, monthlyPeriod(2002, 7), sourceF, 3),
+        createDataValue(dataElementA, monthlyPeriod(2002, 8), sourceF, 2),
+        createDataValue(dataElementA, monthlyPeriod(2002, 9), sourceF, 3),
+        createDataValue(dataElementA, monthlyPeriod(2002, 10), sourceF, 3));
     // dataElementA - 2003
-    useDataValue(dataElementA, makeMonth(2003, 5), sourceA, 9);
-    useDataValue(dataElementA, makeMonth(2003, 6), sourceA, 11);
-    useDataValue(dataElementA, makeMonth(2003, 7), sourceA, 6);
-    useDataValue(dataElementA, makeMonth(2003, 8), sourceA, 7);
-    useDataValue(dataElementA, makeMonth(2003, 9), sourceA, 9);
-    useDataValue(dataElementA, makeMonth(2003, 10), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2003, 5), sourceC, 10);
-    useDataValue(dataElementA, makeMonth(2003, 6), sourceC, 10);
-    useDataValue(dataElementA, makeMonth(2003, 7), sourceC, 7);
-    useDataValue(dataElementA, makeMonth(2003, 8), sourceC, 7);
-    useDataValue(dataElementA, makeMonth(2003, 9), sourceC, 8);
-    useDataValue(dataElementA, makeMonth(2003, 10), sourceC, 9);
-    useDataValue(dataElementA, makeMonth(2003, 5), sourceE, 4);
-    useDataValue(dataElementA, makeMonth(2003, 6), sourceE, 4);
-    useDataValue(dataElementA, makeMonth(2003, 7), sourceE, 3);
-    useDataValue(dataElementA, makeMonth(2003, 8), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2003, 9), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2003, 10), sourceE, 1);
-    useDataValue(dataElementA, makeMonth(2003, 5), sourceF, 5);
-    useDataValue(dataElementA, makeMonth(2003, 6), sourceF, 5);
-    useDataValue(dataElementA, makeMonth(2003, 7), sourceF, 4);
-    useDataValue(dataElementA, makeMonth(2003, 8), sourceF, 3);
-    useDataValue(dataElementA, makeMonth(2003, 9), sourceF, 3);
-    useDataValue(dataElementA, makeMonth(2003, 10), sourceF, 2);
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2003, 5), sourceA, 9),
+        createDataValue(dataElementA, monthlyPeriod(2003, 6), sourceA, 11),
+        createDataValue(dataElementA, monthlyPeriod(2003, 7), sourceA, 6),
+        createDataValue(dataElementA, monthlyPeriod(2003, 8), sourceA, 7),
+        createDataValue(dataElementA, monthlyPeriod(2003, 9), sourceA, 9),
+        createDataValue(dataElementA, monthlyPeriod(2003, 10), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2003, 5), sourceC, 10),
+        createDataValue(dataElementA, monthlyPeriod(2003, 6), sourceC, 10),
+        createDataValue(dataElementA, monthlyPeriod(2003, 7), sourceC, 7),
+        createDataValue(dataElementA, monthlyPeriod(2003, 8), sourceC, 7),
+        createDataValue(dataElementA, monthlyPeriod(2003, 9), sourceC, 8),
+        createDataValue(dataElementA, monthlyPeriod(2003, 10), sourceC, 9),
+        createDataValue(dataElementA, monthlyPeriod(2003, 5), sourceE, 4),
+        createDataValue(dataElementA, monthlyPeriod(2003, 6), sourceE, 4),
+        createDataValue(dataElementA, monthlyPeriod(2003, 7), sourceE, 3),
+        createDataValue(dataElementA, monthlyPeriod(2003, 8), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2003, 9), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2003, 10), sourceE, 1),
+        createDataValue(dataElementA, monthlyPeriod(2003, 5), sourceF, 5),
+        createDataValue(dataElementA, monthlyPeriod(2003, 6), sourceF, 5),
+        createDataValue(dataElementA, monthlyPeriod(2003, 7), sourceF, 4),
+        createDataValue(dataElementA, monthlyPeriod(2003, 8), sourceF, 3),
+        createDataValue(dataElementA, monthlyPeriod(2003, 9), sourceF, 3),
+        createDataValue(dataElementA, monthlyPeriod(2003, 10), sourceF, 2));
     // dataElementA - 2004
-    useDataValue(dataElementA, makeMonth(2004, 5), sourceA, 4);
-    useDataValue(dataElementA, makeMonth(2004, 6), sourceA, 8);
-    useDataValue(dataElementA, makeMonth(2004, 7), sourceA, 4);
-    useDataValue(dataElementA, makeMonth(2004, 8), sourceA, 7);
-    useDataValue(dataElementA, makeMonth(2004, 9), sourceA, 5);
-    useDataValue(dataElementA, makeMonth(2004, 10), sourceA, 6);
-    useDataValue(dataElementA, makeMonth(2004, 5), sourceC, 5);
-    useDataValue(dataElementA, makeMonth(2004, 6), sourceC, 9);
-    useDataValue(dataElementA, makeMonth(2004, 7), sourceC, 6);
-    useDataValue(dataElementA, makeMonth(2004, 8), sourceC, 7);
-    useDataValue(dataElementA, makeMonth(2004, 9), sourceC, 6);
-    useDataValue(dataElementA, makeMonth(2004, 10), sourceC, 5);
-    useDataValue(dataElementA, makeMonth(2004, 5), sourceE, 5);
-    useDataValue(dataElementA, makeMonth(2004, 6), sourceE, 7);
-    useDataValue(dataElementA, makeMonth(2004, 7), sourceE, 5);
-    useDataValue(dataElementA, makeMonth(2004, 8), sourceE, 4);
-    useDataValue(dataElementA, makeMonth(2004, 9), sourceE, 4);
-    useDataValue(dataElementA, makeMonth(2004, 10), sourceE, 3);
-    useDataValue(dataElementA, makeMonth(2004, 5), sourceF, 6);
-    useDataValue(dataElementA, makeMonth(2004, 6), sourceF, 8);
-    useDataValue(dataElementA, makeMonth(2004, 7), sourceF, 6);
-    useDataValue(dataElementA, makeMonth(2004, 8), sourceF, 5);
-    useDataValue(dataElementA, makeMonth(2004, 9), sourceF, 5);
-    useDataValue(dataElementA, makeMonth(2004, 10), sourceF, 4);
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2004, 5), sourceA, 4),
+        createDataValue(dataElementA, monthlyPeriod(2004, 6), sourceA, 8),
+        createDataValue(dataElementA, monthlyPeriod(2004, 7), sourceA, 4),
+        createDataValue(dataElementA, monthlyPeriod(2004, 8), sourceA, 7),
+        createDataValue(dataElementA, monthlyPeriod(2004, 9), sourceA, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 10), sourceA, 6),
+        createDataValue(dataElementA, monthlyPeriod(2004, 5), sourceC, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 6), sourceC, 9),
+        createDataValue(dataElementA, monthlyPeriod(2004, 7), sourceC, 6),
+        createDataValue(dataElementA, monthlyPeriod(2004, 8), sourceC, 7),
+        createDataValue(dataElementA, monthlyPeriod(2004, 9), sourceC, 6),
+        createDataValue(dataElementA, monthlyPeriod(2004, 10), sourceC, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 5), sourceE, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 6), sourceE, 7),
+        createDataValue(dataElementA, monthlyPeriod(2004, 7), sourceE, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 8), sourceE, 4),
+        createDataValue(dataElementA, monthlyPeriod(2004, 9), sourceE, 4),
+        createDataValue(dataElementA, monthlyPeriod(2004, 10), sourceE, 3),
+        createDataValue(dataElementA, monthlyPeriod(2004, 5), sourceF, 6),
+        createDataValue(dataElementA, monthlyPeriod(2004, 6), sourceF, 8),
+        createDataValue(dataElementA, monthlyPeriod(2004, 7), sourceF, 6),
+        createDataValue(dataElementA, monthlyPeriod(2004, 8), sourceF, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 9), sourceF, 5),
+        createDataValue(dataElementA, monthlyPeriod(2004, 10), sourceF, 4));
     // dataElementB - 2003
-    useDataValue(dataElementB, makeMonth(2003, 6), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2003, 7), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2003, 8), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2003, 9), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2003, 10), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2003, 5), sourceF, 1);
-    useDataValue(dataElementB, makeMonth(2003, 6), sourceF, 1);
-    useDataValue(dataElementB, makeMonth(2003, 7), sourceF, 1);
-    useDataValue(dataElementB, makeMonth(2003, 9), sourceF, 1);
-    useDataValue(dataElementB, makeMonth(2003, 10), sourceF, 1);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementB, monthlyPeriod(2003, 6), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 7), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 8), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 9), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 10), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 5), sourceF, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 6), sourceF, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 7), sourceF, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 9), sourceF, 1),
+        createDataValue(dataElementB, monthlyPeriod(2003, 10), sourceF, 1));
   }
 
-  private void flushDataValues() {
-    dataDumpService.upsertValues(pendingValues.toArray(DataValue[]::new));
-    pendingValues.clear();
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) != values.length)
+      fail("Failed to insert test data: " + values);
   }
 
   private void testPredictMissingValuesFunction(String function) {
-    useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 33);
-    flushDataValues();
+    addDataValues(createDataValue(dataElementA, monthlyPeriod(2010, 8), sourceA, 33));
+
     Expression expression =
         new Expression(
             function + "(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}",
@@ -509,9 +510,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 8), monthStart(2010, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("33.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2010, 8)));
+    assertEquals("33.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2010, 8)));
   }
 
   /**
@@ -523,9 +525,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     Predictor p =
         createPredictor(
             dataElementX, defaultCombo, "p", ex, null, periodTypeMonthly, orgUnitLevel1, 4, 0, 0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 10), monthStart(2001, 11), summary);
-    String a = getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10));
-    String b = getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 10));
+    String a = getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10));
+    String b = getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 10));
     return a + ", " + b;
   }
 
@@ -534,8 +537,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
   @Test
   void testPredictWithCategoryOptionCombo() {
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 5);
-    flushDataValues();
+    addDataValues(createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceA, 5));
     Predictor p =
         createPredictor(
             dataElementX,
@@ -548,9 +550,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 8), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
   }
 
   @Test
@@ -568,16 +571,23 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
     assertEquals("Pred 1 Ins 8 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("6.121", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("10.8", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10)));
-    assertEquals("10.24", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 11)));
-    assertEquals("11.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 8)));
-    assertEquals("13.24", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 9)));
-    assertEquals("17.92", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 10)));
-    assertEquals("16.8", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 11)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals(
+        "6.121", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "10.8", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
+    assertEquals(
+        "10.24", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 11)));
+    assertEquals("11.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 8)));
+    assertEquals(
+        "13.24", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "17.92", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 10)));
+    assertEquals(
+        "16.8", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 11)));
     // Make sure we can do it again.
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
@@ -599,13 +609,17 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             0);
+    PredictionSummary summary = new PredictionSummary();
     p.setOrganisationUnitDescendants(SELECTED);
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
     assertEquals("Pred 1 Ins 4 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("6.121", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("10.8", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10)));
-    assertEquals("10.24", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 11)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals(
+        "6.121", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "10.8", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
+    assertEquals(
+        "10.24", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 11)));
     // Make sure we can do it again.
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
@@ -614,12 +628,11 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testPredictWithSkipTest() {
-    useDataValue(dataElementA, makeMonth(2023, 1), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2023, 2), sourceA, 20);
-    useDataValue(dataElementA, makeMonth(2023, 3), sourceA, 40);
-
-    useDataValue(dataElementB, makeMonth(2023, 2), sourceA, 10);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2023, 2), sourceA, 20),
+        createDataValue(dataElementA, monthlyPeriod(2023, 3), sourceA, 40),
+        createDataValue(dataElementB, monthlyPeriod(2023, 2), sourceA, 10));
 
     Expression expression = new Expression("sum(#{" + dataElementA.getUid() + "})", "expression");
     Expression skipTest = new Expression("#{" + dataElementB.getUid() + "} == 10", "skipTest");
@@ -636,9 +649,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0);
 
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2023, 4), monthStart(2023, 5), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("50.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2023, 4)));
+    assertEquals("50.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2023, 4)));
   }
 
   @Test
@@ -656,16 +670,20 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
     assertEquals("Pred 1 Ins 8 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("5.5", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("9.25", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10)));
-    assertEquals("9.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 11)));
-    assertEquals("11.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 8)));
-    assertEquals("12.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 9)));
-    assertEquals("15.75", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 10)));
-    assertEquals("15.25", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 11)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("5.5", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "9.25", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
+    assertEquals("9.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 11)));
+    assertEquals("11.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 8)));
+    assertEquals("12.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "15.75", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 10)));
+    assertEquals(
+        "15.25", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 11)));
     // Make sure we can do it again.
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
@@ -692,12 +710,14 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
     assertEquals("Pred 1 Ins 4 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("5.5", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("9.25", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10)));
-    assertEquals("9.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 11)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("5.5", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "9.25", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
+    assertEquals("9.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 11)));
     // Make sure we can do it again.
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 12), summary);
@@ -767,17 +787,18 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             2);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2005, 12), summary);
     assertEquals("Pred 1 Ins 100 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("6.121", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("7.0", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2003, 1)));
-    assertEquals("9.682", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2003, 3)));
-    assertEquals("11.09", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2004, 7)));
-    assertEquals("10.98", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2004, 8)));
+    assertEquals("5.0", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("6.121", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals("7.0", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2003, 1)));
+    assertEquals("9.682", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2003, 3)));
+    assertEquals("11.09", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2004, 7)));
+    assertEquals("10.98", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2004, 8)));
     // This value is derived from organisation units beneath the actual
     // *sourceB*.
-    assertEquals("18.35", getDataValue(dataElementX, altCombo, sourceB, makeMonth(2004, 7)));
+    assertEquals("18.35", getDataValue(dataElementX, altCombo, sourceB, monthlyPeriod(2004, 7)));
   }
 
   @Test
@@ -796,26 +817,28 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             2);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2005, 12), summary);
     assertEquals("Pred 1 Ins 99 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("5.5", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("7.0", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2003, 1)));
-    assertEquals("8.75", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2003, 3)));
-    assertEquals("10.09", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2004, 7)));
-    assertEquals("10.1", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2004, 8)));
+    assertEquals("5.0", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("5.5", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals("7.0", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2003, 1)));
+    assertEquals("8.75", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2003, 3)));
+    assertEquals("10.09", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2004, 7)));
+    assertEquals("10.1", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2004, 8)));
     // This value is derived from organisation units beneath the actual
     // *sourceB*.
-    assertEquals("15.75", getDataValue(dataElementX, altCombo, sourceB, makeMonth(2004, 7)));
+    assertEquals("15.75", getDataValue(dataElementX, altCombo, sourceB, monthlyPeriod(2004, 7)));
   }
 
   @Test
   void testPredictMultiLevelsWithDataElementOperandExpression() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceE, 1);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceE, 2);
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceF, 4);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceF, 8);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceE, 1),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceE, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceF, 4),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceF, 8));
+
     Set<OrganisationUnitLevel> orgUnitLevels =
         Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor p =
@@ -832,16 +855,17 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             2,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 8 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceE, makeMonth(2001, 7)));
-    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceF, makeMonth(2001, 7)));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceD, makeMonth(2001, 7)));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 7)));
-    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceE, makeMonth(2001, 8)));
-    assertEquals("12.0", getDataValue(dataElementX, defaultCombo, sourceF, makeMonth(2001, 8)));
-    assertEquals("15.0", getDataValue(dataElementX, defaultCombo, sourceD, makeMonth(2001, 8)));
-    assertEquals("15.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 8)));
+    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2001, 7)));
+    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2001, 7)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2001, 7)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 7)));
+    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2001, 8)));
+    assertEquals("12.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2001, 8)));
+    assertEquals("15.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2001, 8)));
+    assertEquals("15.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 8)));
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 0 Upd 0 Del 0 Unch 8", shortSummary(summary));
@@ -862,14 +886,21 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 6 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("135.8", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("135.8", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("135.8", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 7)));
-    assertEquals("135.8", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 8)));
-    assertEquals("135.8", getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 7)));
-    assertEquals("135.8", getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 8)));
+    assertEquals(
+        "135.8", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals(
+        "135.8", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals(
+        "135.8", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 7)));
+    assertEquals(
+        "135.8", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 8)));
+    assertEquals(
+        "135.8", getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
+    assertEquals(
+        "135.8", getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 8)));
   }
 
   @Test
@@ -887,11 +918,12 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 8), summary);
     assertEquals("Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("136", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("136", getDataValue(dataElementY, defaultCombo, sourceB, makeMonth(2001, 7)));
-    assertEquals("136", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 7)));
+    assertEquals("136", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("136", getDataValue(dataElementY, defaultCombo, sourceB, monthlyPeriod(2001, 7)));
+    assertEquals("136", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
   }
 
   @Test
@@ -909,14 +941,15 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 8), monthStart(2001, 10), summary);
     assertEquals("Pred 1 Ins 6 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("31.0", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("30.0", getDataValue(dataElementX, altCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("31.0", getDataValue(dataElementX, altCombo, sourceB, makeMonth(2001, 8)));
-    assertEquals("30.0", getDataValue(dataElementX, altCombo, sourceB, makeMonth(2001, 9)));
-    assertEquals("31.0", getDataValue(dataElementX, altCombo, sourceG, makeMonth(2001, 8)));
-    assertEquals("30.0", getDataValue(dataElementX, altCombo, sourceG, makeMonth(2001, 9)));
+    assertEquals("31.0", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("30.0", getDataValue(dataElementX, altCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals("31.0", getDataValue(dataElementX, altCombo, sourceB, monthlyPeriod(2001, 8)));
+    assertEquals("30.0", getDataValue(dataElementX, altCombo, sourceB, monthlyPeriod(2001, 9)));
+    assertEquals("31.0", getDataValue(dataElementX, altCombo, sourceG, monthlyPeriod(2001, 8)));
+    assertEquals("30.0", getDataValue(dataElementX, altCombo, sourceG, monthlyPeriod(2001, 9)));
   }
 
   @Test
@@ -934,21 +967,23 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             3,
             1,
             2);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 8), monthStart(2001, 8), summary);
     assertEquals("Pred 1 Ins 0 Upd 0 Del 0 Unch 0", shortSummary(summary));
   }
 
   @Test
   void testPredictWithCurrentPeriodData() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 20);
-    useDataValue(dataElementA, makeMonth(2001, 8), sourceA, 30);
-    useDataValue(dataElementA, makeMonth(2001, 9), sourceA, 40);
-    useDataValue(dataElementB, makeMonth(2001, 7), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2001, 8), sourceA, 2);
-    useDataValue(dataElementB, makeMonth(2001, 9), sourceA, 3);
-    useDataValue(dataElementB, makeMonth(2001, 10), sourceA, 4);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceA, 20),
+        createDataValue(dataElementA, monthlyPeriod(2001, 8), sourceA, 30),
+        createDataValue(dataElementA, monthlyPeriod(2001, 9), sourceA, 40),
+        createDataValue(dataElementB, monthlyPeriod(2001, 7), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2001, 8), sourceA, 2),
+        createDataValue(dataElementB, monthlyPeriod(2001, 9), sourceA, 3),
+        createDataValue(dataElementB, monthlyPeriod(2001, 10), sourceA, 4));
+
     Predictor p =
         createPredictor(
             dataElementX,
@@ -961,25 +996,28 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 11), summary);
     assertEquals("Pred 1 Ins 4 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("11.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("22.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("33.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("44.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10)));
+    assertEquals("11.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("22.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("33.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals(
+        "44.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
   }
 
   @Test
   void testPredictWithOnlyCurrentPeriodData() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 20);
-    useDataValue(dataElementA, makeMonth(2001, 8), sourceA, 30);
-    useDataValue(dataElementA, makeMonth(2001, 9), sourceA, 40);
-    useDataValue(dataElementB, makeMonth(2001, 7), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2001, 8), sourceA, 2);
-    useDataValue(dataElementB, makeMonth(2001, 9), sourceA, 3);
-    useDataValue(dataElementB, makeMonth(2001, 10), sourceA, 4);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceA, 20),
+        createDataValue(dataElementA, monthlyPeriod(2001, 8), sourceA, 30),
+        createDataValue(dataElementA, monthlyPeriod(2001, 9), sourceA, 40),
+        createDataValue(dataElementB, monthlyPeriod(2001, 7), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2001, 8), sourceA, 2),
+        createDataValue(dataElementB, monthlyPeriod(2001, 9), sourceA, 3),
+        createDataValue(dataElementB, monthlyPeriod(2001, 10), sourceA, 4));
+
     Predictor p =
         createPredictor(
             dataElementX,
@@ -992,19 +1030,21 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 11), summary);
     assertEquals("Pred 1 Ins 4 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("2.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 9)));
-    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 10)));
+    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("2.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
+    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
   }
 
   @Test
   void testPredictMultipleDataElements() {
-    useDataValue(dataElementA, makeMonth(2010, 6), sourceA, 3);
-    useDataValue(dataElementB, makeMonth(2010, 6), sourceA, 5);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2010, 6), sourceA, 3),
+        createDataValue(dataElementB, monthlyPeriod(2010, 6), sourceA, 5));
+
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1017,9 +1057,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2010, 7), monthStart(2010, 8), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("8.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2010, 7)));
+    assertEquals("8.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2010, 7)));
   }
 
   @Test
@@ -1044,11 +1085,13 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
         createCategoryOptionCombo(categoryComboJL, optionK, optionL);
     categoryService.addCategoryOptionCombo(optionComboJL);
     categoryService.addCategoryOptionCombo(optionComboKL);
-    useDataValue(dataElementA, makeMonth(2011, 6), sourceA, optionComboJL, 1);
-    useDataValue(dataElementB, makeMonth(2011, 6), sourceA, optionComboJL, 2);
-    useDataValue(dataElementA, makeMonth(2011, 6), sourceA, optionComboKL, 3);
-    useDataValue(dataElementB, makeMonth(2011, 6), sourceA, optionComboKL, 4);
-    flushDataValues();
+
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2011, 6), sourceA, optionComboJL, 1),
+        createDataValue(dataElementB, monthlyPeriod(2011, 6), sourceA, optionComboJL, 2),
+        createDataValue(dataElementA, monthlyPeriod(2011, 6), sourceA, optionComboKL, 3),
+        createDataValue(dataElementB, monthlyPeriod(2011, 6), sourceA, optionComboKL, 4));
+
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1061,23 +1104,25 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2011, 7), monthStart(2011, 8), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
     assertEquals(
         "3.0",
-        getDataValue(dataElementX, defaultCombo, optionComboJL, sourceA, makeMonth(2011, 7)));
+        getDataValue(dataElementX, defaultCombo, optionComboJL, sourceA, monthlyPeriod(2011, 7)));
     assertEquals(
         "7.0",
-        getDataValue(dataElementX, defaultCombo, optionComboKL, sourceA, makeMonth(2011, 7)));
+        getDataValue(dataElementX, defaultCombo, optionComboKL, sourceA, monthlyPeriod(2011, 7)));
   }
 
   @Test
   void testPredictIf() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 20);
-    useDataValue(dataElementB, makeMonth(2001, 7), sourceA, 40);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 10),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceA, 20),
+        createDataValue(dataElementB, monthlyPeriod(2001, 7), sourceA, 40));
+
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1092,10 +1137,11 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 6), monthStart(2001, 8), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 6)));
-    assertEquals("2.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 6)));
+    assertEquals("2.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
     p =
         createPredictor(
             dataElementX,
@@ -1117,8 +1163,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 1 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
+    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
     p =
         createPredictor(
             dataElementX,
@@ -1140,16 +1186,17 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 7), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 0 Upd 2 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("6.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)));
+    assertEquals("5.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("6.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
   }
 
   @Test
   void testPredictIsNull() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 2);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 3);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceA, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceA, 3));
+
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1170,18 +1217,19 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2001, 6), monthStart(2001, 8), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 6)));
-    assertEquals("8.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("3.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 6)));
+    assertEquals("8.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
   }
 
   @Test
   void testPredictStrategyNeverSkip() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 1);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 2);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceA, 4);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 1),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceA, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceA, 4));
 
     Expression expressionX =
         new Expression(
@@ -1240,55 +1288,57 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0);
 
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictorX, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 9 Upd 0 Del 0 Unch 0", shortSummary(summary));
     // (Combining these values into a single assert keeps SonarLint happy.)
     assertEquals(
         List.of("13.0", "14.0", "10.0", "10.0", "10.0", "10.0", "10.0", "10.0", "10.0"),
         List.of(
-            getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 6)),
-            getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)),
-            getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 8)),
-            getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 6)),
-            getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 7)),
-            getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2001, 8)),
-            getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 6)),
-            getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 7)),
-            getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 8))));
+            getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 6)),
+            getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)),
+            getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 8)),
+            getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 6)),
+            getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 7)),
+            getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2001, 8)),
+            getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 6)),
+            getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 7)),
+            getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 8))));
 
     summary = new PredictionSummary();
     predictionService.predict(predictorY, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 9 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 6)));
-    assertEquals("13", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("14", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceB, makeMonth(2001, 6)));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceB, makeMonth(2001, 7)));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceB, makeMonth(2001, 8)));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 6)));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 7)));
-    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 8)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 6)));
+    assertEquals("13", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("14", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceB, monthlyPeriod(2001, 6)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceB, monthlyPeriod(2001, 7)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceB, monthlyPeriod(2001, 8)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 6)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
+    assertEquals("10", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 8)));
 
     summary = new PredictionSummary();
     predictionService.predict(predictorZ, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 9 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2001, 6)));
-    assertEquals("13", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2001, 7)));
-    assertEquals("14", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2001, 8)));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceB, makeMonth(2001, 6)));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceB, makeMonth(2001, 7)));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceB, makeMonth(2001, 8)));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 6)));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 7)));
-    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 8)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2001, 6)));
+    assertEquals("13", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
+    assertEquals("14", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceB, monthlyPeriod(2001, 6)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceB, monthlyPeriod(2001, 7)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceB, monthlyPeriod(2001, 8)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 6)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
+    assertEquals("10", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 8)));
   }
 
   @Test
   void testPredictStrategySkipIfAllValuesMissing() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceG, 1);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceG, 2);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceG, 4);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceG, 1),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceG, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceG, 4));
+
     Expression expressionX =
         new Expression(
             "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}",
@@ -1344,28 +1394,30 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictorX, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("13.0", getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 6)));
-    assertEquals("14.0", getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 7)));
+    assertEquals("13.0", getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 6)));
+    assertEquals("14.0", getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
     summary = new PredictionSummary();
     predictionService.predict(predictorY, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("13", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 7)));
-    assertEquals("14", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 8)));
+    assertEquals("13", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
+    assertEquals("14", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 8)));
     summary = new PredictionSummary();
     predictionService.predict(predictorZ, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("13", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 7)));
-    assertEquals("14", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 8)));
+    assertEquals("13", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
+    assertEquals("14", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 8)));
   }
 
   @Test
   void testPredictStrategySkipIfAnyValueMissing() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceG, 1);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceG, 2);
-    useDataValue(dataElementA, makeMonth(2001, 7), sourceG, 4);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceG, 1),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceG, 2),
+        createDataValue(dataElementA, monthlyPeriod(2001, 7), sourceG, 4));
+
     Expression expressionX =
         new Expression(
             "10 + #{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}",
@@ -1421,25 +1473,27 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictorX, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("13.0", getDataValue(dataElementX, defaultCombo, sourceG, makeMonth(2001, 6)));
+    assertEquals("13.0", getDataValue(dataElementX, defaultCombo, sourceG, monthlyPeriod(2001, 6)));
     summary = new PredictionSummary();
     predictionService.predict(predictorY, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("13", getDataValue(dataElementY, defaultCombo, sourceG, makeMonth(2001, 7)));
+    assertEquals("13", getDataValue(dataElementY, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
     summary = new PredictionSummary();
     predictionService.predict(predictorZ, monthStart(2001, 6), monthStart(2001, 9), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("13", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 7)));
-    assertEquals("14", getDataValue(dataElementZ, defaultCombo, sourceG, makeMonth(2001, 8)));
+    assertEquals("13", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 7)));
+    assertEquals("14", getDataValue(dataElementZ, defaultCombo, sourceG, monthlyPeriod(2001, 8)));
   }
 
   @Test
   void testPredictTaskPredictors() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 20);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 10),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceA, 20));
+
     Predictor predictorA =
         createPredictor(
             dataElementX,
@@ -1468,17 +1522,17 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     predictorService.addPredictor(predictorB);
 
     List<String> predictors = Lists.newArrayList(predictorA.getUid());
-    summary =
+    PredictionSummary summary =
         predictionService.predictTask(
             monthStart(2001, 7), monthStart(2001, 8), predictors, null, progress);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("10.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("10.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
     predictors = Lists.newArrayList(predictorA.getUid(), predictorB.getUid());
     summary =
         predictionService.predictTask(
             monthStart(2001, 7), monthStart(2001, 8), predictors, null, progress);
     assertEquals("Pred 2 Ins 1 Upd 0 Del 0 Unch 1", shortSummary(summary));
-    assertEquals("20", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("20", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
     summary =
         predictionService.predictTask(
             monthStart(2001, 7), monthStart(2001, 8), predictors, null, progress);
@@ -1487,9 +1541,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testPredictTaskPredictorGroups() {
-    useDataValue(dataElementA, makeMonth(2001, 6), sourceA, 10);
-    useDataValue(dataElementB, makeMonth(2001, 6), sourceA, 20);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 6), sourceA, 10),
+        createDataValue(dataElementB, monthlyPeriod(2001, 6), sourceA, 20));
+
     Predictor predictorA =
         createPredictor(
             dataElementX,
@@ -1520,28 +1575,29 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     predictorGroupA.addPredictor(predictorA);
     predictorService.addPredictorGroup(predictorGroupA);
     List<String> predictorGroups = Lists.newArrayList(predictorGroupA.getUid());
-    summary =
+    PredictionSummary summary =
         predictionService.predictTask(
             monthStart(2001, 7), monthStart(2001, 8), null, predictorGroups, progress);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("10.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("10.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
     predictorGroupA.addPredictor(predictorB);
     predictorService.updatePredictorGroup(predictorGroupA);
     summary =
         predictionService.predictTask(
             monthStart(2001, 7), monthStart(2001, 8), null, predictorGroups, progress);
     assertEquals("Pred 2 Ins 1 Upd 0 Del 0 Unch 1", shortSummary(summary));
-    assertEquals("20", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("20", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
   }
 
   @Test
   void testPredictMedian() {
-    useDataValue(dataElementA, makeMonth(2001, 1), sourceA, 50);
-    useDataValue(dataElementA, makeMonth(2001, 2), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2001, 3), sourceA, 40);
-    useDataValue(dataElementA, makeMonth(2001, 4), sourceA, 30);
-    useDataValue(dataElementA, makeMonth(2001, 5), sourceA, 20);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 1), sourceA, 50),
+        createDataValue(dataElementA, monthlyPeriod(2001, 2), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2001, 3), sourceA, 40),
+        createDataValue(dataElementA, monthlyPeriod(2001, 4), sourceA, 30),
+        createDataValue(dataElementA, monthlyPeriod(2001, 5), sourceA, 20));
+
     Expression expressionM = new Expression("median(#{" + dataElementA.getUid() + "})", "median");
     Predictor predictorM =
         createPredictor(
@@ -1556,26 +1612,28 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0);
     predictorService.addPredictor(predictorM);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictorM, monthStart(2001, 6), monthStart(2001, 11), summary);
     assertEquals("Pred 1 Ins 5 Upd 0 Del 0 Unch 0", shortSummary(summary));
     // Values_10_20_30_40_50
-    assertEquals("30", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 6)));
+    assertEquals("30", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 6)));
     // Values_10_20_30_40
-    assertEquals("25", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 7)));
+    assertEquals("25", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 7)));
     // Values_20_30_40
-    assertEquals("30", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 8)));
+    assertEquals("30", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 8)));
     // Values_20_30
-    assertEquals("25", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 9)));
+    assertEquals("25", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 9)));
     // Value_20
-    assertEquals("20", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 10)));
+    assertEquals("20", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 10)));
   }
 
   @Test
   void testPredictPercentileCont() {
-    useDataValue(dataElementA, makeMonth(2001, 1), sourceA, 10);
-    useDataValue(dataElementA, makeMonth(2001, 2), sourceA, 30);
-    useDataValue(dataElementA, makeMonth(2001, 3), sourceA, 20);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2001, 1), sourceA, 10),
+        createDataValue(dataElementA, monthlyPeriod(2001, 2), sourceA, 30),
+        createDataValue(dataElementA, monthlyPeriod(2001, 3), sourceA, 20));
+
     Expression expressionP25 =
         new Expression("percentileCont(.25, #{" + dataElementA.getUid() + "})", "percentileCont25");
     Expression expressionP50 =
@@ -1606,25 +1664,27 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0);
     predictorService.addPredictor(predictorP25);
     predictorService.addPredictor(predictorP50);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictorP25, monthStart(2001, 4), monthStart(2001, 6), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
     // 25th_percentile_of_10_20_30
-    assertEquals("15", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 4)));
+    assertEquals("15", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 4)));
     // 25th_percentile_of_20_30
-    assertEquals("23", getDataValue(dataElementY, defaultCombo, sourceA, makeMonth(2001, 5)));
+    assertEquals("23", getDataValue(dataElementY, defaultCombo, sourceA, monthlyPeriod(2001, 5)));
     predictionService.predict(predictorP50, monthStart(2001, 4), monthStart(2001, 6), summary);
     assertEquals("Pred 2 Ins 4 Upd 0 Del 0 Unch 0", shortSummary(summary));
     // 50th_percentile_of_10_20_30
-    assertEquals("20", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2001, 4)));
+    assertEquals("20", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2001, 4)));
     // 50th_percentile_of_20_30
-    assertEquals("25", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2001, 5)));
+    assertEquals("25", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2001, 5)));
   }
 
   @Test
   void testPredictNullDataValue() {
-    useDataValue(dataElementA, makeMonth(2010, 6), sourceA, 42);
-    useDataValue(dataElementA, makeMonth(2010, 7), sourceA, null);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2010, 6), sourceA, 42),
+        createDataValue(dataElementA, monthlyPeriod(2010, 7), sourceA, null));
+
     Expression expression = new Expression("sum(#{" + dataElementA.getUid() + "})", "description");
     Predictor predictor =
         createPredictor(
@@ -1638,9 +1698,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             2,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 8), monthStart(2010, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("42.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2010, 8)));
+    assertEquals("42.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2010, 8)));
   }
 
   @Test
@@ -1665,8 +1726,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testMissingValuesCount() {
-    useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 33);
-    flushDataValues();
+    addDataValues(createDataValue(dataElementA, monthlyPeriod(2010, 8), sourceA, 33));
+
     Expression expression =
         new Expression(
             "count(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}",
@@ -1683,9 +1744,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 8), monthStart(2010, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("33.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2010, 8)));
+    assertEquals("33.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2010, 8)));
   }
 
   @Test
@@ -1700,8 +1762,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testMissingValuesPercentileCont() {
-    useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 33);
-    flushDataValues();
+    addDataValues(createDataValue(dataElementA, monthlyPeriod(2010, 8), sourceA, 33));
+
     Expression expression =
         new Expression(
             "percentileCont(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}",
@@ -1718,6 +1780,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 8), monthStart(2010, 9), summary);
     assertEquals("Pred 1 Ins 0 Upd 0 Del 0 Unch 0", shortSummary(summary));
   }
@@ -1729,13 +1792,14 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testPredictOrgUnitAncestor() {
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceA, 1);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceB, 2);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceA, 1),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceB, 2),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceD, 8),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceE, 16),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceF, 32));
+
     Expression expression =
         new Expression(
             "if(orgUnit.ancestor( "
@@ -1761,25 +1825,27 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2021, 8), monthStart(2021, 9), summary);
     assertEquals("Pred 1 Ins 6 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceC, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceD, makeMonth(2021, 8)));
-    assertEquals("16.0", getDataValue(dataElementX, defaultCombo, sourceE, makeMonth(2021, 8)));
-    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, makeMonth(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceC, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2021, 8)));
+    assertEquals("16.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2021, 8)));
+    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2021, 8)));
   }
 
   @Test
   void testPredictOrgUnitGroup() {
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceA, 1);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceB, 2);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceA, 1),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceB, 2),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceD, 8),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceE, 16),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceF, 32));
+
     Expression expression =
         new Expression(
             "if(orgUnit.group( "
@@ -1805,14 +1871,15 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2021, 8), monthStart(2021, 9), summary);
     assertEquals("Pred 1 Ins 6 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2021, 8)));
-    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceC, makeMonth(2021, 8)));
-    assertEquals("56.0", getDataValue(dataElementX, defaultCombo, sourceD, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceE, makeMonth(2021, 8)));
-    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, makeMonth(2021, 8)));
+    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2021, 8)));
+    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceC, monthlyPeriod(2021, 8)));
+    assertEquals("56.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2021, 8)));
+    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2021, 8)));
   }
 
   @Test
@@ -1826,13 +1893,13 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     dataSetService.addDataSet(dataSetA);
     dataSetService.addDataSet(dataSetB);
 
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceA, 1);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceB, 2);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceA, 1),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceB, 2),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceD, 8),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceE, 16),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceF, 32));
 
     Expression expression =
         new Expression(
@@ -1860,15 +1927,15 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2021, 8), monthStart(2021, 9), summary);
-
     assertEquals("Pred 1 Ins 6 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2021, 8)));
-    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceC, makeMonth(2021, 8)));
-    assertEquals("56.0", getDataValue(dataElementX, defaultCombo, sourceD, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceE, makeMonth(2021, 8)));
-    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, makeMonth(2021, 8)));
+    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2021, 8)));
+    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceC, monthlyPeriod(2021, 8)));
+    assertEquals("56.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2021, 8)));
+    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2021, 8)));
   }
 
   @Test
@@ -1882,13 +1949,13 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     programService.addProgram(programA);
     programService.addProgram(programB);
 
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceA, 1);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceB, 2);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceC, 4);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceD, 8);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceE, 16);
-    useDataValue(dataElementA, makeMonth(2021, 8), sourceF, 32);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceA, 1),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceB, 2),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceC, 4),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceD, 8),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceE, 16),
+        createDataValue(dataElementA, monthlyPeriod(2021, 8), sourceF, 32));
 
     Expression expression =
         new Expression(
@@ -1916,21 +1983,21 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2021, 8), monthStart(2021, 9), summary);
-
     assertEquals("Pred 1 Ins 6 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, makeMonth(2021, 8)));
-    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceC, makeMonth(2021, 8)));
-    assertEquals("56.0", getDataValue(dataElementX, defaultCombo, sourceD, makeMonth(2021, 8)));
-    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceE, makeMonth(2021, 8)));
-    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, makeMonth(2021, 8)));
+    assertEquals("1.0", getDataValue(dataElementX, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceB, monthlyPeriod(2021, 8)));
+    assertEquals("4.0", getDataValue(dataElementX, defaultCombo, sourceC, monthlyPeriod(2021, 8)));
+    assertEquals("56.0", getDataValue(dataElementX, defaultCombo, sourceD, monthlyPeriod(2021, 8)));
+    assertEquals("64.0", getDataValue(dataElementX, defaultCombo, sourceE, monthlyPeriod(2021, 8)));
+    assertEquals("32.0", getDataValue(dataElementX, defaultCombo, sourceF, monthlyPeriod(2021, 8)));
   }
 
   @Test
   void testPredictCarryingForwardPredictedDataElement() {
-    useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 1);
-    flushDataValues();
+    addDataValues(createDataValue(dataElementA, monthlyPeriod(2010, 8), sourceA, 1));
+
     Expression expression =
         new Expression(
             "2 * sum(#{" + dataElementA.getUid() + "})",
@@ -1948,18 +2015,19 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 9), monthStart(2010, 12), summary);
     assertEquals("Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 8)));
-    assertEquals("2", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 9)));
-    assertEquals("4", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 10)));
-    assertEquals("8", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 11)));
+    assertEquals("1", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 8)));
+    assertEquals("2", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 9)));
+    assertEquals("4", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 10)));
+    assertEquals("8", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 11)));
   }
 
   @Test
   void testPredictCarryingForwardPredictedDataElementOperand() {
-    useDataValue(dataElementA, makeMonth(2010, 8), sourceA, 1);
-    flushDataValues();
+    addDataValues(createDataValue(dataElementA, monthlyPeriod(2010, 8), sourceA, 1));
+
     Expression expression =
         new Expression(
             "3 * sum(#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "})",
@@ -1977,21 +2045,23 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 9), monthStart(2010, 12), summary);
     assertEquals("Pred 1 Ins 3 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("1", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 8)));
-    assertEquals("3", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 9)));
-    assertEquals("9", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 10)));
-    assertEquals("27", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2010, 11)));
+    assertEquals("1", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 8)));
+    assertEquals("3", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 9)));
+    assertEquals("9", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 10)));
+    assertEquals("27", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2010, 11)));
   }
 
   @Test
   void testPredictToReplaceDeletedValue() {
-    useDataValue(dataElementA, makeMonth(2010, 8), sourceA, defaultCombo, 22);
-    useDataValue(dataElementA, makeMonth(2010, 9), sourceA, defaultCombo, 33);
-    useDataValue(dataElementZ, makeMonth(2010, 8), sourceA, defaultCombo, 22, true);
-    useDataValue(dataElementZ, makeMonth(2010, 9), sourceA, defaultCombo, 1, true);
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2010, 8), sourceA, defaultCombo, 22),
+        createDataValue(dataElementA, monthlyPeriod(2010, 9), sourceA, defaultCombo, 33),
+        createDataValue(dataElementZ, monthlyPeriod(2010, 8), sourceA, defaultCombo, 22, true),
+        createDataValue(dataElementZ, monthlyPeriod(2010, 9), sourceA, defaultCombo, 1, true));
+
     Expression expression =
         new Expression(
             "#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "}",
@@ -2009,16 +2079,18 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(predictor, monthStart(2010, 8), monthStart(2010, 10), summary);
     assertEquals("Pred 1 Ins 0 Upd 2 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("22", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2010, 8)));
-    assertEquals("33", getDataValue(dataElementZ, defaultCombo, sourceA, makeMonth(2010, 9)));
+    assertEquals("22", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2010, 8)));
+    assertEquals("33", getDataValue(dataElementZ, defaultCombo, sourceA, monthlyPeriod(2010, 9)));
   }
 
   @Test
   void testPredictString() {
-    useDataValue(dataElementE, makeMonth(2021, 8), sourceA, defaultCombo, "Hello");
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementE, monthlyPeriod(2021, 8), sourceA, defaultCombo, "Hello"));
+
     String expr =
         "if( isNull(#{"
             + dataElementE.getUid()
@@ -2039,15 +2111,18 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2021, 8), monthStart(2021, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("Hello", getDataValue(dataElementF, defaultCombo, sourceA, makeMonth(2021, 8)));
+    assertEquals(
+        "Hello", getDataValue(dataElementF, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
   }
 
   @Test
   void testPredictDate() {
-    useDataValue(dataElementG, makeMonth(2021, 8), sourceA, defaultCombo, "2021-09-10");
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementG, monthlyPeriod(2021, 8), sourceA, defaultCombo, "2021-09-10"));
+
     String expr =
         "if( isNull(#{"
             + dataElementG.getUid()
@@ -2068,16 +2143,18 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2021, 8), monthStart(2021, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
     assertEquals(
-        "2021-09-10", getDataValue(dataElementH, defaultCombo, sourceA, makeMonth(2021, 8)));
+        "2021-09-10", getDataValue(dataElementH, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
   }
 
   @Test
   void testPredictBoolean() {
-    useDataValue(dataElementI, makeMonth(2021, 8), sourceA, defaultCombo, "true");
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementI, monthlyPeriod(2021, 8), sourceA, defaultCombo, "true"));
+
     String expr =
         "if( isNull(#{" + dataElementI.getUid() + "}), 'false', #{" + dataElementI.getUid() + "} )";
     Expression expression =
@@ -2094,9 +2171,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             1,
             0,
             0);
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2021, 8), monthStart(2021, 9), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("true", getDataValue(dataElementJ, defaultCombo, sourceA, makeMonth(2021, 8)));
+    assertEquals("true", getDataValue(dataElementJ, defaultCombo, sourceA, monthlyPeriod(2021, 8)));
   }
 
   @Test
@@ -2151,14 +2229,15 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     dataElementService.addDataElement(deR);
     dataElementService.addDataElement(deS);
 
-    Period per = periodService.reloadPeriod(makeMonth(2022, 1));
-    pendingValues.add(createDataValue(deQ, per, sourceA, cocAa, defaultCombo, "1"));
-    pendingValues.add(createDataValue(deQ, per, sourceA, cocAb, defaultCombo, "2"));
-    pendingValues.add(createDataValue(deR, per, sourceA, cocBa, defaultCombo, "4"));
-    pendingValues.add(createDataValue(deR, per, sourceA, cocBb, defaultCombo, "8"));
-    pendingValues.add(createDataValue(deS, per, sourceA, cocCa, defaultCombo, "16"));
-    pendingValues.add(createDataValue(deS, per, sourceA, cocCc, defaultCombo, "32"));
-    flushDataValues();
+    Period per = periodService.reloadPeriod(monthlyPeriod(2022, 1));
+
+    addDataValues(
+        createDataValue(deQ, per, sourceA, cocAa, defaultCombo, "1"),
+        createDataValue(deQ, per, sourceA, cocAb, defaultCombo, "2"),
+        createDataValue(deR, per, sourceA, cocBa, defaultCombo, "4"),
+        createDataValue(deR, per, sourceA, cocBb, defaultCombo, "8"),
+        createDataValue(deS, per, sourceA, cocCa, defaultCombo, "16"),
+        createDataValue(deS, per, sourceA, cocCc, defaultCombo, "32"));
 
     String expectedA = String.valueOf(1 + 4 + 16);
     String expectedB = String.valueOf(2 + 8);
@@ -2171,10 +2250,11 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
         createPredictor(
             deP, null, "Disags", expression, null, periodTypeMonthly, orgUnitLevel1, 0, 0, 0);
 
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2022, 1), monthStart(2022, 2), summary);
     assertEquals("Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals(expectedA, getDataValue(deP, cocAa, sourceA, makeMonth(2022, 1)));
-    assertEquals(expectedB, getDataValue(deP, cocAb, sourceA, makeMonth(2022, 1)));
+    assertEquals(expectedA, getDataValue(deP, cocAa, sourceA, monthlyPeriod(2022, 1)));
+    assertEquals(expectedB, getDataValue(deP, cocAb, sourceA, monthlyPeriod(2022, 1)));
 
     // Test prediction disaggregation with and without query modifiers and
     // with default output catOptionCombo
@@ -2198,21 +2278,19 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2022, 1), monthStart(2022, 2), summary);
     assertEquals("Pred 1 Ins 0 Upd 2 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("4", getDataValue(deP, cocAa, sourceA, makeMonth(2022, 1)));
-    assertEquals("8", getDataValue(deP, cocAb, sourceA, makeMonth(2022, 1)));
+    assertEquals("4", getDataValue(deP, cocAa, sourceA, monthlyPeriod(2022, 1)));
+    assertEquals("8", getDataValue(deP, cocAb, sourceA, monthlyPeriod(2022, 1)));
   }
 
   @Test
   void testPredictMinMaxDate() {
-    useDataValue(dataElementA, makeMonth(2022, 7), sourceA, 1);
-    useDataValue(dataElementA, makeMonth(2022, 8), sourceA, 2);
-    useDataValue(dataElementA, makeMonth(2022, 9), sourceA, 4);
-
-    useDataValue(dataElementB, makeMonth(2022, 7), sourceA, 8);
-    useDataValue(dataElementB, makeMonth(2022, 8), sourceA, 16);
-    useDataValue(dataElementB, makeMonth(2022, 9), sourceA, 32);
-
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2022, 7), sourceA, 1),
+        createDataValue(dataElementA, monthlyPeriod(2022, 8), sourceA, 2),
+        createDataValue(dataElementA, monthlyPeriod(2022, 9), sourceA, 4),
+        createDataValue(dataElementB, monthlyPeriod(2022, 7), sourceA, 8),
+        createDataValue(dataElementB, monthlyPeriod(2022, 8), sourceA, 16),
+        createDataValue(dataElementB, monthlyPeriod(2022, 9), sourceA, 32));
 
     String expectedValue = String.valueOf(1 + 2 + 4 + 16);
 
@@ -2228,10 +2306,11 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
         createPredictor(
             dataElementC, null, "P", expression, null, periodTypeMonthly, orgUnitLevel1, 3, 0, 0);
 
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2022, 10), monthStart(2022, 11), summary);
     assertEquals("Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary(summary));
     assertEquals(
-        expectedValue, getDataValue(dataElementC, defaultCombo, sourceA, makeMonth(2022, 10)));
+        expectedValue, getDataValue(dataElementC, defaultCombo, sourceA, monthlyPeriod(2022, 10)));
 
     // Now try with one data element both without and with modifiers:
     expectedValue = String.valueOf(8 + 16 + (2 * 16) + 32);
@@ -2252,13 +2331,13 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     predictionService.predict(p, monthStart(2022, 10), monthStart(2022, 11), summary);
     assertEquals("Pred 1 Ins 0 Upd 1 Del 0 Unch 0", shortSummary(summary));
     assertEquals(
-        expectedValue, getDataValue(dataElementC, defaultCombo, sourceA, makeMonth(2022, 10)));
+        expectedValue, getDataValue(dataElementC, defaultCombo, sourceA, monthlyPeriod(2022, 10)));
   }
 
   @Test
   void testOrderWithinPredictorGroup() {
-    useDataValue(dataElementA, makeMonth(2021, 12), sourceA, defaultCombo, "0");
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2021, 12), sourceA, defaultCombo, "0"));
     // 0 + 1 * 2 + 2 * 3 + 3 * 4 + 4 = 64, if operations are in order
     Expression e1 = new Expression("#{" + dataElementA.getUid() + "} + 1", "e1");
     Expression e2 = new Expression("#{" + dataElementA.getUid() + "} * 2", "e2");
@@ -2303,7 +2382,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
         null,
         Lists.newArrayList("predictorgA"),
         progress);
-    assertEquals("64", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2021, 12)));
+    assertEquals("64", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2021, 12)));
   }
 
   @Test
@@ -2311,11 +2390,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     // Note: the predictions will create a new period in the database, and
     // will work only if each prediction is in a different transaction
     // (which it will be).
-    useDataValue(dataElementA, makeMonth(2023, 1), sourceA, defaultCombo, "1");
-    useDataValue(dataElementB, makeMonth(2023, 1), sourceA, defaultCombo, "2");
-    useDataValue(dataElementC, makeMonth(2023, 1), sourceA, defaultCombo, "3");
-
-    flushDataValues();
+    addDataValues(
+        createDataValue(dataElementA, monthlyPeriod(2023, 1), sourceA, defaultCombo, "1"),
+        createDataValue(dataElementB, monthlyPeriod(2023, 1), sourceA, defaultCombo, "2"),
+        createDataValue(dataElementC, monthlyPeriod(2023, 1), sourceA, defaultCombo, "3"));
 
     DataElementGroup dataElementGroup =
         createDataElementGroup('A', dataElementA, dataElementB, dataElementC);
@@ -2337,11 +2415,12 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
             0,
             1);
 
+    PredictionSummary summary = new PredictionSummary();
     predictionService.predict(p, monthStart(2023, 2), monthStart(2023, 3), summary);
     assertEquals("Pred 3 Ins 3 Upd 0 Del 0 Unch 0", shortSummary(summary));
-    assertEquals("2", getDataValue(dataElementA, defaultCombo, sourceA, makeMonth(2023, 2)));
-    assertEquals("6", getDataValue(dataElementB, defaultCombo, sourceA, makeMonth(2023, 2)));
-    assertEquals("12", getDataValue(dataElementC, defaultCombo, sourceA, makeMonth(2023, 2)));
+    assertEquals("2", getDataValue(dataElementA, defaultCombo, sourceA, monthlyPeriod(2023, 2)));
+    assertEquals("6", getDataValue(dataElementB, defaultCombo, sourceA, monthlyPeriod(2023, 2)));
+    assertEquals("12", getDataValue(dataElementC, defaultCombo, sourceA, monthlyPeriod(2023, 2)));
   }
 
   @Test
