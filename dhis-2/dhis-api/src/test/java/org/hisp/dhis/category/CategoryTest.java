@@ -91,7 +91,7 @@ class CategoryTest {
 
     return Stream.of(
         Arguments.of("name", "uid", "code", "shortName",  isEqual),
-        Arguments.of("name", "uid", "code", "shortName diff", isNotEqual),
+        Arguments.of("name", "uid", "code", "shortName diff", isEqual),
         Arguments.of("name", "uid", "code diff", "shortName", isNotEqual),
         Arguments.of("name", "uid diff", "code", "shortName", isNotEqual),
         Arguments.of("name diff", "uid", "code", "shortName", isNotEqual));

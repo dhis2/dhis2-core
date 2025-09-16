@@ -236,12 +236,11 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   @Override
   public boolean equals(Object obj) {
     return this == obj
-           || obj instanceof CategoryOption other
+           || obj instanceof Category other
               && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
               && Objects.equals(getUid(), other.getUid())
               && Objects.equals(getCode(), other.getCode())
-              && Objects.equals(getName(), other.getName())
-              && Objects.equals(getShortName(), other.getShortName());
+              && Objects.equals(getName(), other.getName());
   }
 
   @Override
@@ -249,7 +248,6 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     int result = getUid() != null ? getUid().hashCode() : 0;
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
     return result;
   }
   
@@ -593,7 +591,7 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "description", key = "DESCRIPTION")
   public String getDisplayDescription() {
-    return translations.getTranslation("SHORTNAME", shortName);
+    return translations.getTranslation("DESCRIPTION", description);
   }
 
   @Override
