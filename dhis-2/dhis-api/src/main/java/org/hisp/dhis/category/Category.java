@@ -78,6 +78,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.Sortable;
@@ -112,9 +113,9 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   public static final String DEFAULT_NAME = "default";
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "categoryid")
-  private Long id;
+  private long id;
   
   @Column(nullable = false, unique = true, length = 230)
   private String name;
@@ -124,6 +125,9 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
 
   @Column(columnDefinition = "text")
   private String description;
+  
+  @Column(length = 50, unique = true, nullable = false)
+  private String code;
   
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
@@ -312,6 +316,16 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   @Override
   public DimensionalProperties getDimensionalProperties() {
     return dimensionalProperties;
+  }
+
+  @Override
+  public String getDimensionName() {
+    return dimensionName != null ? dimensionName : uid;
+  }
+
+  @Override
+  public String getDimensionDisplayName() {
+    return dimensionDisplayName;
   }
   // ------------------------------------------------------------------------
   // Getters and setters
@@ -542,23 +556,33 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORTNAME")
   public String getDisplayShortName() {
-    return "";
+    return translations.getTranslation("SHORTNAME", shortName);
   }
-
+  
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
   public String getDisplayDescription() {
-    return "";
+    return translations.getTranslation("SHORTNAME", shortName);
   }
 
   @Override
   public String getDisplayProperty(DisplayProperty property) {
-    return "";
+    if (DisplayProperty.SHORTNAME == property && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
   }
 
   @Override
   public String getCode() {
-    return "";
+    return this.code;
   }
 
   @Override
@@ -587,32 +611,43 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
    */
   @Override
   public void setUser(User user) {
-
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
   }
 
   @Override
   public String getPropertyValue(IdScheme idScheme) {
-    return "";
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return attributeValues.get(idScheme.getAttribute());
+    }
+    return null;
   }
 
   @Override
   public String getDisplayPropertyValue(IdScheme idScheme) {
-    return "";
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
   }
 
   @Override
   public void setId(long id) {
-
-  }
-
-  @Override
-  public void setCode(String code) {
-
+    this.id = id;
   }
 
   @Override
   public void setOwner(String owner) {
-
+    getSharing().setOwner(owner);
   }
 
   /** Clears out cache when setting translations. */
@@ -621,11 +656,9 @@ public class Category extends BaseMetadataObject implements DimensionalObject, S
     this.translations.setTranslations(translations);
   }
 
-  /**
-   * @return internal unique ID of the object as used in the database
-   */
   @Override
+  @JsonIgnore
   public long getId() {
-    return 0;
+    return id;
   }
 }
