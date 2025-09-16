@@ -783,9 +783,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     fromBuilder
         .append(
             "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-        .append(
-            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=ou.organisationunitid) ")
+        .append("inner join organisationunit ou on (po.organisationunitid=ou.organisationunitid) ")
         .append(
             "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
