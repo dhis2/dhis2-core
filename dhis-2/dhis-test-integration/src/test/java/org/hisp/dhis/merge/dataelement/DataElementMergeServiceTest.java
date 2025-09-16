@@ -2458,10 +2458,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     dataDumpService.upsertValues(
         createDataValue(deSource1, "1", p1),
-        createDataValue(deSource1, "2", p1),
         createDataValue(deSource2, "1", p1),
-        createDataValue(deSource2, "2", p1),
         createDataValue(deTarget, "1", p1));
+
+    dataDumpService.upsertValues(
+        createDataValue(deSource1, "2", p1), createDataValue(deSource2, "2", p1));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2498,10 +2499,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     dataDumpService.upsertValues(
         createDataValue(deSource1, "1", p1),
-        createDataValue(deSource1, "2", p1),
         createDataValue(deSource2, "1", p1),
-        createDataValue(deSource2, "2", p1),
         createDataValue(deTarget, "1", p1));
+
+    dataDumpService.upsertValues(
+        createDataValue(deSource1, "2", p1), createDataValue(deSource2, "2", p1));
 
     // params
     MergeParams mergeParams = getMergeParams();
