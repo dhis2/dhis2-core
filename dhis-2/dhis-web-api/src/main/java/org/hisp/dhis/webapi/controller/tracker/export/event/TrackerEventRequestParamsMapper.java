@@ -41,15 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -57,23 +54,22 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link EventsExportController} stored in {@link EventRequestParams} to
  * {@link TrackerEventOperationParams} which is used to fetch events from the DB.
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerEventRequestParamsMapper {
+class TrackerEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  private final FieldFilterService fieldFilterService;
+  private TrackerEventRequestParamsMapper() {
+    throw new IllegalStateException("Utility class");
+  }
 
-  public TrackerEventOperationParams map(
+  public static TrackerEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     validateMandatoryProgram(eventRequestParams.getProgram());
@@ -145,10 +141,7 @@ public class TrackerEventRequestParamsMapper {
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .fields(
                 TrackerEventFields.of(
-                    f ->
-                        fieldFilterService.filterIncludes(
-                            Event.class, eventRequestParams.getFields(), f),
-                    FieldPath.FIELD_PATH_SEPARATOR))
+                    eventRequestParams.getFields()::includes, FieldPath.FIELD_PATH_SEPARATOR))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());
@@ -164,7 +157,7 @@ public class TrackerEventRequestParamsMapper {
     }
   }
 
-  private void mapOrderParam(
+  private static void mapOrderParam(
       TrackerEventOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -179,7 +172,7 @@ public class TrackerEventRequestParamsMapper {
     }
   }
 
-  private void mapDataElementFilterParam(
+  private static void mapDataElementFilterParam(
       TrackerEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
     if (dataElementFilters == null || dataElementFilters.isEmpty()) {
       return;
@@ -194,7 +187,7 @@ public class TrackerEventRequestParamsMapper {
     }
   }
 
-  private void mapAttributeFilterParam(
+  private static void mapAttributeFilterParam(
       TrackerEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> attributeFilters) {
     if (attributeFilters == null || attributeFilters.isEmpty()) {
       return;
@@ -215,7 +208,7 @@ public class TrackerEventRequestParamsMapper {
     }
   }
 
-  private void validateUpdateDurationParams(EventRequestParams eventRequestParams)
+  private static void validateUpdateDurationParams(EventRequestParams eventRequestParams)
       throws BadRequestException {
     if (eventRequestParams.getUpdatedWithin() != null
         && (eventRequestParams.getUpdatedAfter() != null

@@ -191,7 +191,7 @@
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.8.0</google-api-client.version>
-    <lombok.version>1.18.38</lombok.version>
+    <lombok.version>1.18.40</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.14.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
@@ -231,6 +231,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
+    <jmh.version>1.37</jmh.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -1723,7 +1724,18 @@
         <artifactId>minio</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-core</artifactId>
+        <version>${jmh.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-generator-annprocess</artifactId>
+        <version>${jmh.version}</version>
+        <scope>test</scope>
+      </dependency>
       <!-- Monitoring -->
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -2396,7 +2408,7 @@ jasperreports.version=${jasperreports.version}
               <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
+              <excludedGroups>benchmark,integration,integrationH2</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
@@ -2422,6 +2434,7 @@ jasperreports.version=${jasperreports.version}
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integration</groups>
+              <excludedGroups>benchmark</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
@@ -2447,6 +2460,7 @@ jasperreports.version=${jasperreports.version}
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
+              <excludedGroups>benchmark</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
