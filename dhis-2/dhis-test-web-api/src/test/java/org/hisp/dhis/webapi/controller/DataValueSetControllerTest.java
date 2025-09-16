@@ -44,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -179,15 +180,13 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
             POST(
                 "/dataSets/",
                 "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
-    JsonWebMessage response =
+    JsonObject ds =
         GET(
                 "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}",
                 "OU1",
                 dsId)
-            .content(HttpStatus.CONFLICT)
-            .as(JsonWebMessage.class);
-    assertEquals(
-        String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+            .content(HttpStatus.OK);
+    assertTrue(ds.isObject());
   }
 
   @Test

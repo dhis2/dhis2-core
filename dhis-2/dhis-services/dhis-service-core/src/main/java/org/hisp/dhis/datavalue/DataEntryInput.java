@@ -241,27 +241,29 @@ public final class DataEntryInput {
     List<DataEntryValue.Input> values = new ArrayList<>();
     // Note that this uses JsonNode API to iterate without indexing
     // to make the processing memory footprint smaller
-    dvs.get("dataValues")
-        .node()
-        .elements(false)
-        .forEachRemaining(
-            node -> {
-              JsonObject dv = JsonMixed.of(node);
-              values.add(
-                  new DataEntryValue.Input(
-                      dv.getString("dataElement").string(),
-                      dv.getString("orgUnit").string(),
-                      dv.getString("categoryOptionCombo").string(),
-                      null,
-                      dv.getString("attributeOptionCombo").string(),
-                      null,
-                      null,
-                      dv.getString("period").string(),
-                      dv.getString("value").string(),
-                      dv.getString("comment").string(),
-                      dv.getBoolean("followUp").bool(),
-                      dv.getBoolean("deleted").bool()));
-            });
+    JsonValue dataValues = dvs.get("dataValues");
+    if (dataValues.exists())
+      dataValues
+          .node()
+          .elements(false)
+          .forEachRemaining(
+              node -> {
+                JsonObject dv = JsonMixed.of(node);
+                values.add(
+                    new DataEntryValue.Input(
+                        dv.getString("dataElement").string(),
+                        dv.getString("orgUnit").string(),
+                        dv.getString("categoryOptionCombo").string(),
+                        null,
+                        dv.getString("attributeOptionCombo").string(),
+                        null,
+                        null,
+                        dv.getString("period").string(),
+                        dv.getString("value").string(),
+                        dv.getString("comment").string(),
+                        dv.getBoolean("followUp").bool(),
+                        dv.getBoolean("deleted").bool()));
+              });
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
     return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values));
   }
