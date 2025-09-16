@@ -172,45 +172,6 @@ public class Category extends BaseMetadataObject
   @Transient
   private transient DimensionalProperties dimensionalProperties = new DimensionalProperties();
 
-  /** The name of this dimension. */
-  @Transient private transient String dimensionName;
-
-  /** The display name to use for this dimension. */
-  @Transient private transient String dimensionDisplayName;
-
-  /** Holds the value type of the parent dimension. */
-  @Transient private transient ValueType valueType;
-
-  /** The option set associated with the dimension, if any. */
-  @Transient private transient OptionSet optionSet;
-
-  /** Indicates whether all available items in this dimension are included. */
-  @Transient private transient boolean allItems;
-
-  /** The legend set for this dimension. */
-  @Transient private transient LegendSet legendSet;
-
-  /** The program stage for this dimension. */
-  @Transient private transient ProgramStage programStage;
-
-  /** The program for this dimension. */
-  @Transient private transient Program program;
-
-  /** The aggregation type for this dimension. */
-  @Transient private transient AggregationType aggregationType;
-
-  /** Filter. Applicable for events. Contains operator and filter. */
-  @Transient private transient String filter;
-
-  /** Applicable only for events. Holds the indexes relate to the repetition object. */
-  @Transient private transient EventRepetition eventRepetition;
-
-  /** Defines a pre-defined group of items. */
-  @Transient private transient DimensionItemKeywords dimensionItemKeywords;
-
-  /** Indicates whether this dimension is fixed. */
-  @Transient private transient boolean fixed;
-
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -340,12 +301,12 @@ public class Category extends BaseMetadataObject
 
   @Override
   public String getDimensionName() {
-    return dimensionName != null ? dimensionName : uid;
+    return dimensionalProperties.getDimensionName() != null ? dimensionalProperties.getDimensionName() : uid;
   }
 
   @Override
   public String getDimensionDisplayName() {
-    return dimensionDisplayName;
+    return dimensionalProperties.getDimensionDisplayName();
   }
 
   // ------------------------------------------------------------------------
@@ -431,14 +392,14 @@ public class Category extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ValueType getValueType() {
-    return valueType;
+    return dimensionalProperties.getValueType();
   }
 
   @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OptionSet getOptionSet() {
-    return optionSet;
+    return dimensionalProperties.getOptionSet();
   }
 
   // -------------------------------------------------------------------------
@@ -450,7 +411,7 @@ public class Category extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isAllItems() {
-    return allItems;
+    return dimensionalProperties.isAllItems();
   }
 
   /** Gets the legend set. */
@@ -459,7 +420,7 @@ public class Category extends BaseMetadataObject
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
-    return legendSet;
+    return dimensionalProperties.getLegendSet();
   }
 
   /** Gets the program stage (not persisted). */
@@ -468,7 +429,7 @@ public class Category extends BaseMetadataObject
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ProgramStage getProgramStage() {
-    return programStage;
+    return dimensionalProperties.getProgramStage();
   }
 
   /** Gets the program (not persisted). */
@@ -477,7 +438,7 @@ public class Category extends BaseMetadataObject
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
-    return program;
+    return dimensionalProperties.getProgram();
   }
 
   /** Gets the aggregation type. */
@@ -485,7 +446,7 @@ public class Category extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AggregationType getAggregationType() {
-    return aggregationType;
+    return dimensionalProperties.getAggregationType();
   }
 
   /** Gets the filter. Contains operator and filter. Applicable for events. */
@@ -493,7 +454,7 @@ public class Category extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFilter() {
-    return filter;
+    return dimensionalProperties.getFilter();
   }
 
   /** Gets the events repetition. Only applicable for events. */
@@ -501,7 +462,7 @@ public class Category extends BaseMetadataObject
   @JsonProperty("repetition")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EventRepetition getEventRepetition() {
-    return eventRepetition;
+    return dimensionalProperties.getEventRepetition();
   }
 
   /** Indicates the analytics type of this dimensional object. */
@@ -512,7 +473,7 @@ public class Category extends BaseMetadataObject
 
   @Override
   public void setEventRepetition(EventRepetition eventRepetition) {
-    this.eventRepetition = eventRepetition;
+    this.dimensionalProperties.setEventRepetition(eventRepetition);
   }
 
   /**
@@ -522,23 +483,26 @@ public class Category extends BaseMetadataObject
   @Override
   @JsonIgnore
   public boolean isFixed() {
-    return fixed;
+    return dimensionalProperties.isFixed();
   }
 
   @Override
   public List<String> getFilterItemsAsList() {
-    return List.of();
+    return dimensionalProperties.getItems() != null ?
+        dimensionalProperties.getItems().stream().map(item -> item.getDimensionItem()).toList() :
+        List.of();
   }
 
   /** Returns a unique key representing this dimension. */
   @Override
   public String getKey() {
+    // Implementation from BaseDimensionalObject
     return "";
   }
 
   @Override
   public void setFixed(boolean fixed) {
-    this.fixed = fixed;
+    this.dimensionalProperties.setFixed(fixed);
   }
 
   /** Returns dimension item keywords for this dimension. */
@@ -546,7 +510,7 @@ public class Category extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DimensionItemKeywords getDimensionItemKeywords() {
-    return dimensionItemKeywords;
+    return dimensionalProperties.getDimensionalKeywords();
   }
 
   @Override
@@ -599,10 +563,11 @@ public class Category extends BaseMetadataObject
   }
 
   /**
-   * @param user
+   * @param user the user to set
    * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
    *     used for web api backward compatibility
    */
+  @Deprecated
   @Override
   public void setUser(User user) {
     setCreatedBy(createdBy == null ? user : createdBy);

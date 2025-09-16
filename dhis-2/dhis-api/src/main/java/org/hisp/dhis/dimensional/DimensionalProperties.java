@@ -40,7 +40,11 @@ import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 @Getter
 @Setter
@@ -70,6 +74,18 @@ public class DimensionalProperties {
 
   /** Indicates whether all available items in this dimension are included. */
   private boolean allItems;
+
+  /** The legend set for this dimension. */
+  private LegendSet legendSet;
+
+  /** The program stage for this dimension. */
+  private ProgramStage programStage;
+
+  /** The program for this dimension. */
+  private Program program;
+
+  /** The aggregation type for this dimension. */
+  private AggregationType aggregationType;
 
   /**
    * Filter. Applicable for events. Contains operator and filter on this format:
