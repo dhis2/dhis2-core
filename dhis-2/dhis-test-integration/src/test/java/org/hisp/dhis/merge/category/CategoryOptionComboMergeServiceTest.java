@@ -839,14 +839,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source COCs are merged using LAST_UPDATED strategy, 1 source duplicate kept")
   void dataValueMergeCocLastUpdated1SourceKeptTest() throws ConflictException {
     // given
-    DataValue dv1 = createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1");
-    dv1.setLastUpdated(DateUtils.parseDate("2025-01-10"));
-    DataValue dv2 = createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "source value 2");
-    dv2.setLastUpdated(DateUtils.parseDate("2025-01-11"));
-    DataValue dv3 = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3");
-    dv3.setLastUpdated(DateUtils.parseDate("2024-01-04"));
-
-    addDataValues(dv1, dv2, dv3);
+    // (individual add to force increasing lastUpdated values)
+    DataValue dv3 =
+        addDataValue(createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3"));
+    DataValue dv1 =
+        addDataValue(createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1"));
+    DataValue dv2 =
+        addDataValue(createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "source value 2"));
 
     dbmsManager.clearSession();
 
@@ -955,21 +954,20 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source COCs are merged using LAST_UPDATED strategy, mix of duplicates kept")
   void dataValueMergeCocLastUpdatedMixTest() throws ConflictException {
     // given
-    DataValue dv1a = createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1a");
-    dv1a.setLastUpdated(DateUtils.parseDate("2024-01-14"));
-    DataValue dv1b = createDataValue(de2, p1, ou1, cocDuplicate, cocRandom, "keep source value 1b");
-    dv1b.setLastUpdated(DateUtils.parseDate("2025-01-14"));
+    DataValue dv3a =
+        addDataValue(createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3a"));
+    DataValue dv1a =
+        addDataValue(createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1a"));
+    DataValue dv2b =
+        addDataValue(createDataValue(de2, p1, ou1, cocDuplicate2, cocRandom, "source value 2b"));
+    DataValue dv3b =
+        addDataValue(createDataValue(de3, p1, ou1, cocTarget, cocRandom, "keep target value 3b"));
+    DataValue dv1b =
+        addDataValue(
+            createDataValue(de2, p1, ou1, cocDuplicate, cocRandom, "keep source value 1b"));
     DataValue dv2a =
-        createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "keep source value 2a");
-    dv2a.setLastUpdated(DateUtils.parseDate("2025-01-24"));
-    DataValue dv2b = createDataValue(de2, p1, ou1, cocDuplicate2, cocRandom, "source value 2b");
-    dv2b.setLastUpdated(DateUtils.parseDate("2024-01-24"));
-    DataValue dv3a = createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3a");
-    dv3a.setLastUpdated(DateUtils.parseDate("2024-01-04"));
-    DataValue dv3b = createDataValue(de3, p1, ou1, cocTarget, cocRandom, "keep target value 3b");
-    dv3b.setLastUpdated(DateUtils.parseDate("2025-01-04"));
-
-    addDataValues(dv1a, dv1b, dv2a, dv2b, dv3a, dv3b);
+        addDataValue(
+            createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "keep source value 2a"));
 
     dbmsManager.clearSession();
 
@@ -1129,14 +1127,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source AOCs are merged using LAST_UPDATED strategy, 1 source duplicate kept")
   void dataValueMergeAocLastUpdated1SourceKeptTest() throws ConflictException {
     // given
-    DataValue dv1 = createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1");
-    dv1.setLastUpdated(DateUtils.parseDate("2025-01-10"));
-    DataValue dv2 = createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "source value 2");
-    dv2.setLastUpdated(DateUtils.parseDate("2025-01-11"));
-    DataValue dv3 = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3");
-    dv3.setLastUpdated(DateUtils.parseDate("2024-01-04"));
-
-    addDataValues(dv1, dv2, dv3);
+    // (individual add to force increasing lastUpdated values)
+    DataValue dv3 =
+        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3"));
+    DataValue dv1 =
+        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1"));
+    DataValue dv2 =
+        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "source value 2"));
 
     dbmsManager.clearSession();
 
@@ -1245,21 +1242,21 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source AOCs are merged using LAST_UPDATED strategy, mix of duplicates kept")
   void dataValueMergeAocLastUpdatedMixTest() throws ConflictException {
     // given
-    DataValue dv1a = createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1a");
-    dv1a.setLastUpdated(DateUtils.parseDate("2024-01-14"));
-    DataValue dv1b = createDataValue(de2, p1, ou1, cocRandom, cocDuplicate, "keep source value 1b");
-    dv1b.setLastUpdated(DateUtils.parseDate("2025-01-14"));
+    // (individual add to force increasing lastUpdated values)
+    DataValue dv3a =
+        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3a"));
+    DataValue dv1a =
+        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1a"));
+    DataValue dv2b =
+        addDataValue(createDataValue(de2, p1, ou1, cocRandom, cocDuplicate2, "source value 2b"));
+    DataValue dv3b =
+        addDataValue(createDataValue(de3, p1, ou1, cocRandom, cocTarget, "keep target value 3b"));
+    DataValue dv1b =
+        addDataValue(
+            createDataValue(de2, p1, ou1, cocRandom, cocDuplicate, "keep source value 1b"));
     DataValue dv2a =
-        createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "keep source value 2a");
-    dv2a.setLastUpdated(DateUtils.parseDate("2025-01-24"));
-    DataValue dv2b = createDataValue(de2, p1, ou1, cocRandom, cocDuplicate2, "source value 2b");
-    dv2b.setLastUpdated(DateUtils.parseDate("2024-01-24"));
-    DataValue dv3a = createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3a");
-    dv3a.setLastUpdated(DateUtils.parseDate("2024-01-04"));
-    DataValue dv3b = createDataValue(de3, p1, ou1, cocRandom, cocTarget, "keep target value 3b");
-    dv3b.setLastUpdated(DateUtils.parseDate("2025-01-04"));
-
-    addDataValues(dv1a, dv1b, dv2a, dv2b, dv3a, dv3b);
+        addDataValue(
+            createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "keep source value 2a"));
 
     dbmsManager.clearSession();
 
@@ -1315,9 +1312,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     // given
     dataDumpService.upsertValues(
         createDataValue(cocDuplicate, "1", p1),
+        createDataValue(cocDuplicate2, "1", p1),
+        createDataValue(cocTarget, "1", p1));
+
+    dataDumpService.upsertValues(
         createDataValue(cocDuplicate, "2", p1),
-        createDataValue(cocDuplicate, "1", p1),
-        createDataValue(cocDuplicate, "2", p1),
+        createDataValue(cocDuplicate2, "2", p1),
         createDataValue(cocTarget, "1", p1));
 
     // params
@@ -2207,7 +2207,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   private DataEntryValue.Input createDataValue(CategoryOptionCombo coc, String value, Period p) {
     return new DataEntryValue.Input(
-        de1.getUid(), ou1.getUid(), p.getIsoDate(), coc.getUid(), coc.getUid(), value, null);
+        de1.getUid(), ou1.getUid(), coc.getUid(), coc.getUid(), p.getIsoDate(), value, null);
   }
 
   private DataApprovalAudit createDataApprovalAudit(
@@ -2240,7 +2240,20 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
   }
 
+  private DataValue addDataValue(DataValue value) {
+    addDataValues(value);
+    return value;
+  }
+
   private void addDataValues(DataValue... values) {
-    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
+    if (dataDumpService.upsertValuesForJdbcTest(values) < values.length)
+      fail("Failed to upsert test data");
+    // lastUpdated = new Date() of insert so we wait some to force chronologically increasing
+    // lastUpdated values
+    try {
+      Thread.sleep(2L);
+    } catch (InterruptedException ignored) {
+      // it is fine, we just wanted to wait some
+    }
   }
 }

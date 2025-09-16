@@ -205,7 +205,7 @@ public interface DataEntryStore {
   int upsertValues(List<DataEntryValue> values);
 
   @UsageTestOnly
-  int addValuesForJdbcTest(List<DataEntryValue> values);
+  int upsertValuesForJdbcTest(List<DataEntryValue> values);
 
   /*
   Validation support

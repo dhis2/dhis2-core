@@ -193,7 +193,7 @@ class StdDevOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addDataValues(DataValue... values) {
-    if (dataDumpService.addValuesForJdbcTest(values) < values.length)
+    if (dataDumpService.upsertValuesForJdbcTest(values) < values.length)
       fail("Failed to upsert test data");
   }
 }

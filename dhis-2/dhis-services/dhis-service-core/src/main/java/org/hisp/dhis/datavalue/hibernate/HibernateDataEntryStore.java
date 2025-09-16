@@ -718,7 +718,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Override
   @UsageTestOnly
-  public int addValuesForJdbcTest(List<DataEntryValue> values) {
+  public int upsertValuesForJdbcTest(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
     List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
@@ -730,6 +730,15 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         INSERT INTO datavalue
       (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted, storedby, lastupdated, created)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+      DO UPDATE SET
+        value = EXCLUDED.value,
+        comment = EXCLUDED.comment,
+        followup = EXCLUDED.followup,
+        deleted = EXCLUDED.deleted,
+        storedby = EXCLUDED.storedby,
+        lastupdated = EXCLUDED.lastupdated,
+        created = EXCLUDED.created
         """;
     int imported = 0;
     for (DataEntryRow row : internalValues) {
