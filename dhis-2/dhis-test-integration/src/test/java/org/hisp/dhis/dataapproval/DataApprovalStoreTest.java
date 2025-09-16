@@ -152,7 +152,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   // Basic DataApproval
   // -------------------------------------------------------------------------
   @Test
-  @Disabled("TX scope issues related to period usage")
+  @Disabled("DHIS2-19679 loading DAs causes conflict because of Period same ID different instances")
   void testAddAndGetDataApproval() {
     Date date = new Date();
     DataApproval dataApprovalA =

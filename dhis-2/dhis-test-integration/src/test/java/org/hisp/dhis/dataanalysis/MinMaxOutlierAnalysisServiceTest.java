@@ -49,6 +49,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +69,8 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private DataDumpService dataDumpService;
+
+  @Autowired private PeriodStore periodStore;
 
   private DataElement dataElementA;
 
@@ -112,6 +116,9 @@ class MinMaxOutlierAnalysisServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
+    periodStore.invalidateCache();
+    PeriodType.invalidatePeriodCache();
+
     categoryCombo = categoryService.getDefaultCategoryCombo();
     categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     dataElementA = createDataElement('A', categoryCombo);
