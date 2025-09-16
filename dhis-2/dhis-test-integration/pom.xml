@@ -288,6 +288,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>json-tree</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
