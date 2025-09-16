@@ -133,6 +133,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "DHIS2-19679 audits are read-only - 'created' can no longer be faked this way (or any other easy way)")
   void testRetention() throws ConflictException {
     when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
 

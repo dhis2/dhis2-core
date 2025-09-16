@@ -68,6 +68,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
@@ -117,6 +118,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodStore periodStore;
 
   @Autowired private DataElementService dataElementService;
 
@@ -158,6 +160,8 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
+    periodStore.invalidateCache();
+    PeriodType.invalidatePeriodCache();
     final String DATA_ELEMENT_A_UID = "DataElemenA";
     final String DATA_ELEMENT_D_UID = "DataElemenD";
     final String DATA_ELEMENT_I_UID = "DataElemenI";
