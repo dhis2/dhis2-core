@@ -33,7 +33,6 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import io.restassured.http.ContentType;
-import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.junit.jupiter.api.BeforeAll;

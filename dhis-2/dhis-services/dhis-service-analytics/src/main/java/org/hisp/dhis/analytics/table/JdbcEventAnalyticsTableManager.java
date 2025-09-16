@@ -450,16 +450,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               sqlBuilder,
               """
                   \sfrom ${singleevent} ev \
-
                   inner join ${programstage} ps on ev.programstageid=ps.programstageid \
-
                   inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
                   left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
                   left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                   left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-
                   inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
-
                   where ev.lastupdated < '${startTime}' ${partitionClause} \
                   and ev.programstageid = ${programStageId} \
                   and ev.organisationunitid is not null \
