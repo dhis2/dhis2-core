@@ -966,14 +966,21 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       SELECT ou.uid, array_agg(pe.iso)
       FROM dataset ds
       JOIN dataapproval da ON ds.workflowid = da.workflowid
+      JOIN categoryoptioncombo aoc ON da.attributeoptioncomboid = aoc.categoryoptioncomboid
       JOIN organisationunit ou ON da.organisationunitid = ou.organisationunitid
       JOIN period pe ON da.periodid = pe.periodid
       WHERE ds.uid = :ds
+        AND aoc.uid = :aoc
         AND ou.uid IN (:ou)
       GROUP BY ou.uid""";
     String ds = dataSet.getValue();
     String[] ou = orgUnits.map(UID::getValue).distinct().toArray(String[]::new);
-    return listAsStringsMapOfSet(sql, q -> q.setParameter("ds", ds).setParameterList("ou", ou));
+    return listAsStringsMapOfSet(
+        sql,
+        q ->
+            q.setParameter("ds", ds)
+                .setParameterList("ou", ou)
+                .setParameter("aoc", attrOptionCombo.getValue()));
   }
 
   @Override

@@ -96,7 +96,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   @Transactional(readOnly = true)
   public DataEntryValue decodeValue(@CheckForNull UID dataSet, @Nonnull DataEntryValue.Input value)
       throws BadRequestException {
-    return decodeGroup(new DataEntryGroup.Input(List.of(value))).values().get(0);
+    String ds = dataSet == null ? null : dataSet.getValue();
+    return decodeGroup(new DataEntryGroup.Input(ds, List.of(value))).values().get(0);
   }
 
   @Override
