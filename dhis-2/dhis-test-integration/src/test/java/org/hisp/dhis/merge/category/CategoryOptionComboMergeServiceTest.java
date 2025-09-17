@@ -1117,12 +1117,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   void dataValueMergeAocLastUpdated1SourceKeptTest() throws ConflictException {
     // given
     // (individual add to force increasing lastUpdated values)
-    DataValue dv3 =
-        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3"));
-    DataValue dv1 =
-        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1"));
-    DataValue dv2 =
-        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "source value 2"));
+    addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3"));
+    addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1"));
+    addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "source value 2"));
 
     dbmsManager.clearSession();
 

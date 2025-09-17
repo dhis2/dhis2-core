@@ -35,7 +35,6 @@ import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.*;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;

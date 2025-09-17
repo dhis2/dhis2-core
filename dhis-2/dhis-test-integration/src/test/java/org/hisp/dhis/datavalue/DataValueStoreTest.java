@@ -68,7 +68,7 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "Merging duplicate DataValues (cat opt combos) leaves only the last updated (source) value remaining")
-  void mergeDvWithDuplicatesKeepSource() throws Exception {
+  void mergeDvWithDuplicatesKeepSource() {
     // given
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mdv1");
 
