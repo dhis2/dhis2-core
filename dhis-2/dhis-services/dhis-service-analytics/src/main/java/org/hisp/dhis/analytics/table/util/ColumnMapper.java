@@ -30,9 +30,9 @@
 package org.hisp.dhis.analytics.table.util;
 
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
@@ -242,7 +242,7 @@ public class ColumnMapper {
     if (isGeospatialSupport()) {
       columns.add(
           AnalyticsTableColumn.builder()
-              .name(uid + OU_GEOMETRY_COL_SUFFIX)
+              .name(uid + OU_GEOMETRY_COL_POSTFIX)
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
               .selectExpression(subqueryProvider.apply("geometry"))
@@ -252,7 +252,7 @@ public class ColumnMapper {
 
     columns.add(
         AnalyticsTableColumn.builder()
-            .name(uid + OU_NAME_COL_SUFFIX)
+            .name(uid + OU_NAME_COL_POSTFIX)
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(subqueryProvider.apply("name"))
