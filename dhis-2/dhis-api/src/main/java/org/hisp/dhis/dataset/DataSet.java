@@ -542,7 +542,7 @@ public class DataSet extends BaseDimensionalItemObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "sections", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "section", namespace = DxfNamespaces.DXF_2_0)
   public Set<Section> getSections() {
