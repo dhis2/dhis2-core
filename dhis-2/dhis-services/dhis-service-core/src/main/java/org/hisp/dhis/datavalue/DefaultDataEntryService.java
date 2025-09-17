@@ -114,7 +114,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private DataEntryGroup decodeGroup(DataEntryGroup.Input group, boolean partial)
       throws BadRequestException {
-    UnaryOperator<String> isoOf = UnaryOperator.identity();
+    UnaryOperator<String> isoOf = DefaultDataEntryService::decodeIso;
     UnaryOperator<String> dsOf = UnaryOperator.identity();
     UnaryOperator<String> deOf = UnaryOperator.identity();
     UnaryOperator<String> ouOf = UnaryOperator.identity();
@@ -122,8 +122,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     UnaryOperator<String> aocOf = UnaryOperator.identity();
 
     DataEntryGroup.Ids ids = group.ids();
-    String isoGroup = group.period();
-    if (isoGroup != null) isoOf = iso -> iso != null ? iso : isoGroup;
+    String isoGroup = decodeIso(group.period());
+    if (isoGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : isoGroup;
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
     String deGroup = group.dataElement();
@@ -271,6 +271,13 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     } catch (RuntimeException ex) {
       return null;
     }
+  }
+
+  @CheckForNull
+  private static String decodeIso(@CheckForNull String period) {
+    if (period == null || period.isEmpty()) return null;
+    // normalize the format to the ISO
+    return PeriodType.getPeriodFromIsoString(period).getIsoDate();
   }
 
   @Override

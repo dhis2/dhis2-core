@@ -44,12 +44,12 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportService;
@@ -267,14 +267,7 @@ public class DataValueController {
   @ResponseStatus(value = HttpStatus.OK)
   public void setDataValueFollowUp(@RequestBody DataValueFollowUpRequest request)
       throws ConflictException, BadRequestException {
-    if (request == null || request.getFollowup() == null)
-      throw new IllegalQueryException(ErrorCode.E2033);
-    DataEntryGroup group =
-        dataEntryService.decodeGroupKeepUnspecified(
-            new DataEntryGroup.Input(List.of(request.toDataEntryValue())));
-    DataEntrySummary summary =
-        dataEntryService.upsertGroup(new DataEntryGroup.Options(), group, transitory());
-    if (summary.succeeded() < 1) throw conflictOf(summary, "Failed to update followup: ");
+    setDataValuesFollowUp(new DataValuesFollowUpRequest(List.of(request)));
   }
 
   @PutMapping(value = "/followups")
@@ -287,13 +280,19 @@ public class DataValueController {
         || values.stream().anyMatch(e -> e.getFollowup() == null))
       throw new ConflictException(ErrorCode.E2033);
 
+    DataEntryGroup update =
+        dataEntryService.decodeGroupKeepUnspecified(
+            new DataEntryGroup.Input(
+                values.stream().map(DataValueFollowUpRequest::toDataEntryValue).toList()));
+    List<DataEntryKey> nonExisting =
+        update.values().stream()
+            .filter(dv -> dv.deleted() != Boolean.TRUE && dv.value() == null)
+            .map(DataEntryValue::toKey)
+            .toList();
+    if (!nonExisting.isEmpty()) throw new ConflictException(ErrorCode.E2032, nonExisting);
     DataEntrySummary summary =
         dataEntryService.upsertGroup(
-            new DataEntryGroup.Options(false, true, false),
-            dataEntryService.decodeGroupKeepUnspecified(
-                new DataEntryGroup.Input(
-                    values.stream().map(DataValueFollowUpRequest::toDataEntryValue).toList())),
-            transitory());
+            new DataEntryGroup.Options(false, true, false), update, transitory());
     if (summary.succeeded() < values.size())
       throw conflictOf(summary, "Failed to update followup: ");
   }
