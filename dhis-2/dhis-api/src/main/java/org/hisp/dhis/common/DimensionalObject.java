@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.dimensional.DimensionalProperties;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
@@ -164,12 +165,23 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
   boolean isFixed();
 
   List<String> getFilterItemsAsList();
-
-  /** Returns a unique key representing this dimension. */
-  String getKey();
-
+  
   void setFixed(boolean fixed);
 
   /** Returns dimension item keywords for this dimension. */
   DimensionItemKeywords getDimensionItemKeywords();
+
+  /** Returns a unique key representing this dimension. */
+  default String getKey() {
+    QueryKey key = new QueryKey();
+
+    key.add("dimension", getDimension());
+    getItems().forEach(e -> key.add("item", e.getDimensionItem()));
+
+    return key.add("allItems", getItems())
+        .addIgnoreNull("legendSet", getLegendSet())
+        .addIgnoreNull("aggregationType", getAggregationType())
+        .addIgnoreNull("filter", getFilter())
+        .asPlainKey();
+  }
 }

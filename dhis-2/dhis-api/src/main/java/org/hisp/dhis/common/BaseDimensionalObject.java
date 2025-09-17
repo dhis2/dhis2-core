@@ -316,20 +316,6 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
     return new ArrayList<>(Arrays.asList(filterItems.split(OPTION_SEP)));
   }
 
-  @Override
-  public String getKey() {
-    QueryKey key = new QueryKey();
-
-    key.add("dimension", getDimension());
-    getItems().forEach(e -> key.add("item", e.getDimensionItem()));
-
-    return key.add("allItems", allItems)
-        .addIgnoreNull("legendSet", legendSet)
-        .addIgnoreNull("aggregationType", aggregationType)
-        .addIgnoreNull("filter", filter)
-        .asPlainKey();
-  }
-
   // --------------------------------------------------------------------------
   // Getters and setters
   // --------------------------------------------------------------------------

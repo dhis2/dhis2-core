@@ -614,6 +614,10 @@ public class Category extends BaseMetadataObject
   public void setTranslations(Set<Translation> translations) {
     this.translations.setTranslations(translations);
   }
+  
+  public void setItems(List<DimensionalItemObject> items) {
+    this.dimensionalProperties.setItems(items);
+  }
 
   @Override
   @JsonIgnore
