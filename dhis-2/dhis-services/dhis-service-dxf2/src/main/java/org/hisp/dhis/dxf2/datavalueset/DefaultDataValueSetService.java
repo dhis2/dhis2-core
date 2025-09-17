@@ -80,6 +80,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
@@ -667,7 +668,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
       @Nonnull JobProgress progress,
       DataValueSetReader reader,
       BatchHandler<DataValue> dataValueBatchHandler,
-      BatchHandler<DataValueAudit> auditBatchHandler) {
+      BatchHandler<DataValueAudit> auditBatchHandler)
+      throws ConflictException {
 
     progress.startingStage("Reading data set header");
     DataValueSet dataValueSet =
@@ -1290,7 +1292,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
       OrganisationUnit orgUnit,
       CategoryOptionCombo attributeOptionCombo,
       String currentUserName,
-      ImportSummary summary) {
+      ImportSummary summary)
+      throws ConflictException {
     if (orgUnit == null) {
       summary.addConflict(OrganisationUnit.class.getSimpleName(), ERROR_OBJECT_NEEDED_TO_COMPLETE);
       return;

@@ -81,6 +81,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.Option;
@@ -163,7 +164,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   private User superUser;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws ConflictException {
     superUser = getAdminUser();
     CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     Attribute attribute = new Attribute("CUSTOM_ID", ValueType.TEXT);
