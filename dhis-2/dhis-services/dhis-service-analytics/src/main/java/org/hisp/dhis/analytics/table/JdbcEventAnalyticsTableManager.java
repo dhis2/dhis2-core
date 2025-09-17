@@ -461,9 +461,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         replaceQualify(
             sqlBuilder,
             """
-                \sfrom singleevent ev \
-                inner join programstage ps on ev.programstageid=ps.programstageid \
-                inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid \
+                \sfrom ${singleevent} ev \
+                inner join ${programstage} ps on ev.programstageid=ps.programstageid \
+                inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
                 left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
                 left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
@@ -516,17 +516,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         replaceQualify(
             sqlBuilder,
             """
-                \sfrom trackerevent ev \
-                inner join enrollment en on ev.enrollmentid=en.enrollmentid \
-                inner join programstage ps on ev.programstageid=ps.programstageid \
-                inner join program pr on en.programid=pr.programid and ${enDeletedClause} \
-                left join trackedentity te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
-                left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid \
-                inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid \
+                \sfrom ${trackerevent} ev \
+                inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                inner join p${rogramstage} ps on ev.programstageid=ps.programstageid \
+                inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
+                left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
+                left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
+                inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
                 left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
                 left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-                left join organisationunit enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
+                left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
                 inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
                 ${attributeJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
@@ -767,13 +767,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String query =
         """
             \s(select l.uid \
-              from maplegend l \
-              join trackedentityattributevalue av \
+              from   ${maplegend} l \
+              join   trackedentityattributevalue av \
                      on av.trackedentityattributeid=${attributeId} \
                     ${numericClause} \
                     and l.maplegendsetid=${legendSetId} \
                     and l.startvalue <= ${castExpr} \
-                    and l.endvalue > ${castExpr} \
+                    and l.endvalue   > ${castExpr} \
               where av.trackedentityid = en.trackedentityid \
               limit  1) as ${column}""";
 

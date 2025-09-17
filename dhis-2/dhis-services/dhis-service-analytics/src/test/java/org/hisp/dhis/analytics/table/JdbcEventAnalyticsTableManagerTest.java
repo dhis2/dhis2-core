@@ -722,9 +722,13 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyGetAnalyticsTableWithOuLevels() {
     List<OrganisationUnitLevel> ouLevels = rnd.objects(OrganisationUnitLevel.class, 2).toList();
+    ProgramStage psA = new ProgramStage();
+    psA.setId(123456);
+
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
-    programA.setProgramType(WITHOUT_REGISTRATION);
+    programA.setProgramType(WITH_REGISTRATION);
+    programA.setProgramStages(Set.of(psA));
 
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
@@ -760,6 +764,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     assertThat(tables, hasSize(1));
 
+    int extraColumnsOnlyForRegistration = 2;
+
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
@@ -767,8 +773,8 @@ class JdbcEventAnalyticsTableManagerTest {
         .withColumnSize(
             EventAnalyticsColumn.getColumns(sqlBuilder, false, true).size()
                 + PeriodType.getAvailablePeriodTypes().size()
+                + (programA.isRegistration() ? extraColumnsOnlyForRegistration : 0)
                 + ouLevels.size()
-                + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
@@ -782,8 +788,13 @@ class JdbcEventAnalyticsTableManagerTest {
   void verifyGetAnalyticsTableWithOuGroupSet() {
     List<OrganisationUnitGroupSet> ouGroupSet =
         rnd.objects(OrganisationUnitGroupSet.class, 2).toList();
+    ProgramStage psA = new ProgramStage();
+    psA.setId(123456);
+
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
+    programA.setProgramType(WITHOUT_REGISTRATION);
+    programA.setProgramStages(Set.of(psA));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class))
@@ -807,13 +818,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            EventAnalyticsColumn.getColumns(sqlBuilder, false, true).size()
+            EventAnalyticsColumn.getColumns(sqlBuilder, false, false).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, false))
         .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
         .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -823,9 +834,13 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyGetAnalyticsTableWithOptionGroupSets() {
     List<CategoryOptionGroupSet> cogs = rnd.objects(CategoryOptionGroupSet.class, 2).toList();
+    ProgramStage psA = new ProgramStage();
+    psA.setId(123456);
+
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
-    programA.setProgramType(WITHOUT_REGISTRATION);
+    programA.setProgramType(WITH_REGISTRATION);
+    programA.setProgramStages(Set.of(psA));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(categoryService.getAttributeCategoryOptionGroupSetsNoAcl()).thenReturn(cogs);
@@ -844,15 +859,17 @@ class JdbcEventAnalyticsTableManagerTest {
 
     assertThat(tables, hasSize(1));
 
+    int extraColumnsOnlyForRegistration = 2;
+
     new AnalyticsTableAsserter.Builder(tables.get(0))
         .withName(TABLE_PREFIX + programA.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            EventAnalyticsColumn.getColumns(sqlBuilder, false, false).size()
+            EventAnalyticsColumn.getColumns(sqlBuilder, false, true).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
-                + (programA.isRegistration() ? 1 : 0)
+                + (programA.isRegistration() ? extraColumnsOnlyForRegistration : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
@@ -982,27 +999,34 @@ class JdbcEventAnalyticsTableManagerTest {
     int latestYear = availableDataYears.get(availableDataYears.size() - 1);
 
     String eventTable = program.isWithoutRegistration() ? "singleevent" : "trackerevent";
+    String dataClause = program.isWithoutRegistration() ? "ev.occurreddate" : DATE_CLAUSE;
 
     String sql =
         "select temp.supportedyear from (select distinct "
             + "extract(year from "
-            + DATE_CLAUSE
+            + dataClause
             + ") as supportedyear "
             + "from \""
             + eventTable
             + "\" ev "
-            + "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
-            + "where ev.lastupdated <= '2019-08-01T00:00:00' "
-            + "and en.programid = "
-            + program.getId()
+            + (program.isRegistration()
+                ? ""
+                : "inner join \"programstage\" ps on ev.programstageid=ps.programstageid ")
+            + (program.isWithoutRegistration()
+                ? ""
+                : "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid ")
+            + "where ev.lastupdated <= '2019-08-01T00:00:00'"
+            + (program.isWithoutRegistration() ? "" : " and en.programid = " + program.getId())
             + " and ("
-            + DATE_CLAUSE
+            + dataClause
             + ") is not null and ("
-            + DATE_CLAUSE
-            + ") > '1000-01-01' and ev.deleted = false ";
+            + dataClause
+            + ") > '1000-01-01'"
+            + (program.isRegistration() ? "" : " and ev.programstageid = 123456")
+            + " and ev.deleted = false ";
 
     if (withExecutionDate) {
-      sql += "and (" + DATE_CLAUSE + ") >= '2018-01-01'";
+      sql += "and (" + dataClause + ") >= '2018-01-01'";
     }
 
     sql +=

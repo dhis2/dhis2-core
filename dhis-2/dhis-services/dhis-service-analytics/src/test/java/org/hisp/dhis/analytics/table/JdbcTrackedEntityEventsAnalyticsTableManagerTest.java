@@ -167,7 +167,7 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
         ev.created,ev.scheduleddate,ev.status,ous.organisationunituid,ous.name,ous.code,ous.level,
         %s,
         ev.geometry,case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end,case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end,concat_ws(' / ',) as ounamehierarchy
-        from "event" ev inner join "enrollment" en on en.enrollmentid=ev.enrollmentid
+        from "trackerevent" ev inner join "enrollment" en on en.enrollmentid=ev.enrollmentid
         and en."deleted" = false inner join "trackedentity" te on te.trackedentityid=en.trackedentityid
         and te."deleted" = false and te.trackedentitytypeid = 0
         and te.lastupdated < '2019-08-01T00:00:00' left join "programstage" ps on ev.programstageid=ps.programstageid
