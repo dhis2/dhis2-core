@@ -322,10 +322,10 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
                 'shortName':'%s',
                 'openingDate':'2021',
                 'description':'Org desc',
-                'code':'Org code'
+                'code':'C%s'
               }
             """
-                .formatted(name, name)));
+                .formatted(name, name, name)));
   }
 
   protected final String addOrganisationUnit(String name, String parentId) {

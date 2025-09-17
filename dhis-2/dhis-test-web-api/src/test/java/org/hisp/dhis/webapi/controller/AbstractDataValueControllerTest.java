@@ -29,12 +29,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -47,22 +49,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 abstract class AbstractDataValueControllerTest extends PostgresControllerIntegrationTestBase {
+
+  protected String dataSetId;
   protected String dataElementId;
-
   protected String orgUnitId;
-
   protected String categoryComboId;
-
   protected String categoryOptionComboId;
 
   @BeforeEach
   void setUp() {
-    orgUnitId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    orgUnitId = addOrganisationUnit("OU1");
+    List<String> orgUnitIds =
+        Stream.concat(Stream.of(orgUnitId), setUpAdditionalOrgUnits().stream()).toList();
     // add OU to users hierarchy
     assertStatus(
         HttpStatus.OK,
@@ -79,13 +77,41 @@ abstract class AbstractDataValueControllerTest extends PostgresControllerIntegra
     dataElementId =
         addDataElement("My data element", "DE1", ValueType.INTEGER, null, categoryComboId);
 
+    String dataElements =
+        Stream.concat(Stream.of(dataElementId), setUpAdditionalDataElements().stream())
+            .map("{'dataElement':{'id':'%s'}}"::formatted)
+            .collect(joining(","));
+    String orgUnits = orgUnitIds.stream().map("{ 'id': '%s'}"::formatted).collect(joining(","));
+
+    String json =
+        """
+      {'name':'My data set',
+      'shortName':'MDS',
+      'periodType':'Monthly',
+      'dataSetElements':[%s],
+      'organisationUnits': [%s]
+      }""";
+    dataSetId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/dataSets/", json.formatted(dataElements, orgUnits)));
+
     // Add the newly created org unit to the superuser's hierarchy
-    OrganisationUnit unit = manager.get(OrganisationUnit.class, orgUnitId);
     User user = userService.getUser(getAdminUser().getUid());
-    user.addOrganisationUnit(unit);
+    for (String ou : orgUnitIds) {
+      OrganisationUnit unit = manager.get(OrganisationUnit.class, ou);
+      user.addOrganisationUnit(unit);
+    }
     userService.updateUser(user);
 
     switchToAdminUser();
+  }
+
+  protected List<String> setUpAdditionalDataElements() {
+    return List.of();
+  }
+
+  protected List<String> setUpAdditionalOrgUnits() {
+    return List.of();
   }
 
   /**
