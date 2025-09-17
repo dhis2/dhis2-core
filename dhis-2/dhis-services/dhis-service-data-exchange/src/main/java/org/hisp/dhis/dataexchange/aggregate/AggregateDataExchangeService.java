@@ -244,7 +244,7 @@ public class AggregateDataExchangeService {
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
 
-    return dataEntryPipeline.importData(
+    return dataEntryPipeline.importInputGroups(
         List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
   }
 

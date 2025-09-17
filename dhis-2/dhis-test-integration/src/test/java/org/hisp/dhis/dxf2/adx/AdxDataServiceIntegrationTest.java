@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.google.common.collect.Sets;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -378,7 +377,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------------
   @Test
   @Disabled("Moved from H2 to postgres test and it is not working anymore")
-  void testGetAllDataValuesA() throws IOException {
+  void testGetAllDataValuesA() throws Exception {
     testImport(
         "adx/importA.adx.xml",
         new IdSchemes()
@@ -391,7 +390,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled("Moved from H2 to postgres test and it is not working anymore")
-  void testGetAllDataValuesB() throws IOException {
+  void testGetAllDataValuesB() throws Exception {
     testImport(
         "adx/importB.adx.xml",
         new IdSchemes()
@@ -404,7 +403,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled("Moved from H2 to postgres test and it is not working anymore")
-  void testGetAllDataValuesC() throws IOException {
+  void testGetAllDataValuesC() throws Exception {
     testImport(
         "adx/importC.adx.xml",
         new IdSchemes()
@@ -416,7 +415,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataIgnoreDatesOnCreate() throws IOException {
+  void testImportDataIgnoreDatesOnCreate() throws Exception {
     assertEquals(0, dataExportStore.getAllDataValues().size());
 
     InputStream in = new ClassPathResource("adx/importDates.adx.xml").getInputStream();
@@ -430,7 +429,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataIgnoreDatesOnUpdate() throws IOException {
+  void testImportDataIgnoreDatesOnUpdate() throws Exception {
     InputStream in = new ClassPathResource("adx/importDates.adx.xml").getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
     IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme(UID);
@@ -483,7 +482,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     return matcher.results().map(match -> match.group(1).trim()).collect(Collectors.toSet());
   }
 
-  private void testImport(String filePath, IdSchemes idSchemes) throws IOException {
+  private void testImport(String filePath, IdSchemes idSchemes) throws Exception {
     assertEquals(0, dataExportStore.getAllDataValues().size());
     InputStream in = new ClassPathResource(filePath).getInputStream();
     ImportOptions importOptions = ImportOptions.getDefaultImportOptions();

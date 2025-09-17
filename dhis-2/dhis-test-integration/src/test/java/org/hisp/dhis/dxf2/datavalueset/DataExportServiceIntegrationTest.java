@@ -282,7 +282,12 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   private ImportSummary importXml(InputStream json) {
-    return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+    try {
+      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+    } catch (BadRequestException ex) {
+      fail("Bad input", ex);
+      return null;
+    }
   }
 
   private ImportSummary importCsv(InputStream csv) {
@@ -576,7 +581,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   /** Import 12 data values. Then import the same 12 data values with import strategy delete. */
   @Test
-  void testImportValuesDeleteStrategyXml() {
+  void testImportValuesDeleteStrategyXml() throws Exception {
     assertDataValuesCount(0);
     ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
     assertEquals(12, summary.getImportCount().getUpdated());
@@ -657,7 +662,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesXmlWithCodeB() {
+  void testImportDataValuesXmlWithCodeB() throws Exception {
     ImportOptions importOptions =
         new ImportOptions()
             .setIdScheme("CODE")
@@ -775,7 +780,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesXmlWithAttribute() {
+  void testImportDataValuesXmlWithAttribute() throws Exception {
     ImportOptions importOptions =
         new ImportOptions()
             .setIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID)
@@ -801,7 +806,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesXmlWithAttributePreheatCacheTrue() {
+  void testImportDataValuesXmlWithAttributePreheatCacheTrue() throws Exception {
     ImportOptions importOptions =
         new ImportOptions()
             .setPreheatCache(true)
@@ -818,7 +823,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesXmlWithCodePreheatCacheTrue() {
+  void testImportDataValuesXmlWithCodePreheatCacheTrue() throws Exception {
     ImportOptions importOptions =
         new ImportOptions()
             .setPreheatCache(true)
@@ -900,7 +905,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesXmlDryRun() {
+  void testImportDataValuesXmlDryRun() throws Exception {
     assertDataValuesCount(0);
 
     ImportOptions importOptions =
@@ -919,7 +924,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesXmlUpdatesOnly() {
+  void testImportDataValuesXmlUpdatesOnly() throws Exception {
     assertDataValuesCount(0);
 
     ImportOptions importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATES);
@@ -948,7 +953,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesWithCategoryOptionComboIdScheme() {
+  void testImportDataValuesWithCategoryOptionComboIdScheme() throws Exception {
     assertDataValuesCount(0);
     ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme("CODE");
 
@@ -1016,7 +1021,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesWithStrictPeriods() {
+  void testImportDataValuesWithStrictPeriods() throws Exception {
     // NB: this actually no longer has any effect because periods are always strict
     // but the test does verify that validation nonetheless
     ImportOptions options = new ImportOptions().setStrictPeriods(true);
@@ -1032,7 +1037,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesWithStrictCategoryOptionCombos() {
+  void testImportDataValuesWithStrictCategoryOptionCombos() throws Exception {
     ImportOptions options = new ImportOptions().setStrictCategoryOptionCombos(true);
 
     ImportSummary summary =
@@ -1049,7 +1054,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled("DHIS2-19679 COC is now always required but null/empty means use default")
-  void testImportDataValuesWithRequiredCategoryOptionCombo() {
+  void testImportDataValuesWithRequiredCategoryOptionCombo() throws Exception {
     ImportOptions options = new ImportOptions().setRequireCategoryOptionCombo(true);
 
     ImportSummary summary =
@@ -1061,7 +1066,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled("DHIS2-19679 AOC is now always required but null/empty means use default")
-  void testImportDataValuesWithRequiredAttributeOptionCombo() {
+  void testImportDataValuesWithRequiredAttributeOptionCombo() throws Exception {
     ImportOptions options = new ImportOptions().setRequireAttributeOptionCombo(true);
 
     ImportSummary summary =
@@ -1072,7 +1077,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testImportDataValuesWithStrictOrganisationUnits() {
+  void testImportDataValuesWithStrictOrganisationUnits() throws Exception {
     ImportOptions options = new ImportOptions().setStrictOrganisationUnits(true);
 
     ImportSummary summary =

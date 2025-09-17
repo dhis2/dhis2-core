@@ -69,16 +69,22 @@ public class DataEntryPipeline {
   private final DataEntryService service;
   private final SystemSettingsProvider settings;
 
-  public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importXml(InputStream in, ImportOptions options, JobProgress progress)
+      throws BadRequestException {
     progress.startingStage("Deserializing XML data");
-    return importData(
-        progress.runStage(() -> DataEntryInput.fromXml(in, options)), options, progress);
+    List<DataEntryGroup.Input> groups =
+        progress.runStageAndRethrow(
+            BadRequestException.class, () -> DataEntryInput.fromXml(in, options));
+    return importInputGroups(groups, options, progress);
   }
 
-  public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress) {
+  public ImportSummary importPdf(InputStream in, ImportOptions options, JobProgress progress)
+      throws BadRequestException {
     progress.startingStage("Deserializing PDF data");
-    return importData(
-        progress.runStage(() -> DataEntryInput.fromPdf(in, options)), options, progress);
+    List<DataEntryGroup.Input> groups =
+        progress.runStageAndRethrow(
+            BadRequestException.class, () -> DataEntryInput.fromPdf(in, options));
+    return importInputGroups(groups, options, progress);
   }
 
   public ImportSummary importCsv(InputStream in) {
@@ -89,18 +95,20 @@ public class DataEntryPipeline {
     if (!options.isFirstRowIsHeader())
       throw new UnsupportedOperationException("CSV without header row is no longer supported.");
     progress.startingStage("Deserializing CVS data");
-    return importData(
-        progress.runStage(() -> DataEntryInput.fromCsv(in, options)), options, progress);
+    List<DataEntryGroup.Input> groups =
+        progress.runStage(() -> DataEntryInput.fromCsv(in, options));
+    return importInputGroups(groups, options, progress);
   }
 
   public ImportSummary importJson(InputStream in, ImportOptions options, JobProgress progress) {
     progress.startingStage("Deserializing JSON data");
-    return importData(
-        progress.runStage(() -> DataEntryInput.fromJson(in, options)), options, progress);
+    List<DataEntryGroup.Input> groups =
+        progress.runStage(() -> DataEntryInput.fromJson(in, options));
+    return importInputGroups(groups, options, progress);
   }
 
   @Nonnull
-  public ImportSummary importData(
+  public ImportSummary importInputGroups(
       @CheckForNull List<DataEntryGroup.Input> inputs,
       @Nonnull ImportOptions options,
       @Nonnull JobProgress progress) {

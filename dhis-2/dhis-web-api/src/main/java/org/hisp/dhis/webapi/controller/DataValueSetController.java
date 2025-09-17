@@ -63,6 +63,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
@@ -222,7 +223,7 @@ public class DataValueSetController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
@@ -234,7 +235,7 @@ public class DataValueSetController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
@@ -270,7 +271,7 @@ public class DataValueSetController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
