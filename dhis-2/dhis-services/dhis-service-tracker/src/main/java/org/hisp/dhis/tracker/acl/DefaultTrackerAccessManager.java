@@ -110,7 +110,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataRead(user, trackedEntityType)) {
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
       return List.of(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
