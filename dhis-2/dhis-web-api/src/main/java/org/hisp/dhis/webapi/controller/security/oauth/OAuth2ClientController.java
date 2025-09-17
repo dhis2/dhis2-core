@@ -62,6 +62,7 @@ public class OAuth2ClientController
     if (entity.getClientSettings() == null) {
       ClientSettings.Builder builder = ClientSettings.builder();
       builder.requireAuthorizationConsent(true);
+      builder.requireProofKey(true);
       ClientSettings clientSettings = builder.build();
       entity.setClientSettings(clientService.writeMap(clientSettings.getSettings()));
     }
