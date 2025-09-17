@@ -1,0 +1,28 @@
+name: Test Self-Hosted Runner
+
+on:
+  pull_request:
+    types: labeled
+
+jobs:
+  verify-runner:
+    if: contains(github.event.pull_request.labels.*.name, 'run-perf-tests')
+    runs-on: perf
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show packages
+        run: |
+          lsb_release -a
+          uname -a
+
+          java -version
+          which java
+
+          mvn -v
+          which mvn
+
+          docker version
+          docker compose version
+          docker run --rm hello-world
