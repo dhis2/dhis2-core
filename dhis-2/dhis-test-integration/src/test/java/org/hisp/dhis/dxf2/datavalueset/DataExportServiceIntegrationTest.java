@@ -898,7 +898,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     ImportConflict conflict = summary.getConflicts().iterator().next();
     assertEquals(ErrorCode.E8128, conflict.getErrorCode());
     assertEquals(
-        "Value [0, 1] all affect the same data value: `DataEntryKey[dataElement=jH26dja2f30, orgUnit=DiszpKrYNg8, categoryOptionCombo=null, attributeOptionCombo=null, period=201201]`",
+        "Value #[0, 1] all affect the same data value: `DataEntryKey[dataElement=jH26dja2f30, orgUnit=DiszpKrYNg8, categoryOptionCombo=null, attributeOptionCombo=null, period=201201]`",
         conflict.getValue());
   }
 
