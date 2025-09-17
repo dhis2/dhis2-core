@@ -56,8 +56,8 @@ class PeriodCriteriaUtilsTest {
     assertTrue(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
     assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
-        eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-        PERIOD_DIM_ID + ":" + LAST_5_YEARS);
+        PERIOD_DIM_ID + ":" + LAST_5_YEARS,
+        eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get());
   }
 
   @Test
@@ -73,8 +73,8 @@ class PeriodCriteriaUtilsTest {
     assertTrue(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
     assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
-        eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-        PERIOD_DIM_ID + ":" + LAST_5_YEARS);
+        PERIOD_DIM_ID + ":" + LAST_5_YEARS,
+        eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get());
   }
 
   @Test
@@ -88,8 +88,8 @@ class PeriodCriteriaUtilsTest {
     assertFalse(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
     assertTrue(eventsAnalyticsQueryCriteria.getFilter().stream().findFirst().isPresent());
     assertEquals(
-        eventsAnalyticsQueryCriteria.getFilter().stream().findFirst().get(),
-        PERIOD_DIM_ID + ":" + LAST_3_DAYS);
+        PERIOD_DIM_ID + ":" + LAST_3_DAYS,
+        eventsAnalyticsQueryCriteria.getFilter().stream().findFirst().get());
   }
 
   @Test
@@ -105,8 +105,8 @@ class PeriodCriteriaUtilsTest {
     assertFalse(enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
     assertTrue(enrollmentAnalyticsQueryCriteria.getFilter().stream().findFirst().isPresent());
     assertEquals(
-        enrollmentAnalyticsQueryCriteria.getFilter().stream().findFirst().get(),
-        PERIOD_DIM_ID + ":" + LAST_3_DAYS);
+        PERIOD_DIM_ID + ":" + LAST_3_DAYS,
+        enrollmentAnalyticsQueryCriteria.getFilter().stream().findFirst().get());
   }
 
   @Test
@@ -151,8 +151,8 @@ class PeriodCriteriaUtilsTest {
     assertTrue(enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
     assertTrue(enrollmentsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
-        enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-        PERIOD_DIM_ID + ":" + LAST_5_YEARS);
+        PERIOD_DIM_ID + ":" + LAST_5_YEARS,
+        enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().get());
   }
 
   @Test
@@ -169,8 +169,8 @@ class PeriodCriteriaUtilsTest {
     assertTrue(enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
     assertTrue(enrollmentAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
-        enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
-        PERIOD_DIM_ID + ":" + LAST_5_YEARS);
+        PERIOD_DIM_ID + ":" + LAST_5_YEARS,
+        enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().get());
   }
 
   @Test
@@ -223,6 +223,76 @@ class PeriodCriteriaUtilsTest {
     // when
     // then
     assertFalse(PeriodCriteriaUtils.hasPeriod(criteria) && criteria.getDimension().isEmpty());
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenDimensionContainsPeriodDim() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getDimension().add(PERIOD_DIM_ID + ":LAST_3_DAYS");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenFilterContainsPeriodDim() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getFilter().add(PERIOD_DIM_ID + ":LAST_12_MONTHS");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenEnrollmentDateIsSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setEnrollmentDate("2020-01-01:2020-12-31");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenStartAndEndDateAreSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setStartDate(new Date());
+    c.setEndDate(new Date());
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_false_whenOnlyStartDateIsSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setStartDate(new Date());
+    assertFalse(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_false_whenOnlyEndDateIsSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setEndDate(new Date());
+    assertFalse(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenLastUpdatedIsSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setLastUpdated("2021-06-01:2021-06-30");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenRelativePeriodDateIsSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setRelativePeriodDate(new Date());
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_false_whenNoPeriodInformationPresent() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    assertFalse(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenIncidentDateIsSet() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setIncidentDate("2020-01-01:2020-12-31");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
   }
 
   private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithPeriod(
