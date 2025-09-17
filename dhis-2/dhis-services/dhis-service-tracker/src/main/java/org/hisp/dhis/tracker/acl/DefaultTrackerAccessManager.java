@@ -112,7 +112,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     if (!aclService.canDataWrite(user, trackedEntityType)) {
       return List.of(
-          "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
+          "User has no data write access to tracked entity type: " + trackedEntityType.getUid());
     }
 
     List<Program> tetPrograms =
