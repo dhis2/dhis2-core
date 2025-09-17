@@ -114,17 +114,11 @@ class EventsExportController {
 
   private final TrackerEventService trackerEventService;
 
-  private final TrackerEventRequestParamsMapper trackerEventParamsMapper;
-
   private final SingleEventService singleEventService;
-
-  private final SingleEventRequestParamsMapper singleEventParamsMapper;
 
   private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
   private final RequestHandler requestHandler;
-
-  private final ObjectMapper objectMapper;
 
   private final SingleEventChangeLogService singleEventChangeLogService;
 
@@ -136,23 +130,17 @@ class EventsExportController {
 
   public EventsExportController(
       TrackerEventService trackerEventService,
-      TrackerEventRequestParamsMapper trackerEventParamsMapper,
       SingleEventService singleEventService,
-      SingleEventRequestParamsMapper singleEventParamsMapper,
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
       RequestHandler requestHandler,
-      ObjectMapper objectMapper,
       SingleEventChangeLogService singleEventChangeLogService,
       TrackerEventChangeLogService trackerEventChangeLogService,
       ProgramService programService,
       IdentifiableObjectManager manager) {
     this.trackerEventService = trackerEventService;
-    this.trackerEventParamsMapper = trackerEventParamsMapper;
     this.singleEventService = singleEventService;
-    this.singleEventParamsMapper = singleEventParamsMapper;
     this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
-    this.objectMapper = objectMapper;
     this.singleEventChangeLogService = singleEventChangeLogService;
     this.trackerEventChangeLogService = trackerEventChangeLogService;
     this.programService = programService;
@@ -184,7 +172,7 @@ class EventsExportController {
             PageParams.of(
                 requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
         TrackerEventOperationParams trackerEventOperationParams =
-            trackerEventParamsMapper.map(requestParams, idSchemeParams);
+            TrackerEventRequestParamsMapper.map(requestParams, idSchemeParams);
         org.hisp.dhis.tracker.Page<TrackerEvent> eventsPage =
             trackerEventService.findEvents(trackerEventOperationParams, pageParams);
 
@@ -193,13 +181,14 @@ class EventsExportController {
             eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
         ensureNoMappingErrors(errors);
 
-        return requestHandler.serve(request, EVENTS, page, requestParams);
+        return new FilteredPage<>(
+            Page.withPager(EVENTS, page, getRequestURL(request)), requestParams.getFields());
       }
 
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
           getTrackerEventsList(requestParams, idSchemeParams);
 
-      return requestHandler.serve(EVENTS, events, requestParams);
+      return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
     }
 
     if (requestParams.isPaging()) {
@@ -207,7 +196,7 @@ class EventsExportController {
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       SingleEventOperationParams singleEventOperationParams =
-          singleEventParamsMapper.map(requestParams, idSchemeParams);
+          SingleEventRequestParamsMapper.map(requestParams, idSchemeParams);
       org.hisp.dhis.tracker.Page<SingleEvent> eventsPage =
           singleEventService.findEvents(singleEventOperationParams, pageParams);
 
@@ -222,25 +211,6 @@ class EventsExportController {
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getSingleEventsList(requestParams, idSchemeParams);
-
-    return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
-  }
-
-  @GetMapping(produces = {CONTENT_TYPE_JSON_GZIP, CONTENT_TYPE_JSON_ZIP})
-  FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsAsJsonCompressed(
-      EventRequestParams requestParams,
-      TrackerIdSchemeParams idSchemeParams,
-      @RequestParam UID program)
-      throws BadRequestException, ForbiddenException, WebMessageException {
-    validatePaginationParameters(requestParams);
-    Program eventProgram = getProgram(program);
-
-    List<org.hisp.dhis.webapi.controller.tracker.view.Event> events;
-    if (eventProgram.isRegistration()) {
-      events = getTrackerEventsList(requestParams, idSchemeParams);
-    } else {
-      events = getSingleEventsList(requestParams, idSchemeParams);
-    }
 
     return new FilteredPage<>(Page.withoutPager(EVENTS, events), requestParams.getFields());
   }
@@ -335,10 +305,11 @@ class EventsExportController {
     csvEventService.writeZip(response.getOutputStream(), events, !skipHeader, EVENT_CSV_FILE);
   }
 
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid}")
   FilteredEntity<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventByUid(
-      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, TrackerEvent.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           Fields fields,
       TrackerIdSchemeParams idSchemeParams)
@@ -391,7 +362,7 @@ class EventsExportController {
       EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException, ForbiddenException, WebMessageException {
     SingleEventOperationParams singleEventOperationParams =
-        singleEventParamsMapper.map(requestParams, idSchemeParams);
+        SingleEventRequestParamsMapper.map(requestParams, idSchemeParams);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
@@ -406,7 +377,7 @@ class EventsExportController {
       EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException, ForbiddenException, WebMessageException {
     TrackerEventOperationParams trackerEventOperationParams =
-        trackerEventParamsMapper.map(requestParams, idSchemeParams);
+        TrackerEventRequestParamsMapper.map(requestParams, idSchemeParams);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =

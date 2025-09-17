@@ -46,7 +46,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 
 class RelationshipRequestParamsMapperTest {

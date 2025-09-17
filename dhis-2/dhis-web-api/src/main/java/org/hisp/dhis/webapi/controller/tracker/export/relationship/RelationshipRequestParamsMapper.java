@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
  * Maps operation parameters from {@link RelationshipsExportController} stored in {@link

@@ -378,7 +378,8 @@ class TrackedEntityRequestParamsMapperTest {
     trackedEntityRequestParams.setFilter(TEA_1_UID + ":ilike:value1," + TEA_2_UID + ":ieq:value2");
     trackedEntityRequestParams.setProgram(PROGRAM_UID);
 
-    Map<UID, List<QueryFilter>> filters = mapper.map(trackedEntityRequestParams, user).getFilters();
+    Map<UID, List<QueryFilter>> filters =
+        TrackedEntityRequestParamsMapper.map(trackedEntityRequestParams, user).getFilters();
 
     assertEquals(
         Map.of(

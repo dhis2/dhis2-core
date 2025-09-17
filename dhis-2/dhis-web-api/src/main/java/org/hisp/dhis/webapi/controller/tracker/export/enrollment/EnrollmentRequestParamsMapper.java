@@ -37,6 +37,7 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -45,7 +46,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 

@@ -39,7 +39,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
 import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 import org.hisp.dhis.tracker.export.fieldfiltering.FieldsParser;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 

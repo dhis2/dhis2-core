@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
@@ -56,9 +57,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.export.event.TrackerEventRequestParamsMapper;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -430,7 +428,7 @@ class TrackerEventRequestParamsMapperTest {
             TEA_1_UID,
             List.of(new QueryFilter(EQ, "2")),
             TEA_2_UID,
-            List.of(new QueryFilter(QueryOperator.ILIKE, "foo")));
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
     assertEquals(expected, attributeFilters);
   }
 

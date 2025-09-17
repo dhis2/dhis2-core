@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
@@ -54,7 +55,6 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 

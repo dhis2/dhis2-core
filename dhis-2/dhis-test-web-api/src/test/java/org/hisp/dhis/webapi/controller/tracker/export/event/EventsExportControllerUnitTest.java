@@ -69,8 +69,7 @@ class EventsExportControllerUnitTest {
         assertThrows(
             IllegalStateException.class,
             () ->
-                new EventsExportController(
-                    eventService, null, null, null, null, null, null, null, null, null, null));
+                new EventsExportController(eventService, null, null, null, null, null, null, null));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),
