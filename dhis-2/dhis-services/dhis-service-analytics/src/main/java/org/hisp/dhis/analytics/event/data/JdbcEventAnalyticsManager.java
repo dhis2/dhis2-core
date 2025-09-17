@@ -42,7 +42,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -958,7 +958,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         if (queryItem.getItem().getUid().equals(coordinateFields.get(i))
             && queryItem.getValueType() == ValueType.ORGANISATION_UNIT) {
           coors.set(
-              i, coors.get(i).replaceAll(coors.get(i), coors.get(i) + OU_GEOMETRY_COL_SUFFIX));
+              i, coors.get(i).replaceAll(coors.get(i), coors.get(i) + OU_GEOMETRY_COL_POSTFIX));
         }
       }
     }
