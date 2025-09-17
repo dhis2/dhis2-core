@@ -212,7 +212,6 @@ class RawNativeQueryTest {
     String[] noStrings = null;
     Date noDate = null;
     Integer noInt = null;
-    Boolean noBool = null;
     String minSql =
         createNativeRawQuery(sql)
             .setInOrAnyParameter("de", noLongs)

@@ -43,6 +43,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.CsvUtils;
@@ -55,6 +57,7 @@ import org.hisp.staxwax.writer.XMLWriter;
  * @since 2.43
  * @author Jan Bernitt
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class DataExportOutput {
 
   static void toJson(DataExportGroup.Output group, OutputStream json) {
@@ -109,23 +112,24 @@ final class DataExportOutput {
     }
   }
 
+  private static final String[] CSV_HEADER_ROW = {
+    "dataelement",
+    "period",
+    "orgunit",
+    "categoryoptioncombo",
+    "attributeoptioncombo",
+    "value",
+    "storedby",
+    "lastupdated",
+    "comment",
+    "followup",
+    "deleted"
+  };
+
   static void toCsv(DataExportGroup.Output group, OutputStream csv) {
-    String[] HEADER_ROW = {
-      "dataelement",
-      "period",
-      "orgunit",
-      "categoryoptioncombo",
-      "attributeoptioncombo",
-      "value",
-      "storedby",
-      "lastupdated",
-      "comment",
-      "followup",
-      "deleted"
-    };
     try {
       CsvWriter writer = CsvUtils.getWriter(new PrintWriter(csv));
-      writer.writeRecord(HEADER_ROW);
+      writer.writeRecord(CSV_HEADER_ROW);
       Iterator<DataExportValue.Output> iter = group.values().iterator();
       String groupOrgUnit = group.orgUnit();
       String groupPeriod = group.period();

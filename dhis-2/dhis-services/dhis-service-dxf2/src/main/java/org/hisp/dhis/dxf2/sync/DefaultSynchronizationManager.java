@@ -158,8 +158,8 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
             DataExportParams params =
                 DataExportParams.builder().lastUpdated(lastUpdatedAfter).build();
             dataExportPipeline.exportAsJsonSync(params, request.getBody());
-          } catch (ConflictException e) {
-            throw new RuntimeException(e);
+          } catch (ConflictException ex) {
+            throw new IllegalStateException(ex);
           }
         };
 

@@ -115,7 +115,7 @@ public final class RawNativeQuery {
     return setParameter(name, arr, StringArrayType.INSTANCE);
   }
 
-  public <T> RawNativeQuery setInOrAnyParameter(String name, Stream<UID> value) {
+  public RawNativeQuery setInOrAnyParameter(String name, Stream<UID> value) {
     return setInOrAnyParameter(name, value, UID::getValue);
   }
 

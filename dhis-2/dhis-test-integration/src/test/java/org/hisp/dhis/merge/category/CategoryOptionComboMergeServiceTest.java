@@ -840,12 +840,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   void dataValueMergeCocLastUpdated1SourceKeptTest() throws ConflictException {
     // given
     // (individual add to force increasing lastUpdated values)
-    DataValue dv3 =
-        addDataValue(createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3"));
-    DataValue dv1 =
-        addDataValue(createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1"));
-    DataValue dv2 =
-        addDataValue(createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "source value 2"));
+    addDataValue(createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3"));
+    addDataValue(createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1"));
+    addDataValue(createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "source value 2"));
 
     dbmsManager.clearSession();
 
@@ -954,20 +951,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       "DataValues with references to source COCs are merged using LAST_UPDATED strategy, mix of duplicates kept")
   void dataValueMergeCocLastUpdatedMixTest() throws ConflictException {
     // given
-    DataValue dv3a =
-        addDataValue(createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3a"));
-    DataValue dv1a =
-        addDataValue(createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1a"));
-    DataValue dv2b =
-        addDataValue(createDataValue(de2, p1, ou1, cocDuplicate2, cocRandom, "source value 2b"));
-    DataValue dv3b =
-        addDataValue(createDataValue(de3, p1, ou1, cocTarget, cocRandom, "keep target value 3b"));
-    DataValue dv1b =
-        addDataValue(
-            createDataValue(de2, p1, ou1, cocDuplicate, cocRandom, "keep source value 1b"));
-    DataValue dv2a =
-        addDataValue(
-            createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "keep source value 2a"));
+    addDataValue(createDataValue(de1, p1, ou1, cocTarget, cocRandom, "target value 3a"));
+    addDataValue(createDataValue(de1, p1, ou1, cocDuplicate, cocRandom, "source value 1a"));
+    addDataValue(createDataValue(de2, p1, ou1, cocDuplicate2, cocRandom, "source value 2b"));
+    addDataValue(createDataValue(de3, p1, ou1, cocTarget, cocRandom, "keep target value 3b"));
+    addDataValue(createDataValue(de2, p1, ou1, cocDuplicate, cocRandom, "keep source value 1b"));
+    addDataValue(createDataValue(de1, p1, ou1, cocDuplicate2, cocRandom, "keep source value 2a"));
 
     dbmsManager.clearSession();
 
@@ -1243,20 +1232,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   void dataValueMergeAocLastUpdatedMixTest() throws ConflictException {
     // given
     // (individual add to force increasing lastUpdated values)
-    DataValue dv3a =
-        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3a"));
-    DataValue dv1a =
-        addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1a"));
-    DataValue dv2b =
-        addDataValue(createDataValue(de2, p1, ou1, cocRandom, cocDuplicate2, "source value 2b"));
-    DataValue dv3b =
-        addDataValue(createDataValue(de3, p1, ou1, cocRandom, cocTarget, "keep target value 3b"));
-    DataValue dv1b =
-        addDataValue(
-            createDataValue(de2, p1, ou1, cocRandom, cocDuplicate, "keep source value 1b"));
-    DataValue dv2a =
-        addDataValue(
-            createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "keep source value 2a"));
+    addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocTarget, "target value 3a"));
+    addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate, "source value 1a"));
+    addDataValue(createDataValue(de2, p1, ou1, cocRandom, cocDuplicate2, "source value 2b"));
+    addDataValue(createDataValue(de3, p1, ou1, cocRandom, cocTarget, "keep target value 3b"));
+    addDataValue(createDataValue(de2, p1, ou1, cocRandom, cocDuplicate, "keep source value 1b"));
+    addDataValue(createDataValue(de1, p1, ou1, cocRandom, cocDuplicate2, "keep source value 2a"));
 
     dbmsManager.clearSession();
 

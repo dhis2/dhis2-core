@@ -40,6 +40,7 @@ import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.OU;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +48,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -108,7 +108,7 @@ public class DefaultDataExportService implements DataExportService {
   @Override
   @Transactional(readOnly = true)
   public DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException {
-    // TODO access validation
+    validateAccess(key);
     return store.getDataValue(key);
   }
 
@@ -173,10 +173,13 @@ public class DefaultDataExportService implements DataExportService {
     validateFilters(params);
     validateAccess(params);
 
-    // TODO (JB) another PR: actual Stream processing of grouped values
     return listGroupsOfValues(params).stream();
   }
 
+  /**
+   * @implNote For now we don't do full Stream processing where this returns a Stream (not List) as
+   *     that makes this a fair bit more complicated. Might be a future PR
+   */
   private List<DataExportGroup.Output> listGroupsOfValues(DataExportStoreParams params)
       throws ConflictException {
     IdSchemes idSchemes = params.getOutputIdSchemes();
@@ -391,19 +394,13 @@ public class DefaultDataExportService implements DataExportService {
   }
 
   private <T extends IdentifiableObject> List<T> getByUidOrCode(Class<T> clazz, Set<String> ids) {
-    return ids.stream()
-        .map(id -> getByUidOrCode(clazz, id))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    return ids.stream().map(id -> getByUidOrCode(clazz, id)).filter(Objects::nonNull).toList();
   }
 
   private <T extends IdentifiableObject> T getByUidOrCode(Class<T> clazz, String id) {
     if (isValidUid(id)) {
       T object = identifiableObjectManager.get(clazz, id);
-
-      if (object != null) {
-        return object;
-      }
+      if (object != null) return object;
     }
     return identifiableObjectManager.getByCode(clazz, id);
   }
@@ -545,26 +542,51 @@ public class DefaultDataExportService implements DataExportService {
       throw new ConflictException(ErrorCode.E2009, params.getLimit());
   }
 
+  private void validateAccess(DataEntryKey key) throws ConflictException {
+    UID aoc = key.attributeOptionCombo();
+    List<CategoryOptionCombo> attributeCombos =
+        aoc == null
+            ? List.of()
+            : List.of(identifiableObjectManager.load(CategoryOptionCombo.class, aoc.getValue()));
+    List<OrganisationUnit> orgUnits =
+        List.of(identifiableObjectManager.load(OrganisationUnit.class, key.orgUnit().getValue()));
+    validateAccess(List.of(), attributeCombos, orgUnits);
+  }
+
   private void validateAccess(DataExportStoreParams params) throws ConflictException {
+    validateAccess(
+        params.getDataSets(), params.getAttributeOptionCombos(), params.getOrganisationUnits());
+  }
+
+  /**
+   * @implNote This should be done in SQL based on UIDs (not require having the objects). It is also
+   *     suspicious that this does not validate COC access similar to AOC access (as we do on
+   *     writes) - likely this is missing and should be added
+   */
+  private void validateAccess(
+      Collection<DataSet> dataSets,
+      Collection<CategoryOptionCombo> attributeCombos,
+      Collection<OrganisationUnit> orgUnits)
+      throws ConflictException {
     // Verify data set read sharing
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser.isSuper()) return;
 
-    for (DataSet dataSet : params.getDataSets()) {
+    for (DataSet dataSet : dataSets) {
       if (!aclService.canDataRead(currentUser, dataSet)) {
         throw new ConflictException(ErrorCode.E2010, dataSet.getUid());
       }
     }
 
     // Verify attribute option combination data read sharing
-    for (CategoryOptionCombo optionCombo : params.getAttributeOptionCombos()) {
+    for (CategoryOptionCombo optionCombo : attributeCombos) {
       if (!aclService.canDataRead(currentUser, optionCombo)) {
         throw new ConflictException(ErrorCode.E2011, optionCombo.getUid());
       }
     }
 
     // Verify org unit being located within user data capture hierarchy
-    for (OrganisationUnit unit : params.getOrganisationUnits()) {
+    for (OrganisationUnit unit : orgUnits) {
       if (!currentUser.isInUserHierarchy(unit.getPath())) {
         throw new ConflictException(ErrorCode.E2012, unit.getUid());
       }

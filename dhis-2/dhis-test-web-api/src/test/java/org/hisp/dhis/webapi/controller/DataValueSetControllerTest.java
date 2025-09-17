@@ -167,13 +167,12 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testGetDataValueSetJson() {
-    String ouId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
-                    + " 'code':'OU1'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                + " 'code':'OU1'}"));
     String dsId =
         assertStatus(
             HttpStatus.CREATED,

@@ -254,7 +254,6 @@ public class DataValueSMSListener extends CommandSMSListener {
       String valStr = curValue.value();
       if (valStr != null) val = parseInt(valStr);
     }
-    ;
 
     if (operation.equals("+")) {
       val += parseInt(value);

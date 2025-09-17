@@ -88,7 +88,6 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     dv4.setDataElement(de);
     dv4.setSource(ou);
     addDataValues(dv4);
-    Thread.sleep(2L);
 
     DataValue dv1 = persistDataValue('1', p1, "dv test 1");
     dv1.setCategoryOptionCombo(categoryMetadata.coc1());
@@ -96,7 +95,6 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     dv1.setDataElement(de);
     dv1.setSource(ou);
     addDataValues(dv1);
-    Thread.sleep(2L);
 
     DataValue dv3 = persistDataValue('3', p1, "dv test 3");
     dv3.setCategoryOptionCombo(categoryMetadata.coc3());
@@ -104,7 +102,6 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     dv3.setDataElement(de);
     dv3.setSource(ou);
     addDataValues(dv3);
-    Thread.sleep(2L);
 
     DataValue dv2 = persistDataValue('2', p1, "dv test 2 - last updated");
     dv2.setCategoryOptionCombo(categoryMetadata.coc2());
@@ -326,6 +323,11 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
   private void addDataValues(DataValue... values) {
     if (dataDumpService.upsertValuesForJdbcTest(values) < values.length)
       fail("Failed to upsert test data");
+    try {
+      Thread.sleep(2L);
+    } catch (InterruptedException e) {
+      // fine, just wanted to wait some
+    }
   }
 
   private DataValue persistDataValue(char uniqueChar, Period period, String value) {

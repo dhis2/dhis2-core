@@ -53,7 +53,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportStore;
-import org.hisp.dhis.datavalue.DataExportStore.EncodeType;
 import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.hibernate.RawNativeQuery;

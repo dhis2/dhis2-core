@@ -81,7 +81,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
-import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -113,7 +112,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Lars Helge Overland
  */
 class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
-  private final String ATTRIBUTE_UID = "uh6H2ff562G";
+  private static final String ATTRIBUTE_UID = "uh6H2ff562G";
 
   @Autowired private DataElementService dataElementService;
 
@@ -475,7 +474,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Test
   void testLastUpdatedDateWhenDataValueUpdated_IgnoreLastUpdatedDateSupplied()
       throws ConflictException {
-    Date todaysDate = new Date();
     // Confirm that no dataValue exists for these params
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
     assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
@@ -1291,10 +1289,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValues.size(),
         () -> String.format("mismatch in number of expected dataValue(s), got %s", dataValues));
     return dataValues;
-  }
-
-  private static void assertNoConflicts(ImportConflicts summary) {
-    assertEquals(0, summary.getConflictCount(), summary.getConflictsDescription());
   }
 
   private static void assertImported(int updated, int ignored, ImportSummary summary) {

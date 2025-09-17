@@ -186,8 +186,8 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
                     .offset((page - 1) * syncPageSize)
                     .build();
             dataExportPipeline.exportAsJsonSync(params, request.getBody());
-          } catch (ConflictException e) {
-            throw new RuntimeException(e);
+          } catch (ConflictException ex) {
+            throw new IllegalStateException(ex);
           }
         };
 
