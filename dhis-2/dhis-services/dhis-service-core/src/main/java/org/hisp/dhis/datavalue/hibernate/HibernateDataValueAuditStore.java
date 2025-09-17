@@ -216,6 +216,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   private String getCategoryOptionComboIdByComboAndOptions(
       String categoryCombo, String categoryOptions) {
     if (categoryCombo == null && categoryOptions == null) return null;
+    if (categoryCombo == null || categoryOptions == null)
+      throw new IllegalArgumentException("CC and COs must either both be null or defined");
     String sql =
         """
           WITH co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos))

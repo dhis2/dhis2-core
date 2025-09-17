@@ -90,7 +90,7 @@ public record DataEntrySummary(
    * @param other another summary
    * @return the merged summary
    */
-  public DataEntrySummary add(@Nonnull DataEntrySummary other) {
+  public DataEntrySummary mergedWith(@Nonnull DataEntrySummary other) {
     List<DataEntryError> errors = new ArrayList<>(this.errors);
     errors.addAll(other.errors);
     return new DataEntrySummary(

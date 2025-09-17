@@ -835,7 +835,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DataEntryValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
     Map<String, Long> pes = getPeriodsIdMap(values);
-    Long defaultCoc = getDefaultCategoryOptionComboId();
+    long defaultCoc = getDefaultCategoryOptionComboId();
     Function<UID, Long> cocOf = uid -> uid == null ? defaultCoc : cocs.get(uid.getValue());
 
     List<DataEntryRow> internalValues = new ArrayList<>(values.size());

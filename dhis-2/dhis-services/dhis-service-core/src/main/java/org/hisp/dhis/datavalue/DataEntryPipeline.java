@@ -209,7 +209,7 @@ public class DataEntryPipeline {
             delete
                 ? service.deleteGroup(options, g, progress)
                 : service.upsertGroup(options, g, progress);
-        summary = summary.add(res);
+        summary = summary.mergedWith(res);
       } catch (ConflictException ex) {
         conflicts.add(
             toConflict(
