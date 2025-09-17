@@ -73,7 +73,7 @@ public record DataEntrySummary(
       @Nonnull DataEntryValue value, @Nonnull ErrorCode code, @Nonnull List<Object> args) {
 
     public String message() {
-      return MessageFormat.format(code.getMessage(), args);
+      return MessageFormat.format(code.getMessage(), args.toArray());
     }
   }
 
@@ -116,10 +116,10 @@ public record DataEntrySummary(
   }
 
   private static ImportConflict toConflict(DataEntryError error) {
-    return toConflict(IntStream.of(error.value().index()), error.code(), error.args());
+    return toConflict(IntStream.of(error.value().index()), error.code(), error.args().toArray());
   }
 
-  public static ImportConflict toConflict(IntStream indexes, ErrorCode code, Object... args) {
+  public static ImportConflict toConflict(IntStream indexes, ErrorCode code, Object[] args) {
     String message = MessageFormat.format(code.getMessage(), args);
     String key = Stream.of(args).map(String::valueOf).collect(joining("-"));
     return new ImportConflict(null, Map.of("args", key), message, code, null, indexes.toArray());

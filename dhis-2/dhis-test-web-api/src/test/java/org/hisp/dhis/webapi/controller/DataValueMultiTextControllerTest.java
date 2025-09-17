@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -43,7 +44,6 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportConflict;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -57,14 +57,13 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
   private String multiTextDataElementId;
 
-  @BeforeEach
   @Override
-  public void setUp() {
-    super.setUp();
+  protected List<String> setUpAdditionalDataElements() {
     String optionSetId = addOptionSet("MultiSelectSet", ValueType.MULTI_TEXT);
     addOptions(optionSetId, "A", "B", "C");
     multiTextDataElementId =
         addDataElement("MultiSelectDE", "MSDE", ValueType.MULTI_TEXT, optionSetId, categoryComboId);
+    return List.of(multiTextDataElementId);
   }
 
   @Test
@@ -83,7 +82,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
         409,
         "ERROR",
         format(
-            "Data value is not a valid option of the data element option set: `%s`",
+            "Failed to upsert data value: Value #0 value `D` is no valid option for data element `%s`",
             multiTextDataElementId),
         postNewDataValue("2021-01", "A,D", "", false, multiTextDataElementId, orgUnitId)
             .content(HttpStatus.CONFLICT));
@@ -118,7 +117,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
     String body =
         format(
             "{'dataValues':[{"
-                + "'period':'201201',"
+                + "'period':'202101',"
                 + "'orgUnit':'%s',"
                 + "'dataElement':'%s',"
                 + "'categoryOptionCombo':'%s',"
@@ -126,19 +125,13 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest {
                 + "}]}",
             orgUnitId, multiTextDataElementId, categoryOptionComboId);
     JsonWebMessage message =
-        assertWebMessage(
-            "Conflict",
-            409,
-            "WARNING",
-            "One more conflicts encountered, please check import summary.",
-            POST("/38/dataValueSets/", body).content(HttpStatus.CONFLICT));
+        POST("/38/dataValueSets/", body).content(HttpStatus.CONFLICT).as(JsonWebMessage.class);
     JsonImportConflict conflict =
         message.find(JsonImportConflict.class, c -> c.getErrorCode() == ErrorCode.E8123);
     assertTrue(conflict.isObject());
     assertEquals(
         format(
-            "Data value is not a valid option of the data element option set: `%s`",
-            multiTextDataElementId),
+            "Value #0 value `D` is no valid option for data element `%s`", multiTextDataElementId),
         conflict.getValue());
   }
 

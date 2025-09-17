@@ -33,6 +33,7 @@ import static java.lang.System.Logger.Level.INFO;
 import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Function.identity;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -609,6 +610,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     for (DataEntryValue e : values) {
       String de = e.dataElement().getValue();
       ValueType type = valueTypeByDe.get(de);
+      boolean isMultiText = type == ValueType.MULTI_TEXT;
       String val = normalizeValue(e, type);
       String comment = e.comment();
       boolean allowEmptyValue =
@@ -626,8 +628,14 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
         } else {
           // - require: if DE uses OptionSet - is value a valid option?
           Set<String> options = emptyValue ? null : optionsByDe.get(de);
-          if (options != null && !options.contains(val)) {
-            errors.add(error(e, ErrorCode.E8123, e.index(), val, de));
+          if (options != null
+              && !(options.contains(val)
+                  || (isMultiText && options.containsAll(List.of(val.split(",")))))) {
+            String noOption = val;
+            if (isMultiText)
+              noOption =
+                  Stream.of(val.split(",")).filter(not(options::contains)).findFirst().orElse(val);
+            errors.add(error(e, ErrorCode.E8123, e.index(), noOption, de));
           } else {
             // - require: if DE uses comment OptionSet - is comment a valid option?
             Set<String> cOptions = commentOptionsByDe.get(de);
