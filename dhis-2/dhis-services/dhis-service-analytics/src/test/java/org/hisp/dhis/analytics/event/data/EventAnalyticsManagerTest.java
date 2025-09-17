@@ -511,6 +511,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     mockRowSet();
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -541,6 +542,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithFilter() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -684,6 +686,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithMeasureCriteria() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
