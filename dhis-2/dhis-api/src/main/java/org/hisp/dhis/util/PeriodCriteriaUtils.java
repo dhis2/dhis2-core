@@ -93,6 +93,7 @@ public class PeriodCriteriaUtils {
    */
   private static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
+        || criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
