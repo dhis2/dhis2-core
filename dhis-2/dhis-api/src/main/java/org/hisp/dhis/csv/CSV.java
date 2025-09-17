@@ -49,6 +49,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -183,7 +184,7 @@ public final class CSV {
     Function<String, E> valueDeserializer = getDeserializer(valueType);
     if (valueDeserializer == null) return null;
     return mapValue ->
-        Stream.of(mapValue.split("\\s+"))
+        splitOnIndent(mapValue).stream()
             .collect(
                 toMap(
                     kv -> kv.substring(0, Math.max(0, kv.indexOf('='))),
@@ -193,13 +194,13 @@ public final class CSV {
   private static <E> Function<String, List<E>> getListDeserializer(Class<E> valueType) {
     Function<String, E> valueDeserializer = getDeserializer(valueType);
     if (valueDeserializer == null) return null;
-    return listValue -> Stream.of(listValue.split("\\s+")).map(valueDeserializer).toList();
+    return listValue -> splitOnIndent(listValue).stream().map(valueDeserializer).toList();
   }
 
   private static <E> Function<String, Set<E>> getSetDeserializer(Class<E> valueType) {
     Function<String, E> valueDeserializer = getDeserializer(valueType);
     if (valueDeserializer == null) return null;
-    return setValue -> Stream.of(setValue.split("\\s+")).map(valueDeserializer).collect(toSet());
+    return setValue -> splitOnIndent(setValue).stream().map(valueDeserializer).collect(toSet());
   }
 
   private record Column<T>(
@@ -354,21 +355,74 @@ public final class CSV {
         : str.substring(1, str.length() - 1);
   }
 
+  /**
+   * @implNote a regex would work fine but might be used as attack vector, this is to make it safe
+   *     to handle large crafted inputs
+   */
+  private static List<String> splitOnComma(String line) {
+    if (line == null || line.isEmpty()) return List.of();
+
+    int from = 0;
+    int n = line.length();
+    List<String> elems = new ArrayList<>();
+    while (from < n) {
+      // Skip leading indent
+      while (from < n && isIndent(line.charAt(from))) from++;
+
+      // Find the next comma or end of string
+      int to = from;
+      while (to < n && line.charAt(to) != ',') to++;
+
+      // Trim trailing indent
+      int toB = to;
+      while (toB > from && isIndent(line.charAt(toB - 1))) toB--;
+
+      elems.add(line.substring(from, toB));
+      from = to + 1;
+    }
+    return elems;
+  }
+
+  /**
+   * @implNote a regex would work fine but might be used as attack vector, this is to make it safe
+   *     to handle large crafted inputs
+   */
+  private static List<String> splitOnIndent(String value) {
+    if (value == null) return List.of();
+    if (value.indexOf(' ') < 0 && value.indexOf('\t') < 0) return List.of(value);
+    int from = 0;
+    int n = value.length();
+    List<String> elems = new ArrayList<>();
+    while (from < n) {
+      // Skip leading indent
+      while (from < n && isIndent(value.charAt(from))) from++;
+
+      int to = from;
+      while (to < n && !isIndent(value.charAt(to))) to++;
+      elems.add(value.substring(from, to));
+      from = to + 1;
+    }
+    return elems;
+  }
+
+  private static boolean isIndent(char c) {
+    return c == ' ' || c == '\t';
+  }
+
   private record Reader<T extends Record>(BufferedReader csv, Columns<T> as)
       implements CsvReader<T> {
 
     @Nonnull
     @Override
     public Iterator<T> iterator() {
-      String header = null;
+      String header;
       try {
         header = csv.readLine();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
       }
       if (header == null) throw new IllegalArgumentException("No header line provided.");
-      List<String> columns =
-          Stream.of(header.split("\\s*,\\s*")).map(String::trim).map(CSV::unquote).toList();
+      List<String> columns = splitOnComma(header).stream().map(CSV::unquote).toList();
       Function<List<String>, T> newRecord = as.from(columns);
       LineBuffer buf = LineBuffer.of(columns);
       return new Iterator<>() {
