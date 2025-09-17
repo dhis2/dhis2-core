@@ -112,9 +112,20 @@ public final class EnrollmentAnalyticsColumn {
             .selectExpression(sqlBuilder.ifThen("en.status = 'COMPLETED'", "en.completeddate"))
             .build(),
         AnalyticsTableColumn.builder()
-            .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
+            .name(EventAnalyticsColumnName.CREATED_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("en.lastupdated")
+            .selectExpression(
+                sqlBuilder.ifThenElse(
+                    "en.createdatclient is not null", "en.createdatclient", "en.created"))
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME)
+            .dataType(TIMESTAMP)
+            .selectExpression(
+                sqlBuilder.ifThenElse(
+                    "en.lastupdatedatclient is not null",
+                    "en.lastupdatedatclient",
+                    "en.lastupdated"))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME)
