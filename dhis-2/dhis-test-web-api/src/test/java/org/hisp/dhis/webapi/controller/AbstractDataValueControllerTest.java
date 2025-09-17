@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
@@ -77,23 +76,9 @@ abstract class AbstractDataValueControllerTest extends PostgresControllerIntegra
     dataElementId =
         addDataElement("My data element", "DE1", ValueType.INTEGER, null, categoryComboId);
 
-    String dataElements =
-        Stream.concat(Stream.of(dataElementId), setUpAdditionalDataElements().stream())
-            .map("{'dataElement':{'id':'%s'}}"::formatted)
-            .collect(joining(","));
-    String orgUnits = orgUnitIds.stream().map("{ 'id': '%s'}"::formatted).collect(joining(","));
-
-    String json =
-        """
-      {'name':'My data set',
-      'shortName':'MDS',
-      'periodType':'Monthly',
-      'dataSetElements':[%s],
-      'organisationUnits': [%s]
-      }""";
-    dataSetId =
-        assertStatus(
-            HttpStatus.CREATED, POST("/dataSets/", json.formatted(dataElements, orgUnits)));
+    List<String> dataElementIds =
+        Stream.concat(Stream.of(dataElementId), setUpAdditionalDataElements().stream()).toList();
+    dataSetId = addDataSet("My data set", "MDS", dataElementIds, orgUnitIds);
 
     // Add the newly created org unit to the superuser's hierarchy
     User user = userService.getUser(getAdminUser().getUid());

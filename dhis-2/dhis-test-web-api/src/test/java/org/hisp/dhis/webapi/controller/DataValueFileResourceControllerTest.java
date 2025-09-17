@@ -35,6 +35,8 @@ import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.*;
+import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.http.HttpStatus;
@@ -54,12 +56,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DataValueFileResourceControllerTest extends PostgresControllerIntegrationTestBase {
+
   private String pe;
-
   private String de;
-
   private String ou;
-
   private String coc;
 
   @BeforeEach
@@ -72,12 +72,8 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
     String cc = ccDefault.getString("id").string();
     coc = ccDefault.getArray("categoryOptionCombos").getString(0).string();
     de = addDataElement("file data", "FDE1", ValueType.FILE_RESOURCE, null, cc);
-    ou =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    ou = addOrganisationUnit("OU1");
+    addDataSet("My DS", "MDS1", List.of(de), List.of(ou));
     // add OU to users hierarchy
     assertStatus(
         HttpStatus.OK,
@@ -104,7 +100,7 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
             // making a request to normal /dataValues endpoint with an undefined "value"
             assertStatus(
                 HttpStatus.CREATED,
-                POST(format("/dataValues?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc))));
+                POST(format("/dataValues?de=%s&pe=%s&ou=%s&co=%s&value=", de, pe, ou, coc))));
   }
 
   private void assertClearsFileResourceDataValue(Runnable clearRequest) {
@@ -126,6 +122,7 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
     clearRequest.run();
 
     // check the file resource no longer exists
-    assertStatus(HttpStatus.NOT_FOUND, GET("/fileResources/{id}", fileUid));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/dataValues?de={de}&pe={pe}&ou={ou}", de, pe, ou));
+    // Note: the actual FR will be cleared asynchronously, so likely it does still exist now
   }
 }

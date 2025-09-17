@@ -195,14 +195,14 @@ public class DataValueController {
       @RequestParam(required = false) MultipartFile file)
       throws IOException, ConflictException, BadRequestException {
 
-    if (file == null) throw new BadRequestException("file is required");
-    FileResource fr = fileResourceUtils.saveFileResource(file, FileResourceDomain.DATA_VALUE);
+    FileResource fr = null;
+    if (file != null) fr = fileResourceUtils.saveFileResource(file, FileResourceDomain.DATA_VALUE);
 
-    String value = fr.getUid();
+    String value = fr == null ? "" /*=delete*/ : fr.getUid();
     saveDataValue(de, co, cc, cp, pe, ou, ds, value, comment, followUp, force);
 
     WebMessage response = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
-    response.setResponse(new FileResourceWebMessageResponse(fr));
+    if (fr != null) response.setResponse(new FileResourceWebMessageResponse(fr));
     return response;
   }
 
@@ -240,12 +240,12 @@ public class DataValueController {
 
   @GetMapping
   public List<String> getDataValue(DataValueQueryParams params, HttpServletResponse response)
-      throws BadRequestException, ConflictException, ForbiddenException {
+      throws BadRequestException, ConflictException, ForbiddenException, NotFoundException {
 
     DataExportValue dataValue =
         dataExportService.exportValue(dataEntryService.decodeValue(null, params.toInput()).toKey());
 
-    if (dataValue == null) throw new ConflictException("Data value does not exist");
+    if (dataValue == null) throw new NotFoundException("Data value does not exist");
 
     Set<UID> notReadable =
         dataEntryService.getNotReadableOptionCombos(
