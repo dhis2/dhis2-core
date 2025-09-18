@@ -56,33 +56,44 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
   @Override
   public int updateFileResourcesNotAssignedToAnyDataValue() {
     // using with to do this in a single pass on the datavalue table
+    // abort if we cannot get the locks quickly
     String sql =
         """
-      WITH candidates AS (
-          SELECT uid
-          FROM fileresource
-          WHERE domain = 'DATA_VALUE' AND isassigned = true
-      ),
-      fr_datavalues AS (
-          SELECT dv.value
-          FROM datavalue dv
-          JOIN dataelement de ON de.dataelementid = dv.dataelementid
-          WHERE de.valuetype = 'FILE_RESOURCE'
-      )
-      UPDATE fileresource fr
-      SET isassigned = false
-      FROM candidates c
-      LEFT JOIN fr_datavalues frdv ON frdv.value = c.uid
-      WHERE fr.uid = c.uid
-        AND frdv.value IS NULL""";
+      DO $$
+      BEGIN
+        SET LOCAL lock_timeout = '1s';
+        WITH candidates AS (
+            SELECT uid
+            FROM fileresource
+            WHERE domain = 'DATA_VALUE' AND isassigned = true
+        ),
+        fr_datavalues AS (
+            SELECT dv.value
+            FROM datavalue dv
+            JOIN dataelement de ON de.dataelementid = dv.dataelementid
+            WHERE de.valuetype = 'FILE_RESOURCE'
+        )
+        UPDATE fileresource fr
+        SET isassigned = false
+        FROM candidates c
+        LEFT JOIN fr_datavalues frdv ON frdv.value = c.uid
+        WHERE fr.isassigned = true
+          AND fr.uid = c.uid
+          AND frdv.value IS NULL;
+      END;
+      $$""";
     return getSession().createNativeQuery(sql).executeUpdate();
   }
 
   @Override
   public int updateFileResourcesAssignedToAnyDataValue() {
     // using with to do this in a single pass on the datavalue table
+    // abort if we cannot get the locks quickly
     String sql =
         """
+      DO $$
+      BEGIN
+        SET LOCAL lock_timeout = '1s';
         WITH candidates AS (
             SELECT uid
             FROM fileresource
@@ -98,20 +109,30 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
         SET isassigned = true
         FROM candidates c
         JOIN fr_datavalues frdv ON frdv.value = c.uid
-        WHERE fr.uid = c.uid""";
+        WHERE fr.isassigned = false
+          AND fr.uid = c.uid;
+      END;
+      $$""";
     return getSession().createNativeQuery(sql).executeUpdate();
   }
 
   @Override
   public int updateDeletedIfNotZeroIsSignificant() {
+    // abort if we cannot get the locks quickly
     String sql =
         """
+      DO $$
+      BEGIN
+        SET LOCAL lock_timeout = '1s';
         UPDATE datavalue dv
         SET deleted = true
         FROM dataelement de
-        WHERE dv.dataelementid = de.dataelementid
+        WHERE dv.deleted = false
           AND de.zeroissignificant = false
-          AND (dv.value IS NULL OR dv.value = '')""";
+          AND dv.dataelementid = de.dataelementid
+          AND (dv.value IS NULL OR dv.value = '');
+      END;
+      $$""";
     return getSession().createNativeQuery(sql).executeUpdate();
   }
 }
