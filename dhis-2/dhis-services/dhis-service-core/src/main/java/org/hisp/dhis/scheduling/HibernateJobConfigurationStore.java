@@ -448,9 +448,10 @@ public class HibernateJobConfigurationStore
         and delay is null
         and queueposition is null
         and lastfinished is not null
-        and now() > lastfinished + interval '2 minute'
+        and now() > lastfinished + :ttl * interval '1 minute'
         """;
-    int deletedCount = nativeSynchronizedQuery(sql).executeUpdate();
+    int deletedCount =
+        nativeSynchronizedQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
     if (deletedCount == 0) return 0;
     // jobs have the same UID as their respective FR
     // so if no job exists with the same UID the FR is not assigned
