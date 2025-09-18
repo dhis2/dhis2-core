@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueTrimStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -59,9 +62,6 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
     // abort if we cannot get the locks quickly
     String sql =
         """
-      DO $$
-      BEGIN
-        SET LOCAL lock_timeout = '1s';
         WITH candidates AS (
             SELECT uid
             FROM fileresource
@@ -79,10 +79,11 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
         LEFT JOIN fr_datavalues frdv ON frdv.value = c.uid
         WHERE fr.isassigned = true
           AND fr.uid = c.uid
-          AND frdv.value IS NULL;
-      END;
-      $$""";
-    return getSession().createNativeQuery(sql).executeUpdate();
+          AND frdv.value IS NULL""";
+    return getSession()
+        .createNativeQuery(sql)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(1000))
+        .executeUpdate();
   }
 
   @Override
@@ -91,9 +92,6 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
     // abort if we cannot get the locks quickly
     String sql =
         """
-      DO $$
-      BEGIN
-        SET LOCAL lock_timeout = '1s';
         WITH candidates AS (
             SELECT uid
             FROM fileresource
@@ -110,10 +108,11 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
         FROM candidates c
         JOIN fr_datavalues frdv ON frdv.value = c.uid
         WHERE fr.isassigned = false
-          AND fr.uid = c.uid;
-      END;
-      $$""";
-    return getSession().createNativeQuery(sql).executeUpdate();
+          AND fr.uid = c.uid""";
+    return getSession()
+        .createNativeQuery(sql)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(1000))
+        .executeUpdate();
   }
 
   @Override
@@ -121,18 +120,16 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
     // abort if we cannot get the locks quickly
     String sql =
         """
-      DO $$
-      BEGIN
-        SET LOCAL lock_timeout = '1s';
         UPDATE datavalue dv
         SET deleted = true
         FROM dataelement de
         WHERE dv.deleted = false
           AND de.zeroissignificant = false
           AND dv.dataelementid = de.dataelementid
-          AND (dv.value IS NULL OR dv.value = '');
-      END;
-      $$""";
-    return getSession().createNativeQuery(sql).executeUpdate();
+          AND (dv.value IS NULL OR dv.value = '')""";
+    return getSession()
+        .createNativeQuery(sql)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(1000))
+        .executeUpdate();
   }
 }

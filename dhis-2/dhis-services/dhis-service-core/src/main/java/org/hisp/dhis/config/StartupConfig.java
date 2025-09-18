@@ -95,6 +95,7 @@ public class StartupConfig {
     DataValueAuditToggle toggle = new DataValueAuditToggle(auditStore, config);
     toggle.setName("DataValueAuditToggle");
     toggle.setRunlevel(13);
+    toggle.setSkipInTests(true);
     return toggle;
   }
 
