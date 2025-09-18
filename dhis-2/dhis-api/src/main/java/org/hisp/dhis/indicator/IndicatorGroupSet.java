@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -185,7 +186,7 @@ public class IndicatorGroupSet extends BaseIdentifiableObject implements Metadat
   }
 
   @JsonProperty("indicatorGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "indicatorGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0)
   public List<IndicatorGroup> getMembers() {
