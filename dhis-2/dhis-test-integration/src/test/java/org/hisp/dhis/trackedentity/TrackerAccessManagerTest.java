@@ -234,13 +234,12 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.update(trackedEntityType);
 
-    assertNoErrors(trackerAccessManager.canRead(userDetails, trackedEntityA));
+    assertNoErrors(trackerAccessManager.canRead(user, trackedEntityA));
     assertHasError(
-        trackerAccessManager.canWrite(userDetails, trackedEntityA),
+        trackerAccessManager.canWrite(user, trackedEntityA),
         "User has no data write access to tracked entity type");
   }
 
