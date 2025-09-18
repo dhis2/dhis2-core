@@ -265,7 +265,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
@@ -309,7 +310,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
@@ -349,7 +351,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of());
 
     AnalyticsTableUpdateParams params =
@@ -437,7 +440,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -541,7 +545,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -590,7 +595,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(programA, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
@@ -643,7 +649,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .build();
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(programA, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
@@ -699,7 +706,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .build();
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(programA, true, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
@@ -806,7 +814,8 @@ class JdbcEventAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(programA, false, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithoutRegistration(availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -849,7 +858,8 @@ class JdbcEventAnalyticsTableManagerTest {
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     when(jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear(programA, false, availableDataYears), Integer.class))
+            getYearQueryForCurrentYearProgramWithRegistration(programA, false, availableDataYears),
+            Integer.class))
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
@@ -993,40 +1003,59 @@ class JdbcEventAnalyticsTableManagerTest {
     program.setCategoryCombo(categoryCombo);
   }
 
-  private String getYearQueryForCurrentYear(
-      Program program, boolean withExecutionDate, List<Integer> availableDataYears) {
+  private String getYearQueryForCurrentYearProgramWithoutRegistration(
+      List<Integer> availableDataYears) {
     int startYear = availableDataYears.get(0);
     int latestYear = availableDataYears.get(availableDataYears.size() - 1);
-
-    String eventTable = program.isWithoutRegistration() ? "singleevent" : "trackerevent";
-    String dataClause = program.isWithoutRegistration() ? "ev.occurreddate" : DATE_CLAUSE;
+    String dataClause = "ev.occurreddate";
 
     String sql =
         "select temp.supportedyear from (select distinct "
             + "extract(year from "
             + dataClause
             + ") as supportedyear "
-            + "from \""
-            + eventTable
-            + "\" ev "
-            + (program.isRegistration()
-                ? ""
-                : "inner join \"programstage\" ps on ev.programstageid=ps.programstageid ")
-            + (program.isWithoutRegistration()
-                ? ""
-                : "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid ")
-            + "where ev.lastupdated <= '2019-08-01T00:00:00'"
-            + (program.isWithoutRegistration() ? "" : " and en.programid = " + program.getId())
-            + " and ("
+            + "from \"singleevent\" ev "
+            + "inner join \"programstage\" ps on ev.programstageid=ps.programstageid "
+            + "where ev.lastupdated <= '2019-08-01T00:00:00' "
+            + "and ("
             + dataClause
             + ") is not null and ("
             + dataClause
+            + ") > '1000-01-01' "
+            + "and ev.programstageid = 123456 "
+            + "and ev.deleted = false "
+            + ") as temp where temp.supportedyear >= "
+            + startYear
+            + " and temp.supportedyear <= "
+            + latestYear;
+
+    return sql;
+  }
+
+  private String getYearQueryForCurrentYearProgramWithRegistration(
+      Program program, boolean withExecutionDate, List<Integer> availableDataYears) {
+    int startYear = availableDataYears.get(0);
+    int latestYear = availableDataYears.get(availableDataYears.size() - 1);
+
+    String sql =
+        "select temp.supportedyear from (select distinct "
+            + "extract(year from "
+            + DATE_CLAUSE
+            + ") as supportedyear "
+            + "from \"trackerevent\" ev "
+            + "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
+            + "where ev.lastupdated <= '2019-08-01T00:00:00'"
+            + " and en.programid = "
+            + program.getId()
+            + " and ("
+            + DATE_CLAUSE
+            + ") is not null and ("
+            + DATE_CLAUSE
             + ") > '1000-01-01'"
-            + (program.isRegistration() ? "" : " and ev.programstageid = 123456")
             + " and ev.deleted = false ";
 
     if (withExecutionDate) {
-      sql += "and (" + dataClause + ") >= '2018-01-01'";
+      sql += "and (" + DATE_CLAUSE + ") >= '2018-01-01'";
     }
 
     sql +=
