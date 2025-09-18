@@ -19,7 +19,7 @@
     <rest-assured.version>5.5.6</rest-assured.version>
     <jackson.version.databind>2.20.0</jackson.version.databind>
     <jackson.version.annotation>2.20</jackson.version.annotation>
-    <guava.version>33.4.8-jre</guava.version>
+    <guava.version>33.5.0-jre</guava.version>
     <json-tree.version>1.8.1</json-tree.version>
     <epam-reportportal.version>5.3.0</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
