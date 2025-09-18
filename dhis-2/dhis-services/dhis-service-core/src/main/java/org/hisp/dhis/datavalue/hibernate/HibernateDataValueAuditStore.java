@@ -251,4 +251,33 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         (Date) row[7],
         DataValueAuditType.valueOf((String) row[8]));
   }
+
+  @Override
+  public void enableAudit() {
+    String sql =
+        """
+      DO $$
+      BEGIN
+          IF NOT EXISTS (
+              SELECT 1 FROM pg_trigger
+              WHERE tgname = 'trg_datavalue_audit'
+              AND tgrelid = to_regclass('datavalue')
+          ) THEN
+              CREATE TRIGGER trg_datavalue_audit
+                  AFTER INSERT OR UPDATE ON datavalue
+                  FOR EACH ROW
+                  EXECUTE FUNCTION log_datavalue_audit();
+          END IF;
+      END;
+      $$""";
+    getSession().createNativeQuery(sql).executeUpdate();
+  }
+
+  @Override
+  public void disableAudit() {
+    String sql =
+        """
+      DROP TRIGGER IF EXISTS trg_datavalue_audit ON datavalue""";
+    getSession().createNativeQuery(sql).executeUpdate();
+  }
 }

@@ -97,4 +97,10 @@ public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
    * @return a list of {@link DataValueAudit}.
    */
   int countDataValueAudits(DataValueAuditQueryParams params);
+
+  /** Enables the log by creating a trigger. Can be called even if audit is already enabled. */
+  void enableAudit();
+
+  /** Disables the log by removing the trigger. Can be called even if audit is already disabled. */
+  void disableAudit();
 }
