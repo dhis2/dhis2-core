@@ -451,7 +451,10 @@ public class HibernateJobConfigurationStore
         and now() > lastfinished + :ttl * interval '1 minute'
         """;
     int deletedCount =
-        nativeSynchronizedQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
+        nativeSynchronizedQuery(sql)
+            .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
+            .setParameter("ttl", max(1, ttlMinutes))
+            .executeUpdate();
     if (deletedCount == 0) return 0;
     // jobs have the same UID as their respective FR
     // so if no job exists with the same UID the FR is not assigned
