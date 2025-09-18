@@ -228,6 +228,23 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void checkAccessPermissionForTeWhenNoWriteAccessToTet() {
+    programA.setPublicAccess(AccessStringHelper.FULL);
+    programA.setAccessLevel(AccessLevel.OPEN);
+    manager.update(programA);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
+    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    UserDetails userDetails = UserDetails.fromUser(user);
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    manager.update(trackedEntityType);
+
+    assertNoErrors(trackerAccessManager.canRead(userDetails, trackedEntityA));
+    assertHasError(
+        trackerAccessManager.canWrite(userDetails, trackedEntityA),
+        "User has no data write access to tracked entity type");
+  }
+
+  @Test
   void checkAccessPermissionForEnrollmentInClosedProgram() throws ForbiddenException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
