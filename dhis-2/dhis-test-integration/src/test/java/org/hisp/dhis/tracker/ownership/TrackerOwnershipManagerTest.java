@@ -241,7 +241,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotHaveAccessToEventWithUserAWhenTransferredToAnotherOrgUnit()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException {
     userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
     userService.updateUser(userA);
 
