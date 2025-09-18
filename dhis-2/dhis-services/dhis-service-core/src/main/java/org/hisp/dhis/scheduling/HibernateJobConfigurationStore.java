@@ -439,7 +439,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public int deleteFinishedJobs(int ttlMinutes) { // todo
+  public int deleteFinishedJobs(int ttlMinutes) {
     String sql =
         """
         delete from jobconfiguration
