@@ -518,7 +518,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             """
                 \sfrom ${trackerevent} ev \
                 inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-                inner join p${rogramstage} ps on ev.programstageid=ps.programstageid \
+                inner join ${programstage} ps on ev.programstageid=ps.programstageid \
                 inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
                 left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
                 left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
