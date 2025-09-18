@@ -65,6 +65,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -119,7 +120,6 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Temporal(TemporalType.TIMESTAMP)
   private Date created;
 
-  @Column(name = "lastUpdated")
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdated;
 
@@ -127,7 +127,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
-  @Column(name = "description", columnDefinition = "text")
+  @Column(columnDefinition = "text")
   private String description;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
@@ -142,6 +142,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
       joinColumns = @JoinColumn(name = "sectionid"),
       inverseJoinColumns = @JoinColumn(name = "dataelementid"))
   @OrderColumn(name = "sort_order")
+  @ListIndexBase(value = 1)
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<DataElement> dataElements = new ArrayList<>();
 
@@ -151,6 +152,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
       joinColumns = @JoinColumn(name = "sectionid"),
       inverseJoinColumns = @JoinColumn(name = "indicatorid"))
   @OrderColumn(name = "sort_order")
+  @ListIndexBase(value = 1)
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Indicator> indicators = new ArrayList<>();
 
@@ -178,7 +180,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   private boolean disableDataElementAutoGroup;
 
   @Type(type = "jbPlainString")
-  @Column(name = "displayoptions", length = 50000)
+  @Column(length = 50000)
   private String displayOptions;
 
   @Type(type = "jsbAttributeValues")
@@ -346,6 +348,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }
@@ -357,11 +360,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   public String getUid() {
     return uid;
   }
-
-  public void setUid(String uid) {
-    this.uid = uid;
-  }
-
+  
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Description("The date this object was created.")
