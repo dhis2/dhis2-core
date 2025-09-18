@@ -45,6 +45,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -101,7 +102,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
   @Override
   protected SmsResponse postProcess(
       IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
-      throws SMSProcessingException {
+      throws SMSProcessingException, ConflictException {
     AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
     Uid ouid = subm.getOrgUnit();

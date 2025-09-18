@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.category.CategoryOption;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.Set;
+import org.hisp.dhis.user.UserDetails;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      OrganisationUnitMapper.class,
-      AttributeValuesMapper.class,
-      SharingMapper.class
-    })
-public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {
-  CategoryOptionMapper INSTANCE = Mappers.getMapper(CategoryOptionMapper.class);
+/**
+ * Interface for objects which can be marked as favorite by users. Object implementing this
+ * interface must have a property of type {@code Set<String>} with the name 'favorites' where the
+ * set contains the UIDs of users having marked the object as favorite.
+ */
+public interface FavoritableObject {
 
-  @Mapping(target = "publicAccess", ignore = true)
-  @Mapping(target = "userAccesses", ignore = true)
-  @Mapping(target = "userGroupAccesses", ignore = true)
-  @Mapping(target = "externalAccess", ignore = true)
-  @Mapping(target = "legendSets", ignore = true)
-  CategoryOption map(CategoryOption categoryOption);
+  Set<String> getFavorites();
+
+  boolean isFavorite();
+
+  boolean setAsFavorite(UserDetails user);
+
+  boolean removeAsFavorite(UserDetails user);
 }

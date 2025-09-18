@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.analytics.table;
 
-import org.hisp.dhis.category.CategoryOption;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import lombok.experimental.UtilityClass;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      OrganisationUnitMapper.class,
-      AttributeValuesMapper.class,
-      SharingMapper.class
-    })
-public interface CategoryOptionMapper extends PreheatMapper<CategoryOption> {
-  CategoryOptionMapper INSTANCE = Mappers.getMapper(CategoryOptionMapper.class);
-
-  @Mapping(target = "publicAccess", ignore = true)
-  @Mapping(target = "userAccesses", ignore = true)
-  @Mapping(target = "userGroupAccesses", ignore = true)
-  @Mapping(target = "externalAccess", ignore = true)
-  @Mapping(target = "legendSets", ignore = true)
-  CategoryOption map(CategoryOption categoryOption);
+@UtilityClass
+public class ColumnPostfix {
+  public static final String OU_GEOMETRY_COL_POSTFIX = "_geom";
+  public static final String OU_NAME_COL_POSTFIX = "_name";
 }

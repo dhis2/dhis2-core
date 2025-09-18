@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -45,14 +46,16 @@ public interface CompleteDataSetRegistrationService {
    *
    * @param registration the CompleteDataSetRegistration to save.
    */
-  void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration);
+  void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException;
 
   /**
    * Updates a CompleteDataSetRegistration.
    *
    * @param registration the CompleteDataSetRegistration to update.
    */
-  void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration);
+  void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException;
 
   /**
    * Retrieves the CompleteDataSetRegistration for the given DataSet, Period and Source.

@@ -65,8 +65,8 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -299,7 +299,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private String getSortColumnForDataElementDimensionType(QueryItem item) {
     if (ValueType.ORGANISATION_UNIT == item.getValueType()) {
-      return quote(item.getItemName() + OU_NAME_COL_SUFFIX);
+      return quote(item.getItemName() + OU_NAME_COL_POSTFIX);
     }
 
     if (item.hasRepeatableStageParams()) {
@@ -527,7 +527,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
-        return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
+        return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX);
       } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, queryItem)) {
         return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
@@ -560,9 +560,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params, QueryItem queryItem) {
     return rowContextAllowedAndNeeded(params, queryItem)
         ? ColumnAndAlias.ofColumnAndAlias(
-            getColumn(queryItem, OU_NAME_COL_SUFFIX),
-            getAlias(queryItem).orElse(queryItem.getItemName()))
-        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+                getColumn(queryItem, OU_NAME_COL_POSTFIX),
+                getAlias(queryItem).orElse(queryItem.getItemName()))
+            .withPostfix(OU_NAME_COL_POSTFIX)
+        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_POSTFIX))
+            .withPostfix(OU_NAME_COL_POSTFIX);
   }
 
   /**
@@ -714,7 +716,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           String alias = columnAndAlias.getAlias();
 
           if (isEmpty(alias)) {
-            alias = queryItem.getItemName();
+            alias =
+                queryItem.getItemName()
+                    + (columnAndAlias.hasPostfix() ? columnAndAlias.getPostfix() : "");
           }
 
           String itemName = rowSet.getString(alias);
@@ -891,11 +895,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * of type Coordinate.
    *
    * @param item the {@link QueryItem}.
-   * @param suffix the suffix to append to the item id.
+   * @param postfix the postfix to append to the item id.
    * @return the column select statement for the given item.
    */
-  protected ColumnAndAlias getCoordinateColumn(QueryItem item, String suffix) {
-    String colName = item.getItemId() + suffix;
+  protected ColumnAndAlias getCoordinateColumn(QueryItem item, String postfix) {
+    String colName = item.getItemId() + postfix;
 
     String stCentroidFunction = "";
 
@@ -904,16 +908,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return ColumnAndAlias.ofColumnAndAlias(
-        "'[' || round(ST_X("
-            + stCentroidFunction
-            + "("
-            + quote(colName)
-            + "))::numeric, 6) || ',' || round(ST_Y("
-            + stCentroidFunction
-            + "("
-            + quote(colName)
-            + "))::numeric, 6) || ']'",
-        colName);
+            "'[' || round(ST_X("
+                + stCentroidFunction
+                + "("
+                + quote(colName)
+                + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction
+                + "("
+                + quote(colName)
+                + "))::numeric, 6) || ']'",
+            colName)
+        .withPostfix(postfix);
   }
 
   /**
@@ -1349,7 +1354,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * @param relation the relation to quote.
-   * @return an "ax" aliased and double quoted relation.
+   * @return an "ax" aliased and double-quoted relation.
    */
   protected String quoteAlias(String relation) {
     return sqlBuilder.quoteAx(relation);
@@ -1664,7 +1669,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         // Handle org units
         if (params.getCoordinateFields().stream()
             .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
-          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
+          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
         }
