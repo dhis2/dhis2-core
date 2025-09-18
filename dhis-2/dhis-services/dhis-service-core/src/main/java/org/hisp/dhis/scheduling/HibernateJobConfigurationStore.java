@@ -42,6 +42,8 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
@@ -437,7 +439,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public int deleteFinishedJobs(int ttlMinutes) {
+  public int deleteFinishedJobs(int ttlMinutes) { // todo
     String sql =
         """
         delete from jobconfiguration
@@ -446,10 +448,9 @@ public class HibernateJobConfigurationStore
         and delay is null
         and queueposition is null
         and lastfinished is not null
-        and now() > lastfinished + :ttl * interval '1 minute'
+        and now() > lastfinished + interval '2 minute'
         """;
-    int deletedCount =
-        nativeSynchronizedQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
+    int deletedCount = nativeSynchronizedQuery(sql).executeUpdate();
     if (deletedCount == 0) return 0;
     // jobs have the same UID as their respective FR
     // so if no job exists with the same UID the FR is not assigned
@@ -458,9 +459,12 @@ public class HibernateJobConfigurationStore
         update fileresource fr
         set isassigned = false
         where domain = 'JOB_DATA'
+        and isassigned = true
         and uid not in (select uid from jobconfiguration where schedulingtype = 'ONCE_ASAP')
         """;
-    nativeSynchronizedQuery(sql).executeUpdate();
+    nativeSynchronizedQuery(sql)
+        .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
+        .executeUpdate();
     return deletedCount;
   }
 
