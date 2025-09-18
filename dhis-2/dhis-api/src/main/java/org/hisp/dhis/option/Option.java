@@ -59,11 +59,13 @@ import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
@@ -90,7 +92,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "optionvalue")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Option extends BaseMetadataObject implements IdentifiableObject, MetadataObject, SortableObject {
+public class Option extends BaseMetadataObject implements IdentifiableObject, NameableObject, MetadataObject, SortableObject {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "optionvalueid")
@@ -108,6 +110,9 @@ public class Option extends BaseMetadataObject implements IdentifiableObject, Me
 
   @Column(name = "sort_order")
   private Integer sortOrder;
+
+  @Column(name = "shortname", length = 50)
+  private String shortName;
 
   @Column(name = "description", columnDefinition = "text")
   private String description;
@@ -267,20 +272,81 @@ public class Option extends BaseMetadataObject implements IdentifiableObject, Me
     this.style = style;
   }
 
+  @Override
+  @Sortable
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1, max = 50)
+  public String getShortName() {
+    return shortName;
+  }
+
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORT_NAME")
+  public String getDisplayShortName() {
+    return translations.getTranslation("SHORT_NAME", getShortName());
+  }
+
+  @Override
+  @Sortable
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 1)
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return translations.getTranslation("DESCRIPTION", getDescription());
+  }
+
+  /**
+   * Returns the display property indicated by the given display property. Falls back to display
+   * name if display short name is null.
+   *
+   * @param displayProperty the display property.
+   * @return the display property.
+   */
+  @Override
+  @JsonIgnore
+  public String getDisplayProperty(DisplayProperty displayProperty) {
+    if (DisplayProperty.SHORTNAME == displayProperty && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
+  }
+
+  /** Returns the form name, or the name if it does not exist. */
+  public String getFormNameFallback() {
+    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+  }
+
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFormName() {
     return formName;
   }
 
-  public void setFormName(String formName) {
-    this.formName = formName;
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return translations.getTranslation("FORM_NAME", getFormNameFallback());
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getDescription() {
-    return description;
+  public void setFormName(String formName) {
+    this.formName = formName;
   }
 
   // --------------------------------------------------
@@ -424,6 +490,10 @@ public class Option extends BaseMetadataObject implements IdentifiableObject, Me
   @Override
   public void setName(String name) {
     this.name = name;
+  }
+
+  public void setShortName(String shortName) {
+    this.shortName = shortName;
   }
 
   public void setDescription(String description) {
