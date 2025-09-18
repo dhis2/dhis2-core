@@ -360,7 +360,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   public String getUid() {
     return uid;
   }
-  
+
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Description("The date this object was created.")
