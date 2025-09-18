@@ -667,7 +667,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "programIndicators", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0)
   public Set<ProgramIndicator> getProgramIndicators() {
