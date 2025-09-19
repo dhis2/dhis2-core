@@ -37,6 +37,7 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * Fields represent the fields a user wants to be returned from an API usually specified via the
@@ -50,6 +51,7 @@ import lombok.ToString;
  *   <li>children are automatically included unless they are explicitly included/excluded
  * </ul>
  */
+@OpenApi.Shared(value = false)
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode
