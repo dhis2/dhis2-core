@@ -112,7 +112,7 @@ public class FileResourceCleanUpJob implements Job {
     List<FileResource> unassignedJobDataFileResources =
         fileResourceService.getUnassignedFileResourcesByJobDataDomain();
     progress.startingStage(
-        "Deleting file resources associated with deleted ONCE_ASAP jobs",
+        "Deleting JOB_DATA file resources associated with deleted ONCE_ASAP jobs",
         unassignedJobDataFileResources.size(),
         SKIP_ITEM_OUTLIER);
     progress.runStage(
