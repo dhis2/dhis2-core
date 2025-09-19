@@ -120,7 +120,8 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
     return buildProgramInstanceHql(params)
         .getQuery()
         .replaceFirst(
-            "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi");
+            "select en\\s+from ProgramInstance pi",
+            "select count(distinct en.uid) from ProgramInstance pi");
   }
 
   @Override
@@ -146,7 +147,9 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
   }
 
   private QueryWithOrderBy buildProgramInstanceHql(ProgramInstanceQueryParams params) {
-    String hql = "from ProgramInstance pi";
+    String hql =
+        " select pi from ProgramInstance pi join TrackedEntityProgramOwner tepo on pi.program = tepo.program and pi.entityInstance = tepo.entityInstance ";
+
     SqlHelper hlp = new SqlHelper(true);
 
     if (params.hasLastUpdatedDuration()) {
@@ -184,7 +187,7 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
         for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
           ouClause +=
               orHlp.or()
-                  + "pi.organisationUnit.path LIKE '"
+                  + "tepo.organisationUnit.path LIKE '"
                   + organisationUnit.getStoredPath()
                   + "%'";
         }
@@ -195,7 +198,7 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
       } else {
         hql +=
             hlp.whereAnd()
-                + "pi.organisationUnit.uid in ("
+                + "tepo.organisationUnit.uid in ("
                 + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnits()))
                 + ")";
       }
@@ -243,7 +246,8 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
                       + params.getOrder().stream()
                           .map(
                               orderParam ->
-                                  orderParam.getField()
+                                  "pi."
+                                      + orderParam.getField()
                                       + " "
                                       + (orderParam.getDirection().isAscending() ? "asc" : "desc"))
                           .collect(Collectors.joining(", ")))

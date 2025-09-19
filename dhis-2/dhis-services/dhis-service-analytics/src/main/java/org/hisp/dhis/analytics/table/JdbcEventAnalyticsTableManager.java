@@ -132,98 +132,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         periodDataProvider);
   }
 
-  private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(
-          new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"),
-          new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
-          new AnalyticsTableColumn(quote("ps"), CHARACTER_11, NOT_NULL, "ps.uid"),
-          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"),
-          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
-          new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"),
-          new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"),
-          new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),
-
-          /*
-           * DHIS2-14981: Use the client-side timestamp if available, otherwise
-           * the server-side timestamp. Applies to both created and lastupdated.
-           */
-          new AnalyticsTableColumn(
-              quote("created"),
-              TIMESTAMP,
-              firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
-          new AnalyticsTableColumn(
-              quote("lastupdated"),
-              TIMESTAMP,
-              firstIfNotNullOrElse("psi.lastupdatedatclient", "psi.lastupdated")),
-          new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "psi.storedby"),
-          new AnalyticsTableColumn(
-              quote("createdbyusername"),
-              VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'username' as createdbyusername"),
-          new AnalyticsTableColumn(
-              quote("createdbyname"),
-              VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'firstName' as createdbyname",
-              true),
-          new AnalyticsTableColumn(
-              quote("createdbylastname"),
-              VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'surname' as createdbylastname",
-              true),
-          new AnalyticsTableColumn(
-              quote("createdbydisplayname"),
-              VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"),
-              true),
-          new AnalyticsTableColumn(
-              quote("lastupdatedbyusername"),
-              VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
-          new AnalyticsTableColumn(
-              quote("lastupdatedbyname"),
-              VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname",
-              true),
-          new AnalyticsTableColumn(
-              quote("lastupdatedbylastname"),
-              VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname",
-              true),
-          new AnalyticsTableColumn(
-              quote("lastupdatedbydisplayname"),
-              VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"),
-              true),
-          new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
-              .withIndexType(IndexType.GIST),
-          // TODO latitude and longitude deprecated in 2.30, remove in 2.33
-          new AnalyticsTableColumn(
-              quote("longitude"),
-              DOUBLE,
-              "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END"),
-          new AnalyticsTableColumn(
-              quote("latitude"),
-              DOUBLE,
-              "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END"),
-          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
-          new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
-          new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
-          new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
-          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry")
-              .withIndexType(IndexType.GIST),
-          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
-              .withIndexType(IndexType.GIST),
-          new AnalyticsTableColumn(
-              quote("registrationou"),
-              CHARACTER_11,
-              NOT_NULL,
-              "coalesce(registrationou.uid,ou.uid)"),
-          new AnalyticsTableColumn(
-              quote("enrollmentou"), CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
-
   /**
    * Returns a SQL expression that returns the first argument if it is not null, otherwise the
    * second argument.
@@ -436,7 +344,118 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   @Override
   public List<AnalyticsTableColumn> getFixedColumns() {
-    return FIXED_COLS;
+    List<AnalyticsTableColumn> fixedCols = new ArrayList<>();
+    fixedCols.add(new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"));
+    fixedCols.add(new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"));
+    fixedCols.add(new AnalyticsTableColumn(quote("ps"), CHARACTER_11, NOT_NULL, "ps.uid"));
+    fixedCols.add(new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"));
+    fixedCols.add(
+        new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"));
+    fixedCols.add(new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"));
+    fixedCols.add(new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"));
+    fixedCols.add(new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"));
+    fixedCols.add(new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"));
+
+    /*
+     * DHIS2-14981: Use the client-side timestamp if available, otherwise
+     * the server-side timestamp. Applies to both created and lastupdated.
+     */
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("created"),
+            TIMESTAMP,
+            firstIfNotNullOrElse("psi.createdatclient", "psi.created")));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("lastupdated"),
+            TIMESTAMP,
+            firstIfNotNullOrElse("psi.lastupdatedatclient", "psi.lastupdated")));
+    fixedCols.add(new AnalyticsTableColumn(quote("storedby"), VARCHAR_255, "psi.storedby"));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("createdbyusername"),
+            VARCHAR_255,
+            "psi.createdbyuserinfo ->> 'username' as createdbyusername"));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("createdbyname"),
+            VARCHAR_255,
+            "psi.createdbyuserinfo ->> 'firstName' as createdbyname",
+            true));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("createdbylastname"),
+            VARCHAR_255,
+            "psi.createdbyuserinfo ->> 'surname' as createdbylastname",
+            true));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("createdbydisplayname"),
+            VARCHAR_255,
+            getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"),
+            true));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("lastupdatedbyusername"),
+            VARCHAR_255,
+            "psi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("lastupdatedbyname"),
+            VARCHAR_255,
+            "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname",
+            true));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("lastupdatedbylastname"),
+            VARCHAR_255,
+            "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname",
+            true));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("lastupdatedbydisplayname"),
+            VARCHAR_255,
+            getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"),
+            true));
+    fixedCols.add(new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"));
+    fixedCols.add(new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"));
+    fixedCols.add(
+        new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
+            .withIndexType(IndexType.GIST));
+    // TODO latitude and longitude deprecated in 2.30, remove in 2.33
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("longitude"),
+            DOUBLE,
+            "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END"));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("latitude"),
+            DOUBLE,
+            "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END"));
+    fixedCols.add(new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+    fixedCols.add(new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"));
+    fixedCols.add(new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"));
+    fixedCols.add(new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"));
+    String ouGeometryExpression =
+        useCentroidForOuAttribute() ? "ST_Centroid(ou.geometry)" : "ou.geometry";
+    fixedCols.add(
+        new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, ouGeometryExpression)
+            .withIndexType(IndexType.GIST));
+    fixedCols.add(
+        new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
+            .withIndexType(IndexType.GIST));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("registrationou"),
+            CHARACTER_11,
+            NOT_NULL,
+            "coalesce(registrationou.uid,ou.uid)"));
+    fixedCols.add(
+        new AnalyticsTableColumn(
+            quote("enrollmentou"), CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
+
+    return fixedCols;
   }
 
   @Override
@@ -608,7 +627,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String dataClause =
         attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
     String select = getSelectClause(attribute.getValueType(), "value");
-    String sql = selectForInsert(attribute, select, dataClause);
+    String sql = selectForInsert(attribute, select, dataClause, false);
     boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
     if (attribute.getValueType().isOrganisationUnit()) {
@@ -665,7 +684,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
     String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
     String select = getSelectClause(dataElement.getValueType(), columnName);
-    String sql = selectForInsert(dataElement, select, dataClause);
+    String sql = selectForInsert(dataElement, select, dataClause, false);
     boolean skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -690,19 +709,22 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           selectForInsert(
               attribute,
               "ou.geometry from organisationunit ou where ou.uid = (select value",
-              dataClause);
+              dataClause,
+              true); // skip alias for geometry column
+      // wraps the expression with ST_Centroid if configured to do so
+      String finalSqlSnippet = wrapWithCentroid(geoSql) + " as " + quote(attribute.getUid());
       columns.add(
           new AnalyticsTableColumn(
                   quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
                   ColumnDataType.GEOMETRY,
-                  geoSql)
+                  finalSqlSnippet)
               .withSkipIndex(false)
               .withIndexType(IndexType.GIST));
     }
 
     // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
+    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause, false);
 
     columns.add(
         new AnalyticsTableColumn(quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
@@ -722,20 +744,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           selectForInsert(
               dataElement,
               "ou.geometry from organisationunit ou where ou.uid = (select " + columnName,
-              dataClause);
-
+              dataClause,
+              true);
+      String finalSqlSnippet = wrapWithCentroid(geoSql) + " as " + quote(dataElement.getUid());
       columns.add(
           new AnalyticsTableColumn(
                   quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
                   ColumnDataType.GEOMETRY,
-                  geoSql)
+                  finalSqlSnippet)
               .withSkipIndex(false)
               .withIndexType(IndexType.GIST));
     }
 
     // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
-    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
+    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause, false);
 
     columns.add(
         new AnalyticsTableColumn(quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
@@ -744,30 +767,33 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return columns;
   }
 
-  private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
-    return format(
-        "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid "
-            + dataClause
-            + ")"
-            + getClosingParentheses(fromType)
-            + " as "
-            + quote(dataElement.getUid()),
-        fromType);
+  /**
+   * Wraps the base query format with ST_Centroid if the current settings allow it.
+   *
+   * @param baseFormat the base SQL format string.
+   * @return the format string, optionally wrapped with ST_Centroid.
+   */
+  private String wrapWithCentroid(String baseFormat) {
+    return useCentroidForOuAttribute() ? "ST_Centroid(" + baseFormat + ")" : baseFormat;
   }
 
   private String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+      DataElement dataElement, String fromType, String dataClause, boolean omitAlias) {
+    String aliasClause = omitAlias ? "" : " as " + quote(dataElement.getUid());
+
     return format(
-        "(select %s"
-            + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "and trackedentityattributeid="
-            + attribute.getId()
-            + dataClause
-            + ")"
-            + getClosingParentheses(fromType)
-            + " as "
-            + quote(attribute.getUid()),
-        fromType);
+        "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid %s)%s%s",
+        fromType, dataClause, getClosingParentheses(fromType), aliasClause);
+  }
+
+  private String selectForInsert(
+      TrackedEntityAttribute attribute, String fromType, String dataClause, boolean omitAlias) {
+    String aliasClause = omitAlias ? "" : " as " + quote(attribute.getUid());
+
+    return format(
+        "(select %s from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+            + "and trackedentityattributeid=%d%s)%s%s",
+        fromType, attribute.getId(), dataClause, getClosingParentheses(fromType), aliasClause);
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
@@ -866,5 +892,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<Integer> getYearsForPartitionTable(List<Integer> dataYears) {
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
+  }
+
+  private boolean useCentroidForOuAttribute() {
+    return systemSettingManager.getBooleanSetting(SettingKey.ANALYTICS_EVENTS_OU_CENTROID);
   }
 }

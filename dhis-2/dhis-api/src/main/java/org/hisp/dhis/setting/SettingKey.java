@@ -241,6 +241,7 @@ public enum SettingKey {
       "keyDashboardContextMenuItemViewFullscreen", Boolean.TRUE, Boolean.class),
   DEFAULT_BASE_MAP("keyDefaultBaseMap"),
   RULE_ENGINE_ASSIGN_OVERWRITE("ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class),
+  ANALYTICS_EVENTS_OU_CENTROID("orgUnitCentroidsInEventsAnalytics", Boolean.FALSE, Boolean.class),
 
   /**
    * Progressive caching factor for the analytics API. To enable, the {@link

@@ -1110,7 +1110,7 @@ public class JdbcEventStore implements EventStore {
             .append("select ")
             .append(getEventSelectIdentifiersByIdScheme(params))
             .append(" psi.uid as psi_uid, ")
-            .append("ou.uid as ou_uid, p.uid as p_uid, ")
+            .append("psiou.uid as ou_uid, p.uid as p_uid, ")
             .append(
                 "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, ")
             .append(
@@ -1138,7 +1138,7 @@ public class JdbcEventStore implements EventStore {
     return selectBuilder
         .append(
             "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, ")
-        .append("p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, ")
+        .append("p.type as p_type, ps.uid as ps_uid, psiou.name as ou_name, ")
         .append(
             "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive ")
         .append(
@@ -1167,9 +1167,9 @@ public class JdbcEventStore implements EventStore {
         .append(
             "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
         .append(
-            "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) ")
+            "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) ")
         .append(
-            "inner join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) ");
+            "inner join organisationunit psiou on (psi.organisationunitid=psiou.organisationunitid) ");
 
     fromBuilder
         .append(
