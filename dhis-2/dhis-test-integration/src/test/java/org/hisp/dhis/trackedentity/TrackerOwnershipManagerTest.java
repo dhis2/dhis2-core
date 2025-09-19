@@ -34,7 +34,9 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +47,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -52,13 +57,21 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentEventsParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
@@ -93,7 +106,11 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private ProgramStageService programStageService;
+
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired EventService eventService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -121,6 +138,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   private TrackedEntityParams defaultParams;
 
   private TrackedEntityType trackedEntityType;
+
+  private Enrollment enrollment;
+  private Event event;
 
   @Override
   protected void setUpTest() throws Exception {
@@ -171,11 +191,36 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
             .users(Map.of(userB.getUid(), new UserAccess(userB, "r-r-----")))
             .build());
     programService.updateProgram(programB);
+    ProgramStage programStage = createProgramStage('A', programA);
+    programStageService.saveProgramStage(programStage);
+    programStage.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    programStageService.updateProgramStage(programStage);
+    programA.setProgramStages(Set.of(programStage));
+    programService.updateProgram(programA);
 
     userDetailsA = UserDetails.fromUser(userA);
 
-    enrollmentService.addEnrollment(
-        createEnrollment(programA, entityInstanceA1, organisationUnitA));
+    enrollment = createEnrollment(programA, entityInstanceA1, organisationUnitA);
+    enrollmentService.addEnrollment(enrollment);
+
+    event = createEvent(programStage, enrollment, organisationUnitA);
+    manager.save(event);
+    enrollment.setEvents(Set.of(event));
+    manager.update(enrollment);
+
+    CategoryCombo categoryCombo = createCategoryCombo('C');
+    manager.save(categoryCombo);
+
+    CategoryOption categoryOption = createCategoryOption('C');
+    manager.save(categoryOption);
+
+    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+    categoryOptionCombo.setCategoryCombo(categoryCombo);
+    categoryOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    manager.save(categoryOptionCombo);
+
+    event.setAttributeOptionCombo(categoryOptionCombo);
+    manager.update(event);
 
     defaultParams =
         new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
@@ -219,6 +264,22 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotHaveAccessToEventWithUserAWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+
+    injectSecurityContextUser(userA);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> eventService.getEvent(event.getUid(), EventParams.FALSE));
+    assertContains("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+  }
+
+  @Test
   void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToOwnOrgUnit()
       throws ForbiddenException, NotFoundException, BadRequestException {
     trackerOwnershipAccessManager.assignOwnership(
@@ -227,10 +288,36 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         entityInstanceA1, programA, organisationUnitB, false, true);
 
     injectSecurityContextUser(userB);
+
+    TrackedEntityOperationParams trackedEntityOperationParams =
+        TrackedEntityOperationParams.builder()
+            .trackedEntityUids(Set.of(entityInstanceA1.getUid()))
+            .programUid(programA.getUid())
+            .orgUnitMode(ACCESSIBLE)
+            .user(userB)
+            .trackedEntityParams(
+                new TrackedEntityParams(
+                    false,
+                    new TrackedEntityEnrollmentParams(
+                        true,
+                        new EnrollmentParams(
+                            new EnrollmentEventsParams(true, EventParams.FALSE), false, false)),
+                    false,
+                    false))
+            .includeDeleted(false)
+            .build();
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(trackedEntityOperationParams);
+    assertHasSize(1, trackedEntities, "Expected only one tracked entity in the list");
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    assertEquals(trackedEntity.getUid(), entityInstanceA1.getUid());
+    assertNotEmpty(trackedEntity.getEnrollments());
+    assertEquals(enrollment.getUid(), trackedEntity.getEnrollments().iterator().next().getUid());
+    assertNotEmpty(trackedEntity.getEnrollments().iterator().next().getEvents());
     assertEquals(
-        entityInstanceA1,
-        trackedEntityService.getTrackedEntity(
-            entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
+        event.getUid(),
+        trackedEntity.getEnrollments().iterator().next().getEvents().iterator().next().getUid());
   }
 
   @Test
