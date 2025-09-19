@@ -126,7 +126,7 @@ public class PeriodDataProvider {
     String dueDateOrExecutionDate =
         "(case when 'SCHEDULE' = ev.status then ev.scheduleddate else ev.occurreddate end)";
 
-    String sql =
+    String sqlTrackerEvents =
         "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
             + " union"
             + " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )"
@@ -150,7 +150,7 @@ public class PeriodDataProvider {
             + " where ev.occurreddate is not null"
             + " and ev.deleted is false ) order by datayear asc";
 
-    distinctYears.addAll(jdbcTemplate.queryForList(sql, Integer.class));
+    distinctYears.addAll(jdbcTemplate.queryForList(sqlTrackerEvents, Integer.class));
     distinctYears.addAll(jdbcTemplate.queryForList(sqlSingleEvents, Integer.class));
 
     if (isEmpty(distinctYears)) {

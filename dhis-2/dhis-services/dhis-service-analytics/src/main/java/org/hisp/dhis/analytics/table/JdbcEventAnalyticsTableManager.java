@@ -909,8 +909,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             : EMPTY;
 
     if (program.isRegistration()) {
-      String sql = trackerEventsYearsQuery(params, program, firstYear, lastYear, fromDateClause);
-      distinctYears.addAll(jdbcTemplate.queryForList(sql, Integer.class));
+      String sqlTrackerEvents = trackerEventsYearsQuery(params, program, firstYear, lastYear, fromDateClause);
+      distinctYears.addAll(jdbcTemplate.queryForList(sqlTrackerEvents, Integer.class));
     } else {
       String sqlSingleEvents =
           singleEventsYearsQuery(params, program, firstYear, lastYear, fromDateClause);
