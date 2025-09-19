@@ -41,6 +41,7 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -63,6 +64,8 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
+  @Autowired private SystemSettingsService systemSettingsService;
+
   private Program programA;
 
   private ProgramIndicator piA;
@@ -75,6 +78,10 @@ class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
+
+    systemSettingsService.put("experimentalAnalyticsSqlEngineEnabled", false);
+    systemSettingsService.clearCurrentSettings();
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
 
