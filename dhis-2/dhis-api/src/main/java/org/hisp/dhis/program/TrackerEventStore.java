@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,23 +29,42 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import java.util.Collection;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.program.DefaultEventProgramEnrollmentService")
-public class DefaultEventProgramEnrollmentService implements EventProgramEnrollmentService {
+/**
+ * @author Abyot Asalefew
+ */
+public interface TrackerEventStore extends IdentifiableObjectStore<TrackerEvent> {
 
-  private final EventProgramEnrollmentStore eventProgramEnrollmentStore;
+  /**
+   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
+   * used to determine which event data value is kept when merging. Any remaining source
+   * eventDataValues are then deleted.
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to merge
+   * @param targetDataElement dataElement to use when merging source eventDataValues
+   */
+  void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
 
-  @Override
-  public List<Enrollment> getEnrollments(Program program) {
-    return eventProgramEnrollmentStore.get(program);
-  }
+  /**
+   * delete all eventDataValues which have any of the sourceDataElements
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to delete
+   */
+  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
 
-  @Override
-  public List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus) {
-    return eventProgramEnrollmentStore.get(program, enrollmentStatus);
-  }
+  /**
+   * Updates all {@link TrackerEvent}s with references to {@link CategoryOptionCombo}s, to use the
+   * coc reference.
+   *
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
+   */
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

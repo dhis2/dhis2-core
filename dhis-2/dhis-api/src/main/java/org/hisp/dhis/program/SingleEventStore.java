@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,39 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
-/**
- * This store is intended as a temporary solution until we separate event programs from tracker
- * programs. Once they become distinct entities and event programs no longer require a placeholder
- * enrollment, this store should be discontinued.
- */
-public interface EventProgramEnrollmentStore {
+public interface SingleEventStore extends IdentifiableObjectStore<SingleEvent> {
 
-  List<Enrollment> get(Program program);
+  /**
+   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
+   * used to determine which event data value is kept when merging. Any remaining source
+   * eventDataValues are then deleted.
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to merge
+   * @param targetDataElement dataElement to use when merging source eventDataValues
+   */
+  void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
 
-  List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus);
+  /**
+   * delete all eventDataValues which have any of the sourceDataElements
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to delete
+   */
+  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
+
+  /**
+   * Updates all {@link SingleEvent}s with references to {@link CategoryOptionCombo}s, to use the
+   * coc reference.
+   *
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
+   */
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

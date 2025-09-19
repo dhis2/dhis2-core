@@ -94,15 +94,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
@@ -140,15 +140,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .programStage(identifierParams.toMetadataIdentifier(stage))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+    List<TrackerEvent> events = List.of(event);
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(stage);
@@ -182,7 +182,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
@@ -190,7 +190,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event, event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
@@ -228,7 +228,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
@@ -236,7 +236,7 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
     List<Event> events = List.of(event, event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
@@ -272,15 +272,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
@@ -306,15 +306,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
             .programStage(MetadataIdentifier.EMPTY_UID)
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
@@ -339,15 +339,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .programStage(MetadataIdentifier.EMPTY_UID)
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
 
@@ -380,15 +380,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .programStage(identifierParams.toMetadataIdentifier(stage))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgramStage(event.getProgramStage())).thenReturn(stage);
@@ -419,15 +419,15 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
     Set<CategoryOption> options = aoc.getCategoryOptions();
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program.getUid()))
             .attributeCategoryOptions(categoryOptionIds(identifierParams, options))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
@@ -452,14 +452,14 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     program.setCategoryCombo(categoryCombo);
     CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo);
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier(aoc))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
@@ -484,14 +484,14 @@ class EventCategoryOptionComboSupplierTest extends TestBase {
     CategoryCombo categoryCombo = categoryCombo();
     program.setCategoryCombo(categoryCombo);
 
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .program(MetadataIdentifier.ofUid(program))
             .attributeOptionCombo(identifierParams.toMetadataIdentifier((CategoryOptionCombo) null))
             .build();
-    List<Event> events = List.of(event);
-    TrackerObjects params = TrackerObjects.builder().events(events).build();
+
+    TrackerObjects params = TrackerObjects.builder().events(List.of(event)).build();
 
     when(preheat.getIdSchemes()).thenReturn(identifierParams);
     when(preheat.getProgram(event.getProgram())).thenReturn(program);
