@@ -2624,7 +2624,7 @@
           },
           "jiFUk9o7gH3": {
             "id": "jiFUk9o7gH3",
-            "access": "r-r-----"
+            "access": "r-rw----"
           }
         },
         "userGroups": {
