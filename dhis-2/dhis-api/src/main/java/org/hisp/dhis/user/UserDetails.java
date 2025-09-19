@@ -155,7 +155,6 @@ public interface UserDetails
                     user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
 
     if (loadOrgUnits) {
-
       Set<String> userOrgUnitIds =
           (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
 
@@ -281,10 +280,18 @@ public interface UserDetails
   void setId(Long id);
 
   default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
-    if (role == null) return false;
-    if (isSuper()) return true;
-    if (hasAnyAuthorities(List.of(Authorities.ALL))) return true;
-    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) return false;
+    if (role == null) {
+      return false;
+    }
+    if (isSuper()) {
+      return true;
+    }
+    if (hasAnyAuthorities(List.of(Authorities.ALL))) {
+      return true;
+    }
+    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) {
+      return false;
+    }
     return getAllAuthorities().containsAll(role.getAuthorities());
   }
 
@@ -313,10 +320,16 @@ public interface UserDetails
     return isInUserHierarchy(orgUnitPath, getUserDataOrgUnitIds());
   }
 
-  default boolean isInUserHierarchy(
+  static boolean isInUserHierarchy(
       @CheckForNull String orgUnitPath, @Nonnull Set<String> orgUnitIds) {
-    if (orgUnitPath == null) return false;
-    for (String uid : orgUnitPath.split("/")) if (orgUnitIds.contains(uid)) return true;
+    if (orgUnitPath == null) {
+      return false;
+    }
+    for (String uid : orgUnitPath.split("/")) {
+      if (orgUnitIds.contains(uid)) {
+        return true;
+      }
+    }
     return false;
   }
 

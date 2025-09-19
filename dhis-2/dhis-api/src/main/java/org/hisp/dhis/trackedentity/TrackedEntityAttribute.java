@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Transient;
 import java.util.EnumSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -44,6 +45,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -102,13 +104,20 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Boolean skipSynchronization = false;
 
+  @OpenApi.Description(
+      "Minimum number of characters required to search within the current Tracked Entity Attribute. A value of 0 means no minimum.")
   private int minCharactersToSearch;
 
+  @OpenApi.Description("Suggested `QueryOperator` to use for the current Tracked Entity Attribute.")
   private QueryOperator preferredSearchOperator;
 
+  @OpenApi.Description(
+      "Set of `QueryOperator`s that cannot be used with the current Tracked Entity Attribute.")
   private Set<QueryOperator> blockedSearchOperators = EnumSet.noneOf(QueryOperator.class);
 
   private Boolean trigramIndexable = false;
+
+  @Transient private Boolean trigramIndexed = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -428,6 +437,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setTrigramIndexable(Boolean trigramIndexable) {
     this.trigramIndexable = trigramIndexable;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getTrigramIndexed() {
+    return trigramIndexed;
+  }
+
+  public void setTrigramIndexed(Boolean trigramIndexed) {
+    this.trigramIndexed = trigramIndexed;
   }
 
   @Override

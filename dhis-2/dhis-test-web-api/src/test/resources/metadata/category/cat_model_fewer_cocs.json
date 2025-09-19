@@ -1,0 +1,116 @@
+{
+  "categoryOptions": [
+    {
+      "id": "CatOptUida1",
+      "name": "cat opt a1",
+      "shortName": "cat opt a1"
+    },
+    {
+      "id": "CatOptUida2",
+      "name": "cat opt a2",
+      "shortName": "cat opt a2"
+    },
+    {
+      "id": "CatOptUida3",
+      "name": "cat opt a3",
+      "shortName": "cat opt a3"
+    },
+    {
+      "id": "CatOptUida4",
+      "name": "cat opt a4",
+      "shortName": "cat opt a4"
+    }
+  ],
+  "categories": [
+    {
+      "id": "CategoUida1",
+      "name": "cat a1",
+      "shortName": "cat a1",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "CatOptUida1"
+        },
+        {
+          "id": "CatOptUida2"
+        }
+      ]
+    },
+    {
+      "id": "CategoUida2",
+      "name": "cat a2",
+      "shortName": "cat a2",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "CatOptUida3"
+        },
+        {
+          "id": "CatOptUida4"
+        }
+      ]
+    }
+  ],
+  "categoryCombos": [
+    {
+      "id": "CatComUida1",
+      "name": "cat combo a1",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        {
+          "id": "CategoUida1"
+        },
+        {
+          "id": "CategoUida2"
+        }
+      ]
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "name": "cat opt a1, cat opt a4",
+      "id": "CocUid000a2",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida1"
+        },
+        {
+          "id": "CatOptUida4"
+        }
+      ]
+    },
+    {
+      "name": "cat opt a2, cat opt a3",
+      "id": "CocUid000a3",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida2"
+        },
+        {
+          "id": "CatOptUida3"
+        }
+      ]
+    },
+    {
+      "name": "cat opt a2, cat opt a4",
+      "id": "CocUid000a4",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida2"
+        },
+        {
+          "id": "CatOptUida4"
+        }
+      ]
+    }
+  ]
+}

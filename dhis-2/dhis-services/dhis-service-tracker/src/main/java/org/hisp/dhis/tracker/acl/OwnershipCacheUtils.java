@@ -27,12 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table;
+package org.hisp.dhis.tracker.acl;
 
-import lombok.experimental.UtilityClass;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-@UtilityClass
-public class ColumnSuffix {
-  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
-  public static final String OU_NAME_COL_SUFFIX = "_name";
+class OwnershipCacheUtils {
+
+  private OwnershipCacheUtils() {}
+
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  static String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+    return trackedEntity.getUid() + "_" + program.getUid();
+  }
+
+  /**
+   * Returns key used to store and retrieve cached records for temporary ownership
+   *
+   * @return a String representing a record of temporary ownership
+   */
+  static String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
+    return teUid + "-" + programUid + "-" + userUid;
+  }
 }

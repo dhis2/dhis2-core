@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.trigramsummary;
+package org.hisp.dhis.analytics.table;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 
-/**
- * TrigramSummary object to store trigram indexing status
- *
- * @author Ameen Mohamed
- */
-@JacksonXmlRootElement
-@NoArgsConstructor
-public class TrigramSummary {
-  private List<ObjectNode> indexedAttributes = new ArrayList<>();
-
-  private List<ObjectNode> indexableAttributes = new ArrayList<>();
-
-  private List<ObjectNode> obsoleteIndexedAttributes = new ArrayList<>();
-
-  @JsonProperty
-  public List<ObjectNode> getIndexedAttributes() {
-    return indexedAttributes;
-  }
-
-  public void setIndexedAttributes(List<ObjectNode> indexedAttributes) {
-    this.indexedAttributes = indexedAttributes;
-  }
-
-  @JsonProperty
-  public List<ObjectNode> getIndexableAttributes() {
-    return indexableAttributes;
-  }
-
-  public void setIndexableAttributes(List<ObjectNode> indexableAttributes) {
-    this.indexableAttributes = indexableAttributes;
-  }
-
-  @JsonProperty
-  public List<ObjectNode> getObsoleteIndexedAttributes() {
-    return obsoleteIndexedAttributes;
-  }
-
-  public void setObsoleteIndexedAttributes(List<ObjectNode> obsoleteIndexedAttributes) {
-    this.obsoleteIndexedAttributes = obsoleteIndexedAttributes;
-  }
+@UtilityClass
+public class ColumnPostfix {
+  public static final String OU_GEOMETRY_COL_POSTFIX = "_geom";
+  public static final String OU_NAME_COL_POSTFIX = "_name";
 }

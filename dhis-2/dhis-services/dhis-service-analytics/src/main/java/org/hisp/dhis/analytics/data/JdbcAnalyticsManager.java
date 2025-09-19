@@ -45,7 +45,7 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriods;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -527,15 +527,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                     String ouCol = quoteAlias(LEVEL_PREFIX + unit.getLevel());
                     Integer level = params.getDataApprovalLevels().get(unit);
 
-                    return "("
-                        + ouCol
-                        + " = '"
-                        + unit.getUid()
-                        + "' and "
-                        + quoteAlias(APPROVALLEVEL)
-                        + " <= "
-                        + level
-                        + ")";
+                    return String.format(
+                        "(%s = '%s' and %s <= %s)",
+                        ouCol, unit.getUid(), quoteAlias(APPROVALLEVEL), level);
                   })
               .collect(Collectors.joining(" or ")));
 
@@ -550,63 +544,39 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
       StringBuilder sql,
       AnalyticsTableType tableType) {
     if (params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction()) {
+      // spotless:off
       sql.append(
-          sqlHelper.whereAnd()
-              + " ("
-              + "("
-              + quoteAlias("ouopeningdate")
-              + " <= '"
-              + toMediumDate(params.getStartDateRestriction())
-              + "' or "
-              + quoteAlias("ouopeningdate")
-              + " is null) and "
-              + "("
-              + quoteAlias("oucloseddate")
-              + " >= '"
-              + toMediumDate(params.getEndDateRestriction())
-              + "' or "
-              + quoteAlias("oucloseddate")
-              + " is null)) ");
+          sqlHelper.whereAnd() + 
+              " ((" + quoteAlias("ouopeningdate") + " <= '" + toMediumDate(params.getStartDateRestriction()) + 
+              "' or " + quoteAlias("ouopeningdate") + " is null) and (" + 
+              quoteAlias("oucloseddate") + " >= '" + toMediumDate(params.getEndDateRestriction()) + 
+              "' or " + quoteAlias("oucloseddate") + " is null)) ");
+      // spotless:on
     }
 
     if (params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDateRestriction()) {
+      // spotless:off
       sql.append(
-          sqlHelper.whereAnd()
-              + " ("
-              + "("
-              + quoteAlias("costartdate")
-              + " <= '"
-              + toMediumDate(params.getStartDateRestriction())
-              + "' or "
-              + quoteAlias("costartdate")
-              + " is null) and "
-              + "("
-              + quoteAlias("coenddate")
-              + " >= '"
-              + toMediumDate(params.getEndDateRestriction())
-              + "' or "
-              + quoteAlias("coenddate")
-              + " is null)) ");
+          sqlHelper.whereAnd() + 
+              " ((" + quoteAlias("costartdate") + " <= '" + toMediumDate(params.getStartDateRestriction()) + 
+              "' or " + quoteAlias("costartdate") + " is null) and (" + 
+              quoteAlias("coenddate") + " >= '" + toMediumDate(params.getEndDateRestriction()) + 
+              "' or " + quoteAlias("coenddate") + " is null)) ");
+      // spotless:on
     }
 
     if (tableType.isPeriodDimension() && params.hasStartDate()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " "
-              + quoteAlias(PESTARTDATE)
-              + "  >= '"
-              + toMediumDate(params.getStartDate())
-              + "' ");
+              + String.format(
+                  " %s >= '%s' ", quoteAlias(PESTARTDATE), toMediumDate(params.getStartDate())));
     }
 
     if (tableType.isPeriodDimension() && params.hasEndDate()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " "
-              + quoteAlias(PEENDDATE)
-              + " <= '"
-              + toMediumDate(params.getEndDate())
-              + "' ");
+              + String.format(
+                  " %s <= '%s' ", quoteAlias(PEENDDATE), toMediumDate(params.getEndDate())));
     }
 
     if (params.isTimely()) {
@@ -620,11 +590,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (!params.isSkipPartitioning() && params.hasPartitions()) {
       sql.append(
           sqlHelper.whereAnd()
-              + " "
-              + quoteAlias("year")
-              + " in ("
-              + TextUtils.getCommaDelimitedString(params.getPartitions().getPartitions())
-              + ") ");
+              + String.format(
+                  " %s in (%s) ",
+                  quoteAlias("year"),
+                  TextUtils.getCommaDelimitedString(params.getPartitions().getPartitions())));
     }
 
     // ---------------------------------------------------------------------
@@ -667,18 +636,11 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     String fromSourceClause = getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS;
     String whereClause = getWhereClause(params, tableType);
 
-    return "(select "
-        + dimensionColumns
-        + ","
-        + valueColumns
-        + " "
-        + "from "
-        + fromSourceClause
-        + " "
-        + whereClause
-        + "group by "
-        + dimensionColumns
-        + ")";
+    // spotless:off
+    return "(select " + dimensionColumns + "," + valueColumns + " " + 
+        "from " + fromSourceClause + " " + whereClause + 
+        "group by " + dimensionColumns + ")";
+    // spotless:on
   }
 
   /**
@@ -732,35 +694,16 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
     String fromSourceClause = getFromSourceClause(params) + " as " + ANALYTICS_TBL_ALIAS;
 
-    return "(select "
-        + columns
-        + ",row_number() over ("
-        + "partition by "
-        + partitionColumns
-        + " "
-        + "order by peenddate "
-        + order
-        + ", pestartdate "
-        + order
-        + ") as pe_rank "
-        + "from "
-        + fromSourceClause
-        + " "
-        + "where "
-        + quoteAlias(PESTARTDATE)
-        + " >= '"
-        + toMediumDate(earliestDate)
-        + "' "
-        + "and "
-        + quoteAlias(PEENDDATE)
-        + " <= '"
-        + toMediumDate(latestDate)
-        + "' "
-        + "and ("
-        + quoteAlias(VALUE)
-        + " is not null or "
-        + quoteAlias(TEXTVALUE)
-        + " is not null))";
+    // spotless:off
+    return 
+        "(select " + columns + ",row_number() over (" + 
+        "partition by " + partitionColumns + " " + 
+        "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " + 
+        "from " + fromSourceClause + " " + 
+        "where " + quoteAlias(PESTARTDATE) + " >= '" + toMediumDate(earliestDate) + "' " + 
+        "and " + quoteAlias(PEENDDATE) + " <= '" + toMediumDate(latestDate) + "' " + 
+        "and (" + quoteAlias(VALUE) + " is not null or " + quoteAlias(TEXTVALUE) + " is not null))";
+    // spotless:on
   }
 
   /**

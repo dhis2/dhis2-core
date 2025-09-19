@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.getIfNull;
@@ -41,6 +42,7 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
@@ -58,20 +60,23 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
@@ -163,6 +168,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -293,7 +299,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private String getSortColumnForDataElementDimensionType(QueryItem item) {
     if (ValueType.ORGANISATION_UNIT == item.getValueType()) {
-      return quote(item.getItemName() + OU_NAME_COL_SUFFIX);
+      return quote(item.getItemName() + OU_NAME_COL_POSTFIX);
     }
 
     if (item.hasRepeatableStageParams()) {
@@ -521,7 +527,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
-        return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
+        return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX);
+      } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, queryItem)) {
+        return getColumnAndAlias(queryItem, false, EMPTY);
       } else {
         return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
@@ -552,9 +560,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params, QueryItem queryItem) {
     return rowContextAllowedAndNeeded(params, queryItem)
         ? ColumnAndAlias.ofColumnAndAlias(
-            getColumn(queryItem, OU_NAME_COL_SUFFIX),
-            getAlias(queryItem).orElse(queryItem.getItemName()))
-        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+                getColumn(queryItem, OU_NAME_COL_POSTFIX),
+                getAlias(queryItem).orElse(queryItem.getItemName()))
+            .withPostfix(OU_NAME_COL_POSTFIX)
+        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_POSTFIX))
+            .withPostfix(OU_NAME_COL_POSTFIX);
   }
 
   /**
@@ -706,7 +716,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           String alias = columnAndAlias.getAlias();
 
           if (isEmpty(alias)) {
-            alias = queryItem.getItemName();
+            alias =
+                queryItem.getItemName()
+                    + (columnAndAlias.hasPostfix() ? columnAndAlias.getPostfix() : "");
           }
 
           String itemName = rowSet.getString(alias);
@@ -883,11 +895,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * of type Coordinate.
    *
    * @param item the {@link QueryItem}.
-   * @param suffix the suffix to append to the item id.
+   * @param postfix the postfix to append to the item id.
    * @return the column select statement for the given item.
    */
-  protected ColumnAndAlias getCoordinateColumn(QueryItem item, String suffix) {
-    String colName = item.getItemId() + suffix;
+  protected ColumnAndAlias getCoordinateColumn(QueryItem item, String postfix) {
+    String colName = item.getItemId() + postfix;
 
     String stCentroidFunction = "";
 
@@ -896,16 +908,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return ColumnAndAlias.ofColumnAndAlias(
-        "'[' || round(ST_X("
-            + stCentroidFunction
-            + "("
-            + quote(colName)
-            + "))::numeric, 6) || ',' || round(ST_Y("
-            + stCentroidFunction
-            + "("
-            + quote(colName)
-            + "))::numeric, 6) || ']'",
-        colName);
+            "'[' || round(ST_X("
+                + stCentroidFunction
+                + "("
+                + quote(colName)
+                + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction
+                + "("
+                + quote(colName)
+                + "))::numeric, 6) || ']'",
+            colName)
+        .withPostfix(postfix);
   }
 
   /**
@@ -963,6 +976,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getSelectSql(QueryFilter filter, QueryItem item, EventQueryParams params) {
     if (item.isProgramIndicator()) {
       return getColumnAndAlias(item, params, false, false).getColumn();
+    } else if (EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter(params, item)) {
+      return quote(item.getItemName());
     } else {
       return filter.getSqlFilterColumn(getColumn(item), item.getValueType());
     }
@@ -1071,19 +1086,34 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-    sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
 
     String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
-    String orgColumns = getOrgUnitLevelColumns(params).stream().collect(joining(","));
     String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
+    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
+    String orgUnitColumns = orgUnitLevels;
 
+    if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
+      orgUnitColumns = ORGUNIT_DIM_ID;
+    }
+
+    List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
     String columns =
-        (!isBlank(orgColumns) ? orgColumns : "," + ORGUNIT_DIM_ID)
-            + (!isBlank(periodColumns) ? "," + periodColumns : EMPTY)
-            + (!isBlank(headerColumns) ? "," + headerColumns : EMPTY);
+        list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
+
+    String join = EMPTY;
+    if (hasEnrollmentOrgUnitFilter(params)) {
+      join =
+          " join analytics_event_"
+              + params.getProgram().getUid()
+              + " ev on ev.enrollment = ax.enrollment "
+              + whereClause
+              + " and ev.eventstatus != 'SCHEDULE'"; // We work only with non-scheduled events.
+    } else {
+      sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
+    }
 
     sql =
-        "select count("
+        "select count(distinct "
             + OUTER_SQL_ALIAS
             + ".enrollment) as "
             + COL_VALUE
@@ -1091,6 +1121,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             + columns
             + " from ("
             + sql
+            + join
             + ") "
             + OUTER_SQL_ALIAS
             + " group by "
@@ -1282,7 +1313,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 groupingBy(
                     queryItem ->
                         queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem() == ENROLLMENT));
+                            && params.getEndpointItem() == ENROLLMENT
+                            && params.isComingFromQuery()));
 
     // Groups repeatable conditions based on PSI.DEID
     Map<String, List<String>> repeatableConditionsByIdentifier =
@@ -1322,7 +1354,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * @param relation the relation to quote.
-   * @return an "ax" aliased and double quoted relation.
+   * @return an "ax" aliased and double-quoted relation.
    */
   protected String quoteAlias(String relation) {
     return sqlBuilder.quoteAx(relation);
@@ -1356,6 +1388,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
+    Map<UUID, String> sqlConditionByGroup = getUuidConditionMap(params);
+
+    if (sqlConditionByGroup.values().isEmpty()) {
+      return EMPTY;
+    }
+
+    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+  }
+
+  protected Map<UUID, String> getUuidConditionMap(EventQueryParams params) {
     Map<UUID, String> sqlConditionByGroup =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
@@ -1364,11 +1406,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     QueryItem::getGroupUUID,
                     mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
 
-    if (sqlConditionByGroup.values().isEmpty()) {
-      return "";
-    }
-
-    return hlp.whereAnd() + " " + String.join(AND, sqlConditionByGroup.values());
+    return sqlConditionByGroup;
   }
 
   /**
@@ -1445,8 +1483,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             : filter.getFilter();
 
     if (IN.equals(filter.getOperator())) {
+      String prefixedField = field;
+
+      if (needsEnrollmentPrefix(item.getItem(), params)) {
+        prefixedField = addEnrollmentPrefix(field);
+      }
+
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, sqlBuilder.escape(filterString), !item.isNumeric());
+          new InQueryFilter(prefixedField, sqlBuilder.escape(filterString), !item.isNumeric());
 
       return inQueryFilter.getSqlFilter();
     } else {
@@ -1473,6 +1517,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           + getSqlFilter(filter, item)
           + SPACE;
     }
+  }
+
+  /**
+   * Checks if an enrollment prefix is required. Currently, TEA objects need it because we want to
+   * query the enrollment values, as the TEA is associated with the enrollment.
+   *
+   * @param item the {@DimensionalItemObject}.
+   * @param params the {@EventQueryParams}.
+   * @return true if a prefix is needed, false otherwise.
+   */
+  private boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
+    return params.getEndpointAction() == AGGREGATE
+        && params.getEndpointItem() == ENROLLMENT
+        && item instanceof TrackedEntityAttribute;
   }
 
   /**
@@ -1611,7 +1669,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         // Handle org units
         if (params.getCoordinateFields().stream()
             .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
-          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX).asSql());
+          columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
         }
@@ -2142,7 +2200,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(columnMapper::getColumnsForAttribute)
             .flatMap(Collection::stream)
             .map(AnalyticsTableColumn::getName)
-            .collect(Collectors.toSet());
+            .collect(toSet());
 
     String expressions =
         params.getItems().stream()
@@ -2483,6 +2541,37 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return (offset - 1);
     }
+  }
+
+  /**
+   * This method switches or add a new prefix to the given column if needed. It takes into
+   * consideration columns used in functions as well as regular columns and columns with aliases.
+   *
+   * <p>ie:
+   *
+   * <ul>
+   *   <li>ax.value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
+   *   <li>ev.value as "A03MvHHogjR" -> ev.value as "A03MvHHogjR"
+   *   <li>value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
+   *   <li>count() as value -> count() as value"
+   *   <li>ST_Y(ax.geometry) -> ST_Y(ax.geometry)
+   * </ul>
+   *
+   * @param column to be prefixed.
+   * @return the prefixed column (if required).
+   */
+  String addEnrollmentPrefix(String column) {
+    String functionColumn = substringBetween(column, "(", ")");
+    boolean hasFunction = functionColumn != null;
+    boolean hasPrefix = column.contains("ax.") || column.contains("ev.");
+
+    if (!hasFunction && !hasPrefix) {
+      column = "ax." + column;
+    } else if (hasFunction && functionColumn.length() > 0 && !hasPrefix) {
+      column = column.replace(functionColumn, "ax." + functionColumn);
+    }
+
+    return column;
   }
 
   // ---------------------------------------------------------------------

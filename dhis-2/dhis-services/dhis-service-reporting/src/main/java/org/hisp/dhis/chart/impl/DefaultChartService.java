@@ -30,8 +30,11 @@
 package org.hisp.dhis.chart.impl;
 
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.collection.ListUtils.getArray;
 
 import java.awt.BasicStroke;
@@ -53,7 +56,6 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.event.data.EventAggregateService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AnalyticsType;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.NameableObject;
@@ -242,9 +244,9 @@ public class DefaultChartService implements ChartService {
     }
 
     visualization.setType(VisualizationType.LINE);
-    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
-    visualization.setRowDimensions(Arrays.asList(DimensionalObject.PERIOD_DIM_ID));
-    visualization.setFilterDimensions(Arrays.asList(DimensionalObject.ORGUNIT_DIM_ID));
+    visualization.setColumnDimensions(Arrays.asList(DATA_X_DIM_ID));
+    visualization.setRowDimensions(Arrays.asList(PERIOD_DIM_ID));
+    visualization.setFilterDimensions(Arrays.asList(ORGUNIT_DIM_ID));
     visualization.setHideLegend(true);
     visualization.addDataDimensionItem(indicator);
     visualization.setPeriods(periods);
@@ -270,9 +272,9 @@ public class DefaultChartService implements ChartService {
     }
 
     visualization.setType(VisualizationType.COLUMN);
-    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
-    visualization.setRowDimensions(Arrays.asList(DimensionalObject.ORGUNIT_DIM_ID));
-    visualization.setFilterDimensions(Arrays.asList(DimensionalObject.PERIOD_DIM_ID));
+    visualization.setColumnDimensions(Arrays.asList(DATA_X_DIM_ID));
+    visualization.setRowDimensions(Arrays.asList(ORGUNIT_DIM_ID));
+    visualization.setFilterDimensions(Arrays.asList(PERIOD_DIM_ID));
     visualization.setHideLegend(true);
     visualization.addDataDimensionItem(indicator);
     visualization.setPeriods(periods);
@@ -750,8 +752,7 @@ public class DefaultChartService implements ChartService {
     valueMap = DimensionalObjectUtils.getSortedKeysMap(valueMap);
 
     List<NameableObject> seriez = new ArrayList<>(plotData.series());
-    List<NameableObject> categories =
-        new ArrayList<>(defaultIfNull(plotData.category(), emptyList()));
+    List<NameableObject> categories = new ArrayList<>(getIfNull(plotData.category(), emptyList()));
 
     if (plotData.hasSortOrder()) {
       categories = getSortedCategories(categories, plotData, valueMap);

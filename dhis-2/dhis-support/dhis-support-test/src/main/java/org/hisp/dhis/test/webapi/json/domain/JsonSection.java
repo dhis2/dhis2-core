@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.jsontree.JsonList;
 
-/**
- * @author Torgeir Lorange Ostby
- */
-public interface HistoryRetriever {
-  String ID = HistoryRetriever.class.getName();
+/** Web API equivalent of a {@link org.hisp.dhis.dataset.Section}. */
+public interface JsonSection extends JsonIdentifiableObject {
 
-  DataElementHistory getHistory(
-      DataElement dataElement,
-      CategoryOptionCombo optionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      OrganisationUnit organisationUnit,
-      Period lastPeriod,
-      int historyLength);
+  default JsonList<JsonDataElement> getDataElements() {
+    return getList("dataElements", JsonDataElement.class);
+  }
+
+  default JsonList<JsonIndicator> getIndicators() {
+    return getList("indicators", JsonIndicator.class);
+  }
 }

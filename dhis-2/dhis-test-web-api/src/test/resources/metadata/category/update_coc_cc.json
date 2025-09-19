@@ -1,0 +1,19 @@
+{
+  "categoryOptionCombos": [
+    {
+      "name": "cat opt a1, cat opt a3",
+      "id": "CocUid000a1",
+      "categoryCombo": {
+        "id": "CatCom99999"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida1"
+        },
+        {
+          "id": "CatOptUida3"
+        }
+      ]
+    }
+  ]
+}

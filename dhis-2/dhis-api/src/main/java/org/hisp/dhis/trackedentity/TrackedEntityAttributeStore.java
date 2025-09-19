@@ -32,6 +32,7 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 
 /**
@@ -65,12 +66,20 @@ public interface TrackedEntityAttributeStore
   Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
 
   /**
-   * Retrieve all attributes that are either configured as searchable in any program or tracked
-   * entity type or are configured to be unique.
+   * Retrieve all attributes that are either configured as trigram indexable and at least one of the
+   * operators `LIKE` or `EW` is not blocked.
    *
-   * @return set of TrackedEntityAttribute
+   * @return a Set of {@link TrackedEntityAttribute}
    */
-  Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes();
+  Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes();
+
+  /**
+   * Retrieve all attribute UIDs that have a partial trigram index on the
+   * trackedentityattributevalue table.
+   *
+   * @return a Set of {@link TrackedEntityAttribute} UIDs.
+   */
+  Set<UID> getAllTrigramIndexedTrackedEntityAttributes();
 
   /**
    * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}

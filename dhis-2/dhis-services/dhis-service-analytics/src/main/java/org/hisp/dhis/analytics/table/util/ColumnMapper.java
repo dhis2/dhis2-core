@@ -30,9 +30,9 @@
 package org.hisp.dhis.analytics.table.util;
 
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
@@ -43,7 +43,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.table.model.AnalyticsDimensionType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -63,14 +63,18 @@ import org.springframework.transaction.annotation.Transactional;
  * to {@link AnalyticsTableColumn} objects, which are used in analytics tables.
  */
 @Component
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ColumnMapper {
 
-  private final SqlBuilder sqlBuilder;
+  @Setter private SqlBuilder sqlBuilder;
   private final SystemSettingsProvider settingsProvider;
   private static final EnumSet<ValueType> NO_INDEX_VAL_TYPES =
       EnumSet.of(ValueType.TEXT, ValueType.LONG_TEXT);
+
+  public ColumnMapper(SqlBuilder sqlBuilder, SystemSettingsProvider settingsProvider) {
+    this.sqlBuilder = sqlBuilder;
+    this.settingsProvider = settingsProvider;
+  }
 
   /**
    * Matches the following patterns:
@@ -238,7 +242,7 @@ public class ColumnMapper {
     if (isGeospatialSupport()) {
       columns.add(
           AnalyticsTableColumn.builder()
-              .name(uid + OU_GEOMETRY_COL_SUFFIX)
+              .name(uid + OU_GEOMETRY_COL_POSTFIX)
               .dimensionType(AnalyticsDimensionType.DYNAMIC)
               .dataType(GEOMETRY)
               .selectExpression(subqueryProvider.apply("geometry"))
@@ -248,7 +252,7 @@ public class ColumnMapper {
 
     columns.add(
         AnalyticsTableColumn.builder()
-            .name(uid + OU_NAME_COL_SUFFIX)
+            .name(uid + OU_NAME_COL_POSTFIX)
             .dimensionType(AnalyticsDimensionType.DYNAMIC)
             .dataType(TEXT)
             .selectExpression(subqueryProvider.apply("name"))

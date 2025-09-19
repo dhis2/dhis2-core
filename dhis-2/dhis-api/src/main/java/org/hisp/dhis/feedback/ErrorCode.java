@@ -74,6 +74,14 @@ public enum ErrorCode {
   E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
   E1127("Category {0} cannot have more than {1} options, but had: {2} "),
   E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
+  E1129(
+      "Creating a single CategoryOptionCombo is forbidden through this endpoint. CategoryOptionCombos should be auto generated or imported through the metadata import"),
+  E1130(
+      "Importing {0} CategoryOptionCombos does not match the expected amount of {1} for CategoryCombo {2}"),
+  E1131(
+      "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
+  E1132(
+      "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -336,6 +344,10 @@ public enum ErrorCode {
   E4082(
       "The preferred search operator `{0}` is blocked for the selected tracked entity attribute `{1}`"),
 
+  E4083(
+      "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
+  E4084("ProgramStage `{0}` is not part of Program `{1}`"),
+
   /* SQL views */
   E4300("SQL query is null"),
   E4301("SQL query must be a select query"),
@@ -576,6 +588,8 @@ public enum ErrorCode {
   E7602("A valid dataset is required"),
   E7603("Org unit not found or not accessible: `{0}`"),
   E7604("Attribute option combo not found or not accessible: `{0}`"),
+  E7605("All compulsory data element operands need to be filled: `{0}`"),
+
   // Data Value validation
   E7610("Data element not found or not accessible: `{0}`"),
   E7611("Period not valid: `{0}`"),

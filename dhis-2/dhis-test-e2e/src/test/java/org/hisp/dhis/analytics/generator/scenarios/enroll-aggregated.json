@@ -6,6 +6,27 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "dataElementOrgUnitTypeFilterDimensionAndOrgUnitAsFilter",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=PFDfvmGpsR3.n1rtSHYf6O6:IN:g8upMTyEZGZ;USER_ORGUNIT;USER_ORGUNIT_GRANDCHILDREN&filter=ou:USER_ORGUNIT,pe:202202&totalPages=false&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "orgUnitFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=pe:LAST_10_YEARS&dimension=A03MvHHogjR.a3kGcGDCuk6&dimension=ZzYYXq4fJie.pOe0ogW4OWd&displayProperty=NAME&totalPages=false&filter=ou:ImspTQPwCqd&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "dataElementOrgUnitTypeFilter",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?dimension=ou:ImspTQPwCqd&dimension=pe:LAST_5_YEARS&filter=PFDfvmGpsR3.n1rtSHYf6O6:IN:ImspTQPwCqd&displayProperty=NAME&totalPages=false&relativePeriodDate=2025-07-01",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

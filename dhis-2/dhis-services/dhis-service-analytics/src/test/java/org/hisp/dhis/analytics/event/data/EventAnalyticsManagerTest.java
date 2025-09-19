@@ -35,10 +35,10 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -511,6 +511,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     mockRowSet();
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -541,6 +542,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithFilter() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -684,6 +686,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithMeasureCriteria() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
