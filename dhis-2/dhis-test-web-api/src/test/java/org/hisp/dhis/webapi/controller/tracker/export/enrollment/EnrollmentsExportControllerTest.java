@@ -163,11 +163,12 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   void getEnrollmentByIdWithFields(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
 
-    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "orgUnit,status");
+    JsonEnrollment jsonEnrollment =
+        getEnrollment.apply(enrollment, "orgUnit,status::rename(state)");
 
-    assertHasOnlyMembers(jsonEnrollment, "orgUnit", "status");
+    assertHasOnlyMembers(jsonEnrollment, "orgUnit", "state");
     assertEquals(enrollment.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit());
-    assertEquals(enrollment.getStatus().toString(), jsonEnrollment.getStatus());
+    assertEquals(enrollment.getStatus().toString(), jsonEnrollment.getString("state").string());
   }
 
   @ParameterizedTest

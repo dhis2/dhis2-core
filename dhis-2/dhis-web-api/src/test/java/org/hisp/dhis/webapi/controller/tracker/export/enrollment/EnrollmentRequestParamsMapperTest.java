@@ -44,21 +44,12 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-@MockitoSettings(strictness = Strictness.LENIENT) // common setup
-@ExtendWith(MockitoExtension.class)
 class EnrollmentRequestParamsMapperTest {
 
   private static final UID ORG_UNIT_1_UID = UID.of("lW0T2U7gZUi");
@@ -69,17 +60,13 @@ class EnrollmentRequestParamsMapperTest {
 
   private static final UID TRACKED_ENTITY_UID = UID.of("DGbr8GHG4li");
 
-  @Mock private FieldFilterService fieldFilterService;
-
-  @InjectMocks private EnrollmentRequestParamsMapper mapper;
-
   @Test
   void testMappingOrgUnits() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID));
     enrollmentRequestParams.setProgram(PROGRAM_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
   }
@@ -90,7 +77,7 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.CAPTURE);
     enrollmentRequestParams.setProgram(UID.generate());
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
   }
@@ -103,7 +90,9 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setProgram(UID.generate());
 
     BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
+        assertThrows(
+            BadRequestException.class,
+            () -> EnrollmentRequestParamsMapper.map(enrollmentRequestParams));
 
     assertStartsWith("Only one parameter of 'programStatus' and 'status'", exception.getMessage());
   }
@@ -113,7 +102,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setProgram(PROGRAM_UID);
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(PROGRAM_UID, params.getProgram());
   }
@@ -124,7 +113,7 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setTrackedEntity(TRACKED_ENTITY_UID);
     enrollmentRequestParams.setProgram(UID.generate());
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntity());
   }
@@ -136,7 +125,7 @@ class EnrollmentRequestParamsMapperTest {
         OrderCriteria.fromOrderString("enrolledAt:desc,createdAt:asc"));
     enrollmentRequestParams.setProgram(UID.generate());
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertEquals(
         List.of(
@@ -153,7 +142,9 @@ class EnrollmentRequestParamsMapperTest {
     enrollmentRequestParams.setProgram(UID.generate());
 
     Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
+        assertThrows(
+            BadRequestException.class,
+            () -> EnrollmentRequestParamsMapper.map(enrollmentRequestParams));
     assertAll(
         () -> assertStartsWith("order parameter is invalid", exception.getMessage()),
         () -> assertContains("unsupportedProperty1", exception.getMessage()));
@@ -164,7 +155,7 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setProgram(UID.generate());
 
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
+    EnrollmentOperationParams params = EnrollmentRequestParamsMapper.map(enrollmentRequestParams);
 
     assertIsEmpty(params.getOrder());
   }
@@ -174,7 +165,8 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
 
     Exception badRequestException =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals("Program is mandatory", badRequestException.getMessage());
   }
@@ -187,7 +179,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setProgram(UID.generate());
 
     Exception badRequestException =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         "`updatedAfter` and `updatedWithin` cannot be specified simultaneously",
@@ -201,7 +194,8 @@ class EnrollmentRequestParamsMapperTest {
     requestParams.setProgram(UID.generate());
 
     Exception badRequestException =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+        assertThrows(
+            BadRequestException.class, () -> EnrollmentRequestParamsMapper.map(requestParams));
 
     assertEquals(
         String.format("`updatedWithin` is not valid: %s", requestParams.getUpdatedWithin()),

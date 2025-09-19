@@ -31,10 +31,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.hisp.dhis.common.OpenApi;
@@ -43,26 +43,26 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(Enrollment.class)
+@OpenApi.EntityType(org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class)
 @OpenApi.Document(
-    entity = org.hisp.dhis.program.Enrollment.class,
+    entity = org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class,
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/enrollments")
@@ -74,21 +74,8 @@ class EnrollmentsExportController {
 
   private final EnrollmentService enrollmentService;
 
-  private final EnrollmentRequestParamsMapper paramsMapper;
-
-  private final RequestHandler requestHandler;
-
-  private final FieldFilterService fieldFilterService;
-
-  public EnrollmentsExportController(
-      EnrollmentService enrollmentService,
-      EnrollmentRequestParamsMapper paramsMapper,
-      RequestHandler requestHandler,
-      FieldFilterService fieldFilterService) {
+  public EnrollmentsExportController(EnrollmentService enrollmentService) {
     this.enrollmentService = enrollmentService;
-    this.paramsMapper = paramsMapper;
-    this.requestHandler = requestHandler;
-    this.fieldFilterService = fieldFilterService;
 
     assertUserOrderableFieldsAreSupported(
         "enrollment", EnrollmentMapper.ORDERABLE_FIELDS, enrollmentService.getOrderableFields());
@@ -101,11 +88,11 @@ class EnrollmentsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getEnrollments(
+  FilteredPage<Enrollment> getEnrollments(
       EnrollmentRequestParams requestParams, HttpServletRequest request)
       throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
-    EnrollmentOperationParams operationParams = paramsMapper.map(requestParams);
+    EnrollmentOperationParams operationParams = EnrollmentRequestParamsMapper.map(requestParams);
 
     if (requestParams.isPaging()) {
       PageParams pageParams =
@@ -117,7 +104,8 @@ class EnrollmentsExportController {
       org.hisp.dhis.tracker.Page<Enrollment> page =
           enrollmentsPage.withMappedItems(ENROLLMENT_MAPPER::map);
 
-      return requestHandler.serve(request, ENROLLMENTS, page, requestParams);
+      return new FilteredPage<>(
+          Page.withPager(ENROLLMENTS, page, getRequestURL(request)), requestParams.getFields());
     }
 
     List<Enrollment> enrollments =
@@ -125,24 +113,23 @@ class EnrollmentsExportController {
             .map(ENROLLMENT_MAPPER::map)
             .toList();
 
-    return requestHandler.serve(ENROLLMENTS, enrollments, requestParams);
+    return new FilteredPage<>(
+        Page.withoutPager(ENROLLMENTS, enrollments), requestParams.getFields());
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}")
-  public ResponseEntity<ObjectNode> getEnrollmentByUid(
+  public FilteredEntity<Enrollment> getEnrollmentByUid(
       @OpenApi.Param({UID.class, org.hisp.dhis.program.Enrollment.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
-          List<FieldPath> fields)
+          Fields fields)
       throws NotFoundException {
     EnrollmentFields enrollmentFields =
-        EnrollmentFields.of(
-            f -> fieldFilterService.filterIncludes(Enrollment.class, fields, f),
-            FieldPath.FIELD_PATH_SEPARATOR);
+        EnrollmentFields.of(fields::includes, FieldPath.FIELD_PATH_SEPARATOR);
 
     Enrollment enrollment =
         ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentFields));
 
-    return requestHandler.serve(enrollment, fields);
+    return new FilteredEntity<>(enrollment, fields);
   }
 }

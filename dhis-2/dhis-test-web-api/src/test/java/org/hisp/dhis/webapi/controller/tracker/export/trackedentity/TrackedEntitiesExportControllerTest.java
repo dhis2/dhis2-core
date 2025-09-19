@@ -286,13 +286,15 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
 
     JsonTrackedEntity json =
-        GET("/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit", te.getUid())
+        GET(
+                "/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit::rename(org)",
+                te.getUid())
             .content(HttpStatus.OK)
             .as(JsonTrackedEntity.class);
 
-    assertHasOnlyMembers(json, "trackedEntityType", "orgUnit");
+    assertHasOnlyMembers(json, "trackedEntityType", "org");
     assertEquals(te.getTrackedEntityType().getUid(), json.getTrackedEntityType());
-    assertEquals(te.getOrganisationUnit().getUid(), json.getOrgUnit());
+    assertEquals(te.getOrganisationUnit().getUid(), json.getString("org").string());
   }
 
   @Test
