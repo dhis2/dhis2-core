@@ -37,6 +37,7 @@ import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,13 +50,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -63,6 +69,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -89,6 +98,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private ProgramStageService programStageService;
+
+  @Autowired private EventService eventService;
 
   @Autowired
   private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService
@@ -119,6 +132,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   private User superUser;
 
   private TrackedEntityType trackedEntityType;
+
+  private ProgramInstance programInstance;
+
+  private ProgramStageInstance programStageInstance;
 
   @Override
   protected void setUpTest() throws Exception {
@@ -163,6 +180,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     UserAccess userAccess = new UserAccess(userA.getUid(), FULL);
     programA.setSharing(new Sharing(FULL, userAccess));
     programService.updateProgram(programA);
+    ProgramStage programStage = createProgramStage('A', programA);
+    programStageService.saveProgramStage(programStage);
+    programStage.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    programStageService.updateProgramStage(programStage);
+    programA.setProgramStages(Set.of(programStage));
+    programService.updateProgram(programA);
     programB = createProgram('B');
     programB.setAccessLevel(CLOSED);
     programB.setTrackedEntityType(trackedEntityType);
@@ -170,14 +193,33 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programB.setSharing(new Sharing(DEFAULT, userAccess));
     programService.updateProgram(programB);
 
-    ProgramInstance programInstanceA =
-        new ProgramInstance(programA, entityInstanceA1, organisationUnitA);
-    programInstanceA.setEnrollmentDate(Date.from(Instant.now()));
-    programInstanceService.addProgramInstance(programInstanceA);
+    programInstance = new ProgramInstance(programA, entityInstanceA1, organisationUnitA);
+    programInstance.setEnrollmentDate(Date.from(Instant.now()));
+    programInstanceService.addProgramInstance(programInstance);
     ProgramInstance programInstanceB =
         new ProgramInstance(programB, entityInstanceB1, organisationUnitB);
     programInstanceB.setEnrollmentDate(Date.from(Instant.now()));
     programInstanceService.addProgramInstance(programInstanceB);
+
+    programStageInstance =
+        createProgramStageInstance(programStage, programInstance, organisationUnitA);
+    manager.save(programStageInstance);
+    programInstance.setProgramStageInstances(Set.of(programStageInstance));
+    manager.update(programInstance);
+
+    CategoryCombo categoryCombo = createCategoryCombo('C');
+    manager.save(categoryCombo);
+
+    CategoryOption categoryOption = createCategoryOption('C');
+    manager.save(categoryOption);
+
+    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+    categoryOptionCombo.setCategoryCombo(categoryCombo);
+    categoryOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    manager.save(categoryOptionCombo);
+
+    programStageInstance.setAttributeOptionCombo(categoryOptionCombo);
+    manager.update(programStageInstance);
   }
 
   @Test
@@ -409,6 +451,51 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertIsEmpty(
         trackedEntityInstanceService.getTrackedEntityInstances(
             params, createInstanceParams(), false, false));
+  }
+
+  @Test
+  void shouldNotHaveAccessToEventWithUserAWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+
+    injectSecurityContext(userA);
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> eventService.getEvent(programStageInstance, EventParams.FALSE));
+    assertContains("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
+  }
+
+  @Test
+  void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToOwnOrgUnit()
+      throws ForbiddenException {
+    trackerOwnershipAccessManager.assignOwnership(
+        entityInstanceA1, programA, organisationUnitA, false, true);
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitB, false, true);
+
+    injectSecurityContext(userB);
+
+    TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setTrackedEntityInstanceUids(Set.of(entityInstanceA1.getUid()));
+    queryParams.setEnrolledInTrackerProgram(programA);
+    queryParams.setOrganisationUnitMode(ACCESSIBLE);
+    queryParams.setUser(userB);
+
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            queryParams, TrackedEntityInstanceParams.TRUE, false, false);
+    assertEquals(1, trackedEntities.size(), "Expected only one tracked entity in the list");
+
+    org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntity =
+        trackedEntities.get(0);
+    assertEquals(trackedEntity.getTrackedEntityInstance(), entityInstanceA1.getUid());
+    assertNotEmpty(trackedEntity.getEnrollments());
+    assertEquals(
+        programInstance.getUid(), trackedEntity.getEnrollments().iterator().next().getEnrollment());
   }
 
   @Test
