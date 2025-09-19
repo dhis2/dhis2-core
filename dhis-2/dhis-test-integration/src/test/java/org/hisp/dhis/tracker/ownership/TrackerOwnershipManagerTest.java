@@ -73,6 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.User;
@@ -95,6 +96,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
+
+  @Autowired EventService eventService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -122,6 +125,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   private Program programB;
 
+  private Enrollment trackedEntityA1Enrollment;
   private Event event;
 
   private User userA;
@@ -186,8 +190,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     userDetailsA = UserDetails.fromUser(userA);
     userDetailsB = UserDetails.fromUser(userB);
 
-    Enrollment trackedEntityA1Enrollment =
-        createEnrollment(programA, trackedEntityA1, organisationUnitA);
+    trackedEntityA1Enrollment = createEnrollment(programA, trackedEntityA1, organisationUnitA);
     manager.save(trackedEntityA1Enrollment);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(
         trackedEntityA1, programA, organisationUnitA);
@@ -237,14 +240,43 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotHaveAccessToEventWithUserAWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+
+    injectSecurityContextUser(userA);
+    NotFoundException exception =
+        assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event)));
+    assertEquals(
+        String.format("Event with id %s could not be found.", event.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToOwnOrgUnit()
       throws ForbiddenException, NotFoundException {
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA1),
+            UID.of(programA),
+            TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build());
+
+    assertEquals(trackedEntity.getUid(), trackedEntityA1.getUid());
+    assertNotEmpty(trackedEntity.getEnrollments());
     assertEquals(
-        trackedEntityA1,
-        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1), UID.of(programA), fields));
+        trackedEntityA1Enrollment.getUid(),
+        trackedEntity.getEnrollments().iterator().next().getUid());
+    assertNotEmpty(trackedEntity.getEnrollments().iterator().next().getEvents());
+    assertEquals(
+        event.getUid(),
+        trackedEntity.getEnrollments().iterator().next().getEvents().iterator().next().getUid());
   }
 
   @Test

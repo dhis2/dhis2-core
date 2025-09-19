@@ -652,13 +652,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         new StringBuilder()
             .append("select ev.uid as ")
             .append(COLUMN_EVENT_UID)
-            .append(", ou.uid as ")
+            .append(", evou.uid as ")
             .append(COLUMN_ORG_UNIT_UID)
-            .append(", ou.code as ")
+            .append(", evou.code as ")
             .append(COLUMN_ORG_UNIT_CODE)
-            .append(", ou.name as ")
+            .append(", evou.name as ")
             .append(COLUMN_ORG_UNIT_NAME)
-            .append(", ou.attributevalues as ")
+            .append(", evou.attributevalues as ")
             .append(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)
             .append(", p.uid as ")
             .append(COLUMN_PROGRAM_UID)
@@ -785,9 +785,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append(
             "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
         .append(
-            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=evou.organisationunitid) ")
-        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
+            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
+                + " ev.organisationunitid)=ou.organisationunitid) ")
+        .append(
+            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
