@@ -76,6 +76,7 @@ public class SelectBuilder {
   private static final Pattern ORDER_BY_PATTERN = Pattern.compile("^(?i)order\\s+by\\s+");
 
   public enum JoinType {
+    RAW(""),
     INNER("inner join"),
     LEFT("left join"),
     CROSS("cross join");
@@ -202,6 +203,10 @@ public class SelectBuilder {
    */
   public record Join(JoinType type, String table, String alias, String condition) {
     public String toSql() {
+      if (type == JoinType.RAW) {
+        return table;
+      }
+
       if (type == JoinType.CROSS) {
         return String.format("%s %s as %s", type.toSql(), table, alias);
       }
@@ -259,8 +264,7 @@ public class SelectBuilder {
    * @return this builder instance
    */
   public SelectBuilder addColumn(String expression, String tablePrefix) {
-    columns.add(Column.withPrefix(expression, tablePrefix));
-    return this;
+    return addColumnInternal(expression, expr -> Column.withPrefix(expr, tablePrefix));
   }
 
   public List<String> getColumnNames() {
@@ -287,8 +291,7 @@ public class SelectBuilder {
    * @return this builder instance
    */
   public SelectBuilder addColumn(String expression) {
-    columns.add(Column.of(expression));
-    return this;
+    return addColumnInternal(expression, Column::of);
   }
 
   public SelectBuilder addColumnIfNotExist(String expression) {
@@ -374,6 +377,18 @@ public class SelectBuilder {
    */
   public SelectBuilder innerJoin(String table, String alias, JoinCondition condition) {
     joins.add(new Join(JoinType.INNER, table, alias, condition.build(alias)));
+    return this;
+  }
+
+  /**
+   * Add a raw join clause to the query. Use with caution to avoid SQL injection.
+   * The String is added as-is to the query and it's expected to be a valid SQL join clause, starting with "left join", "inner join", "cross join", etc.
+   *
+   * @param rawJoin the raw join clause
+   * @return this builder instance
+   */
+  public SelectBuilder addRawJoin(String rawJoin) {
+    joins.add(new Join(JoinType.RAW, rawJoin, null, null));
     return this;
   }
 
@@ -716,6 +731,18 @@ public class SelectBuilder {
     }
 
     return results;
+  }
+
+  private SelectBuilder addColumnInternal(String expression,
+                                          java.util.function.Function<String, Column> unqualifiedFactory) {
+    var qc = ColumnAliasUtils.splitQualified(expression);
+    if (qc.isPresent()) {
+      var ref = qc.get();
+      columns.add(new Column(ref.columnName(), ref.qualifier(), null));
+    } else {
+      columns.add(unqualifiedFactory.apply(expression));
+    }
+    return this;
   }
 
   private String[] extractDirectionAndNulls(String expr) {

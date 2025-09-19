@@ -102,37 +102,33 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
 
   @Override
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    if (!visitor.isUseExperimentalSqlEngine()) {
+    ProgramExpressionParams progParams = visitor.getProgParams();
+    ProgramIndicator programIndicator = progParams.getProgramIndicator();
+    AnalyticsType analyticsType = programIndicator.getAnalyticsType();
+    // no need to emit a placeholder for event analytics
+    if (!visitor.isUseExperimentalSqlEngine() || AnalyticsType.EVENT == analyticsType) {
       return getSqlLegacy(ctx, visitor);
     }
 
     assumeStageElementSyntax(ctx);
 
-    ProgramExpressionParams progParams = visitor.getProgParams();
-    ProgramIndicator programIndicator = progParams.getProgramIndicator();
-    AnalyticsType analyticsType = programIndicator.getAnalyticsType();
+    String programStageId = ctx.uid0.getText();
+    String dataElementId = ctx.uid1.getText();
+    Date reportingStartDate = progParams.getReportingStartDate();
+    Date reportingEndDate = progParams.getReportingEndDate();
+    int stageOffsetRaw = visitor.getState().getStageOffset();
 
-    if (AnalyticsType.ENROLLMENT == analyticsType) {
-      String programStageId = ctx.uid0.getText();
-      String dataElementId = ctx.uid1.getText();
-      Date reportingStartDate = progParams.getReportingStartDate();
-      Date reportingEndDate = progParams.getReportingEndDate();
-      int stageOffsetRaw = visitor.getState().getStageOffset();
+    // Treat MIN_VALUE (no explicit offset) as 0 (latest event)
+    int stageOffset = (stageOffsetRaw == Integer.MIN_VALUE) ? 0 : stageOffsetRaw;
 
-      // Treat MIN_VALUE (no explicit offset) as 0 (latest event)
-      int stageOffset = (stageOffsetRaw == Integer.MIN_VALUE) ? 0 : stageOffsetRaw;
+    // Generate boundary hash using the internal helper method
+    String boundaryHash =
+        generateBoundaryHash(programIndicator, reportingStartDate, reportingEndDate);
 
-      // Generate boundary hash using the internal helper method
-      String boundaryHash =
-          generateBoundaryHash(programIndicator, reportingStartDate, reportingEndDate);
-
-      // Construct the placeholder string
-      return String.format(
-          "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
-          programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
-    } else { // no need to emit a placeholder for event analytics
-      return getSqlLegacy(ctx, visitor);
-    }
+    // Construct the placeholder string
+    return String.format(
+        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
+        programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
   }
 
   /**
