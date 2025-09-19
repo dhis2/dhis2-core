@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.config;
 
-import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -42,6 +42,7 @@ import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
+import org.hisp.dhis.startup.DataValueAuditToggle;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
@@ -57,9 +58,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StartupConfig {
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
-  public PeriodTypePopulator periodTypePopulator(
-      PeriodStore periodStore, EntityManagerFactory entityManagerFactory) {
-    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore, entityManagerFactory);
+  public PeriodTypePopulator periodTypePopulator(PeriodStore periodStore) {
+    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore);
     populator.setName("PeriodTypePopulator");
     populator.setRunlevel(3);
     return populator;
@@ -87,6 +87,16 @@ public class StartupConfig {
     populator.setRunlevel(12);
     populator.setSkipInTests(true);
     return populator;
+  }
+
+  @Bean
+  public DataValueAuditToggle dataValueAuditToggle(
+      DataValueAuditStore auditStore, DhisConfigurationProvider config) {
+    DataValueAuditToggle toggle = new DataValueAuditToggle(auditStore, config);
+    toggle.setName("DataValueAuditToggle");
+    toggle.setRunlevel(13);
+    toggle.setSkipInTests(true);
+    return toggle;
   }
 
   @Bean("org.hisp.dhis.startup.I18nLocalePopulator")

@@ -422,25 +422,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean isApproved(
-      DataApprovalWorkflow workflow,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo) {
-    if (workflow == null) {
-      return false;
-    }
-
-    DataApproval da =
-        new DataApproval(null, workflow, period, organisationUnit, attributeOptionCombo);
-
-    da = DataApproval.getLowestApproval(da);
-
-    return da != null && dataApprovalStore.dataApprovalExists(da);
-  }
-
-  @Override
   @Transactional
   public Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses(
       List<DataApproval> dataApprovalList) {

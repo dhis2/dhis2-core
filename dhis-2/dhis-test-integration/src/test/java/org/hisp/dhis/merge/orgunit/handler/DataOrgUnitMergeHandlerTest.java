@@ -30,6 +30,7 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.util.stream.Stream;
@@ -42,8 +43,8 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest.Builder;
@@ -71,7 +72,7 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -187,8 +188,8 @@ class DataOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
         sql, new MapSqlParameterSource().addValue("target_id", target.getId()), Long.class);
   }
 
-  private void addDataValues(DataValue... dataValues) {
-    Stream.of(dataValues).forEach(dataValueService::addDataValue);
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 
   private void addDataApprovals(DataApproval... dataApprovals) {

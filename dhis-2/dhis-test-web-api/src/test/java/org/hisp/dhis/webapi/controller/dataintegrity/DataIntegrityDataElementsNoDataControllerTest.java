@@ -30,10 +30,14 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for data elements which have no data values associated with them {@see
@@ -44,45 +48,49 @@ import org.junit.jupiter.api.Test;
  * @author Jason P. Pickering
  */
 class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrityIntegrationTest {
+
   private static final String check = "data_elements_aggregate_no_data";
-
   private static final String detailsIdType = "dataElements";
-
-  private String dataElementA;
-
-  private String dataElementB;
-
   private static final String period = "202212";
 
+  @Autowired private DataDumpService dataDumpService;
+
+  private String dataElementA;
+  private String dataElementB;
   private String orgUnitId;
 
   @Test
-  void testDataElementsHaveData() {
+  void testDataElementsHaveData() throws Exception {
 
     setUpTest();
     // Add some data to dataElementB
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
-    // Add some data to dataElementB
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "10", "Test Data", false, dataElementA, orgUnitId));
+    assertEquals(
+        1,
+        dataDumpService.upsertValues(
+            new DataEntryValue.Input(
+                dataElementB, orgUnitId, null, null, period, "10", "Test Data")));
 
-    dbmsManager.clearSession();
+    // Add some data to dataElementA
+    assertEquals(
+        1,
+        dataDumpService.upsertValues(
+            new DataEntryValue.Input(
+                dataElementA, orgUnitId, null, null, period, "10", "Test Data")));
 
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
 
   @Test
-  void testDataElementsDoNotHaveData() {
+  void testDataElementsDoNotHaveData() throws Exception {
 
     setUpTest();
 
     // Add some data to dataElementB
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
+    assertEquals(
+        1,
+        dataDumpService.upsertValues(
+            new DataEntryValue.Input(
+                dataElementB, orgUnitId, null, null, period, "10", "Test Data")));
     dbmsManager.clearSession();
     // One of the data elements should not have data
     assertHasDataIntegrityIssues(detailsIdType, check, 50, dataElementA, "ANC1", null, true);

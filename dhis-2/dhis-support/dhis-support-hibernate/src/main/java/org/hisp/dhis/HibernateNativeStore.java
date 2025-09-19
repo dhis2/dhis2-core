@@ -29,10 +29,13 @@
  */
 package org.hisp.dhis;
 
+import static java.util.stream.Collectors.toMap;
+
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +44,7 @@ import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
 
@@ -117,42 +121,46 @@ public abstract class HibernateNativeStore<T> {
   }
 
   protected final Map<String, Long> getIdMap(String tableName, Stream<UID> ids) {
-    return getIdMap(tableName, tableName + "id", ids);
+    return getIdMap(new DbName(tableName), ids);
+  }
+
+  protected final Map<String, Long> getIdMap(DbName tableName, Stream<UID> ids) {
+    return getIdMap(tableName, tableName.plus("id"), ids);
+  }
+
+  protected final Map<String, Long> getIdMap(
+      DbName tableName, DbName idColumnName, Stream<UID> ids) {
+    return getUidToAnyMap(tableName, idColumnName, ids, raw -> ((Number) raw).longValue());
   }
 
   @SuppressWarnings("unchecked")
-  protected final Map<String, Long> getIdMap(
-      String tableName, String idColumnName, Stream<UID> ids) {
-    String[] uids = ids.map(UID::getValue).distinct().toArray(String[]::new);
+  protected final <V> Map<String, V> getUidToAnyMap(
+      DbName tableName, DbName columnName, Stream<UID> ids, Function<Object, V> toValue) {
+    String[] uids =
+        ids.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
     if (uids.length == 1) {
       @Language("sql")
-      String sql = "SELECT %s FROM %s WHERE uid = :id";
+      String sql =
+          """
+        SELECT "%s" FROM "%s" WHERE uid = :id""";
       List<Object> res =
           getSession()
-              .createNativeQuery(sql.formatted(idColumnName, tableName))
+              .createNativeQuery(sql.formatted(columnName.name(), tableName.name()))
               .setParameter("id", uids[0])
               .list();
-      return res == null || res.isEmpty()
-          ? Map.of()
-          : Map.of(uids[0], ((Number) res.get(0)).longValue());
+      return res == null || res.isEmpty() ? Map.of() : Map.of(uids[0], toValue.apply(res.get(0)));
     }
     @Language("sql")
     String sql =
         """
-        SELECT t.uid, t.%s
-        FROM %s t
+        SELECT t.uid, t."%s"
+        FROM "%s" t
         JOIN unnest(:ids) AS u(uid) ON t.uid = u.uid""";
-    return mapIdToLong(
+    Stream<Object[]> results =
         getSession()
-            .createNativeQuery(sql.formatted(idColumnName, tableName))
+            .createNativeQuery(sql.formatted(columnName.name(), tableName.name()))
             .setParameter("ids", uids)
-            .list());
-  }
-
-  private static Map<String, Long> mapIdToLong(List<Object[]> results) {
-    return Map.copyOf(
-        results.stream()
-            .collect(
-                Collectors.toMap(row -> (String) row[0], row -> ((Number) row[1]).longValue())));
+            .stream();
+    return results.collect(toMap(row -> (String) row[0], row -> toValue.apply(row[1])));
   }
 }

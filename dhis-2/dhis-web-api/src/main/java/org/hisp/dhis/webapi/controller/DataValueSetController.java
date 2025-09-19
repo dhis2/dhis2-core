@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -47,9 +48,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -57,25 +56,19 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.dxf2.adx.AdxDataService;
-import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
@@ -99,23 +92,31 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataValueSets")
 public class DataValueSetController {
 
-  private final DataValueSetService dataValueSetService;
-  private final AdxDataService adxDataService;
-  private final UserService userService;
+  private final DataExportPipeline dataExportPipeline;
+  private final DataEntryPipeline dataEntryPipeline;
   private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
   // Get
   // -------------------------------------------------------------------------
 
-  @OpenApi.Ignore
-  @GetMapping(params = {"format"})
+  @OpenApi.Response(DataValueSet.class)
+  @GetMapping
   public void getDataValueSet(
-      DataValueSetQueryParams params,
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       @RequestParam(required = false) String format,
-      HttpServletResponse response) {
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws ConflictException {
+    if (format == null) {
+      String path = request.getPathInfo();
+      format = "json";
+      if (path.endsWith(".adx+xml")) format = "adx+xml";
+      if (path.endsWith(".xml")) format = "xml";
+      if (path.endsWith(".csv")) format = "csv";
+    }
     switch (format) {
       case "xml" -> getDataValueSetXml(params, attachment, compression, response);
       case "adx+xml" -> getDataValueSetXmlAdx(params, attachment, compression, response);
@@ -124,80 +125,73 @@ public class DataValueSetController {
     }
   }
 
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_XML)
-  public void getDataValueSetXml(
-      DataValueSetQueryParams params,
+  private void getDataValueSetXml(
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "xml",
         response,
         CONTENT_TYPE_XML,
-        () -> dataValueSetService.getFromUrl(params),
-        dataValueSetService::exportDataValueSetXml);
+        params,
+        dataExportPipeline::exportAsXml);
   }
 
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_XML_ADX)
-  public void getDataValueSetXmlAdx(
-      DataValueSetQueryParams params,
+  private void getDataValueSetXmlAdx(
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "xml",
         response,
         CONTENT_TYPE_XML_ADX,
-        () -> adxDataService.getFromUrl(params),
-        (exportParams, out) -> {
-          try {
-            adxDataService.writeDataValueSet(exportParams, out);
-          } catch (AdxException ex) {
-            // this will end up in same exception handler
-            throw new IllegalStateException(ex.getMessage(), ex);
-          }
-        });
+        params,
+        dataExportPipeline::exportAsXmlGroups);
   }
 
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_JSON)
-  public void getDataValueSetJson(
-      DataValueSetQueryParams params,
+  private void getDataValueSetJson(
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "json",
         response,
         CONTENT_TYPE_JSON,
-        () -> dataValueSetService.getFromUrl(params),
-        dataValueSetService::exportDataValueSetJson);
+        params,
+        dataExportPipeline::exportAsJson);
   }
 
-  @OpenApi.Response(String.class)
-  @GetMapping(produces = {CONTENT_TYPE_CSV, "text/csv"})
-  public void getDataValueSetCsv(
-      DataValueSetQueryParams params,
+  private void getDataValueSetCsv(
+      DataExportParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ConflictException {
     getDataValueSet(
         attachment,
         compression,
         "csv",
         response,
         CONTENT_TYPE_CSV,
-        () -> dataValueSetService.getFromUrl(params),
-        (exportParams, out) ->
-            dataValueSetService.exportDataValueSetCsv(exportParams, new PrintWriter(out)));
+        params,
+        dataExportPipeline::exportAsCsv);
+  }
+
+  interface ExportHandler {
+
+    void export(DataExportParams params, OutputStream out) throws ConflictException;
   }
 
   private void getDataValueSet(
@@ -206,17 +200,16 @@ public class DataValueSetController {
       String format,
       HttpServletResponse response,
       String contentType,
-      Provider<DataExportParams> createParams,
-      BiConsumer<DataExportParams, OutputStream> writeOutput) {
-    DataExportParams params = createParams.provide();
-    dataValueSetService.validate(params);
+      DataExportParams params,
+      ExportHandler handler)
+      throws ConflictException {
 
     response.setContentType(contentType);
     setNoStore(response);
 
     try (OutputStream out =
         compress(params, response, attachment, Compression.fromValue(compression), format)) {
-      writeOutput.accept(params, out);
+      handler.export(params, out);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
@@ -230,31 +223,24 @@ public class DataValueSetController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
-    ImportSummary summary =
-        adxDataService.saveDataValueSet(
-            request.getInputStream(), importOptions, JobProgress.noop());
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -265,11 +251,8 @@ public class DataValueSetController {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetJson(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importJson(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = "application/csv")
@@ -280,26 +263,20 @@ public class DataValueSetController {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetCsv(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importCsv(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importPdf(request.getInputStream(), importOptions, transitory()));
   }
 
   // -------------------------------------------------------------------------
@@ -311,8 +288,7 @@ public class DataValueSetController {
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
       throws ConflictException, IOException {
     JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    config.setExecutedBy(currentUser.getUid());
+    config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(importOptions);
 
     jobExecutionService.executeOnceNow(config, mimeType, request.getInputStream());

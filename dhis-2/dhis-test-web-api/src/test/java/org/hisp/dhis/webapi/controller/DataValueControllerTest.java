@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
@@ -54,7 +54,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * @author Jan Bernitt
  */
 class DataValueControllerTest extends AbstractDataValueControllerTest {
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportStore dataExportStore;
 
   @Test
   void testSetDataValuesFollowUp_Empty() {
@@ -151,21 +151,12 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
   /** Check if the dataValueSet endpoint return correct fileName. */
   @Test
   void testGetDataValueSetJsonWithAttachment() {
-    String dsId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataSets/",
-                "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
-                    + dataElementId
-                    + "'}}]}"));
-
     String body =
         format(
             "{"
                 + "'dataElement':'%s',"
                 + "'categoryOptionCombo':'%s',"
-                + "'period':'20220102',"
+                + "'period':'202201',"
                 + "'orgUnit':'%s',"
                 + "'value':'24',"
                 + "'comment':'OK'}",
@@ -178,7 +169,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
         "/dataValueSets?orgUnit="
             + orgUnitId
             + "&startDate=2022-01-01&endDate=2022-01-30&dataSet="
-            + dsId
+            + dataSetId
             + "&format=json&compression=zip&attachment=dataValues.json.zip";
     MvcResult dataValueResponse =
         webRequestWithMvcResult(
@@ -191,13 +182,13 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
   }
 
   private void assertFollowups(boolean... expected) {
-    List<DataValue> values = dataValueService.getAllDataValues();
+    List<DataExportValue> values = dataExportStore.getAllDataValues();
     assertEquals(expected.length, values.size());
     int expectedTrue = 0;
     int actualTrue = 0;
     for (int i = 0; i < expected.length; i++) {
       expectedTrue += expected[i] ? 1 : 0;
-      actualTrue += values.get(i).isFollowup() ? 1 : 0;
+      actualTrue += values.get(i).isFollowUp() ? 1 : 0;
     }
     assertEquals(expectedTrue, actualTrue, "Number of values marked for followup does not match");
   }

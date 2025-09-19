@@ -62,8 +62,10 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.NumericSortWrapper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -159,7 +161,7 @@ public class DefaultChartService implements ChartService {
 
   private final PeriodService periodService;
 
-  private final DataValueService dataValueService;
+  private final DataExportService dataExportService;
 
   private final MinMaxDataElementService minMaxDataElementService;
 
@@ -294,7 +296,8 @@ public class DefaultChartService implements ChartService {
       Period lastPeriod,
       OrganisationUnit organisationUnit,
       int historyLength,
-      I18nFormat format) {
+      I18nFormat format)
+      throws ConflictException {
     lastPeriod = periodService.reloadPeriod(lastPeriod);
 
     List<Period> periods = periodService.getPeriods(lastPeriod, historyLength);
@@ -321,16 +324,21 @@ public class DefaultChartService implements ChartService {
 
       period.setName(format.formatPeriod(period));
 
-      DataValue dataValue =
-          dataValueService.getDataValue(
-              dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
+      DataExportValue dataValue =
+          dataExportService.exportValue(
+              new DataEntryKey(
+                  dataElement,
+                  period,
+                  organisationUnit,
+                  categoryOptionCombo,
+                  attributeOptionCombo));
 
       double value = 0;
 
       if (dataValue != null
-          && dataValue.getValue() != null
-          && MathUtils.isNumeric(dataValue.getValue())) {
-        value = Double.parseDouble(dataValue.getValue());
+          && dataValue.value() != null
+          && MathUtils.isNumeric(dataValue.value())) {
+        value = Double.parseDouble(dataValue.value());
 
         x.add((double) periodCount);
         y.add(value);

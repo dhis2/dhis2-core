@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -73,12 +72,15 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryInput;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -106,6 +108,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -215,6 +218,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IndicatorService indicatorService;
 
   @Autowired private DataSetService dataSetService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private ExpressionService expressionService;
 
@@ -255,7 +259,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------
 
   @BeforeAll
-  void setUp() throws IOException, ConflictException {
+  void setUp() throws Exception {
 
     setUpMetadata();
     setUpDataValues();
@@ -421,11 +425,18 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     reportingRateB = new ReportingRate(dataSetB);
   }
 
-  private void setUpDataValues() throws IOException, ConflictException {
+  private void setUpDataValues() throws Exception {
     // Read data values from CSV files
-    List<String[]> dataValueLines =
-        CsvUtils.readCsvAsListFromClasspath("analytics/csv/dataValues.csv", true);
-    parseDataValues(dataValueLines);
+    List<DataEntryGroup.Input> groups =
+        DataEntryInput.fromCsv(
+            new ClassPathResource("analytics/csv/dataValues.csv").getInputStream(),
+            new ImportOptions());
+    assertEquals(
+        32,
+        dataDumpService.upsertValues(
+            groups.stream()
+                .flatMap(g -> g.values().stream())
+                .toArray(DataEntryValue.Input[]::new)));
     List<String[]> dataSetRegistrationLines =
         CsvUtils.readCsvAsListFromClasspath("analytics/csv/dataSetRegistrations.csv", true);
     parseDataSetRegistrations(dataSetRegistrationLines);
@@ -514,31 +525,11 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   /**
-   * Adds data value based on input from vales
-   *
-   * @param lines the list of arrays of property values.
-   */
-  private void parseDataValues(List<String[]> lines) {
-    for (String[] line : lines) {
-      DataElement dataElement = dataElementService.getDataElement(line[0]);
-      Period period = periodService.getPeriod(line[1]);
-      OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(line[2]);
-      DataValue dataValue = new DataValue(dataElement, period, organisationUnit, ocDef, ocDef);
-      dataValue.setValue(line[3]);
-      dataValueService.addDataValue(dataValue);
-    }
-    assertEquals(
-        32,
-        dataValueService.getAllDataValues().size(),
-        "Import of data values failed, number of imports are wrong");
-  }
-
-  /**
    * Adds data set registrations based on input from vales
    *
    * @param lines the list of arrays of property values.
    */
-  private void parseDataSetRegistrations(List<String[]> lines) throws ConflictException {
+  private void parseDataSetRegistrations(List<String[]> lines) throws Exception {
     String storedBy = "johndoe";
     String lastUpdatedBy = "johndoe";
     Date now = new Date();

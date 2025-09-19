@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,7 +45,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
@@ -71,7 +69,7 @@ public class FormUtils {
 
   private static final String KEY_EXPIRY_DAYS = "expiryDays";
 
-  private static final String SEP = "-";
+  public static final String SEP = "-";
 
   public static Form fromDataSet(
       DataSet dataSet, boolean metaData, Set<OrganisationUnit> userOrganisationUnits) {
@@ -265,28 +263,13 @@ public class FormUtils {
     return dataElement.getValueType();
   }
 
-  public static void fillWithDataValues(Form form, Collection<DataValue> dataValues) {
-    Map<String, Field> operandFieldMap = buildCacheMap(form);
-
-    for (DataValue dataValue : dataValues) {
-      DataElement dataElement = dataValue.getDataElement();
-      CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
-
-      Field field = operandFieldMap.get(dataElement.getUid() + SEP + categoryOptionCombo.getUid());
-
-      if (field != null) {
-        field.setValue(dataValue.getValue());
-        field.setComment(dataValue.getComment());
-      }
-    }
-  }
-
-  private static Map<String, Field> buildCacheMap(Form form) {
+  public static Map<String, Field> buildCacheMap(Form form) {
     Map<String, Field> cacheMap = new HashMap<>();
 
     for (Group group : form.getGroups()) {
       for (Field field : group.getFields()) {
-        cacheMap.put(field.getDataElement() + SEP + field.getCategoryOptionCombo(), field);
+        cacheMap.put(
+            field.getDataElement() + FormUtils.SEP + field.getCategoryOptionCombo(), field);
       }
     }
 

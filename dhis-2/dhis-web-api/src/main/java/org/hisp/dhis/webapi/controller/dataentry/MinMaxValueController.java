@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Document(
     entity = DataValue.class,
-    classifiers = {"team:platform", "purpose:data"})
+    classifiers = {"team:platform", "purpose:data-entry"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")

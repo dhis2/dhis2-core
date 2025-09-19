@@ -1,0 +1,1307 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.dxf2.datavalueset;
+
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.time.DateUtils;
+import org.awaitility.Awaitility;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+
+/**
+ * @author Lars Helge Overland
+ */
+class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
+  private static final String ATTRIBUTE_UID = "uh6H2ff562G";
+
+  @Autowired private DataElementService dataElementService;
+
+  @Autowired private CategoryService categoryService;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private DataSetService dataSetService;
+
+  @Autowired private PeriodService periodService;
+
+  @Autowired private DataExportService dataExportService;
+  @Autowired private DataExportStore dataExportStore;
+
+  @Autowired private DataValueAuditService dataValueAuditService;
+
+  @Autowired private DataEntryPipeline dataEntryPipeline;
+
+  @Autowired private DataEntryService dataEntryService;
+
+  @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private AttributeService attributeService;
+
+  private CategoryOptionCombo ocDef;
+
+  private CategoryOption categoryOptionA;
+
+  private CategoryOption categoryOptionB;
+
+  private CategoryOptionCombo ocA;
+
+  private DataElement deA;
+
+  private DataElement deB;
+
+  private DataElement deC;
+
+  private DataSet dsA;
+
+  private OrganisationUnit ouA;
+
+  private OrganisationUnit ouB;
+
+  private Period peA;
+
+  private Period peB;
+
+  @BeforeEach
+  void setUp() {
+    Attribute attribute = new Attribute("CUSTOM_ID", ValueType.TEXT);
+    attribute.setUid(ATTRIBUTE_UID);
+    attribute.setUnique(true);
+    attribute.setOrganisationUnitAttribute(true);
+    attribute.setDataElementAttribute(true);
+    idObjectManager.save(attribute);
+    categoryOptionA = createCategoryOption('A');
+    categoryOptionB = createCategoryOption('B');
+    Category categoryA = createCategory('A');
+    categoryService.addCategory(categoryA);
+    categoryOptionA.getCategories().add(categoryA);
+    categoryOptionB.getCategories().add(categoryA);
+    categoryService.addCategoryOption(categoryOptionB);
+    categoryService.addCategoryOption(categoryOptionA);
+    CategoryCombo categoryComboA = createCategoryCombo('A', categoryA);
+    CategoryCombo categoryComboDef = categoryService.getDefaultCategoryCombo();
+    ocDef = categoryService.getDefaultCategoryOptionCombo();
+    ocDef.setCode("OC_DEF_CODE");
+    categoryService.updateCategoryOptionCombo(ocDef);
+    OptionSet osA = new OptionSet("OptionSetA", ValueType.INTEGER);
+    osA.getOptions().add(new Option("Blue", "1"));
+    osA.getOptions().add(new Option("Green", "2"));
+    osA.getOptions().add(new Option("Yellow", "3"));
+    ocA = createCategoryOptionCombo(categoryComboA, categoryOptionA);
+    CategoryOptionCombo ocB = createCategoryOptionCombo(categoryComboA, categoryOptionB);
+    deA = createDataElement('A', categoryComboDef);
+    deB = createDataElement('B', categoryComboDef);
+    deC = createDataElement('C', categoryComboDef);
+    DataElement deD = createDataElement('D', categoryComboDef);
+    DataElement deE = createDataElement('E');
+    deE.setOptionSet(osA);
+    DataElement deF = createDataElement('F', categoryComboDef);
+    deF.setValueType(ValueType.BOOLEAN);
+    DataElement deG = createDataElement('G', categoryComboDef);
+    deG.setValueType(ValueType.TRUE_ONLY);
+    dsA = createDataSet('A', new MonthlyPeriodType());
+    dsA.setCategoryCombo(categoryComboDef);
+    DataSet dsB = createDataSet('B');
+    dsB.setCategoryCombo(categoryComboDef);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    peA =
+        createPeriod(
+            PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY),
+            getDate(2012, 1, 1),
+            getDate(2012, 1, 31));
+    peB =
+        createPeriod(
+            PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY),
+            getDate(2012, 2, 1),
+            getDate(2012, 2, 29));
+    Period peC =
+        createPeriod(
+            PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY),
+            getDate(2012, 3, 1),
+            getDate(2012, 3, 31));
+    ocA.setUid("kjuiHgy67hg");
+    ocB.setUid("Gad33qy67g5");
+    deA.setUid("f7n9E0hX8qk");
+    deB.setUid("Ix2HsbDMLea");
+    deC.setUid("eY5ehpbEsB7");
+    deE.setUid("jH26dja2f28");
+    deF.setUid("jH26dja2f30");
+    deG.setUid("jH26dja2f31");
+    dsA.setUid("pBOMPrpg1QX");
+    ouA.setUid("DiszpKrYNg8");
+    ouB.setUid("BdfsJfj87js");
+    ouC.setUid("j7Hg26FpoIa");
+    ocA.setCode("OC_A");
+    ocB.setCode("OC_B");
+    deA.setCode("DE_A");
+    deB.setCode("DE_B");
+    deC.setCode("DE_C");
+    deD.setCode("DE_D");
+    dsA.setCode("DS_A");
+    ouA.setCode("OU_A");
+    ouB.setCode("OU_B");
+    ouC.setCode("OU_C");
+    categoryService.addCategoryCombo(categoryComboA);
+    categoryService.addCategoryOptionCombo(ocA);
+    categoryService.addCategoryOptionCombo(ocB);
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deD);
+    dataElementService.addDataElement(deF);
+    dataElementService.addDataElement(deG);
+    attributeService.addAttributeValue(deA, attribute.getUid(), "DE1");
+    attributeService.addAttributeValue(deB, attribute.getUid(), "DE2");
+    attributeService.addAttributeValue(deC, attribute.getUid(), "DE3");
+    attributeService.addAttributeValue(deD, attribute.getUid(), "DE4");
+    idObjectManager.save(osA);
+    dsA.addDataSetElement(deA);
+    dsA.addDataSetElement(deB);
+    dsA.addDataSetElement(deC);
+    dsA.addDataSetElement(deD);
+    dsA.addDataSetElement(deF);
+    dsA.addDataSetElement(deG);
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    organisationUnitService.addOrganisationUnit(ouC);
+    attributeService.addAttributeValue(ouA, attribute.getUid(), "OU1");
+    attributeService.addAttributeValue(ouB, attribute.getUid(), "OU2");
+    attributeService.addAttributeValue(ouC, attribute.getUid(), "OU3");
+    dsA.addOrganisationUnit(ouA);
+    dsA.addOrganisationUnit(ouB);
+    periodService.addPeriod(peA);
+    periodService.addPeriod(peB);
+    periodService.addPeriod(peC);
+    dataSetService.addDataSet(dsA);
+  }
+
+  private ImportSummary importJson(InputStream json) {
+    return dataEntryPipeline.importJson(json, new ImportOptions(), transitory());
+  }
+
+  private ImportSummary importXml(InputStream json) {
+    try {
+      return dataEntryPipeline.importXml(json, new ImportOptions(), transitory());
+    } catch (BadRequestException ex) {
+      fail("Bad input", ex);
+      return null;
+    }
+  }
+
+  private ImportSummary importCsv(InputStream csv) {
+    return dataEntryPipeline.importCsv(csv);
+  }
+
+  /** Import 1 data value. */
+  @Test
+  void testImportValueJson() {
+    assertDataValuesCount(0);
+    assertImported(1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
+    assertDataValuesCount(1);
+  }
+
+  /** Import 1 data value, then delete it by using import mode DELETE */
+  @Test
+  void testImportDeleteValueJson() {
+    assertDataValuesCount(0);
+    assertImported(1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
+    assertDataValuesCount(1);
+
+    ImportOptions options = ImportOptions.getDefaultImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+
+    assertImported(
+        0,
+        0,
+        1,
+        dataEntryPipeline.importJson(
+            readFile("datavalueset/dataValueSetJ.json"), options, transitory()));
+    assertDataValuesCount(0);
+  }
+
+  @Test
+  void testImportDeleteValueJson_OmittingValue() {
+    assertDataValuesCount(0);
+    assertImported(1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
+    assertDataValuesCount(1);
+
+    ImportOptions options = ImportOptions.getDefaultImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+
+    assertImported(
+        0,
+        0,
+        1,
+        dataEntryPipeline.importJson(
+            readFile("datavalueset/dataValueSetJDeleteNoValue.json"), options, transitory()));
+    assertDataValuesCount(0);
+  }
+
+  @Test
+  void testImportDeleteValueJson_NewValue() {
+    assertDataValuesCount(0);
+    assertImported(1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
+    assertDataValuesCount(1);
+
+    ImportOptions options = ImportOptions.getDefaultImportOptions();
+    options.setImportStrategy(ImportStrategy.DELETE);
+
+    assertImported(
+        0,
+        0,
+        1,
+        dataEntryPipeline.importJson(
+            readFile("datavalueset/dataValueSetJDeleteNewValue.json"), options, transitory()));
+    assertDataValuesCount(0);
+  }
+
+  @Test
+  void testImportDeleteValueJson_ZeroValue() {
+    assertDataValuesCount(0);
+    assertImported(1, 0, importJson(readFile("datavalueset/dataValueSetJ.json")));
+    assertDataValuesCount(1);
+
+    assertImported(1, 0, importJson(readFile("datavalueset/dataValueSetJDeleteZeroValue.json")));
+    assertDataValuesCount(1);
+    // Note: deletion of "zero is insignificant" values will happen later by a job
+  }
+
+  /** Import 3 data values, then delete 3 data values. */
+  @Test
+  void testImportDeleteValuesXml() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetA.xml"));
+    assertImported(3, 0, summary);
+    assertDataValuesCount(3);
+
+    // Delete values
+    summary = importXml(readFile("datavalueset/dataValueSetADeleted.xml"));
+
+    assertImported(3, 0, summary);
+    assertDataValuesCount(0);
+  }
+
+  /** Import 12 data values. */
+  @Test
+  void testImportValuesXml() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+
+    assertImported(12, 0, summary);
+    assertDataValuesCount(12);
+  }
+
+  /** Import 12 data values. Then import 6 data values, where 4 are updates. */
+  @Test
+  void testImportUpdateValuesXml() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
+    assertDataValuesCount(12);
+
+    // Update
+    summary = importXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+
+    assertImported(6, 0, summary);
+    assertDataValuesCount(14);
+  }
+
+  @Test
+  void testCreatedDateWhenDataValueCreated_IgnoreCreatedDateSupplied() throws ConflictException {
+    Date todaysDate = new Date();
+    // Confirm that no dataValue exists for these params
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+
+    // import data value, ignoring created date supplied - create (value = 20, comment = null,
+    // created = "1988-12-21T23:59:38.000+0000")
+    ImportSummary summary = importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
+    assertImported(1, 0, summary);
+
+    // get newly-created data value
+    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    assertNotNull(dv2);
+    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.created()));
+  }
+
+  @Test
+  void testCreatedDateWhenDataValueUpdated_IgnoreCreatedDateSupplied() throws ConflictException {
+    // Confirm that no dataValue exists for these params
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+
+    // import data value for first time - create (value = 20, comment = null, created =
+    // "1988-12-21T23:59:38.000+0000")
+    ImportSummary summary = importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
+    assertImported(1, 0, summary);
+
+    // wait for a small period so created & lastUpdated times are different & can be checked
+    Awaitility.await().pollDelay(2, TimeUnit.SECONDS).until(() -> true);
+    // import data value for second time - update (value = 22, comment = "new comment", created =
+    // "2000-12-21T23:59:38.000+0000")
+    summary = importJson(readFile("datavalueset/dataValueSetCreateDateUpdated.json"));
+    assertImported(1, 0, summary);
+
+    // check newly-updated data value
+    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    assertNotNull(dv2);
+    assertEquals("new comment", dv2.comment());
+    assertEquals("22", dv2.value());
+  }
+
+  @Test
+  void testLastUpdatedDateWhenDataValueCreated_IgnoreLastUpdatedDateSupplied()
+      throws ConflictException {
+    // Confirm that no dataValue exists for these params
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+
+    // import data value, ignoring last updated date supplied (this is always the case now)
+    // but still good to confirm that by a test
+    ImportSummary summary = importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
+    assertImported(1, 0, summary);
+
+    // get newly-created data value
+    DataExportValue dv = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    assertNotNull(dv);
+    Date lastUpdated = dv.lastUpdated();
+    assertTrue(
+        new Date().getTime() - lastUpdated.getTime() < 1000L,
+        "Should be updated during last second");
+  }
+
+  @Test
+  void testLastUpdatedDateWhenDataValueUpdated_IgnoreLastUpdatedDateSupplied()
+      throws ConflictException {
+    // Confirm that no dataValue exists for these params
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+    assertNull(dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc)));
+
+    // import data value for first time - create (value = 20, comment = null, lastUpdated =
+    // "1988-12-21T23:59:38.000+0000")
+    ImportSummary summary = importJson(readFile("datavalueset/dataValueSetCreateDate.json"));
+    assertImported(1, 0, summary);
+
+    // import data value for second time - update (value = 22, comment = "new comment", lastUpdated
+    // = "2000-12-21T23:59:38.000+0000")
+    importJson(readFile("datavalueset/dataValueSetCreateDateUpdated.json"));
+    assertImported(1, 0, summary);
+
+    // check newly-updated data value
+    DataExportValue dv2 = dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, cc, cc));
+    assertNotNull(dv2);
+    assertEquals("new comment", dv2.comment());
+    assertEquals("22", dv2.value());
+  }
+
+  /**
+   * Import 12 data values where 4 are marked as deleted. Deleted values should count as imports
+   * when there are no existing non-deleted matching values.
+   */
+  @Test
+  void testImportDeletedValuesXml() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
+
+    assertImported(12, 0, summary);
+    assertDataValuesCount(8);
+  }
+
+  /**
+   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
+   * deletion of the 4 values and ignore the other 8 unchanged values.
+   */
+  @Test
+  void testImportReverseDeletedValuesXml() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
+    assertImported(12, 0, summary);
+    assertDataValuesCount(8);
+
+    // Reverse deletion and update
+    summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertImported(12, 0, summary);
+
+    assertDataValuesCount(12);
+  }
+
+  /**
+   * Import 12 data values where 4 are marked as deleted. Then import 12 data values which reverse
+   * deletion of the 4 values, ignore 4 unchanged values and add 4 values.
+   */
+  @Test
+  void testImportAddAndReverseDeletedValuesXml() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
+    assertImported(12, 0, summary);
+    assertDataValuesCount(8);
+
+    // Reverse deletion and update
+    summary = importXml(readFile("datavalueset/dataValueSetBNew.xml"));
+    assertImported(12, 0, summary);
+    assertDataValuesCount(16);
+  }
+
+  /** Import 12 data values. Then import 12 unchanged values where 4 are marked as deleted. */
+  @Test
+  void testDeleteValuesXml() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
+    assertDataValuesCount(12);
+
+    // Delete 4 values
+    summary = importXml(readFile("datavalueset/dataValueSetBDeleted.xml"));
+
+    assertImported(12, 0, summary);
+    assertDataValuesCount(8);
+  }
+
+  /**
+   * Import 12 data values. Then import 12 values where 4 are marked as deleted, 6 are ignored and 2
+   * are new.
+   */
+  @Test
+  void testImportAndDeleteValuesXml() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
+    assertDataValuesCount(12);
+
+    // Delete 4 values, add 2 values
+    summary = importXml(readFile("datavalueset/dataValueSetBNewDeleted.xml"));
+
+    assertImported(12, 0, summary);
+    assertDataValuesCount(10);
+  }
+
+  /** Import 12 data values. Then import the same 12 data values with import strategy delete. */
+  @Test
+  void testImportValuesDeleteStrategyXml() throws Exception {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("datavalueset/dataValueSetB.xml"));
+    assertEquals(12, summary.getImportCount().getUpdated());
+    assertDataValuesCount(12);
+
+    // Import with delete strategy
+    ImportOptions options = new ImportOptions().setStrategy(ImportStrategy.DELETE);
+
+    summary =
+        dataEntryPipeline.importXml(
+            readFile("datavalueset/dataValueSetB.xml"), options, transitory());
+
+    assertImported(0, 0, 12, summary);
+    assertDataValuesCount(0);
+  }
+
+  @Test
+  void testImportDataValueSetXml() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+
+    assertImported(3, 0, summary);
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
+    assertNotNull(dataValues);
+    assertEquals(3, dataValues.size());
+    assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
+    assertEquals(
+        Set.of("10001", "10002", "10003"),
+        dataValues.stream().map(DataExportValue::value).collect(toSet()),
+        "mismatch in dataValues values");
+
+    for (DataExportValue dv : dataValues)
+      assertEquals(1, dataValueAuditService.getDataValueAudits(dv).size());
+  }
+
+  @Test
+  void testImportDataValueSetXmlPreheatCache() {
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+
+    assertImported(3, 0, summary);
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
+    assertNotNull(dataValues);
+    assertEquals(3, dataValues.size());
+    assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
+    assertEquals(
+        Set.of("10001", "10002", "10003"),
+        dataValues.stream().map(DataExportValue::value).collect(toSet()),
+        "mismatch in dataValues values");
+
+    for (DataExportValue dv : dataValues)
+      assertEquals(1, dataValueAuditService.getDataValueAudits(dv).size());
+  }
+
+  @Test
+  void testImportDataValuesXmlWithCodeA() {
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetACode.xml"));
+    assertImported(3, 0, summary);
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
+    assertNotNull(dataValues);
+    assertEquals(3, dataValues.size());
+    assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deB, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deC, peA, ouA, ocDef, ocDef), dataValues);
+
+    for (DataExportValue dv : dataValues)
+      assertEquals(
+          1, dataValueAuditService.getDataValueAudits(dv).size(), "should be a CREATE audit");
+  }
+
+  @Test
+  void testImportDataValuesXml() {
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetB.xml"));
+
+    assertImported(12, 0, summary);
+    assertImportDataValues(summary);
+  }
+
+  @Test
+  void testImportDataValuesXmlWithCodeB() throws Exception {
+    ImportOptions importOptions =
+        new ImportOptions()
+            .setIdScheme("CODE")
+            .setDataElementIdScheme("CODE")
+            .setOrgUnitIdScheme("CODE");
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBCode.xml"), importOptions, transitory());
+
+    assertImported(12, 0, summary);
+    assertImportDataValues(summary);
+  }
+
+  @Test
+  void testImportDataValueSet() throws BadRequestException, ConflictException {
+    List<DataEntryValue.Input> dataValues =
+        List.of(
+            getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001"),
+            getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
+            getDataValue("f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003"),
+            getDataValue("f7n9E0hX8qk", "201202", "BdfsJfj87js", "10004"),
+            getDataValue("Ix2HsbDMLea", "201201", "DiszpKrYNg8", "10005"),
+            getDataValue("Ix2HsbDMLea", "201201", "BdfsJfj87js", "10006"),
+            getDataValue("Ix2HsbDMLea", "201202", "DiszpKrYNg8", "10007"),
+            getDataValue("Ix2HsbDMLea", "201202", "BdfsJfj87js", "10008"),
+            getDataValue("eY5ehpbEsB7", "201201", "DiszpKrYNg8", "10009"),
+            getDataValue("eY5ehpbEsB7", "201201", "BdfsJfj87js", "10010"),
+            getDataValue("eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011"),
+            getDataValue("eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012"));
+
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValues)),
+            transitory());
+
+    assertEquals(12, summary.succeeded());
+    assertImportDataValues(new ImportSummary());
+  }
+
+  @Test
+  @DisplayName("Import summary should show correct ignore count when importing unchanged values")
+  void testImportDataValueSetIgnoreCount() throws BadRequestException, ConflictException {
+    List<DataEntryValue.Input> dataValues =
+        List.of(
+            getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001"),
+            getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
+            getDataValue("f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003"),
+            getDataValue("f7n9E0hX8qk", "201202", "BdfsJfj87js", "10004"),
+            getDataValue("Ix2HsbDMLea", "201201", "DiszpKrYNg8", "10005"),
+            getDataValue("Ix2HsbDMLea", "201201", "BdfsJfj87js", "10006"),
+            getDataValue("Ix2HsbDMLea", "201202", "DiszpKrYNg8", "10007"),
+            getDataValue("Ix2HsbDMLea", "201202", "BdfsJfj87js", "10008"),
+            getDataValue("eY5ehpbEsB7", "201201", "DiszpKrYNg8", "10009"),
+            getDataValue("eY5ehpbEsB7", "201201", "BdfsJfj87js", "10010"),
+            getDataValue("eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011"),
+            getDataValue("eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012"));
+
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValues)),
+            transitory());
+
+    assertEquals(12, summary.succeeded());
+    assertImportDataValues(new ImportSummary());
+
+    // when an import is processed including 1 new value & 2 unchanged values
+    List<DataEntryValue.Input> dataValuesUpdateIgnore =
+        List.of(
+            getDataValue("f7n9E0hX8qk", "201201", "DiszpKrYNg8", "20001"),
+            getDataValue("f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002"),
+            getDataValue("f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003"));
+
+    DataEntrySummary summary2 =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(dataValuesUpdateIgnore)),
+            transitory());
+
+    assertEquals(3, summary2.succeeded());
+
+    // then the ignore count should be 2 and the updated count should be 1
+    assertImportDataValues(new ImportSummary());
+  }
+
+  @Test
+  void testImportDataValueSetWithCode() throws BadRequestException, ConflictException {
+    List<DataEntryValue.Input> dataValues =
+        List.of(
+            getDataValue("DE_A", "201201", "OU_A", "10001"),
+            getDataValue("DE_A", "201201", "OU_B", "10002"),
+            getDataValue("DE_A", "201202", "OU_A", "10003"),
+            getDataValue("DE_A", "201202", "OU_B", "10004"),
+            getDataValue("DE_B", "201201", "OU_A", "10005"),
+            getDataValue("DE_B", "201201", "OU_B", "10006"),
+            getDataValue("DE_B", "201202", "OU_A", "10007"),
+            getDataValue("DE_B", "201202", "OU_B", "10008"),
+            getDataValue("DE_C", "201201", "OU_A", "10009"),
+            getDataValue("DE_C", "201201", "OU_B", "10010"),
+            getDataValue("DE_C", "201202", "OU_A", "10011"),
+            getDataValue("DE_C", "201202", "OU_B", "10012"));
+
+    DataEntryGroup.Ids ids =
+        new DataEntryGroup.Ids().dataElements(IdProperty.CODE).orgUnits(IdProperty.CODE);
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            dataEntryService.decodeGroup(new DataEntryGroup.Input(ids, null, dataValues)),
+            transitory());
+
+    assertEquals(12, summary.succeeded());
+    assertImportDataValues(new ImportSummary());
+  }
+
+  @Test
+  void testImportDataValuesXmlWithAttribute() throws Exception {
+    ImportOptions importOptions =
+        new ImportOptions()
+            .setIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID)
+            .setDataElementIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID)
+            .setOrgUnitIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBAttribute.xml"), importOptions, transitory());
+
+    assertImported(12, 0, summary);
+    assertImportDataValues(summary);
+  }
+
+  @Test
+  void testImportDataValuesXmlWithAttributeIdSchemeInPayload() {
+    // Identifier schemes specified in XML message
+    ImportSummary summary =
+        importXml(readFile("dxf2/datavalueset/dataValueSetBAttributeIdScheme.xml"));
+
+    assertImported(12, 0, summary);
+    assertImportDataValues(summary);
+  }
+
+  @Test
+  void testImportDataValuesXmlWithAttributePreheatCacheTrue() throws Exception {
+    ImportOptions importOptions =
+        new ImportOptions()
+            .setPreheatCache(true)
+            .setIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID)
+            .setDataElementIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID)
+            .setOrgUnitIdScheme(IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBAttribute.xml"), importOptions, transitory());
+
+    assertImported(12, 0, summary);
+    assertImportDataValues(summary);
+  }
+
+  @Test
+  void testImportDataValuesXmlWithCodePreheatCacheTrue() throws Exception {
+    ImportOptions importOptions =
+        new ImportOptions()
+            .setPreheatCache(true)
+            .setIdScheme("CODE")
+            .setDataElementIdScheme("CODE")
+            .setOrgUnitIdScheme("CODE");
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetBCode.xml"), importOptions, transitory());
+
+    assertImported(12, 0, summary);
+    assertImportDataValues(summary);
+  }
+
+  @Test
+  void testImportDataValuesCsv() {
+    ImportSummary summary = importCsv(readFile("dxf2/datavalueset/dataValueSetB.csv"));
+
+    assertImported(12, 0, summary);
+  }
+
+  @Test
+  void testImportDataValuesCsvWithDataSetIdParameter() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary =
+        dataEntryPipeline.importCsv(
+            readFile("dxf2/datavalueset/dataValueSetWithDataSetHeader.csv"),
+            new ImportOptions().setDataSet("pBOMPrpg1QX"),
+            transitory());
+
+    assertImported(3, 0, summary);
+    assertDataValuesCount(3);
+  }
+
+  @Test
+  void testImportDataValuesCsvWithoutHeader() {
+
+    ImportOptions options = new ImportOptions().setFirstRowIsHeader(false);
+    UnsupportedOperationException ex =
+        assertThrowsExactly(
+            UnsupportedOperationException.class,
+            () ->
+                dataEntryPipeline.importCsv(
+                    readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
+                    options,
+                    JobProgress.noop()));
+    assertEquals("CSV without header row is no longer supported.", ex.getMessage());
+  }
+
+  @Test
+  void testImportDataValuesBooleanCsv() {
+    ImportSummary summary = importCsv(readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"));
+
+    assertEquals(ImportStatus.WARNING, summary.getStatus());
+    assertEquals(4, summary.getTotalConflictOccurrenceCount());
+    assertEquals(4, summary.getImportCount().getIgnored());
+    assertEquals(14, summary.getImportCount().getUpdated());
+    assertEquals(List.of(10, 11, 16, 17), summary.getRejectedIndexes());
+    assertEquals(
+        Set.of("true", "false"),
+        dataExportStore.getAllDataValues().stream().map(DataExportValue::value).collect(toSet()));
+  }
+
+  @Test
+  void testImportDataValuesBooleanDuplicatesCsv() {
+    ImportSummary summary =
+        importCsv(readFile("dxf2/datavalueset/dataValueSetBooleanDuplicatesTest.csv"));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(18, summary.getRejectedIndexes().size());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8128, conflict.getErrorCode());
+    assertEquals(
+        "Value #[0, 1] all affect the same data value: `DataEntryKey[dataElement=jH26dja2f30, orgUnit=DiszpKrYNg8, categoryOptionCombo=null, attributeOptionCombo=null, period=201201]`",
+        conflict.getValue());
+  }
+
+  @Test
+  void testImportDataValuesXmlDryRun() throws Exception {
+    assertDataValuesCount(0);
+
+    ImportOptions importOptions =
+        new ImportOptions()
+            .setDryRun(true)
+            .setIdScheme("UID")
+            .setDataElementIdScheme("UID")
+            .setOrgUnitIdScheme("UID");
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetB.xml"), importOptions, transitory());
+
+    assertImported(12, 0, summary);
+    assertDataValuesCount(0);
+  }
+
+  @Test
+  void testImportDataValuesXmlUpdatesOnly() throws Exception {
+    assertDataValuesCount(0);
+
+    ImportOptions importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATES);
+    IdSchemes idSchemes = new IdSchemes();
+    idSchemes.setIdScheme("UID");
+    idSchemes.setDataElementIdScheme("UID");
+    idSchemes.setOrgUnitIdScheme("UID");
+    importOptions.setIdSchemes(idSchemes);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetB.xml"), importOptions, transitory());
+
+    assertImported(12, 0, summary);
+    assertDataValuesCount(12);
+  }
+
+  @Test
+  void testImportDataValuesWithNewPeriod() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetC.xml"));
+
+    assertImported(3, 0, summary);
+    assertDataValuesCount(3);
+  }
+
+  @Test
+  void testImportDataValuesWithCategoryOptionComboIdScheme() throws Exception {
+    assertDataValuesCount(0);
+    ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme("CODE");
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetCCode.xml"), options, transitory());
+
+    assertImported(3, 0, summary);
+    assertDataValuesCount(3);
+  }
+
+  @Test
+  void testImportDataValuesWithAttributeOptionCombo() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetD2.xml"));
+
+    assertImported(3, 0, summary);
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
+    assertNotNull(dataValues);
+    assertEquals(3, dataValues.size());
+    assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deB, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deC, peA, ouA, ocDef, ocDef), dataValues);
+  }
+
+  @Test
+  void testImportDataValuesWithOrgUnitOutsideHierarchy() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetE.xml"));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8022, conflict.getErrorCode());
+    assertEquals(
+        "Data set pBOMPrpg1QX not usable with org unit(s): `[j7Hg26FpoIa]`", conflict.getValue());
+  }
+
+  @Test
+  void testImportDataValuesWithInvalidAttributeOptionCombo() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetF.xml"));
+
+    assertEquals(0, summary.getImportCount().getUpdated());
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertDataValuesCount(0);
+  }
+
+  @Test
+  void testImportDataValuesWithNonExistingDataElementOrgUnit() {
+    assertDataValuesCount(0);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetG.xml"));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8020, conflict.getErrorCode());
+    assertEquals(
+        "Data set pBOMPrpg1QX not usable with data element(s): `[nonEx1sting]`",
+        conflict.getValue());
+  }
+
+  @Test
+  void testImportDataValuesWithStrictPeriods() throws Exception {
+    // NB: this actually no longer has any effect because periods are always strict
+    // but the test does verify that validation nonetheless
+    ImportOptions options = new ImportOptions().setStrictPeriods(true);
+
+    InputStream xml = readFile("dxf2/datavalueset/dataValueSetNonStrict.xml");
+    ImportSummary summary = dataEntryPipeline.importXml(xml, options, transitory());
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8021, conflict.getErrorCode());
+    assertEquals(
+        "Data set pBOMPrpg1QX not usable with period(s): `[2012Q2, 2012]`", conflict.getValue());
+  }
+
+  @Test
+  void testImportDataValuesWithStrictCategoryOptionCombos() throws Exception {
+    ImportOptions options = new ImportOptions().setStrictCategoryOptionCombos(true);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetIllegalCoc.xml"), options, transitory());
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8024, conflict.getErrorCode());
+    assertEquals(
+        "Data set pBOMPrpg1QX + data element f7n9E0hX8qk not usable with category option combo(s): `[kjuiHgy67hg]`",
+        conflict.getValue());
+  }
+
+  @Test
+  @Disabled("DHIS2-19679 COC is now always required but null/empty means use default")
+  void testImportDataValuesWithRequiredCategoryOptionCombo() throws Exception {
+    ImportOptions options = new ImportOptions().setRequireCategoryOptionCombo(true);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValue?.xml"), options, transitory());
+
+    // assertions were removed since the semantics are unclear
+  }
+
+  @Test
+  @Disabled("DHIS2-19679 AOC is now always required but null/empty means use default")
+  void testImportDataValuesWithRequiredAttributeOptionCombo() throws Exception {
+    ImportOptions options = new ImportOptions().setRequireAttributeOptionCombo(true);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetNon?.xml"), options, transitory());
+
+    // assertions were removed since the semantics are unclear
+  }
+
+  @Test
+  void testImportDataValuesWithStrictOrganisationUnits() throws Exception {
+    ImportOptions options = new ImportOptions().setStrictOrganisationUnits(true);
+
+    ImportSummary summary =
+        dataEntryPipeline.importXml(
+            readFile("dxf2/datavalueset/dataValueSetIllegalOrgUnit.xml"), options, transitory());
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8022, conflict.getErrorCode());
+  }
+
+  @Test
+  void testImportDataValuesInvalidOptionCode() {
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetInvalid.xml"));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount(), summary.getConflictsDescription());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8020, conflict.getErrorCode());
+  }
+
+  @Test
+  @Disabled(
+      "DHIS2-19679 DS does not actually use coA as expected by the setup and thus the import is invalid")
+  void testImportDataValuesInvalidAttributeOptionComboDates() {
+    categoryOptionA.setStartDate(peB.getStartDate());
+    categoryOptionA.setEndDate(peB.getEndDate());
+    categoryService.updateCategoryOption(categoryOptionA);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getTotalConflictOccurrenceCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8023, conflict.getErrorCode());
+  }
+
+  @Test
+  @Disabled(
+      "DHIS2-19679 DS does not actually use coA as expected by the setup and thus the import is invalid")
+  void testImportDataValuesInvalidAttributeOptionComboOrgUnit() {
+    categoryOptionA.setOrganisationUnits(Set.of(ouA, ouB));
+    categoryService.updateCategoryOption(categoryOptionA);
+
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetH.xml"));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8023, conflict.getErrorCode());
+    assertEquals(
+        "Data set pBOMPrpg1QX not usable with attribute option combo(s): `[kjuiHgy67hg]`",
+        conflict.getValue());
+  }
+
+  @Test
+  void testImportDataValuesUpdatedAudit() {
+    assertDataValuesCount(0);
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetA.xml"));
+    assertImported(3, 0, summary);
+    assertDataValuesCount(3);
+
+    summary = importXml(readFile("dxf2/datavalueset/dataValueSetAUpdate.xml"));
+    assertImported(3, 0, summary);
+
+    List<DataExportValue> dataValues = assertDataValuesCount(3);
+    for (DataExportValue dv : dataValues)
+      assertEquals(
+          2,
+          dataValueAuditService.getDataValueAudits(dv).size(),
+          "expected data value update(s) to be audited");
+  }
+
+  @Test
+  void testImportNullDataValues() {
+    ImportSummary summary = importXml(readFile("dxf2/datavalueset/dataValueSetANull.xml"));
+
+    assertImported(1, 2, summary);
+    assertEquals(ImportStatus.WARNING, summary.getStatus());
+    assertEquals(2, summary.getConflictCount(), summary.getConflictsDescription());
+    assertDataValuesCount(1);
+  }
+
+  @Test
+  @Disabled(
+      "DHIS2-19679 test runs as superuser who can enter anytime so the expected issue does not occur")
+  void testImportDataValuesWithDataSetAllowsPeriods() {
+    Date thisMonth = DateUtils.truncate(new Date(), Calendar.MONTH);
+    dsA.setExpiryDays(62);
+    dsA.setOpenFuturePeriods(2);
+    dataSetService.updateDataSet(dsA);
+    Period tooEarly = createMonthlyPeriod(DateUtils.addMonths(thisMonth, -4));
+    Period okBefore = createMonthlyPeriod(DateUtils.addMonths(thisMonth, -1));
+    Period okAfter = createMonthlyPeriod(DateUtils.addMonths(thisMonth, 1));
+    Period tooLate = createMonthlyPeriod(DateUtils.addMonths(thisMonth, 4));
+    Period outOfRange = createMonthlyPeriod(DateUtils.addMonths(thisMonth, 6));
+    @Language("XML")
+    String xml =
+        """
+      <dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" idScheme="code" dataSet="DS_A" orgUnit="OU_A">
+        <dataValue dataElement="DE_A" period="%s" value="10001" />
+        <dataValue dataElement="DE_B" period="%s" value="10002" />
+        <dataValue dataElement="DE_C" period="%s" value="10003" />
+        <dataValue dataElement="DE_D" period="%s" value="10004" />
+        <dataValue dataElement="DE_D" period="%s" value="10005" />
+      </dataValueSet>""";
+
+    String importData =
+        xml.formatted(
+            tooEarly.getIsoDate(),
+            okBefore.getIsoDate(),
+            okAfter.getIsoDate(),
+            tooLate.getIsoDate(),
+            outOfRange.getIsoDate());
+    ImportSummary summary =
+        importXml(new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertEquals(1, summary.getTotalConflictOccurrenceCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(ErrorCode.E8030, conflict.getErrorCode());
+  }
+
+  @Test
+  void testImportDataValueWithNewPeriods() {
+    String importData =
+        """
+            <dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" idScheme="code" dataSet="DS_A" orgUnit="OU_A">
+              <dataValue dataElement="DE_A" period="200006" value="10001" />
+              <dataValue dataElement="DE_B" period="200006" value="10002" />
+              <dataValue dataElement="DE_C" period="200007" value="10003" />
+              <dataValue dataElement="DE_D" period="200007" value="10004" />
+              <dataValue dataElement="DE_D" period="200008" value="10005" />
+            </dataValueSet>
+            """;
+
+    ImportSummary summary =
+        importXml(new ByteArrayInputStream(importData.getBytes(StandardCharsets.UTF_8)));
+
+    assertImported(5, 0, summary);
+  }
+
+  /**
+   * Creates a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
+   *
+   * @param dataElement the data element.
+   * @param period the period.
+   * @param orgUnit the org unit.
+   * @param value the data value.
+   * @return a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
+   */
+  private DataEntryValue.Input getDataValue(
+      String dataElement, String period, String orgUnit, String value) {
+    return new DataEntryValue.Input(
+        dataElement, orgUnit, null, null, null, null, null, period, value, "comment", false, null);
+  }
+
+  private void assertImportDataValues(ImportSummary summary) {
+    assertNotNull(summary);
+    assertNotNull(summary.getImportCount());
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
+    assertNotNull(dataValues);
+    assertEquals(12, dataValues.size());
+    assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deA, peA, ouB, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deA, peB, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deA, peB, ouB, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deB, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deB, peA, ouB, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deB, peB, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deB, peB, ouB, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deC, peA, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deC, peA, ouB, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deC, peB, ouA, ocDef, ocDef), dataValues);
+    assertContainsValue(new DataValue(deC, peB, ouB, ocDef, ocDef), dataValues);
+  }
+
+  static void assertContainsValue(DataValue expected, List<DataExportValue> actual) {
+    assertContainsValue(expected.toEntry(), actual);
+  }
+
+  static void assertContainsValue(DataExportValue expected, List<DataExportValue> actual) {
+    if (actual.stream()
+        .noneMatch(
+            dv ->
+                dv.dataElement().equals(expected.dataElement())
+                    && dv.period().equals(expected.period())
+                    && dv.orgUnit().equals(expected.orgUnit())
+                    && dv.categoryOptionCombo().equals(expected.categoryOptionCombo())
+                    && dv.attributeOptionCombo().equals(expected.attributeOptionCombo())))
+      fail("No such value found: %s \n\tin %s".formatted(expected, actual));
+  }
+
+  private Period createMonthlyPeriod(Date monthStart) {
+    Date monthEnd = DateUtils.addDays(DateUtils.addMonths(monthStart, 1), -1);
+    return createPeriod(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY), monthStart, monthEnd);
+  }
+
+  private InputStream readFile(String filename) {
+    try {
+      return new ClassPathResource(filename).getInputStream();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  private List<DataExportValue> assertDataValuesCount(int expected) {
+    List<DataExportValue> dataValues = dataExportStore.getAllDataValues();
+    assertEquals(
+        expected,
+        dataValues.size(),
+        () -> String.format("mismatch in number of expected dataValue(s), got %s", dataValues));
+    return dataValues;
+  }
+
+  private static void assertImported(int updated, int ignored, ImportSummary summary) {
+    assertImported(updated, ignored, 0, summary);
+  }
+
+  private static void assertImported(int updated, int ignored, int deleted, ImportSummary summary) {
+    ImportCount totals = summary.getImportCount();
+    assertAll(
+        () -> assertEquals(0, totals.getImported(), "unexpected import count"),
+        () -> assertEquals(updated, totals.getUpdated(), "unexpected update count"),
+        () -> assertEquals(deleted, totals.getDeleted(), "unexpected deleted count"),
+        () -> assertEquals(ignored, totals.getIgnored(), "unexpected ignored count"),
+        () -> assertNotEquals(ImportStatus.ERROR, summary.getStatus(), summary.getDescription()));
+  }
+}

@@ -35,9 +35,9 @@ import java.util.Date;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -69,7 +70,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class DefaultSynchronizationManager implements SynchronizationManager {
   private static final String HEADER_AUTHORIZATION = "Authorization";
-  private final DataValueSetService dataValueSetService;
+  private final DataExportPipeline dataExportPipeline;
   private final DataValueService dataValueService;
   private final MetadataImportService importService;
   private final SchemaService schemaService;
@@ -153,8 +154,13 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
                   HEADER_AUTHORIZATION,
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-          dataValueSetService.exportDataValueSetJson(
-              lastUpdatedAfter, request.getBody(), new IdSchemes());
+          try {
+            DataExportParams params =
+                DataExportParams.builder().lastUpdated(lastUpdatedAfter).build();
+            dataExportPipeline.exportAsJsonSync(params, request.getBody());
+          } catch (ConflictException ex) {
+            throw new IllegalStateException(ex);
+          }
         };
 
     final int maxSyncAttempts = settingsService.getCurrentSettings().getSyncMaxAttempts();

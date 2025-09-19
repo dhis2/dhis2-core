@@ -99,7 +99,7 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("L0", organisationUnit.getName());
     assertEquals("L0", organisationUnit.getString("shortName").string());
     assertEquals("Org desc", organisationUnit.getString("description").string());
-    assertEquals("Org code", organisationUnit.getString("code").string());
+    assertEquals("CL0", organisationUnit.getString("code").string());
     assertNotNull(organisationUnit.getCreated());
     assertNotNull(organisationUnit.getLastUpdated());
     assertNotNull(organisationUnit.getId());

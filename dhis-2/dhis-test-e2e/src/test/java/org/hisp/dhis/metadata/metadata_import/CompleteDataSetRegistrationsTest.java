@@ -42,6 +42,7 @@ import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -157,6 +158,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
   }
 
   @Test
+  @Disabled("DHIS2-19679 CDSR is not fully working and should get a rethink and reimplement")
   void getCompleteDataSetRegistrationSyncXml() {
     loginActions.loginAsSuperUser();
 

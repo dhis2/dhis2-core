@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toSet;
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
@@ -43,7 +44,6 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
@@ -64,10 +64,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -76,16 +80,18 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -94,6 +100,7 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
+import org.hisp.dhis.webapi.webdomain.form.Field;
 import org.hisp.dhis.webapi.webdomain.form.Form;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -128,9 +135,9 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
   @Autowired private DataEntryFormService dataEntryFormService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportPipeline dataExportPipeline;
 
-  @Autowired private DataValueSetService dataValueSetService;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   @Autowired private PeriodService periodService;
 
@@ -250,7 +257,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
     Period pe = periodService.getPeriod(period);
 
-    return dataValueSetService.getDataValueSetTemplate(
+    return getDataValueSetTemplate(
         getEntity(uid), pe, orgUnits, comment, orgUnitIdScheme, dataElementIdScheme);
   }
 
@@ -263,7 +270,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       @RequestParam(value = "pe", required = false) String period,
       @RequestParam(value = "categoryOptions", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData)
-      throws NotFoundException {
+      throws NotFoundException, ConflictException {
 
     OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
@@ -286,7 +293,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       @RequestParam(value = "catOpts", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData,
       HttpServletResponse response)
-      throws IOException, NotFoundException {
+      throws IOException, NotFoundException, ConflictException {
 
     OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
@@ -306,7 +313,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       OrganisationUnit ou,
       Period pe,
       String categoryOptions,
-      boolean metaData) {
+      boolean metaData)
+      throws ConflictException {
     DataSet dataSet = dataSets.get(0);
 
     Form form = FormUtils.fromDataSet(dataSets.get(0), metaData, null);
@@ -322,22 +330,38 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
     }
 
     if (ou != null && pe != null) {
-      Set<CategoryOptionCombo> attrOptionCombos =
+      Set<String> attrOptionCombos =
           options == null || options.isEmpty()
-              ? null
-              : Sets.newHashSet(
-                  inputUtils.getAttributeOptionCombo(
-                      dataSet.getCategoryCombo(), options, IdScheme.UID));
+              ? Set.of()
+              : Set.of(
+                  inputUtils
+                      .getAttributeOptionCombo(dataSet.getCategoryCombo(), options, IdScheme.UID)
+                      .getUid());
 
-      List<DataValue> dataValues =
-          dataValueService.getDataValues(
-              new DataExportParams()
-                  .setDataElements(dataSets.get(0).getDataElements())
-                  .setPeriods(Sets.newHashSet(pe))
-                  .setOrganisationUnits(Sets.newHashSet(ou))
-                  .setAttributeOptionCombos(attrOptionCombos));
+      DataExportParams params =
+          DataExportParams.builder()
+              .dataElement(
+                  dataSets.get(0).getDataElements().stream()
+                      .map(DataElement::getUid)
+                      .collect(toSet()))
+              .period(Set.of(pe.getIsoDate()))
+              .orgUnit(Set.of(ou.getUid()))
+              .attributeOptionCombo(attrOptionCombos)
+              .build();
+      Map<String, Field> operandFieldMap = FormUtils.buildCacheMap(form);
+      dataExportPipeline.exportToConsumer(
+          params,
+          dv -> {
+            UID dataElement = dv.dataElement();
+            UID categoryOptionCombo = dv.categoryOptionCombo();
 
-      FormUtils.fillWithDataValues(form, dataValues);
+            Field field = operandFieldMap.get(dataElement + FormUtils.SEP + categoryOptionCombo);
+
+            if (field != null) {
+              field.setValue(dv.value());
+              field.setComment(dv.comment());
+            }
+          });
     }
 
     return form;
@@ -441,5 +465,112 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
     params.addQuery(Query.of(CategoryOptionCombo.class));
 
     return params;
+  }
+
+  private RootNode getDataValueSetTemplate(
+      DataSet dataSet,
+      Period period,
+      List<String> orgUnits,
+      boolean writeComments,
+      String ouScheme,
+      String deScheme) {
+    RootNode rootNode = new RootNode("dataValueSet");
+    rootNode.setNamespace(DxfNamespaces.DXF_2_0);
+    rootNode.setComment("Data set: " + dataSet.getDisplayName() + " (" + dataSet.getUid() + ")");
+
+    CollectionNode collectionNode = rootNode.addChild(new CollectionNode("dataValues"));
+    collectionNode.setWrapping(false);
+
+    if (orgUnits.isEmpty()) {
+      for (DataElement dataElement : dataSet.getDataElements()) {
+        CollectionNode collection =
+            getDataValueTemplate(dataElement, deScheme, null, ouScheme, period, writeComments);
+        collectionNode.addChildren(collection.getChildren());
+      }
+    } else {
+      for (String orgUnit : orgUnits) {
+        OrganisationUnit organisationUnit =
+            identifiableObjectManager.search(OrganisationUnit.class, orgUnit);
+
+        if (organisationUnit == null) {
+          continue;
+        }
+
+        for (DataElement dataElement : dataSet.getDataElements()) {
+          CollectionNode collection =
+              getDataValueTemplate(
+                  dataElement, deScheme, organisationUnit, ouScheme, period, writeComments);
+          collectionNode.addChildren(collection.getChildren());
+        }
+      }
+    }
+
+    return rootNode;
+  }
+
+  private CollectionNode getDataValueTemplate(
+      DataElement dataElement,
+      String deScheme,
+      OrganisationUnit organisationUnit,
+      String ouScheme,
+      Period period,
+      boolean comment) {
+    CollectionNode collectionNode = new CollectionNode("dataValues");
+    collectionNode.setWrapping(false);
+
+    for (CategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos()) {
+      ComplexNode complexNode = collectionNode.addChild(new ComplexNode("dataValue"));
+
+      String label = dataElement.getDisplayName();
+
+      if (!categoryOptionCombo.isDefault()) {
+        label += " " + categoryOptionCombo.getDisplayName();
+      }
+
+      if (comment) {
+        complexNode.setComment("Data element: " + label);
+      }
+
+      if (IdentifiableProperty.CODE.toString().toLowerCase().equals(deScheme.toLowerCase())) {
+        SimpleNode simpleNode =
+            complexNode.addChild(new SimpleNode("dataElement", dataElement.getCode()));
+        simpleNode.setAttribute(true);
+      } else {
+        SimpleNode simpleNode =
+            complexNode.addChild(new SimpleNode("dataElement", dataElement.getUid()));
+        simpleNode.setAttribute(true);
+      }
+
+      SimpleNode simpleNode =
+          complexNode.addChild(new SimpleNode("categoryOptionCombo", categoryOptionCombo.getUid()));
+      simpleNode.setAttribute(true);
+
+      simpleNode =
+          complexNode.addChild(new SimpleNode("period", period != null ? period.getIsoDate() : ""));
+      simpleNode.setAttribute(true);
+
+      if (organisationUnit != null) {
+        if (IdentifiableProperty.CODE.toString().equalsIgnoreCase(ouScheme)) {
+          simpleNode =
+              complexNode.addChild(
+                  new SimpleNode(
+                      "orgUnit",
+                      organisationUnit.getCode() == null ? "" : organisationUnit.getCode()));
+          simpleNode.setAttribute(true);
+        } else {
+          simpleNode =
+              complexNode.addChild(
+                  new SimpleNode(
+                      "orgUnit",
+                      organisationUnit.getUid() == null ? "" : organisationUnit.getUid()));
+          simpleNode.setAttribute(true);
+        }
+      }
+
+      simpleNode = complexNode.addChild(new SimpleNode("value", ""));
+      simpleNode.setAttribute(true);
+    }
+
+    return collectionNode;
   }
 }
