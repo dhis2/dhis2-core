@@ -132,7 +132,7 @@
     <postgresql-driver.version>42.7.7</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
-    <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.4.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.9.2</clickhouse-jdbc.version>
 
     <!-- Servlet -->
