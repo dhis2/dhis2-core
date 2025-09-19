@@ -42,6 +42,7 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -84,6 +85,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -663,13 +665,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         dataElements.stream()
-            .map(de -> getColumnForDataElement(de, false, !program.isRegistration()))
+            .map(de -> getColumnForDataElement(de, false, program.getProgramType()))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnForDataElement(de, true, !program.isRegistration()))
+            .map(de -> getColumnForDataElement(de, true, program.getProgramType()))
             .flatMap(Collection::stream)
             .toList());
     return columns;
@@ -684,7 +686,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return
    */
   private List<AnalyticsTableColumn> getColumnForDataElement(
-      DataElement dataElement, boolean withLegendSet, boolean isSingleEvent) {
+      DataElement dataElement, boolean withLegendSet, ProgramType programType) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isGeospatialSupport());
@@ -698,7 +700,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     if (withLegendSet) {
       return getColumnFromDataElementWithLegendSet(
-          dataElement, columnExpression, dataFilterClause, isSingleEvent);
+          dataElement, columnExpression, dataFilterClause, programType);
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -813,12 +815,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement,
       String selectExpression,
       String dataFilterClause,
-      boolean isSingleEvent) {
+      ProgramType programType) {
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
       return List.of();
     }
 
-    String eventTable = isSingleEvent ? "singleevent" : "trackerevent";
+    String eventTable = programType == WITHOUT_REGISTRATION ? "singleevent" : "trackerevent";
 
     String query =
         """
