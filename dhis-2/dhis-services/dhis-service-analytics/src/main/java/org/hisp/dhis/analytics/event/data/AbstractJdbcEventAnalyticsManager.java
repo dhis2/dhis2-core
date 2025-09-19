@@ -66,6 +66,7 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
@@ -1874,6 +1875,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // 3.3: Append the "FROM" clause (the main enrollment analytics table)
     addFromClause(sb, params);
 
+    addOrgUnitJoin(sb, params);
+
     // 3.4: Append LEFT JOINs for each relevant CTE definition
     addCteJoins(sb, cteContext);
 
@@ -2937,5 +2940,32 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("programStageUid", item.getProgramStage().getUid());
 
     return new StringSubstitutor(values).replace(template);
+  }
+
+  /**
+   * Appends the organisation unit joins required by the query.
+   *
+   * <p>The joins contributed by {@link OrgUnitTableJoiner#joinOrgUnitTables(EventQueryParams,
+   * AnalyticsType)} fall into two categories:
+   *
+   * <ul>
+   *   <li>If the request resolves the organisation unit via tracked-entity ownership (org unit
+   *       field type {@code OWNER_AT_START}/{@code OWNER_AT_END}), a LEFT JOIN is added against the
+   *       program-specific ownership analytics table (alias {@code ownership}). The join aligns the
+   *       tracked entity identifier and constrains the ownership record to the reporting period
+   *       window.</li>
+   *   <li>If the query needs hierarchy metadata for the chosen org unit field (attributes,
+   *       registration org unit, enrollment org unit for event analytics, or ownership types), LEFT
+   *       JOINs are added to {@code analytics_rs_orgunitstructure} and, when organisation unit group
+   *       sets are requested, to {@code analytics_rs_organisationunitgroupsetstructure}. These joins
+   *       expose the hierarchy and group set columns required for selection or filtering.</li>
+   * </ul>
+   *
+   * The composed SQL fragment is added verbatim to the {@link SelectBuilder} so that subsequent
+   * clauses can reference the relevant organisation unit columns.
+   */
+  private void addOrgUnitJoin(SelectBuilder sb, EventQueryParams params) {
+    var x = joinOrgUnitTables(params, getAnalyticsType());
+    sb.addRawJoin(x);
   }
 }
