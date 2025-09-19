@@ -111,6 +111,18 @@ public class GetObjectListParams extends GetObjectParams {
     return orders;
   }
 
+  @OpenApi.Ignore
+  public GetObjectListParams setFilters(List<String> filters) {
+    this.filters = filters;
+    return this;
+  }
+
+  @OpenApi.Ignore
+  public GetObjectListParams setOrders(List<String> orders) {
+    this.orders = orders;
+    return this;
+  }
+
   @Nonnull
   @JsonIgnore
   public Pagination getPagination() {
