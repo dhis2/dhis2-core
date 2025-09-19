@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -46,6 +47,8 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +62,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SupplementaryDataProviderTest extends TestBase {
 
   private static final String ORG_UNIT_GROUP_UID = "OrgUnitGroupId";
+  private static final String USER_GROUP_UID = "UserGroupId";
 
   private static final String NOT_NEEDED_ORG_UNIT_GROUP_UID = "NotNeededOrgUnitGroupId";
 
@@ -66,11 +70,17 @@ class SupplementaryDataProviderTest extends TestBase {
 
   @Mock private UserService userService;
 
+  @Mock private UserGroupService userGroupService;
+
   @InjectMocks private SupplementaryDataProvider providerToTest;
 
   private OrganisationUnit orgUnitA;
 
   private OrganisationUnit orgUnitB;
+
+  private OrganisationUnitGroup orgUnitGroup;
+
+  private UserGroup userGroupA;
 
   private UserDetails currentUser;
 
@@ -80,34 +90,49 @@ class SupplementaryDataProviderTest extends TestBase {
     user.setUsername("A");
     user.setUserRoles(getUserRoles());
 
+    userGroupA = createUserGroup('G', Set.of(user));
+    userGroupA.setUid(USER_GROUP_UID);
+
+    user.getGroups().add(userGroupA);
     currentUser = UserDetails.fromUser(user);
 
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
-    OrganisationUnitGroup orgUnitGroup = createOrganisationUnitGroup('A');
+    orgUnitGroup = createOrganisationUnitGroup('A');
     orgUnitGroup.setUid(ORG_UNIT_GROUP_UID);
     orgUnitGroup.setMembers(Sets.newHashSet(orgUnitA));
     OrganisationUnitGroup notNeededOrgUnitGroup = createOrganisationUnitGroup('B');
     notNeededOrgUnitGroup.setUid(NOT_NEEDED_ORG_UNIT_GROUP_UID);
     notNeededOrgUnitGroup.setMembers(Sets.newHashSet(orgUnitB));
-    when(organisationUnitGroupService.getOrganisationUnitGroup(ORG_UNIT_GROUP_UID))
-        .thenReturn(orgUnitGroup);
   }
 
   @Test
-  void getSupplementaryData() {
+  void getUserRolesSupplementaryData() {
+    when(organisationUnitGroupService.getOrganisationUnitGroup(ORG_UNIT_GROUP_UID))
+        .thenReturn(orgUnitGroup);
     Map<String, List<String>> supplementaryData =
-        providerToTest.getSupplementaryData(getProgramRules(), currentUser);
+        providerToTest.getSupplementaryData(
+            getProgramRule('C', "d2:inOrgUnitGroup('OrgUnitGroupId')"), currentUser);
     assertFalse(supplementaryData.isEmpty());
-    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER")));
+    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER_ROLES")));
     assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
     assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
     assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
   }
 
-  private List<ProgramRule> getProgramRules() {
-    ProgramRule programRule = createProgramRule('A', null);
-    programRule.setCondition("d2:inOrgUnitGroup('OrgUnitGroupId')");
+  @Test
+  void getUserGroupsSupplementaryData() {
+    Map<String, List<String>> supplementaryData =
+        providerToTest.getSupplementaryData(
+            getProgramRule('D', "d2:inUserGroup('UserGroupId')"), currentUser);
+    assertFalse(supplementaryData.isEmpty());
+    assertFalse(supplementaryData.get("USER_GROUPS").isEmpty());
+    assertTrue(supplementaryData.get("USER_GROUPS").contains(userGroupA.getUid()));
+  }
+
+  private List<ProgramRule> getProgramRule(char ch, String condition) {
+    ProgramRule programRule = createProgramRule(ch, null);
+    programRule.setCondition(condition);
     return Lists.newArrayList(programRule);
   }
 
