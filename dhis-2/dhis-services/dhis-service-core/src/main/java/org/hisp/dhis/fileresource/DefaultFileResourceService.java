@@ -138,6 +138,12 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<FileResource> getUnassignedFileResourcesByJobDataDomain() {
+    return fileResourceStore.getAllUnassignedByJobDataDomainWithNoJobConfig();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Optional<FileResource> findByStorageKey(@CheckForNull String storageKey) {
     return storageKey == null ? Optional.empty() : fileResourceStore.findByStorageKey(storageKey);
   }

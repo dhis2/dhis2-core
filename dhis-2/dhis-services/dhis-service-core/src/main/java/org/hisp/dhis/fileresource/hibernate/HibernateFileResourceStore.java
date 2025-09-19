@@ -49,6 +49,7 @@ import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
 import org.joda.time.DateTime;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -194,5 +195,19 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
                     ((Number) col[2]).longValue(),
                     (String) col[3]))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig() {
+    @Language("SQL")
+    String sql =
+        """
+        select * from fileresource fr
+        where fr.isassigned = false
+        and fr.domain = 'JOB_DATA'
+        and fr.uid not in (select uid from jobconfiguration where schedulingtype = 'ONCE_ASAP')
+        """;
+
+    return nativeSynchronizedTypedQuery(sql).list();
   }
 }
