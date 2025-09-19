@@ -267,7 +267,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             CHARACTER_11,
             legendsetAlias.formatted(tea.getUid() + "_" + lsA.getUid()),
             Skip.INCLUDE)
-        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false))
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
         .build()
         .verify();
   }

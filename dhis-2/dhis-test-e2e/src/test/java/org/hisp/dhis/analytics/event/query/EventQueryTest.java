@@ -223,7 +223,7 @@ public class EventQueryTest extends AnalyticsApiTest {
                 "Ngelehun CHC",
                 "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
-                "ACTIVE",
+                "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
@@ -247,7 +247,7 @@ public class EventQueryTest extends AnalyticsApiTest {
                 "Ngelehun CHC",
                 "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
-                "ACTIVE",
+                "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
@@ -271,7 +271,7 @@ public class EventQueryTest extends AnalyticsApiTest {
                 "Ngelehun CHC",
                 "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
-                "ACTIVE",
+                "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
@@ -436,7 +436,7 @@ public class EventQueryTest extends AnalyticsApiTest {
                 "Ngelehun CHC",
                 "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
-                "ACTIVE",
+                "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
@@ -460,7 +460,7 @@ public class EventQueryTest extends AnalyticsApiTest {
                 "Ngelehun CHC",
                 "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
-                "ACTIVE",
+                "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
@@ -484,7 +484,7 @@ public class EventQueryTest extends AnalyticsApiTest {
                 "Ngelehun CHC",
                 "Sierra Leone / Bo / Badjia / Ngelehun CHC",
                 "OU_559",
-                "ACTIVE",
+                "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
