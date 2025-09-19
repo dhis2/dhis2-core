@@ -30,7 +30,7 @@
     <json-path.version>2.9.0</json-path.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <lombok.version>1.18.40</lombok.version>
+    <lombok.version>1.18.42</lombok.version>
     <allure.version>2.29.1</allure.version>
     <selenium-java.version>4.35.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
