@@ -2953,12 +2953,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *       field type {@code OWNER_AT_START}/{@code OWNER_AT_END}), a LEFT JOIN is added against the
    *       program-specific ownership analytics table (alias {@code ownership}). The join aligns the
    *       tracked entity identifier and constrains the ownership record to the reporting period
-   *       window.</li>
+   *       window.
    *   <li>If the query needs hierarchy metadata for the chosen org unit field (attributes,
    *       registration org unit, enrollment org unit for event analytics, or ownership types), LEFT
-   *       JOINs are added to {@code analytics_rs_orgunitstructure} and, when organisation unit group
-   *       sets are requested, to {@code analytics_rs_organisationunitgroupsetstructure}. These joins
-   *       expose the hierarchy and group set columns required for selection or filtering.</li>
+   *       JOINs are added to {@code analytics_rs_orgunitstructure} and, when organisation unit
+   *       group sets are requested, to {@code analytics_rs_organisationunitgroupsetstructure}.
+   *       These joins expose the hierarchy and group set columns required for selection or
+   *       filtering.
    * </ul>
    *
    * The composed SQL fragment is added verbatim to the {@link SelectBuilder} so that subsequent

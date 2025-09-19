@@ -381,8 +381,9 @@ public class SelectBuilder {
   }
 
   /**
-   * Add a raw join clause to the query. Use with caution to avoid SQL injection.
-   * The String is added as-is to the query and it's expected to be a valid SQL join clause, starting with "left join", "inner join", "cross join", etc.
+   * Add a raw join clause to the query. Use with caution to avoid SQL injection. The String is
+   * added as-is to the query and it's expected to be a valid SQL join clause, starting with "left
+   * join", "inner join", "cross join", etc.
    *
    * @param rawJoin the raw join clause
    * @return this builder instance
@@ -733,8 +734,8 @@ public class SelectBuilder {
     return results;
   }
 
-  private SelectBuilder addColumnInternal(String expression,
-                                          java.util.function.Function<String, Column> unqualifiedFactory) {
+  private SelectBuilder addColumnInternal(
+      String expression, java.util.function.Function<String, Column> unqualifiedFactory) {
     var qc = ColumnAliasUtils.splitQualified(expression);
     if (qc.isPresent()) {
       var ref = qc.get();
