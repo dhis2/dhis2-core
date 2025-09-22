@@ -258,6 +258,7 @@ public class IndicatorGroup extends BaseMetadataObject implements IdentifiableOb
   }
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }
