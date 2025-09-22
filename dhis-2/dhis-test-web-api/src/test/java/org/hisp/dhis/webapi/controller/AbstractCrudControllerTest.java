@@ -1818,4 +1818,341 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, indicators.size());
     assertEquals(indicatorId, indicators.getObject(0).getString("id").string());
   }
+
+  @Test
+  @DisplayName("Test creating IndicatorGroup with Indicators and bi-directional relationship")
+  void testCreateIndicatorGroupWithIndicators() {
+    // Create IndicatorType first
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Indicator Type',
+                'factor': 100
+            }
+            """));
+
+    // Create Indicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Test Indicator 1',
+                'shortName': 'TI1',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Test Indicator 2',
+                'shortName': 'TI2',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '2',
+                'denominator': '2'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create IndicatorGroup with indicators (members collection)
+    String indicatorGroupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Test Indicator Group',
+                'shortName': 'TIG',
+                'indicators': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator1Id, indicator2Id)));
+
+    // Verify the indicator group was created with the indicators
+    JsonObject indicatorGroup =
+        GET("/indicatorGroups/" + indicatorGroupId).content(HttpStatus.OK).as(JsonObject.class);
+    assertNotNull(indicatorGroup);
+    assertEquals("Test Indicator Group", indicatorGroup.getString("name").string());
+
+    // Verify indicators collection (members mapping)
+    JsonArray indicators = indicatorGroup.getArray("indicators");
+    assertNotNull(indicators);
+    assertEquals(2, indicators.size());
+
+    // Verify bi-directional relationship
+    JsonObject indicator1 = GET("/indicators/" + indicator1Id).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray indicator1Groups = indicator1.getArray("indicatorGroups");
+    assertNotNull(indicator1Groups);
+    assertEquals(1, indicator1Groups.size());
+    assertEquals(indicatorGroupId, indicator1Groups.getObject(0).getString("id").string());
+  }
+
+  @Test
+  @DisplayName("Test adding/removing IndicatorGroup members using PATCH")
+  void testIndicatorGroupMembersWithPATCH() {
+    // Create IndicatorType
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Type',
+                'factor': 1
+            }
+            """));
+
+    // Create three indicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 1',
+                'shortName': 'I1',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 2',
+                'shortName': 'I2',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator3Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 3',
+                'shortName': 'I3',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create IndicatorGroup with initial indicators
+    String groupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Dynamic Group',
+                'indicators': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator1Id, indicator2Id)));
+
+    // Test adding an indicator via PATCH
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/indicatorGroups/" + groupId,
+            "[{'op': 'add', 'path': '/indicators/-', 'value': { 'id': '" + indicator3Id + "' } }]"));
+
+    // Verify all three indicators are now in the group
+    JsonObject group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
+    assertEquals(3, group.getArray("indicators").size());
+
+    // Test removing an indicator via PATCH remove-by-id
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/indicatorGroups/" + groupId,
+            "[{'op': 'remove-by-id', 'path': '/indicators', 'id': '" + indicator1Id + "'}]"));
+
+    // Verify only two indicators remain
+    group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
+    assertEquals(2, group.getArray("indicators").size());
+
+    // Verify the correct indicators are present
+    JsonArray remainingIndicators = group.getArray("indicators");
+    List<String> remainingIds = List.of(
+        remainingIndicators.getObject(0).getString("id").string(),
+        remainingIndicators.getObject(1).getString("id").string());
+    assertTrue(remainingIds.contains(indicator2Id));
+    assertTrue(remainingIds.contains(indicator3Id));
+    assertFalse(remainingIds.contains(indicator1Id));
+  }
+
+  @Test
+  @DisplayName("Test IndicatorGroupSets with IndicatorGroups and bi-directional relationship")
+  void testCreateIndicatorGroupSetsWithIndicators() {
+    // Create two IndicatorGroups
+    String group1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Group 1',
+                'shortName': 'G1'
+            }
+            """));
+
+    String group2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Group 2',
+                'shortName': 'G2'
+            }
+            """));
+
+    // Create IndicatorGroupSet that includes both groups
+    String groupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Test Group Set',
+                'shortName': 'TGS',
+                'indicatorGroups': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(group1Id, group2Id)));
+
+    // Verify the groups are in the group set
+    JsonObject groupSet = GET("/indicatorGroupSets/" + groupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray groupsInSet = groupSet.getArray("indicatorGroups");
+    assertNotNull(groupsInSet);
+    assertEquals(2, groupsInSet.size());
+
+    // Verify inverse relationship - groups should reference the group set
+    JsonObject group1 = GET("/indicatorGroups/" + group1Id).content().as(JsonObject.class);
+    JsonArray group1Sets = group1.getArray("groupSets");
+    assertNotNull(group1Sets);
+    assertEquals(1, group1Sets.size());
+    assertEquals(groupSetId, group1Sets.getObject(0).getString("id").string());
+
+    JsonObject group2 = GET("/indicatorGroups/" + group2Id).content().as(JsonObject.class);
+    JsonArray group2Sets = group2.getArray("groupSets");
+    assertNotNull(group2Sets);
+    assertEquals(1, group2Sets.size());
+    assertEquals(groupSetId, group2Sets.getObject(0).getString("id").string());
+  }
+
+  @Test
+  @DisplayName("Should create IndicatorGroup with Indicators and verify lazy loading of collections")
+  void testIndicatorGroupWithIndicators() {
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes/", "{'name': 'Basic Type', 'factor': 1}"));
+
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Basic Indicator',
+                'shortName': 'BI',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String groupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Lazy Test Group',
+                'indicators': [{'id': '%s'}]
+            }
+            """
+                    .formatted(indicatorId)));
+
+    String groupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Lazy Test Group Set',
+                'indicatorGroups': [{'id': '%s'}]
+            }
+            """
+                    .formatted(groupId)));
+
+    JsonObject group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
+
+    // Test members collection accessibility
+    JsonArray indicators = group.getArray("indicators");
+    assertNotNull(indicators);
+    assertEquals(1, indicators.size());
+
+    // Test groupSets collection accessibility
+    JsonArray groupSets = group.getArray("groupSets");
+    assertNotNull(groupSets);
+    assertEquals(1, groupSets.size());
+
+    // Verify the relationships persist correctly
+    assertEquals(indicatorId, indicators.getObject(0).getString("id").string());
+    assertEquals(groupSetId, groupSets.getObject(0).getString("id").string());
+  }
 }

@@ -94,7 +94,8 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "indicatorgroup")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class IndicatorGroup extends BaseMetadataObject implements IdentifiableObject, MetadataObject {
+public class IndicatorGroup extends BaseMetadataObject
+    implements IdentifiableObject, MetadataObject {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "indicatorgroupid")
@@ -109,15 +110,19 @@ public class IndicatorGroup extends BaseMetadataObject implements IdentifiableOb
   @Column(name = "description", columnDefinition = "text")
   private String description;
 
-  @Embedded
-  private TranslationProperty translations = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinTable(
-    name = "indicatorgroupmembers",
-    joinColumns = @JoinColumn(name = "indicatorgroupid", foreignKey = @ForeignKey(name = "fk_indicatorgroupmembers_indicatorgroupid")),
-    inverseJoinColumns = @JoinColumn(name = "indicatorid", foreignKey = @ForeignKey(name = "fk_indicatorgroup_indicatorid"))
-  )
+      name = "indicatorgroupmembers",
+      joinColumns =
+          @JoinColumn(
+              name = "indicatorgroupid",
+              foreignKey = @ForeignKey(name = "fk_indicatorgroupmembers_indicatorgroupid")),
+      inverseJoinColumns =
+          @JoinColumn(
+              name = "indicatorid",
+              foreignKey = @ForeignKey(name = "fk_indicatorgroup_indicatorid")))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<Indicator> members = new HashSet<>();
 
@@ -198,9 +203,9 @@ public class IndicatorGroup extends BaseMetadataObject implements IdentifiableOb
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof IdentifiableObject
-            && getRealClass(this) == getRealClass(obj)
-            && typedEquals((IdentifiableObject) obj);
+           || !(!(obj instanceof IdentifiableObject)
+                || getRealClass(this) != getRealClass(obj)
+                || !typedEquals((IdentifiableObject) obj));
   }
 
   /**
@@ -270,7 +275,6 @@ public class IndicatorGroup extends BaseMetadataObject implements IdentifiableOb
   public Set<Indicator> getMembers() {
     return members;
   }
-
 
   @JsonProperty("indicatorGroupSet")
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -369,7 +373,6 @@ public class IndicatorGroup extends BaseMetadataObject implements IdentifiableOb
 
   @Override
   public void setUser(User user) {
-    // TODO remove this after implementing functions for using Owner
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
