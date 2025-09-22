@@ -131,6 +131,12 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     progress.completedProcess("Analytics tables updated: {}", clock.time());
   }
 
+  /**
+   * Updates the system settings related to last successful analytics table update.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param clock the {@link Clock}.
+   */
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
       settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionUpdate", params.getStartTime());
