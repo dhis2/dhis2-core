@@ -461,10 +461,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(
           levels.stream()
               .map(
-                  level ->
-                      replace(
-                          "ous.idlevel${level} = da.organisationunitid",
-                          Map.of("level", String.valueOf(level.getLevel()))))
+                  level -> String.format("ous.idlevel%d = da.organisationunitid", level.getLevel()))
               .collect(Collectors.joining(" or ")));
 
       return sql.append(") ").toString();
