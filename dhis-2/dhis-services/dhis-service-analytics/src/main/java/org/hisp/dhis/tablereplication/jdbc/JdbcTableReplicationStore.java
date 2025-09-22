@@ -42,6 +42,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
+ * Store for replication of operational database tables in the analytics database, if configured.
+ *
  * @author Lars Helge Overland
  */
 @Slf4j
