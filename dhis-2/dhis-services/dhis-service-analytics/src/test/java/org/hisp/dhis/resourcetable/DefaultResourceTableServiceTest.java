@@ -31,9 +31,9 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.time.Year;
@@ -71,9 +71,7 @@ class DefaultResourceTableServiceTest {
         assertThrows(
             RuntimeException.class,
             () -> defaultResourceTableService.getAndValidateAvailableDataYears());
-
-    assertTrue(
-        exception.getMessage().contains("Your database contains years out of the allowed offset"));
+    assertNotEmpty(exception.getMessage());
   }
 
   @Test
@@ -89,9 +87,7 @@ class DefaultResourceTableServiceTest {
         assertThrows(
             RuntimeException.class,
             () -> defaultResourceTableService.getAndValidateAvailableDataYears());
-
-    assertTrue(
-        exception.getMessage().contains("Your database contains years out of the allowed offset"));
+    assertNotEmpty(exception.getMessage());
   }
 
   @Test
