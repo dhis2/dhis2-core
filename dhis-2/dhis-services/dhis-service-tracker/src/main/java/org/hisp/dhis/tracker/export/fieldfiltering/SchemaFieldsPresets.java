@@ -53,6 +53,42 @@ public class SchemaFieldsPresets {
         .collect(Collectors.toSet());
   }
 
+  @Nonnull
+  public static Set<String> mapIdentifiable(@Nonnull Schema schema) {
+    Set<String> identifiableFields =
+        Set.of("id", "name", "code", "created", "lastUpdated", "lastUpdatedBy");
+    return schema.getProperties().stream()
+        .filter(p -> identifiableFields.contains(p.getName()))
+        .map(SchemaFieldsPresets::toFieldName)
+        .collect(Collectors.toSet());
+  }
+
+  @Nonnull
+  public static Set<String> mapNameable(@Nonnull Schema schema) {
+    Set<String> nameableFields =
+        Set.of("id", "name", "shortName", "description", "code", "created", "lastUpdated");
+    return schema.getProperties().stream()
+        .filter(p -> nameableFields.contains(p.getName()))
+        .map(SchemaFieldsPresets::toFieldName)
+        .collect(Collectors.toSet());
+  }
+
+  @Nonnull
+  public static Set<String> mapOwner(@Nonnull Schema schema) {
+    return schema.getProperties().stream()
+        .filter(Property::isOwner)
+        .map(SchemaFieldsPresets::toFieldName)
+        .collect(Collectors.toSet());
+  }
+
+  @Nonnull
+  public static Set<String> mapPersisted(@Nonnull Schema schema) {
+    return schema.getProperties().stream()
+        .filter(Property::isPersisted)
+        .map(SchemaFieldsPresets::toFieldName)
+        .collect(Collectors.toSet());
+  }
+
   @Nullable
   public Schema getSchema(@Nonnull Schema schema, @Nonnull String field) {
     Property property = schema.getProperty(field);

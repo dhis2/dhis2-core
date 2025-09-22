@@ -45,6 +45,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -99,10 +100,39 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
 
   private Schema eventSchema;
 
+  private List<OrganisationUnit> organisationUnits;
+
+  private Schema organisationUnitSchema;
+
   @BeforeAll
   void setUp() {
     events = createEvents(2);
     eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
+
+    organisationUnits = createOrganisationUnits(2);
+    organisationUnitSchema = schemaService.getDynamicSchema(organisationUnits.get(0).getClass());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "*",
+        ":all",
+        "!*",
+        "!:all", // should this be invalid? the exclusion is ignored and the preset is applied
+        ":simple",
+        ":identifiable",
+        ":nameable",
+        ":owner",
+        ":persisted"
+      })
+  void trackerFilterShouldMatchCurrentFilterOnMetadata(String fields)
+      throws JsonProcessingException {
+    String actualCurrent = serializeUsingCurrentFilter(organisationUnits, fields);
+    String actualTracker =
+        serializeUsingTrackerFilter(organisationUnits, fields, organisationUnitSchema);
+
+    assertEquals(actualCurrent, actualTracker);
   }
 
   @ParameterizedTest
@@ -188,7 +218,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   void trackerFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
       throws JsonProcessingException {
     String actualCurrent = serializeUsingCurrentFilter(events, fields);
-    String actualTracker = serializeUsingTrackerFilter(events, fields);
+    String actualTracker = serializeUsingTrackerFilter(events, fields, eventSchema);
 
     assertEquals(actualCurrent, actualTracker);
   }
@@ -202,27 +232,27 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   void trackerFilterShouldMatchCurrentFilterIgnoringFieldOrder(String fields)
       throws JsonProcessingException {
     String actualCurrent = serializeUsingCurrentFilter(events, fields);
-    String actualTracker = serializeUsingTrackerFilter(events, fields);
+    String actualTracker = serializeUsingTrackerFilter(events, fields, eventSchema);
 
     // Use JsonDiff with LENIENT mode to ignore field order differences
     assertNoDiff(actualCurrent, actualTracker, Mode.LENIENT);
   }
 
-  private String serializeUsingCurrentFilter(List<Event> events, String fields)
+  private <T> String serializeUsingCurrentFilter(List<T> objects, String fields)
       throws JsonProcessingException {
     List<FieldPath> filter = FieldFilterParser.parse(fields);
-    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(events, filter);
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(objects, filter);
     return objectMapper.writeValueAsString(objectNodes);
   }
 
-  private String serializeUsingTrackerFilter(List<Event> events, String fieldsInput)
+  private <T> String serializeUsingTrackerFilter(List<T> objects, String fieldsInput, Schema schema)
       throws JsonProcessingException {
     Fields fields =
-        FieldsParser.parse(fieldsInput, eventSchema, schemaFieldsPresets::getSchema, PRESETS);
+        FieldsParser.parse(fieldsInput, schema, schemaFieldsPresets::getSchema, PRESETS);
     return filterMapper
         .writer()
         .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
-        .writeValueAsString(events);
+        .writeValueAsString(objects);
   }
 
   static List<Event> createEvents(int n) {
@@ -327,5 +357,33 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                     .build()))
         .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
         .build();
+  }
+
+  static List<OrganisationUnit> createOrganisationUnits(int n) {
+    List<OrganisationUnit> orgUnits = new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      orgUnits.add(createOrganisationUnit((char) ('A' + i)));
+    }
+    return orgUnits;
+  }
+
+  public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
+    OrganisationUnit unit = new OrganisationUnit();
+    unit.setAutoFields();
+    unit.setUid(UID.generate().getValue());
+    unit.setName("OrganisationUnit" + uniqueCharacter);
+    unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
+    unit.setCode("OrganisationUnitCode" + uniqueCharacter);
+    unit.setOpeningDate(java.util.Date.from(DATE));
+    unit.setComment("Comment" + uniqueCharacter);
+    unit.setGeometry(GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12)));
+    unit.setDescription("Description for OrganisationUnit " + uniqueCharacter);
+    unit.setEmail("orgunit" + uniqueCharacter + "@example.com");
+    unit.setPhoneNumber("+123456789" + uniqueCharacter);
+    unit.setAddress("Address " + uniqueCharacter);
+    unit.setContactPerson("Contact Person " + uniqueCharacter);
+    unit.setUrl("https://example.com/orgunit" + uniqueCharacter);
+    unit.updatePath();
+    return unit;
   }
 }
