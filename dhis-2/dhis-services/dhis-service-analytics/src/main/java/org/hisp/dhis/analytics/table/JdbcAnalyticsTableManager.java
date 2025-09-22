@@ -241,7 +241,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       resourceTableService.generateDataApprovalResourceTables();
 
       if (analyticsTableSettings.isAnalyticsDatabase()) {
-        resourceTableService.replicateAnalyticsResourceTables();
+        resourceTableService.replicateDataApprovalResourceTables();
       }
     }
   }
