@@ -29,24 +29,18 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
-import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
@@ -60,16 +54,8 @@ import org.springframework.stereotype.Component;
  * Handles common tracker requests like
  *
  * <ul>
- *   <li>serving `fields` filtered JSON
  *   <li>serving files and images given a {@link FileResourceStream}
  * </ul>
- *
- * <p>The tracker equivalent for serving `fields` filtered JSON is {@link
- * org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController#getObjectListInternal}. Tracker
- * can currently not reuse the {@link org.hisp.dhis.common.Pager} as not all tracker endpoints
- * support or should support getting totals. Tracker exporters also do not return totals by default.
- * Metadata does not allow disabling totals. This is the reason why we are not reusing the {@code
- * StreamingJsonRoot}.
  */
 @Component
 @RequiredArgsConstructor
@@ -78,8 +64,6 @@ public class RequestHandler {
       CacheControl.noCache().cachePrivate();
 
   private final DhisConfigurationProvider dhisConfig;
-
-  private final FieldFilterService fieldFilterService;
 
   public ResponseEntity<InputStreamResource> serve(
       HttpServletRequest request, FileResourceStream file)
@@ -109,32 +93,5 @@ public class RequestHandler {
             HttpHeaders.CONTENT_DISPOSITION, ResponseHeader.contentDispositionInline(file.name()))
         .contentLength(content.length())
         .body(new InputStreamResource(content.stream()));
-  }
-
-  public <T> ResponseEntity<Page<ObjectNode>> serve(
-      HttpServletRequest request,
-      String key,
-      org.hisp.dhis.tracker.Page<T> page,
-      FieldsRequestParam fieldParams) {
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-            Page.withPager(
-                key,
-                page.withMappedItems(
-                    i -> fieldFilterService.toObjectNode(i, fieldParams.getFields())),
-                getRequestURL(request)));
-  }
-
-  public <T> ResponseEntity<Page<ObjectNode>> serve(
-      String key, List<T> items, FieldsRequestParam fieldsParam) {
-    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(items, fieldsParam.getFields());
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(Page.withoutPager(key, objectNodes));
-  }
-
-  public <T> ResponseEntity<ObjectNode> serve(T item, List<FieldPath> fields) {
-    return ResponseEntity.ok(fieldFilterService.toObjectNode(item, fields));
   }
 }
