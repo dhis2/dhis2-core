@@ -2134,6 +2134,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 """
             {
                 'name': 'Lazy Test Group Set',
+                'shortName': 'LTGS',
                 'indicatorGroups': [{'id': '%s'}]
             }
             """
