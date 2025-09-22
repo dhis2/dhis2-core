@@ -73,6 +73,18 @@ public interface FileResourceService {
   List<FileResource> getOrphanedFileResources();
 
   /**
+   * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
+   * config of scheduling type ONCE_ASAP.
+   *
+   * <p>The intention here is to find unassigned file resources that have no corresponding job
+   * config, of scheduling type ONCE_ASAP. We assume that this means these JOB_DATA file resources
+   * are no longer needed and should be cleaned up.
+   *
+   * @return matching FileResources
+   */
+  List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
+
+  /**
    * Lookup a {@link FileResource} by storage key property.
    *
    * @param storageKey key to look up
