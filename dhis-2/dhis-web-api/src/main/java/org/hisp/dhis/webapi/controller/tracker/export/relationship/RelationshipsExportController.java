@@ -32,10 +32,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.hisp.dhis.common.OpenApi;
@@ -43,26 +43,26 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(org.hisp.dhis.relationship.Relationship.class)
+@OpenApi.EntityType(org.hisp.dhis.webapi.controller.tracker.view.Relationship.class)
 @OpenApi.Document(
-    entity = org.hisp.dhis.relationship.Relationship.class,
+    entity = org.hisp.dhis.webapi.controller.tracker.view.Relationship.class,
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
@@ -75,21 +75,8 @@ class RelationshipsExportController {
 
   private final RelationshipService relationshipService;
 
-  private final RelationshipRequestParamsMapper mapper;
-
-  private final RequestHandler requestHandler;
-
-  private final FieldFilterService fieldFilterService;
-
-  public RelationshipsExportController(
-      RelationshipService relationshipService,
-      RelationshipRequestParamsMapper mapper,
-      RequestHandler requestHandler,
-      FieldFilterService fieldFilterService) {
+  public RelationshipsExportController(RelationshipService relationshipService) {
     this.relationshipService = relationshipService;
-    this.requestHandler = requestHandler;
-    this.mapper = mapper;
-    this.fieldFilterService = fieldFilterService;
 
     assertUserOrderableFieldsAreSupported(
         "relationship",
@@ -104,11 +91,12 @@ class RelationshipsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getRelationships(
+  FilteredPage<Relationship> getRelationships(
       RelationshipRequestParams requestParams, HttpServletRequest request)
       throws NotFoundException, BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
-    RelationshipOperationParams operationParams = mapper.map(requestParams);
+    RelationshipOperationParams operationParams =
+        RelationshipRequestParamsMapper.map(requestParams);
 
     if (requestParams.isPaging()) {
       PageParams pageParams =
@@ -120,7 +108,8 @@ class RelationshipsExportController {
       org.hisp.dhis.tracker.Page<Relationship> page =
           relationshipsPage.withMappedItems(RELATIONSHIP_MAPPER::map);
 
-      return requestHandler.serve(request, RELATIONSHIPS, page, requestParams);
+      return new FilteredPage<>(
+          Page.withPager(RELATIONSHIPS, page, getRequestURL(request)), requestParams.getFields());
     }
 
     List<Relationship> relationships =
@@ -128,25 +117,24 @@ class RelationshipsExportController {
             .map(RELATIONSHIP_MAPPER::map)
             .toList();
 
-    return requestHandler.serve(RELATIONSHIPS, relationships, requestParams);
+    return new FilteredPage<>(
+        Page.withoutPager(RELATIONSHIPS, relationships), requestParams.getFields());
   }
 
   @GetMapping("/{uid}")
   @OpenApi.Response(Relationship.class)
-  ResponseEntity<ObjectNode> getRelationshipByUid(
+  FilteredEntity<Relationship> getRelationshipByUid(
       @OpenApi.Param({UID.class, org.hisp.dhis.relationship.Relationship.class}) @PathVariable
           UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
-          List<FieldPath> fields)
+          Fields fields)
       throws NotFoundException, ForbiddenException {
     RelationshipFields relationshipFields =
-        RelationshipFields.of(
-            f -> fieldFilterService.filterIncludes(Relationship.class, fields, f),
-            FieldPath.FIELD_PATH_SEPARATOR);
+        RelationshipFields.of(fields::includes, FieldPath.FIELD_PATH_SEPARATOR);
 
     Relationship relationship =
         RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid, relationshipFields));
 
-    return requestHandler.serve(relationship, fields);
+    return new FilteredEntity<>(relationship, fields);
   }
 }
