@@ -473,7 +473,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             left join analytics_rs_dataapprovalminlevel da \
             on des.workflowid=da.workflowid and da.periodid=dv.periodid \
             and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-            and (""");
+            and (\
+            """);
 
     List<OrganisationUnitLevel> levels =
         dataApprovalLevelService.getOrganisationUnitApprovalLevels().stream()
