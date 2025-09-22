@@ -1902,7 +1902,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(2, indicators.size());
 
     // Verify bi-directional relationship
-    JsonObject indicator1 = GET("/indicators/" + indicator1Id).content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject indicator1 =
+        GET("/indicators/" + indicator1Id).content(HttpStatus.OK).as(JsonObject.class);
     JsonArray indicator1Groups = indicator1.getArray("indicatorGroups");
     assertNotNull(indicator1Groups);
     assertEquals(1, indicator1Groups.size());
@@ -1996,7 +1997,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.OK,
         PATCH(
             "/indicatorGroups/" + groupId,
-            "[{'op': 'add', 'path': '/indicators/-', 'value': { 'id': '" + indicator3Id + "' } }]"));
+            "[{'op': 'add', 'path': '/indicators/-', 'value': { 'id': '"
+                + indicator3Id
+                + "' } }]"));
 
     // Verify all three indicators are now in the group
     JsonObject group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
@@ -2015,9 +2018,10 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     // Verify the correct indicators are present
     JsonArray remainingIndicators = group.getArray("indicators");
-    List<String> remainingIds = List.of(
-        remainingIndicators.getObject(0).getString("id").string(),
-        remainingIndicators.getObject(1).getString("id").string());
+    List<String> remainingIds =
+        List.of(
+            remainingIndicators.getObject(0).getString("id").string(),
+            remainingIndicators.getObject(1).getString("id").string());
     assertTrue(remainingIds.contains(indicator2Id));
     assertTrue(remainingIds.contains(indicator3Id));
     assertFalse(remainingIds.contains(indicator1Id));
@@ -2070,7 +2074,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     .formatted(group1Id, group2Id)));
 
     // Verify the groups are in the group set
-    JsonObject groupSet = GET("/indicatorGroupSets/" + groupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject groupSet =
+        GET("/indicatorGroupSets/" + groupSetId).content(HttpStatus.OK).as(JsonObject.class);
     JsonArray groupsInSet = groupSet.getArray("indicatorGroups");
     assertNotNull(groupsInSet);
     assertEquals(2, groupsInSet.size());
@@ -2090,12 +2095,12 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Should create IndicatorGroup with Indicators and verify lazy loading of collections")
+  @DisplayName(
+      "Should create IndicatorGroup with Indicators and verify lazy loading of collections")
   void testIndicatorGroupWithIndicators() {
     String indicatorTypeId =
         assertStatus(
-            HttpStatus.CREATED,
-            POST("/indicatorTypes/", "{'name': 'Basic Type', 'factor': 1}"));
+            HttpStatus.CREATED, POST("/indicatorTypes/", "{'name': 'Basic Type', 'factor': 1}"));
 
     String indicatorId =
         assertStatus(

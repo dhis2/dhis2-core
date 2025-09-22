@@ -203,9 +203,9 @@ public class IndicatorGroup extends BaseMetadataObject
   @Override
   public boolean equals(Object obj) {
     return this == obj
-           || !(!(obj instanceof IdentifiableObject)
-                || getRealClass(this) != getRealClass(obj)
-                || !typedEquals((IdentifiableObject) obj));
+        || !(!(obj instanceof IdentifiableObject)
+            || getRealClass(this) != getRealClass(obj)
+            || !typedEquals((IdentifiableObject) obj));
   }
 
   /**
