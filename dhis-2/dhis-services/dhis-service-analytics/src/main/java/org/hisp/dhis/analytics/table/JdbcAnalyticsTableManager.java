@@ -49,6 +49,7 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -422,52 +423,69 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Returns the approval select expression based on the given year.
+   * Checks whether data approval is enabled for analytics for the current configuration and given
+   * data year. If enabled, returns the approval select expression based on the given year. If
+   * disabled, returns the higest possible data approval level as a string.
    *
    * @param year the year.
    * @return the approval select expression.
    */
   private String getApprovalSelectExpression(Integer year) {
     if (isApprovalEnabled(year)) {
-      return replace(
-          "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, ${approvalLevel})",
-          Map.of(
-              "approvalLevel", String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED)));
+      return getApprovalSelectExpression();
     } else {
       return String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST);
     }
   }
 
   /**
-   * Returns sub-query for approval level. First looks for approval level in data element resource
-   * table which will indicate level 0 (highest) if approval is not required. Then looks for highest
-   * level in dataapproval table.
+   * Returns a data approval select expression.
+   *
+   * @return a data approval select expression.
+   */
+  String getApprovalSelectExpression() {
+    return String.format(
+        "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, %d)",
+        DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED);
+  }
+
+  /**
+   * Checks whether data approval is enabled for analytics for the current configuration and given
+   * data year. If enabled, returns sub-query for approval level. First looks for approval level in
+   * data element resource table which will indicate level 0 (highest) if approval is not required.
+   * Then looks for highest level in dataapproval table. If disabled, returns an empty string.
    *
    * @param year the data year.
    */
   private String getApprovalJoinClause(Integer year) {
-    if (isApprovalEnabled(year)) {
-      StringBuilder sql =
-          new StringBuilder(
-              """
-              left join analytics_rs_dataapprovalminlevel da \
-              on des.workflowid=da.workflowid and da.periodid=dv.periodid \
-              and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (""");
+    return isApprovalEnabled(year) ? getApprovalJoinClause() : StringUtils.EMPTY;
+  }
 
-      Set<OrganisationUnitLevel> levels =
-          dataApprovalLevelService.getOrganisationUnitApprovalLevels();
+  /**
+   * Returns a data approval join clause.
+   *
+   * @return a data approval join clause.
+   */
+  String getApprovalJoinClause() {
+    StringBuilder sql =
+        new StringBuilder(
+            """
+            left join analytics_rs_dataapprovalminlevel da \
+            on des.workflowid=da.workflowid and da.periodid=dv.periodid \
+            and da.attributeoptioncomboid=dv.attributeoptioncomboid \
+            and (""");
 
-      sql.append(
-          levels.stream()
-              .map(
-                  level -> String.format("ous.idlevel%d = da.organisationunitid", level.getLevel()))
-              .collect(Collectors.joining(" or ")));
+    List<OrganisationUnitLevel> levels =
+        dataApprovalLevelService.getOrganisationUnitApprovalLevels().stream()
+            .sorted(Comparator.comparing(OrganisationUnitLevel::getLevel))
+            .toList();
 
-      return sql.append(") ").toString();
-    }
+    sql.append(
+        levels.stream()
+            .map(level -> String.format("ous.idlevel%d = da.organisationunitid", level.getLevel()))
+            .collect(Collectors.joining(" or ")));
 
-    return StringUtils.EMPTY;
+    return sql.append(") ").toString();
   }
 
   /**
