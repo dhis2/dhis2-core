@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -289,5 +291,30 @@ class JdbcAnalyticsTableManagerTest {
     assertEquals("analytics_2023", swappedPartition.getName());
 
     verify(sqlBuilder).swapParentTable(swappedPartition, "analytics_temp", "analytics");
+  }
+
+  @Test
+  void testGetApprovalSelectExpression() {
+    String expected = "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, 999)";
+
+    assertEquals(expected, subject.getApprovalSelectExpression());
+  }
+
+  @Test
+  void testGetApprovalJoinClause() {
+    when(dataApprovalLevelService.getOrganisationUnitApprovalLevels())
+        .thenReturn(
+            Set.of(
+                new OrganisationUnitLevel(1, "National"),
+                new OrganisationUnitLevel(3, "District")));
+
+    String expected =
+        """
+        left join analytics_rs_dataapprovalminlevel da on des.workflowid=da.workflowid \
+        and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid \
+        and (ous.idlevel1 = da.organisationunitid or ous.idlevel3 = da.organisationunitid) \
+        """;
+
+    assertEquals(expected, subject.getApprovalJoinClause());
   }
 }
