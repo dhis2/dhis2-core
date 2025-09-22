@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
@@ -40,9 +42,11 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +59,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class EnrollmentAnalyticsDimensionsServiceTest {
   @Mock private ProgramService programService;
+  @Mock private AclService aclService;
 
   @InjectMocks
   private DefaultEnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
@@ -63,13 +68,26 @@ class EnrollmentAnalyticsDimensionsServiceTest {
   void setup() {
     injectSecurityContextNoSettings(new SystemUser());
 
-    Program program = mock(Program.class);
-
-    when(programService.getProgram(any())).thenReturn(program);
+    when(programService.getProgram(any())).thenReturn(mock(Program.class));
   }
 
   @Test
   void testQueryDoesntContainDisallowedValueTypes() {
+    // Prepare program with a stage and TEAs
+    Program program = mock(Program.class);
+    when(programService.getProgram("anUid")).thenReturn(program);
+    when(program.isRegistration()).thenReturn(true);
+    when(program.getProgramIndicators()).thenReturn(java.util.Collections.emptySet());
+
+    ProgramStage stage = new ProgramStage();
+    stage.setProgram(program);
+    stage.setProgramStageDataElements(
+        allValueTypeDataElements().stream()
+            .map(de -> new ProgramStageDataElement(stage, de))
+            .collect(java.util.stream.Collectors.toSet()));
+    when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
+    when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
+
     List<BaseIdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
@@ -77,8 +95,8 @@ class EnrollmentAnalyticsDimensionsServiceTest {
 
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof DataElement)
-            .map(de -> ((DataElement) de).getValueType())
+            .filter(b -> b instanceof ProgramStageDataElement)
+            .map(psde -> ((ProgramStageDataElement) psde).getDataElement().getValueType())
             .noneMatch(queryDisallowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
@@ -89,22 +107,43 @@ class EnrollmentAnalyticsDimensionsServiceTest {
 
   @Test
   void testAggregateOnlyContainsAllowedValueTypes() {
+    // Prepare program with stages having all value type data elements
+    Program program = mock(Program.class);
+    when(programService.getProgram("anUid")).thenReturn(program);
+
+    ProgramStage stage = new ProgramStage();
+    stage.setProgram(program);
+    stage.setProgramStageDataElements(
+        allValueTypeDataElements().stream()
+            .map(de -> new ProgramStageDataElement(stage, de))
+            .collect(java.util.stream.Collectors.toSet()));
+    when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
+    when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
+
     List<BaseIdentifiableObject> analyticsDimensions =
-        enrollmentAnalyticsDimensionsService
-            .getAggregateDimensionsByProgramStageId("anUid")
-            .stream()
+        enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
             .toList();
 
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof DataElement)
-            .map(de -> ((DataElement) de).getValueType())
+            .filter(b -> b instanceof ProgramStageDataElement)
+            .map(psde -> ((ProgramStageDataElement) psde).getDataElement().getValueType())
             .allMatch(aggregateAllowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
             .filter(b -> b instanceof TrackedEntityAttribute)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .allMatch(aggregateAllowedValueTypesPredicate()));
+  }
+
+  @Test
+  void testAggregateByProgramReturnsEmptyWhenProgramNotFound() {
+    when(programService.getProgram(""))
+        .thenReturn(null); // override any() default for this specific case
+
+    List<PrefixedDimension> dims =
+        enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramId("");
+    assertTrue(dims.isEmpty());
   }
 }

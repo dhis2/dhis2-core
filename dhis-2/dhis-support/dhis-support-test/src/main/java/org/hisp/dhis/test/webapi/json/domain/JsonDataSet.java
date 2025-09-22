@@ -27,12 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import lombok.experimental.UtilityClass;
+import org.hisp.dhis.jsontree.JsonList;
 
-@UtilityClass
-public class ColumnSuffix {
-  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
-  public static final String OU_NAME_COL_SUFFIX = "_name";
+/** Web API equivalent of a {@link org.hisp.dhis.dataset.DataSet}. */
+public interface JsonDataSet extends JsonIdentifiableObject {
+
+  default JsonList<JsonDataSetElement> getDatSetElements() {
+    return getList("dataSetElements", JsonDataSetElement.class);
+  }
+
+  default JsonList<JsonIndicator> getIndicators() {
+    return getList("indicators", JsonIndicator.class);
+  }
+
+  default JsonList<JsonSection> getSections() {
+    return getList("sections", JsonSection.class);
+  }
 }
