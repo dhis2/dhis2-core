@@ -235,6 +235,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void preCreateTables(AnalyticsTableUpdateParams params) {
     if (isApprovalEnabled(null)) {
       resourceTableService.generateDataApprovalResourceTables();
+
+      if (analyticsTableSettings.isAnalyticsDatabase()) {
+        resourceTableService.replicateDataApprovalResourceTables();
+      }
     }
   }
 
