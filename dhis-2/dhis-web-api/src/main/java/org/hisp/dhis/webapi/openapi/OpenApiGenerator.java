@@ -80,7 +80,7 @@ public class OpenApiGenerator extends JsonGenerator {
     public static final Info DEFAULT =
         Info.builder()
             .title("DHIS2 API")
-            .version("2.42")
+            .version("2.43")
             .serverUrl("https://play.dhis2.org/dev/api")
             .licenseName("BSD 3-Clause \"New\" or \"Revised\" License")
             .licenseUrl("https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE")

@@ -31,8 +31,6 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
@@ -384,7 +382,12 @@ public class OpenApiRenderer {
   }
 
   private void renderPathOperations() {
-    appendTag("section", () -> groupedOperations().forEach(this::renderPathOperation));
+    appendTag(
+        "section",
+        () -> {
+          appendTag("h2", "Paths");
+          groupedOperations().forEach(this::renderPathOperation);
+        });
   }
 
   private void renderPathOperation(OperationsItem op) {
@@ -392,49 +395,19 @@ public class OpenApiRenderer {
     appendDetails(
         id,
         false,
-        "",
+        "paths",
         () -> {
           appendSummary(id, null, () -> renderPathOperationSummary(op));
-          op.groups().values().forEach(this::renderPathGroup);
+          op.groups().values().forEach(group -> group.operations.forEach(this::renderOperation));
         });
   }
 
   private void renderPathOperationSummary(OperationsItem op) {
     appendTag(
-        "h2",
+        "h3",
         () -> {
           appendRaw(toWords(op.entity()));
-          appendA(
-              "setLocationSearch('scope', 'entity:%s', true)".formatted(op.entity),
-              "&#x1F5D7;",
-              "");
         });
-  }
-
-  private void renderPathGroup(OperationsGroupItem group) {
-    String id = "-" + group.entity() + "-" + group.group();
-    appendDetails(
-        id,
-        true,
-        "paths",
-        () -> {
-          appendSummary(id, null, () -> renderPathGroupSummary(group));
-          group.operations().forEach(this::renderOperation);
-        });
-  }
-
-  private void renderPathGroupSummary(OperationsGroupItem group) {
-    appendTag("h3", Map.of("class", group.group()), group.group());
-
-    // TODO run this into "Query /api/x/... [12][24]" with numbers indicating GETs, PUTs and so on
-    // just by color
-    group.operations().stream()
-        .collect(groupingBy(OperationObject::operationMethod, counting()))
-        .forEach(
-            (method, count) -> {
-              appendCode(method.toUpperCase() + " http", method.toUpperCase());
-              appendTag("b", " x " + count);
-            });
   }
 
   private static String toWords(String camelCase) {
@@ -455,18 +428,8 @@ public class OpenApiRenderer {
         false,
         operationStyle(op),
         () -> {
-          appendSummary(id, op.summary(), () -> renderOperationSummary(op));
-          renderBoxToolbar(
-              () -> {
-                String declaringClass = op.x_class();
-                if (declaringClass != null) {
-                  String url =
-                      "https://github.com/dhis2/dhis2-core/blob/master/dhis-2/dhis-web-api/src/main/java/%s.java"
-                          .formatted(declaringClass.replace('.', '/'));
-                  appendTag("a", Map.of("href", url, "target", "_blank", "class", "gh"), "GH");
-                }
-              });
-          appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
+          appendSummary(id, "", () -> renderOperationSummary(op));
+          renderBoxToolbar(() -> {});
           renderLabelledValue("operationId", op.operationId());
           renderLabelledValue("since", op.x_since());
           renderLabelledValue("requires-authority", op.x_auth());
@@ -543,6 +506,19 @@ public class OpenApiRenderer {
     List<SchemaObject> successOneOf = op.responseSuccessSchemas();
     if (!successOneOf.isEmpty()) {
       renderSchemaSignature(successOneOf);
+    }
+    String summary = op.summary();
+    String desc = markdownToHTML(op.description(), op.parameterNames());
+    boolean hasSummary = summary != null && !summary.isEmpty();
+    boolean hasDesc = desc != null && !desc.isEmpty();
+    if (hasSummary || hasDesc) {
+      appendTag(
+          "article",
+          Map.of("class", "desc"),
+          () -> {
+            if (hasSummary) appendTag("p", summary);
+            if (hasDesc) appendRaw(desc);
+          });
     }
   }
 
@@ -711,9 +687,24 @@ public class OpenApiRenderer {
         "response",
         () -> {
           appendSummary(id, null, () -> renderResponseSummary(code, response));
+          String desc = response.description();
+          if (isResponseAlreadySummarised(response)) return;
           renderMediaTypes(id, "response", response.content());
-          renderMarkdown(response.description(), op.parameterNames());
+          renderMarkdown(desc, op.parameterNames());
         });
+  }
+
+  private static boolean isResponseAlreadySummarised(ResponseObject response) {
+    String desc = response.description();
+    JsonMap<MediaTypeObject> content = response.content();
+    boolean contentTypeDoesNotRequireDetails =
+        !content.exists() || content.isEmpty() || content.size() == 1;
+    if (contentTypeDoesNotRequireDetails && content.exists() && content.size() == 1) {
+      SchemaObject schema = content.get(content.names().get(0)).schema();
+      contentTypeDoesNotRequireDetails =
+          schema.isRef() || !(schema.isObjectType() || schema.isArrayType());
+    }
+    return contentTypeDoesNotRequireDetails && (desc == null || desc.isEmpty() || "?".equals(desc));
   }
 
   private void renderResponseSummary(String code, ResponseObject response) {
@@ -878,6 +869,7 @@ public class OpenApiRenderer {
     appendTag(
         "section",
         () -> {
+          appendTag("h2", "Schemas");
           for (SchemasItem kind : groupedSchemas()) {
             String id = "--" + kind.kind;
             appendDetails(
@@ -887,7 +879,7 @@ public class OpenApiRenderer {
                 () -> {
                   String words = toWords(kind.kind);
                   String plural = words.endsWith("s") ? words : words + "s";
-                  appendSummary(id, "", () -> appendTag("h2", plural));
+                  appendSummary(id, "", () -> appendTag("h3", plural));
                   kind.schemas.forEach(this::renderComponentSchema);
                 });
           }
