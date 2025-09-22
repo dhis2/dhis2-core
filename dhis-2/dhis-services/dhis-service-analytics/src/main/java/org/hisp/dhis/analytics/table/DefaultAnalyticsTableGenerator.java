@@ -150,12 +150,10 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   @Override
   public void generateResourceTables(JobProgress progress) {
     final Clock clock = new Clock().startClock();
-
     progress.startingProcess("Generating resource tables");
 
     try {
       generateResourceTablesInternal(progress);
-
       progress.completedProcess("Resource tables generated: {}", clock.time());
     } catch (RuntimeException ex) {
       progress.failedProcess("Resource tables generation: {}", ex.getMessage());
