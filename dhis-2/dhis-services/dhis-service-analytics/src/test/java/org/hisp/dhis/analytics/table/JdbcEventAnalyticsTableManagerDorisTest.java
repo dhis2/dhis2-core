@@ -206,7 +206,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     String aliasG =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) end as `%s`";
     String legendsetAlias =
-        " (select l.uid   from   dhis2.public.`maplegend` l   join   trackedentityattributevalue av          on av.trackedentityattributeid=0          and value regexp '^(-?[0-9]+)(\\.[0-9]+)?$'         and l.maplegendsetid=0         and l.startvalue <= CAST(av.value AS DECIMAL)         and l.endvalue   > CAST(av.value AS DECIMAL)   where av.trackedentityid = en.trackedentityid   limit  1) as %s";
+        " (select l.uid   from   dhis2.public.`maplegend` l   join   dhis2.public.`trackedentityattributevalue` av          on av.trackedentityattributeid=0          and value regexp '^(-?[0-9]+)(\\.[0-9]+)?$'         and l.maplegendsetid=0         and l.startvalue <= CAST(av.value AS DECIMAL)         and l.endvalue   > CAST(av.value AS DECIMAL)   where av.trackedentityid = en.trackedentityid   limit  1) as %s";
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()

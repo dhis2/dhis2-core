@@ -32,7 +32,9 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
@@ -302,14 +304,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String programStageId =
         String.valueOf(
             program.isSingleProgramStage()
-                ? program.getProgramStages().stream().collect(toList()).get(0).getId()
+                ? program.getProgramStages().stream().toList().get(0).getId()
                 : EMPTY);
     String sql =
         replaceQualify(
             sqlBuilder,
             """
                 select ev.eventid \
-                from singleevent ev \
+                from ${singleevent} ev \
                 where ev.programstageid = ${programStageId} \
                 and ev.lastupdated >= '${startDate}' \
                 and ev.lastupdated < '${endDate}' \
@@ -336,8 +338,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             sqlBuilder,
             """
                 select ev.eventid \
-                from trackerevent ev \
-                inner join enrollment en on ev.enrollmentid=en.enrollmentid \
+                from ${trackerevent} ev \
+                inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
                 where en.programid = ${programId} \
                 and ev.lastupdated >= '${startDate}' \
                 and ev.lastupdated < '${endDate}' \
@@ -354,7 +356,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
       AnalyticsTablePartition partition = table.getLatestTablePartition();
-      String sql;
+      String sql = null;
       Program program = table.getProgram();
 
       if (table.getProgram().isRegistration()) {
@@ -365,8 +367,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     delete from ${tableName} ax \
                     where ax.event in ( \
                     select ev.uid \
-                    from trackerevent ev \
-                    inner join enrollment en on ev.enrollmentid=en.enrollmentid \
+                    from ${trackerevent} ev \
+                    inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
                     where en.programid = ${programId} \
                     and ev.lastupdated >= '${startDate}' \
                     and ev.lastupdated < '${endDate}');""",
@@ -376,30 +378,36 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     "startDate", toLongDate(partition.getStartDate()),
                     "endDate", toLongDate(partition.getEndDate())));
       } else {
-        String programStageId =
-            String.valueOf(
-                program.isSingleProgramStage()
-                    ? program.getProgramStages().stream().collect(toList()).get(0).getId()
-                    : EMPTY);
-        sql =
-            replaceQualify(
-                sqlBuilder,
-                """
+        if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
+          log.warn("Single event program {}, must have one stage", program.getUid());
+        } else {
+          String programStageId =
+              String.valueOf(
+                  program.isSingleProgramStage()
+                      ? program.getProgramStages().stream().toList().get(0).getId()
+                      : EMPTY);
+          sql =
+              replaceQualify(
+                  sqlBuilder,
+                  """
                     delete from ${tableName} ax \
                     where ax.event in ( \
                     select ev.uid \
-                    from singleevent ev \
+                    from ${singleevent} ev \
                     where ev.programstageid = ${programStageId} \
                     and ev.lastupdated >= '${startDate}' \
                     and ev.lastupdated < '${endDate}');""",
-                Map.of(
-                    "tableName", sqlBuilder.qualifyTable(table.getName()),
-                    "programStageId", String.valueOf(programStageId),
-                    "startDate", toLongDate(partition.getStartDate()),
-                    "endDate", toLongDate(partition.getEndDate())));
+                  Map.of(
+                      "tableName", sqlBuilder.qualifyTable(table.getName()),
+                      "programStageId", String.valueOf(programStageId),
+                      "startDate", toLongDate(partition.getStartDate()),
+                      "endDate", toLongDate(partition.getEndDate())));
+        }
       }
 
-      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
+      if (isNotBlank(sql)) {
+        invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
+      }
     }
   }
 
@@ -457,7 +465,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String programStageId =
         String.valueOf(
             program.isSingleProgramStage()
-                ? program.getProgramStages().stream().collect(toList()).get(0).getId()
+                ? program.getProgramStages().stream().toList().get(0).getId()
                 : EMPTY);
     String fromClauseSingleEvent =
         replaceQualify(
@@ -770,7 +778,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         """
             \s(select l.uid \
               from   ${maplegend} l \
-              join   trackedentityattributevalue av \
+              join   ${trackedentityattributevalue} av \
                      on av.trackedentityattributeid=${attributeId} \
                     ${numericClause} \
                     and l.maplegendsetid=${legendSetId} \
@@ -824,7 +832,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String query =
         """
-        (select l.uid from maplegend l \
+        (select l.uid from ${maplegend} l \
         inner join ${eventTable} on l.startvalue <= ${select} \
         and l.endvalue > ${select} \
         and l.maplegendsetid=${legendSetId} \
@@ -941,7 +949,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String programStageId =
         String.valueOf(
             program.isSingleProgramStage()
-                ? program.getProgramStages().stream().collect(toList()).get(0).getId()
+                ? program.getProgramStages().stream().toList().get(0).getId()
                 : EMPTY);
     return replaceQualify(
         sqlBuilder,

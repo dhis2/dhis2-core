@@ -36,10 +36,9 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -121,7 +120,7 @@ public class PeriodDataProvider {
    * @return the list of distinct years found in the database, or current year.
    */
   private List<Integer> fetchAvailableYears() {
-    Set<Integer> distinctYears = new HashSet<>();
+    List<Integer> distinctYears = new UniqueArrayList<>();
 
     String dueDateOrExecutionDate =
         "(case when 'SCHEDULE' = ev.status then ev.scheduleddate else ev.occurreddate end)";
@@ -138,7 +137,7 @@ public class PeriodDataProvider {
             + " where "
             + dueDateOrExecutionDate
             + " is not null"
-            + " and ev.deleted is false ) order by datayear asc";
+            + " and ev.deleted is false )";
 
     String sqlSingleEvents =
         "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
@@ -147,8 +146,7 @@ public class PeriodDataProvider {
             + " union"
             + " ( select distinct (extract(year from ev.occurreddate)) as datayear"
             + " from singleevent ev"
-            + " where ev.occurreddate is not null"
-            + " and ev.deleted is false ) order by datayear asc";
+            + " where ev.deleted is false )";
 
     distinctYears.addAll(jdbcTemplate.queryForList(sqlTrackerEvents, Integer.class));
     distinctYears.addAll(jdbcTemplate.queryForList(sqlSingleEvents, Integer.class));
@@ -156,7 +154,8 @@ public class PeriodDataProvider {
     if (isEmpty(distinctYears)) {
       distinctYears.add(now().getYear());
     }
+    sort(distinctYears);
 
-    return distinctYears.stream().toList();
+    return distinctYears;
   }
 }
