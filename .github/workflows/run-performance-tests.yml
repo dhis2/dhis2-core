@@ -1,0 +1,60 @@
+name: Performance Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ tracker-performance-test-ci ]
+
+jobs:
+  performance-tests:
+    runs-on: perf
+
+    steps:
+    - name: Checkout performance tests
+      uses: actions/checkout@v4
+      with:
+        repository: teleivo/performance-tests-gatling
+        ref: tracker-exporter-tests
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Start DHIS2
+      run: |
+        DHIS2_IMAGE=dhis2/core:42.0 \
+        DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.42.0/dhis2-db-sierra-leone.sql.gz \
+        docker compose up --detach
+
+    - name: Wait for DHIS2 to be ready
+      run: |
+        echo "Waiting for DHIS2 to start..."
+        timeout 300 bash -c 'until docker compose ps web-healthcheck | grep -q "healthy"; do sleep 10; echo "Still waiting..."; done'
+        echo "DHIS2 is ready!"
+
+    - name: Run performance tests
+      run: |
+        mvn clean gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.EnrollmentsTest
+
+    - name: Upload Gatling report
+      if: always() # reports should always be uploaded as tests can fail due to our performance assertions
+      uses: actions/upload-artifact@v4
+      with:
+        name: gatling-report-${{ github.run_id }}-${{ github.sha }}
+        path: |
+          target/gatling/
+          !target/gatling/lastRun.txt
+
+    - name: Cleanup
+      if: always()
+      run: docker compose down --volumes
+
