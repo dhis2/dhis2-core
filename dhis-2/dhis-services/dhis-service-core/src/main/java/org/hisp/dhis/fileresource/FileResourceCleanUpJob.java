@@ -110,7 +110,7 @@ public class FileResourceCleanUpJob implements Job {
 
     // Delete unassigned JOB_DATA file resources that have no associated job config
     List<FileResource> unassignedJobDataFileResources =
-        fileResourceService.getUnassignedFileResourcesByJobDataDomain();
+        fileResourceService.getAllUnassignedByJobDataDomainWithNoJobConfig();
     progress.startingStage(
         "Deleting JOB_DATA file resources associated with deleted ONCE_ASAP jobs",
         unassignedJobDataFileResources.size(),

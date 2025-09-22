@@ -138,7 +138,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<FileResource> getUnassignedFileResourcesByJobDataDomain() {
+  public List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig() {
     return fileResourceStore.getAllUnassignedByJobDataDomainWithNoJobConfig();
   }
 

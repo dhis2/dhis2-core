@@ -84,7 +84,7 @@ public interface FileResourceService {
    *
    * @return matching FileResources
    */
-  List<FileResource> getUnassignedFileResourcesByJobDataDomain();
+  List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
 
   /**
    * Lookup a {@link FileResource} by storage key property.
