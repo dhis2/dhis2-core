@@ -228,10 +228,10 @@ public class DefaultResourceTableService implements ResourceTableService {
         String errorMessage =
             String.format(
                 """
-            Database contains years outside of the allowed offset. \
-            Years in allowed range: %d \
-            Years out of range: %d\
-            """,
+                Database contains years outside of the allowed offset. \
+                Years in allowed range: %d \
+                Years out of range: %d\
+                """,
                 yearsInRange, yearsOutOfRange);
 
         log.warn(errorMessage);
