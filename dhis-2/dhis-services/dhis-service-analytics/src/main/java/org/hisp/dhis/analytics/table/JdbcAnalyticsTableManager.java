@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -71,7 +72,6 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
@@ -458,14 +458,16 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
 
-      for (OrganisationUnitLevel level : levels) {
-        sql.append(
-            replace(
-                "ous.idlevel ${level} = da.organisationunitid or",
-                Map.of("level", String.valueOf(level.getLevel()))));
-      }
+      sql.append(
+          levels.stream()
+              .map(
+                  level ->
+                      replace(
+                          "ous.idlevel${level} = da.organisationunitid",
+                          Map.of("level", String.valueOf(level.getLevel()))))
+              .collect(Collectors.joining(" or ")));
 
-      return TextUtils.removeLastOr(sql.toString()) + ") ";
+      return sql.append(") ").toString();
     }
 
     return StringUtils.EMPTY;
