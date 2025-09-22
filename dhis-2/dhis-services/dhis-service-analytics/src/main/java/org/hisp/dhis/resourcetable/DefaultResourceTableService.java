@@ -132,6 +132,12 @@ public class DefaultResourceTableService implements ResourceTableService {
     }
   }
 
+  public void replicateDataApprovalResourceTables() {
+    for (ResourceTable table : getApprovalResourceTables()) {
+      tableReplicationStore.replicateAnalyticsDatabaseTable(table.getMainTable());
+    }
+  }
+
   /**
    * Returns a list of resource tables.
    *
