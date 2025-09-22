@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -68,8 +68,7 @@ class EventsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () ->
-                new EventsExportController(eventService, null, null, null, null, null, null, null));
+            () -> new EventsExportController(eventService, null, null, null, null, null, null));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),
