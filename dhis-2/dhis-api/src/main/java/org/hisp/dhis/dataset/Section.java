@@ -127,7 +127,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
-  @Column(columnDefinition = "text")
+  @Column(name = "description", columnDefinition = "text")
   private String description;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
@@ -180,11 +180,11 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   private boolean disableDataElementAutoGroup;
 
   @Type(type = "jbPlainString")
-  @Column(length = 50000)
+  @Column(name = "displayoptions", length = 50000)
   private String displayOptions;
 
-  @Type(type = "jsbAttributeValues")
   @AuditAttribute
+  @Type(type = "jsbAttributeValues")
   private AttributeValues attributeValues = AttributeValues.empty();
 
   // -------------------------------------------------------------------------
