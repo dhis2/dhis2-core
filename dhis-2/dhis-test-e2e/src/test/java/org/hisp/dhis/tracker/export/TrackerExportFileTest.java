@@ -339,8 +339,11 @@ public class TrackerExportFileTest extends TrackerApiTest {
                 .body()
                 .asByteArray());
 
-    JsonArray eventsJson =
-        JsonParser.parseString(s.get("events.json")).getAsJsonObject().getAsJsonArray("events");
+    assertTrue(
+        s.containsKey("events.json"),
+        "zip is expected to have the event JSON under entry events.json");
+    String json = s.get("events.json");
+    JsonArray eventsJson = JsonParser.parseString(json).getAsJsonObject().getAsJsonArray("events");
 
     assertJsonOneEventSize(eventsJson);
     assertEventJson(eventsJson);
