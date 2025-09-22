@@ -51,6 +51,8 @@ public class OpenApiRenderingParams {
     directly where the type is used""")
   int inlineEnumsLimit = 0;
 
+  @OpenApi.Ignore String contextPath = "";
+
   /**
    * @return part of the overall cache key added to reflect the rendering parameters for the HTML
    *     document cache

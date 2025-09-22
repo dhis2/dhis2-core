@@ -126,6 +126,9 @@ public class OpenApiController {
     // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
 
+    // auto-set context path
+    rendering.setContextPath(request.getContextPath());
+
     getHtmlWriter(response).write(renderCached(scoping, generation, rendering));
   }
 
@@ -144,6 +147,9 @@ public class OpenApiController {
 
     // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
+
+    // auto-set context path
+    rendering.setContextPath(request.getContextPath());
 
     OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
     getHtmlWriter(response).write(renderCached(scope, generation, rendering));
