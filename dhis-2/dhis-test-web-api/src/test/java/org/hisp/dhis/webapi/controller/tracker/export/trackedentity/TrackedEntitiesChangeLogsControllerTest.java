@@ -33,14 +33,17 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -262,6 +265,17 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
     List<JsonTrackedEntityChangeLog> changeLogs = getChangeLogs(trackedEntityAttribute);
 
     assertNumberOfChanges(0, changeLogs);
+  }
+
+  @Test
+  void shouldGetTrackedEntityChangeLogsWithSimpleFieldsFilter() {
+    JsonList<JsonTrackedEntityChangeLog> changeLogs =
+        GET("/tracker/trackedEntities/{id}/changeLogs?fields=:simple", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonTrackedEntityChangeLog.class);
+
+    assertFalse(changeLogs.isEmpty(), "should have some change logs");
+    assertHasOnlyMembers(changeLogs.get(0), "createdAt", "type");
   }
 
   @Test
