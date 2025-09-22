@@ -96,21 +96,19 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   @Autowired private SchemaService schemaService;
   @Autowired private SchemaFieldsPresets schemaFieldsPresets;
 
-  private List<Event> events;
-
-  private Schema eventSchema;
-
   private List<OrganisationUnit> organisationUnits;
-
   private Schema organisationUnitSchema;
+
+  private List<Event> events;
+  private Schema eventSchema;
 
   @BeforeAll
   void setUp() {
-    events = createEvents(2);
-    eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
-
     organisationUnits = createOrganisationUnits(2);
     organisationUnitSchema = schemaService.getDynamicSchema(organisationUnits.get(0).getClass());
+
+    events = createEvents(2);
+    eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
   }
 
   @ParameterizedTest
@@ -119,12 +117,48 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "*",
         ":all",
         "!*",
-        "!:all", // should this be invalid? the exclusion is ignored and the preset is applied
+        "!:all",
         ":simple",
         ":identifiable",
         ":nameable",
         ":owner",
-        ":persisted"
+        ":persisted",
+
+        // Basic reference expansion tests
+        "dataSets",
+        "users",
+        "groups",
+        "dataSets,users",
+        "dataSets,users,groups",
+
+        // Explicit specification tests (should NOT expand)
+        "dataSets[*]",
+        "dataSets[id]",
+        "dataSets[id,name]",
+        "users[*]",
+        "dataSets[id],users",
+
+        // Exclusion + Expansion interactions
+        "*,!dataSets",
+        "*,!users",
+        "dataSets[!id]",
+        "users[!id],dataSets",
+        "*,dataSets[!id]",
+
+        // Execution order tests (preset + expansion)
+        ":identifiable,dataSets",
+        ":owner,users",
+        ":simple,dataSets[id]",
+        ":all,!dataSets",
+        "dataSets,:identifiable",
+
+        // Double-expansion prevention
+        "dataSets[*],dataSets[id]",
+        "dataSets,dataSets[id]",
+        "dataSets[id],dataSets[id]",
+
+        // Order dependency verification
+        "*,!dataSets,dataSets[id]"
       })
   void trackerFilterShouldMatchCurrentFilterOnMetadata(String fields)
       throws JsonProcessingException {
@@ -255,6 +289,34 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         .writeValueAsString(objects);
   }
 
+  static List<OrganisationUnit> createOrganisationUnits(int n) {
+    List<OrganisationUnit> orgUnits = new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      orgUnits.add(createOrganisationUnit((char) ('A' + i)));
+    }
+    return orgUnits;
+  }
+
+  public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
+    OrganisationUnit unit = new OrganisationUnit();
+    unit.setAutoFields();
+    unit.setUid(UID.generate().getValue());
+    unit.setName("OrganisationUnit" + uniqueCharacter);
+    unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
+    unit.setCode("OrganisationUnitCode" + uniqueCharacter);
+    unit.setOpeningDate(java.util.Date.from(DATE));
+    unit.setComment("Comment" + uniqueCharacter);
+    unit.setGeometry(GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12)));
+    unit.setDescription("Description for OrganisationUnit " + uniqueCharacter);
+    unit.setEmail("orgunit" + uniqueCharacter + "@example.com");
+    unit.setPhoneNumber("+123456789" + uniqueCharacter);
+    unit.setAddress("Address " + uniqueCharacter);
+    unit.setContactPerson("Contact Person " + uniqueCharacter);
+    unit.setUrl("https://example.com/orgunit" + uniqueCharacter);
+    unit.updatePath();
+    return unit;
+  }
+
   static List<Event> createEvents(int n) {
     List<Event> events = new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
@@ -357,33 +419,5 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                     .build()))
         .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
         .build();
-  }
-
-  static List<OrganisationUnit> createOrganisationUnits(int n) {
-    List<OrganisationUnit> orgUnits = new ArrayList<>(n);
-    for (int i = 0; i < n; i++) {
-      orgUnits.add(createOrganisationUnit((char) ('A' + i)));
-    }
-    return orgUnits;
-  }
-
-  public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
-    OrganisationUnit unit = new OrganisationUnit();
-    unit.setAutoFields();
-    unit.setUid(UID.generate().getValue());
-    unit.setName("OrganisationUnit" + uniqueCharacter);
-    unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
-    unit.setCode("OrganisationUnitCode" + uniqueCharacter);
-    unit.setOpeningDate(java.util.Date.from(DATE));
-    unit.setComment("Comment" + uniqueCharacter);
-    unit.setGeometry(GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12)));
-    unit.setDescription("Description for OrganisationUnit " + uniqueCharacter);
-    unit.setEmail("orgunit" + uniqueCharacter + "@example.com");
-    unit.setPhoneNumber("+123456789" + uniqueCharacter);
-    unit.setAddress("Address " + uniqueCharacter);
-    unit.setContactPerson("Contact Person " + uniqueCharacter);
-    unit.setUrl("https://example.com/orgunit" + uniqueCharacter);
-    unit.updatePath();
-    return unit;
   }
 }

@@ -45,6 +45,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.collection.CollectionUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 
 public class FieldsParser {
@@ -108,6 +110,7 @@ public class FieldsParser {
       @Nonnull Map<String, Function<Schema, Set<String>>> presets) {
     FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
     mapPresets(root, schema, getSchema, presets);
+    expandPaths(root, schema, getSchema);
     return map(root, root.includes.contains(TOKEN_ALL));
   }
 
@@ -328,6 +331,77 @@ public class FieldsParser {
       }
       mapPresets(entry.getValue(), parent, getSchema, presets);
     }
+  }
+
+  /**
+   * Expands paths for metadata objects similar to FieldPathHelper.applyDefaults(). For reference
+   * objects: expands "dataSets" to "dataSets.id" For complex objects: expands "complexField" to
+   * "complexField[*]" Only applies to objects with proper metadata schemas. Tracker view classes
+   * and other objects without registered schemas are automatically skipped.
+   */
+  private static void expandPaths(
+      FieldsAccumulator acc, Schema schema, BiFunction<Schema, String, Schema> getSchema) {
+    if (schema == null) {
+      // No schema available - skip expansion
+      return;
+    }
+
+    Set<String> fieldsToExpand = new HashSet<>();
+    Set<String> expandedFields = new HashSet<>();
+
+    for (String fieldName : acc.includes) {
+      if (fieldName.equals(TOKEN_ALL)) {
+        continue; // Skip *
+      }
+      // Note: Valid presets like :identifiable have already been expanded by mapPresets()
+      // Any remaining :prefixed fields are invalid and will be treated as regular field names
+
+      Property property = schema.getProperty(fieldName);
+      if (property == null) {
+        continue; // Invalid field
+      }
+
+      // Check if this field needs expansion and doesn't already have children
+      if (needsExpansion(property) && !acc.children.containsKey(fieldName)) {
+        fieldsToExpand.add(fieldName);
+
+        if (isReference(property)) {
+          // Reference objects expand to .id
+          expandedFields.add(fieldName);
+          FieldsAccumulator child = acc.getOrCreateChild(fieldName);
+          child.includes.add("id");
+        } else if (isComplex(property)) {
+          // Complex objects expand to [*]
+          expandedFields.add(fieldName);
+          FieldsAccumulator child = acc.getOrCreateChild(fieldName);
+          child.includes.add(TOKEN_ALL);
+        }
+      }
+    }
+
+    // Remove the original unexpanded fields, keep the expanded ones
+    acc.includes.removeAll(fieldsToExpand);
+    acc.includes.addAll(expandedFields);
+
+    // Recursively expand child paths
+    for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
+      Schema childSchema = getSchema.apply(schema, entry.getKey());
+      if (childSchema != null) {
+        expandPaths(entry.getValue(), childSchema, getSchema);
+      }
+    }
+  }
+
+  private static boolean needsExpansion(Property property) {
+    return isReference(property) || isComplex(property);
+  }
+
+  private static boolean isReference(Property property) {
+    return property.is(PropertyType.REFERENCE) || property.itemIs(PropertyType.REFERENCE);
+  }
+
+  private static boolean isComplex(Property property) {
+    return property.is(PropertyType.COMPLEX) || property.itemIs(PropertyType.COMPLEX);
   }
 
   /** Maps in depth-first search order each field and its children to {@link Fields}. */

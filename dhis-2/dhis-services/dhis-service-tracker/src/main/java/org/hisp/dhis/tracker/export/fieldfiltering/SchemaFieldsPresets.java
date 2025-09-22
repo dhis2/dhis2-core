@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.fieldfiltering;
 
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,44 +48,36 @@ public class SchemaFieldsPresets {
 
   @Nonnull
   public static Set<String> mapSimple(@Nonnull Schema schema) {
-    return schema.getProperties().stream()
-        .filter(p -> p.getPropertyType().isSimple())
-        .map(SchemaFieldsPresets::toFieldName)
-        .collect(Collectors.toSet());
+    return propertyFieldNames(schema, p -> p.getPropertyType().isSimple());
   }
 
   @Nonnull
   public static Set<String> mapIdentifiable(@Nonnull Schema schema) {
     Set<String> identifiableFields =
         Set.of("id", "name", "code", "created", "lastUpdated", "lastUpdatedBy");
-    return schema.getProperties().stream()
-        .filter(p -> identifiableFields.contains(p.getName()))
-        .map(SchemaFieldsPresets::toFieldName)
-        .collect(Collectors.toSet());
+    return propertyFieldNames(schema, p -> identifiableFields.contains(p.getName()));
   }
 
   @Nonnull
   public static Set<String> mapNameable(@Nonnull Schema schema) {
     Set<String> nameableFields =
         Set.of("id", "name", "shortName", "description", "code", "created", "lastUpdated");
-    return schema.getProperties().stream()
-        .filter(p -> nameableFields.contains(p.getName()))
-        .map(SchemaFieldsPresets::toFieldName)
-        .collect(Collectors.toSet());
+    return propertyFieldNames(schema, p -> nameableFields.contains(p.getName()));
   }
 
   @Nonnull
   public static Set<String> mapOwner(@Nonnull Schema schema) {
-    return schema.getProperties().stream()
-        .filter(Property::isOwner)
-        .map(SchemaFieldsPresets::toFieldName)
-        .collect(Collectors.toSet());
+    return propertyFieldNames(schema, Property::isOwner);
   }
 
   @Nonnull
   public static Set<String> mapPersisted(@Nonnull Schema schema) {
+    return propertyFieldNames(schema, Property::isPersisted);
+  }
+
+  private static Set<String> propertyFieldNames(Schema schema, Predicate<Property> filter) {
     return schema.getProperties().stream()
-        .filter(Property::isPersisted)
+        .filter(filter)
         .map(SchemaFieldsPresets::toFieldName)
         .collect(Collectors.toSet());
   }
