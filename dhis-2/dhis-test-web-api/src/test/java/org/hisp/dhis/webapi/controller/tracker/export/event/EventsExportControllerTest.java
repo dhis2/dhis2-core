@@ -255,13 +255,13 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
-        GET("/tracker/events/{id}?fields=orgUnit,status", event.getUid())
+        GET("/tracker/events/{id}?fields=orgUnit,status::rename(state)", event.getUid())
             .content(HttpStatus.OK)
             .as(JsonEvent.class);
 
-    assertHasOnlyMembers(jsonEvent, "orgUnit", "status");
+    assertHasOnlyMembers(jsonEvent, "orgUnit", "state");
     assertEquals(event.getOrganisationUnit().getUid(), jsonEvent.getOrgUnit());
-    assertEquals(event.getStatus().toString(), jsonEvent.getStatus());
+    assertEquals(event.getStatus().toString(), jsonEvent.getString("state").string());
   }
 
   @Test

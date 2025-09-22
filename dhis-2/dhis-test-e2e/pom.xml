@@ -11,15 +11,15 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spotless.version>2.46.1</spotless.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-    <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.4.0</maven-surefire-junit5-tree-reporter.version>
     <junit.version>5.13.4</junit.version>
-    <gson.version>2.13.1</gson.version>
+    <gson.version>2.13.2</gson.version>
     <log4j.version>2.25.1</log4j.version>
     <rest-assured.version>5.5.6</rest-assured.version>
     <jackson.version.databind>2.20.0</jackson.version.databind>
     <jackson.version.annotation>2.20</jackson.version.annotation>
-    <guava.version>33.4.8-jre</guava.version>
+    <guava.version>33.5.0-jre</guava.version>
     <json-tree.version>1.8.1</json-tree.version>
     <epam-reportportal.version>5.3.0</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
@@ -30,14 +30,14 @@
     <json-path.version>2.9.0</json-path.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <lombok.version>1.18.40</lombok.version>
+    <lombok.version>1.18.42</lombok.version>
     <allure.version>2.29.1</allure.version>
     <selenium-java.version>4.35.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.5</httpclient5.version>
     <commons-io.version>2.20.0</commons-io.version>
-    <spring.version>6.2.10</spring.version>
+    <spring.version>6.2.11</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>

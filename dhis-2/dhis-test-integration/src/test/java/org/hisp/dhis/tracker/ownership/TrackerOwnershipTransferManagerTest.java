@@ -79,6 +79,7 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -99,6 +100,8 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
   @Autowired EnrollmentService enrollmentService;
+
+  @Autowired TrackerEventService trackerEventService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -275,14 +278,42 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotHaveAccessToEventWithUserAWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+
+    injectSecurityContextUser(userA);
+    NotFoundException exception =
+        assertThrows(NotFoundException.class, () -> trackerEventService.getEvent(UID.of(event)));
+    assertEquals(
+        String.format("Event with id %s could not be found.", event.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToOwnOrgUnit()
       throws ForbiddenException, NotFoundException, BadRequestException {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
-
     injectSecurityContextUser(userB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityA1),
+            UID.of(programA),
+            TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build());
+
+    assertEquals(trackedEntity.getUid(), trackedEntityA1.getUid());
+    assertNotEmpty(trackedEntity.getEnrollments());
     assertEquals(
-        trackedEntityA1,
-        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1), UID.of(programA), fields));
+        trackedEntityA1Enrollment.getUid(),
+        trackedEntity.getEnrollments().iterator().next().getUid());
+    assertNotEmpty(trackedEntity.getEnrollments().iterator().next().getEvents());
+    assertEquals(
+        event.getUid(),
+        trackedEntity.getEnrollments().iterator().next().getEvents().iterator().next().getUid());
   }
 
   @Test

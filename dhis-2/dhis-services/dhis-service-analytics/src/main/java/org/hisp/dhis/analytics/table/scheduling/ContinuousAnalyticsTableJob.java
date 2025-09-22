@@ -101,7 +101,6 @@ public class ContinuousAnalyticsTableJob implements Job {
 
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
-              .lastYears(parameters.getLastYears())
               .skipResourceTables(false)
               .skipOutliers(parameters.getSkipOutliers())
               .skipTableTypes(parameters.getSkipTableTypes())

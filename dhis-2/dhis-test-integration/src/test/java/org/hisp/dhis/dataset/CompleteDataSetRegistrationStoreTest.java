@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -110,7 +111,7 @@ class CompleteDataSetRegistrationStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName("Get all CompleteDataSetRegistration by CategoryOptionCombo")
-  void testSaveGet() {
+  void testSaveGet() throws ConflictException {
     // given
     CategoryOptionCombo aoc1 = createCategoryOptionCombo('1');
     aoc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
