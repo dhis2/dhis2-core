@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -458,6 +459,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected Map<String, String> toVariableMap(IdentifiableObject object) {
     return Map.of(
+        "teavaluetable", qualifyWithDb("trackedentityattributevalue"),
         "id", String.valueOf(object.getId()),
         "uid", quote(object.getUid()));
   }
@@ -722,6 +724,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String quotedCommaDelimitedString(Collection<String> items) {
     return sqlBuilder.singleQuotedCommaDelimited(items);
+  }
+
+  /**
+   * Qualifies the given table name with the database name if any is configured.
+   *
+   * @param tableName the table name.
+   * @return the qualified table name.
+   */
+  protected String qualifyWithDb(String tableName) {
+    String database = sqlBuilder.getDatabaseName();
+    if (StringUtils.isNotEmpty(database)) {
+      return database + "." + tableName;
+    }
+    return tableName;
   }
 
   // -------------------------------------------------------------------------

@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Map.Entry;
+import lombok.Getter;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
@@ -48,7 +51,6 @@ import lombok.RequiredArgsConstructor;
  * @author Lars Helge Overland
  */
 @Getter
-@RequiredArgsConstructor
 public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   // Constants
@@ -57,8 +59,15 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "\"";
 
-  private final String database;
-  
+  // Database name as extracted from JDBC URL
+  private String databaseName;
+
+  public ClickHouseSqlBuilder() {}
+
+  public ClickHouseSqlBuilder(String analyticsDatabaseUrl) {
+    this.databaseName = resolveDatabaseName(analyticsDatabaseUrl);
+  }
+
   // Database
 
   @Override
@@ -284,9 +293,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * ClickHouse standard true/false predicates against PostgreSQL tables with boolean data type
-   * columns do not work.
-   *
-   * @see https://github.com/ClickHouse/ClickHouse/issues/67080
+   * columns do not work. See this <a
+   * href="https://github.com/ClickHouse/ClickHouse/issues/67080">Clickhouse issue</a> for more
+   * info.
    */
   @Override
   public String isFalse(String alias, String column) {
@@ -438,6 +447,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("drop named collection if exists %s;", quote(name));
   }
 
+  @Override
+  public String getDatabaseName() {
+    return this.databaseName;
+  }
+
   /**
    * Converts the given {@link Map} {@link Entry} to a key value pair string.
    *
@@ -447,5 +461,50 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   private String toPairString(Entry<String, Object> pair) {
     return String.format(
         "%s = %s", quote(pair.getKey()), singleQuote(String.valueOf(pair.getValue())));
+  }
+
+  private static String resolveDatabaseName(String connectionUrl) {
+    if (connectionUrl == null) {
+      throw new IllegalArgumentException("Connection URL cannot be null");
+    }
+
+    connectionUrl = connectionUrl.trim();
+    if (connectionUrl.isEmpty()) {
+      throw new IllegalArgumentException("Connection URL cannot be empty");
+    }
+
+    // Check valid ClickHouse JDBC URL
+    if (!connectionUrl.startsWith("jdbc:clickhouse://")) {
+      throw new IllegalArgumentException("Invalid ClickHouse JDBC URL format");
+    }
+
+    try {
+      // Remove the jdbc: prefix and parse as URI
+      String uriString = connectionUrl.substring("jdbc:".length());
+      URI uri = new URI(uriString);
+
+      String path = uri.getPath();
+
+      // Handle cases where path is null, empty, or just "/"
+      if (path == null || path.isEmpty() || path.equals("/")) {
+        return null; // No database specified
+      }
+
+      // Remove leading slash
+      if (path.startsWith("/")) {
+        path = path.substring(1);
+      }
+
+      // Handle cases where there might be additional path segments
+      // Take only the first segment as the database name
+      String[] pathSegments = path.split("/");
+      String databaseName = pathSegments[0];
+
+      // Return null if the database name is empty after processing
+      return databaseName.isEmpty() ? null : databaseName;
+
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException("Invalid URL format: " + e.getMessage(), e);
+    }
   }
 }
