@@ -208,7 +208,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public boolean supportsUpdateForMultiKey() {
+  public boolean supportsUpdateForMultiKeyTable() {
     return true;
   }
 

@@ -195,7 +195,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public boolean supportsUpdateForMultiKey() {
+  public boolean supportsUpdateForMultiKeyTable() {
     return true;
   }
 

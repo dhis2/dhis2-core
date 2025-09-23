@@ -195,7 +195,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public boolean supportsUpdateForMultiKey() {
+  public boolean supportsUpdateForMultiKeyTable() {
     return false;
   }
 

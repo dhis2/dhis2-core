@@ -709,7 +709,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    boolean supportsUpdate = sqlBuilder.supportsUpdateForMultiKey();
+    boolean supportsUpdate = sqlBuilder.supportsUpdateForMultiKeyTable();
     AggregationLevelsHelper helper = new AggregationLevelsHelper(jdbcTemplate, sqlBuilder);
     helper.applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
   }
