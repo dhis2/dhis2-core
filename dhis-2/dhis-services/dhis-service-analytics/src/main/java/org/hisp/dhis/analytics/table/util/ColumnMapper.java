@@ -186,10 +186,6 @@ public class ColumnMapper {
     }
   }
 
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
-  }
-
   /**
    * Returns a cast expression which includes a value filter for the given value type.
    *
