@@ -250,6 +250,8 @@ public interface SqlBuilder {
    */
   String qualifyTable(String name);
 
+  String qualifyReplicatedTable(String name);
+
   /**
    * @param timeUnit the time unit as string, e.g. 'hour', 'day', 'year'.
    * @param source the value expression as string of type timestamp or interval.
