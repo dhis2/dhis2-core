@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -95,9 +94,11 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  @Mock private DataApprovalLevelService dataApprovalLevelService;
+
   @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private AnalyticsTableManager subject;
+  private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
   public void setUp() {
@@ -107,7 +108,7 @@ class JdbcAnalyticsTableManagerTest {
             mock(OrganisationUnitService.class),
             mock(CategoryService.class),
             systemSettingManager,
-            mock(DataApprovalLevelService.class),
+            dataApprovalLevelService,
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
             mock(PartitionManager.class),
