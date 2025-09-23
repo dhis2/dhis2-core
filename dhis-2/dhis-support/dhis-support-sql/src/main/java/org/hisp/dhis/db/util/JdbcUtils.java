@@ -44,8 +44,8 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JdbcUtils {
-  private static final String PREFIX_POSTGRESQL = "jdbc:postgresql:";
   private static final String PREFIX_JDBC = "jdbc:";
+  private static final String PREFIX_POSTGRESQL = PREFIX_JDBC + "postgresql:";
   private static final String SLASH = "//";
 
   /**
