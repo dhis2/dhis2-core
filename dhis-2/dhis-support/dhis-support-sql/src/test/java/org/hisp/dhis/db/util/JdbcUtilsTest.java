@@ -50,6 +50,9 @@ class JdbcUtilsTest {
     assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42?characterEncoding=utf8&my_prop=14");
     assertDatabase("emis", "jdbc:ch://play.dhis2.org:8123/emis");
     assertDatabase("logistics", "jdbc:ch://127.0.0.1/logistics");
+    assertDatabase("analytics", "jdbc:clickhouse://localhost:8123/analytics?ssl=true&user=admin");
+    assertDatabase("dhis2", "jdbc:clickhouse://localhost:8123/dhis2?");
+    assertDatabase("dev-copy_2025", "jdbc:clickhouse://localhost:8123/dev-copy_2025");
 
     // MySQL/Apache Doris
     assertDatabase("demo", "jdbc:mysql://12.34.12.34:9030/demo");
@@ -62,8 +65,14 @@ class JdbcUtilsTest {
     assertNull(JdbcUtils.getDatabaseFromUrl(null));
     assertNull(JdbcUtils.getDatabaseFromUrl(""));
     assertNull(JdbcUtils.getDatabaseFromUrl("  "));
+    assertNull(JdbcUtils.getDatabaseFromUrl("invalid-url"));
+    assertNull(JdbcUtils.getDatabaseFromUrl("http://localhost:8123/db"));
+    assertNull(JdbcUtils.getDatabaseFromUrl("clickhouse://localhost:8123/db"));
+    assertNull(JdbcUtils.getDatabaseFromUrl(""));
+    assertNull(JdbcUtils.getDatabaseFromUrl(""));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:postgresql:"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:clickhouse://localhost"));
+    assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:clickhouse://localhost:8123/"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:postgresql://localhost"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:mysql://localhost:3306/"));
   }

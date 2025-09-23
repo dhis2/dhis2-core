@@ -54,7 +54,7 @@ public final class JdbcUtils {
    * @return The database name, or null if it cannot be extracted.
    */
   public static String getDatabaseFromUrl(String jdbcUrl) {
-    if (isBlank(jdbcUrl)) {
+    if (isBlank(jdbcUrl) || !jdbcUrl.startsWith(PREFIX_JDBC)) {
       return null;
     }
 

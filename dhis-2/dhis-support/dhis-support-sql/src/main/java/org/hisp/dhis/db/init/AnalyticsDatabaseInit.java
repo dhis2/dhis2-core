@@ -138,7 +138,7 @@ public class AnalyticsDatabaseInit {
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
             "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
 
-    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder(""); // TODO
+    ClickHouseSqlBuilder clickHouseSqlBuilder = (ClickHouseSqlBuilder) sqlBuilder;
 
     jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
     jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));

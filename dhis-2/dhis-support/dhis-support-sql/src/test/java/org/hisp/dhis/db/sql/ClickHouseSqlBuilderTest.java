@@ -31,7 +31,6 @@ package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,12 +42,7 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class ClickHouseSqlBuilderTest {
   private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder("dhis2");
@@ -496,139 +490,5 @@ class ClickHouseSqlBuilderTest {
     assertEquals(
         "drop named collection if exists \"pg_dhis\";",
         sqlBuilder.dropNamedCollectionIfExists("pg_dhis"));
-  }
-
-  @Nested
-  @DisplayName("Valid Database Name Extraction and Table Qualification")
-  class ValidDatabaseNameTests {
-
-    @Test
-    @DisplayName("Should extract database name from basic URL")
-    void shouldExtractBasicDatabaseName() {
-      String url = "jdbc:clickhouse://localhost:8123/dhis2";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("dhis2", sqlBuilder.getDatabaseName());
-    }
-
-    @Test
-    @DisplayName("Should qualify table with database name from URL with query parameters")
-    void shouldQualifyTableWithQueryParams() {
-      String url = "jdbc:clickhouse://localhost:8123/analytics?ssl=true&user=admin";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("analytics", sqlBuilder.getDatabaseName());
-    }
-
-    @Test
-    @DisplayName("Should qualify table with database name from URL with trailing question mark")
-    void shouldQualifyTableWithTrailingQuestionMark() {
-      String url = "jdbc:clickhouse://localhost:8123/dhis2?";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("dhis2", sqlBuilder.getDatabaseName());
-    }
-
-    @Test
-    @DisplayName("Should handle different ports")
-    void shouldHandleDifferentPorts() {
-      String url = "jdbc:clickhouse://localhost:9440/mydb";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("mydb", sqlBuilder.getDatabaseName());
-    }
-  }
-
-  @Nested
-  @DisplayName("No Database Cases")
-  class NoDatabaseTests {
-
-    @Test
-    @DisplayName("Should handle case when no database is specified (root path)")
-    void shouldHandleRootPath() {
-      String url = "jdbc:clickhouse://localhost:8123/";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertNull(sqlBuilder.getDatabaseName());
-    }
-
-    @Test
-    @DisplayName("Should handle case when no path is specified")
-    void shouldHandleNoPath() {
-      String url = "jdbc:clickhouse://localhost:8123";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      // Assuming it returns just the table name when no database is found
-      // You may need to adjust this based on actual behavior
-      assertNull(sqlBuilder.getDatabaseName());
-    }
-  }
-
-  @Nested
-  @DisplayName("Invalid Input Tests")
-  class InvalidInputTests {
-
-    @Test
-    @DisplayName("Should throw exception for null connection URL")
-    void shouldThrowExceptionForNullUrl() {
-      assertThrows(IllegalArgumentException.class, () -> new ClickHouseSqlBuilder(null));
-    }
-
-    @ParameterizedTest
-    @EmptySource
-    @ValueSource(strings = {"   ", "\t", "\n"})
-    @DisplayName("Should throw exception for empty/whitespace connection URL")
-    void shouldThrowExceptionForEmptyUrl(String url) {
-      assertThrows(IllegalArgumentException.class, () -> new ClickHouseSqlBuilder(url));
-    }
-
-    @ParameterizedTest
-    @ValueSource(
-        strings = {
-          "invalid-url",
-          "http://localhost:8123/db",
-          "clickhouse://localhost:8123/db",
-          "jdbc:mysql://localhost:3306/mysql",
-          "jdbc:postgresql://localhost:5432/postgres"
-        })
-    @DisplayName("Should throw exception for non-ClickHouse JDBC URLs")
-    void shouldThrowExceptionForNonClickHouseUrls(String url) {
-      assertThrows(IllegalArgumentException.class, () -> new ClickHouseSqlBuilder(url));
-    }
-
-    @Test
-    @DisplayName("Should handle null table name without database prefix")
-    void shouldHandleNullTableNameWithoutPrefix() {
-      // URL with no database specified
-      String url = "jdbc:clickhouse://localhost:8123/";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-
-      // When there's no database prefix, null table name returns null
-      String result = sqlBuilder.getDatabaseName();
-      assertNull(result);
-    }
-  }
-
-  @Nested
-  @DisplayName("Edge Cases")
-  class EdgeCaseTests {
-
-    @Test
-    @DisplayName("Should handle URL with whitespace around it")
-    void shouldHandleUrlWithWhitespace() {
-      String url = "  jdbc:clickhouse://localhost:8123/trimmed_db  ";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("trimmed_db", sqlBuilder.getDatabaseName());
-    }
-
-    @Test
-    @DisplayName("Should handle table names with special characters")
-    void shouldHandleTableWithSpecialCharacters() {
-      String url = "jdbc:clickhouse://localhost:8123/mydb";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("mydb", sqlBuilder.getDatabaseName());
-    }
-
-    @Test
-    @DisplayName("Should handle database name with special characters")
-    void shouldHandleDatabaseWithSpecialCharacters() {
-      String url = "jdbc:clickhouse://localhost:8123/db-name_123";
-      ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder(url);
-      assertEquals("db-name_123", sqlBuilder.getDatabaseName());
-    }
   }
 }
