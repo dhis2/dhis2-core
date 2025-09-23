@@ -265,7 +265,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
-    UserDetails userDetails = incorrectCaptureScopeUser();
 
     validator.validate(reporter, bundle, trackedEntity);
 

@@ -203,7 +203,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasErrors(importReport, 13, ValidationCode.E1001);
+    assertHasErrors(importReport, 13, ValidationCode.E1003);
   }
 
   @Test
