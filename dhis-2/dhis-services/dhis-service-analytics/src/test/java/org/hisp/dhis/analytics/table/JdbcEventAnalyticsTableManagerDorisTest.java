@@ -202,11 +202,22 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as datetime(3)) end as `%s`";
     String aliasE = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";
     String aliasF =
-        "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value'))) as `%s`";
+        """
+        (select ou.name from dhis2.public.`organisationunit` ou \
+        where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value'))) as `%s`\
+        """;
     String aliasG =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) end as `%s`";
     String legendsetAlias =
-        " (select l.uid   from   dhis2.public.`maplegend` l   join   trackedentityattributevalue av          on av.trackedentityattributeid=0          and value regexp '^(-?[0-9]+)(\\.[0-9]+)?$'         and l.maplegendsetid=0         and l.startvalue <= CAST(av.value AS DECIMAL)         and l.endvalue   > CAST(av.value AS DECIMAL)   where av.trackedentityid = en.trackedentityid   limit  1) as %s";
+        """
+        \s(select l.uid from dhis2.public.`maplegend` l \
+        inner join trackedentityattributevalue av on av.trackedentityattributeid=0 \
+        and value regexp '^(-?[0-9]+)(\\.[0-9]+)?$' \
+        and l.maplegendsetid=0 \
+        and l.startvalue <= CAST(av.value AS DECIMAL) \
+        and l.endvalue > CAST(av.value AS DECIMAL) \
+        where av.trackedentityid = en.trackedentityid limit 1) as %s\
+        """;
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
