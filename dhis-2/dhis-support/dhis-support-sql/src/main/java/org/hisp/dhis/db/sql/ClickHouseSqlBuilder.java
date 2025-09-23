@@ -474,7 +474,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
       throw new IllegalArgumentException("Connection URL cannot be empty");
     }
 
-    // Check if it's a ClickHouse JDBC URL
+    // Check valid ClickHouse JDBC URL
     if (!connectionUrl.startsWith("jdbc:clickhouse://")) {
       throw new IllegalArgumentException("Invalid ClickHouse JDBC URL format");
     }
