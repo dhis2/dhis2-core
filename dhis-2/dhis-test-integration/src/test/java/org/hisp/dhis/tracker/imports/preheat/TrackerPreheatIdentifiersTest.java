@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -95,7 +94,7 @@ class TrackerPreheatIdentifiersTest extends PostgresIntegrationTestBase {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event =
+      TrackerEvent event =
           TrackerEvent.builder()
               .event(UID.generate())
               .orgUnit(param.toMetadataIdentifier(id))
@@ -115,7 +114,7 @@ class TrackerPreheatIdentifiersTest extends PostgresIntegrationTestBase {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event =
+      TrackerEvent event =
           TrackerEvent.builder()
               .event(UID.generate())
               .programStage(param.toMetadataIdentifier(id))
@@ -138,7 +137,7 @@ class TrackerPreheatIdentifiersTest extends PostgresIntegrationTestBase {
       TrackerIdSchemeParam param = pair.getRight();
       DataValue dv1 =
           DataValue.builder().dataElement(param.toMetadataIdentifier(id)).value("val1").build();
-      Event event =
+      TrackerEvent event =
           TrackerEvent.builder()
               .event(UID.generate())
               .programStage(MetadataIdentifier.ofUid("NpsdDv6kKSO"))
@@ -160,7 +159,7 @@ class TrackerPreheatIdentifiersTest extends PostgresIntegrationTestBase {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event =
+      TrackerEvent event =
           TrackerEvent.builder()
               .event(UID.generate())
               .attributeCategoryOptions(Set.of(param.toMetadataIdentifier(id)))
@@ -182,7 +181,7 @@ class TrackerPreheatIdentifiersTest extends PostgresIntegrationTestBase {
     for (Pair<String, TrackerIdSchemeParam> pair : data) {
       String id = pair.getLeft();
       TrackerIdSchemeParam param = pair.getRight();
-      Event event =
+      TrackerEvent event =
           TrackerEvent.builder()
               .event(UID.generate())
               .attributeOptionCombo(param.toMetadataIdentifier(id))

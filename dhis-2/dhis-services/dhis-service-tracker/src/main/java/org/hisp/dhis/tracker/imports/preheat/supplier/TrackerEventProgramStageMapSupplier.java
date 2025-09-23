@@ -34,6 +34,7 @@ import java.util.Objects;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
+public class TrackerEventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
   private static final String PS_UID = "programStageUid";
 
   private static final String PI_UID = "enrollmentUid";
@@ -62,14 +63,14 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           + " "
           + " from enrollment as en "
           + " join programstage as ps on en.programid = ps.programid "
-          + " join event as ev on en.enrollmentid = ev.enrollmentid "
+          + " join trackerevent as ev on en.enrollmentid = ev.enrollmentid "
           + " where ev.deleted = false "
           + " and ev.status != 'SKIPPED' "
           + " and ps.programstageid = ev.programstageid "
           + " and ps.uid in (:programStageUids) "
           + " and en.uid in (:enrollmentUids) ";
 
-  protected EventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
+  protected TrackerEventProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
   }
 
@@ -87,7 +88,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
             .map(ProgramStage::getProgram)
             .filter(Objects::nonNull)
             .map(program -> preheat.getProgram(program.getUid()))
-            .filter(program -> program != null && program.isRegistration())
+            .filter(Objects::nonNull)
             .flatMap(program -> program.getProgramStages().stream())
             .map(ProgramStage::getUid)
             .distinct()
@@ -95,7 +96,7 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
 
     List<UID> enrollmentUids =
         trackerObjects.getEvents().stream()
-            .map(Event::getEnrollment)
+            .map(TrackerEvent::getEnrollment)
             .filter(Objects::nonNull)
             .distinct()
             .toList();
@@ -108,7 +109,9 @@ public class EventProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
           SQL,
           parameters,
           (RowCallbackHandler)
-              rs -> preheat.addProgramStageWithEvents(rs.getString(PS_UID), rs.getString(PI_UID)));
+              rs ->
+                  preheat.addProgramStageWithTrackerEvents(
+                      rs.getString(PS_UID), rs.getString(PI_UID)));
     }
   }
 }

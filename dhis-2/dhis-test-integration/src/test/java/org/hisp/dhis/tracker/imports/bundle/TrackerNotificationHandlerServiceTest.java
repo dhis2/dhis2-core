@@ -196,7 +196,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(UID.generate())
             .build();
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
@@ -232,7 +232,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     assertContainsOnly(
         List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
 
-    org.hisp.dhis.tracker.imports.domain.Event eventUpdated =
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent eventUpdated =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))

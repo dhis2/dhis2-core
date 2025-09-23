@@ -98,7 +98,6 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
@@ -107,7 +106,10 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.SingleEventStore;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -125,6 +127,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.event.EventChangeLog;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -174,12 +177,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IndicatorStore indicatorStore;
   @Autowired private DataEntryFormStore dataEntryFormStore;
   @Autowired private ProgramIndicatorStore programIndicatorStore;
-  @Autowired private EventStore eventStore;
+  @Autowired private TrackerEventStore trackerEventStore;
+  @Autowired private SingleEventStore singleEventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
+  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private DataElement deSource1;
@@ -1283,8 +1288,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   // -----------------------------
   @Test
   @DisplayName(
-      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
-  void eventMergeTest() throws ConflictException {
+      "Tracker event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
+  void trackerEventMergeTest() throws ConflictException {
     // given
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
     identifiableObjectManager.save(trackedEntityType);
@@ -1344,7 +1349,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<TrackerEvent> eventSources =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -1357,7 +1362,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
             .toList();
 
     List<TrackerEvent> targetEvents =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -1392,8 +1397,111 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
-  void eventMergeDiscardTest() throws ConflictException {
+      "Single event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
+  void singleEventMergeTest() throws ConflictException {
+    // given
+    ProgramStage stage = createProgramStage('s', program);
+    identifiableObjectManager.save(stage);
+
+    SingleEvent e1 = createSingleEvent(stage, ou1);
+    e1.setAttributeOptionCombo(coc1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
+    e2.setAttributeOptionCombo(coc1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
+    e3.setAttributeOptionCombo(coc1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
+    e4.setAttributeOptionCombo(coc1);
+
+    EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    DataElement anotherDe1 = createDataElement('q');
+    DataElement anotherDe2 = createDataElement('r');
+    identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
+    EventDataValue edv5 = new EventDataValue(anotherDe1.getUid(), "value4");
+    EventDataValue edv6 = new EventDataValue(anotherDe2.getUid(), "value5");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    edvs1.add(edv3);
+    edvs1.add(edv5);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    Set<EventDataValue> edvs4 = new HashSet<>();
+    edvs2.add(edv2);
+    edvs2.add(edv6);
+    edvs3.add(edv3);
+    edvs4.add(edv4);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    e4.setEventDataValues(edvs4);
+    identifiableObjectManager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
+
+    // then
+    List<SingleEvent> eventSources =
+        singleEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
+
+    List<SingleEvent> targetEvents =
+        singleEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
+        targetEvents.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .collect(
+                Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
+
+    assertEquals(
+        3, allTargetEventDataValues.get(true).size(), "3 target EventDataValues are present");
+    assertEquals(
+        2,
+        allTargetEventDataValues.get(false).size(),
+        "2 unrelated EventDataValues are still present");
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(3, targetEvents.size(), "Expect 3 entries with target data element refs");
+    assertEquals(6, allDataElements.size(), "Expect 6 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "Tracker event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
+  void trackerEventMergeDiscardTest() throws ConflictException {
     // given
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
@@ -1455,7 +1563,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<TrackerEvent> eventSources =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -1467,7 +1575,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                 })
             .toList();
     List<TrackerEvent> targetEvents =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -1478,7 +1586,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                 })
             .toList();
     List<TrackerEvent> randomEvents =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -1517,8 +1625,126 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Last updated Event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
-  void eventMergeSourcesDeletedTest() throws ConflictException {
+      "Single event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
+  void singleEventMergeDiscardTest() throws ConflictException {
+    // given
+    ProgramStage stage = createProgramStage('s', program);
+    identifiableObjectManager.save(stage);
+
+    SingleEvent e1 = createSingleEvent(stage, ou1);
+    e1.setAttributeOptionCombo(coc1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
+    e2.setAttributeOptionCombo(coc1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
+    e3.setAttributeOptionCombo(coc1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
+    e4.setAttributeOptionCombo(coc1);
+
+    EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    DataElement anotherDe1 = createDataElement('q');
+    DataElement anotherDe2 = createDataElement('r');
+    identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
+    EventDataValue edv5 = new EventDataValue(anotherDe1.getUid(), "value4");
+    EventDataValue edv6 = new EventDataValue(anotherDe2.getUid(), "value5");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    edvs1.add(edv3);
+    edvs1.add(edv5);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    Set<EventDataValue> edvs4 = new HashSet<>();
+    edvs2.add(edv2);
+    edvs2.add(edv6);
+    edvs3.add(edv3);
+    edvs4.add(edv4);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    e4.setEventDataValues(edvs4);
+    identifiableObjectManager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+
+    // when
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
+
+    // then
+    List<SingleEvent> eventSources =
+        singleEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
+    List<SingleEvent> targetEvents =
+        singleEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
+    List<SingleEvent> randomEvents =
+        singleEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deRandom.getUid()));
+                })
+            .toList();
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
+        targetEvents.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .collect(
+                Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
+
+    assertEquals(
+        2, allTargetEventDataValues.get(true).size(), "2 target EventDataValues are present");
+    assertEquals(
+        1,
+        allTargetEventDataValues.get(false).size(),
+        "1 unrelated EventDataValue is still present");
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(2, targetEvents.size(), "Expect 2 entries with target data element refs");
+    assertEquals(1, randomEvents.size(), "Expect 1 entry with random data element ref");
+    assertEquals(
+        1,
+        randomEvents.get(0).getEventDataValues().size(),
+        "Expect 1 event data value with random data element ref");
+    assertEquals(6, allDataElements.size(), "Expect 6 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "Last updated Tracker event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
+  void trackerEventMergeSourcesDeletedTest() throws ConflictException {
     // given
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
@@ -1585,7 +1811,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<TrackerEvent> eventSources =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -1597,7 +1823,129 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
                 })
             .toList();
     List<TrackerEvent> targetEvents =
-        eventStore.getAll().stream()
+        trackerEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
+        targetEvents.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .collect(
+                Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
+
+    assertTrue(
+        allTargetEventDataValues.get(true).stream()
+            .map(EventDataValue::getLastUpdated)
+            .collect(Collectors.toSet())
+            .containsAll(
+                Set.of(DateUtils.parseDate("2024-12-16"), DateUtils.parseDate("2024-10-16"))),
+        "latest all merged data values have expected last updated dates");
+    assertTrue(
+        Collections.disjoint(
+            allTargetEventDataValues.get(true).stream()
+                .map(EventDataValue::getLastUpdated)
+                .collect(Collectors.toSet()),
+            Set.of(DateUtils.parseDate("2024-08-13"), DateUtils.parseDate("2024-08-16"))),
+        "earlier data values are not present");
+    assertEquals(
+        3, allTargetEventDataValues.get(true).size(), "3 target EventDataValues are present");
+    assertEquals(
+        2,
+        allTargetEventDataValues.get(false).size(),
+        "2 unrelated EventDataValues are still present");
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(3, targetEvents.size(), "Expect 3 entries with target data element refs");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.contains(deTarget));
+    assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "Last updated Single event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
+  void singleEventMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    ProgramStage stage = createProgramStage('t', program);
+    identifiableObjectManager.save(stage);
+
+    SingleEvent e1 = createSingleEvent(stage, ou1);
+    e1.setAttributeOptionCombo(coc1);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
+    e2.setAttributeOptionCombo(coc1);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
+    e3.setAttributeOptionCombo(coc1);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
+    e4.setAttributeOptionCombo(coc1);
+
+    EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    edv1.setLastUpdated(DateUtils.parseDate("2024-08-13"));
+    EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    edv11.setLastUpdated(DateUtils.parseDate("2024-08-16"));
+    EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    edv2.setLastUpdated(DateUtils.parseDate("2024-12-16"));
+    EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    edv3.setLastUpdated(DateUtils.parseDate("2024-10-16"));
+    EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    edv4.setLastUpdated(DateUtils.parseDate("2024-11-16"));
+    DataElement anotherDe1 = createDataElement('q');
+    DataElement anotherDe2 = createDataElement('r');
+    identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
+    EventDataValue edv5 = new EventDataValue(anotherDe1.getUid(), "value4");
+    EventDataValue edv6 = new EventDataValue(anotherDe2.getUid(), "value5");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    edvs1.add(edv3);
+    edvs1.add(edv5);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    Set<EventDataValue> edvs4 = new HashSet<>();
+    edvs2.add(edv2);
+    edvs2.add(edv6);
+    edvs3.add(edv3);
+    edvs4.add(edv4);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    e4.setEventDataValues(edvs4);
+    identifiableObjectManager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
+
+    // then
+    List<SingleEvent> eventSources =
+        singleEventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
+    List<SingleEvent> targetEvents =
+        singleEventStore.getAll().stream()
             .filter(
                 e -> {
                   Set<String> collect =
@@ -2536,8 +2884,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   // --------------------------------------
   @Test
   @DisplayName(
-      "EventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
-  void eventChangeLogMergeTest() throws ConflictException, NotFoundException, BadRequestException {
+      "TrackerEventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
+  void trackerEventChangeLogMergeTest()
+      throws ConflictException, NotFoundException, BadRequestException {
     // given
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
     identifiableObjectManager.save(trackedEntityType);
@@ -2577,6 +2926,56 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     List<EventChangeLog> targetEventChangeLogs =
         filterByDataElement(
             trackerEventChangeLogService
+                .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
+                .getItems(),
+            Set.of(deTarget.getUid()));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(4, sourceEventChangeLogs.size(), "Expect 4 entries with source data element refs");
+    assertEquals(1, targetEventChangeLogs.size(), "Expect 1 entry with target data element ref");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "SingleEventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
+  void singleEventChangeLogMergeTest()
+      throws ConflictException, NotFoundException, BadRequestException {
+    // given
+    ProgramStage stage = createProgramStage('s', program);
+    identifiableObjectManager.save(stage);
+    SingleEvent e = createSingleEvent(stage, ou1);
+    e.setAttributeOptionCombo(coc1);
+    identifiableObjectManager.save(e);
+    EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
+    PageParams pageParams = PageParams.of(1, 50, false);
+
+    addEventChangeLog(e, deSource1, "1");
+    addEventChangeLog(e, deSource1, "2");
+    addEventChangeLog(e, deSource2, "1");
+    addEventChangeLog(e, deSource2, "2");
+    addEventChangeLog(e, deTarget, "1");
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = dataElementMergeService.processMerge(mergeParams);
+
+    // then
+    List<EventChangeLog> sourceEventChangeLogs =
+        filterByDataElement(
+            singleEventChangeLogService
+                .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
+                .getItems(),
+            Set.of(deSource1.getUid(), deSource2.getUid()));
+
+    List<EventChangeLog> targetEventChangeLogs =
+        filterByDataElement(
+            singleEventChangeLogService
                 .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
                 .getItems(),
             Set.of(deTarget.getUid()));
@@ -2651,6 +3050,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
     trackerEventChangeLogService.addEventChangeLog(
+        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+  }
+
+  private void addEventChangeLog(SingleEvent event, DataElement dataElement, String currentValue) {
+    singleEventChangeLogService.addEventChangeLog(
         event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 

@@ -1706,11 +1706,11 @@ public abstract class TestBase {
   }
 
   public static SingleEvent createSingleEvent(
-      ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
+      ProgramStage programStage, OrganisationUnit organisationUnit) {
     SingleEvent event = new SingleEvent();
     event.setAutoFields();
+    event.setOccurredDate(new Date());
     event.setProgramStage(programStage);
-    event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
     if (categoryService != null) {
       event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());

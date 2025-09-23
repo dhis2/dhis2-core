@@ -89,7 +89,7 @@ class TrackerEventOperationParamsMapper {
   public TrackerEventQueryParams map(
       @Nonnull TrackerEventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage =
         validateProgramStage(
             applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
