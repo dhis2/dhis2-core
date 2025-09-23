@@ -173,7 +173,7 @@ public class OpenApiRenderer {
               Map.of("id", "body", "content-", ""),
               () -> {
                 renderPageMenu();
-                renderPageHeader();
+                // renderPageHeader();
                 renderPathOperations();
                 renderComponentsSchemas();
               });
@@ -182,21 +182,21 @@ public class OpenApiRenderer {
 
   private void renderPageMenu() {
     appendTag(
-        "nav",
+        "header",
         () -> {
-          renderMenuHeader();
-          renderMenuScope();
-          renderMenuDisplay();
-          renderMenuHotkeys();
+          appendTag("h1", "OpenAPI");
+          appendTag(
+              "nav",
+              () -> {
+                renderMenuScope();
+                renderMenuDisplay();
+                renderMenuHotkeys();
+              });
         });
   }
 
-  private void renderMenuHeader() {
-    appendTag("header", () -> appendTag("h1", api.info().version()));
-  }
-
   private void renderMenuScope() {
-    renderMenuGroup(
+    renderMenuTab(
         "scope",
         () -> appendRaw("Scope"),
         () -> stats.classifications().classifiers().forEach(this::renderScopeMenuItem));
@@ -226,11 +226,11 @@ public class OpenApiRenderer {
   }
 
   private void renderMenuHotkeys() {
-    renderMenuGroup("hotkeys", () -> appendRaw(" Hotkeys"), () -> {});
+    renderMenuTab("hotkeys", () -> appendRaw(" Hotkeys"), () -> {});
   }
 
   private void renderMenuDisplay() {
-    renderMenuGroup(
+    renderMenuTab(
         null,
         () -> appendRaw("Display"),
         () -> {
@@ -284,10 +284,11 @@ public class OpenApiRenderer {
         });
   }
 
-  private void renderMenuGroup(String id, Runnable renderSummary, Runnable renderBody) {
+  private void renderMenuTab(String id, Runnable renderSummary, Runnable renderBody) {
     appendDetails(
         id,
-        true,
+        "menu",
+        false,
         "",
         () -> {
           appendSummary(null, "", renderSummary::run);
@@ -501,10 +502,9 @@ public class OpenApiRenderer {
       renderSchemaSignature(request);
       appendCode("request secondary", "}");
     }
-    appendCode("response secondary", "::");
-    renderMediaSubTypesIndicator(op.responseMediaSubTypes());
     List<SchemaObject> successOneOf = op.responseSuccessSchemas();
     if (!successOneOf.isEmpty()) {
+      appendCode("response secondary", "=>");
       renderSchemaSignature(successOneOf);
     }
     String summary = op.summary();
@@ -522,18 +522,6 @@ public class OpenApiRenderer {
     }
   }
 
-  private void renderMediaSubTypesIndicator(Collection<String> subTypes) {
-    if (subTypes.isEmpty()) return;
-    appendCode(
-        "http content",
-        () -> {
-          appendSpan(subTypes.contains("json") ? "on" : "", "JSON");
-          appendSpan(subTypes.contains("xml") ? "on" : "", "XML");
-          appendSpan(subTypes.contains("csv") ? "on" : "", "CSV");
-          appendSpan(subTypes.stream().anyMatch(t -> !t.matches("xml|json|csv")) ? "on" : "", "*");
-        });
-  }
-
   private static String getUrlPathInSections(String path) {
     return path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
         .replaceAll("#([a-zA-Z0-9_]+)", "<small>#<span>$1</span></small>");
@@ -541,7 +529,7 @@ public class OpenApiRenderer {
 
   private void renderOperationSectionHeader(String text, String title) {
     Map<String, String> attrs =
-        Map.ofEntries(entry("class", "url secondary"), entry("title", title));
+        Map.ofEntries(entry("class", "request secondary"), entry("title", title));
     appendTag("h4", () -> appendTag("code", attrs, text));
   }
 
@@ -674,7 +662,7 @@ public class OpenApiRenderer {
     JsonMap<ResponseObject> responses = op.responses();
     if (responses.isUndefined() || responses.isEmpty()) return;
 
-    renderOperationSectionHeader("::", "Responses");
+    renderOperationSectionHeader("=>", "Responses");
     responses.entries().forEach(e -> renderResponse(op, e.getKey(), e.getValue()));
   }
 
@@ -894,6 +882,7 @@ public class OpenApiRenderer {
         "schema box " + schema.$type(),
         () -> {
           appendSummary(schema.getSharedName(), "", () -> renderComponentSchemaSummary(schema));
+          // TODO change usages into a section in the schema (that still is computed by JS)
           renderBoxToolbar(
               () -> {
                 Map<String, String> attrs =
@@ -1011,8 +1000,17 @@ public class OpenApiRenderer {
   }
 
   private void appendDetails(@CheckForNull String id, boolean open, String style, Runnable body) {
+    appendDetails(id, null, open, style, body);
+  }
+
+  private void appendDetails(
+      @CheckForNull String id, String name, boolean open, String style, Runnable body) {
     Map<String, String> attrs =
-        Map.of("class", style, "id", id == null ? "" : id, open ? "open" : "", "");
+        Map.ofEntries(
+            Map.entry("class", style),
+            Map.entry("id", id == null ? "" : id),
+            Map.entry(open ? "open" : "", ""),
+            Map.entry("name", name == null ? "" : name));
     appendTag("details", attrs, body);
   }
 
@@ -1090,13 +1088,13 @@ public class OpenApiRenderer {
    * value.
    */
   private static final Set<String> ATTR_NAMES_IGNORE_WHEN_EMPTY =
-      Set.of("class", "title", "target", "id");
+      Set.of("class", "title", "target", "id", "name");
 
   private void appendAttr(String name, String value) {
     if (name == null || name.isEmpty()) return;
     boolean emptyValue = value == null || value.isEmpty();
     if (emptyValue && ATTR_NAMES_IGNORE_WHEN_EMPTY.contains(name))
-      return; // optimisation to prevent rendering `class` without a value
+      return; // optimisation to prevent rendering `class` (and others) without a value
     out.append(' ').append(name);
     if (!emptyValue) {
       out.append('=').append('"');

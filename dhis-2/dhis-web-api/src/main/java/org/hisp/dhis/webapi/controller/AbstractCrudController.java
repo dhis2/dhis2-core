@@ -165,14 +165,11 @@ public abstract class AbstractCrudController<
    * removed.
    */
   @Beta
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(JsonPatch.class)
   @ResponseBody
   @PatchMapping(path = "/{uid}", consumes = "application/json-patch+json")
   public WebMessage patchObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws ForbiddenException,
