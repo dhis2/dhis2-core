@@ -1002,13 +1002,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201901")));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "ouA",
             List.of(createOrganisationUnit('A')));
