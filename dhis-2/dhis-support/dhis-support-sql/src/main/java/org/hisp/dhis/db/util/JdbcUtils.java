@@ -30,6 +30,7 @@
 package org.hisp.dhis.db.util;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.net.URI;
@@ -78,7 +79,7 @@ public final class JdbcUtils {
       String path = uri.getPath();
 
       // Path is typically "/<database_name>"
-      if (path != null && path.length() > 1) {
+      if (isNotBlank(path) && path.length() > 1) {
         // Remove leading slash and return the database name
         return trimToNull(path.substring(1));
       }
