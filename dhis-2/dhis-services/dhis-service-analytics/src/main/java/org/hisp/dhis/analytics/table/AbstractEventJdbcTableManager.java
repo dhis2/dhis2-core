@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -153,11 +154,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected String qualifyResourceTables(String sqlSnippet) {
 
-    if (sqlSnippet == null) {
-      return null;
-    }
-
-    if (sqlSnippet.trim().isEmpty()) {
+    if (StringUtils.isEmpty(sqlSnippet)) {
       return sqlSnippet;
     }
 
