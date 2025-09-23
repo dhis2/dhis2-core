@@ -62,13 +62,11 @@ public final class JdbcUtils {
     // Handle PostgreSQL simple format without host and port
     if (jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains(SLASH)) {
       String databasePart = jdbcUrl.substring(PREFIX_POSTGRESQL.length());
-
       int queryIndex = databasePart.indexOf('?');
 
       if (queryIndex != -1) {
         return databasePart.substring(0, queryIndex);
       }
-
       return trimToNull(databasePart);
     }
 
